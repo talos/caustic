@@ -9,70 +9,137 @@ $(document).ready(function() {
 	initialize();
     });
 
-//var containerClass = 'container';
 var addClass = 'add';
 var deleteClass = 'delete';
 var deletableClass = 'deletable';
 var dataClass = 'data';
-var backUrl = 'http://localhost:4567/';
+
+/*
+  availableNamespaces(): Obtain the available namespaces, pass them to a callback as an array.
+  callback: a function called back with the array when it is obtained.
+ */
+var availableNamespaces = function(callback) {
+    $.ajax({
+	    type: 'GET',
+	    url: '/namespace/',
+	    dataType: 'json',
+	    success: function(data) { callback(data); }
+	});
+};
+
+/*
+  availableTypes(): Obtain the available types, pass them to a callback as an array.
+  callback:  a function called back with the array when it is obtained.
+*/
+var availableTypes = function(callback) {
+    $.ajax({
+	    type: 'GET',
+	    url: '/type/',
+	    dataType: 'json',
+	    success: function(data) { callback(data); }
+	});
+};
+
+/*
+  availableTypesForNamespace(): Obtain the already existing types within a namespace,
+  pass them to a callback as an array.
+  namespace: the namespace, as a string.
+  callback: a function called back with the array when it is obtained.
+*/
+var availableTypesForNamespace = function(callback) {
+    $.ajax({
+	    type: 'GET',
+	    url: '/' + namespace + '/type/',
+	    dataType: 'json',
+	    success: function(data) { callback(data); }
+	});
+};
 
 /*
   informationFromData: create an information element on the screen from stored data.
-  namespace: string namespace
-  type: string type
-  defaultFields: hash of default fields
-  gatherers: array of gatherer objects, in data format
-  toFields: array of toFields, in data format
-  toInformations: array of toInformations, in data format
+  namespace: string namespace.
+  type: string type.
+  elem: element to append the information to.
 */
-var informationFromData = function(namespace, type, defaultFields, gatherers,
-			   toFields, toInformations) {
+var informationFromData = function(namespace, type, elem) {
+    $.ajax({
+	    type: 'GET',
+	    url: '/' + namespace + '/' + type,
+	    dataType: 'json',
+	    success: function(information) {
+		var informationElem = $('<div>information</div>').addClass('information').addClass(deletableClass).append(deleteButton());
+		namespaceElem = genericInput('namespace');
+		typeElem = genericInput('type');
+		defaultFieldsElem = $('<div>default fields</div>').attr('id', 'defaultField')
+		.append(addButton(hashElem));
+		gatherersElem = $('<div>gatherers</div>').attr('id', 'gatherer')
+		.append(addButton(gathererFromData));
+		toFieldsElem = $('<div>interpreters to fields</div>').attr('id', 'toField')
+		.append(addButton(toFieldFromData));
+		toInformationsElem = $('<div>interpreters to informations</div>').attr('id', 'toInformation')
+		.append(addButton(toInformationFromData));
 
-    var informationElem = $('<div>information</div>').addClass('information').addClass(deletableClass).append(deleteButton());
-    namespaceElem = genericInput('namespace');
-    typeElem = genericInput('type');
-    defaultFieldsElem = $('<div>default fields</div>').attr('id', 'defaultField')
-    .append(addButton(hashElem));
-    gatherersElem = $('<div>gatherers</div>').attr('id', 'gatherer')
-    .append(addButton(gathererFromData));
-    toFieldsElem = $('<div>interpreters to fields</div>').attr('id', 'toField')
-    .append(addButton(toFieldFromData));
-    toInformationsElem = $('<div>interpreters to informations</div>').attr('id', 'toInformation')
-    .append(addButton(toInformationFromData));
-
-    if(namespace)
-	namespaceElem.val(namespace);
-    if(type)
-	typeElem.val(type);
+		namespaceElem.val(namespace);
+		typeElem.val(type);
+		
+		if(information.defaultFields)
+		    hashToElem(information.defaultFields, defaultFieldsElem);
     
-    if(defaultFields)
-	hashToElem(defaultFields, defaultFieldsElem);
-    
-    if(gatherers) {
-	gatherers.each(function(index) {
-		gatherersElem.append (gathererFromData(gatherers[index]));
-	    });
-    }
-    if(toFields) {
-	toFields.each(function(index) {
-		toFields.append(toFieldFromData(toFields[index]));
-	    });
-    }
-    if(toInformations) {
-	toInformations.each(function(index) {
-		toInformations.append(toInformationFromData(toInformations[index]))
-	    });
-    }
-    
-    informationElem
-    .append(namespaceElem)
-    .append(typeElem)
-    .append(defaultFieldsElem)
-    .append(gatherersElem)
-    .append(toFieldsElem)
-    .append(toInformationsElem);
-    return informationElem;
+		if(information.gatherers) {
+		    information.gatherers.each(function(index) {
+			    gatherersElem.append (gathererFromData(information.gatherers[index]));
+			});
+		}
+		if(information.toFields) {
+		    information.toFields.each(function(index) {
+			    information.toFields.append(toFieldFromData(information.toFields[index]));
+			});
+		}
+		if(information.toInformations) {
+		    information.toInformations.each(function(index) {
+			    information.toInformations.append(toInformationFromData(information.toInformations[index]))
+			});
+		}
+		
+		informationElem
+		.append(namespaceElem)
+		.append(typeElem)
+		.append(defaultFieldsElem)
+		.append(gatherersElem)
+		.append(toFieldsElem)
+		.append(toInformationsElem);
+		.appendTo(elem);
+	    }
+	});
 };
+
+/*
+  informationToData(informationElem): update the data on the server to be current with the Information currently
+displayed on the screen.
+  informationElem: the information element on the screen.
+ */
+var informationToData = function(informationElem) {
+    var informationUrl = '/information/' + 	    
+    informationElem.find('namespace').val() + '/' +
+    informationElem.find('type').val();
+
+    // Delete the existing information.
+    $.ajax({
+	    type: 'DELETE',
+	    url: informationUrl
+	});
+    
+    // Re-post it from scratch.
+    $.ajax({
+	    type: 'POST',
+		url: informationUrl
+	});
+
+    // Add 'toField' data.
+    $.ajax({
+	    type: 'POST',
+		
+}
 
 /*
   toFieldFromData: create a toField element on the screen from stored data.
