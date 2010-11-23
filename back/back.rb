@@ -22,7 +22,7 @@ end
 
 module DataMapper::Resource
   def to_json
-    attributes.to_json
+    export.to_json
   end
 end
 
@@ -35,11 +35,11 @@ class Namespace
 
   is :tree
 
-  def attributes
+  def export
     hash = {}
     
-    hash[:parent] = parent ? parent.attributes[:name] : nil
-    hash[:informations] = informations.collect {|information| information.attributes[:type_name] }
+    hash[:parent] = parent ? parent.attribute_get(:name) : nil
+    hash[:informations] = informations.collect {|information| information.attribute_get(:type_name) }
 
     hash
   end
@@ -55,12 +55,14 @@ class Type
   
   is :tree
 
-  def attributes
+  def export
     hash = {}
     
-    hash[:parent] = parent ? parent.attributes[:name] : nil
-    hash[:informations] = informations.collect {|information| information.attributes[:namespace] }
-    hash[:publishFields] = publish_fields.collect {|publishField| publishField.name }
+    @name = attribute_get(:name)
+    
+    hash[:parent] = parent ? parent.attribute_get(:name) : nil
+    hash[:informations] = informations.collect {|information| information.namespace.attribute_get(:name) }
+    hash[:publishFields] = publish_fields.collect {|publishField| publishField.attribute_get(:name) }
 
     hash
   end
@@ -85,12 +87,25 @@ class Information
   has n, :to_fields
   has n, :to_informations
 
-  def attributes
+  def export
     hash = {}
     
-    hash[:gatherers] = gatherers.collect {|gatherer| gatherer.attributes}
-    hash[:toFields] = to_fields.collect {|toField|  toField.attributes}
-    hash[:toInformations] = to_informations.collect {|toInformation| toInformation.attributes}
+    namespaces = namespace.ancestors.collect { |ns| ns.attribute_get(:name) }.push(namespace.attribute_get(:name))
+    
+    @type = Type.first(:name => type_name)
+    types = @type.ancestors.collect { |t| t.attribute_get(:name) }.push(@type.attribute_get(:name))
+    
+    informations = Information.all(:namespace_name => namespaces, :type_name => types)
+    
+    hash[:defaultFields] = {}
+    hash[:gatherers] = []
+    hash[:toFields] = []
+    hash[:toInformations] = []
+    
+    informations.collect { |information| hash[:defaultFields].merge!(information.default_fields.to_hash(:name, :value)) }
+    informations.collect { |information| hash[:gatherers].push(gatherers.collect {|gatherer| gatherer.export} ).flatten }
+    informations.collect { |information| hash[:toFields].push(information.to_fields.collect {|toField| toField.export} ).flatten }
+    informations.collect { |information| hash[:toInformations].push(information.to_informations.collect {|toInformation| toInformation.export} ).flatten }
     
     hash
   end
@@ -112,6 +127,17 @@ class ToField
   property :match_number, Integer, :key => true
   property :regex, String
   property :destination_field, String, :key => true
+
+  def export
+    hash = {}
+    
+    hash[:inputField] = attribute_get(:input_field)
+    hash[:matchNumber] = attribute_get(:match_number)
+    hash[:regex] = attribute_get(:regex)
+    hash[:destinationField] = attribute_get(:destination_field)
+    
+    hash
+  end
 end
 
 class ToInformation
@@ -122,6 +148,18 @@ class ToInformation
   property :regex, String
   belongs_to :destination_information, :model => 'Information', :key => true
   property :destination_field, String, :key => true
+
+  def export
+    hash = {}
+    
+    hash[:inputField] = attribute_get(:input_field)
+    hash[:regex] = attribute_get(:regex)
+    hash[:destinationNamespace] = destination_information.namespace_name
+    hash[:destinationType] = destination_information.type_name
+    hash[:destinationField] = attribute_get(:destination_field)
+    
+    hash
+  end
 end
 
 class Gatherer
@@ -137,7 +175,7 @@ class Gatherer
 
   is :tree, :order => :name
 
-  def attributes
+  def export
     hash = {}
 
     hash[:urls] = urls.collect { |url| url.value }
@@ -145,8 +183,8 @@ class Gatherer
     hash[:posts] = posts.to_hash(:name, :value)
     hash[:headers] = headers.to_hash(:name, :value)
     hash[:cookies] = cookies.to_hash(:name, :value)
-
-    hash[:parents] = ancestors.collect { |parent| parent.attributes }
+    
+    hash[:parents] = ancestors.collect { |parent| parent.export }
     
     hash
   end
@@ -204,7 +242,7 @@ end
 
 # Get a list of all the available namespaces.
 get '/namespace/' do
-  Namespace.all.collect {|namespace| namespace.attributes[:name] }.to_json
+  Namespace.all.collect {|namespace| namespace.attribute_get(:name) }.to_json
 end
 
 # Get details on a specific namespace.
@@ -214,7 +252,7 @@ end
 
 # Get a list of all the available types.
 get '/type/' do
-  Type.all.collect {|namespace| namespace.attributes[:name] }.to_json
+  Type.all.collect {|namespace| namespace.attribute_get(:name) }.to_json
 end
 
 # Get details on a specific type.
@@ -222,9 +260,9 @@ get '/type/:name' do
   Type.first(:name => params[:name]).to_json
 end
 
-# Get a list of all the available Information.
+# Get a list of all the available Informations.
 get '/information/' do
-  Information.all.collect {|information| [information.attributes[:namespace], information.attributes[:type]] }.to_json
+  Information.all.collect {|information| [information.attribute_get(:namespace), information.attribute_get(:type)] }.to_json
 end
 
 # Get details on a specific Information.
@@ -234,7 +272,7 @@ end
 
 # Get a list of all the available Gatherers.
 get '/gatherer/' do
-  Gatherer.all.collect {|gatherer| gatherer.attributes[:name]}.to_json
+  Gatherer.all.collect {|gatherer| gatherer.attribute_get(:name)}.to_json
 end
 
 # Get details on a specific Gatherer.
