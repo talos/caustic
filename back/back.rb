@@ -26,6 +26,18 @@ module DataMapper::Resource
   end
 end
 
+class DataMapper::Validations::ValidationErrors
+  def to_a
+    collect{ |error| error.to_s }
+  end
+  def to_json
+    to_a.to_json
+  end
+end
+
+# Extend default String length from 50 to 255
+DataMapper::Property::String.length(255)
+
 class Namespace
   include DataMapper::Resource
 
@@ -235,6 +247,7 @@ DataMapper.auto_migrate!
 
 # CONFIG
 configure do
+  set :raise_errors, true
   set :show_exceptions, false
 end
 
@@ -285,15 +298,14 @@ end
 # Create a new namespace.
 post '/namespace/:name' do
   @namespace = Namespace.new(:name => params[:name])
-  
-  @namespace.save.to_s
+  @namespace.save ? @namespace.to_json : {:namespace => @namespace.errors.to_a}.to_json
 end
 
 # Delete a namespace.  This can only be done if there are no dependencies.
 delete '/namespace/:name' do
   @namespace = Namespace.first(:name => params[:name])
   @namespace.delete
-  @namespace.save.to_s
+  @namespace.save ? @namespace.to_json :  {:namespace => @namespace.errors.to_a}.to_json
 end
 
 # Add a parent to a namespace.
@@ -301,15 +313,15 @@ post '/namespace/:child/parent/:parent' do
   @child = Namespace.first(:name => params[:child])
   @parent = Namespace.first(:name => params[:parent])
   @child.parent = @parent
-  @child.save.to_s
+  @child.save ? @child.to_json :  {:child => @child.errors.to_a, :parent => @parent.errors.to_a}.to_json
 end
 
 # Remove a namespace's parent relationship.
 # Does not eliminate the parent.
 delete '/namespace/:child/parent' do
   @child = Namespace.first(:name => params[:child])
-  @child.parent.delete
-  @child.save.to_s
+  @parent = @child.parent.delete
+  @child.save ? @child.to_json : {:child => @child.errors.to_a}.to_json
 end
 
 # Add a child to a namespace.
@@ -317,7 +329,7 @@ post '/namespace/:parent/child/:child' do
   @child = Namespace.first(:name => params[:child])
   @parent = Namespace.first(:name => params[:parent])
   @child.parent = @parent
-  @child.save.to_s  
+  @child.save ? @child.to_json : {:child => @child.errors.to_a, :parent => @parent.errors.to_a}.to_json
 end
 
 # Eliminate the relationship between a namespace and one of its children.
@@ -326,20 +338,20 @@ end
 delete '/namespace/:parent/child/:child' do
   @parent = Namespace.first(:name => params[:parent])
   @parent.children.first(:name => params[:child]).delete
-  @parent.save.to_s
+  @parent.save ? @parent.to_json :  {:parent => @parent.errors.to_a}.to_json
 end
 
 # Create a new type.
 post '/type/:name' do
   @type = Type.new(:name => params[:name])
-  @type.save.to_s
+  @type.save ? @type.to_json : {:type => @type.errors.to_a}.to_json
 end
 
 # Delete a type.  This can only be done if there are no dependencies.
 delete '/type/:name' do
   @type = Type.first(:name => params[:name])
   @type.delete
-  @type.save.to_s
+  @type.save ? @type.to_json : {:type => @type.errors.to_a }.to_json
 end
 
 # Add a parent to a Type.
@@ -347,14 +359,14 @@ post '/type/:child/parent/:parent' do
   @child = Type.first(:name => params[:child])
   @parent = Type.first(:name => params[:parent])
   @child.parent = @parent
-  @child.save.to_s
+  @child.save ? @child.to_json : {:child => @child.errors.to_a, :parent => @parent.errors.to_a}.to_json
 end
 
 # Remove a Type's parent relationship.  Does not eliminate either the child or parent Type.
 delete '/type/:child/parent' do
   @child = Type.first(:name => params[:child])
   @child.parent.delete
-  @child.save.to_s
+  @child.save ? @child.to_json : {:child => @child.errors.to_a}
 end
 
 # Add a child to a Type.
@@ -362,7 +374,7 @@ post '/type/:parent/child/:child' do
   @child = Type.first(:name => params[:child])
   @parent = Type.first(:name => params[:parent])
   @child.parent = @parent
-  @child.save.to_s
+  @child.save ? true : {:child => @child.errors.to_a, :parent => @parent.errors.to_a}.to_json
 end
 
 # Remove a Type's child relationship.  Does not eliminate either the child or parent Type.
@@ -370,22 +382,22 @@ end
 delete '/type/:parent/child/:child' do
   @parent = Type.first(:name => params[:parent])
   @parent.children.first(:name => params[:child]).delete
-  @parent.save.to_s
+  @parent.save ? true : {:parent => @parent.errors.to_a}.to_json
 end
 
 # Add a publishField to a type.
-post '/type/:type/publishField/:publishField' do
+post '/type/:type/publish/:publish_field' do
   @type = Type.first(:name => params[:type])
-  @publishField = PublishField.new(:name => params[:publishField])
-  @type.publish_fields << @publishField
-  @type.save.to_s
+  @publish_field = PublishField.new(:name => params[:publish_field])
+  @type.publish_fields << @publish_field
+  @type.save ? true : {:type => @type.errors.to_a, :publish_field => @publish_field.errors.to_a}.to_json
 end
 
 # Delete a publishField from a type.
-delete '/type/:type/publishField/:publishField' do
+delete '/type/:type/publish/:publish_field' do
   @type = Type.first(:name => params[:type])
-  @type.publish_fields.first(:name => params[:publishField]).destroy
-  @type.save.to_s
+  @type.publish_fields.first(:name => params[:publish_field]).delete
+  @type.save ? true : {:type => @type.errors.to_a}.to_json
 end
 
 # Create a new Information.
@@ -397,17 +409,14 @@ post '/information/:namespace/:type' do
   @namespace.informations << @information
   @type.informations << @information
 
-#  puts @type.save.to_s
-#  puts @namespace.save.to_s
-  
-  @information.save.to_s
-#  @information.save.to_s + ', ' + @type.save.to_s + ', ' + @namespace.save.to_s
+  @information.save ? true : {:information => @information.errors.to_a, :namespace => @namespace.errors.to_a, :type => @type}.to_json
 end
 
 # Delete an Information.
 delete '/information/:namespace/:type' do
   @information = Information.first(:namespace_name => params[:namespace], :type_name => params[:type])
-  @information.destroy.to_s
+  @information.delete
+  @information.save ? true : {:information => @information.errors.to_a}.to_json
 end
 
 # Add a gatherer to an Information.
@@ -416,99 +425,97 @@ post '/information/:namespace/:type/gatherer/:gatherer' do
   @gatherer = Gatherer.first(:name => params[:gatherer])
 
   @information.gatherers << @gatherer
-  @information.save.to_s
+  @information.save ? true : {:information => @information.errors.to_a, :gatherer => @gatherer.errors.to_a}.to_json
 end
 
 # Add a DefaultField to an Information.
-post '/information/:namespace/:type/defaultField/:name' do
+post '/information/:namespace/:type/default/:name' do
   @information = Information.first(:namespace_name => params[:namespace], :type_name => params[:type])
-  @defaultField = DefaultField.new(:name => params[:name], :value => params[:value])
+  @default_field = DefaultField.new(:name => params[:name], :value => params[:value])
   @information.default_fields << @defaultField
-  @information.save.to_s
+  @information.save ? true : {:information => @information.errors.to_a, :default_field => @default_field.errors.to_a }.to_json
 end
 
 # Delete a DefaultField from an Information.
-delete '/information/:namespace/:type/defaultField/:name' do
+delete '/information/:namespace/:type/default/:name' do
   @information = Information.first(:namespace_name => params[:namespace], :type_name => params[:type])
   @information.default_fields.first(:name => params[:name]).delete
-  @information.save.to_s
+  @information.save ? true : {:information => @information.errors.to_a }.to_json
 end
 
 # Add a ToField to an Information.  Regex is inside the post.
 post '/information/:namespace/:type/:input_field/:match_number/to/:destination_field' do
   @information = Information.first(:namespace_name => params[:namespace], :type_name => params[:type])
-  @toField = ToField.new(:input_field => params[:input_field], :match_number => params[:match_number], :regex => params[:regex], :destination_field => params[:destination_field])
-  @information.to_fields << @toField
-  @information.save.to_s
+  @to_field = ToField.new(:input_field => params[:input_field], :match_number => params[:match_number], :regex => params[:regex], :destination_field => params[:destination_field])
+  @information.to_fields << @to_field
+  @information.save ? true : {:information => @information.errors.to_a, :to_field => @to_field.errors.to_a}.to_json
 end
 
 # Delete a ToField from an Information
 delete '/information/:namespace/:type/:input_field/:match_number/to/:destination_field' do
   @information = Information.first(:namespace_name => params[:namespace], :type_name => params[:type])
   @information.to_fields.first(:input_field => params[:input_field], :match_number => params[:match_number], :destination_field => params[:destination_field]).delete
-  @information.save.to_s
+  @information.save ? true : {:information => @information.errors.to_a }.to_json
 end
 
 # Add a ToInformation to an Information.
 post '/information/:namespace/:type/:input_field/to/:destination_namespace/:destination_type/:destination_field' do
   @information = Information.first(:namespace_name => params[:namespace], :type_name => params[:type])
-  @destinationInformation = Information.first(:namespace_name => params[:destination_namespace], :type_name => params[:destination_type])
-  @toInformation = ToInformation.new(:input_field => params[:input_field], :regex => params[:regex], :destination_information => @destinationInformation, :destination_field => params[:destination_field])
-  @information.to_informations << @toInformation
-  @information.save.to_s
+  @destination_information = Information.first(:namespace_name => params[:destination_namespace], :type_name => params[:destination_type])
+  @to_information = ToInformation.new(:input_field => params[:input_field], :regex => params[:regex], :destination_information => @destination_information, :destination_field => params[:destination_field])
+  @information.to_informations << @to_information
+  @information.save ? true : {:information => @information.errors.to_a, :destination_information => @destination_information.errors.to_a, :to_information => @to_information.errors.to_a}.to_json
 end
 
 # Delete a ToInformation from an Information.
 delete '/information/:namespace/:type/:input_field/to/:destination_namespace/:destination_type/:destination_field' do
   @information = Information.first(:namespace_name => params[:namespace], :type_name => params[:type])
-  @destinationInformation = Information.first(:namespace_name => params[:destination_namespace], :type => params[:destination_type])
-  @information.to_informations.first(:input_field => params[:input_field], :destination_information => @destinationInformation,  :destination_field => params[:destination_field]).delete
-  @information.save.to_s
+  @destination_information = Information.first(:namespace_name => params[:destination_namespace], :type => params[:destination_type])
+  @information.to_informations.first(:input_field => params[:input_field], :destination_information => @destination_information,  :destination_field => params[:destination_field]).delete
+  @information.save ? true: {:information => @information.errors.to_a, :destination_information => @destination_information.errors.to_a}.to_json
 end
 
 # Delete a Gatherer from an Information.  Does not eliminate the Gatherer itself.
 delete '/information/:namespace/:type/gatherer/:gatherer' do
   @information = Information.first(:namespace_name => params[:namespace], :type_name => params[:type])
   @information.gatherers.first(:name => params[:gatherer]).delete
-  @information.save.to_s
+  @information.save ? true: {:information => @information.errors.to_a }.to_json
 end
 
 # Create a new Gatherer.
 post '/gatherer/:name' do
   @gatherer = Gatherer.new(:name => params[:name])
-  
-  @gatherer.save.to_s
+  @gatherer.save ? true : {:gatherer => @gatherer.errors.to_a}.to_json
 end
 
 # Delete a Gatherer.
 delete '/gatherer/:name' do
   @gatherer = Gatherer.first(:name => params[:name])
-  @gatherer.destroy.to_s
+  @gatherer.delete
+  @gatherer.save ? true : {:gatherer => @gatherer.errors.to_a}.to_json
 end
 
 # Add a parent to a Gatherer.
 post '/gatherer/:child/parent/:parent' do
   @child =  Gatherer.first(:name => params[:child])
   @parent = Gatherer.first(:name => params[:parent])
-  
   @child.parent = @parent
-  @child.save.to_s
+  @child.save ? true : {:parent => @parent.errors.to_a, :child => @child.errors.to_a }.to_json
 end
 
 # Remove a parent relationship from a Gatherer. Does not eliminate the parent.
 delete '/gatherer/:child/parent' do
   @child =  Gatherer.first(:name => params[:child])
   @child.parent.delete
-  @child.save.to_s
+  @child.save ? true : {:child => @child.errors.to_a}.to_json
 end
 
 # Add a child to a Gatherer.
 post '/gatherer/:parent/child/:child' do
   @child =  Gatherer.first(:name => params[:child])
   @parent = Gatherer.first(:name => params[:parent])
-  
   @child.parent = @parent
-  @child.save.to_s
+  @child.save ? true : {:child => @child.errors.to_a, :parent => @parent.errors.to_a}.to_json
 end
 
 # Remove a child relationship from a Gatherer. Does not eliminate the child.
@@ -516,75 +523,80 @@ end
 delete '/gatherer/:parent/child/:child' do
   @parent = Gatherer.first(:name => params[:parent])
   @parent.children.first(:name => params[:child]).delete
-  @parent.save.to_s
+  @parent.save ? true : {:parent => @parent.errors.to_a}.to_json
 end
 
 # Add a URL to a Gatherer.  Value is in the post data.
 post '/gatherer/:gatherer/url' do
-  @gatherer = Gatherer.first(params[:gatherer])
-  @gatherer.urls.new(:value => params[:value])
-  @gatherer.save.to_s
+  @gatherer = Gatherer.first(:name => params[:gatherer])
+  @url = @gatherer.urls.new(:value => params[:value])
+  @gatherer.save ? true : {:gatherer => @gatherer.errors.to_a, :url => @url.errors.to_a}.to_json
 end
 
 # Delete a URL from a gatherer.
 delete '/gatherer/:gatherer/url/:value' do
-  @gatherer = Gatherer.first(params[:gatherer])
+  @gatherer = Gatherer.first(:name => params[:gatherer])
   @gatherer.urls.first(:value => params[:value]).delete
-  @gatherer.save.to_s
+  @gatherer.save ? true : {:gatherer => @gatherer.errors.to_a}.to_json
 end
 
 # Add a GET to a Gatherer.  Value is in the post data.
 post '/gatherer/:gatherer/get/:name' do
   @gatherer = Gatherer.first(params[:gatherer])
-  @gatherer.gets.new(:name => params[:name], :value => params[:value])
-  @gatherer.save.to_s
+  @get = @gatherer.gets.new(:name => params[:name], :value => params[:value])
+  @gatherer.save ? true : {:gatherer => @gatherer.errors.to_a, :get => @get.errors.to_a}.to_json
 end
 
 # Delete a GET from a Gatherer.
 delete '/gatherer/:gatherer/get/:name' do
   @gatherer = Gatherer.first(params[:gatherer])
   @gatherer.gets.first(:name => params[:name]).delete
-  @gatherer.save.to_s
+  @gatherer.save ? true : {:gatherer => @gatherer.errors.to_a}.to_json
 end
 
 # Add a POST to a Gatherer.  Value is in the post data.
 post '/gatherer/:gatherer/post/:name' do
   @gatherer = Gatherer.first(params[:gatherer])
-  @gatherer.posts.new(:name => params[:name], :value => params[:value])
-  @gatherer.save.to_s
+  @post = @gatherer.posts.new(:name => params[:name], :value => params[:value])
+  @gatherer.save ? true : {:gatherer => @gatherer.errors.to_a, :post => @post.errors.to_a}.to_json
 end
 
 # Delete a POST from a Gatherer.
 delete '/gatherer/:gatherer/post/:name' do
   @gatherer = Gatherer.first(params[:gatherer])
   @gatherer.posts.first(:name => params[:name]).delete
-  @gatherer.save.to_s
+  @gatherer.save ? true : {:gatherer => @gatherer.errors.to_a}.to_json
 end
 
 # Add a Header to a Gatherer.  Value is in the post data.
 post '/gatherer/:gatherer/header/:name' do
   @gatherer = Gatherer.first(params[:gatherer])
-  @gatherer.headers.new(:name => params[:name], :value => params[:value])
-  @gatherer.save.to_s
+  @header = @gatherer.headers.new(:name => params[:name], :value => params[:value])
+  @gatherer.save ? true : {:gatherer => @gatherer.errors.to_a, :header => @header.errors.to_a}.to_json
 end
 
 # Delete a Header from a Gatherer.
 delete '/gatherer/:gatherer/header/:name' do
   @gatherer = Gatherer.first(params[:gatherer])
   @gatherer.headers.first(:name => params[:name]).delete
-  @gatherer.save.to_s
+  @gatherer.save ? true : {:gatherer => @gatherer.errors.to_a}.to_json
 end
 
 # Add a Cookie to a Gatherer. Value is in the post data.
 post '/gatherer/:gatherer/cookie/:name' do
   @gatherer = Gatherer.first(params[:gatherer])
-  @gatherer.cookies.new(:name => params[:name], :value => params[:value])
-  @gatherer.save.to_s
+  @cookie = @gatherer.cookies.new(:name => params[:name], :value => params[:value])
+  @gatherer.save ? true : {:gatherer => @gatherer.errors.to_a, :cookie =>  @cookie.errors.to_a}.to_json
 end
 
 # Delete a Cookie from a Gatherer.
 delete '/gatherer/:gatherer/cookie/:name' do
   @gatherer = Gatherer.first(params[:gatherer])
   @gatherer.cookies.first(:name => params[:name]).delete
-  @gatherer.save.to_s
+  @gatherer.save ? true : {:gatherer => @gatherer.errors.to_a}.to_json
+end
+
+error do
+  puts 'Sinatra Error: ' + env['sinatra.error']
+  'Sinatra Error: ' + env['sinatra.error'].name
 end
