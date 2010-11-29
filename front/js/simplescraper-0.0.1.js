@@ -15,13 +15,13 @@ var deletableClass = 'deletable';
 var dataClass = 'data';
 
 /*
-  availableNamespaces(): Obtain the available namespaces, pass them to a callback as an array.
+  availableAreas(): Obtain the available areas, pass them to a callback as an array.
   callback: a function called back with the array when it is obtained.
  */
-var availableNamespaces = function(callback) {
+var availableAreas = function(callback) {
     $.ajax({
 	    type: 'GET',
-	    url: '/namespace/',
+	    url: '/area/',
 	    dataType: 'json',
 	    success: function(data) { callback(data); }
 	});
@@ -41,47 +41,60 @@ var availableTypes = function(callback) {
 };
 
 /*
-  availableTypesForNamespace(): Obtain the already existing types within a namespace,
+  availableAreasForType(): Obtain the already existing areas within a type,
   pass them to a callback as an array.
-  namespace: the namespace, as a string.
+  area: the area, as a string.
   callback: a function called back with the array when it is obtained.
 */
-var availableTypesForNamespace = function(callback) {
+var availableTypesForArea = function(callback, type) {
     $.ajax({
 	    type: 'GET',
-	    url: '/' + namespace + '/type/',
+	    url: '/type/' + type,
 	    dataType: 'json',
-	    success: function(data) { callback(data); }
+	    success: function(data) { callback(data['areas']); }
 	});
 };
 
 /*
   informationFromData: create an information element on the screen from stored data.
-  namespace: string namespace.
+  area: string area.
   type: string type.
   elem: element to append the information to.
 */
-var informationFromData = function(namespace, type, elem) {
+var informationFromData = function(area, type, elem) {
     $.ajax({
 	    type: 'GET',
-	    url: '/' + namespace + '/' + type,
+	    url: '/' + area + '/' + type,
 	    dataType: 'json',
 	    success: function(information) {
 		var informationElem = $('<div>information</div>').addClass('information').addClass(deletableClass).append(deleteButton());
-		namespaceElem = genericInput('namespace');
-		typeElem = genericInput('type');
-		defaultFieldsElem = $('<div>default fields</div>').attr('id', 'defaultField')
-		.append(addButton(hashElem));
-		gatherersElem = $('<div>gatherers</div>').attr('id', 'gatherer')
-		.append(addButton(gathererFromData));
-		toFieldsElem = $('<div>interpreters to fields</div>').attr('id', 'toField')
-		.append(addButton(toFieldFromData));
-		toInformationsElem = $('<div>interpreters to informations</div>').attr('id', 'toInformation')
-		.append(addButton(toInformationFromData));
-
-		namespaceElem.val(namespace);
-		typeElem.val(type);
+		//		areaElem = genericInput('area');
+		//		typeElem = genericInput('type');
 		
+		var areasElem = $('<div>areas</div>').attr('id', 'area');
+		var typeElem = $('<div>type</div>').attr('id', 'type');
+		
+		var defaultFieldsElem = $('<div>default fields</div>').attr('id', 'default_field')
+		.append(addButton(hashElem));
+		var gatherersElem = $('<div>gatherers</div>').attr('id', 'gatherer')
+		.append(addButton(gathererFromData));
+		var toFieldsElem = $('<div>interpreters to fields</div>').attr('id', 'to_field')
+		.append(addButton(toFieldFromData));
+		var toInformationsElem = $('<div>interpreters to informations</div>').attr('id', 'to_information')
+		.append(addButton(toInformationFromData));
+		
+		//		areasElem.val(area);
+		//		typeElem.val(type);
+		
+		if(information.areas) {
+		    for(area in information.areas) {
+			areasElem.append('<span>' + area + '</span>');
+		    }
+		}
+		if(information.type) {
+		    
+		}
+
 		if(information.defaultFields)
 		    hashToElem(information.defaultFields, defaultFieldsElem);
     
@@ -102,7 +115,7 @@ var informationFromData = function(namespace, type, elem) {
 		}
 		
 		informationElem
-		.append(namespaceElem)
+		.append(areasElem)
 		.append(typeElem)
 		.append(defaultFieldsElem)
 		.append(gatherersElem)
@@ -114,47 +127,21 @@ var informationFromData = function(namespace, type, elem) {
 };
 
 /*
-  informationToData(informationElem): update the data on the server to be current with the Information currently
-displayed on the screen.
-  informationElem: the information element on the screen.
- */
-var informationToData = function(informationElem) {
-    var informationUrl = '/information/' + 	    
-    informationElem.find('namespace').val() + '/' +
-    informationElem.find('type').val();
-
-    // Delete the existing information.
-    $.ajax({
-	    type: 'DELETE',
-	    url: informationUrl
-	});
-    
-    // Re-post it from scratch.
-    $.ajax({
-	    type: 'POST',
-		url: informationUrl
-	});
-
-    // Add 'toField' data.
-    $.ajax({
-	    type: 'POST',
-		
-}
-
-/*
   toFieldFromData: create a toField element on the screen from stored data.
-  inputField: string inputField
-  regex: string regular expression
-  matchNumber: integer match number
-  outputField: output field
+  toField: toField object.
 */
-var toFieldFromData = function(inputField, regex, matchNumber, outputField) {
+var toFieldFromData = function(toField) {
+    var inputField = toField['input_field'];
+    var regex = toField['regex'];
+    var matchNumber = toField['match_number'];
+    var outputField = toField['output_field'];
+
     var toFieldElem = $('<div>interpreter to field</div>').addClass('toField')
     .addClass(deletableClass).append(deleteButton());
-    inputFieldElem = genericInput('inputField');
+    inputFieldElem = genericInput('input_field');
     regexElem = genericInput('regex');
-    matchNumberElem = genericInput('matchNumber');
-    outputFieldElem = genericInput('outputField');
+    matchNumberElem = genericInput('match_number');
+    outputFieldElem = genericInput('output_field');
     
     if(inputField)
 	inputFieldElem.val(inputField);
@@ -172,62 +159,58 @@ var toFieldFromData = function(inputField, regex, matchNumber, outputField) {
     return toFieldElem;
 };
 
-var toFieldToData = function(toFieldElem) {
-};
-
 /*
   toInformationFromData: create a toInformation element on the screen from stored data.
-  inputField: string inputField
-  regex: string regular expression
-  outputNamespace: string namespace
-  outputType: string type
-  outputField: string field
+  toInformation: object
 */
 
-var toInformationFromData = function(inputField, regex, outputNamespace,
-					outputType, outputField) {
+var toInformationFromData = function(toInformation) {
+    var inputField = toInformation['input_field'];
+    var regex = toInformation['regex'];
+    var destinationArea = toInformation['destination_area'];
+    var destinationType = toInformation['destination_type'];
+    var destinationField = toInformation['destination_field'];
+    
     var toInformationElem = $('<div>interpreter to information</div>').addClass('toInformation')
     .addClass(deletableClass).append(deleteButton());
-    inputFieldElem = genericInput('inputField');
-    regexElem = genericInput('regex');
-    outputNamespaceElem = genericInput('outputNamespace');
-    outputTypeElem = genericInput('outputType');
-    outputFieldElem = genericInput('outputField');
+    var inputFieldElem = genericInput('input_field');
+    var regexElem = genericInput('regex');
+    var destinationAreaElem = genericInput('destination_area');
+    var destinationTypeElem = genericInput('destination_type');
+    var destinationFieldElem = genericInput('destination_field');
 
     if(inputField)
 	inputElem.val(inputField);
     if(regex)
 	regexElem.val(regex);
-    if(outputNamespace)
-	outputNamespaceElem.val(outputNamespace);
-    if(outputType)
-	outputTypeElem.val(outputType);
-    if(outputField)
-	outputFieldElem.val(outputField);
+    if(destinationArea)
+	destinationAreaElem.val(destinationArea);
+    if(destinationType)
+	destinationTypeElem.val(destinationType);
+    if(destinationField)
+	destinationFieldElem.val(destinationField);
     
     toInformationElem
     .append(inputFieldElem)
     .append(regexElem)
-    .append(outputNamespaceElem)
-    .append(outputTypeElem)
-    .append(outputFieldElem);
+    .append(destinationAreaElem)
+    .append(destinationTypeElem)
+    .append(destinationFieldElem);
     return toInformationElem;
 };
 
-/* Convert a DOM toInformation object to data. */
-var toInformationToData = function(toInformationElem) {
-    //    toInformation
-}
-
 /*
   GathererFromData: create a gatherer object on the screen from stored data.
-  urls: an array of urls
-  gets: a hash of get variables
-  posts: a hash of post variables
-  headers: a hash of headers
-  cookies: a hash of cookies
+  gatherer: object
 */
-    var gathererFromData = function(id, parents, urls, gets, posts, headers, cookies, parents) {
+var gathererFromData = function(gatherer) {
+    var id = gatherer['id'];
+    var urls = gatherer['urls'];
+    var gets = gatherer['gets'];
+    var posts = gatherer['posts'];
+    var headers = gatherer['headers'];
+    var cookies = gatherer['cookies'];
+
     var gathererElem = $('<div>gatherer</div>').addClass('gatherer')
     .addClass(deletableClass).append(deleteButton());
     var idElem = genericInput('id');
@@ -267,45 +250,34 @@ var toInformationToData = function(toInformationElem) {
 };
 
 /*
-  Convert a gatherer DOM element back into an object.
-  gatherer: a gatherer DOM element.
- */
-var gathererToData = function(gathererElem) {
-    var gatherer = {};
-    gatherer.parents = [];
-    gatherer.urls = [];
-    gatherer.gets = {};
-    gatherer.posts = {};
-    gatherer.headers = {};
-    gatherer.cookies = {};
-    
-    elemToArray(gathererElem.children('parents').first(), gatherer.parents);
-    elemToArray(gathererElem.children('urls').first(), gatherer.urls);
-
-    elemToHash(gathererElem.children('gets').first(), gatherer.gets);
-    elemToHash(gathererElem.children('posts').first(), gatherer.posts);
-    elemToHash(gathererElem.children('headers').first(), gatherer.headers);
-    elemToHash(gathererElem.children('cookies').first(), gatherer.cookies);
-    
-    return gatherer;
+  genericDropdown: create a dropdown with the specified available values.
+*/
+var genericDropdown = function(options) {
+    var elem = $('<select>');
+    if(options) {
+	for(option in options) {
+	    elem.append($('<option>' + option + '</option>'));
+	}
+    }
+    return elem;
 }
 
 /*
   genericInput: create a text input with the name and value specified.  If value is null,
   (name) is used.
- */
-var genericInput = function(name, value) {
-    if(value == null)
-	value = '(' + name + ')';
-    var elem =  $('<span>').append(name + ': ');
-    var input = $('<input>').attr({
-	    'type': 'text',
-	    'name': name,
-	    'id': name,
-	    'value': value});
-    elem.append(input);
-    return elem;
-};
+*/
+    var genericInput = function(name, value) {
+	if(value == null)
+	    value = '(' + name + ')';
+	var elem =  $('<span>').append(name + ': ');
+	var input = $('<input>').attr({
+		'type': 'text',
+		'name': name,
+		'id': name,
+		'value': value});
+	elem.append(input);
+	return elem;
+    };
 
 /*
   deleteButton: deletes the parent element marked as deletable.
@@ -363,7 +335,6 @@ var arrayElem = function() {
 
 function initialize() {
     $('.generate').click(function() {
-	    
 	    $(this).parent().append(informationFromData());
 	});
 

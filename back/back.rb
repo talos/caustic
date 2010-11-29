@@ -70,7 +70,7 @@ class Type
     
 #    @name = attribute_get(:name)
     
-#    hash[:areas] = informations.collect {|information| information.attribute_get(:area_name) }
+    hash[:areas] = areas.collect {|area| area.attribute_get(:name) }
     hash[:publish_fields] = publish_fields.collect {|publish_field| publish_field.attribute_get(:name) }
 
     hash
