@@ -13,6 +13,8 @@ var addClass = 'add';
 var deleteClass = 'delete';
 var deletableClass = 'deletable';
 var dataClass = 'data';
+var modifierClass = 'modifier';
+var objectClass = 'object';
 
 /*
   availableAreas(): Obtain the available areas, pass them to a callback as an array.
@@ -43,7 +45,7 @@ var availableTypes = function(callback) {
 /*
   availableAreasForType(): Obtain the already existing areas within a type,
   pass them to a callback as an array.
-  area: the area, as a string.
+  type: the type, as a string.
   callback: a function called back with the array when it is obtained.
 */
 var availableTypesForArea = function(callback, type) {
@@ -54,6 +56,19 @@ var availableTypesForArea = function(callback, type) {
 	    success: function(data) { callback(data['areas']); }
 	});
 };
+
+/*
+ availableGatherers(): Obtain the names of all existing gatherers, pass them
+ to a callback as an array.
+ callback: a function called back with the array when it is obtained.
+ */
+var availableGatherers = function(callback) {
+    $.ajax({
+	    type: 'GET',
+	    url: '/gatherer/',
+	    success: function(data) {callback(data); }
+	});
+}
 
 /*
   informationFromData: create an information element on the screen from stored data.
@@ -333,9 +348,88 @@ var hashElem = function() {
 var arrayElem = function() {
     return dataLineElem({'value': null})};
 
-function initialize() {
-    $('.generate').click(function() {
-	    $(this).parent().append(informationFromData());
+/*
+
+ */
+var getObjectNames = function(objectType, callback) {
+    $.ajax({
+	    type: 'GET',
+	    url: '/' + objectType + '/',
+	    dataType: 'json',
+	    success: function(data) { callback(data); }
 	});
+};
+
+/*
+
+ */
+var getObject = function(objectType, objectName, callback) {
+    $.ajax({
+	    type: 'GET',
+	    url: '/' + objectType + '/' + objectName,
+	    dataType: 'json',
+	    success: function(data) { callback(data); }
+	});
+};
+
+/*
+
+ */
+var modifyType = function(objectType) {
+    var elem = $('<div>');
+    
+    elem.addClass(modifierClass);
+    elem.addClass(objectType);
+    
+    /* Populate a list of existing elements that could be modified. */
+    var selectName = $('<select>');
+    elem.append(selectName);
+    getObjectNames(objectType, function(availableNames) {
+	    for(name in availableNames) {
+		selectName.append($('<option>').append(name));
+	    }
+	});
+    
+    var modifyObjectElem = $('<div>');
+    modifyObjectElem.appendTo(elem);
+    
+    /* When one is selected, bring it into existence on the screen. */
+    selectName.bind('onchange', function() {
+	    getObject(objectName, selectName.val(), function(object) {
+		    modifyObjectElem.remove();
+
+		    modifyObjectElem = modifyObject(objectType, objectName, object);
+		    
+		    modifyObjectElem.appendTo(elem);
+		});
+	});
+    
+    return elem;
+};
+
+
+/*
+
+ */
+var modifyObject = function(objectType, objectName, object) {
+    var elem = $('<div>').append(objectType + ': ' + objectName);
+
+    elem.addClass(objectClass);
+    elem.addClass(objectType);
+    elem.attr('id', objectName);
+    
+    for(objectType in object) {
+	elem.append(modifyType(objectType));
+    }
+
+    return elem;
+}
+
+
+function initialize() {
+    /*    $('.generate').click(function() {
+	    $(this).parent().append(informationFromData());
+	    });*/
+    
 
 }

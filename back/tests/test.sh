@@ -27,14 +27,19 @@ echo
 curl -X PUT $URL/type/Owner
 echo
 
+echo "Creating areas:"
+curl -X PUT $URL/area/NY.NYC.Brooklyn
+echo
+curl -X PUT -d "value=3" $URL/area/NY.NYC.Brooklyn/default/boroughNumber
+echo
+
+
 echo "Creating information:"
-curl -X PUT $URL/information/Property/NY.NYC.Brooklyn
+curl -X PUT $URL/information/Property/NY.NYC
 echo
-curl -X PUT $URL/information/Property/NY.NYC.Brooklyn/area/US.CountyFIPS.36047
+curl -X PUT $URL/information/Property/NY.NYC/area/NY.NYC.Brooklyn
 echo
-curl -X PUT $URL/information/Property/US.CountyFIPS.36047/area/NY.NYC
-echo
-curl -X PUT -d "value=3" $URL/information/Property/NY.NYC.Brooklyn/default/boroughNumber
+curl -X PUT $URL/information/Property/NY.NYC/area/US.CountyFIPS.36047
 echo
 curl -X PUT $URL/information/Owner/NY.NYC
 echo
@@ -162,7 +167,7 @@ curl -X PUT -d "<input\s+type=\"hidden\"\s+name=\"q49_lot\"\s+value=\"([^\"]+)\"
 echo
 
 echo "Creating To Informations"
-curl -X PUT -d "<input\s+type=\"hidden\"\s+name=\"ownerName\d{0,1}\"\s+value=\"\s*([^\"]+)\">" $URL/information/Property/NY.NYC/gatherer.NY.NYC.DOF.PropertyAddressSearch/to/Owner/NY.NYC/name
+curl -X PUT -d "<input\s+type=\"hidden\"\s+name=\"ownerName\d{0,1}\"\s+value=\"\s*([^\"]+)\">" $URL/information/Property/NY.NYC/gatherer.NY.NYC.DOF.PropertyAddressSearch/to/information/Owner/NY.NYC/name
 echo
 
 curl -X GET $URL/information/Property/NY.NYC
