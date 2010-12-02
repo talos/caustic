@@ -29,6 +29,12 @@ class DataMapper::Collection
   end
 end
 
+module DataMapper::Model
+  def identify_all(query = DataMapper::Undefined)
+    all(query).collect { |resource| resource.identify }
+  end
+end
+
 module DataMapper::Resource
   def to_json
     export.to_json
@@ -171,7 +177,7 @@ class ToField
   def export
     {
       :input_field  => attribute_get(:input_field),
-      :match_number => attribute_get(:match_number),
+      :match_number => attribute_get(:match_number).to_s,
       :regex        => attribute_get(:regex),
       :destination_field => attribute_get(:destination_field)
     }
@@ -233,7 +239,7 @@ class Gatherer
       :header => headers.identify_all,
       :cookie => cookies.identify_all,
     
-      :gatherer => ancestors.identify_all
+      :gatherer => ancestors.collect{ |ancestor| ancestor.identify }
     }
   end
 end
@@ -309,13 +315,34 @@ end
 
 # GET
 
+def serve_page(location)
+  if(File.exists?(location))
+    File.open(location)
+  else
+    'Could not open ' + location
+  end
+end
+
+# Serve the front end page.
+get '/front/' do
+  serve_page('../front/index.html')
+end
+
+get '/front/js/:page' do
+  serve_page('../front/js/' + params[:page])
+end
+
+get '/front/css/:page' do
+  serve_page('../front/css/' + params[:page])
+end
+
 # Get a list of all the available areas.
 get '/area/' do
   Area.identify_all.to_json
 end
 
 # Get details on a specific area.
-get '/area/:name' do
+get '/area/:name/' do
   @area = Area.first(:name => params[:name]) or return not_found
   @area.export.to_json
 end
@@ -326,7 +353,7 @@ get '/type/' do
 end
 
 # Get details on a specific type.
-get '/type/:name' do
+get '/type/:name/' do
   @type = Type.first(:name => params[:name]) or return not_found
   @type.export.to_json
 end
@@ -337,7 +364,7 @@ get '/information/' do
 end
 
 # Get details on an Information by name.
-get '/information/:type/:name' do
+get '/information/:type/:name/' do
 #  @information = Area.first(:name => params[:area]).informations.first(:type_name => params[:type]) or return not_found
   @information = Information.first(:type_name => params[:type], :name => params[:name]) or return not_found
   @information.export.to_json
@@ -359,9 +386,41 @@ get '/gatherer/' do
 end
 
 # Get details on a specific Gatherer.
-get '/gatherer/:name' do
+get '/gatherer/:name/' do
   Gatherer.first(:name => params[:name]).export.to_json
 end
+
+# Get a to field.
+get '/information/:type/:name/:input_field/:match_number/to/:destination_field' do
+  @information = Information.first(:type_name => params[:type], :name => params[:name]) or return not_found
+  @information.to_fields.first(:input_field => params[:input_field], :match_number => params[:match_number], :destination_field => params[:destination_field]).export.to_json or not_found
+end
+
+# Get a to information
+get '/information/:type/:name/:input_field/to/information/:destination_type/:destination_name/:destination_field' do
+
+end
+
+get '/gatherer/:gatherer/url/' do
+#  Gatherer.first(:name => params[:gatherer]).gets.first(:name => params[:get]).export.to_json or not_found
+end
+
+get '/gatherer/:gatherer/get/:get' do
+  Gatherer.first(:name => params[:gatherer]).gets.first(:name => params[:get]).export.to_json or not_found
+end
+
+get '/gatherer/:gatherer/post/:post' do
+  Gatherer.first(:name => params[:gatherer]).posts.first(:name => params[:post]).export.to_json or not_found
+end
+
+get '/gatherer/:gatherer/header/:header' do
+  Gatherer.first(:name => params[:gatherer]).headers.first(:name => params[:header]).export.to_json or not_found
+end
+
+get '/gatherer/:gatherer/cookie/:cookie' do
+  Gatherer.first(:name => params[:gatherer]).cookies.first(:name => params[:cookie]).export.to_json or not_found
+end
+
 
 # PUT / POST / DELETE
 
