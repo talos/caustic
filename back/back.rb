@@ -1,5 +1,14 @@
 #!/usr/bin/ruby
 
+###
+#   SimpleScraper Back 0.0.1
+#
+#   Copyright 2010, AUTHORS.txt
+#   Licensed under the MIT license.
+#
+#
+###
+
 require 'rubygems'
 require 'dm-core'
 require 'dm-is-tree'
@@ -27,6 +36,11 @@ class DataMapper::Collection
   def identify_all(query = DataMapper::Undefined)
     all(query).collect { |resource| resource.identify }
   end
+
+  # Get an array with a single attribute from each element.  Defaults to 'name'.
+  #def attribute_all(query = DataMapper::Undefined, attribute = :name)
+  #  all(query).collect { |resource| resource.attribute_get(attribute) }
+  #end
 end
 
 module DataMapper::Model
@@ -45,7 +59,11 @@ module DataMapper::Resource
   end
 
   def export
-    attribute_get(:value) or nil
+    #attribute_get(:value) or nil
+    #attributes
+    {
+      :value => attribute_get(:value)
+    }
   end
 end
 
@@ -73,13 +91,12 @@ class Area
   has n, :default_fields
 
   def identify
-    'area/' + attribute_get(:name) + '/'
+    attribute_get(:name)
   end
   
   def export
     {
-      :type => types.identify_all,
-      :default_field => default_fields.identify_all
+      'default/' => default_fields.identify_all
     }
   end
 end
@@ -94,17 +111,13 @@ class Type
   has n, :publish_fields #, :unique => true
   
   def identify
-    'type/' + attribute_get(:name) + '/'
+    attribute_get(:name)
   end
 
   def export
-#    @name = attribute_get(:name)
-    
-#    hash[:areas] = areas.collect {|area| area.attribute_get(:name) }
-#    hash[:publish_fields] = publish_fields.collect {|publish_field| publish_field.attribute_get(:name) }
     {
-      :area => areas.identify_all,
-      :publish_field => publish_fields.identify_all
+      'area/' => areas.identify_all,
+      'publish/' => publish_fields.identify_all
     }
   end
 end
@@ -113,10 +126,10 @@ class PublishField
   include DataMapper::Resource
 
   belongs_to :type, :key => true
-  property :value, String, :key => true
+  property :name, String, :key => true
 
   def identify
-    attribute_get(:type_name) + '/publish_field/' + attribute_get(:value)
+    attribute_get(:name)
   end
 end
 
@@ -132,7 +145,7 @@ class Information
   has n, :to_informations
   
   def identify
-    'information/' + attribute_get(:type_name) + '/' + attribute_get(:name) + '/'
+    attribute_get(:type_name) + '/' + attribute_get(:name)
   end
 
   def export
@@ -141,10 +154,8 @@ class Information
 #    hash[:to_fields] = to_fields.collect { |to_field| to_field.export }
 #    hash[:to_informations] = to_informations.collect { |to_information| to_information.export }
     {
-#      :default_field => default_fields.identify_all,
-      :gatherer => gatherers.identify_all,
-      :to_field => to_fields.identify_all,
-      :to_information => to_informations.identify_all
+      'gatherer/' => gatherers.identify_all,
+      'fields/' => [to_fields.identify_all, to_information.identify_all].flatten
     }
   end
 end
@@ -157,7 +168,7 @@ class DefaultField
   property :value, String
 
   def identify
-    area.identify + 'default_field/' + attribute_get(:name)
+    attribute_get(:name)
   end
 end
 
@@ -171,7 +182,7 @@ class ToField
   property :destination_field, String, :key => true
 
   def identify
-    information.identify + input_field + '/' + match_number.to_s + '/to/' + destination_field
+    input_field + '/' + match_number.to_s + '/to/' + destination_field
   end
 
   def export
@@ -194,7 +205,7 @@ class ToInformation
   property :destination_field, String, :key => true
 
   def identify
-    information.identify + input_field + '/to/' + destination_information.identify + destination_field
+    input_field + '/to/' + destination_information.identify + destination_field
   end
   
   def export
@@ -221,7 +232,7 @@ class Gatherer
   is :tree, :order => :name
 
   def identify
-    'gatherer/' + attribute_get(:name) + '/'
+    attribute_get(:name)
   end
 
   def export
@@ -233,13 +244,14 @@ class Gatherer
     
 #    hash[:parents] = ancestors.collect { |parent| parent.export }
     {
-      :url => urls.identify_all,
-      :get => gets.identify_all,
-      :post => posts.identify_all,
-      :header => headers.identify_all,
-      :cookie => cookies.identify_all,
+      'url/' => urls.identify_all,
+      'cookie/' => gets.identify_all,
+      'post/' => posts.identify_all,
+      'header/' => headers.identify_all,
+      'cookie/' => cookies.identify_all,
     
-      :gatherer => ancestors.collect{ |ancestor| ancestor.identify }
+#      :gatherer => ancestors.collect{ |ancestor| ancestor.identify }
+#      :parent => parent ? parent.attribute_get(:name) : nil
     }
   end
 end
@@ -249,10 +261,10 @@ class Url
   
   belongs_to :gatherer,  :key => true
 
-  property :value, String, :key => true
+  property :name, String, :key => true
 
   def identify
-    gatherer.identify + 'url/' + attribute_get(:value)
+    attribute_get(:name)
   end
 end
 
@@ -264,7 +276,7 @@ class Get
   property :value, String
 
   def identify
-    gatherer.identify + 'get/' + attribute_get(:name)
+    attribute_get(:name)
   end
 end
 
@@ -276,7 +288,7 @@ class Post
   property :value, String
 
   def identify
-    gatherer.identify + 'post/' + attribute_get(:name)
+    attribute_get(:name)
   end
 end
 
@@ -288,7 +300,7 @@ class Header
   property :value, String
 
   def identify
-    gatherer.identify + 'header/' + attribute_get(:name)
+    attribute_get(:name)
   end
 end
 
@@ -300,7 +312,7 @@ class Cookie
   property :value, String
 
   def identify
-    gatherer.identify + 'cookie/' + attribute_get(:name)
+    attribute_get(:name)
   end
 end
 
@@ -342,7 +354,7 @@ get '/area/' do
 end
 
 # Get details on a specific area.
-get '/area/:name/' do
+get '/area/:name' do
   @area = Area.first(:name => params[:name]) or return not_found
   @area.export.to_json
 end
@@ -353,25 +365,33 @@ get '/type/' do
 end
 
 # Get details on a specific type.
-get '/type/:name/' do
+get '/type/:name' do
   @type = Type.first(:name => params[:name]) or return not_found
   @type.export.to_json
 end
 
+# Get a publish field.
+get '/type/:type/publish/:publish' do
+  @type = Type.first(:name => params[:type]) or return not_found
+  @publish = @type.publish_fields.first(:name => params[:publish]) or return not_found
+  @publish.export.to_json
+end
+
 # Get a list of all the available Informations.
-get '/information/' do
-  Information.identify_all.to_json
+get '/type/:type/information/' do
+  Type.first(:name => params[:type]).informations.identify_all.to_json
 end
 
 # Get details on an Information by name.
-get '/information/:type/:name/' do
-#  @information = Area.first(:name => params[:area]).informations.first(:type_name => params[:type]) or return not_found
-  @information = Information.first(:type_name => params[:type], :name => params[:name]) or return not_found
-  @information.export.to_json
+get '/type/:type/information/:information' do
+#  @information = Information.first(:type_name => params[:type], :name => params[:name]) or return not_found
+#  @information.export.to_json
+#  Type.first(:name => params[:type]).informations.first(:name => 
+  Information.first(:type_name => params[:type], :name => params[:information]).export.to_json
 end
 
 # Get a list of all the available Informations of a specific type in a specific area.
-get '/information/:type/in/:area/' do
+get '/information/:type/in/:area' do
 #  @information = Area.first(:name => params[:area]).informations.first(:type_name => params[:type]) or return not_found
 #  @information.to_json
 #  Information.all(:type => params[:type]
@@ -386,41 +406,49 @@ get '/gatherer/' do
 end
 
 # Get details on a specific Gatherer.
-get '/gatherer/:name/' do
+get '/gatherer/:name' do
   Gatherer.first(:name => params[:name]).export.to_json
 end
 
-# Get a to field.
-get '/information/:type/:name/:input_field/:match_number/to/:destination_field' do
-  @information = Information.first(:type_name => params[:type], :name => params[:name]) or return not_found
-  @information.to_fields.first(:input_field => params[:input_field], :match_number => params[:match_number], :destination_field => params[:destination_field]).export.to_json or not_found
-end
-
-# Get a to information
-get '/information/:type/:name/:input_field/to/information/:destination_type/:destination_name/:destination_field' do
-
-end
-
 get '/gatherer/:gatherer/url/' do
-#  Gatherer.first(:name => params[:gatherer]).gets.first(:name => params[:get]).export.to_json or not_found
+  Gatherer.first(:name => params[:gatherer]).urls.identify_all.to_json
+end
+
+get '/gatherer/:gatherer/url/:url' do
+  nil
+end
+
+get '/gatherer/:gatherer/get/' do
+  Gatherer.first(:name => params[:gatherer]).gets.identify_all.to_json
 end
 
 get '/gatherer/:gatherer/get/:get' do
   Gatherer.first(:name => params[:gatherer]).gets.first(:name => params[:get]).export.to_json or not_found
 end
 
+get '/gatherer/:gatherer/post/' do
+  Gatherer.first(:name => params[:gatherer]).posts.identify_all.to_json
+end
+
 get '/gatherer/:gatherer/post/:post' do
   Gatherer.first(:name => params[:gatherer]).posts.first(:name => params[:post]).export.to_json or not_found
+end
+
+get '/gatherer/:gatherer/header/' do
+  Gatherer.first(:name => params[:gatherer]).headers.identify_all.to_json
 end
 
 get '/gatherer/:gatherer/header/:header' do
   Gatherer.first(:name => params[:gatherer]).headers.first(:name => params[:header]).export.to_json or not_found
 end
 
+get '/gatherer/:gatherer/cookie/' do
+  Gatherer.first(:name => params[:gatherer]).cookies.identify_all.to_json
+end
+
 get '/gatherer/:gatherer/cookie/:cookie' do
   Gatherer.first(:name => params[:gatherer]).cookies.first(:name => params[:cookie]).export.to_json or not_found
 end
-
 
 # PUT / POST / DELETE
 
@@ -433,14 +461,14 @@ end
 # Delete a type.  This can only be done if there are no dependencies.
 delete '/type/:name' do
   @type = Type.first(:name => params[:name]) or return not_found
-  @type.delete
-  @type.save ? true.to_json : {:type => @type.errors.to_a }.to_json
+  @type.destroy
+  @type.destroyed ? true.to_json : {:type => @type.errors.to_a }.to_json
 end
 
 # Add a publish_field to a type.
 put '/type/:type/publish/:publish_field' do
   @type = Type.first(:name => params[:type]) or return not_found
-  @publish_field = PublishField.first_or_new(:value => params[:publish_field])
+  @publish_field = PublishField.first_or_new(:name => params[:publish_field])
   @type.publish_fields << @publish_field
   @type.save ? true.to_json : {:type => @type.errors.to_a, :publish_field => @publish_field.errors.to_a}.to_json
 end
@@ -448,7 +476,7 @@ end
 # Delete a publish_field from a type.
 delete '/type/:type/publish/:publish_field' do
   @type = Type.first(:name => params[:type]) or return not_found
-  @type.publish_fields.first(:value => params[:publish_field]).delete
+  @type.publish_fields.delete(@type.first(:name => params[:publish_field]))
   @type.save ? true.to_json : {:type => @type.errors.to_a}.to_json
 end
 
@@ -461,8 +489,8 @@ end
 # Delete an area.
 delete '/area/:area' do
   @area = Area.first(:name => params[:area]) or return not_found
-  @area.delete
-  @area.save ? true.to_json : {area => @area.errors.to_a }.to_json
+  @area.destroy
+  @area.destroyed ? true.to_json : {area => @area.errors.to_a }.to_json
 end
 
 # Add a DefaultField to an Area.
@@ -570,8 +598,8 @@ end
 # Delete a Gatherer.
 delete '/gatherer/:name' do
   @gatherer = Gatherer.first(:name => params[:name]) or return not_found
-  @gatherer.delete
-  @gatherer.save ? true.to_json : {:gatherer => @gatherer.errors.to_a}.to_json
+  @gatherer.destroy
+  @gatherer.destroyed ? true.to_json : {:gatherer => @gatherer.errors.to_a}.to_json
 end
 
 # Add a parent to a Gatherer.
@@ -585,7 +613,7 @@ end
 # Remove a parent relationship from a Gatherer. Does not eliminate the parent.
 delete '/gatherer/:child/parent' do
   @child =  Gatherer.first(:name => params[:child]) or return not_found
-  @child.parent.delete
+  @child.parent.destroy
   @child.save ? true.to_json : {:child => @child.errors.to_a}.to_json
 end
 
@@ -601,22 +629,23 @@ end
 # Fails if the child is not a child of the specified parent.
 delete '/gatherer/:parent/child/:child' do
   @parent = Gatherer.first(:name => params[:parent]) or return not_found
-  @parent.children.first(:name => params[:child]).delete
+  @parent.children.delete(@parent.children.first(:name => params[:child]))
   @parent.save ? true.to_json : {:parent => @parent.errors.to_a}.to_json
 end
 
 # Add a URL to a Gatherer.  Value is in the post data.
 put '/gatherer/:gatherer/url' do
   @gatherer = Gatherer.first(:name => params[:gatherer]) or return not_found
-  @url = @gatherer.urls.first_or_new(:value => params[:value])
+  @url = @gatherer.urls.first_or_new(:name => params[:value])
   @gatherer.save ? true.to_json : {:gatherer => @gatherer.errors.to_a, :url => @url.errors.to_a}.to_json
 end
 
 # Delete a URL from a gatherer.
 delete '/gatherer/:gatherer/url/:value' do
   @gatherer = Gatherer.first(:name => params[:gatherer]) or return not_found
-  @gatherer.urls.first(:value => params[:value]).delete
-  @gatherer.save ? true.to_json : {:gatherer => @gatherer.errors.to_a}.to_json
+  @url = @gatherer.urls.first(:name => params[:value])
+  @url.destroy
+  @gatherer.destroyed ? true.to_json : {:gatherer => @gatherer.errors.to_a}.to_json
 end
 
 # Add a GET to a Gatherer.  Value is in the post data.
@@ -629,7 +658,7 @@ end
 # Delete a GET from a Gatherer.
 delete '/gatherer/:gatherer/get/:name' do
   @gatherer = Gatherer.first(:name => params[:gatherer]) or return not_found
-  @gatherer.gets.first(:name => params[:name]).delete
+  @gatherer.gets.first(:name => params[:name]).destroy
   @gatherer.save ? true.to_json : {:gatherer => @gatherer.errors.to_a}.to_json
 end
 
@@ -643,7 +672,7 @@ end
 # Delete a POST from a Gatherer.
 delete '/gatherer/:gatherer/post/:name' do
   @gatherer = Gatherer.first(:name => params[:gatherer]) or return not_found
-  @gatherer.posts.first(:name => params[:name]).delete
+  @gatherer.posts.first(:name => params[:name]).destroy
   @gatherer.save ? true.to_json : {:gatherer => @gatherer.errors.to_a}.to_json
 end
 
@@ -657,7 +686,7 @@ end
 # Delete a Header from a Gatherer.
 delete '/gatherer/:gatherer/header/:name' do
   @gatherer = Gatherer.first(:name => params[:gatherer]) or return not_found
-  @gatherer.headers.first(:name => params[:name]).delete
+  @gatherer.headers.first(:name => params[:name]).destroy
   @gatherer.save ? true.to_json : {:gatherer => @gatherer.errors.to_a}.to_json
 end 
 
@@ -671,7 +700,7 @@ end
 # Delete a Cookie from a Gatherer.
 delete '/gatherer/:gatherer/cookie/:name' do
   @gatherer = Gatherer.first(:name => params[:gatherer]) or return not_found
-  @gatherer.cookies.first(:name => params[:name]).delete
+  @gatherer.cookies.first(:name => params[:name]).destroy
   @gatherer.save ? true.to_json : {:gatherer => @gatherer.errors.to_a}.to_json
 end
 

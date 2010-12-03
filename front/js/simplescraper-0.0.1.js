@@ -15,27 +15,7 @@ var deletableClass = 'deletable';
 var dataClass = 'data';
 var modifierClass = 'modifier';
 var objectClass = 'object';
-
-/*
-  deleteButton: deletes the parent element marked as deletable.
-*/
-var deleteButton = function() {
-    return $('<span>').append('delete').addClass(deleteClass).click(function() {
-	    var elemToDelete = $(this).closest('.' + deletableClass);
-	    elemToDelete.remove();
-	});
-};
-
-/*
-  addButton: creates a piece of text that says 'add', and appends the callback to the parent when clicked.
-*/
-var addButton = function(callback) {
-    return $('<span>add</span>').addClass(addClass)
-    .click(function() {
-	    $(this).parent().append(callback());
-	});
-};
-
+var listClass = 'list';
 
 /*
   Convert a hash to a DOM element with name:value input pairs.
@@ -56,72 +36,55 @@ var arrayToElem = function(array, element) {
 };
 
 /*
-  Single line of inputs.
- */
-var dataLineElem = function(inputs) {
-    var elem = $('<div>').addClass(deletableClass).addClass(dataClass).append(deleteButton());
-    $.each(inputs, function(inputName) {
-	elem.append(genericInput(inputName, inputs[inputName]));
-	});
-    return elem;
-};
-var hashElem = function() {
-    return dataLineElem({'name': null, 'value': null})};
-var arrayElem = function() {
-    return dataLineElem({'value': null})};
-
-/*
 
  */
-var getObjectData = function(location, callback) {
-    $.ajax({
-	    type: 'GET',
-	    url: '/' + location,
-	    dataType: 'json',
-	    success: function(data) { callback(data); }
-	});
-};
-
-var createObject = function(location) {
-    var elem = $('<div>');
+var getObject = function(objectLocation, objectName) {
+    var elem = $('<div>').append(objectName);
     elem.addClass(objectClass);
-    getObjectData(location, function(data) {
-	    function handle(elem, data) {
-		if(jQuery.isArray(data)) {
-		    var selectElem = $('<select>');
-		    for(var i = 0; i < data.length; i ++) {
-			var option = $('<option>').append(data[i]);
-			selectElem.append(option);
+    //console.log(objectLocation + objectName);
+    $.ajax({
+	    'type': 'get',
+	    url: objectLocation + objectName,
+	    dataType: 'json',
+	    success: function(contents) {
+		if(jQuery.type(contents) == 'object') {
+		    for(var entry in contents) {
+			if(jQuery.type(contents[entry]) == 'array') {
+			    var listElem = $('<div>').append(entry).addClass(listClass).appendTo(elem);
+			    for(var i = 0; i < contents[entry].length; i++) {
+				listElem.append(getObject(objectLocation + objectName + '/' + entry, contents[entry][i]));
+			    }
+			} else if(jQuery.type(contents[entry]) == 'string') {
+			    elem.append($('<input>').attr({'type': 'text', 'value': contents[entry]}));
+			    elem.append($('<span>').append('delete').addClass('delete').click(function() {
+					$.ajax({    type: 'delete',
+						    url: objectLocation + objectName,
+						    success: function() {
+						    // TODO: check status
+						    elem.remove();
+						}});
+				    }));
+			}
 		    }
-		    elem.append(selectElem);
-		    var editElem = $('<div>');
-		    elem.append(editElem);
-
-		    selectElem.bind('change', function() {
-			    console.log(selectElem.val());
-			    editElem.empty();
-			    editElem.append(createObject(selectElem.val()));
-			});
-		} else if(jQuery.type(data) == 'string') {
-		    elem.append($('<input>').attr('type', 'text').attr('value', data));
-		} else if(jQuery.type(data) == 'object') {
-		    for(objectType in data) {
-			var editElem = $('<div>').append(objectType);
-			elem.append(editElem);
-			elem.append(handle(editElem, data[objectType]));
-			//console.log(data[objectType]);
+		} else if(jQuery.type(contents) == 'array') {
+		    for(var i = 0; i < contents.length; i++) {
+			elem.append(getObject(objectLocation + objectName, contents[i]));
 		    }
 		}
-	    }
-	    handle(elem, data);
-	});
+	    }});
+    elem.append($('<span>').append('delete').addClass('delete').click(function() {
+		$.ajax({    type: 'delete',
+			    url: objectLocation + objectName,
+			    success: function(response) {
+			      console.log(response);
+   			      elem.remove();
+			}});
+	    }));
+
     return elem;
-}
+};
 
 function initialize() {
-    /*    $('.generate').click(function() {
-	    $(this).parent().append(informationFromData());
-	    });*/
-    
-    $('div#information').append(createObject('information/'));
+    $('div#type').append(getObject('/', 'type/'));
+    $('div#gatherer').append(getObject('/', 'gatherer/'));
 }
