@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
   <head>
-    <title>SimpleScraper Client</title>
+    <title>SimpleScraper Front</title>
     <link rel="stylesheet" href="css/ui.theme.css" type="text/css" />
     <script src="js/jquery-1.4.4.min.js" type="text/javascript"></script>
     <script src="js/jquery-ui-1.8.6.custom.min.js" type="text/javascript"></script>
@@ -31,16 +31,15 @@
       .generate {
         font-style: italic;
       }
-      .add {
-        position: absolute;
-        top: 0px;
-        right: 0px;
-        background: green;
-      }
-      .delete {
+      .controls {
         position: absolute;
         top: 2px;
         right: 2px;
+      }
+      .add {
+        background: green;
+      }
+      .delete {
         background: red;
         border: 1 px solid black;
       }
@@ -60,10 +59,7 @@
   </head>
   <body>
     <form>
-      <div class="object">
-	<div id="type"></div>
-	<div id="information"></div>
-	<div id="gatherer"></div>
+      <div id="root" class="object">
       </div>
     </form>
   </body>
