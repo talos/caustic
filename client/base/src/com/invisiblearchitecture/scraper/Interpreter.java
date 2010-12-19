@@ -1,5 +1,7 @@
 package com.invisiblearchitecture.scraper;
 
+import java.io.IOException;
+
 public abstract class Interpreter {
 	protected final String sourceField;
 	protected final PatternInterface pattern;
@@ -65,9 +67,14 @@ public abstract class Interpreter {
 			} else {
 				Information[] childInformations = new Information[results.length];
 				for(int i = 0; i < results.length; i++) {
-					childInformations[i] = factory.get(destinationNamespace, destinationInformationType);
-					childInformations[i].putField(destinationField, results[i]);
-					childInformations[i].interpret(); // We don't recursively collect here -- that's the publisher's job.
+					try {
+						childInformations[i] = factory.get(destinationNamespace, destinationInformationType);
+						childInformations[i].putField(destinationField, results[i]);
+						childInformations[i].interpret(); // We don't recursively collect here -- that's the publisher's job.
+					} catch(IOException e) {
+						//logger.e("Error creating child information.", e);
+						return false;
+					}
 				}
 				// De-namespace inside the child listing.
 				sourceInformation.addChildInformations(destinationInformationType, childInformations);
@@ -92,7 +99,7 @@ public abstract class Interpreter {
 	
 	public String patternString() {
 		if(pattern == null) {
-			return "No Pattern";
+			return "[No Pattern]";
 		} else {
 			return pattern.toString();
 		}
