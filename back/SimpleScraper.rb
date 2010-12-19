@@ -10,10 +10,11 @@
 ###
 
 $:<< Dir.pwd
+$:<< Dir.pwd + '/db'
 
 require 'rubygems'
-require 'db/schema'
 require 'sinatra'
+require 'db/schema'
 
 # CONFIG
 configure do
@@ -200,7 +201,7 @@ end
 # Add a DefaultField to an SimpleScraper::Area.
 put '/area/:area/default/:name' do
   @area = SimpleScraper::Area.first(:name => params[:area]) or return not_found
-  @default_field = DefaultField.first_or_new(:name => params[:name], :value => params[:value])
+  @default_field = SimpleScraper::DefaultField.first_or_new(:name => params[:name], :value => params[:value])
   @area.default_fields << @default_field
   @area.save ? true.to_json : {:area => @area.errors.to_a, :default_field => @default_field.errors.to_a }.to_json
 end
@@ -218,7 +219,7 @@ put '/type/:type/information/:name' do
   @type = SimpleScraper::Type.first(:name => params[:type]) or return not_found
 
   @information = SimpleScraper::Information.first_or_new(:type => @type, :name => params[:name])
-
+  
   @information.save ? true.to_json : {:information => @information.errors.to_a, :type => @type.errors.to_a}.to_json
 end
 
@@ -236,7 +237,7 @@ put '/type/:type/information/:name/area/:area' do
   
   @area = SimpleScraper::Area.first_or_create(:name => params[:area])
   @information.areas << @area
-
+  
   @information.save ? true.to_json : {:information => @information.errors.to_a, :area => @area.errors.to_a}.to_json
 end
 
@@ -248,11 +249,11 @@ delete '/type/:type/information/:name/area/:area' do
   @information.save ? true.to_json : {:information => @information.errors.to_a, :area => @area.errors.to_a}.to_json
 end
 
-# Add a gatherer to an SimpleScraper::Information.
+# Add a gatherer to a SimpleScraper::Information.
 put '/type/:type/information/:name/gatherer/:gatherer' do
   @information = SimpleScraper::Information.first(:type_name => params[:type], :name => params[:name]) or return not_found
   @gatherer = SimpleScraper::Gatherer.first(:name => params[:gatherer]) or return not_found
-
+  
   @information.gatherers << @gatherer
   @information.save ? true.to_json : {:information => @information.errors.to_a, :gatherer => @gatherer.errors.to_a}.to_json
 end
@@ -348,14 +349,14 @@ end
 # Add a URL to a SimpleScraper::Gatherer.  Value is in the post data.
 put '/gatherer/:gatherer/url' do
   @gatherer = SimpleScraper::Gatherer.first(:name => params[:gatherer]) or return not_found
-  @url = @gatherer.urls.first_or_new(:name => params[:value])
+  @url = @gatherer.urls.first_or_new(:value => params[:value])
   @gatherer.save ? true.to_json : {:gatherer => @gatherer.errors.to_a, :url => @url.errors.to_a}.to_json
 end
 
 # Delete a URL from a gatherer.
-delete '/gatherer/:gatherer/url/:value' do
+delete '/gatherer/:gatherer/url' do
   @gatherer = SimpleScraper::Gatherer.first(:name => params[:gatherer]) or return not_found
-  @url = @gatherer.urls.first(:name => params[:value])
+  @url = @gatherer.urls.first(:value => params[:value])
   @url.destroy
   @gatherer.destroyed? ? true.to_json : {:gatherer => @gatherer.errors.to_a}.to_json
 end
@@ -422,5 +423,5 @@ error do
 end
 
 not_found do
-  nil.to_json
+  'Not found'.to_json
 end

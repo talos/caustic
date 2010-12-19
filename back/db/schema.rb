@@ -74,9 +74,9 @@ module SimpleScraper
 
     property :name, String, :key => true
     
-    has n, :types, :through => :informations
+    #has n, :types, :through => :informations
     has n, :informations, :through => Resource
-
+    
     has n, :default_fields
 
     def export
@@ -92,7 +92,7 @@ module SimpleScraper
     property :name, String, :key => true
 
     has n, :informations #, :unique => true
-    has n, :areas, :through => :informations
+    #has n, :areas, :through => :informations
     has n, :publish_fields #, :unique => true
     
     def export
@@ -119,11 +119,9 @@ module SimpleScraper
     
     belongs_to :type, :key => true
     property :name, String, :key => true
-    has n, :areas, :through => Resource #, :unique => true
+    has n, :areas, :through => Resource
     
     has n, :gatherers, :through => Resource
-#    has n, :to_fields
-#    has n, :to_informations
     has n, :fields
     
     def export
@@ -144,8 +142,8 @@ module SimpleScraper
     include DataMapper::Resource
 
     belongs_to :area, :key => true
-#    property :name, String, :key => true
-    belongs_to :field, :key => true
+    property :name, String, :key => true
+#    belongs_to :field, :key => true
     property :value, String
 
   end
@@ -156,65 +154,52 @@ module SimpleScraper
     belongs_to :information, :key => true
     property :name, String, :key => true
 
-    has n, :to_fields
-    has n, :to_informations
+    #has n, :to_fields, :child_key => [:from_field_name]
+    #has n, :to_informations, :child_key => [:from_field_name]
   end
 
   class ToField
     include DataMapper::Resource
 
     belongs_to :from_field, 'Field', :key => true
+    property :match_number, Integer, :key => true
     belongs_to :to_field, 'Field', :key => true
 
     property :regex, String
-  end
-
-  class ToInformation
-
-  class ToField
-    include DataMapper::Resource
-    
-    belongs_to :information, :key => true
-    property :input_field, String, :key => true
-    property :match_number, Integer, :key => true
-    property :regex, String
-    property :destination_field, String, :key => true
-
     def identify
-      input_field + '/' + match_number.to_s + '/to/' + destination_field
+      from_field.identify + '/' + match_number.to_s + '/to/' + to_field.identify
     end
 
-    def export
-      {
-        :input_field  => attribute_get(:input_field),
-        :match_number => attribute_get(:match_number).to_s,
-        :regex        => attribute_get(:regex),
-        :destination_field => attribute_get(:destination_field)
-      }
-    end
+#     def export
+#       {
+#         :input_field  => attribute_get(:input_field),
+#         :match_number => attribute_get(:match_number).to_s,
+#         :regex        => attribute_get(:regex),
+#         :destination_field => attribute_get(:destination_field)
+#       }
+#     end
   end
 
   class ToInformation
     include DataMapper::Resource
-    
-    belongs_to :information, :key => true
-    property :input_field, String, :key => true
-    property :regex, String
-    belongs_to :destination_information, :model => 'Information', :key => true
-    property :destination_field, String, :key => true
 
+    belongs_to :from_field, 'Field', :key => true
+    belongs_to :to_field, 'Field', :key => true
+
+    property :regex, String
     def identify
-      input_field + '/to/' + destination_information.identify + destination_field
+      from_field.identify + '/to/' + to_field.identify
     end
     
-    def export
-      {
-        :input_field => attribute_get(:input_field),
-        :regex => attribute_get(:regex),
-        :destination_information => destination_information.identify,
-        :destination_field => attribute_get(:destination_field)
-      }
-    end
+#     def export
+#       {
+#         :input_field => attribute_get(:input_field),
+#         :regex => attribute_get(:regex),
+#         :destination_information => destination_information.identify,
+#         :destination_field => attribute_get(:destination_field)
+#       }
+#     end
+
   end
 
   class Gatherer
@@ -227,6 +212,8 @@ module SimpleScraper
     has n, :posts
     has n, :headers
     has n, :cookies, :model => 'Cookie'
+    
+    has n, :informations, :through => Resource
 
     is :tree, :order => :name
 
@@ -260,10 +247,10 @@ module SimpleScraper
     
     belongs_to :gatherer,  :key => true
 
-    property :name, String, :key => true
+    property :value, String, :key => true
 
     def identify
-      attribute_get(:name)
+      attribute_get(:value)
     end
   end
 
@@ -314,7 +301,7 @@ module SimpleScraper
       attribute_get(:name)
     end
   end
-end
+ end
 
 DataMapper.finalize
 DataMapper.auto_migrate!
