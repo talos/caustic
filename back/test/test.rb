@@ -25,80 +25,22 @@ module SimpleScraper
       Sinatra::Application
     end
 
-    def test_001_it_creates_type
-      put '/type/Property'
-      assert last_response.ok?, last_response.body
+    def test_001_lists_resources
+      get '/back/'
+      puts last_response.body
+      assert last_response.ok?
     end
 
-    def test_002_it_adds_publish_fields
-      put '/type/Property/publish/streetNum'
-      assert last_response.ok?, last_response.body
+    def test_002_posts_a_resource
+      post '/back/Gatherer/'
+      puts last_response.body
+      assert last_response.ok?
     end
 
-    def test_003_it_creates_areas
-      put '/area/Zip-11217'
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_004_it_adds_default_fields
-      put '/area/Zip-11217/default/test', params={:value => 'bleh'}
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_005_it_creates_informations
-      put '/type/Property/information/NewYorkCity'
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_006_it_tags_informations
-      put '/type/Property/information/NewYorkCity/area/Zip-11217'
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_007_it_tags_informations_synthetically
-      put '/type/Property/information/NewYorkCity/area/Brooklyn'
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_008_it_creates_gatherers
-      put '/gatherer/parent'
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_009_it_adds_gatherer_children
-      put '/gatherer/child'
-      put '/gatherer/child/parent/parent'
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_010_it_adds_urls
-      put '/gatherer/child/url', {:value => 'http://www.example.com'}
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_011_it_adds_gets
-      put '/gatherer/parent/get/test_get', {:value => 'a get value'}
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_012_it_adds_posts
-      put '/gatherer/parent/post/test_post', {:value => 'a post value'}
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_013_it_adds_headers
-      put '/gatherer/parent/header/test_header', {:value => 'a header value'}
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_014_it_adds_cookies
-      put '/gatherer/parent/cookie/test_cookie', {:value => 'a cookie value'}
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_015_it_adds_gatherers
-      put '/type/Property/information/NewYorkCity/gatherer/child'
-      assert last_response.ok?, last_response.body
+    def test_002_lists_a_resource
+      get '/back/Gatherer/'
+      puts last_response.body
+      assert last_response.ok? 
     end
   end
 end

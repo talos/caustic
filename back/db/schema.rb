@@ -11,49 +11,12 @@
 
 require 'rubygems'
 require 'dm-core'
-require 'dm-is-tree'
 require 'dm-migrations'
 require 'dm-constraints'
 require 'dm-validations'
 require 'json'
 
 DataMapper.setup(:default, 'sqlite://' + Dir.pwd + '/db.sqlite')
-
-# Default JSON for DataMapper.
-class DataMapper::Collection
-  # Convert a collection of resources to a hash, using specified key and value.
-  def to_hash(key, value)
-    hash = {}
-    all.each { |resource| hash[resource.attribute_get(key)] = resource.attribute_get(value) }
-    hash
-  end
-
-  # Get an array with the identity of each element.
-  def identify_all(query = DataMapper::Undefined)
-    all(query).collect { |resource| resource.identify }
-  end
-end
-
-module DataMapper::Model
-  def identify_all(query = DataMapper::Undefined)
-    all(query).collect { |resource| resource.identify }
-  end
-end
-
-module DataMapper::Resource
-  def to_json
-    export.to_json
-  end
-  
-  def identify
-    attribute_get(:name) or nil
-  end
-
-  def export
-    #attribute_get(:value) or nil
-    attributes
-  end
-end
 
 class DataMapper::Validations::ValidationErrors
   def to_a
@@ -68,22 +31,60 @@ end
 DataMapper::Property::String.length(255)
 DataMapper::Model.raise_on_save_failure = false
 
+module DataMapper::Model
+  def self.editable_descendants
+    self.descendants
+  end
+
+  def self.find_resource (resource_name)
+    self.descendants.find { |resource| resource.to_s == 'SimpleScraper::' + resource_name }
+  end
+end
+
 module SimpleScraper
+
+  # All editable resources have an ID, a description, a creator, and blessed editors.
+   module Editable
+    def self.included(base)
+      base.class_eval do
+        include DataMapper::Resource
+        
+        property :id, DataMapper::Property::Serial
+        property :description, DataMapper::Property::Text
+        
+        belongs_to :creator, 'User'
+        has n, :editors, 'User', :through => DataMapper::Resource
+      end
+    end
+  end
+  
+  module Taggable
+    def self.included(base)
+      base.class_eval do
+        include SimpleScraper::Editable
+        
+        has n, :areas, :through => DataMapper::Resource
+        has n, :types, :through => DataMapper::Resource
+      end
+    end
+  end
+
+  class User
+    include DataMapper::Resource
+    
+    property :id, Serial
+    
+    has n, :interpreters
+    has n, :generators
+    has n, :gatherers
+  end
+  
   class Area
     include DataMapper::Resource
 
     property :name, String, :key => true
     
-    #has n, :types, :through => :informations
-    has n, :informations, :through => Resource
-    
-    has n, :default_fields
-
-    def export
-      {
-        'default/' => default_fields.identify_all
-      }
-    end
+    has n, :defaults, :through => Resource
   end
 
   class Type
@@ -91,217 +92,87 @@ module SimpleScraper
 
     property :name, String, :key => true
 
-    has n, :informations #, :unique => true
-    #has n, :areas, :through => :informations
-    has n, :publish_fields #, :unique => true
-    
-    def export
-      {
-        'publish/' => publish_fields.identify_all,
-        'information/' => informations.identify_all
-      }
-    end
+    has n, :publishes, :through => Resource
   end
 
-  class PublishField
-    include DataMapper::Resource
-
-    belongs_to :type, :key => true
-    property :name, String, :key => true
-
-    def export
-      nil
-    end
+  class Publish
+    include Editable
+    
+    belongs_to :type
+    property :name, String
   end
-
-  class Information
-    include DataMapper::Resource
+  
+  class Default
+    include Editable
     
-    belongs_to :type, :key => true
-    property :name, String, :key => true
-    has n, :areas, :through => Resource
-    
-    has n, :gatherers, :through => Resource
-    has n, :fields
-    
-    def export
-      #    hash[:default_fields] = default_fields.to_hash(:name, :value)
-      #    hash[:gatherers] = gatherers.collect { |gatherer| gatherer.export }
-      #    hash[:to_fields] = to_fields.collect { |to_field| to_field.export }
-      #    hash[:to_informations] = to_informations.collect { |to_information| to_information.export }
-      {
-        'gatherer/' => gatherers.identify_all,
-#        'fields/' => [to_fields.identify_all, to_informations.identify_all].flatten,
-        'fields/' => fields.identify_all,
-        'areas/' => areas.identify_all
-      }
-    end
-  end
-
-  class DefaultField
-    include DataMapper::Resource
-
-    belongs_to :area, :key => true
-    property :name, String, :key => true
-#    belongs_to :field, :key => true
+    belongs_to :area
+    property :name, String
     property :value, String
-
   end
 
-  class Field
-    include DataMapper::Resource
+  class Interpreter
+#    include Editable
+    include Taggable
 
-    belongs_to :information, :key => true
-    property :name, String, :key => true
+#    property :id, Serial
 
-    #has n, :to_fields, :child_key => [:from_field_name]
-    #has n, :to_informations, :child_key => [:from_field_name]
-  end
-
-  class ToField
-    include DataMapper::Resource
-
-    belongs_to :from_field, 'Field', :key => true
-    property :match_number, Integer, :key => true
-    belongs_to :to_field, 'Field', :key => true
-
+    property :source_attribute, String
     property :regex, String
-    def identify
-      from_field.identify + '/' + match_number.to_s + '/to/' + to_field.identify
-    end
-
-#     def export
-#       {
-#         :input_field  => attribute_get(:input_field),
-#         :match_number => attribute_get(:match_number).to_s,
-#         :regex        => attribute_get(:regex),
-#         :destination_field => attribute_get(:destination_field)
-#       }
-#     end
+    property :match_number, String
+    property :destination_attribute, String
   end
 
-  class ToInformation
-    include DataMapper::Resource
+  class Generator
+#    include Editable
+    include Taggable
 
-    belongs_to :from_field, 'Field', :key => true
-    belongs_to :to_field, 'Field', :key => true
+#    property :id, Serial
 
-    property :regex, String
-    def identify
-      from_field.identify + '/to/' + to_field.identify
-    end
-    
-#     def export
-#       {
-#         :input_field => attribute_get(:input_field),
-#         :regex => attribute_get(:regex),
-#         :destination_information => destination_information.identify,
-#         :destination_field => attribute_get(:destination_field)
-#       }
-#     end
-
+    property :source_attribute, String
+    property :regex, String, :key => true
+    has n, :destination_areas, 'Area', :through => Resource
+    has n, :destination_types, 'Type', :through => Resource
+    property :destination_attribute, String
   end
 
   class Gatherer
-    include DataMapper::Resource
-    
-    property :name,   String, :key => true
+#    include Editable
+    include Taggable
+
+#    property :id, Serial
 
     has n, :urls
-    has n, :gets
     has n, :posts
     has n, :headers
     has n, :cookies, :model => 'Cookie'
-    
-    has n, :informations, :through => Resource
-
-    is :tree, :order => :name
-
-    def identify
-      attribute_get(:name)
-    end
-
-    def export
-      #    hash[:urls] = urls.collect { |url| url.value }
-      #    hash[:gets] = gets.to_hash(:name, :value)
-      #    hash[:posts] = posts.to_hash(:name, :value)
-      #    hash[:headers] = headers.to_hash(:name, :value)
-      #    hash[:cookies] = cookies.to_hash(:name, :value)
-      
-      #    hash[:parents] = ancestors.collect { |parent| parent.export }
-      {
-        'url/' => urls.identify_all,
-        'cookie/' => gets.identify_all,
-        'post/' => posts.identify_all,
-        'header/' => headers.identify_all,
-        'cookie/' => cookies.identify_all,
-        
-        #      :gatherer => ancestors.collect{ |ancestor| ancestor.identify }
-        #      :parent => parent ? parent.attribute_get(:name) : nil
-      }
-    end
   end
 
-  class Url
+  class GathererAttribute
     include DataMapper::Resource
+
+    property :id, Serial
+    belongs_to :gatherer
     
-    belongs_to :gatherer,  :key => true
-
-    property :value, String, :key => true
-
-    def identify
-      attribute_get(:value)
-    end
-  end
-
-  class Get
-    include DataMapper::Resource
-    
-    belongs_to :gatherer, :key => true
-    property :name,  String, :key => true
     property :value, String
 
-    def identify
-      attribute_get(:name)
-    end
+    property :type, Discriminator
   end
 
-  class Post
-    include DataMapper::Resource
-    
-    belongs_to :gatherer, :key => true
-    property :name,  String, :key => true
-    property :value, String
-
-    def identify
-      attribute_get(:name)
-    end
+  class Url < GathererAttribute
   end
 
-  class Header
-    include DataMapper::Resource
-    
-    belongs_to :gatherer, :key => true
-    property :name,  String, :key => true
-    property :value, String
-
-    def identify
-      attribute_get(:name)
-    end
+  class Post < GathererAttribute
+    property :name,  String
   end
 
-  class Cookie
-    include DataMapper::Resource
-    
-    belongs_to :gatherer, :key => true
-    property :name,  String, :key => true
-    property :value, String
-
-    def identify
-      attribute_get(:name)
-    end
+  class Header < GathererAttribute
+    property :name,  String
   end
- end
+
+  class Cookie < GathererAttribute
+    property :name,  String
+  end
+end
 
 DataMapper.finalize
 DataMapper.auto_migrate!
