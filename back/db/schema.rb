@@ -32,19 +32,30 @@ DataMapper::Property::String.length(255)
 DataMapper::Model.raise_on_save_failure = false
 
 module DataMapper::Model
-  def self.editable_descendants
-    self.descendants
+  def self.find_collection (c_name)
+    self.descendants.find { |c| c.to_s == 'SimpleScraper::' + c_name }
   end
 
-  def self.find_resource (resource_name)
-    self.descendants.find { |resource| resource.to_s == 'SimpleScraper::' + resource_name }
+end
+
+module DataMapper::Model::Relationship
+  def tags
+    relationships.select { |k, r| r.class == DataMapper::Associations::ManyToMany::Relationship }
+  end
+  def tag_names
+    tags.collect { |k, r| k }
+  end
+  def taggings
+    relationships.select { |k, r| r.class == DataMapper::Associations::OneToMany::Relationship }
+  end
+  def tagging_names
+    taggings.collect { |k, r| k }
   end
 end
 
 module SimpleScraper
-
   # All editable resources have an ID, a description, a creator, and blessed editors.
-   module Editable
+  module Editable
     def self.included(base)
       base.class_eval do
         include DataMapper::Resource
@@ -52,10 +63,20 @@ module SimpleScraper
         property :id, DataMapper::Property::Serial
         property :description, DataMapper::Property::Text
         
-        belongs_to :creator, 'User'
-        has n, :editors, 'User', :through => DataMapper::Resource
+        belongs_to :user
+        #has n, :editors, :model => 'User', :through => DataMapper::Resource
+
+        def inspect # inspect is taken over to return attributes, and lists of tags as arrays.
+          inspection = attributes.clone
+          inspection.delete(:user_id)
+#          self.class.tags.each   { |k, r| inspection[k] = send(k).all.collect { |r| r.id }  }
+            relationships.select { |k, r| r.class == DataMapper::Associations::ManyToMany::Relationship }\
+            .each   { |k, r| inspection[k] = r.child_model.all.collect { |r| r.id }  }
+          inspection
+        end
       end
     end
+    
   end
   
   module Taggable
@@ -73,6 +94,7 @@ module SimpleScraper
     include DataMapper::Resource
     
     property :id, Serial
+    property :name, String
     
     has n, :interpreters
     has n, :generators
@@ -80,17 +102,17 @@ module SimpleScraper
   end
   
   class Area
-    include DataMapper::Resource
+    include Editable
 
-    property :name, String, :key => true
+    property :name, String
     
     has n, :defaults, :through => Resource
   end
 
   class Type
-    include DataMapper::Resource
+    include Editable
 
-    property :name, String, :key => true
+    property :name, String
 
     has n, :publishes, :through => Resource
   end
@@ -98,35 +120,30 @@ module SimpleScraper
   class Publish
     include Editable
     
-    belongs_to :type
+    has n, :types, :through => Resource
     property :name, String
   end
   
   class Default
     include Editable
     
-    belongs_to :area
+    has n, :areas, :through => Resource
     property :name, String
     property :value, String
   end
 
   class Interpreter
-#    include Editable
     include Taggable
-
-#    property :id, Serial
 
     property :source_attribute, String
     property :regex, String
     property :match_number, String
     property :destination_attribute, String
+    
   end
 
   class Generator
-#    include Editable
     include Taggable
-
-#    property :id, Serial
 
     property :source_attribute, String
     property :regex, String, :key => true
@@ -136,41 +153,51 @@ module SimpleScraper
   end
 
   class Gatherer
-#    include Editable
     include Taggable
 
-#    property :id, Serial
-
-    has n, :urls
-    has n, :posts
-    has n, :headers
-    has n, :cookies, :model => 'Cookie'
+    has n, :urls, :through => Resource
+    has n, :posts, :through => Resource
+    has n, :headers, :through => Resource
+    has n, :cookies, :model => 'Cookie', :through => Resource
   end
 
-  class GathererAttribute
-    include DataMapper::Resource
+  class Url
+    include Editable
 
     property :id, Serial
-    belongs_to :gatherer
-    
+    has n, :gatherers, :through => Resource
+
     property :value, String
-
-    property :type, Discriminator
   end
 
-  class Url < GathererAttribute
-  end
+  class Post
+    include Editable
 
-  class Post < GathererAttribute
+    property :id, Serial
+    has n, :gatherers, :through => Resource
+
     property :name,  String
+    property :value, String
   end
 
-  class Header < GathererAttribute
+  class Header
+    include Editable
+
+    property :id, Serial
+    has n, :gatherers, :through => Resource
+
     property :name,  String
+    property :value, String
   end
 
-  class Cookie < GathererAttribute
+  class Cookie
+    include Editable
+
+    property :id, Serial
+    has n, :gatherers, :through => Resource
+
     property :name,  String
+    property :value, String
   end
 end
 

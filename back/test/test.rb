@@ -12,35 +12,83 @@
 $:<< Dir.pwd + '/..'
 
 require 'SimpleScraper'
+#require 'spec'
 require 'test/unit'
 require 'rack/test'
 
-ENV['RACK_ENV'] = 'test'
+#ENV['RACK_ENV'] = 'test'
+
+set :environment, :test
+set :sessions, true
+
+# @user = Factory(:user)
+# User.expects(:authenticate).with(any_parameters).returns(@user)
 
 module SimpleScraper
   class SimpleScraperTest < Test::Unit::TestCase
     include Rack::Test::Methods
-
+    
     def app
       Sinatra::Application
     end
-
-    def test_001_lists_resources
+    
+    def test_001_logs_in
+      post '/login', {:user => Time.new.to_s}
+      assert last_response.ok?, last_response.body
+    end
+    
+    def test_002_lists_collections
       get '/back/'
-      puts last_response.body
-      assert last_response.ok?
+      assert last_response.ok?, last_response.body
     end
-
-    def test_002_posts_a_resource
+    
+    def test_003_posts_to_collection
       post '/back/Gatherer/'
-      puts last_response.body
-      assert last_response.ok?
+      post '/back/Gatherer/'
+      post '/back/Gatherer/'
+      post '/back/Area/'
+      post '/back/Area/'
+      post '/back/Type/'
+      post '/back/Url/'
+      post '/back/Post/'
+      post '/back/Default/'
+      assert last_response.ok?, last_response.body
     end
 
-    def test_002_lists_a_resource
+    def test_004_lists_a_collection
       get '/back/Gatherer/'
-      puts last_response.body
-      assert last_response.ok? 
+      get '/back/Area/'
+      get '/back/Type/'
+      assert last_response.ok?, last_response.body
+    end
+
+    def test_005_puts_a_resource
+      put '/back/Post/2', {:name => 'name', :value => 'value'}
+      put '/back/Interpreter/1', {:source_attribute => 'field', :regex => '//', :match_number => '3', :destination_attribute => 'another_field'}
+      assert last_response.ok?, last_response.body
+    end
+
+    def test_006_gets_a_resource
+      get '/back/Gatherer/1'
+      get '/back/Area/1'
+      get '/back/Interpreter/1'
+      assert last_response.ok?, last_response.body
+    end
+
+    def test_007_deletes_a_resource
+      delete '/back/Url/1'
+      assert last_response.ok?, last_response.body
+    end
+
+    def test_008_tags_a_resource
+      put '/back/Gatherer/1/Areas/1'
+      put '/back/Gatherer/1/Areas/2'
+      assert last_response.ok?, last_response.body
+    end
+
+    def test_009_untags_a_resource
+      #delete '/back/Gatherer/1/Areas/1'
+      assert last_response.ok?, last_response.body
     end
   end
 end

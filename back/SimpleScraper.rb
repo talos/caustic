@@ -20,10 +20,12 @@ require 'db/schema'
 configure do
   set :raise_errors, true
   set :show_exceptions, false
+  set :sessions, true
 end
 
-# GET
+user = SimpleScraper::User.create(:name => 'test')
 
+# GET
 def serve_page(location)
   if(File.exists?(location))
     File.open(location)
@@ -45,35 +47,86 @@ get '/front/css/:page' do
   serve_page('../front/css/' + params[:page])
 end
 
+# Login!
+post '/login' do
+#  session[:user] = params[:user]
+  not_found
+end
+
 # Display the editable resources.
 get '/back/' do
-  DataMapper::Model.editable_descendants.collect {|resource| resource.to_s.sub('SimpleScraper::', '') }.to_json
+  ['area/', 'type/', 'publish/', 'default/', 'interpreter/', 'generator/', 'gatherer/', \
+  'url/', 'post/', 'header/', 'cookie/']
 end
 
-get '/back/:resource' do
-  redirect '/back/:resource/'
+get '/back/:collection' do
+  redirect '/back/:collection/'
 end
 
-# Display the existing members of a resource.
-get '/back/:resource/' do
-  @resource = DataMapper::Model.find_resource(params[:resource]) or not_found
-  @resource.all
+# Display the existing members of a collection.
+get '/back/:collection/' do
+  @collection = DataMapper::Model.find_collection(params[:collection]) or return not_found
+  @collection.all.collect {|resource| resource.id}.to_json
 end
 
-# Get the ID to create a new resource.
-post '/back/:resource/' do
-  @resource = DataMapper::Model.find_resource(params[:resource]) or not_found
-  @resource.create.attributes.to_json
+# Post to a collection, retrieving the path to put something else there.
+post '/back/:collection/' do
+  @collection = DataMapper::Model.find_collection(params[:collection]) or return not_found
+  @resource = @collection.new(:user => user)
+  @resource.save or return error @resource.errors.to_a.to_s
+  request.path_info + @resource.id.to_s
 end
 
-# Replace an existing resource by ID
-put '/back/:resource/:id' do
-  DataMapper::Model.find_resource(params[:resource]).new(params).id
+# Put (replace) an existing resource by ID.
+put '/back/:collection/:id' do
+  @collection = DataMapper::Model.find_collection(params[:collection]) or return not_found
+  @resource = @collection.first_or_create(:user => user, :id => params[:id]) or return error
+  params.delete('collection')
+  params.delete('id')
+  @resource.update(params) or error @resource.errors.to_a.to_json
+end
+
+# Get a resource by ID
+get '/back/:collection/:id' do
+  @resource = DataMapper::Model.find_collection(params[:collection]).
+    first({:user => user, :id => params[:id]}) or return not_found
+  @resource.inspect.to_json
 end
 
 # Delete a resource by ID
-delete '/back/:resource/:id' do
-  DataMapper::Model.find_resource(params[:resource]).new(params).delete(params[:id])
+delete '/back/:collection/:id' do
+  @collection = DataMapper::Model.find_collection(params[:collection]) or return not_found
+  @resource = @collection.first({:user => user, :id => params[:id]}) or return not_found
+  @resource.destroy or error @resource.errors.to_a.to_json
+end
+
+# Put a tag.
+put '/back/:collection/:id/:tag/:tag_id' do
+  collection = DataMapper::Model.find_collection(params[:collection]) or return not_found
+  resource = collection.first({:user => user, :id => params[:id]}) or return not_found
+  tag_name = params[:tag].downcase
+  tag_relationship = resource.class.relationships[tag_name] or return not_found
+  tag_resource = tag_relationship.target_model.first(params[:tag_id]) #buggy?
+  
+  resource.send(tag_name) << tag_resource
+  resource.save or error resource.errors.to_a.to_json
+end
+
+# Delete a tag.
+delete '/back/:collection/:id/:tag/:tag_id' do
+  collection = DataMapper::Model.find_collection(params[:collection]) or return not_found
+  resource = collection.first({:user => user, :id => params[:id]}) or return not_found
+  tag_plural_name = params[:tag].downcase
+  tag_name = tag_plural_name.sub(/s$/, '')
+  tag_relationship = resource.class.relationships[tag_plural_name] or return not_found
+  tag_resource = resource.send(tag_plural_name).first(params[:tag_id]) #buggy?
+  tagging_relationship_name = resource.class.tagging_names.find { |t| t =~ Regexp.new(tag_name)}
+  
+  source_id_name = params[:collection].downcase + '_id'
+  target_id_name = tag_name + '_id'
+  link = resource.send(tagging_relationship_name).first(source_id_name => params[:id], target_id_name => params[:tag_id])
+  link.destroy or error link.errors.to_a.to_json
+#    .first(params[:collection].downcase.to_sym => resource, tag_name.to_sym => tag_resource).to_json
 end
 
 error do
