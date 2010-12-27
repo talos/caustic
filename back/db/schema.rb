@@ -32,10 +32,9 @@ DataMapper::Property::String.length(255)
 DataMapper::Model.raise_on_save_failure = false
 
 module DataMapper::Model
-  def self.find_collection (c_name)
-    self.descendants.find { |c| c.to_s == 'SimpleScraper::' + c_name }
+  def self.find_collection (collection_name)
+    self.descendants.find { |c| c.name =~ Regexp.new('(^|:)' + collection_name + '$', Regexp::IGNORECASE) }
   end
-
 end
 
 module DataMapper::Model::Relationship
@@ -64,14 +63,16 @@ module SimpleScraper
         property :description, DataMapper::Property::Text
         
         belongs_to :user
-        #has n, :editors, :model => 'User', :through => DataMapper::Resource
+        has n, :editors, :model => 'User', :through => DataMapper::Resource
 
         def inspect # inspect is taken over to return attributes, and lists of tags as arrays.
           inspection = attributes.clone
           inspection.delete(:user_id)
+          inspection.delete(:id)
+          self.class.tags.each { |k, t| inspection[k] = send(k).all.collect { |r| r.id } }
 #          self.class.tags.each   { |k, r| inspection[k] = send(k).all.collect { |r| r.id }  }
-            relationships.select { |k, r| r.class == DataMapper::Associations::ManyToMany::Relationship }\
-            .each   { |k, r| inspection[k] = r.child_model.all.collect { |r| r.id }  }
+#            relationships.select { |k, r| r.class == DataMapper::Associations::ManyToMany::Relationship }\
+#            .each   { |k, r| inspection[k] = r.child_model.all.collect { |r| r.id }  }
           inspection
         end
       end
@@ -138,7 +139,7 @@ module SimpleScraper
     property :source_attribute, String
     property :regex, String
     property :match_number, String
-    property :destination_attribute, String
+    property :target_attribute, String
     
   end
 
@@ -146,10 +147,10 @@ module SimpleScraper
     include Taggable
 
     property :source_attribute, String
-    property :regex, String, :key => true
-    has n, :destination_areas, 'Area', :through => Resource
-    has n, :destination_types, 'Type', :through => Resource
-    property :destination_attribute, String
+    property :regex, String
+    has n, :target_areas, 'Area', :through => Resource
+    has n, :target_types, 'Type', :through => Resource
+    property :target_attribute, String
   end
 
   class Gatherer

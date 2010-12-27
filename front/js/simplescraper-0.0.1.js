@@ -11,62 +11,102 @@ $(document).ready(function() {
 
 var addClass = 'add';
 var deleteClass = 'delete';
-var deletableClass = 'deletable';
-var dataClass = 'data';
-var modifierClass = 'modifier';
-var objectClass = 'object';
-var listClass = 'list';
+var updateClass = 'update';
+var tagClass = 'tag';
+var untagClass = 'untag';
+
+var collectionClass = 'collection';
+var resourceClass = 'resource';
 
 /*
-  Convert a hash to a DOM element with name:value input pairs.
- */
-var hashToElem = function(hash, element) {
-    $.each(hash, function(name) {
-	    element.append(dataLineElem({'name': name, 'value': hash[name]}));
-	});
-};
-
-/*
-
+When clicked, makes a delete request for the nearest resource (which could be a tag.)
  */
 var deleteButton = function() {
-    return $('<span>').append('delete').addClass('delete').click(function() {
-			var object = $(this).closest('.' + objectClass);
-			$.ajax({    type: 'delete',
-				    url: object.attr('id'),
-				    dataType: 'json',
-				    success: function(contents) {
-				    // TODO: check status
-				    if(contents == true) {
-					object.remove();
-				    } else {
-					console.log(contents);
-				    }
-				}});
-			return false;
+    return $('<span>').append('delete').addClass(deleteClass).click(function() {
+	    var $resource = $(this).closest('.' + resourceClass);
+	    $.ajax({    type: 'delete',
+			url: $resource.attr('id'),
+			dataType: 'json',
+			success: function(contents) {// TODO: check status
+			$resource.remove();
+		    }
+		});
+	    return false;
 	});
 };
 
 /*
-
+When clicked, makes a put request to the collection it falls within.
  */
 var addButton = function() {
-    return $('<span>').append('add').addClass('add').click(function() {
-				    var nameToAdd = $(this).children('input').val();
-				    var elem = $(this).closest('.' + objectClass);
-				    $.ajax({    type: 'put',
-						url: elem.attr('id') + nameToAdd,
-						dataType: 'json',
-						success: function(contents) {
-						// TODO: check status
-						if(contents == true) {
-						    elem.trigger('refresh');
-						} else {
-						    console.log(contents);
-						}
-					    }});
-				    return false;
-	}).append($('<input>').attr('type', 'text'));
+    return $('<span>').append('add').addClass(addClass).click(function() {
+	    var $elem = $(this).closest('.' + collectionClass);
+	    $.ajax({    type: 'post',
+			url: $elem.attr('id'),
+			dataType: 'json',
+			success: function(contents) {// TODO: check status
+			$elem.trigger('refresh');
+		    }
+		});
+	    console.log($elem);
+	    return false;
+	});
+};
+
+/*
+When clicked, makes a post request for the resource it falls within.
+*/
+var updateButton = function() {
+    return $('<span>').append('update').addClass(updateClass).click(function() {
+	    var $elem = $(this).closest('.' + resourceClass);
+	    var resourceData = {};
+	    $.each($elem.find('input'), function() {
+		    var $input = $(this);
+		    if(!$input.attr('name')) // Ignore inputs without names.  They are not for attributes.
+			return;
+		    resourceData[$input.attr('name')] = $input.val();
+		});
+	    console.log(resourceData);
+	    $.ajax({    type: 'put',
+			url: $elem.attr('id'),
+			data: resourceData,
+			success: function(contents) {// TODO: check status
+			$elem.trigger('refresh');
+		    }
+		});
+	    return false;
+	});
+};
+
+/*
+When clicked, makes a put request for a specific tag ID.
+ */
+var tagButton = function() {
+    return $('<span>').append('tag').addClass(tagClass).click(function() {
+	    var $elem = $(this).prev('input');
+	    $.ajax({ type: 'put',
+			url: $elem.attr('id') + '/' + $elem.val(),
+			success: function(contents) {
+			$elem.closest('.' + resourceClass).trigger('refresh');
+		    }});
+	    return false;
+	});
+};
+
+/*
+When clicked, makes a delete request for the tag selected in an option element.
+*/
+var untagButton = function() {
+    return $('<span>').append('untag').addClass(untagClass).click(function() {
+	    var $elem = $(this).prev('select');
+	    
+	    $.ajax({ type: 'delete',
+			url: $elem.attr('id') + '/' + $elem.val(),
+			success: function(contents) {
+			$elem.closest('.' + resourceClass).trigger('refresh');
+		    }});
+	    return false;
+	});
 };
 
 /*
@@ -81,63 +121,69 @@ var arrayToElem = function(array, element) {
 /*
 
  */
-var getObject = function(objectLocation, objectName) {
-    var elem = $('<div>').attr('id', objectLocation + objectName);
-    elem.addClass(objectClass);
-    var isCollection = objectName.charAt(objectName.length - 1) == '/' ? true : false;
-    elem.data({ name: objectName,
-		isCollection: isCollection });
-
-    // GET a collection, you get an array.  each element of the array is an existing resource.  new resources can be added with arbitrary names.
-    //                           => each element must be gotten.
-    // GET a resource, you get a hash.
-    //                           => IF element is an array, it is a collection within the resource.
-    //                           => IF element is a string, allow it to be modified.
-    elem.bind('refresh', function(event) {
-	    var elem = $(this);
-	    var objectName = elem.data('name');
-	    var isCollection = elem.data('isCollection');
-	    elem.empty();
-	    elem.append(objectName);
-	    $.ajax({
-		    'type': 'get',
-		    url: elem.attr('id'),
+var getCollection = function(collectionLocation, collectionName) {
+    var $elem = $('<div>').attr('id', collectionLocation + collectionName);
+    $elem.addClass(collectionClass);
+    $elem.bind('refresh', function(event) {
+	    var $elem = $(this);
+	    $elem.empty().append(collectionName);
+	    $.ajax({type: 'get',
+		    url: collectionLocation + collectionName,
 		    dataType: 'json',
-		    success: function(contents) {
-			if(isCollection) {
-			    if(jQuery.isArray(contents)) {
-				elem.append(addButton());
-				for(var i = 0; i < contents.length; i ++) {
-				    elem.append(getObject(elem.attr('id'), contents[i]));
-				}
-			    }
-			} else if(!isCollection) {
-			    elem.append(deleteButton());
-			    if(jQuery.isPlainObject(contents)) {
-				for(var key in contents) {
-				    if(jQuery.isArray(contents[key])) {
-					var listElem = $('<div>').addClass(objectClass).attr('id', elem.attr('id') + '/' + key).append(key).append(addButton()).appendTo(elem);
-					for(var i = 0; i < contents[key].length; i++) {
-					    listElem.append(getObject(listElem.attr('id'), contents[key][i]));
-					}
-				    } else if(jQuery.type(contents[key]) == 'string') {
-					elem.append($('<span>').append(key + ': ').append($('<input>').attr({'type': 'text', 'value': contents[key]})));
-				    }
-				}
+		    success: function(collectionData) {
+			$elem.append(addButton());
+			for(var i = 0; i < collectionData.length; i++) {
+			    var memberLocation = String(collectionData[i]);
+			    if(memberLocation.charAt(memberLocation.length - 1) == '/') {
+				$elem.append(getCollection(collectionLocation + collectionName, memberLocation));
+			    } else {
+				$elem.append(getResource(collectionLocation + collectionName, memberLocation));
 			    }
 			}
 		    }
 		});
 	    return false; // Prevent bubbling.
 	});
-
-    elem.trigger('refresh');
-
-    return elem;
+    $elem.trigger('refresh');
+    return $elem;
 };
 
+/*
 
+ */
+var getResource = function(resourceLocation, resourceName) {
+    var $elem = $('<div>').attr('id', resourceLocation + resourceName);
+    $elem.addClass(resourceClass);
+    $elem.bind('refresh', function(event) {
+	    var $elem = $(this);
+	    $elem.empty().append(resourceName).append(updateButton).append(deleteButton);
+	    $.ajax({type: 'get',
+		    url: $elem.attr('id'),
+			dataType: 'json',
+			success: function(resourceData) {
+			for(var key in resourceData) {
+			    var attribute = resourceData[key];
+			    if(jQuery.isArray(attribute)) { // A collection of tags.
+				var $tagContainer = $('<div>').append(key);
+				var $tagSelector = $('<select>').attr('id',resourceLocation + resourceName + '/' + key);
+				for(tagId in attribute) {
+				    $tagSelector.append($('<option>').append(String(attribute)))
+				}
+				var $tagInput = $('<input>').attr({id: resourceLocation + resourceName + '/' + key, type: 'text'});
+				$elem.append($tagContainer.append($tagSelector).append(untagButton()).append($tagInput).append(tagButton()));
+				//var listElem = $('<div>').addClass(attribute).attr('id', $elem.attr('id') + '/' + key).append(key).append(addButton()).appendTo($elem);
+			    } else { // An individual, post-able value.
+				$elem.append($('<br><span>').append(key + ': ').append($('<input>').attr({'type': 'text', 'name': key, 'value': attribute})));
+			    }
+			}
+		    }
+		});
+	    return false;
+	});
+    $elem.trigger('refresh');
+    return $elem;
+}
 
 function initialize() {
-    $('div#root').append(getObject('', '/'));
+    $('div#root').append(getCollection('/back', '/'));
 }

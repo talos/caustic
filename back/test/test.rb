@@ -62,15 +62,30 @@ module SimpleScraper
       assert last_response.ok?, last_response.body
     end
 
-    def test_005_puts_a_resource
-      put '/back/Post/2', {:name => 'name', :value => 'value'}
-      put '/back/Interpreter/1', {:source_attribute => 'field', :regex => '//', :match_number => '3', :destination_attribute => 'another_field'}
+    def test_005_puts_resources
+      put '/back/Post/2', {
+        :name => 'name',
+        :value => 'value'}
+      assert last_response.ok?, last_response.body
+      put '/back/Interpreter/1', {
+        :source_attribute => 'field',
+        :regex => '//',
+        :match_number => '3',
+        :target_attribute => 'another_field' }
+      assert last_response.ok?, last_response.body
+      put '/back/generator/2', {
+        :source_attribute => 'field',
+        :name => 'a very exciting generator',
+        :regex => '/d/',
+        :target_attribute => 'yet another field' }
       assert last_response.ok?, last_response.body
     end
 
     def test_006_gets_a_resource
       get '/back/Gatherer/1'
+      assert last_response.ok?, last_response.body
       get '/back/Area/1'
+      assert last_response.ok?, last_response.body
       get '/back/Interpreter/1'
       assert last_response.ok?, last_response.body
     end
@@ -78,16 +93,21 @@ module SimpleScraper
     def test_007_deletes_a_resource
       delete '/back/Url/1'
       assert last_response.ok?, last_response.body
+      get '/back/Url/1'
+      assert last_response.status == 404, 'Able to load a deleted resource.'
     end
 
     def test_008_tags_a_resource
       put '/back/Gatherer/1/Areas/1'
+      assert last_response.ok?, last_response.body
       put '/back/Gatherer/1/Areas/2'
+      assert last_response.ok?, last_response.body
+      put '/back/Generator/2/Areas/1'
       assert last_response.ok?, last_response.body
     end
 
     def test_009_untags_a_resource
-      #delete '/back/Gatherer/1/Areas/1'
+      delete '/back/Gatherer/1/Areas/1'
       assert last_response.ok?, last_response.body
     end
   end
