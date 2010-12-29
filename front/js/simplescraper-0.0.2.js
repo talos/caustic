@@ -73,7 +73,8 @@ if(!window.console) {
 	},
 	/* A tag. */
 	tag: function(name, value) {
-	    return $('<span>').append(value).addClass(settings.tagClass).data({name: name, value: value}).append(widgets['untag']);
+	    return $('<span>').append(value).addClass(settings.tagClass).data({name: name, value: value})
+	    .append(widgets['untagger']);
 	},
 	/* Remove the tag this is attached to. */
 	untagger: function() {
@@ -132,7 +133,7 @@ if(!window.console) {
 			    $resource.simplescraper('tag', $tagger.data('name'), $tagger.val());
 			});
 		    $resource.delegate('.' + settings.untaggerClass, 'click', function() {
-			    var $tag = $(this).closest(settings.tagClass);
+			    var $tag = $(this).closest('.' + settings.tagClass);
 			    $resource.simplescraper('untag', $tag.data('name'), $tag.data('value'));
 			});
 		    if(id) {

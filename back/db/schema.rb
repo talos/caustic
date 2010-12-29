@@ -32,8 +32,8 @@ DataMapper::Property::String.length(255)
 DataMapper::Model.raise_on_save_failure = false
 
 module DataMapper::Model
-  def self.find_collection (collection_name)
-    self.descendants.find { |c| c.name =~ Regexp.new('(^|:)' + collection_name + '$', Regexp::IGNORECASE) }
+  def self.find_model (model_name)
+    self.descendants.find { |c| c.name =~ Regexp.new('(^|:)' + model_name + '$', Regexp::IGNORECASE) }
   end
 end
 
@@ -117,6 +117,7 @@ module SimpleScraper
   
   class TargetArea
     include DataMapper::Resource
+    
     property :name, String, :key => true
   end
 
@@ -130,6 +131,7 @@ module SimpleScraper
 
   class TargetType
     include DataMapper::Resource
+    
     property :name, String, :key => true
   end
 
@@ -166,8 +168,6 @@ module SimpleScraper
     
     property :source_attribute, String
     property :regex, String
-    #has n, :target_areas, :model => 'Area', :through => Resource
-    #has n, :target_types, :model => 'Type', :through => Resource
     has n, :target_areas, :through => Resource
     has n, :target_types, :through => Resource
     property :target_attribute, String
@@ -178,10 +178,10 @@ module SimpleScraper
     
     property :name, String
     
-    has n, :urls, :through => Resource
-    has n, :posts, :through => Resource
-    has n, :headers, :through => Resource
-    has n, :cookies, :model => 'Cookie', :through => Resource
+    #has n, :urls, :through => Resource
+    #has n, :posts, :through => Resource
+    #has n, :headers, :through => Resource
+    #has n, :cookies, :model => 'Cookie', :through => Resource
   end
 
   class Url
