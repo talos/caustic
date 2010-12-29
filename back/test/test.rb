@@ -46,9 +46,6 @@ module SimpleScraper
       post '/back/Gatherer/'
       post '/back/Gatherer/'
       post '/back/Gatherer/'
-      post '/back/Area/'
-      post '/back/Area/'
-      post '/back/Type/'
       post '/back/Url/'
       post '/back/Post/'
       post '/back/Default/'
@@ -57,8 +54,6 @@ module SimpleScraper
 
     def test_004_lists_a_collection
       get '/back/Gatherer/'
-      get '/back/Area/'
-      get '/back/Type/'
       assert last_response.ok?, last_response.body
     end
 
@@ -84,8 +79,6 @@ module SimpleScraper
     def test_006_gets_a_resource
       get '/back/Gatherer/1'
       assert last_response.ok?, last_response.body
-      get '/back/Area/1'
-      assert last_response.ok?, last_response.body
       get '/back/Interpreter/1'
       assert last_response.ok?, last_response.body
     end
@@ -98,17 +91,23 @@ module SimpleScraper
     end
 
     def test_008_tags_a_resource
-      put '/back/Gatherer/1/Areas/1'
+      put '/back/gatherer/1/areas/new%20york%20city'
       assert last_response.ok?, last_response.body
-      put '/back/Gatherer/1/Areas/2'
+      put '/back/gatherer/1/areas/queens'
       assert last_response.ok?, last_response.body
-      put '/back/Generator/2/Areas/1'
+      put '/back/generator/2/areas/new%20york%20city'
       assert last_response.ok?, last_response.body
     end
 
     def test_009_untags_a_resource
-      delete '/back/Gatherer/1/Areas/1'
+      delete '/back/gatherer/1/areas/new%20york%20city'
       assert last_response.ok?, last_response.body
+    end
+
+    def test_010_retrieves_tags
+      get '/back/generator/2'
+      assert last_response.ok?, last_response.body
+      puts last_response.body.to_s
     end
   end
 end

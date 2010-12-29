@@ -4,12 +4,17 @@
     <title>SimpleScraper Front</title>
     <link rel="stylesheet" type="text/css" href="css/simplescraper-0.0.1.css" />
     <script src="js/jquery-1.4.4.min.js" type="text/javascript"></script>
-    <script src="js/simplescraper-0.0.1.js" type="text/javascript"></script>
+    <script src="js/simplescraper-0.0.2.js" type="text/javascript"></script>
+    <script type="text/javascript">
+
+      $(document).ready(function() {
+        $('#simplescraper').simplescraper();
+      });
+    </script>
   </head>
   <body>
     <form>
-      <div id="root" class="object">
-      </div>
+      <div id="simplescraper"></div>
     </form>
   </body>
 </html>

@@ -41,13 +41,13 @@ module DataMapper::Model::Relationship
   def tags
     relationships.select { |k, r| r.class == DataMapper::Associations::ManyToMany::Relationship }
   end
-  def tag_names
+  def tag_types
     tags.collect { |k, r| k }
   end
   def taggings
     relationships.select { |k, r| r.class == DataMapper::Associations::OneToMany::Relationship }
   end
-  def tagging_names
+  def tagging_types
     taggings.collect { |k, r| k }
   end
 end
@@ -59,20 +59,23 @@ module SimpleScraper
       base.class_eval do
         include DataMapper::Resource
         
-        property :id, DataMapper::Property::Serial
         property :description, DataMapper::Property::Text
         
         belongs_to :user
         has n, :editors, :model => 'User', :through => DataMapper::Resource
-
+        
         def inspect # inspect is taken over to return attributes, and lists of tags as arrays.
           inspection = attributes.clone
-          inspection.delete(:user_id)
-          inspection.delete(:id)
-          self.class.tags.each { |k, t| inspection[k] = send(k).all.collect { |r| r.id } }
-#          self.class.tags.each   { |k, r| inspection[k] = send(k).all.collect { |r| r.id }  }
-#            relationships.select { |k, r| r.class == DataMapper::Associations::ManyToMany::Relationship }\
-#            .each   { |k, r| inspection[k] = r.child_model.all.collect { |r| r.id }  }
+          inspection.delete_if { |k, v| [:user_id, :id].include?(k) }
+          #inspection.delete(:user_id)
+          #inspection.delete(:id)
+          self.class.tag_types.each do |tag_type|
+            inspection[tag_type] = []
+            send(tag_type).all.each do |tag|
+              #inspection[tag_name][tag.id] = tag.name
+              inspection[tag_type].push(tag.name)
+             end
+          end
           inspection
         end
       end
@@ -84,6 +87,8 @@ module SimpleScraper
     def self.included(base)
       base.class_eval do
         include SimpleScraper::Editable
+
+        property :id, DataMapper::Property::Serial
         
         has n, :areas, :through => DataMapper::Resource
         has n, :types, :through => DataMapper::Resource
@@ -94,8 +99,8 @@ module SimpleScraper
   class User
     include DataMapper::Resource
     
-    property :id, Serial
-    property :name, String
+    #property :id, Serial
+    property :name, String, :key => true
     
     has n, :interpreters
     has n, :generators
@@ -103,23 +108,35 @@ module SimpleScraper
   end
   
   class Area
-    include Editable
+    include DataMapper::Resource
 
-    property :name, String
+    property :name, String, :key => true
     
     has n, :defaults, :through => Resource
   end
+  
+  class TargetArea
+    include DataMapper::Resource
+    property :name, String, :key => true
+  end
 
   class Type
-    include Editable
+    include DataMapper::Resource
 
-    property :name, String
+    property :name, String, :key => true
 
     has n, :publishes, :through => Resource
   end
 
+  class TargetType
+    include DataMapper::Resource
+    property :name, String, :key => true
+  end
+
   class Publish
     include Editable
+    
+    property :id, Serial
     
     has n, :types, :through => Resource
     property :name, String
@@ -128,7 +145,9 @@ module SimpleScraper
   class Default
     include Editable
     
-    has n, :areas, :through => Resource
+    property :id, Serial
+
+    has n, :area, :through => Resource
     property :name, String
     property :value, String
   end
@@ -138,24 +157,27 @@ module SimpleScraper
 
     property :source_attribute, String
     property :regex, String
-    property :match_number, String
+    property :match_number, Integer
     property :target_attribute, String
-    
   end
 
   class Generator
     include Taggable
-
+    
     property :source_attribute, String
     property :regex, String
-    has n, :target_areas, 'Area', :through => Resource
-    has n, :target_types, 'Type', :through => Resource
+    #has n, :target_areas, :model => 'Area', :through => Resource
+    #has n, :target_types, :model => 'Type', :through => Resource
+    has n, :target_areas, :through => Resource
+    has n, :target_types, :through => Resource
     property :target_attribute, String
   end
-
+  
   class Gatherer
     include Taggable
-
+    
+    property :name, String
+    
     has n, :urls, :through => Resource
     has n, :posts, :through => Resource
     has n, :headers, :through => Resource

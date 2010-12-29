@@ -43,8 +43,8 @@ get '/front/js/:page' do
   serve_page('../front/js/' + params[:page])
 end
 
-get '/front/css/:page' do
-  serve_page('../front/css/' + params[:page])
+get '/front/css/:page' do # Gah that is irritating.
+  [200, {'Content-Type' => 'text/css'}, serve_page('../front/css/' + params[:page])]
 end
 
 # Login!
@@ -59,8 +59,8 @@ end
 
 # Display the editable resources.
 get '/back/' do
-  ['area/', 'type/', 'publish/', 'default/', 'interpreter/', 'generator/', 'gatherer/', \
-  'url/', 'post/', 'header/', 'cookie/'].to_json
+  ['publish', 'default', 'interpreter', 'generator', 'gatherer', \
+  'url', 'post', 'header', 'cookie'].to_json
 end
 
 get '/back/:collection' do
@@ -73,12 +73,12 @@ get '/back/:collection/' do
   collection.all.collect {|resource| resource.id}.to_json
 end
 
-# Post to a collection, retrieving the path to put something else there.
+# Post to a collection, retrieving the id to new resource.
 post '/back/:collection/' do
   collection = DataMapper::Model.find_collection(params[:collection]) or return not_found
   resource = collection.new(:user => user)
   resource.save or return error resource.errors.to_a.to_s
-  (request.path_info + resource.id.to_s).to_json
+  resource.id.to_s.to_json
 end
 
 # Put (replace) an existing resource by ID.
@@ -109,31 +109,36 @@ delete '/back/:collection/:id' do
   resource.destroy or error resource.errors.to_a.to_json
 end
 
-# Tag a resource.
-put '/back/:collection/:id/:tag/:tag_id' do
+# Tag a resource.  Create the tag if it does not yet exist.
+put '/back/:collection/:id/:tag/:tag_name' do
   collection = DataMapper::Model.find_collection(params[:collection]) or return not_found
   resource = collection.first({:user => user, :id => params[:id]}) or return not_found
-  tag_name = params[:tag].downcase
-  tag_relationship = resource.class.relationships[tag_name] or return not_found
-  tag_resource = tag_relationship.target_model.first(:id => params[:tag_id]) or return not_found
-
-  resource.send(tag_name) << tag_resource
-  resource.save or error resource.errors.to_a.to_json
+  tag_type = params[:tag].downcase
+  
+  tag_relationship = resource.class.relationships[tag_type] or return not_found
+  tag_resource = tag_relationship.target_model.first_or_create(:name => params[:tag_name]) or return error
+  
+  #  return error resource.send(tag_type).to_a.to_json
+  #return error tag_resource.inspect.to_json
+  resource.send(tag_type) << tag_resource
+  
+  resource.save or error tag_resource.errors.collect { |e| e.to_s }.to_json
+#  resource.save or error resource.errors.to_a.to_json
 end
 
 # Delete a tag.
-delete '/back/:collection/:id/:tag/:tag_id' do
+delete '/back/:collection/:id/:tag/:tag_name' do
   collection = DataMapper::Model.find_collection(params[:collection]) or return not_found
   resource = collection.first({:user => user, :id => params[:id]}) or return not_found
-  tag_plural_name = params[:tag].downcase
-  tag_name = tag_plural_name.sub(/s$/, '')
-  tag_relationship = resource.class.relationships[tag_plural_name] or return not_found
-  tag_resource = resource.send(tag_plural_name).first(:id => params[:tag_id]) #buggy?
-  tagging_relationship_name = resource.class.tagging_names.find { |t| t =~ Regexp.new(tag_name)}
+  tag_plural_type = params[:tag].downcase
+  tag_type = tag_plural_type.sub(/s$/, '')
+  # tag_relationship = resource.class.relationships[tag_plural_name] or return not_found
+  # tag_resource = resource.send(tag_plural_name).first(:name => params[:tag_name])
+  tagging_relationship_type = resource.class.tagging_types.find { |type| type =~ Regexp.new(tag_type)}
   
   source_id_name = params[:collection].downcase + '_id'
-  target_id_name = tag_name + '_id'
-  link = resource.send(tagging_relationship_name).first(source_id_name => params[:id], target_id_name => params[:tag_id])
+  target_id_name = tag_type + '_name'
+  link = resource.send(tagging_relationship_type).first(source_id_name => params[:id], target_id_name => params[:tag_name])
   link.destroy or error link.errors.to_a.to_json
 #    .first(params[:collection].downcase.to_sym => resource, tag_name.to_sym => tag_resource).to_json
 end
