@@ -90,6 +90,12 @@ module SimpleScraper
   
   class Area
     include Editable
+
+    has n, :defaults, :through => Resource
+
+    has n, :gatherers, :through => Resource
+    has n, :interpreters, :through => Resource
+    has n, :generators, :through => Resource
   end
   
   class TargetArea
@@ -98,6 +104,12 @@ module SimpleScraper
 
   class Type
     include Editable
+    
+    has n, :publishes, :through => Resource
+
+    has n, :gatherers, :through => Resource
+    has n, :interpreters, :through => Resource
+    has n, :generators, :through => Resource
   end
 
   class TargetType
@@ -147,11 +159,12 @@ module SimpleScraper
 
     has n, :areas, :through => Resource
     has n, :types, :through => Resource
-    # has n, :posts, :through => Resource
-    # has n, :headers, :through => Resource
-    # has n, :cookies, 'Cookie', :through => Resource
+    
+    has n, :posts, :through => Resource
+    has n, :headers, :through => Resource
+    #has n, :cookies, :model => 'Cookie',  :through => Resource, :child_key => [ :cookie_name ]
 
-    property :url, Text
+    property :url, String
   end
 
   class Post
@@ -183,4 +196,4 @@ module SimpleScraper
 end
 
 DataMapper.finalize
-#DataMapper.auto_upgrade!
+DataMapper.auto_upgrade!

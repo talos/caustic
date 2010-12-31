@@ -307,8 +307,9 @@
 				{
 				    if(data['name']) // keep ID up to date
 					$resource.data('name', data['name']);
-				    $resource.simplescraper_resource('get');
+				    //$resource.simplescraper_resource('get');
 				    $('.' + classes.editor).simplescraper_editor('refresh');
+				    $('.' + classes.resource).simplescraper_resource('get'); // Could modify taggings in other displayed items.
 				}
 			   });
 		});
@@ -350,7 +351,9 @@
 			success: function(contents)
 			{
 			    $resource.simplescraper_resource('put'); // This will PUT possibly unsaved changes, which will also GET.
-			    //$resource.simplescraper_resource('get');
+			},
+			error: function(response, code) {
+			    console.log(response);
 			}
 		    });
 		});
