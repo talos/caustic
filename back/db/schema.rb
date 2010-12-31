@@ -100,6 +100,8 @@ module SimpleScraper
   
   class TargetArea
     include Editable
+    
+    has n, :generators, :through => Resource
   end
 
   class Type
@@ -114,6 +116,8 @@ module SimpleScraper
 
   class TargetType
     include Editable
+
+    has n, :generators, :through => Resource
   end
 
   class Publish # Applies to all a type's areas.
@@ -137,7 +141,7 @@ module SimpleScraper
 
     property :source_attribute, String
     property :regex, String
-    property :match_number, Integer
+    property :match_number, Integer, :default => 0, :required => true
     property :target_attribute, String
   end
 
@@ -162,7 +166,7 @@ module SimpleScraper
     
     has n, :posts, :through => Resource
     has n, :headers, :through => Resource
-    #has n, :cookies, :model => 'Cookie',  :through => Resource, :child_key => [ :cookie_name ]
+    has n, :cookies, :model => 'Cookie',  :through => Resource
 
     property :url, String
   end

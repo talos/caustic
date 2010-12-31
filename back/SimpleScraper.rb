@@ -138,39 +138,25 @@ delete '/back/:model/:name/:tag/:tag_id' do
   link.destroy or error link.errors.to_a.to_json
 end
 
-# Get all the gatherers, generators, and interpreters associated with an area, type, or creator
-get '/client/' do
+# Get all the gatherers, generators, and interpreters associated with an area, type, and creator
+get '/client/:creator/:area/:type' do
   models = [ SimpleScraper::Gatherer, SimpleScraper::Interpreter, SimpleScraper::Generator ]
   publish_collection = SimpleScraper::Publish.all
   default_collection = SimpleScraper::Default.all
   resources = {
     :defaults => {}
   }
-  if(params[:area])
-    models.each do |model|
-      resources[model] = model.all(model.areas.name => params[:area])
-    end
-    default_collection = SimpleScraper::Default.all(SimpleScraper::Default.areas.name => params[:area])
-  end
-  if(params[:type])
-    models.each do |model|
-      filtered = model.all(model.types.name => params[:type])
-      if(resources[model])
-        resources[model] = resources[model] & filtered
-      else
-        resources[model] = filtered
-      end
-    end
-    publish_collection = SimpleScraper::Publish.all(SimpleScraper::Publish.types.name => params[:type])
-  end
-  if(params[:creator])
-    models.each do |model|
-      resources[model] = resources[model] & model.all(model.creators.name => params[:creator])
-    end
-    publish_collection = publish_collection & SimpleScraper::Publish.all(SimpleScraper::Publish.creator.name => params[:creator])
-    default_collection = default_collection & SimpleScraper::Default.all(SimpleScraper::Default.creator.name => params[:creator])
+  models.each do |model|
+    resources[model] = (model.all(model.creator.name => params[:creator]) & \
+                        model.all(model.areas.name => params[:area]) & \
+                        model.all(model.types.name => params[:type]))
   end
 
+  default_collection = (SimpleScraper::Default.all(SimpleScraper::Default.areas.name => params[:area]) & \
+                        SimpleScraper::Default.all(SimpleScraper::Default.creator.name => params[:creator]))
+  publish_collection = (SimpleScraper::Publish.all(SimpleScraper::Publish.types.name => params[:type]) & \
+                        SimpleScraper::Publish.all(SimpleScraper::Publish.creator.name => params[:creator]))
+  
   resources[:publishes] = publish_collection.collect {|publish| publish.name }
   default_collection.each do |default|
     resources[:defaults][default.name] = default.value
@@ -185,26 +171,19 @@ get '/client/' do
   }
   
   resources[SimpleScraper::Gatherer].each do |gatherer|
-    #puts gatherer.posts.all.to_a.to_json
     posts, headers, cookies = {}, {}, {}
     SimpleScraper::Post.all(SimpleScraper::Post.gatherers.name => gatherer.name).each { |post|
        posts[post.post_name] = post.post_value
     }
-    # gatherer.posts.each do |post|
-    #   puts post.to_json
-    #   posts[post.post_name] = post.post_value
-    # end
-    # gatherer.headers.each do |header|
-    #   headers[header.header_name] = header.header_value
-    # end
-    # Grumble 'Cooky' grumble
-    # gatherer.cookies.each do |cookie|
-    #   puts cookie.attributes
-    #   cookies[cookie.cookie_name] = cookie.cookie_value
-    # end
+    SimpleScraper::Header.all(SimpleScraper::Header.gatherers.name => gatherer.name).each { |header|
+       headers[header.header_name] = header.header_value
+    }
+    SimpleScraper::Cookie.all(SimpleScraper::Cookie.gatherers.name => gatherer.name).each { |cookie|
+       cookies[cookie.cookie_name] = cookie.cookie_value
+    }
     puts gatherer.name
     puts gatherer.attribute_get('url')
-    object[:gatherers][gatherer.name] = {
+    object[:gatherers][gatherer.creator_name + '/' + gatherer.name] = {
       :url => gatherer.url,
       :posts => posts,
       :headers => headers,
@@ -213,7 +192,7 @@ get '/client/' do
   end
   
   resources[SimpleScraper::Interpreter].each do |interpreter|
-    object[:interpreters][interpreter.name] = {
+    object[:interpreters][interpreter.creator_name + '/' + interpreter.name] = {
       :source_attribute => interpreter.source_attribute,
       :regex => interpreter.regex,
       :match_number => interpreter.match_number,
@@ -222,11 +201,13 @@ get '/client/' do
   end
   
   resources[SimpleScraper::Generator].each do |generator|
-    object[:generators][generator.name] = {
+    target_areas = SimpleScraper::TargetArea.all(SimpleScraper::TargetArea.generators.name => generator.name)
+    target_types = SimpleScraper::TargetType.all(SimpleScraper::TargetType.generators.name => generator.name)
+    object[:generators][generator.creator_name + '/' + generator.name] = {
       :source_attribute => generator.source_attribute,
       :regex => generator.regex,
-      :target_areas => generator.target_areas.collect {|target_area| target_area.name},
-      :target_types => generator.target_types.collect {|target_type| target_type.name},
+      :target_areas => target_areas.collect {|target_area| target_area.name},
+      :target_types => target_types.collect {|target_type| target_type.name},
       :target_attribute => generator.target_attribute
     }
   end

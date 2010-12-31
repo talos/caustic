@@ -14,6 +14,7 @@ import com.invisiblearchitecture.scraper.JSONInterface.JSONInterfaceTokener;
 public class JSONInformationFactory implements InformationFactory {
 	private final HttpInterface httpInterface;
 	private final String requestUrl;
+	private final String requestCreator;
 	private final LogInterface logger;
 	private final JSONInterface jsonInterface;
 	private final Collector collector;
@@ -21,36 +22,35 @@ public class JSONInformationFactory implements InformationFactory {
 	private final RegexInterface regexInterface;
 	private int count = 0;
 	
-	private static final String FIELDS_TO_PUBLISH = "fieldsToPublish";
-	private static final String DEFAULT_FIELDS = "defaultFields";
-	private static final String INTERPRETERS_TO_FIELDS = "interpretersToFields";
-	private static final String INTERPRETERS_TO_INFORMATIONS = "informationsToInformations";
+	private static final String PUBLISHES = "publishes";
+	private static final String DEFAULTS = "defaults";
+	private static final String INTERPRETERS = "interpreters";
+	private static final String GENERATORS = "generators";
 	private static final String GATHERERS = "gatherers";
 	
-	private static final String GATHERER_ID = "gathererId";
+	//private static final String GATHERER_ID = "gathererId";
 	
-	private static final String SOURCE_FIELD = "sourceField";
+	private static final String SOURCE_ATTRIBUTE = "source_attribute";
 	private static final String REGEX = "regex";
-	private static final String NUMBER = "number";
-	private static final String DESTINATION_FIELD = "destinationField";
+	private static final String MATCH_NUMBER = "match_number";
+	private static final String TARGET_ATTRIBUTE = "destination_field";
 	
-	private static final String DESTINATION_NAMESPACE = "destinationNamespace";
-	private static final String DESTINATION_INFORMATION_TYPE = "destinationInformationType";
+	private static final String TARGET_AREAS = "target_area";
+	private static final String TARGET_TYPES = "target_type";
 	
-	private static final String URLS = "urls";
-	
-	private static final String GETS = "gets";
+	private static final String URL = "url";
 	private static final String POSTS = "posts";
 	private static final String COOKIES = "cookies";
 	private static final String HEADERS = "headers";
-	private static final String TERMINATORS = "terminators";
-	private static final String PARENTS = "parents";
+	//private static final String TERMINATORS = "terminators";
 	
-	public JSONInformationFactory(String reqUrl, HttpInterface httpInt,
+	public JSONInformationFactory(String reqUrl, String reqCreator,
+			HttpInterface httpInt,
 			LogInterface log, RegexInterface regexInt,
 			JSONInterface jsonInt, Collector collect,
 			Publisher publish) {
 		requestUrl = reqUrl;
+		requestCreator = reqCreator;
 		httpInterface = httpInt;
 		logger = log;
 		jsonInterface = jsonInt;
@@ -60,15 +60,11 @@ public class JSONInformationFactory implements InformationFactory {
 	}
 	
 	@Override
-	public Information get(String namespace, String type) throws IOException {
-		Hashtable gets = new Hashtable(2, 1);
-		gets.put("namespace", namespace);
-		gets.put("type", type);
-		
+	public Information get(String area, String type) throws IOException {
 		try {
 			EntityInterface entity = 
-				httpInterface.attributesToEntity(requestUrl,
-					null, gets, null, null, null);
+				httpInterface.attributesToEntity(requestUrl + '/' + requestCreator + '/' + area + '/' + type,
+					null, null, null, null, null);
 			InputStream inputStream = entity.getInputStream();
 			
 			byte[] buffer = new byte[512];
@@ -83,63 +79,85 @@ public class JSONInformationFactory implements InformationFactory {
 			JSONInterfaceTokener tokener = jsonInterface.getTokener(content.toString());
 			JSONInterfaceObject object = tokener.nextValue();
 			
-			JSONInterfaceArray fieldsToPublishRaw = object.getJSONArray(FIELDS_TO_PUBLISH);
-			JSONInterfaceObject defaultFieldsRaw = object.getJSONObject(DEFAULT_FIELDS);
-			JSONInterfaceArray interpretersToFieldsRaw = object.getJSONArray(INTERPRETERS_TO_FIELDS);
-			JSONInterfaceArray interpretersToInformationsRaw = object.getJSONArray(INTERPRETERS_TO_INFORMATIONS);
-			JSONInterfaceArray gatherersRaw = object.getJSONArray(GATHERERS);
+			JSONInterfaceArray publishesRaw = object.getJSONArray(PUBLISHES);
+			JSONInterfaceObject defaultsRaw = object.getJSONObject(DEFAULTS);
+			JSONInterfaceObject interpretersRaw = object.getJSONObject(INTERPRETERS);
+			JSONInterfaceObject generatorsRaw = object.getJSONObject(GENERATORS);
+			JSONInterfaceObject gatherersRaw = object.getJSONObject(GATHERERS);
 			
-			String[] fieldsToPublish = new String[fieldsToPublishRaw.length()];
-			for(int i = 0; i < fieldsToPublishRaw.length(); i++) {
-				fieldsToPublish[i] = fieldsToPublishRaw.getString(i);
+			String[] publishes = new String[publishesRaw.length()];
+			for(int i = 0; i < publishesRaw.length(); i++) {
+				publishes[i] = publishesRaw.getString(i);
 			}
 			
-			Hashtable defaultFields = new Hashtable(defaultFieldsRaw.length(), 1);
-			IteratorInterface iterator = defaultFieldsRaw.keys();
+			Hashtable defaults = new Hashtable(defaultsRaw.length(), 1);
+			IteratorInterface iterator;
+			iterator = defaultsRaw.keys();
 			while(iterator.hasNext()) {
 				String key = (String) iterator.next();
-				defaultFields.put(key, defaultFieldsRaw.getString(key));
+				defaults.put(key, defaultsRaw.getString(key));
 			}
 			
+			/* The client doesn't differentiate between 'generators' and 'interpreters' */
 			Interpreter[] interpreters =
-				new Interpreter[interpretersToFieldsRaw.length() + interpretersToInformationsRaw.length()];
-			for(int i = 0; i < interpretersToFieldsRaw.length(); i++) {
-				JSONInterfaceObject interpreterRaw = interpretersToFieldsRaw.getJSONObject(i);
+				new Interpreter[interpretersRaw.length() + generatorsRaw.length()];
+			iterator = interpretersRaw.keys();
+			int i = 0;
+			while(iterator.hasNext()) {
+				String interpreterName = (String) iterator.next();
+				JSONInterfaceObject interpreterRaw = interpretersRaw.getJSONObject(interpreterName);
 				PatternInterface pattern = null;
 				if(interpreterRaw.has(REGEX)) {
 					pattern = regexInterface.compile(interpreterRaw.getString(REGEX));
 				}
 				interpreters[i] = new Interpreter.ToField(
-						interpreterRaw.getString(SOURCE_FIELD),
+						interpreterRaw.getString(SOURCE_ATTRIBUTE),
 						pattern,
-						interpreterRaw.getInt(NUMBER),
-						interpreterRaw.getString(DESTINATION_FIELD));
+						interpreterRaw.getInt(MATCH_NUMBER),
+						interpreterRaw.getString(TARGET_ATTRIBUTE));
+				i++;
 			}
-			for(int i = interpretersToFieldsRaw.length();
-					i < interpretersToInformationsRaw.length() + interpretersToFieldsRaw.length();
-					i++)  {
-				JSONInterfaceObject interpreterRaw = interpretersToInformationsRaw.getJSONObject(i);
+			iterator = generatorsRaw.keys();
+			while(iterator.hasNext()) {
+				String generatorName = (String) iterator.next();
+				JSONInterfaceObject generatorRaw = generatorsRaw.getJSONObject(generatorName);
 				PatternInterface pattern = null;
-				if(interpreterRaw.has(REGEX)) {
-					pattern = regexInterface.compile(interpreterRaw.getString(REGEX));
+				if(generatorRaw.has(REGEX)) {
+					pattern = regexInterface.compile(generatorRaw.getString(REGEX));
 				}
+				String[] target_areas = new String[generatorRaw.getJSONArray(TARGET_AREAS).length()];
+				for(int j = 0; j < target_areas.length; j++) {
+					target_areas[j] = generatorRaw.getJSONArray(TARGET_AREAS).getString(j);
+				}
+				String[] target_types = new String[generatorRaw.getJSONArray(TARGET_TYPES).length()];
+				for(int j = 0; j < target_types.length; j++) {
+					target_types[j] = generatorRaw.getJSONArray(TARGET_TYPES).getString(j);
+				}
+				// TODO: the target_areas/target_types system is designed wrong at the backend level.
+				String targets[][] = new String[1][2];
+				targets[0][0] = target_areas[0];
+				targets[0][1] = target_types[0];
 				interpreters[i] = new Interpreter.ToInformation(
-						this, interpreterRaw.getString(SOURCE_FIELD), pattern,
-						interpreterRaw.getString(DESTINATION_NAMESPACE),
-						interpreterRaw.getString(DESTINATION_INFORMATION_TYPE),
-						interpreterRaw.getString(DESTINATION_FIELD));
+						this, generatorRaw.getString(SOURCE_ATTRIBUTE), pattern,
+						targets,
+						generatorRaw.getString(TARGET_ATTRIBUTE));
+				i++;
 			}
 			
 			Gatherer[] gatherers = new Gatherer[gatherersRaw.length()];
-			for(int i = 0; i < gatherersRaw.length(); i++) {
-				JSONInterfaceObject gathererRaw = gatherersRaw.getJSONObject(i);
-				gatherers[i] = gathererFromJSON(gathererRaw);
+			iterator = gatherersRaw.keys();
+			i = 0;
+			while(iterator.hasNext()) {
+				String gathererName = (String) iterator.next();
+				JSONInterfaceObject gathererRaw = gatherersRaw.getJSONObject(gathererName);
+				gatherers[i] = gathererFromJSON(gathererName, gathererRaw);
+				i++;
 			}
 			
-			Information information = new Information(collector, namespace, type,
-					count++, fieldsToPublish, interpreters, gatherers,
+			Information information = new Information(collector, area, type,
+					count++, publishes, interpreters, gatherers,
 					publisher, httpInterface.newCookieStore(), logger);
-			information.putFields(defaultFields);
+			information.putFields(defaults);
 			return information;
 		} catch(JSONInterfaceException e) {
 		//	logger.e("Error parsing JSON in JSONInformationFactory", e);
@@ -147,28 +165,12 @@ public class JSONInformationFactory implements InformationFactory {
 		}
 	}
 	
-	private Gatherer gathererFromJSON(JSONInterfaceObject gathererRaw) throws JSONInterfaceException {
+	private Gatherer gathererFromJSON(String gatherer_name, JSONInterfaceObject gathererRaw) throws JSONInterfaceException {
 
-		Gatherer gatherer = new Gatherer(
-				gathererRaw.getString(GATHERER_ID),
+		Gatherer gatherer = new Gatherer(gatherer_name,
 				httpInterface, regexInterface, logger);
 		
-		if(gathererRaw.isNull(URLS) == false) {
-			JSONInterfaceArray urlsRaw = gathererRaw.getJSONArray(URLS);	
-			for(int i = 0; i < urlsRaw.length(); i++) {
-				gatherer.addUrl(urlsRaw.getString(i));
-			}
-		}
-		
-		if(gathererRaw.isNull(GETS) == false) {
-			JSONInterfaceObject getsRaw = gathererRaw.getJSONObject(GETS);
-			IteratorInterface iterator = getsRaw.keys();
-			while(iterator.hasNext()) {
-				String key = (String) iterator.next();
-				String value = getsRaw.getString(key);
-				gatherer.addGet(key, value);
-			}
-		}
+		gatherer.addUrl(gathererRaw.getString(URL));
 		
 		if(gathererRaw.isNull(POSTS) == false) {
 			JSONInterfaceObject postsRaw = gathererRaw.getJSONObject(POSTS);
@@ -200,21 +202,13 @@ public class JSONInformationFactory implements InformationFactory {
 			}
 		}
 		
-		if(gathererRaw.isNull(TERMINATORS) == false) {
+		/*if(gathererRaw.isNull(TERMINATORS) == false) {
 			JSONInterfaceArray terminatorsRaw = gathererRaw.getJSONArray(TERMINATORS);
 			for(int i = 0; i < terminatorsRaw.length(); i++) {
 				PatternInterface terminator = regexInterface.compile(terminatorsRaw.getString(i));
 				gatherer.addTerminator(terminator);
 			}
-		}
-		
-		if(gathererRaw.isNull(PARENTS) == false) {
-			JSONInterfaceArray parentsRaw = gathererRaw.getJSONArray(PARENTS);
-			for(int i = 0; i < parentsRaw.length(); i++) {
-				JSONInterfaceObject parentGathererRaw = parentsRaw.getJSONObject(i);
-				gatherer.addParentGatherer(gathererFromJSON(parentGathererRaw));
-			}
-		}
+		}*/
 		
 		return gatherer;
 	}

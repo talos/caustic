@@ -43,13 +43,22 @@ public abstract class Interpreter {
 	
 	public static class ToInformation extends Interpreter {
 		private final InformationFactory factory;
-		private final String destinationInformationType;
-		private final String destinationNamespace;
-		public ToInformation(InformationFactory iF, String sf, PatternInterface pat, String dns, String dit, String df) {
+		//private final String destinationInformationType;
+		//private final String destinationNamespace;
+		private final String[][] targets;
+		/* Old style: single target area, single target type. */
+		public ToInformation(InformationFactory iF, String sf, PatternInterface pat, String target_area, String target_type, String df) {
 			super(sf, pat, df);
-			destinationNamespace = dns;
+			targets = new String[1][2];
+			targets[0][0] = target_area;
+			targets[0][1] = target_type;
 			factory = iF;
-			destinationInformationType = dit;
+		}
+		/* New style: array of targets (area then type). */
+		public ToInformation(InformationFactory iF, String sf, PatternInterface pat, String[][] t, String df) {
+			super(sf, pat, df);
+			factory = iF;
+			targets = t;
 		}
 		public Boolean read(Information sourceInformation) {
 			String[] results;
@@ -65,24 +74,27 @@ public abstract class Interpreter {
 			if(results == null) {
 				return false;
 			} else {
-				Information[] childInformations = new Information[results.length];
+				Information[] childInformations = new Information[results.length * targets.length];
 				for(int i = 0; i < results.length; i++) {
 					try {
-						childInformations[i] = factory.get(destinationNamespace, destinationInformationType);
-						childInformations[i].putField(destinationField, results[i]);
-						childInformations[i].interpret(); // We don't recursively collect here -- that's the publisher's job.
+						for(int j = 0; j < targets.length; j++) {
+							int childNum = (targets.length * i) + j;
+							childInformations[childNum] = factory.get(targets[j][0], targets[j][1]);
+							childInformations[childNum].putField(destinationField, results[i]);
+							childInformations[childNum].interpret(); // We don't recursively collect here -- that's the publisher's job.	
+							// De-type inside the child listing.
+							sourceInformation.addChildInformations(targets[j][1], new Information[] {childInformations[childNum]});
+						}
 					} catch(IOException e) {
 						//logger.e("Error creating child information.", e);
 						return false;
 					}
 				}
-				// De-namespace inside the child listing.
-				sourceInformation.addChildInformations(destinationInformationType, childInformations);
 				return true;
 			}
 		}
 		public String toString() {
-			return sourceField + " -> Information " + destinationInformationType + '.' + destinationField;
+			return sourceField + " -> Information " + targets.length + " targets' " + destinationField;
 		}
 	}
 	

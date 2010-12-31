@@ -310,6 +310,9 @@
 				    //$resource.simplescraper_resource('get');
 				    $('.' + classes.editor).simplescraper_editor('refresh');
 				    $('.' + classes.resource).simplescraper_resource('get'); // Could modify taggings in other displayed items.
+				},
+				error: function(response, code) {
+				    console.log(response);
 				}
 			   });
 		});
