@@ -21,30 +21,16 @@ configure do
   set :raise_errors, true
   set :show_exceptions, false
   set :sessions, true
+  set :public, File.dirname(__FILE__) + './front'
+  #set :public, Dir.pwd ++ './front'
 end
 
-user = SimpleScraper::User.create(:name => 'test')
+puts File.dirname(__FILE__) + './front'
 
-# GET
-def serve_page(location)
-  if(File.exists?(location))
-    File.open(location)
-  else
-    'Could not open ' + location
-  end
-end
+user = SimpleScraper::User.first_or_create(:name => 'test')
 
-# Serve the front end page.
-get '/front/' do
-  serve_page('../front/index.html')
-end
-
-get '/front/js/:page' do
-  serve_page('../front/js/' + params[:page])
-end
-
-get '/front/css/:page' do # Gah that is irritating.
-  [200, {'Content-Type' => 'text/css'}, serve_page('../front/css/' + params[:page])]
+get '/' do
+  redirect '/index.html'
 end
 
 # Login!
@@ -53,14 +39,9 @@ post '/login' do
   not_found
 end
 
-get '/' do
-  redirect '/back/'
-end
-
 # Display the editable resources.
 get '/back/' do
-  ['publish', 'default', 'interpreter', 'generator', 'gatherer', \
-  'url', 'post', 'header', 'cookie'].to_json
+  ['publish', 'default', 'interpreter', 'generator', 'gatherer', 'post', 'header', 'cookie'].to_json
 end
 
 get '/back/:model' do
@@ -70,64 +51,55 @@ end
 # Display the existing members of a model.
 get '/back/:model/' do
   model = DataMapper::Model.find_model(params[:model]) or return not_found
-  model.all.collect {|resource| resource.id}.to_json
+  model.all.collect {|resource| resource.name}.to_json
 end
 
-# Post to a model, retrieving the id to new resource.
-post '/back/:model/' do
-  model = DataMapper::Model.find_model(params[:model]) or return not_found
-  resource = model.new(:user => user)
-  resource.save or return error resource.errors.to_a.to_s
-  resource.id.to_s.to_json
-end
-
-# Put (replace) an existing resource by ID.
-put '/back/:model/:id' do
+# Put (replace) an existing resource by name.
+put '/back/:model/:oldname' do
   # TODO: Logged in user must be the creator or an editor.
   model = DataMapper::Model.find_model(params[:model]) or return not_found
-  resource = model.first_or_create(:user => user, :id => params[:id]) or return error
-  params.delete('id')
-  params.delete('user_id') #prevent user change
-  params.each do |k, v|
-    params.delete(k) unless resource.attributes.keys.include?(k.to_sym) # delete nonexistent attributes
+  resource = model.first_or_create(:creator => user, :name => params[:oldname]) or return error
+  params.delete('creator_name') # Prevent creator change.
+  if(not params['name']) # Name does not need to be specified in the header.
+    params['name'] = params[:oldname]
+  end
+  params.delete_if do |param_name, param_value| # Delete attributes not specified in the model
+    not resource.attributes.keys.include? param_name.downcase.to_sym
   end
   resource.attributes= params
   resource.save or error resource.errors.to_a.to_json
 end
 
-# Get a resource by ID.
-get '/back/:model/:id' do
+# Get a resource by name.
+get '/back/:model/:name' do
   resource = DataMapper::Model.find_model(params[:model]).
-    first({:user => user, :id => params[:id]}) or return not_found
+    first({:creator => user, :name => params[:name]}) or return not_found
   resource.inspect.to_json
 end
 
-# Delete a resource by ID.  Delete all affiliated taggings.
-delete '/back/:model/:id' do
+# Delete a resource by name.  Delete all affiliated taggings.
+delete '/back/:model/:name' do
   model = DataMapper::Model.find_model(params[:model]) or return not_found
-  resource = model.first({:user => user, :id => params[:id]}) or return not_found
-
+  resource = model.first({:creator => user, :name => params[:name]}) or return not_found
+  
   # Delete affiliated taggings.
-  resource.class.tagging_types.each do |type|
-    puts resource.send(type).all.to_a
-    resource.send(type).all.each do |link|
-      link.destroy
-    end
+  resource.class.tagging_types.each do |tagging_type|
+    resource.send(tagging_type).all.each { |link| link.destroy }
   end
 
   resource.destroy or error resource.errors.to_a.to_json
 end
 
 # Tag a resource.  Create the tag if it does not yet exist.
-put '/back/:model/:id/:tag/:tag_id' do
+put '/back/:model/:name/:tag/:tag_id' do
   model = DataMapper::Model.find_model(params[:model]) or return not_found
-  resource = model.first({:user => user, :id => params[:id]}) or return not_found
+  resource = model.first({:creator => user, :name => params[:name]}) or return not_found
   tag_type = params[:tag].downcase
   
   tag_relationship = resource.class.relationships[tag_type] or return not_found
   tag_model = tag_relationship.target_model
   tag_key = tag_model.key.first.name.to_sym # Does not support multi-key right now.
-  tag_resource = tag_relationship.target_model.first_or_create(tag_key => params[:tag_id]) or return error
+  tag_resource = tag_relationship.target_model.first_or_create(:creator => user, tag_key => params[:tag_id]) or return error
   
   resource.send(tag_type) << tag_resource
   
@@ -135,9 +107,9 @@ put '/back/:model/:id/:tag/:tag_id' do
 end
 
 # Delete a tag.
-delete '/back/:model/:id/:tag/:tag_id' do
+delete '/back/:model/:name/:tag/:tag_id' do
   model = DataMapper::Model.find_model(params[:model]) or return not_found
-  resource = model.first({:user => user, :id => params[:id]}) or return not_found
+  resource = model.first({:creator => user, :name => params[:name]}) or return not_found
   tag_type = params[:tag].downcase
   
   tag_relationship = resource.class.relationships[tag_type] or return not_found
@@ -146,13 +118,66 @@ delete '/back/:model/:id/:tag/:tag_id' do
   source_key = params[:model].downcase + '_' + model.key.first.name.to_s
   target_key = tag_type.downcase.sub(/s$/, '') + '_' + tag_model.key.first.name.to_s
 
-  puts source_key
-  puts params[:id]
-  puts target_key
-  puts params[:tag_id]
-
-  link = tag_relationship.through.target_model.first(source_key => params[:id], target_key => params[:tag_id]) or not_found
+  link = tag_relationship.through.target_model.first(source_key => params[:name], target_key => params[:tag_id]) or not_found
   link.destroy or error link.errors.to_a.to_json
+end
+
+# Get all the gatherers, generators, and interpreters associated with an area, type, or creator
+get '/client/' do
+  #params.delete_if {|k, v| not [:area, :type, :creator].include?(k.downcase.to_sym) }
+  conditions = {}
+  if(params[:area])
+#    conditions[:areas] = {:name => params[:area]}
+    conditions[:areas] = SimpleScraper::Area.all(:name => params[:area])
+  end
+  if(params[:type])
+    conditions[:types] = {:name => params[:type]}
+  end
+  if(params[:creator])
+    conditions[:creators] = {:name => params[:creator]}
+  end
+  object = {
+    :publishes => [],
+    :defaults => {},
+    :gatherers => {},
+    :interpreters => {},
+    :generators => {}
+  }
+  puts conditions.to_json
+  puts SimpleScraper::Gatherer.all.to_a.to_json
+  areas = SimpleScraper::Area.all(:name => params[:area])
+  puts SimpleScraper::Gatherer.first.areas.first.name.to_json
+  
+  puts SimpleScraper::Gatherer.all(:areas => [areas]).to_a.to_json
+  SimpleScraper::Gatherer.all(conditions).each do |gatherer|
+    object[:gatherers][gatherer.name] = {
+      :url => '',
+      :posts => {},
+      :headers => {},
+      :cookies => {}
+    }
+  end
+  
+  SimpleScraper::Interpreter.all(conditions).each do |interpreter|
+    object[:interpreters][interpreter.name] = {
+      :source_attribute => interpreter.source_attribute,
+      :regex => interpreter.regex,
+      :match_number => interpreter.match_number,
+      :target_attribute => interpeter.target_attribute
+    }
+  end
+  
+  SimpleScraper::Generator.all(conditions).each do |generator|
+    object[:generators][generator.name] = {
+      :source_attribute => generator.source_attribute,
+      :regex => generator.regex,
+      :target_areas => [],
+      :target_types => [],
+      :target_attribute => generator.target_attribute
+    }
+  end
+  
+  object.to_json
 end
 
 error do

@@ -41,14 +41,26 @@ module SimpleScraper
       get '/back/'
       assert last_response.ok?, last_response.body
     end
-    
-    def test_003_posts_to_collection
-      post '/back/Gatherer/'
-      post '/back/Gatherer/'
-      post '/back/Gatherer/'
-      post '/back/Url/'
-      post '/back/Post/'
-      post '/back/Default/'
+
+    def test_003_puts_resources
+      put '/back/Post/test', {
+        :post_name => 'name',
+        :post_value => 'value'}
+      assert last_response.ok?, last_response.body
+      put '/back/Interpreter/test', {
+        :source_attribute => 'field',
+        :regex => '//',
+        :match_number => '3',
+        :target_attribute => 'another_field' }
+      assert last_response.ok?, last_response.body
+      put '/back/generator/test', {
+        :source_attribute => 'field',
+        :regex => '/d/',
+        :target_attribute => 'yet another field' }
+      assert last_response.ok?, last_response.body
+      put '/back/gatherer/test'
+      assert last_response.ok?, last_response.body
+      put '/back/gatherer/test2'
       assert last_response.ok?, last_response.body
     end
 
@@ -57,55 +69,36 @@ module SimpleScraper
       assert last_response.ok?, last_response.body
     end
 
-    def test_005_puts_resources
-      put '/back/Post/2', {
-        :name => 'name',
-        :value => 'value'}
+    def test_005_gets_a_resource
+      get '/back/Gatherer/test'
       assert last_response.ok?, last_response.body
-      put '/back/Interpreter/1', {
-        :source_attribute => 'field',
-        :regex => '//',
-        :match_number => '3',
-        :target_attribute => 'another_field' }
-      assert last_response.ok?, last_response.body
-      put '/back/generator/2', {
-        :source_attribute => 'field',
-        :name => 'a very exciting generator',
-        :regex => '/d/',
-        :target_attribute => 'yet another field' }
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_006_gets_a_resource
-      get '/back/Gatherer/1'
-      assert last_response.ok?, last_response.body
-      get '/back/Interpreter/1'
+      get '/back/Interpreter/test'
       assert last_response.ok?, last_response.body
     end
 
     def test_007_deletes_a_resource
-      delete '/back/Url/1'
+      delete '/back/gatherer/test2'
       assert last_response.ok?, last_response.body
-      get '/back/Url/1'
+      get '/back/gatherer/test2'
       assert last_response.status == 404, 'Able to load a deleted resource.'
     end
 
     def test_008_tags_a_resource
-      put '/back/gatherer/1/areas/new%20york%20city'
+      put '/back/gatherer/test/areas/new%20york%20city'
       assert last_response.ok?, last_response.body
-      put '/back/gatherer/1/areas/queens'
+      put '/back/gatherer/test/areas/queens'
       assert last_response.ok?, last_response.body
-      put '/back/generator/2/areas/new%20york%20city'
+      put '/back/generator/test/areas/new%20york%20city'
       assert last_response.ok?, last_response.body
     end
 
     def test_009_untags_a_resource
-      delete '/back/gatherer/1/areas/new%20york%20city'
+      delete '/back/gatherer/test/areas/new%20york%20city'
       assert last_response.ok?, last_response.body
     end
 
     def test_010_retrieves_tags
-      get '/back/generator/2'
+      get '/back/generator/test'
       assert last_response.ok?, last_response.body
       puts last_response.body.to_s
     end
