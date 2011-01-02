@@ -107,6 +107,7 @@
 			resource: $editor.find('select.' + classes.resource).val(),
 			input: $editor.find('input').val()
 		    });
+		    console.log(array);
 		});
 		if(array.length == 1)
 		    return array[0];
@@ -158,7 +159,7 @@
 	    },
 	    /* Generate an attribute input. */
 	    attributer: function(name, value) {
-		return $('<span>').append(name + ': ').addClass(classes.attributer).append($('<input>').attr({type: 'text', name: name, value: value}));
+		return $('<span>').append(name + ': ').addClass(classes.attributer).append($('<textarea>').attr({name: name, value: value}));
 	    },
 	    /* A tag holder. */
 	    tagHolder: function(name, ids) {
@@ -171,7 +172,7 @@
 	    },
 	    /* A tagger. Allows the user to add tags. */
 	    tagger: function(name) {
-		return $('<input>').addClass(classes.tagger).data('name',name);
+		return $('<textarea>').addClass(classes.tagger).data('name',name);
 	    },
 	    /* A tag. Opens itself as a resource when clicked.  */
 	    tag: function(name, id) {
@@ -199,6 +200,8 @@
 		    if(!id || !model)
 			$.error('Must specify model and id to create a resource.');
 		    var $resource = $(this).addClass(classes.resource).data({model: model, id: id});
+		    if($resource.draggable)
+			$resource.draggable();
 		    // Don't allow the same resource to appear in multiple windows.
 		    var alreadyOpen = false;
 		    // Check to see if one of these is already open.
@@ -262,7 +265,7 @@
 		    var attributes = {};
 		    $.each($resource.find('.' + classes.attributer), function() {
 			var $attributer = $(this);
-			var $input =$attributer.find('input');
+			var $input =$attributer.find('textarea');
 			attributes[$input.attr('name')] = $input.val();
 		    });
 		    attributesAry.push(attributes);
@@ -287,7 +290,7 @@
 			success: function(data)
 			{
 			    if('id' in data) { // If there's a id, place it first.
-				$resource.append(widgets['attributer']('id', data['id']));
+				$resource.append($('<p>')).append(widgets['attributer']('id', data['id']));
 				delete data['id'];
 			    }
 			    for(var key in data) {
