@@ -39,14 +39,11 @@
 	resourceControls: 'upperright'
     };
 
-    /** Keep track of open resources. **/
-    open = {};
-    
     /** simplescraper editor. **/
     (function ( $ ) {
 	var widgets = {
-	    /* Select from possibilities. */
-	    selector: function(name, url) {
+	    /* Select from possibilities. Optional auto-select. */
+	    selector: function(name, url, preSelection) {
 		if(!name || !url)
 		    $.error('Must specify name and url to generate a selector.');
 		var $selector = $('<select>').addClass(classes.selector).addClass(name);
@@ -56,7 +53,10 @@
 		    dataType: 'json',
 		    success: function(data) {
 			for(var i = 0; i < data.length; i++) {
-			    $selector.append($('<option>').append(data[i]));
+			    $option = $('<option>').append(data[i]);
+			    if(preSelection == data[i])
+				$option.attr('selected', true);
+			    $selector.append($option);
 			}
 			$selector.trigger('change');
 		    }
@@ -68,7 +68,6 @@
 	    init: function() {
 		return this.each(function() {
 		    var $editor = $(this).addClass(classes.editor);
-		    //$editor.simplescraper_editor('refresh_models');
 		    var $selectModel = widgets['selector'](classes.model,settings.backDirectory + '/');
 		    $selectModel.bind('change', function() {
 			$editor.simplescraper_editor('refresh');
@@ -81,8 +80,8 @@
 			})));
 		});
 	    },
-	    /* Update the list of resources. */
-	    refresh: function() {
+	    /* Update the list of resources. Optional auto-select. */
+	    refresh: function(preSelection) {
 		return this.each(function() {
 		    var $editor = $(this);
 		    var $selectModel = $editor.find('.' + classes.model);
@@ -90,11 +89,12 @@
 		    $editor.append($('<p>').append(
 			widgets['selector'](
 			    classes.resource,
-			    settings.backDirectory + '/' + $selectModel.val() + '/'))
-				   .append('<span>View it</span>').addClass(classes.resource).click(function() {
-				       var selections = $editor.simplescraper_editor('selected');
-				       $editor.simplescraper_editor('viewResource', selections.model, selections.resource)
-				   }));
+			    settings.backDirectory + '/' + $selectModel.val() + '/', preSelection)
+			    .bind('change', function() {
+				$editor.simplescraper_editor('viewResource')
+			    })).append('<span>View it</span>').addClass(classes.resource).click(function() {
+				$editor.simplescraper_editor('viewResource')
+			    }));
 		});
 	    },
 	    /* Determine what current selections are. */
@@ -121,16 +121,15 @@
 			url: settings.backDirectory + '/' + selections.model + '/' + selections.input,
 			success: function() {
 			    $editor.simplescraper_editor('refresh', selections.input);
-			    $editor.simplescraper_editor('viewResource', selections.model, selections.input);
+			    $editor.simplescraper_editor('viewResource');
 			}
 		    });
 		});
 	    },
-	    viewResource: function(model, resource) {
+	    viewResource: function(/*model, resource*/) {
 		return this.each(function() {
-		    var $editor = $(this);
-		    //var selections = $editor.simplescraper_editor('selected');
-		    $('body').append($('<div>').simplescraper_resource('init', model, resource));
+		    var selections = $(this).simplescraper_editor('selected');
+		    $('body').append($('<div>').simplescraper_resource('init', selections.model, selections.resource));
 		});
 	    }
 	};
@@ -162,10 +161,10 @@
 		return $('<span>').append(name + ': ').addClass(classes.attributer).append($('<input>').attr({type: 'text', name: name, value: value}));
 	    },
 	    /* A tag holder. */
-	    tagHolder: function(name, values) {
+	    tagHolder: function(name, ids) {
 		var $tagHolder = $('<div>').append(name + ': ').addClass(classes.tagHolder);
-		for(var i = 0; i < values.length; i++) {
-		    $tagHolder.append(widgets['tag'](name, values[i]));
+		for(var i = 0; i < ids.length; i++) {
+		    $tagHolder.append(widgets['tag'](name, ids[i]));
 		}
 		$tagHolder.append(widgets['tagger'](name));
 		return $tagHolder;
@@ -174,9 +173,12 @@
 	    tagger: function(name) {
 		return $('<input>').addClass(classes.tagger).data('name',name);
 	    },
-	    /* A tag. */
-	    tag: function(name, value) {
-		return $('<span>').append(value).addClass(classes.tag).data({name: name, value: value})
+	    /* A tag. Opens itself as a resource when clicked.  */
+	    tag: function(name, id) {
+		return $('<span>').append(id).addClass(classes.tag).data({name: name, id: id})
+		    .click(function() {
+			$('body').append($('<div>').simplescraper_resource('init', name.replace(/s$/, ''), id))
+		    })
 		    .append(widgets['untagger']);
 	    },
 	    /* Remove the tag this is attached to. */
@@ -192,17 +194,22 @@
 	};
 	/* Resource methods. */
 	var methods = {
-	    init: function(model, name) {
+	    init: function(model, id) {
 		return this.each(function() {
-		    if(!name || !model)
-			$.error('Must specify model and name to create a resource.');
-		    var $resource = $(this).addClass(classes.resource).data({model: model, name: name});
+		    if(!id || !model)
+			$.error('Must specify model and id to create a resource.');
+		    var $resource = $(this).addClass(classes.resource).data({model: model, id: id});
 		    // Don't allow the same resource to appear in multiple windows.
-		    if(open[$(this).simplescraper_resource('identify')]) {
+		    var alreadyOpen = false;
+		    // Check to see if one of these is already open.
+		    $.each($('.' + classes.resource), function() {
+			if($(this).simplescraper_resource('identify') == $resource.simplescraper_resource('identify'))
+			    alreadyOpen = true;
+		    });
+		    if(alreadyOpen == true) {
 			$resource.remove();
 			return;
 		    }
-		    open[$(this).simplescraper_resource('identify')] = true;
 		    // Set up event handlers.
 		    $resource.delegate('.' + classes.updater, 'click', function() {
 			$resource.simplescraper_resource('put');
@@ -219,7 +226,7 @@
 		    });
 		    $resource.delegate('.' + classes.untagger, 'click', function() {
 			var $tag = $(this).closest('.' + classes.tag);
-			$resource.simplescraper_resource('untag', $tag.data('name'), $tag.data('value'));
+			$resource.simplescraper_resource('untag', $tag.data('name'), $tag.data('id'));
 			return false;
 		    });
 		    $resource.simplescraper_resource('get');
@@ -229,7 +236,7 @@
 	    identify: function() {
 		var array = [];
 		this.each(function() {
-		    array.push([$(this).data('model'), $(this).data('name')].join('/'));
+		    array.push([$(this).data('model'), $(this).data('id')].join('/'));
 		});
 		if(array.length == 1)
 		    return array[0];
@@ -239,7 +246,7 @@
 	    location: function() {
 		var locations = [];
 		this.each(function() {
-		    locations.push([settings.backDirectory, $(this).data('model'), $(this).data('name')].join('/'));
+		    locations.push([settings.backDirectory, $(this).data('model'), $(this).data('id')].join('/'));
 		});
 		if(locations.length == 1)
 		    return locations[0];
@@ -267,7 +274,9 @@
 	    /* Bring the page up-to-date with the server. */
 	    get: function() {
 		return this.each(function() {
-		    var $resource = $(this).empty().append($('<span>').addClass(classes.title).append($(this).data('model')));
+		    var $resource = $(this).empty().append($('<span>').addClass(classes.title)
+							   .append($(this).data('model'))
+							   .append(': "' + $(this).data('id') + '"'));
 		    $resource.
 			append($('<div>').addClass(classes.resourceControls)
 			       .append(widgets['deleter']).append(widgets['updater']).append(widgets['closer']));
@@ -277,9 +286,9 @@
 			dataType: 'json',
 			success: function(data)
 			{
-			    if('name' in data) { // If there's a name, place it first.
-				$resource.append(widgets['attributer']('name', data['name']));
-				delete data['name'];
+			    if('id' in data) { // If there's a id, place it first.
+				$resource.append(widgets['attributer']('id', data['id']));
+				delete data['id'];
 			    }
 			    for(var key in data) {
 				var attribute = data[key];
@@ -305,14 +314,14 @@
 				data: data,
 				success: function(response) // TODO: check status
 				{
-				    if(data['name']) // keep ID up to date
-					$resource.data('name', data['name']);
+				    if(data['id']) // keep ID up to date
+					$resource.data('id', data['id']);
 				    //$resource.simplescraper_resource('get');
 				    $('.' + classes.editor).simplescraper_editor('refresh');
 				    $('.' + classes.resource).simplescraper_resource('get'); // Could modify taggings in other displayed items.
 				},
 				error: function(response, code) {
-				    console.log(response);
+				    $.error(code + ': ' + response.body);
 				}
 			   });
 		});
@@ -320,9 +329,7 @@
 	    /* Close a resource. */
 	    close: function() {
 		return this.each(function() {
-		    delete open[$(this).simplescraper_resource('identify')];
 		    $(this).remove();
-		    console.log(open);
 		});
 	    },
 	    /* Delete a resource. */
@@ -342,34 +349,34 @@
 		    });
 		})
 	    },
-	    /* Add a tag a resource. Must supply a type of tag and tag name. */
-	    tag: function(tagType, tagName) {
+	    /* Add a tag a resource. Must supply a type of tag and tag id. */
+	    tag: function(tagType, tagId) {
 		return this.each(function() {
 		    var $resource = $(this);
 		    if(!$resource.hasClass(classes.resource)) // Only resources can be tagged.
 			return;
 		    $.ajax({
 			type: 'put',
-			url: $resource.simplescraper_resource('location') + '/' + tagType + '/' + tagName, // Pluralizes.
+			url: $resource.simplescraper_resource('location') + '/' + tagType + '/' + tagId, // Pluralizes.
 			success: function(contents)
 			{
 			    $resource.simplescraper_resource('put'); // This will PUT possibly unsaved changes, which will also GET.
 			},
 			error: function(response, code) {
-			    console.log(response);
+			    $.error(code + ': ' + response);
 			}
 		    });
 		});
 	    },
-	    /* Untag a tag from a resource.  Must supply a type of tag and tag name. */
-	    untag: function(tagType, tagName) {
+	    /* Untag a tag from a resource.  Must supply a type of tag and tag id. */
+	    untag: function(tagType, tagId) {
 		return this.each(function() {
 		    var $resource = $(this);
 		    if(!$resource.hasClass(classes.resource)) // Only resources can be untagged.
 			return;
 		    $.ajax({
 			type: 'delete',
-			url: $resource.simplescraper_resource('location') + '/' + tagType + '/' + tagName, // Pluralizes.
+			url: $resource.simplescraper_resource('location') + '/' + tagType + '/' + tagId, // Pluralizes.
 			success: function(contents)
 			{
 			    $resource.simplescraper_resource('get');

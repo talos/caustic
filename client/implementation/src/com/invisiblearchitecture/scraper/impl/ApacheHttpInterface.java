@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -24,6 +25,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -47,10 +49,10 @@ public class ApacheHttpInterface implements HttpInterface {
 	 * @throws UnsupportedEncodingException If the Map contains a string that cannot be encoded.
 	 */
 	private UrlEncodedFormEntity toUrlEncodedFormEntity(Map<String, String> hm) throws UnsupportedEncodingException {
-		if(hm == null) {
-			throw new NullPointerException("Attempted to call toNameValuePairs() with a null map of values.");
-		}
 		List<BasicNameValuePair> nvps = new ArrayList<BasicNameValuePair>();
+		if(hm == null) {
+			return new UrlEncodedFormEntity(nvps); // Return an empty.
+		}
 		
 		Iterator<String> iterator = hm.keySet().iterator();
 		while(iterator.hasNext()) {
@@ -65,30 +67,32 @@ public class ApacheHttpInterface implements HttpInterface {
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public EntityInterface attributesToEntity(final String urlString,
+	public EntityInterface attributesToEntity(String urlString,
 			CookieStoreInterface gCookieStore, 
 			Hashtable gets, Hashtable posts, CookieInterface[] gCookies,
 			Hashtable headers) throws IOException {
 		
 		final URI url;
 		try {
+			System.out.println(urlString);
 			url = new URI(urlString);
 		} catch(URISyntaxException e) {
-			throw new IOException();
+			throw new IOException(e);
 		}
-		// Create an array of regular cookies.
-		/*Cookie[] cookies = new Cookie[gCookies.length];
-		for(int i = 0; i < gCookies.length; i++) {
-			GeograpeCookie gCookie = gCookies[i];
-			BasicClientCookie cookie = new BasicClientCookie(gCookie.getName(), gCookie.getValue());
-			cookie.setPath(gCookie.getPath());
-			cookie.setDomain(gCookie.getDomain());
-			cookie.setExpiryDate(gCookie.getExpiryDate());
-			cookies[i] = cookie;
-		}*/
-		gCookieStore.addCookies(gCookies);
+		if(gets == null)
+			gets = new Hashtable();
+		if(posts == null)
+			posts = new Hashtable();
+		if(headers == null)
+			headers = new Hashtable();
+		if(gCookieStore == null)
+			gCookieStore = newCookieStore();
+		
+		if(gCookies != null)
+			gCookieStore.addCookies(gCookies);
+		
 		System.out.println("Combined cookiestore: " + gCookieStore.toString());
-				
+		
 		// Set up our httpclient to handle redirects.
 		HttpParams httpParams = new BasicHttpParams();
 		httpParams.setParameter(ClientPNames.HANDLE_REDIRECTS, true);

@@ -7,6 +7,8 @@ package com.invisiblearchitecture.scraper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -170,8 +172,10 @@ public final class Gatherer {
 	/**
 	 * Return a new Hashtable with values populated by populateValue().
 	 * @return
+	 * @throws UnsupportedEncodingException 
+	 * @throws InsufficientInformationException 
 	 */
-	private Hashtable populate(Hashtable table, Information information) {
+	private Hashtable populate(Hashtable table, Information information) throws InsufficientInformationException, UnsupportedEncodingException {
 		Hashtable populatedTable = new Hashtable(table.size(), 1);
 		
 		Enumeration keys = table.keys();
@@ -258,7 +262,8 @@ public final class Gatherer {
 		// Populate URLs.
 		Vector populatedUrls = new Vector();
 		for(int i = 0; i < urls.size(); i++) {
-			populatedUrls.addElement(populateValue((String) urls.elementAt(i), information));
+			// Encodes the value for transmission as a url.
+			populatedUrls.addElement(populateValue((String) urls.elementAt(i), information, "UTF-8"));
 		}
 		
 		// Populate tables.
@@ -351,17 +356,20 @@ public final class Gatherer {
 		}
 	}
 	
-	
+	private static final String populateValue(String input, Information information) throws InsufficientInformationException, UnsupportedEncodingException {
+		return populateValue(input, information, null);
+	}
 	
 	/**
 	 * Take a value and substitute any $R{< ReaderID >} with a Reader.  This does not currently provide
 	 * an escape mechanism.
 	 * @param input
 	 * @param information
+	 * @param an encoding, leave null if none is desired.
 	 * @return
 	 * @throws InsufficientInformationException
 	 */
-	private static final String populateValue(String input, Information information) throws InsufficientInformationException {
+	private static final String populateValue(String input, Information information, String encoding) throws InsufficientInformationException, UnsupportedEncodingException {
 		String output = "";
 		// Scan for each "start of" reader ($R{)
 		
@@ -376,6 +384,8 @@ public final class Gatherer {
 					throw new IndexOutOfBoundsException("Could not find end brackets for value.");
 				String fieldName = input.substring(prevIndex + 3, index);
 				String value = information.getField(fieldName);
+				if(encoding != null)
+					value = URLEncoder.encode(value, encoding);
 				if(value == null) 
 					throw new InsufficientInformationException(fieldName);
 				output += value;
@@ -398,36 +408,6 @@ public final class Gatherer {
 		 * @author john
 		 *
 		 */
-		/*
-		int prevEndOfReaderId = 0;
-		
-		int startOfReaderId = input.indexOf("$R{");
-		for(; startOfReaderId != -1; startOfReaderId = input.indexOf("$R{", startOfReaderId + 1)) {
-			if(isEscaped(input, startOfReaderId))
-				continue;
-			int endOfReaderId;
-			for(endOfReaderId = input.indexOf("}", startOfReaderId); endOfReaderId != -1; endOfReaderId = input.indexOf("}", endOfReaderId + 1)) {
-				if(!isEscaped(input, endOfReaderId))
-					break;
-			}
-			if(endOfReaderId == -1)
-				throw new IndexOutOfBoundsException("Could not find end brackets for value.");
-			
-			String fieldName = input.substring(startOfReaderId + 3, endOfReaderId);
-			String readerValue = information.getField(fieldName, fieldName);
-			output += output;
-			
-			if(prevEndOfReaderId != 0) {
-				output += input.substring(prevEndOfReaderId, startOfReaderId);
-			}
-			
-			prevEndOfReaderId = endOfReaderId + 1;
-		}
-		if(output.indexOf("$R{") != -1)
-			output = input.substring(0, output.indexOf("$R{")) + output;
-		output += input.substring(prevEndOfReaderId);
-		return output;
-		*/
 	}
 	
 	/**

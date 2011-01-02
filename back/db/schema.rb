@@ -14,6 +14,7 @@ require 'dm-core'
 require 'dm-migrations'
 require 'dm-constraints'
 require 'dm-validations'
+require 'dm-is-tree'
 require 'json'
 
 DataMapper.setup(:default, 'sqlite://' + Dir.pwd + '/db.sqlite')
@@ -27,8 +28,8 @@ class DataMapper::Validations::ValidationErrors
   end
 end
 
-# Extend default String length from 50 to 255
-DataMapper::Property::String.length(255)
+# Extend default String length from 50 to 500
+DataMapper::Property::String.length(500)
 DataMapper::Model.raise_on_save_failure = false
 
 module DataMapper::Model
@@ -60,7 +61,7 @@ module SimpleScraper
         include DataMapper::Resource
         
         belongs_to :creator, :model => 'User', :key => true
-        property :name, String, :key => true
+        property :id, String, :key => true
         
         property :description, DataMapper::Property::Text
         
@@ -68,12 +69,12 @@ module SimpleScraper
         
         def inspect # inspect is taken over to return attributes, and lists of tags as arrays.
           inspection = attributes.clone
-          inspection.delete_if { |k, v| [:creator_name].include?(k) }
+          inspection.delete_if { |k, v| [:creator_id].include?(k) }
           self.class.tag_types.each do |tag_type|
             inspection[tag_type] = []
             send(tag_type).all.each do |tag|
               #inspection[tag_name][tag.id] = tag.name
-              inspection[tag_type].push(tag.name)
+              inspection[tag_type].push(tag.attribute_get(:id))
              end
           end
           inspection
@@ -85,7 +86,7 @@ module SimpleScraper
   class User
     include DataMapper::Resource
 
-    property :name, String, :key => true
+    property :id, String, :key => true
   end
   
   class Area
@@ -96,6 +97,8 @@ module SimpleScraper
     has n, :gatherers, :through => Resource
     has n, :interpreters, :through => Resource
     has n, :generators, :through => Resource
+
+    is :tree
   end
   
   class TargetArea
@@ -124,12 +127,16 @@ module SimpleScraper
     include Editable
     
     has n, :types, :through => Resource
+
+    property :name, String
   end
   
   class Default # Applies to all an area's types.
     include Editable
     
     has n, :areas, :through => Resource
+
+    property :name, String
     property :value, String
   end
 
@@ -176,8 +183,8 @@ module SimpleScraper
 
     has n, :gatherers, :through => Resource
 
-    property :post_name,  String
-    property :post_value, String
+    property :name,  String
+    property :value, String
   end
 
   class Header
@@ -185,8 +192,8 @@ module SimpleScraper
 
     has n, :gatherers, :through => Resource
 
-    property :header_name,  String
-    property :header_value, String
+    property :name,  String
+    property :value, String
   end
 
   class Cookie
@@ -194,8 +201,8 @@ module SimpleScraper
 
     has n, :gatherers, :through => Resource
 
-    property :cookie_name,  String
-    property :cookie_value, String
+    property :name,  String
+    property :value, String
   end
 end
 

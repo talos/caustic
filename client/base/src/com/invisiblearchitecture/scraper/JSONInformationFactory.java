@@ -3,6 +3,7 @@ package com.invisiblearchitecture.scraper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.util.Hashtable;
 
 import com.invisiblearchitecture.scraper.JSONInterface.IteratorInterface;
@@ -28,12 +29,10 @@ public class JSONInformationFactory implements InformationFactory {
 	private static final String GENERATORS = "generators";
 	private static final String GATHERERS = "gatherers";
 	
-	//private static final String GATHERER_ID = "gathererId";
-	
 	private static final String SOURCE_ATTRIBUTE = "source_attribute";
 	private static final String REGEX = "regex";
 	private static final String MATCH_NUMBER = "match_number";
-	private static final String TARGET_ATTRIBUTE = "destination_field";
+	private static final String TARGET_ATTRIBUTE = "target_attribute";
 	
 	private static final String TARGET_AREAS = "target_area";
 	private static final String TARGET_TYPES = "target_type";
@@ -62,9 +61,12 @@ public class JSONInformationFactory implements InformationFactory {
 	@Override
 	public Information get(String area, String type) throws IOException {
 		try {
-			EntityInterface entity = 
+			area = URLEncoder.encode(area, "UTF-8");
+			type = URLEncoder.encode(type, "UTF-8");
+			
+			EntityInterface entity =
 				httpInterface.attributesToEntity(requestUrl + '/' + requestCreator + '/' + area + '/' + type,
-					null, null, null, null, null);
+				null, null, null, null, null);
 			InputStream inputStream = entity.getInputStream();
 			
 			byte[] buffer = new byte[512];
