@@ -347,12 +347,12 @@ public final class Gatherer {
 				}
 			}
 			String rawDataField = "gatherer." + this.id;
-			
+			System.out.println("rawDataField: " + rawDataField);
 			information.putField(rawDataField, content.toString());
 						
 			information.interpret();
 			
-			information.removeField(rawDataField);
+			//information.removeField(rawDataField);
 		}
 	}
 	

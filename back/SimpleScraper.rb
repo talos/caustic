@@ -38,7 +38,7 @@ end
 
 # Display the editable resources.
 get '/back/' do
-  ['area', 'type', 'publish', 'default', 'interpreter', 'generator', 'gatherer', 'post', 'header', 'cookie'].to_json
+  ['area', 'info', 'publish', 'default', 'interpreter', 'generator', 'target', 'gatherer', 'post', 'header', 'cookie'].to_json
 end
 
 get '/back/:model' do
@@ -89,6 +89,7 @@ delete '/back/:model/:id' do
 end
 
 # Tag a resource.  Create the tag if it does not yet exist.
+# Manually creates the tagging too. Boo.
 put '/back/:model/:model_id/:tag/:tag_id' do
   model = DataMapper::Model.find_model(params[:model]) or return not_found
   resource = model.first({:creator => user, :id => params[:model_id]}) or return not_found
@@ -100,12 +101,19 @@ put '/back/:model/:model_id/:tag/:tag_id' do
   tag_resource = tag_model.first_or_create(:creator => user, tag_key => params[:tag_id])\
   or return error tag_resource.errors.collect { |e| e.to_s }.to_json
 
-  link_keys = {
-    params[:model].downcase + '_' + model.key.first.name.to_s => params[:model_id],
-    params[:model].downcase + '_creator_id' => user.attribute_get(:id),
-    tag_type.downcase.sub(/s$/, '') + '_' + tag_model.key.first.name.to_s => params[:tag_id],
-    tag_type.downcase.sub(/s$/, '') + '_creator_id' => user.attribute_get(:id)
-  }
+  puts tag_resource.to_json
+
+  link_key_names = tag_relationship.through.target_model.key.collect{|key| key.name}
+  link_keys = {}
+  link_key_names.each do |link_key_name|
+    link_keys[link_key_name] = case link_key_name.to_s
+                               when params[:model].downcase + '_' + model.key.first.name.to_s then params[:model_id]
+                               when params[:model].downcase + '_creator_id' then user.attribute_get(:id)
+                               when tag_model.raw_name.downcase + '_' + tag_model.key.first.name.to_s then params[:tag_id]
+                               when tag_model.raw_name.downcase + '_creator_id' then user.attribute_get(:id)
+                               else return error link_key_name
+                               end
+  end
   
   link = tag_relationship.through.target_model.first_or_new(link_keys) or error
   link.save or error link.errors.collect { |e| e.to_s }.to_json
@@ -127,23 +135,23 @@ delete '/back/:model/:model_id/:tag/:tag_id' do
   link.destroy or error link.errors.to_a.to_json
 end
 
-# List areas & types covered by a certain creator.
+# List areas & infos covered by a certain creator.
 get '/client/:creator/' do
   
 end
 
-# List types covered by a certain creator & area.
+# List infos covered by a certain creator & area.
 get '/client/:creator/:area/' do
   
 end
 
-# Get all the gatherers, generators, and interpreters associated with an area, type, and creator.
+# Get all the gatherers, generators, and interpreters associated with an area, info, and creator.
 # Returns any of the aforementioned objects if they fall within the ancestor tree of the specified area.
-get '/client/:creator_id/:area_id/:type_id' do
+get '/client/:creator_id/:area_id/:info_id' do
 
   creator = SimpleScraper::User.first(:id => params[:creator_id]) or return not_found
   area = SimpleScraper::Area.first(:id => params[:area_id]) or return not_found
-  type = SimpleScraper::Type.first(:id => params[:type_id]) or return not_found
+  info = SimpleScraper::Info.first(:id => params[:info_id]) or return not_found
 
   area_ids = area.ancestors.collect{ |parent_area| parent_area.attribute_get(:id) }.push(area.attribute_get(:id))
   puts area_ids.to_json
@@ -158,12 +166,12 @@ get '/client/:creator_id/:area_id/:type_id' do
   models.each do |model|
     resources[model] = (model.all(model.creator.id => params[:creator_id]) & \
                         model.all(model.areas.id => area_ids) & \
-                        model.all(model.types.id => params[:type_id]))
+                        model.all(model.infos.id => params[:info_id]))
   end
   
   default_collection = (SimpleScraper::Default.all(SimpleScraper::Default.areas.id => area_ids) & \
                         SimpleScraper::Default.all(SimpleScraper::Default.creator.id => params[:creator_id]))
-  publish_collection = (SimpleScraper::Publish.all(SimpleScraper::Publish.types.id => params[:type_id]) & \
+  publish_collection = (SimpleScraper::Publish.all(SimpleScraper::Publish.infos.id => params[:info_id]) & \
                         SimpleScraper::Publish.all(SimpleScraper::Publish.creator.id => params[:creator_id]))
   
   resources[:publishes] = publish_collection.collect {|publish| publish.name }
@@ -180,18 +188,21 @@ get '/client/:creator_id/:area_id/:type_id' do
   }
   
   resources[SimpleScraper::Gatherer].each do |gatherer|
-    posts, headers, cookies = {}, {}, {}
-    SimpleScraper::Post.all(SimpleScraper::Post.gatherers.id => gatherer.attribute_get(:id)).each { |post|
-       posts[post.name] = post.value
-    }
-    SimpleScraper::Header.all(SimpleScraper::Header.gatherers.id => gatherer.attribute_get(:id)).each { |header|
-       headers[header.name] = header.value
-    }
-    SimpleScraper::Cookie.all(SimpleScraper::Cookie.gatherers.id => gatherer.attribute_get(:id)).each { |cookie|
-       cookies[cookie.name] = cookie.value
-    }
+    urls, posts, headers, cookies = [], {}, {}, {}
+    SimpleScraper::Url.all(SimpleScraper::Url.gatherers.id => gatherer.attribute_get(:id)).each do |url|
+      urls.push(url.value)
+    end
+    SimpleScraper::Post.all(SimpleScraper::Post.gatherers.id => gatherer.attribute_get(:id)).each do |post|
+      posts[post.name] = post.value
+    end
+    SimpleScraper::Header.all(SimpleScraper::Header.gatherers.id => gatherer.attribute_get(:id)).each do |header|
+      headers[header.name] = header.value
+    end
+    SimpleScraper::Cookie.all(SimpleScraper::Cookie.gatherers.id => gatherer.attribute_get(:id)).each do |cookie|
+      cookies[cookie.name] = cookie.value
+    end
     object[:gatherers][gatherer.creator_id + '/' + gatherer.attribute_get(:id)] = {
-      :url => gatherer.url,
+      :urls => urls,
       :posts => posts,
       :headers => headers,
       :cookies => cookies
@@ -199,8 +210,15 @@ get '/client/:creator_id/:area_id/:type_id' do
   end
   
   resources[SimpleScraper::Interpreter].each do |interpreter|
+    source_attributes = []
+    if interpreter.source_attribute != ''
+      source_attributes.push(interpreter.source_attribute)
+    end
+    SimpleScraper::Gatherer.all(SimpleScraper::Gatherer.interpreters.id => interpreter.attribute_get(:id)).each do |gatherer|
+      source_attributes.push('gatherer.' + gatherer.creator_id + '/' + gatherer.attribute_get(:id))
+    end
     object[:interpreters][interpreter.creator_id + '/' + interpreter.attribute_get(:id)] = {
-      :source_attribute => interpreter.source_attribute,
+      :source_attributes => source_attributes,
       :regex => interpreter.regex,
       :match_number => interpreter.match_number,
       :target_attribute => interpreter.target_attribute
@@ -208,13 +226,18 @@ get '/client/:creator_id/:area_id/:type_id' do
   end
   
   resources[SimpleScraper::Generator].each do |generator|
-    target_areas = SimpleScraper::TargetArea.all(SimpleScraper::TargetArea.generators.id => generator.attribute_get(:id))
-    target_types = SimpleScraper::TargetType.all(SimpleScraper::TargetType.generators.id => generator.attribute_get(:id))
+    source_attributes = []
+    if generator.source_attribute != ''
+      source_attributes.push(generator.source_attribute)
+    end
+    SimpleScraper::Gatherer.all(SimpleScraper::Gatherer.generators.id => generator.attribute_get(:id)).each do |gatherer|
+      source_attributes.push('gatherer.' + gatherer.creator_id + '/' + gatherer.attribute_get(:id))
+    end
     object[:generators][generator.creator_id + '/' + generator.attribute_get(:id)] = {
-      :source_attribute => generator.source_attribute,
+      :source_attributes => source_attributes,
       :regex => generator.regex,
-      :target_areas => target_areas.collect {|target_area| target_area.attribute_get(:id)},
-      :target_types => target_types.collect {|target_type| target_type.attribute_get(:id)},
+      :target_area => generator.target_area,
+      :target_info => generator.target_info,
       :target_attribute => generator.target_attribute
     }
   end

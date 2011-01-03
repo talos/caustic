@@ -36,6 +36,11 @@ module DataMapper::Model
   def self.find_model (model_name)
     self.descendants.find { |c| c.name =~ Regexp.new('(^|:)' + model_name + '$', Regexp::IGNORECASE) }
   end
+  
+  # Get rid of the namespace
+  def raw_name
+    name.sub(/^[^:]*:+/, '')
+  end
 end
 
 module DataMapper::Model::Relationship
@@ -101,13 +106,7 @@ module SimpleScraper
     is :tree
   end
   
-  class TargetArea
-    include Editable
-    
-    has n, :generators, :through => Resource
-  end
-
-  class Type
+  class Info
     include Editable
     
     has n, :publishes, :through => Resource
@@ -117,21 +116,15 @@ module SimpleScraper
     has n, :generators, :through => Resource
   end
 
-  class TargetType
-    include Editable
-
-    has n, :generators, :through => Resource
-  end
-
-  class Publish # Applies to all a type's areas.
+  class Publish # Applies to all an info's areas.
     include Editable
     
-    has n, :types, :through => Resource
+    has n, :infos, :through => Resource
 
     property :name, String
   end
   
-  class Default # Applies to all an area's types.
+  class Default # Applies to all an area's infos.
     include Editable
     
     has n, :areas, :through => Resource
@@ -139,12 +132,14 @@ module SimpleScraper
     property :name, String
     property :value, String
   end
-
+  
   class Interpreter
     include Editable
 
     has n, :areas, :through => Resource
-    has n, :types, :through => Resource
+    has n, :infos, :through => Resource
+
+    has n, :gatherers, :through => Resource
 
     property :source_attribute, String
     property :regex, String
@@ -156,26 +151,41 @@ module SimpleScraper
     include Editable
 
     has n, :areas, :through => Resource
-    has n, :types, :through => Resource
+    has n, :infos, :through => Resource
     
+    has n, :gatherers, :through => Resource
+    
+    property :target_area, String
+    property :target_info, String
+    property :target_attribute, String
+
     property :source_attribute, String
     property :regex, String
-    has n, :target_areas, :through => Resource
-    has n, :target_types, :through => Resource
-    property :target_attribute, String
   end
-  
+
   class Gatherer
     include Editable
 
     has n, :areas, :through => Resource
-    has n, :types, :through => Resource
-    
+    has n, :infos, :through => Resource
+
+    has n, :generators, :through => Resource
+    has n, :interpreters, :through => Resource
+
+    has n, :urls, :through => Resource
     has n, :posts, :through => Resource
     has n, :headers, :through => Resource
-    has n, :cookies, :model => 'Cookie',  :through => Resource
+    has n, :cookies, :model => 'Cookie', :through => Resource
 
-    property :url, String
+    #property :url, String
+  end
+  
+  class Url
+    include Editable
+    
+    has n, :gatherers, :through => Resource
+    
+    property :value, String
   end
 
   class Post

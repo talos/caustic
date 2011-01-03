@@ -29,19 +29,21 @@ public class JSONInformationFactory implements InformationFactory {
 	private static final String GENERATORS = "generators";
 	private static final String GATHERERS = "gatherers";
 	
-	private static final String SOURCE_ATTRIBUTE = "source_attribute";
+	private static final String SOURCE_ATTRIBUTES = "source_attributes";
 	private static final String REGEX = "regex";
 	private static final String MATCH_NUMBER = "match_number";
 	private static final String TARGET_ATTRIBUTE = "target_attribute";
 	
-	private static final String TARGET_AREAS = "target_area";
-	private static final String TARGET_TYPES = "target_type";
+	private static final String TARGET_AREA = "target_area";
+	private static final String TARGET_INFO = "target_info";
 	
-	private static final String URL = "url";
+	private static final String URLS = "urls";
 	private static final String POSTS = "posts";
 	private static final String COOKIES = "cookies";
 	private static final String HEADERS = "headers";
 	//private static final String TERMINATORS = "terminators";
+	
+	private final Hashtable cache = new Hashtable();
 	
 	public JSONInformationFactory(String reqUrl, String reqCreator,
 			HttpInterface httpInt,
@@ -59,26 +61,35 @@ public class JSONInformationFactory implements InformationFactory {
 	}
 	
 	@Override
-	public Information get(String area, String type) throws IOException {
+	public Information get(String area, String info) throws IOException {
 		try {
 			area = URLEncoder.encode(area, "UTF-8");
-			type = URLEncoder.encode(type, "UTF-8");
+			info = URLEncoder.encode(info, "UTF-8");
 			
-			EntityInterface entity =
-				httpInterface.attributesToEntity(requestUrl + '/' + requestCreator + '/' + area + '/' + type,
-				null, null, null, null, null);
-			InputStream inputStream = entity.getInputStream();
+			String url = requestUrl + '/' + requestCreator + '/' + area + '/' + info;
+			String jsonResponse;
 			
-			byte[] buffer = new byte[512];
-			ByteArrayOutputStream content = new ByteArrayOutputStream();
-			//int readBytes;
-			
-			//while((readBytes = inputStream.read(buffer)) != -1) {
-			while(inputStream.read(buffer) != -1) {
-				content.write(buffer);
-				//content.write(sBuffer, 0, readBytes);
+			if(cache.containsKey(url)) {
+				jsonResponse = (String) cache.get(url);
+			} else {
+				EntityInterface entity =
+					httpInterface.attributesToEntity(url,
+					null, null, null, null, null);
+				InputStream inputStream = entity.getInputStream();
+				
+				byte[] buffer = new byte[512];
+				ByteArrayOutputStream content = new ByteArrayOutputStream();
+				//int readBytes;
+				
+				//while((readBytes = inputStream.read(buffer)) != -1) {
+				while(inputStream.read(buffer) != -1) {
+					content.write(buffer);
+					//content.write(sBuffer, 0, readBytes);
+				}
+				jsonResponse = content.toString();
+				cache.put(url, jsonResponse);
 			}
-			JSONInterfaceTokener tokener = jsonInterface.getTokener(content.toString());
+			JSONInterfaceTokener tokener = jsonInterface.getTokener(jsonResponse);
 			JSONInterfaceObject object = tokener.nextValue();
 			
 			JSONInterfaceArray publishesRaw = object.getJSONArray(PUBLISHES);
@@ -113,7 +124,7 @@ public class JSONInformationFactory implements InformationFactory {
 					pattern = regexInterface.compile(interpreterRaw.getString(REGEX));
 				}
 				interpreters[i] = new Interpreter.ToField(
-						interpreterRaw.getString(SOURCE_ATTRIBUTE),
+						interpreterRaw.getJSONArray(SOURCE_ATTRIBUTES).toArray(),
 						pattern,
 						interpreterRaw.getInt(MATCH_NUMBER),
 						interpreterRaw.getString(TARGET_ATTRIBUTE));
@@ -127,21 +138,11 @@ public class JSONInformationFactory implements InformationFactory {
 				if(generatorRaw.has(REGEX)) {
 					pattern = regexInterface.compile(generatorRaw.getString(REGEX));
 				}
-				String[] target_areas = new String[generatorRaw.getJSONArray(TARGET_AREAS).length()];
-				for(int j = 0; j < target_areas.length; j++) {
-					target_areas[j] = generatorRaw.getJSONArray(TARGET_AREAS).getString(j);
-				}
-				String[] target_types = new String[generatorRaw.getJSONArray(TARGET_TYPES).length()];
-				for(int j = 0; j < target_types.length; j++) {
-					target_types[j] = generatorRaw.getJSONArray(TARGET_TYPES).getString(j);
-				}
-				// TODO: the target_areas/target_types system is designed wrong at the backend level.
-				String targets[][] = new String[1][2];
-				targets[0][0] = target_areas[0];
-				targets[0][1] = target_types[0];
 				interpreters[i] = new Interpreter.ToInformation(
-						this, generatorRaw.getString(SOURCE_ATTRIBUTE), pattern,
-						targets,
+						this, generatorRaw.getJSONArray(SOURCE_ATTRIBUTES).toArray(),
+						pattern,
+						generatorRaw.getString(TARGET_AREA),
+						generatorRaw.getString(TARGET_INFO),
 						generatorRaw.getString(TARGET_ATTRIBUTE));
 				i++;
 			}
@@ -156,7 +157,7 @@ public class JSONInformationFactory implements InformationFactory {
 				i++;
 			}
 			
-			Information information = new Information(collector, area, type,
+			Information information = new Information(collector, area, info,
 					count++, publishes, interpreters, gatherers,
 					publisher, httpInterface.newCookieStore(), logger);
 			information.putFields(defaults);
@@ -172,7 +173,12 @@ public class JSONInformationFactory implements InformationFactory {
 		Gatherer gatherer = new Gatherer(gatherer_name,
 				httpInterface, regexInterface, logger);
 		
-		gatherer.addUrl(gathererRaw.getString(URL));
+		if(gathererRaw.isNull(URLS) == false) {
+			JSONInterfaceArray urlsRaw = gathererRaw.getJSONArray(URLS);
+			for(int i = 0; i < urlsRaw.length(); i++) {
+				gatherer.addUrl(urlsRaw.getString(i));
+			}
+		}
 		
 		if(gathererRaw.isNull(POSTS) == false) {
 			JSONInterfaceObject postsRaw = gathererRaw.getJSONObject(POSTS);

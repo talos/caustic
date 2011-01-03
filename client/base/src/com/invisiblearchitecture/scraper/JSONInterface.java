@@ -18,6 +18,7 @@ public interface JSONInterface {
 		public abstract JSONInterfaceArray getJSONArray(int index) throws JSONInterfaceException;
 		public abstract JSONInterfaceObject getJSONObject(int index) throws JSONInterfaceException;
 		public abstract String getString(int index) throws JSONInterfaceException;
+		public abstract String[] toArray() throws JSONInterfaceException; 
 		public abstract int length();
 	}
 	public interface JSONInterfaceTokener {

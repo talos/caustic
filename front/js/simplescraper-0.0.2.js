@@ -178,7 +178,7 @@
 	    tag: function(name, id) {
 		return $('<span>').append(id).addClass(classes.tag).data({name: name, id: id})
 		    .click(function() {
-			$('body').append($('<div>').simplescraper_resource('init', name.replace(/s$/, ''), id))
+			$('body').append($('<div>').simplescraper_resource('init', name.replace(/e?s$/, ''), id))
 		    })
 		    .append(widgets['untagger']);
 	    },
@@ -366,7 +366,7 @@
 			    $resource.simplescraper_resource('put'); // This will PUT possibly unsaved changes, which will also GET.
 			},
 			error: function(response, code) {
-			    $.error(code + ': ' + response);
+			    $.error(code + ': ' + response.responseText);
 			}
 		    });
 		});

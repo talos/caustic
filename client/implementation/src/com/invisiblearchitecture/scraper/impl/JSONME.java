@@ -135,6 +135,19 @@ public class JSONME implements JSONInterface {
 		public int length() {
 			return array.length();
 		}
+
+		@Override
+		public String[] toArray() throws JSONInterfaceException {
+			try {
+				String[] stringArray = new String[array.length()];
+				for(int i = 0; i < array.length(); i++) {
+					stringArray[i] = array.getString(i);
+				}
+				return stringArray;
+			} catch(JSONException e) {
+				throw new JSONMEException(e);
+			}
+		}
 		
 	}
 	
