@@ -35,6 +35,7 @@
 	editor: 'editor',
 	model: 'model',
 	resource: 'resource',
+	resourceEditor:'resourceEditor',
 	title: 'title',
 	resourceControls: 'upperright'
     };
@@ -58,7 +59,7 @@
 				$option.attr('selected', true);
 			    $selector.append($option);
 			}
-			$selector.trigger('change');
+			//$selector.trigger('change');
 		    }
 		});
 		return $selector;
@@ -75,7 +76,7 @@
 		    $editor.append($('<p>Model:</p>').append($selectModel));
 		    $editor.append($('<p>').append(
 			$('<input>').attr('type', 'text'))
-			.append($('<span>Add it</span>').click(function() {
+			.append($('<span>Add</span>').click(function() {
 			    $editor.simplescraper_editor('createResource')
 			})));
 		});
@@ -85,14 +86,14 @@
 		return this.each(function() {
 		    var $editor = $(this);
 		    var $selectModel = $editor.find('.' + classes.model);
-		    $editor.find('.' + classes.resource).remove();
+		    $editor.find('.' + classes.resourceEditor).remove();
 		    $editor.append($('<p>').append(
 			widgets['selector'](
-			    classes.resource,
+			    classes.resourceEditor,
 			    settings.backDirectory + '/' + $selectModel.val() + '/', preSelection)
 			    .bind('change', function() {
 				$editor.simplescraper_editor('viewResource')
-			    })).append('<span>View it</span>').addClass(classes.resource).click(function() {
+			    })).append('<span>Edit</span>').addClass(classes.resourceEditor).click(function() {
 				$editor.simplescraper_editor('viewResource')
 			    }));
 		});
@@ -104,7 +105,7 @@
 		    var $editor = $(this);
 		    array.push({
 			model: $editor.find('.' + classes.model).val(),
-			resource: $editor.find('select.' + classes.resource).val(),
+			resource: $editor.find('select.' + classes.resourceEditor).val(),
 			input: $editor.find('input').val()
 		    });
 		    console.log(array);
@@ -172,7 +173,7 @@
 	    },
 	    /* A tagger. Allows the user to add tags. */
 	    tagger: function(name) {
-		return $('<textarea>').addClass(classes.tagger).data('name',name);
+		return $('<input>').addClass(classes.tagger).data('name',name);
 	    },
 	    /* A tag. Opens itself as a resource when clicked.  */
 	    tag: function(name, id) {
@@ -214,7 +215,11 @@
 			return;
 		    }
 		    // Set up event handlers.
-		    $resource.delegate('.' + classes.updater, 'click', function() {
+		    /*$resource.delegate('.' + classes.updater, 'click', function() {
+			$resource.simplescraper_resource('put');
+			return false;
+		    });*/
+		    $resource.delegate('.' + classes.attributer, 'blur', function() {
 			$resource.simplescraper_resource('put');
 			return false;
 		    });
@@ -282,7 +287,7 @@
 							   .append(': "' + $(this).data('id') + '"'));
 		    $resource.
 			append($('<div>').addClass(classes.resourceControls)
-			       .append(widgets['deleter']).append(widgets['updater']).append(widgets['closer']));
+			       .append(widgets['deleter']).append(widgets['closer']));
 		    $.ajax({
 			type: 'get',
 			url: $resource.simplescraper_resource('location'),
@@ -312,6 +317,7 @@
 		    if(!$resource.hasClass(classes.resource)) // Only resources can be updated.
 			return;
 		    var data = $resource.simplescraper_resource('attributes');
+		    $resource.empty();
 		    $.ajax({    type: 'put',
 				url: $resource.simplescraper_resource('location'),
 				data: data,

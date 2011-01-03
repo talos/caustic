@@ -1,0 +1,75 @@
+body {
+    margin:0px;
+    font-family: helvetica, sans-serif;
+}
+textarea {
+    border: 1px solid black;
+}
+div {
+    border: 1px solid black;
+    margin: 3px;
+    padding: 3px;
+    background: white;
+}
+span {
+    margin: 1px;
+    padding: 1px;
+}
+
+p {
+    margin: 0px;
+    padding: 0px;
+}
+.editor {
+    display: inline-block;
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    z-index: 1;
+}
+.resource {
+    left: 25%;
+    top: 200px;
+    display: inline-block;
+    position: relative;
+    background: #DDF;
+    width: 300px;
+}
+.tag {
+    border: 1px solid #6C6;
+    background: #DFD;
+    cursor: pointer;
+    font-size: smaller;
+}
+.button {
+    border: 1px solid black;
+    cursor: pointer;
+}
+.tagger {
+    border: 0px;
+    width: 200px;
+}
+.upperright {
+    position: absolute;
+    top: -2em;
+    height: 1.5em;
+    font-size: smaller;
+/*    right: 0px;*/
+}
+.deleter {
+    border: 1px solid red;
+    color: red;
+    cursor: pointer;
+}
+.updater {
+    background: yellow;
+}    
+.untagger {
+    color: red;
+}
+.title {
+    font-size: 1.5em;
+    display: inline-block;
+    border: 1px solid black;
+    background: white;
+}

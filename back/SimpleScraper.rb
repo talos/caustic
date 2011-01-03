@@ -38,7 +38,7 @@ end
 
 # Display the editable resources.
 get '/back/' do
-  ['area', 'info', 'publish', 'default', 'interpreter', 'generator', 'target', 'gatherer', 'post', 'header', 'cookie'].to_json
+  ['area', 'info', 'publish', 'default', 'interpreter', 'generator', 'gatherer', 'post', 'header', 'cookie'].to_json
 end
 
 get '/back/:model' do
