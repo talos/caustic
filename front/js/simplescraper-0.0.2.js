@@ -40,6 +40,19 @@
 	resourceControls: 'upperright'
     };
 
+    functions = {
+	// Give ajax calls a standard error functionality.
+	ajax: function(options) {
+	    $.extend(options,
+		     {
+			 error: function(response, code) {
+			     $.error(response.status + ': ' + response.responseText);
+			 }
+		     });
+	    $.ajax(options);
+	}
+    };
+
     /** simplescraper editor. **/
     (function ( $ ) {
 	var widgets = {
@@ -48,7 +61,7 @@
 		if(!name || !url)
 		    $.error('Must specify name and url to generate a selector.');
 		var $selector = $('<select>').addClass(classes.selector).addClass(name);
-		$.ajax({
+		functions.ajax({
 		    type: 'get',
 		    url: url,
 		    dataType: 'json',
@@ -108,7 +121,6 @@
 			resource: $editor.find('select.' + classes.resourceEditor).val(),
 			input: $editor.find('input').val()
 		    });
-		    console.log(array);
 		});
 		if(array.length == 1)
 		    return array[0];
@@ -118,7 +130,9 @@
 		return this.each(function() {
 		    var $editor = $(this);
 		    var selections = $editor.simplescraper_editor('selected');
-		    $.ajax({
+		    if(!settings.backDirectory || !selections.model || !selections.input)
+			return;
+		    functions.ajax({
 			type: 'put',
 			url: settings.backDirectory + '/' + selections.model + '/' + selections.input,
 			success: function() {
@@ -254,7 +268,11 @@
 	    location: function() {
 		var locations = [];
 		this.each(function() {
-		    locations.push([settings.backDirectory, $(this).data('model'), $(this).data('id')].join('/'));
+		    if($(this).data('model') && $(this).data('id')) {
+			locations.push([settings.backDirectory, $(this).data('model'), $(this).data('id')].join('/'));
+		    } else {
+			locations.push(false);
+		    }
 		});
 		if(locations.length == 1)
 		    return locations[0];
@@ -279,7 +297,7 @@
 		    return attributesAry[0];
 		return attributesAry;
 	    },
-	    /* Bring the page up-to-date with the server. */
+	    /* Bring the resource up-to-date with the server. */
 	    get: function() {
 		return this.each(function() {
 		    var $resource = $(this).empty().append($('<span>').addClass(classes.title)
@@ -288,9 +306,12 @@
 		    $resource.
 			append($('<div>').addClass(classes.resourceControls)
 			       .append(widgets['deleter']).append(widgets['closer']));
-		    $.ajax({
+		    var url = $resource.simplescraper_resource('location');
+		    if(!url)
+			return false;
+		    functions.ajax({
 			type: 'get',
-			url: $resource.simplescraper_resource('location'),
+			url: url,
 			dataType: 'json',
 			success: function(data)
 			{
@@ -317,22 +338,23 @@
 		    if(!$resource.hasClass(classes.resource)) // Only resources can be updated.
 			return;
 		    var data = $resource.simplescraper_resource('attributes');
+		    var url = $resource.simplescraper_resource('location');
+		    if(!url)
+			return;
 		    $resource.empty();
-		    $.ajax({    type: 'put',
-				url: $resource.simplescraper_resource('location'),
-				data: data,
-				success: function(response) // TODO: check status
-				{
-				    if(data['id']) // keep ID up to date
-					$resource.data('id', data['id']);
-				    //$resource.simplescraper_resource('get');
-				    $('.' + classes.editor).simplescraper_editor('refresh');
-				    $('.' + classes.resource).simplescraper_resource('get'); // Could modify taggings in other displayed items.
-				},
-				error: function(response, code) {
-				    $.error(code + ': ' + response.body);
-				}
-			   });
+		    functions.ajax({
+			type: 'put',
+			url: url,
+			data: data,
+			success: function(response) // TODO: check status
+			{
+			    if(data['id']) // keep ID up to date
+				$resource.data('id', data['id']);
+			    //$resource.simplescraper_resource('get');
+			    $('.' + classes.editor).simplescraper_editor('refresh');
+			    $('.' + classes.resource).simplescraper_resource('get'); // Could modify taggings in other displayed items.
+			}
+		    });
 		});
 	    },
 	    /* Close a resource. */
@@ -347,9 +369,12 @@
 		    var $resource = $(this);
 		    if(!$resource.hasClass(classes.resource)) // Only resources can be deleted.
 			return;
-		    $.ajax({
+		    var url = !$resource.simplescraper_resource('location');
+		    if(!url)
+			return;
+		    functions.ajax({
 			type: 'delete',
-			url: $resource.simplescraper_resource('location'),
+			url: url,
 			success: function(contents)
 			{// TODO: check status
 			    $('.' + classes.editor).simplescraper_editor('refresh');
@@ -364,15 +389,16 @@
 		    var $resource = $(this);
 		    if(!$resource.hasClass(classes.resource)) // Only resources can be tagged.
 			return;
-		    $.ajax({
+		    var url = $resource.simplescraper_resource('location');
+		    if(!url)
+			return;
+		    url = url + '/' + tagType + '/' + tagId
+		    functions.ajax({
 			type: 'put',
-			url: $resource.simplescraper_resource('location') + '/' + tagType + '/' + tagId, // Pluralizes.
+			url: url, // Pluralizes.
 			success: function(contents)
 			{
 			    $resource.simplescraper_resource('put'); // This will PUT possibly unsaved changes, which will also GET.
-			},
-			error: function(response, code) {
-			    $.error(code + ': ' + response.responseText);
 			}
 		    });
 		});
@@ -383,9 +409,14 @@
 		    var $resource = $(this);
 		    if(!$resource.hasClass(classes.resource)) // Only resources can be untagged.
 			return;
-		    $.ajax({
+		    var url = $resource.simplescraper_resource('location');
+		    if(!url)
+			return;
+		    url = url + '/' + tagType + '/' + tagId, // Pluralizes.
+
+		    functions.ajax({
 			type: 'delete',
-			url: $resource.simplescraper_resource('location') + '/' + tagType + '/' + tagId, // Pluralizes.
+			url: url,
 			success: function(contents)
 			{
 			    $resource.simplescraper_resource('get');

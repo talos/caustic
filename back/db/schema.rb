@@ -59,6 +59,7 @@ module DataMapper::Model::Relationship
 end
 
 module SimpleScraper
+  
   # All editable resources have a name, a description, a creator, and blessed editors.
   module Editable
     def self.included(base)
@@ -75,10 +76,17 @@ module SimpleScraper
         def inspect # inspect is taken over to return attributes, and lists of tags as arrays.
           inspection = attributes.clone
           inspection.delete_if { |k, v| [:creator_id].include?(k) }
+          # self.class.taggings.each do |tagging_relationship_name, tagging_relationship|
+          #   puts tagging_relationship.child_model.to_s
+          #   inspection[tagging_relationship.child_model.to_s] = []
+          #   send(tagging_relationship_name).all.each do |tagging|
+          #     puts tagging.to_s
+          #     inspection[tagging_realtionship.child_model.to_s].push('')
+          #   end
+          # end
           self.class.tag_types.each do |tag_type|
             inspection[tag_type] = []
             send(tag_type).all.each do |tag|
-              #inspection[tag_name][tag.id] = tag.name
               inspection[tag_type].push(tag.attribute_get(:id))
              end
           end
@@ -94,16 +102,29 @@ module SimpleScraper
     property :id, String, :key => true
   end
   
+  class Tagging
+    include DataMapper::Resource
+    
+    # property :source_creator_id, String, :key => true
+    # property :source_id, String, :key => true
+    # property :target_creator_id, String, :key => true
+    # property :target_id, String, :key => true
+    
+    belongs_to :source, 'Area', :key => true
+    belongs_to :target, 'Area', :key => true
+  end
+  
   class Area
     include Editable
-
+    
     has n, :defaults, :through => Resource
 
     has n, :gatherers, :through => Resource
     has n, :interpreters, :through => Resource
     has n, :generators, :through => Resource
-
-    is :tree
+    
+    has n, :taggings, :model => Tagging, :child_key => [:source_creator_id, :source_id]
+    has n, :areas, :model => self, :through => :taggings, :via => :target
   end
   
   class Info
@@ -217,4 +238,4 @@ module SimpleScraper
 end
 
 DataMapper.finalize
-DataMapper.auto_upgrade!
+DataMapper.auto_migrate!

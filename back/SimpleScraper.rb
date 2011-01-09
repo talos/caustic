@@ -38,7 +38,7 @@ end
 
 # Display the editable resources.
 get '/back/' do
-  ['area', 'info', 'publish', 'default', 'interpreter', 'generator', 'gatherer', 'post', 'header', 'cookie'].to_json
+  ['area', 'info', 'publish', 'default', 'interpreter', 'generator', 'gatherer', 'post', 'url', 'header', 'cookie'].to_json
 end
 
 get '/back/:model' do
@@ -94,29 +94,15 @@ put '/back/:model/:model_id/:tag/:tag_id' do
   model = DataMapper::Model.find_model(params[:model]) or return not_found
   resource = model.first({:creator => user, :id => params[:model_id]}) or return not_found
   tag_type = params[:tag].downcase
-  
-  tag_relationship = resource.class.relationships[tag_type] or return not_found
-  tag_model = tag_relationship.target_model
-  tag_key = tag_model.key.first.name.to_sym
-  tag_resource = tag_model.first_or_create(:creator => user, tag_key => params[:tag_id])\
-  or return error tag_resource.errors.collect { |e| e.to_s }.to_json
 
-  puts tag_resource.to_json
+  return not_found unless resource.send(tag_type).class == DataMapper::Associations::ManyToMany::Collection
 
-  link_key_names = tag_relationship.through.target_model.key.collect{|key| key.name}
-  link_keys = {}
-  link_key_names.each do |link_key_name|
-    link_keys[link_key_name] = case link_key_name.to_s
-                               when params[:model].downcase + '_' + model.key.first.name.to_s then params[:model_id]
-                               when params[:model].downcase + '_creator_id' then user.attribute_get(:id)
-                               when tag_model.raw_name.downcase + '_' + tag_model.key.first.name.to_s then params[:tag_id]
-                               when tag_model.raw_name.downcase + '_creator_id' then user.attribute_get(:id)
-                               else return error link_key_name
-                               end
-  end
+  tag = resource.send(tag_type).model.first_or_create({:creator => user, :id => params[:tag_id]})
+  return error ['Could not create tag.'].to_json if (!tag)
   
-  link = tag_relationship.through.target_model.first_or_new(link_keys) or error
-  link.save or error link.errors.collect { |e| e.to_s }.to_json
+  resource.send(tag_type) << tag
+  resource.save or return error resource.errors.collect {|e| e.to_s}
+  return true.to_json
 end
 
 # Delete a tag.
@@ -125,23 +111,26 @@ delete '/back/:model/:model_id/:tag/:tag_id' do
   resource = model.first({:creator => user, :id => params[:model_id]}) or return not_found
   tag_type = params[:tag].downcase
   
-  tag_relationship = resource.class.relationships[tag_type] or return not_found
-  tag_model = tag_relationship.target_model
+  return not_found unless resource.send(tag_type).class == DataMapper::Associations::ManyToMany::Collection
   
-  source_key = params[:model].downcase + '_' + model.key.first.name.to_s
-  target_key = tag_type.downcase.sub(/s$/, '') + '_' + tag_model.key.first.name.to_s
-
-  link = tag_relationship.through.target_model.first(source_key => params[:model_id], target_key => params[:tag_id]) or not_found
-  link.destroy or error link.errors.to_a.to_json
+  tag = resource.send(tag_type).model.first({:creator => user, :id => params[:tag_id]})
+  return not_found if(!tag)
+  
+  join_model = resource.send(tag_type).send('through').target_model
+  if(tag_type == params[:model].downcase + 's') # self-join
+    join_model.first(:source => resource, :target => tag).destroy
+  else
+    join_model.first(params[:model].downcase.to_sym => model, tag_type.sub(/s$/, '').to_sym => tag).destroy
+  end
 end
 
 # List areas & infos covered by a certain creator.
-get '/client/:creator/' do
+get '/client/:creator_id/' do
   
 end
 
 # List infos covered by a certain creator & area.
-get '/client/:creator/:area/' do
+get '/client/:creator_id/:area_id/' do
   
 end
 
@@ -153,9 +142,22 @@ get '/client/:creator_id/:area_id/:info_id' do
   area = SimpleScraper::Area.first(:id => params[:area_id]) or return not_found
   info = SimpleScraper::Info.first(:id => params[:info_id]) or return not_found
 
-  area_ids = area.ancestors.collect{ |parent_area| parent_area.attribute_get(:id) }.push(area.attribute_get(:id))
+  #area_ids = area.ancestors.collect{ |parent_area| parent_area.attribute_get(:id) }.push(area.attribute_get(:id))
+  # Collect associated areas non-redundantly.
+  #area_ids = [params[:area_id]]
+  area_ids = []
+  def get_area_ids(check_area, area_ids)
+    area_ids.push(check_area.attribute_get(:id))
+    if area_ids.length == area_ids.uniq.length
+      check_area.areas.each { |assoc_area| get_area_ids(assoc_area) }
+    else
+      area_ids.uniq!
+    end
+  end
+  get_area_ids(SimpleScraper::Area.first(:id => params[:area_id]), area_ids)
+  #SimpleScraper::Area.all(SimpleScraper::Area
   puts area_ids.to_json
-
+  
   models = [ SimpleScraper::Gatherer, SimpleScraper::Interpreter, SimpleScraper::Generator ]
   publish_collection = SimpleScraper::Publish.all
   default_collection = SimpleScraper::Default.all
