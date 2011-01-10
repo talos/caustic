@@ -268,10 +268,10 @@
 	    location: function() {
 		var locations = [];
 		this.each(function() {
-		    if($(this).data('model') && $(this).data('id')) {
-			locations.push([settings.backDirectory, $(this).data('model'), $(this).data('id')].join('/'));
-		    } else {
+		    if(!$(this).data('model') || !$(this).data('id')) {
 			locations.push(false);
+		    } else {
+			locations.push([settings.backDirectory, $(this).data('model'), $(this).data('id')].join('/'));
 		    }
 		});
 		if(locations.length == 1)
@@ -369,7 +369,7 @@
 		    var $resource = $(this);
 		    if(!$resource.hasClass(classes.resource)) // Only resources can be deleted.
 			return;
-		    var url = !$resource.simplescraper_resource('location');
+		    var url = $resource.simplescraper_resource('location');
 		    if(!url)
 			return;
 		    functions.ajax({

@@ -66,6 +66,8 @@ module SimpleScraper
       base.class_eval do
         include DataMapper::Resource
         
+        property :creator_id, String, :key => true
+
         belongs_to :creator, :model => 'User', :key => true
         property :id, String, :key => true
         
@@ -76,14 +78,6 @@ module SimpleScraper
         def inspect # inspect is taken over to return attributes, and lists of tags as arrays.
           inspection = attributes.clone
           inspection.delete_if { |k, v| [:creator_id].include?(k) }
-          # self.class.taggings.each do |tagging_relationship_name, tagging_relationship|
-          #   puts tagging_relationship.child_model.to_s
-          #   inspection[tagging_relationship.child_model.to_s] = []
-          #   send(tagging_relationship_name).all.each do |tagging|
-          #     puts tagging.to_s
-          #     inspection[tagging_realtionship.child_model.to_s].push('')
-          #   end
-          # end
           self.class.tag_types.each do |tag_type|
             inspection[tag_type] = []
             send(tag_type).all.each do |tag|
@@ -102,7 +96,7 @@ module SimpleScraper
     property :id, String, :key => true
   end
   
-  class Tagging
+  class AreaTagging
     include DataMapper::Resource
     
     # property :source_creator_id, String, :key => true
@@ -123,8 +117,8 @@ module SimpleScraper
     has n, :interpreters, :through => Resource
     has n, :generators, :through => Resource
     
-    has n, :taggings, :model => Tagging, :child_key => [:source_creator_id, :source_id]
-    has n, :areas, :model => self, :through => :taggings, :via => :target
+    has n, :area_taggings, :model => AreaTagging, :child_key => [:source_creator_id, :source_id]
+    has n, :areas, :model => self, :through => :area_taggings, :via => :target
   end
   
   class Info
@@ -184,6 +178,24 @@ module SimpleScraper
     property :regex, String
   end
 
+  # class CookieGatherer
+  #   include DataMapper::Resource
+
+  #   property :cookie_creator_id, String, :key => true
+  #   property :cookie_id, String, :key => true
+  #   belongs_to :cookie, 'Cookie',
+  #     :parent_key => [:creator_id, :id],
+  #     :child_key => [:cookie_creator_id, :cookie_id],
+  #     :required => true
+
+  #   property :gatherer_creator_id, String, :key => true
+  #   property :gatherer_id, String, :key => true
+  #   belongs_to :gatherer, 'Gatherer',
+  #     :parent_key => [:creator_id, :id],
+  #     :child_key => [:gatherer_creator_id, :gatherer_id],
+  #     :required => true
+  # end
+
   class Gatherer
     include Editable
 
@@ -196,7 +208,13 @@ module SimpleScraper
     has n, :urls, :through => Resource
     has n, :posts, :through => Resource
     has n, :headers, :through => Resource
-    has n, :cookies, :model => 'Cookie', :through => Resource
+    has n, :cookie_headers, :through => Resource
+
+    # has n, :cookie_taggings, 'CookieGatherer',
+    #   :parent_key => [:creator_id, :id],
+    #   :child_key => [:gatherer_creator_id, :gatherer_id]
+    
+    # has n, :cookies, 'Cookie', :through => :cookie_taggings, :via => :cookie
 
     #property :url, String
   end
@@ -227,15 +245,22 @@ module SimpleScraper
     property :value, String
   end
 
-  class Cookie
+#  class Cookie
+  class CookieHeader
     include Editable
 
+    # has n, :gatherer_taggings, 'CookieGatherer',
+    #   :parent_key => [:creator_id, :id],
+    #   :child_key => [:cookie_creator_id, :cookie_id]
+    
+    # has n, :gatherers, 'Gatherer', :through => :gatherer_taggings, :via => :gatherer
     has n, :gatherers, :through => Resource
 
     property :name,  String
     property :value, String
   end
+
 end
 
 DataMapper.finalize
-DataMapper.auto_migrate!
+DataMapper.auto_upgrade!

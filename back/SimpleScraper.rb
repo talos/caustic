@@ -38,7 +38,7 @@ end
 
 # Display the editable resources.
 get '/back/' do
-  ['area', 'info', 'publish', 'default', 'interpreter', 'generator', 'gatherer', 'post', 'url', 'header', 'cookie'].to_json
+  ['area', 'info', 'publish', 'default', 'interpreter', 'generator', 'gatherer', 'post', 'url', 'header', 'cookieheader'].to_json
 end
 
 get '/back/:model' do
@@ -58,7 +58,7 @@ put '/back/:model/:oldid' do
   model = DataMapper::Model.find_model(params[:model]) or return not_found
   resource = model.first_or_create(:creator => user, :id => params[:oldid]) or return error
   params.delete('creator_id') # Prevent creator change.
-  if(not params['id']) # ID does not need to be specified in the header.
+  if(!params['id']) # ID does not need to be specified in the header.
     params['id'] = params[:oldid]
   end
   params.delete_if do |param_name, param_value| # Delete attributes not specified in the model
@@ -89,20 +89,19 @@ delete '/back/:model/:id' do
 end
 
 # Tag a resource.  Create the tag if it does not yet exist.
-# Manually creates the tagging too. Boo.
 put '/back/:model/:model_id/:tag/:tag_id' do
   model = DataMapper::Model.find_model(params[:model]) or return not_found
   resource = model.first({:creator => user, :id => params[:model_id]}) or return not_found
   tag_type = params[:tag].downcase
 
   return not_found unless resource.send(tag_type).class == DataMapper::Associations::ManyToMany::Collection
-
+  
   tag = resource.send(tag_type).model.first_or_create({:creator => user, :id => params[:tag_id]})
   return error ['Could not create tag.'].to_json if (!tag)
-  
+
   resource.send(tag_type) << tag
-  resource.save or return error resource.errors.collect {|e| e.to_s}
-  return true.to_json
+  resource.save or tag.send(params[:model].downcase + 's') << resource
+  tag.save or return error [resource.errors.to_a, tag.errors.to_a].flatten.to_json
 end
 
 # Delete a tag.
@@ -149,7 +148,7 @@ get '/client/:creator_id/:area_id/:info_id' do
   def get_area_ids(check_area, area_ids)
     area_ids.push(check_area.attribute_get(:id))
     if area_ids.length == area_ids.uniq.length
-      check_area.areas.each { |assoc_area| get_area_ids(assoc_area) }
+      check_area.areas.each { |assoc_area| get_area_ids(assoc_area, area_ids) }
     else
       area_ids.uniq!
     end
@@ -200,7 +199,7 @@ get '/client/:creator_id/:area_id/:info_id' do
     SimpleScraper::Header.all(SimpleScraper::Header.gatherers.id => gatherer.attribute_get(:id)).each do |header|
       headers[header.name] = header.value
     end
-    SimpleScraper::Cookie.all(SimpleScraper::Cookie.gatherers.id => gatherer.attribute_get(:id)).each do |cookie|
+    SimpleScraper::CookieHeader.all(SimpleScraper::CookieHeader.gatherers.id => gatherer.attribute_get(:id)).each do |cookie|
       cookies[cookie.name] = cookie.value
     end
     object[:gatherers][gatherer.creator_id + '/' + gatherer.attribute_get(:id)] = {
