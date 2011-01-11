@@ -8,6 +8,5 @@ import java.io.IOException;
  *
  */
 public interface InformationFactory {
-	public abstract Information get(String namespace, String type)
-		throws IOException;
+	public abstract Information get(String namespace, String type) throws Exception;
 }

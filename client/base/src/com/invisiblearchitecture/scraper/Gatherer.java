@@ -306,9 +306,7 @@ public final class Gatherer {
 			}
 			logger.i("Headers: " + populatedHeaders.toString());
 			
-			System.out.println("cookieStore: " + cookieStore.toString());
 			EntityInterface entity = httpInterface.attributesToEntity(url, cookieStore, populatedGets, populatedPosts, populatedCookies, populatedHeaders);
-			System.out.println("cookieStore: " + cookieStore.toString());
 			
 			InputStream inputStream = entity.getInputStream();
 			ByteArrayOutputStream content = new ByteArrayOutputStream();
@@ -355,7 +353,7 @@ public final class Gatherer {
 		}
 	}
 	
-	private static final String populateValue(String input, Information information) throws InsufficientInformationException, UnsupportedEncodingException {
+	private final String populateValue(String input, Information information) throws InsufficientInformationException, UnsupportedEncodingException {
 		return populateValue(input, information, null);
 	}
 	
@@ -368,7 +366,7 @@ public final class Gatherer {
 	 * @return
 	 * @throws InsufficientInformationException
 	 */
-	private static final String populateValue(String input, Information information, String encoding) throws InsufficientInformationException, UnsupportedEncodingException {
+	private final String populateValue(String input, Information information, String encoding) throws InsufficientInformationException, UnsupportedEncodingException {
 		String output = "";
 		// Scan for each "start of" reader ($R{)
 		
@@ -383,10 +381,11 @@ public final class Gatherer {
 					throw new IndexOutOfBoundsException("Could not find end brackets for value.");
 				String fieldName = input.substring(prevIndex + 3, index);
 				String value = information.getField(fieldName);
-				if(encoding != null)
-					value = URLEncoder.encode(value, encoding);
 				if(value == null) 
 					throw new InsufficientInformationException(fieldName);
+				if(encoding != null)
+					value = URLEncoder.encode(value, encoding);
+				logger.i("value: " + value);
 				output += value;
 				insideBrackets = false;
 

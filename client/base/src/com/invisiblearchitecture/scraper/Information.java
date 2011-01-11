@@ -22,7 +22,7 @@ public class Information {
 	 */
 	public final int id;
 	
-	public final LogInterface logger;
+	private final LogInterface logger;
 	
 	/**
 	 * Number of gatherers added.

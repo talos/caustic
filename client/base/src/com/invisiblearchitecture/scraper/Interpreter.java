@@ -82,7 +82,7 @@ public abstract class Interpreter {
 						childInformations[i].putField(destinationField, results[i]);
 						childInformations[i].interpret(); // We don't recursively collect here -- that's the publisher's job.	
 
-					} catch(IOException e) {
+					} catch(Exception e) {
 						//logger.e("Error creating child information.", e);
 						return false;
 					}

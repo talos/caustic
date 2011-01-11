@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -25,7 +24,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -74,10 +72,9 @@ public class ApacheHttpInterface implements HttpInterface {
 		
 		final URI url;
 		try {
-			System.out.println(urlString);
 			url = new URI(urlString);
 		} catch(URISyntaxException e) {
-			throw new IOException(e);
+			throw new IOException(e.toString());
 		}
 		if(gets == null)
 			gets = new Hashtable();
@@ -90,9 +87,7 @@ public class ApacheHttpInterface implements HttpInterface {
 		
 		if(gCookies != null)
 			gCookieStore.addCookies(gCookies);
-		
-		System.out.println("Combined cookiestore: " + gCookieStore.toString());
-		
+				
 		// Set up our httpclient to handle redirects.
 		HttpParams httpParams = new BasicHttpParams();
 		httpParams.setParameter(ClientPNames.HANDLE_REDIRECTS, true);
@@ -149,8 +144,6 @@ public class ApacheHttpInterface implements HttpInterface {
 		Cookie[] reqCookies = ApacheCookie.arrayToCookieArray(gCookieStore.getCookies());
 		reqCookieStore.addCookies(reqCookies);
 		
-		//System.out.println("Req cookiestore before: " + reqCookieStore.toString());
-
 		httpClient.setCookieStore(reqCookieStore);
 		
 		HttpResponse response = httpClient.execute(httpRequest);
@@ -169,12 +162,12 @@ public class ApacheHttpInterface implements HttpInterface {
 		if(status.getStatusCode() == 200) {
 			return new ApacheEntity(response.getEntity());
 		} else {
-			HttpEntity entity = response.getEntity();
+			/*HttpEntity entity = response.getEntity();
 			InputStream stream = entity.getContent();
 			byte[] buffer = new byte[512];
 			while(stream.read(buffer) != -1) {
 				System.out.println(new String(buffer));
-			}
+			}*/
 			throw new HttpResponseException(status.getStatusCode(), "Unable to get content: " + Integer.toString(status.getStatusCode()));
 		}
 	}
