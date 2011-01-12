@@ -4,12 +4,13 @@ package com.invisiblearchitecture.scraper.impl;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import com.invisiblearchitecture.scraper.LogInterface;
-import com.invisiblearchitecture.scraper.SQLiteInterface;
+import com.invisiblearchitecture.scraper.SQLInterface;
 
-public class JDBCSQLite implements SQLiteInterface {
+public class JDBCSQLite implements SQLInterface {
 	private final Connection connection;
 	private final LogInterface logger;
 	
@@ -21,11 +22,15 @@ public class JDBCSQLite implements SQLiteInterface {
 	}
 	
 	@Override
-	public CursorInterface query(String sql) throws Exception {
+	public CursorInterface query(String sql) throws SQLInterfaceException {
 		//return new JDBCSqliteStatement(connection, sql);
-		logger.i("Querying: " + sql);
-		Statement statement = connection.createStatement();
-		return new JDBCSQLiteCursor(statement.executeQuery(sql));
+		try {
+			logger.i("Querying: " + sql);
+			Statement statement = connection.createStatement();
+			return new JDBCSQLiteCursor(statement.executeQuery(sql));
+		} catch (SQLException e) {
+			throw new SQLInterfaceException(e);
+		}
 	}
 	/*
 	private static class JDBCSqliteStatement implements Statement {
@@ -53,24 +58,59 @@ public class JDBCSQLite implements SQLiteInterface {
 		}
 		
 		@Override
-		public boolean next() throws Exception {
-			return resultSet.next();
+		public boolean next() throws SQLInterfaceException {
+			try {
+				return resultSet.next();
+			} catch (SQLException e) {
+				throw new SQLInterfaceException(e);
+			}
 		}
 
 		@Override
-		public String getString(String columnName) throws Exception {
-			return resultSet.getString(columnName);
+		public String getString(String columnName) throws SQLInterfaceException {
+			try {
+				return resultSet.getString(columnName);
+			} catch (SQLException e) {
+				throw new SQLInterfaceException(e);
+			}
 		}
 
 		@Override
-		public int getInt(String columnName) throws Exception {
-			return resultSet.getInt(columnName);
+		public int getInt(String columnName) throws SQLInterfaceException {
+			try {
+				return resultSet.getInt(columnName);
+			} catch (SQLException e) {
+				throw new SQLInterfaceException(e);
+			}
 		}
 		
 		@Override
-		public void close() throws Exception {
-			resultSet.close();
+		public void close() throws SQLInterfaceException {
+			try {
+				resultSet.close();
+			} catch (SQLException e) {
+				throw new SQLInterfaceException(e);
+			}
 		}
 
+	}
+	@Override
+	public String idColumnName() {
+		return "_id";
+	}
+
+	@Override
+	public String idColumnType() {
+		return "INTEGER PRIMARY KEY";
+	}
+
+	@Override
+	public String dataColumnType() {
+		return "VARCHAR";
+	}
+
+	@Override
+	public String fieldQuotation() {
+		return "`";
 	}
 }
