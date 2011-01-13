@@ -19,12 +19,22 @@ public interface SQLInterface {
 	*/
 	
 	public abstract CursorInterface query(String sql) throws SQLInterfaceException;
-
-	public abstract String idColumnName();
+	public abstract boolean execute(String sql) throws SQLInterfaceException;
+	
+	/**
+	 * For example, "INTEGER".
+	 * @return
+	 */
 	public abstract String idColumnType();
+	
+	/**
+	 * For example, "PRIMARY KEY".  Used in the table definition.
+	 * @return
+	 */
+	public abstract String keyColumnDefinition();
 	public abstract String dataColumnType();
-	public abstract String fieldQuotation();
-	public abstract String valueQuotation();
+	public abstract String quoteField(String field);
+	public abstract String quoteValue(String value);
 	
 	public static final class SQLInterfaceException extends Throwable {
 		private static final long serialVersionUID = 1L;

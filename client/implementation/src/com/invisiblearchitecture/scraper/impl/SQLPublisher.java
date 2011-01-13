@@ -18,18 +18,37 @@ public class SQLPublisher implements Publisher {
 	private final SQLInterface sqlInterface;
 	
 	/*
+	 * Relationships table is defined here to ensure that its name does
+	 * not overlap with data tables (which have a "_" appended before).
+	 */
+	public static final String relationshipsTableName = "relationships";
+	
+	/*
+	 * This is prepended before tables and columns to make sure there aren't
+	 * overlaps between dynamic and non-dynamic columns.
+	 */
+	public static final String prepend = "_";
+	
+	public static final String idColumnName = "id";
+	public static final String parentNameColumnName = "parentName";
+	public static final String parentIdColumnName = "parentId";
+	public static final String childNameColumnName = "childName";
+	public static final String childIdColumnName = "childId";
+	
+	/*
 	 * Keep track of what tables we have created.
 	 */
 	private final Hashtable extantTables = new Hashtable();
 	
-	public SQLPublisher(SQLInterface inter) {
+	public SQLPublisher(SQLInterface inter) throws SQLInterfaceException {
 		sqlInterface = inter;
+		createRelationshipsTable();
 	}
 	
 	@Override
 	public void publishProgress(Information information, int progressPart,
 			int progressTotal) {
-		// TODO Auto-generated method stub
+		// TODO Should this be handled at all by publishers?
 
 	}
 
@@ -42,25 +61,50 @@ public class SQLPublisher implements Publisher {
 			createTable(information);
 		} catch (SQLInterfaceException e) {} // Catch createTable's throw if table already exists
 		try {
+			
+			/* Update the data table for this information type. */
 			String sql;
-			sql = "DELETE FROM " + tableName(information) + " WHERE " + sqlInterface.idColumnName() + " = " + information.id;
-			sqlInterface.query(sql);
-			sql = "INSERT INTO " + tableName(information) +
+			sql = "DELETE FROM " + sqlInterface.quoteField(tableName(information)) + " WHERE "
+				+ sqlInterface.quoteField(idColumnName) + " = " + sqlInterface.quoteValue(Integer.toString(information.id));
+			sqlInterface.execute(sql);
+			sql = "INSERT INTO " + sqlInterface.quoteField(tableName(information)) +
 				"("+ Utils.join(quotedColumnNames(information), ", ") + ") " +
 				"VALUES (" + Utils.join(values, ", ") + ")";
-			sqlInterface.query(sql);
-		} catch(SQLInterfaceException e) {
+			sqlInterface.execute(sql);
+			Information[] children = information.children();
 			
+			/* Update the relationships table. */
+			for(int i = 0; i < children.length; i++) {
+				sql = "DELETE FROM " + relationshipsTableName + " WHERE " +
+					sqlInterface.quoteField(parentNameColumnName) + " = " + sqlInterface.quoteValue(information.type) + " AND " +
+					sqlInterface.quoteField(parentIdColumnName)   + " = " + sqlInterface.quoteValue(Integer.toString(information.id)) + " AND " + 
+					sqlInterface.quoteField(childNameColumnName)  + " = " + sqlInterface.quoteValue(children[i].type) + " AND " +
+					sqlInterface.quoteField(childIdColumnName)    + " = " + sqlInterface.quoteValue(Integer.toString(children[i].id));
+				sqlInterface.execute(sql);
+				sql = "INSERT INTO " + relationshipsTableName + " (" +
+					sqlInterface.quoteField(parentNameColumnName) + ", "  +
+					sqlInterface.quoteField(parentIdColumnName) + ", "  +
+					sqlInterface.quoteField(childNameColumnName) + ", "  +
+					sqlInterface.quoteField(childIdColumnName) + ") " +
+					" VALUES (" + sqlInterface.quoteValue(information.type) + ", " +
+					sqlInterface.quoteValue(Integer.toString(information.id)) + ", " +
+					sqlInterface.quoteValue(children[i].type) + ", " +
+					sqlInterface.quoteValue(Integer.toString(children[i].id)) + ")";
+				sqlInterface.execute(sql);
+			}
+		} catch(SQLInterfaceException e) {
+			e.printStackTrace();
 		}
 	}
 	
 	/**
-	 * Generate a table name from an information.
+	 * Generate a table name from an information. Also, append an underscore before table names so they do not overlap with
+	 * relationship table.
 	 * @param rawTableName
 	 * @return
 	 */
-	private String tableName(Information information) {
-		return sqlInterface.fieldQuotation() + information.type + sqlInterface.fieldQuotation();
+	private String tableName(Information information) {;
+		return sqlInterface.quoteField(prepend + information.type);
 	}
 	
 	/**
@@ -71,7 +115,7 @@ public class SQLPublisher implements Publisher {
 	private String[] quotedColumnNames(Information information) {
 		String[] quotedFields = new String[information.fieldsToPublish.length];
 		for(int i = 0; i < quotedFields.length; i++) {
-			quotedFields[i] = sqlInterface.fieldQuotation() + information.fieldsToPublish[i] + sqlInterface.fieldQuotation();
+			quotedFields[i] = sqlInterface.quoteField(prepend + information.fieldsToPublish[i]);
 		}
 		return quotedFields;
 	}
@@ -84,7 +128,7 @@ public class SQLPublisher implements Publisher {
 	private String[] quotedValues(Information information) {
 		String[] quotedValues = new String[information.fieldsToPublish.length];
 		for(int i = 0; i < quotedValues.length; i++) {
-			quotedValues[i] = sqlInterface.fieldQuotation() + information.getField(information.fieldsToPublish[i]) + sqlInterface.fieldQuotation();
+			quotedValues[i] = sqlInterface.quoteValue(information.getField(information.fieldsToPublish[i]));
 		}
 		return quotedValues;
 	}
@@ -105,12 +149,25 @@ public class SQLPublisher implements Publisher {
 		if(tableExists(tableName(information))) {
 			throw new SQLInterfaceException("Table " + tableName(information) + " already exists, did not create.");
 		}
-		for(int i = 0; i < information.fieldsToPublish.length; i++) {
-			if(information.fieldsToPublish[i].equals(sqlInterface.idColumnName()))
-				throw new SQLInterfaceException("Publish field " + sqlInterface.idColumnName() + " overlaps with id column.");
-		}
 		String sql = "CREATE TABLE " + tableName(information) + 
-			" (" + Utils.join(quotedColumnNames(information), " " + sqlInterface.dataColumnType() + ", ") + " " + sqlInterface.dataColumnType() + ")";
-		sqlInterface.query(sql);
+			" (" + sqlInterface.quoteField(idColumnName) + " " + sqlInterface.idColumnType() + " " + sqlInterface.keyColumnDefinition() + ", " +
+			Utils.join(quotedColumnNames(information), " " + sqlInterface.dataColumnType() + ", ") + " " + sqlInterface.dataColumnType() + ")";
+		sqlInterface.execute(sql);
+		extantTables.put(tableName(information), true);
+	}
+	
+	/**
+	 * Create the relationships table.
+	 */
+	private void createRelationshipsTable() throws SQLInterfaceException {
+		if(tableExists(relationshipsTableName))
+			throw new SQLInterfaceException("There can only be one relationships table.");
+		String sql = "CREATE TABLE " + sqlInterface.quoteField(relationshipsTableName) + " (" +
+			sqlInterface.quoteField(parentNameColumnName) + " " + sqlInterface.idColumnType() + ", " +
+			sqlInterface.quoteField(parentIdColumnName)   + " " + sqlInterface.idColumnType() + ", " +
+			sqlInterface.quoteField(childNameColumnName)  + " " + sqlInterface.idColumnType() + ", " +
+			sqlInterface.quoteField(childIdColumnName)    + " " + sqlInterface.idColumnType() + ")";
+		sqlInterface.execute(sql);
+		extantTables.put(relationshipsTableName, true);
 	}
 }

@@ -1,7 +1,5 @@
 package com.invisiblearchitecture.scraper;
 
-import java.io.IOException;
-
 /**
  * Creates new Information objects ready for collection from a namespace & type.
  * @author john

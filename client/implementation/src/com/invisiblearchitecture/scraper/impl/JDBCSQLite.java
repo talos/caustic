@@ -15,10 +15,16 @@ public class JDBCSQLite implements SQLInterface {
 	private final LogInterface logger;
 	
 	// ../../db/scraper.db"
-	public JDBCSQLite(String pathToDB, LogInterface log) throws Exception {
-		logger = log;
-		Class.forName("org.sqlite.JDBC"); // Make sure we have this class.
-		connection = DriverManager.getConnection("jdbc:sqlite:" + pathToDB);
+	public JDBCSQLite(String pathToDB, LogInterface log) throws SQLInterfaceException {
+		try {
+			logger = log;
+			Class.forName("org.sqlite.JDBC"); // Make sure we have this class.
+			connection = DriverManager.getConnection("jdbc:sqlite:" + pathToDB);
+		} catch(SQLException e) {
+			throw new SQLInterfaceException(e);
+		} catch(ClassNotFoundException e) {
+			throw new SQLInterfaceException(e);
+		}
 	}
 	
 	@Override
@@ -29,6 +35,17 @@ public class JDBCSQLite implements SQLInterface {
 			Statement statement = connection.createStatement();
 			return new JDBCSQLiteCursor(statement.executeQuery(sql));
 		} catch (SQLException e) {
+			throw new SQLInterfaceException(e);
+		}
+	}
+	
+	@Override
+	public boolean execute(String sql) throws SQLInterfaceException {
+		try {
+			logger.i("Executing: " + sql);
+			Statement statement = connection.createStatement();
+			return statement.execute(sql);
+		} catch(SQLException e) {
 			throw new SQLInterfaceException(e);
 		}
 	}
@@ -94,23 +111,29 @@ public class JDBCSQLite implements SQLInterface {
 		}
 
 	}
-	@Override
-	public String idColumnName() {
-		return "_id";
-	}
 
 	@Override
 	public String idColumnType() {
-		return "INTEGER PRIMARY KEY";
+		return "INTEGER";
 	}
-
+	
+	@Override
+	public String keyColumnDefinition() {
+		return "PRIMARY KEY";
+	}
+	
 	@Override
 	public String dataColumnType() {
 		return "VARCHAR";
 	}
 
 	@Override
-	public String fieldQuotation() {
-		return "`";
+	public String quoteField(String field) {
+		return "`" + field + "`";
+	}
+	
+	@Override
+	public String quoteValue(String value) {
+		return "'" + value.replace("'", "\'") + "'";
 	}
 }

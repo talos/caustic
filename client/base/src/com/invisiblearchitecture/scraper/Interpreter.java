@@ -1,7 +1,5 @@
 package com.invisiblearchitecture.scraper;
 
-import java.io.IOException;
-
 public abstract class Interpreter {
 	protected final String[] sourceAttributes;
 	protected final PatternInterface pattern;

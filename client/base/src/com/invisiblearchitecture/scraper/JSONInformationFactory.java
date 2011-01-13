@@ -43,6 +43,7 @@ public class JSONInformationFactory implements InformationFactory {
 	private static final String HEADERS = "headers";
 	//private static final String TERMINATORS = "terminators";
 	
+	
 	private final Hashtable cache = new Hashtable();
 	
 	public JSONInformationFactory(String reqUrl, String reqCreator,
@@ -71,9 +72,7 @@ public class JSONInformationFactory implements InformationFactory {
 		if(cache.containsKey(url)) {
 			jsonResponse = (String) cache.get(url);
 		} else {
-			EntityInterface entity =
-				httpInterface.attributesToEntity(url,
-				null, null, null, null, null);
+			EntityInterface entity = httpInterface.attributesToEntity(url, null, null, null, null, null);
 			InputStream inputStream = entity.getInputStream();
 			
 			byte[] buffer = new byte[512];
@@ -81,9 +80,7 @@ public class JSONInformationFactory implements InformationFactory {
 			int readBytes = 0;
 			
 			while((readBytes = inputStream.read(buffer)) != -1) {
-			//while(inputStream.read(buffer) != -1) {
 				content.write(buffer, 0, readBytes);
-				//content.write(sBuffer, 0, readBytes);
 			}
 			jsonResponse = content.toString();
 			cache.put(url, jsonResponse);

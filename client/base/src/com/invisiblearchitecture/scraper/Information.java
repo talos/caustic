@@ -55,7 +55,10 @@ public class Information {
 		collector = collect;
 		id = n_id;
 		namespace = ns;
-		fieldsToPublish = n_fieldsToPublish;
+		if(n_fieldsToPublish == null)
+			fieldsToPublish = new String[0];
+		else
+			fieldsToPublish = n_fieldsToPublish;
 		interpreters = new Vector(n_interpreters.length, 1);
 		Utils.arrayIntoVector(n_interpreters, interpreters);
 		gatherers = new Vector(n_gatherers.length, 1);
@@ -82,7 +85,7 @@ public class Information {
 	 */
 	public void collectAll(boolean publishAfter) throws InterruptedException {
 		collect(publishAfter);
-		Information[] children = allChildren();
+		Information[] children = children();
 		for(int i = 0; i < children.length; i++) {
 			children[i].collect(publishAfter);
 			children[i].collectChildren(publishAfter);
@@ -95,7 +98,7 @@ public class Information {
 	 * @throws InterruptedException
 	 */
 	public void collectChildren(boolean publishAfter) throws InterruptedException {
-		Information[] children = allChildren();
+		Information[] children = children();
 		for(int i = 0; i < children.length; i++) {
 			children[i].collectAll(publishAfter);
 		}
@@ -193,7 +196,7 @@ public class Information {
 	/**
 	 * Get all children of all types.
 	 */
-	public Information[] allChildren() {
+	public Information[] children() {
 		Vector allChildrenVector = new Vector();
 		Enumeration keys = childInformationVectors.keys();
 		while(keys.hasMoreElements()) {
@@ -217,7 +220,7 @@ public class Information {
 	 * 
 	 * @throws NullPointerException if namespace or type are null.
 	 */
-	public Information[] children(String namespace, String type) throws NullPointerException {
+	/*public Information[] children(String namespace, String type) throws NullPointerException {
 		if(namespace == null || type == null)
 			throw new NullPointerException("Null namespace or type.");
 		Vector childrenVector = (Vector) childInformationVectors.get(type);
@@ -226,16 +229,16 @@ public class Information {
 		Information[] children = new Information[childrenVector.size()];
 		childrenVector.copyInto(children);
 		return children;
-	}
+	}*/
 	/**
 	 * Get children without a namespace.
 	 * @param type
 	 * @return
 	 * @throws NullPointerException
 	 */
-	public Information[] children(String type) throws NullPointerException {
+	/*public Information[] children(String type) throws NullPointerException {
 		return children("", type);
-	}
+	}*/
 	
 	/**
 	 * Publish our information while in progress.
@@ -260,7 +263,7 @@ public class Information {
 	 */
 	public void publishAll() {
 		publish();
-		Information[] children = allChildren();
+		Information[] children = children();
 		for(int i = 0; i < children.length; i++) {
 			children[i].publishAll();
 		}
