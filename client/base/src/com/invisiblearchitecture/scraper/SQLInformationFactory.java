@@ -132,7 +132,7 @@ public class SQLInformationFactory implements InformationFactory {
 				if(regex != null) {
 					pattern = regexInterface.compile(regex);
 				}
-				vector.addElement(new Interpreter.ToField(sourceField, pattern, number, destinationField));
+				vector.addElement(new Interpreter.ToField(sourceField, pattern, number, destinationField, logger));
 			}
 			rs.close();
 		} catch(SQLInterfaceException e) {
@@ -155,7 +155,7 @@ public class SQLInformationFactory implements InformationFactory {
 					pattern = regexInterface.compile(regex);
 				}
 				vector.addElement(new Interpreter.ToInformation(this, sourceField, pattern,
-						destinationNamespace, destinationType, destinationField));
+						destinationNamespace, destinationType, destinationField, logger));
 			}
 			rs.close();
 		} catch(SQLInterfaceException e) {

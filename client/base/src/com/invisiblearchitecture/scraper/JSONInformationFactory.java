@@ -45,12 +45,26 @@ public class JSONInformationFactory implements InformationFactory {
 	
 	
 	private final Hashtable cache = new Hashtable();
+	private final boolean useCache;
 	
+	/**
+	 * 
+	 * @param reqUrl
+	 * @param reqCreator
+	 * @param httpInt
+	 * @param log
+	 * @param regexInt
+	 * @param jsonInt
+	 * @param collect
+	 * @param publish
+	 * @param useCache Whether the factory should save JSON information objects based off of area/info pairs.
+	 * 	Should be false in development, true in production.
+	 */
 	public JSONInformationFactory(String reqUrl, String reqCreator,
 			HttpInterface httpInt,
 			LogInterface log, RegexInterface regexInt,
 			JSONInterface jsonInt, Collector collect,
-			Publisher publish) {
+			Publisher publish, boolean n_useCache) {
 		requestUrl = reqUrl;
 		requestCreator = reqCreator;
 		httpInterface = httpInt;
@@ -59,6 +73,7 @@ public class JSONInformationFactory implements InformationFactory {
 		collector = collect;
 		publisher = publish;
 		regexInterface = regexInt;
+		useCache = n_useCache;
 	}
 	
 	@Override
@@ -69,7 +84,7 @@ public class JSONInformationFactory implements InformationFactory {
 		String url = requestUrl + '/' + requestCreator + '/' + area + '/' + info;
 		String jsonResponse;
 		
-		if(cache.containsKey(url)) {
+		if(cache.containsKey(url) && useCache) {
 			jsonResponse = (String) cache.get(url);
 		} else {
 			EntityInterface entity = httpInterface.attributesToEntity(url, null, null, null, null, null);
@@ -123,7 +138,8 @@ public class JSONInformationFactory implements InformationFactory {
 					interpreterRaw.getJSONArray(SOURCE_ATTRIBUTES).toArray(),
 					pattern,
 					interpreterRaw.getInt(MATCH_NUMBER),
-					interpreterRaw.getString(TARGET_ATTRIBUTE));
+					interpreterRaw.getString(TARGET_ATTRIBUTE),
+					logger);
 			i++;
 		}
 		iterator = generatorsRaw.keys();
@@ -139,7 +155,8 @@ public class JSONInformationFactory implements InformationFactory {
 					pattern,
 					generatorRaw.getString(TARGET_AREA),
 					generatorRaw.getString(TARGET_INFO),
-					generatorRaw.getString(TARGET_ATTRIBUTE));
+					generatorRaw.getString(TARGET_ATTRIBUTE),
+					logger);
 			i++;
 		}
 		

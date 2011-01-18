@@ -113,20 +113,11 @@ public class Information {
 		do {
 			prevInterpretersLeft = interpretersLeft;
 			int i;
-			Boolean status;
 			for(i = 0; i < interpreters.size(); i++) {
 				Interpreter interpreter = (Interpreter) interpreters.elementAt(i);
-				if((status = interpreter.read(this)) != null) {
-					if(status == true)
-						logger.i("Successful interpreter '" + interpreter.toString() +
-								"' in information of type '" + this.type + "'");
-					else 
-						logger.i("Unsuccessful interpreter '" + interpreter.toString() + "' with pattern '" +
-								interpreter.patternString() + "' in information of type '" + this.type + "'");
+				if(interpreter.read(this) != null) {
 					interpreters.removeElementAt(i);
 					i--;
-				} else {
-					logger.i("Skipped interpreter '" + interpreter.toString() + "' in information of type '" + this.type + "'");
 				}
 			}
 			interpretersLeft = interpreters.size();

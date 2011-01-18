@@ -1,12 +1,10 @@
-package com.invisiblearchitecture.scraper.impl;
+package com.invisiblearchitecture.scraper;
 
 import java.util.Hashtable;
+import java.util.Vector;
 
-import com.invisiblearchitecture.scraper.Information;
-import com.invisiblearchitecture.scraper.Publisher;
-import com.invisiblearchitecture.scraper.SQLInterface;
 import com.invisiblearchitecture.scraper.SQLInterface.SQLInterfaceException;
-import com.invisiblearchitecture.scraper.Utils;
+
 
 /**
  * Class to publish to a SQL database.
@@ -59,15 +57,17 @@ public class SQLPublisher implements Publisher {
 			return;
 		try {
 			createTable(information);
-		} catch (SQLInterfaceException e) {} // Catch createTable's throw if table already exists
+		} catch (SQLInterfaceException e) {
+			e.printStackTrace();
+		}
 		try {
 			
 			/* Update the data table for this information type. */
 			String sql;
-			sql = "DELETE FROM " + sqlInterface.quoteField(tableName(information)) + " WHERE "
+			sql = "DELETE FROM " + tableName(information) + " WHERE "
 				+ sqlInterface.quoteField(idColumnName) + " = " + sqlInterface.quoteValue(Integer.toString(information.id));
 			sqlInterface.execute(sql);
-			sql = "INSERT INTO " + sqlInterface.quoteField(tableName(information)) +
+			sql = "INSERT INTO " + tableName(information) +
 				"("+ Utils.join(quotedColumnNames(information), ", ") + ") " +
 				"VALUES (" + Utils.join(values, ", ") + ")";
 			sqlInterface.execute(sql);
@@ -98,12 +98,14 @@ public class SQLPublisher implements Publisher {
 	}
 	
 	/**
-	 * Generate a table name from an information. Also, append an underscore before table names so they do not overlap with
+	 * Generate a quoted table name from an information. Also, append an underscore before table names so they do not overlap with
 	 * relationship table.
 	 * @param rawTableName
 	 * @return
 	 */
-	private String tableName(Information information) {;
+	private String tableName(Information information) throws SQLInterfaceException {;
+		if(information.type == null)
+			throw new SQLInterfaceException("Null information type, cannot create table.");
 		return sqlInterface.quoteField(prepend + information.type);
 	}
 	
@@ -112,11 +114,19 @@ public class SQLPublisher implements Publisher {
 	 * @param tableName
 	 * @return
 	 */
-	private String[] quotedColumnNames(Information information) {
-		String[] quotedFields = new String[information.fieldsToPublish.length];
-		for(int i = 0; i < quotedFields.length; i++) {
-			quotedFields[i] = sqlInterface.quoteField(prepend + information.fieldsToPublish[i]);
+	private String[] quotedColumnNames(Information information){
+		Vector quotedFieldsVector = new Vector();
+		for(int i = 0; i < information.fieldsToPublish.length; i++) {
+			try {
+				if(information.fieldsToPublish[i] == null)
+					throw new SQLInterfaceException("Skipping null publish field.");
+				quotedFieldsVector.add(sqlInterface.quoteField(prepend + information.fieldsToPublish[i]));
+			} catch(SQLInterfaceException e) {
+				e.printStackTrace();
+			}
 		}
+		String[] quotedFields = new String[quotedFieldsVector.size()];
+		quotedFieldsVector.copyInto(quotedFields);
 		return quotedFields;
 	}
 	
@@ -144,16 +154,19 @@ public class SQLPublisher implements Publisher {
 	 * @param tableName
 	 * @param columns
 	 * @throws SQLInterfaceException
+	 * @returns False if table exists already, true if table created.
 	 */
-	private void createTable(Information information) throws SQLInterfaceException {
+	private boolean createTable(Information information) throws SQLInterfaceException {
 		if(tableExists(tableName(information))) {
-			throw new SQLInterfaceException("Table " + tableName(information) + " already exists, did not create.");
+			return false;
+			//throw new SQLInterfaceException("Table " + tableName(information) + " already exists, did not create.");
 		}
 		String sql = "CREATE TABLE " + tableName(information) + 
 			" (" + sqlInterface.quoteField(idColumnName) + " " + sqlInterface.idColumnType() + " " + sqlInterface.keyColumnDefinition() + ", " +
 			Utils.join(quotedColumnNames(information), " " + sqlInterface.dataColumnType() + ", ") + " " + sqlInterface.dataColumnType() + ")";
 		sqlInterface.execute(sql);
 		extantTables.put(tableName(information), true);
+		return true;
 	}
 	
 	/**

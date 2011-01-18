@@ -33,8 +33,15 @@ public interface SQLInterface {
 	 */
 	public abstract String keyColumnDefinition();
 	public abstract String dataColumnType();
-	public abstract String quoteField(String field);
+	/**
+	 * Quote a field.
+	 * @param field
+	 * @return
+	 * @throws SQLInterfaceException If the supplied field is null.
+	 */
+	public abstract String quoteField(String field) throws SQLInterfaceException;
 	public abstract String quoteValue(String value);
+	public abstract String nullValue();
 	
 	public static final class SQLInterfaceException extends Throwable {
 		private static final long serialVersionUID = 1L;

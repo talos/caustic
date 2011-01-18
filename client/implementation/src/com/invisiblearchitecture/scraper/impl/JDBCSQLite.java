@@ -128,12 +128,22 @@ public class JDBCSQLite implements SQLInterface {
 	}
 
 	@Override
-	public String quoteField(String field) {
+	public String quoteField(String field) throws SQLInterfaceException {
+		if(field == null)
+			throw new SQLInterfaceException("Supplied field cannot be null.");
 		return "`" + field + "`";
 	}
 	
 	@Override
+	public String nullValue() {
+		return "NULL";
+	}
+	
+	@Override
 	public String quoteValue(String value) {
-		return "'" + value.replace("'", "\'") + "'";
+		if(value == null)
+			return nullValue();
+		else
+			return "'" + value.replace("'", "\'") + "'";
 	}
 }

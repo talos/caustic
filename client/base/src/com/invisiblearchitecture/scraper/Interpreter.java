@@ -4,28 +4,32 @@ public abstract class Interpreter {
 	protected final String[] sourceAttributes;
 	protected final PatternInterface pattern;
 	protected final String destinationField;
+	protected final LogInterface logger;
 
-	public Interpreter(String[] sfs, PatternInterface p, String df) {
+	public Interpreter(String[] sfs, PatternInterface p, String df, LogInterface l) {
 		sourceAttributes = sfs;
 		pattern = p;
 		destinationField = df;
+		logger = l;
 	}
 	
 	public static class ToField extends Interpreter {
 		private int matchNumber;
-		public ToField(String sf, PatternInterface pat, int mn, String df) {
-			super(new String[] {sf}, pat, df);
+		public ToField(String sf, PatternInterface pat, int mn, String df, LogInterface l) {
+			super(new String[] {sf}, pat, df, l);
 			matchNumber = mn;
 		}
-		public ToField(String[] sfs, PatternInterface pat, int mn, String df) {
-			super(sfs, pat, df);
+		public ToField(String[] sfs, PatternInterface pat, int mn, String df, LogInterface l) {
+			super(sfs, pat, df, l);
 			matchNumber = mn;
 		}
 		public Boolean read(Information sourceInformation) {
 			String result;
 			String input = getInput(sourceInformation);
-			if(input == null)
+			if(input == null) {
+				logger.i("Skipped interpreter '" + toString() + "' in information of type '" + sourceInformation.type + "'");
 				return null;
+			}
 			if(pattern != null) {
 				result = pattern.match(input, matchNumber);
 			} else {
@@ -33,8 +37,13 @@ public abstract class Interpreter {
 			}
 			if(result != null) {
 				sourceInformation.putField(destinationField, result);
+				logger.i("Successful interpreter '" + toString() +
+						"' in information of type '" + sourceInformation.type + "'");
 				return true;
 			} else {
+				logger.i("Unsuccessful interpreter '" + toString() + "' with pattern '" +
+						patternString() + "' in information of type '" + sourceInformation.type + "' with source data " +
+						input);
 				return false;
 			}
 		}
@@ -47,14 +56,14 @@ public abstract class Interpreter {
 		private final InformationFactory factory;
 		private final String targetArea;
 		private final String targetInfo;
-		public ToInformation(InformationFactory iF, String sf, PatternInterface pat, String target_area, String target_info, String df) {
-			super(new String[] {sf}, pat, df);
+		public ToInformation(InformationFactory iF, String sf, PatternInterface pat, String target_area, String target_info, String df, LogInterface l) {
+			super(new String[] {sf}, pat, df, l);
 			targetArea = target_area;
 			targetInfo = target_info;
 			factory = iF;
 		}
-		public ToInformation(InformationFactory iF, String[] sfs, PatternInterface pat, String target_area, String target_info, String df) {
-			super(sfs, pat, df);
+		public ToInformation(InformationFactory iF, String[] sfs, PatternInterface pat, String target_area, String target_info, String df, LogInterface l) {
+			super(sfs, pat, df, l);
 			targetArea = target_area;
 			targetInfo = target_info;
 			factory = iF;
@@ -62,8 +71,14 @@ public abstract class Interpreter {
 		public Boolean read(Information sourceInformation) {
 			String[] results;
 			String input = getInput(sourceInformation);
-			if(input == null)
+			
+
+			
+			
+			if(input == null) {
+				logger.i("Skipped generator '" + toString() + "' in information of type '" + sourceInformation.type + "'");
 				return null;
+			}
 			if(pattern != null) {
 				results = pattern.allMatches(input);
 			} else {
@@ -79,9 +94,14 @@ public abstract class Interpreter {
 						childInformations[i] = factory.get(targetArea, targetInfo);
 						childInformations[i].putField(destinationField, results[i]);
 						childInformations[i].interpret(); // We don't recursively collect here -- that's the publisher's job.	
+						logger.i("Successful generator '" + toString() +
+								"' (run " + Integer.toString(i) + ") in information of type '" + sourceInformation.type + "'");
 
 					} catch(Exception e) {
-						//logger.e("Error creating child information.", e);
+						logger.i("Unsuccessful generator '" + toString() + "' with pattern '" +
+								patternString() + "' (run " + Integer.toString(i) + ") in information of type '" + sourceInformation.type + "' with source data " +
+								input);
+
 						return false;
 					}
 				}
@@ -98,10 +118,11 @@ public abstract class Interpreter {
 	// Uses the first sourceAttribute that's available.
 	protected String getInput (Information sourceInformation) {
 		for(int i = 0; i < sourceAttributes.length; i++) {
-			
-			String input = sourceInformation.getField(sourceAttributes[i]);
-			if(input != null)
-				return input;
+			if(sourceAttributes[i] != null) {
+				String input = sourceInformation.getField(sourceAttributes[i]);
+				if(input != null)
+					return input;
+			}
 		}
 		return null;
 	}
