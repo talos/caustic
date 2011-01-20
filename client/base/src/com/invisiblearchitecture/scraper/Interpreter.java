@@ -72,9 +72,6 @@ public abstract class Interpreter {
 			String[] results;
 			String input = getInput(sourceInformation);
 			
-
-			
-			
 			if(input == null) {
 				logger.i("Skipped generator '" + toString() + "' in information of type '" + sourceInformation.type + "'");
 				return null;
@@ -86,6 +83,9 @@ public abstract class Interpreter {
 				results[0] = input;
 			}
 			if(results == null) {
+				logger.i("Unsuccessful generator '" + toString() + "' with pattern '" +
+						patternString() + " in information of type '" + sourceInformation.type + "' with source data " +
+						input);
 				return false;
 			} else {
 				Information[] childInformations = new Information[results.length];
@@ -96,13 +96,10 @@ public abstract class Interpreter {
 						childInformations[i].interpret(); // We don't recursively collect here -- that's the publisher's job.	
 						logger.i("Successful generator '" + toString() +
 								"' (run " + Integer.toString(i) + ") in information of type '" + sourceInformation.type + "'");
-
 					} catch(Exception e) {
-						logger.i("Unsuccessful generator '" + toString() + "' with pattern '" +
-								patternString() + "' (run " + Integer.toString(i) + ") in information of type '" + sourceInformation.type + "' with source data " +
-								input);
+						logger.e("Error creating child information of with area " + targetArea + " and info " + targetInfo, e);
 
-						return false;
+						//return false;
 					}
 				}
 				// De-type inside the child listing.

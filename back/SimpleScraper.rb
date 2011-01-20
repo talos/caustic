@@ -88,6 +88,12 @@ delete '/back/:model/:id' do
   resource.destroy or error resource.errors.to_a.to_json
 end
 
+# Redirect to the location of the resource the tagging points to.
+# TODO
+get '/back/:model/:model_id/:tag/:tag_id' do
+
+end
+
 # Tag a resource.  Create the tag if it does not yet exist.
 put '/back/:model/:model_id/:tag/:tag_id' do
   model = DataMapper::Model.find_model(params[:model]) or return not_found

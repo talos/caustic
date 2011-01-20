@@ -95,7 +95,44 @@ module SimpleScraper
 
     property :id, String, :key => true
   end
-  
+
+  class GeneratorTargetArea
+    include DataMapper::Resource
+
+    #property :generator_creator_id, String, :key => true
+    #property :generator_id, String, :key => true
+    belongs_to :generator, :key => true
+    #, :parent_key => [:creator_id, :id],
+    #:child_key => [:generator_creator_id, :generator_id]
+
+    #property :target_area_creator_id, String, :key => true
+    #property :target_area_id, String, :key => true
+    belongs_to :area, :key => true
+    #, :parent_key => [:creator_id, :id],
+    #:child_key => [:target_area_creator_id, :target_area_id]
+  end
+
+  class GeneratorTargetInfo
+    include DataMapper::Resource
+
+    belongs_to :generator, :key => true
+    belongs_to :info, :key => true
+  end
+
+  class GeneratorSourceArea
+    include DataMapper::Resource
+
+    belongs_to :generator, :key => true
+    belongs_to :area, :key => true
+  end
+
+  class GeneratorSourceInfo
+    include DataMapper::Resource
+
+    belongs_to :generator, :key => true
+    belongs_to :info, :key => true
+  end
+
   class AreaTagging
     include DataMapper::Resource
     
@@ -115,8 +152,12 @@ module SimpleScraper
 
     has n, :gatherers, :through => Resource
     has n, :interpreters, :through => Resource
-    has n, :generators, :through => Resource
-    
+    #has n, :generators, :through => Resource
+    has n, :generator_sources, 'Generator', :through => :generator_source_areas, :via => :generator
+    has n, :generator_source_areas
+    has n, :generator_targets, 'Generator', :through => :generator_target_areas, :via => :generator
+    has n, :generator_target_areas
+
     has n, :area_taggings, :model => AreaTagging, :child_key => [:source_creator_id, :source_id]
     has n, :areas, :model => self, :through => :area_taggings, :via => :target
   end
@@ -128,7 +169,11 @@ module SimpleScraper
 
     has n, :gatherers, :through => Resource
     has n, :interpreters, :through => Resource
-    has n, :generators, :through => Resource
+    #has n, :generators, :through => Resource
+    has n, :generator_sources, 'Generator', :through => :generator_source_infos, :via => :generator
+    has n, :generator_source_infos
+    has n, :generator_targets, 'Generator', :through => :generator_target_infos, :via => :generator
+    has n, :generator_target_infos
   end
 
   class Publish # Applies to all an info's areas.
@@ -151,8 +196,8 @@ module SimpleScraper
   class Interpreter
     include Editable
 
-    has n, :areas, :through => Resource
-    has n, :infos, :through => Resource
+    has n, :source_areas, 'Area', :through => Resource
+    has n, :source_infos, 'Info', :through => Resource
 
     has n, :gatherers, :through => Resource
 
@@ -165,13 +210,22 @@ module SimpleScraper
   class Generator
     include Editable
 
-    has n, :areas, :through => Resource
-    has n, :infos, :through => Resource
-    
+    #has n, :areas, :through => Resource
+    #has n, :infos, :through => Resource
+    has n, :source_areas, 'Area', :through => :generator_source_areas, :via => :area
+    has n, :generator_source_areas
+    has n, :source_infos, 'Info', :through => :generator_source_infos, :via => :info
+    has n, :generator_source_infos
+
     has n, :gatherers, :through => Resource
     
-    property :target_area, String
-    property :target_info, String
+    #property :target_area, String
+    #property :target_info, String
+    has n, :target_areas, 'Area', :through => :generator_target_areas, :via => :area
+    has n, :generator_target_areas
+    has n, :target_infos, 'Info', :through => :generator_target_infos, :via => :info
+    has n, :generator_target_infos
+
     property :target_attribute, String
 
     property :source_attribute, String
@@ -245,15 +299,9 @@ module SimpleScraper
     property :value, String
   end
 
-#  class Cookie
   class CookieHeader
     include Editable
 
-    # has n, :gatherer_taggings, 'CookieGatherer',
-    #   :parent_key => [:creator_id, :id],
-    #   :child_key => [:cookie_creator_id, :cookie_id]
-    
-    # has n, :gatherers, 'Gatherer', :through => :gatherer_taggings, :via => :gatherer
     has n, :gatherers, :through => Resource
 
     property :name,  String
@@ -263,4 +311,4 @@ module SimpleScraper
 end
 
 DataMapper.finalize
-DataMapper.auto_upgrade!
+DataMapper.auto_migrate!

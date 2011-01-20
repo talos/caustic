@@ -193,7 +193,9 @@
 	    tag: function(name, id) {
 		return $('<span>').append(id).addClass(classes.tag).data({name: name, id: id})
 		    .click(function() {
-			$('body').append($('<div>').simplescraper_resource('init', name.replace(/e?s$/, ''), id))
+			// TODO  this should follow a redirect now.
+			//$('body').append($('<div>').simplescraper_resource('init', name.replace(/e?s$/, ''), id))
+			$('body').append($('<div>').simplescraper_resource('init', $(this).parent('.' + classes.resource).simplescraper_resource('location') + '/' + name, id));
 		    })
 		    .append(widgets['untagger']);
 	    },
