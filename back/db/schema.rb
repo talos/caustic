@@ -14,7 +14,6 @@ require 'dm-core'
 require 'dm-migrations'
 require 'dm-constraints'
 require 'dm-validations'
-require 'dm-is-tree'
 require 'json'
 
 DataMapper.setup(:default, 'sqlite://' + Dir.pwd + '/db.sqlite')
@@ -36,13 +35,9 @@ module DataMapper::Model
   def self.find_model (model_name)
     self.descendants.find { |c| c.name =~ Regexp.new('(^|:)' + model_name + '$', Regexp::IGNORECASE) }
   end
-  
-  # Get rid of the namespace
-  def raw_name
-    name.sub(/^[^:]*:+/, '')
-  end
 end
 
+# Convenience methods for collecting tags.
 module DataMapper::Model::Relationship
   def tags
     relationships.select { |k, r| r.class == DataMapper::Associations::ManyToMany::Relationship }
@@ -55,6 +50,25 @@ module DataMapper::Model::Relationship
   end
   def tagging_types
     taggings.collect { |k, r| k }
+  end
+end
+
+# Convenience methods for describing resources.
+module DataMapper::Resource
+  def location
+    '/' + model.name.sub(/^[^:]*:+/, '').downcase + '/' + key.join('/')
+  end
+
+  # Returns attributes, and lists of tags as arrays.
+  def describe
+    description = attributes.clone
+    self.class.tag_types.each do |tag_type|
+      description[tag_type] = []
+      send(tag_type).all.each do |tag|
+        description[tag_type].push(tag.attribute_get(:id))
+      end
+    end
+    description
   end
 end
 
@@ -74,42 +88,38 @@ module SimpleScraper
         property :description, DataMapper::Property::Text
         
         has n, :editors, :model => 'User', :through => DataMapper::Resource
-        
-        def inspect # inspect is taken over to return attributes, and lists of tags as arrays.
-          inspection = attributes.clone
-          inspection.delete_if { |k, v| [:creator_id].include?(k) }
-          self.class.tag_types.each do |tag_type|
-            inspection[tag_type] = []
-            send(tag_type).all.each do |tag|
-              inspection[tag_type].push(tag.attribute_get(:id))
-             end
-          end
-          inspection
-        end
       end
     end
   end
 
   class User
     include DataMapper::Resource
-
+    
     property :id, String, :key => true
+    
+    has n, :areas,          :child_key => [ :creator_id ]
+    has n, :infos,          :child_key => [ :creator_id ]
+    has n, :publishes,      :child_key => [ :creator_id ]
+    has n, :defaults,       :child_key => [ :creator_id ]
+    has n, :interpreters,   :child_key => [ :creator_id ]
+    has n, :generators,     :child_key => [ :creator_id ]
+    has n, :gatherers,      :child_key => [ :creator_id ]
+    has n, :posts,          :child_key => [ :creator_id ]
+    has n, :urls,           :child_key => [ :creator_id ]
+    has n, :headers,        :child_key => [ :creator_id ]
+    has n, :cookie_headers, :child_key => [ :creator_id ]
+    
+    # Unlike other resources, user qualities are described through one-to-many relationships.
+    def describe
+
+    end
   end
 
   class GeneratorTargetArea
     include DataMapper::Resource
 
-    #property :generator_creator_id, String, :key => true
-    #property :generator_id, String, :key => true
     belongs_to :generator, :key => true
-    #, :parent_key => [:creator_id, :id],
-    #:child_key => [:generator_creator_id, :generator_id]
-
-    #property :target_area_creator_id, String, :key => true
-    #property :target_area_id, String, :key => true
     belongs_to :area, :key => true
-    #, :parent_key => [:creator_id, :id],
-    #:child_key => [:target_area_creator_id, :target_area_id]
   end
 
   class GeneratorTargetInfo

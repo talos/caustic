@@ -24,7 +24,46 @@ configure do
   set :public, File.dirname(__FILE__) + './front'
 end
 
-user = SimpleScraper::User.first_or_create(:id => 'test')
+#user = SimpleScraper::User.first_or_create(:id => 'test')
+
+# Helper functions to interface with the DB.
+# params: creator, model, id, tag_creator, tag_model, tag_id
+module SimpleScraper
+  SimpleScraper::MAX_RECORDS = 100
+  def SimpleScraper::find_model(params)
+    DataMapper::Model.find_model(params[:model].downcase)
+  end
+  def SimpleScraper::find_tag_model(params)
+    model = find_model(params[:model]) or return
+    resource.model.tag_types.include? params[:tag_model].downcase or return
+    resource.send(params[:tag_model].downcase).model
+  end
+  def SimpleScraper::first_resource(params)
+    model = find_model(params[:model]) or return
+    model.first(:creator_id => params[:creator], :id => params[:id])
+  end
+  def SimpleScraper::first_or_create_resource(params)
+    model = find_model(params[:model]) or return
+    model.first_or_create(:creator_id => params[:creator], :id => params[:id])
+  end
+  def SimpleScraper::first_tag(params)
+    resource = first_resource(params) or return
+    return unless model_has_tag(params)
+    resource.send(params[:tag_model].downcase).first(:creator_id => params[:tag_creator], :id => params[:tag_id])
+  end
+  def SimpleScraper::first_or_create_tag(resource_creator_id, resource_model_name, resource_id, tag_creator_id, tag_model_name, tag_id)
+    resource = first_resource(params) or return
+    return unless model_has_tag(params)
+    resource.send(params[:tag_model].downcase).first_or_create(:creator_id => params[:tag_creator], :id => params[:tag_id])
+  end
+  def SimpleScraper::compile_errors(*resources)
+    errors = {}
+    resources.each do |resource|
+      errors[resource.location] = resource.errors.to_a
+    end
+    {:errors => errors}
+  end
+end
 
 get '/' do
   redirect '/index.html'
@@ -32,120 +71,127 @@ end
 
 # Login!
 post '/login' do
-#  session[:user] = params[:user]
+  # TODO: session handling.
+  #  session[:user] = params[:user]
   not_found
 end
 
-# Display the editable resources.
-get '/back/' do
-  ['area', 'info', 'publish', 'default', 'interpreter', 'generator', 'gatherer', 'post', 'url', 'header', 'cookieheader'].to_json
+# Signup!
+post '/signup' do
+  # TODO: handle this in a real way.
+  SimpleScraper::User.create(:id => params[:id])
 end
 
-get '/back/:model' do
-  redirect '/back/:model/'
+# Display the existing members of a model.  Limited to the top 100, with an optional query string.
+get '/:model/' do
+  model = SimpleScraper::find_model(params) or return not_found
+  #like_creator = params[:creator] ? params[:creator] + '%' : nil
+  #like_id      = params[:id] ? params[:creator] + '%' : nil
+  like_criteria = {}
+  model.properties.each do |property|
+    like_criteria[property.name.to_sym.like] = params[property.name] if params.include? property.name
+  end
+  model.all({:limit => SimpleScraper::MAX_RECORDS}.merge(like_criteria)).collect {|resource| resource.location }.to_json
 end
 
-# Display the existing members of a model.
-get '/back/:model/' do
-  model = DataMapper::Model.find_model(params[:model]) or return not_found
-  model.all.collect {|resource| resource.attribute_get(:id)}.to_json
+# Display the possible tags for a model.
+get '/:model/:tag_model/' do
+  tag_model = SimpleScraper::find_tag_model(params) or return not_found
+  redirect tag_model.location
+end
+
+# Describe a user.
+get '/user/:id' do
+  user = SimpleScraper::User.first(:id => params[:id]) or return not_found
+  user.describe
+end
+
+# Get a resource by id.
+get '/:model/:creator/:id' do
+  resource = SimpleScraper::first_resource(params) or return not_found
+  resource.describe.to_json
 end
 
 # Put (replace) an existing resource by id.
 # TODO: Currently renaming buggers up any taggings.
-put '/back/:model/:oldid' do
+put '/:model/:creator/:current_id' do
   # TODO: Logged in user must be the creator or an editor.
-  model = DataMapper::Model.find_model(params[:model]) or return not_found
-  resource = model.first_or_create(:creator => user, :id => params[:oldid]) or return error
   params.delete('creator_id') # Prevent creator change.
-  if(!params['id']) # ID does not need to be specified in the header.
-    params['id'] = params[:oldid]
+  return error unless params[:model].downcase != 'user' # prevent user creation
+  if(!params['id'])
+    params['id'] = params[:current_id]
   end
+  resource = SimpleScraper::first_or_create_resource(params) or return error
   params.delete_if do |param_name, param_value| # Delete attributes not specified in the model
     not resource.attributes.keys.include? param_name.downcase.to_sym
   end
   resource.attributes= params
-  resource.save or error resource.errors.to_a.to_json
-end
-
-# Get a resource by id.
-get '/back/:model/:id' do
-  resource = DataMapper::Model.find_model(params[:model]).
-    first({:creator => user, :id => params[:id]}) or return not_found
-  resource.inspect.to_json
+  resource.save or return error SimpleScraper::compile_errors(resource).to_json
+  resource.location
 end
 
 # Delete a resource by id.  Delete all affiliated taggings.
-delete '/back/:model/:id' do
-  model = DataMapper::Model.find_model(params[:model]) or return not_found
-  resource = model.first({:creator => user, :id => params[:id]}) or return not_found
+delete '/:model/:creator/:id' do
+  resource = SimpleScraper::first_resource(params) or return not_found
   
   # Delete affiliated taggings.
   resource.class.tagging_types.each do |tagging_type|
     resource.send(tagging_type).all.each { |link| link.destroy }
   end
 
-  resource.destroy or error resource.errors.to_a.to_json
+  resource.destroy or error SimpleScraper::compile_errors(resource).to_json
 end
 
 # Redirect to the location of the resource the tagging points to.
-# TODO
-get '/back/:model/:model_id/:tag/:tag_id' do
-
+get '/:model/:creator/:id/:tag_model/:tag_creator/:tag_id' do
+  tag = SimpleScraper::first_tag(params) or return not_found
+  redirect tag.location
 end
 
 # Tag a resource.  Create the tag if it does not yet exist.
-put '/back/:model/:model_id/:tag/:tag_id' do
-  model = DataMapper::Model.find_model(params[:model]) or return not_found
-  resource = model.first({:creator => user, :id => params[:model_id]}) or return not_found
-  tag_type = params[:tag].downcase
-
-  return not_found unless resource.send(tag_type).class == DataMapper::Associations::ManyToMany::Collection
+put '/:model/:creator/:id/:tag_model/:tag_creator/:tag_id' do
+  resource = SimpleScraper::first_resource(params) or return not_found
+  tag = SimpleScraper::first_or_create_tag(params) or return error
   
-  tag = resource.send(tag_type).model.first_or_create({:creator => user, :id => params[:tag_id]})
-  return error ['Could not create tag.'].to_json if (!tag)
-
-  resource.send(tag_type) << tag
+  resource.send(params[:tag_model].downcase) << tag
   resource.save or tag.send(params[:model].downcase + 's') << resource
-  tag.save or return error [resource.errors.to_a, tag.errors.to_a].flatten.to_json
+  if tag.save
+    tag.location
+  else
+    error SimpleScraper::compile_errors(resource, tag)
+  end
 end
 
 # Delete a tag.
-delete '/back/:model/:model_id/:tag/:tag_id' do
-  model = DataMapper::Model.find_model(params[:model]) or return not_found
-  resource = model.first({:creator => user, :id => params[:model_id]}) or return not_found
-  tag_type = params[:tag].downcase
+delete '/:model/:creator/:id/:tag_model/:tag_creator/:tag_id' do
+  resource = SimpleScraper::first_resource(params) or return not_found
+  tag = SimpleScraper::first_tag(params) or return not_found
   
-  return not_found unless resource.send(tag_type).class == DataMapper::Associations::ManyToMany::Collection
-  
-  tag = resource.send(tag_type).model.first({:creator => user, :id => params[:tag_id]})
-  return not_found if(!tag)
-  
-  join_model = resource.send(tag_type).send('through').target_model
-  if(tag_type == params[:model].downcase + 's') # self-join
+  join_model = resource.send(params[:tag_model].downcase).send('through').target_model
+  if(params[:tag_model].downcase == params[:model].downcase + 's') # self-join
     join_model.first(:source => resource, :target => tag).destroy
   else
-    join_model.first(params[:model].downcase.to_sym => model, tag_type.sub(/s$/, '').to_sym => tag).destroy
+    join_model.first(params[:model].downcase.to_sym => model, params[:tag_model].downcase.sub(/s$/, '').to_sym => tag).destroy or error compile_errors join_model
   end
 end
 
 # List areas & infos covered by a certain creator.
-get '/client/:creator_id/' do
+get '/:creator/' do
   
 end
 
 # List infos covered by a certain creator & area.
-get '/client/:creator_id/:area_id/' do
+get '/:creator/scrapers/:area/' do
   
 end
 
 # Get all the gatherers, generators, and interpreters associated with an area, info, and creator.
 # Returns any of the aforementioned objects if they fall within the ancestor tree of the specified area.
-get '/client/:creator_id/:area_id/:info_id' do
+get '/:creator/scrapers/:area/:info' do
 
-  creator = SimpleScraper::User.first(:id => params[:creator_id]) or return not_found
-  area = SimpleScraper::Area.first(:id => params[:area_id]) or return not_found
-  info = SimpleScraper::Info.first(:id => params[:info_id]) or return not_found
+  creator = SimpleScraper::User.first(:id => params[:creator]) or return not_found
+  area = SimpleScraper::Area.first(:id => params[:area]) or return not_found
+  info = SimpleScraper::Info.first(:id => params[:info]) or return not_found
 
   #area_ids = area.ancestors.collect{ |parent_area| parent_area.attribute_get(:id) }.push(area.attribute_get(:id))
   # Collect associated areas non-redundantly.
@@ -159,7 +205,7 @@ get '/client/:creator_id/:area_id/:info_id' do
       area_ids.uniq!
     end
   end
-  get_area_ids(SimpleScraper::Area.first(:id => params[:area_id]), area_ids)
+  get_area_ids(SimpleScraper::Area.first(:id => params[:area]), area_ids)
   #SimpleScraper::Area.all(SimpleScraper::Area
   puts area_ids.to_json
   
@@ -171,15 +217,15 @@ get '/client/:creator_id/:area_id/:info_id' do
     :defaults => {}
   }
   models.each do |model|
-    resources[model] = (model.all(model.creator.id => params[:creator_id]) & \
-                        model.all(model.areas.id => area_ids) & \
-                        model.all(model.infos.id => params[:info_id]))
+    resources[model] = (model.all(model.creator.id => params[:creator]) & \
+                        model.all(model.areas.id => areas) & \
+                        model.all(model.infos.id => params[:info]))
   end
   
   default_collection = (SimpleScraper::Default.all(SimpleScraper::Default.areas.id => area_ids) & \
-                        SimpleScraper::Default.all(SimpleScraper::Default.creator.id => params[:creator_id]))
-  publish_collection = (SimpleScraper::Publish.all(SimpleScraper::Publish.infos.id => params[:info_id]) & \
-                        SimpleScraper::Publish.all(SimpleScraper::Publish.creator.id => params[:creator_id]))
+                        SimpleScraper::Default.all(SimpleScraper::Default.creator.id => params[:creator]))
+  publish_collection = (SimpleScraper::Publish.all(SimpleScraper::Publish.infos.id => params[:info]) & \
+                        SimpleScraper::Publish.all(SimpleScraper::Publish.creator.id => params[:creator]))
   
   resources[:publishes] = publish_collection.collect {|publish| publish.name }
   default_collection.each do |default|

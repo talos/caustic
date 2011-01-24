@@ -15,6 +15,8 @@ require 'SimpleScraper'
 #require 'spec'
 require 'test/unit'
 require 'rack/test'
+require 'json'
+require 'cgi'
 
 #ENV['RACK_ENV'] = 'test'
 
@@ -25,82 +27,57 @@ set :sessions, true
 # User.expects(:authenticate).with(any_parameters).returns(@user)
 
 module SimpleScraper
+  def random_string(length = 10)
+    rand(32**length).to_s(32)
+  end
   class SimpleScraperTest < Test::Unit::TestCase
     include Rack::Test::Methods
+    TEST_USER_PREFIX = 'test user '
+    TEST_USER_RANGE  = (1..10)
+    TEST_MODELS = ['area', 'gatherer']
+    ID_LENGTH = 10
     
     def app
       Sinatra::Application
     end
     
-    def test_001_logs_in
-      post '/login', {:user => Time.new.to_s}
-      assert last_response.ok?, last_response.body
-    end
-    
-    def test_002_lists_collections
-      get '/back/'
-      assert last_response.ok?, last_response.body
+    def test_001_signs_up
+      TEST_USER_RANGE.each do |n|
+        post '/signup', {:id => TEST_USER_PREFIX + n.to_s }
+        assert last_response.ok?, last_response.body
+      end
     end
 
-    def test_003_puts_resources
-      put '/back/Post/test', {
-        :post_name => 'name',
-        :post_value => 'value'}
-      assert last_response.ok?, last_response.body
-      put '/back/Interpreter/test', {
-        :source_attribute => 'field',
-        :regex => '//',
-        :match_number => '3',
-        :target_attribute => 'another_field' }
-      assert last_response.ok?, last_response.body
-      put '/back/generator/test', {
-        :source_attribute => 'field',
-        :regex => '/d/',
-        :target_attribute => 'yet another field' }
-      assert last_response.ok?, last_response.body
-      put '/back/gatherer/test'
-      assert last_response.ok?, last_response.body
-      put '/back/gatherer/test2'
-      assert last_response.ok?, last_response.body
+    def test_002_lists_user_locations
+      get '/user/'
+      assert last_response.ok?
+      
+      user_locations = JSON.parse(last_response.body)
+      assert_equal user_locations.class, Array
+      assert_equal user_locations.size, 10
+      TEST_USER_RANGE.each do |n|
+        assert user_locations.include? '/' + TEST_USER_PREFIX + n.to_s
+      end
     end
 
-    def test_004_lists_a_collection
-      get '/back/Gatherer/'
-      assert last_response.ok?, last_response.body
+    # TODO: test logins
+    def test_003_logs_in
+
     end
 
-    def test_005_gets_a_resource
-      get '/back/Gatherer/test'
-      assert last_response.ok?, last_response.body
-      get '/back/Interpreter/test'
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_007_deletes_a_resource
-      delete '/back/gatherer/test2'
-      assert last_response.ok?, last_response.body
-      get '/back/gatherer/test2'
-      assert last_response.status == 404, 'Able to load a deleted resource.'
-    end
-
-    def test_008_tags_a_resource
-      put '/back/gatherer/test/areas/new%20york%20city'
-      assert last_response.ok?, last_response.body
-      put '/back/gatherer/test/areas/queens'
-      assert last_response.ok?, last_response.body
-      put '/back/generator/test/areas/new%20york%20city'
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_009_untags_a_resource
-      delete '/back/gatherer/test/areas/new%20york%20city'
-      assert last_response.ok?, last_response.body
-    end
-
-    def test_010_retrieves_tags
-      get '/back/generator/test'
-      assert last_response.ok?, last_response.body
-      puts last_response.body.to_s
+    def test_004_creates_resources
+      get '/user/'
+      user_locations = JSON.parse(last_response.body)
+      puts user_locations
+      user_locations.each do |user_location|
+        get CGI.escape(user_location)
+        
+        puts last_response.body
+        
+        # user_id = TEST_USER_PREFIX + n.to_s
+        # resource_id = random_string(ID_LENGTH)
+        # put '/area/' + user_id + '/' + resource_id {:name => random_str }
+      end
     end
   end
 end
