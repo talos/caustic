@@ -30,30 +30,33 @@ end
 # params: creator, model, id, tag_creator, tag_model, tag_id
 module SimpleScraper
   SimpleScraper::MAX_RECORDS = 100
-  def SimpleScraper::find_model(params)
-    DataMapper::Model.find_model(params[:model].downcase)
+  def SimpleScraper::find_user_model(params)
+    #user = SimpleScraper::User.first(:id => params[:creator]) or return
+    SimpleScraper::User.tagging_types.include? params[:model].downcase or return
+    SimpleScraper::User.taggings.select { |k, v| k == params[:model].downcase }.flatten[1].child_model
   end
   def SimpleScraper::find_tag_model(params)
-    model = find_model(params[:model]) or return
-    resource.model.tag_types.include? params[:tag_model].downcase or return
-    resource.send(params[:tag_model].downcase).model
+    #model = find_model(params) or return
+    model = find_user_model(params) or return
+    model.tag_types.include? params[:tag_model].downcase or return
+    model.tag_types.select { |k, v| k == params[:tag_model].downcase }.flatten[1].child_model
   end
   def SimpleScraper::first_resource(params)
-    model = find_model(params[:model]) or return
+    model = find_user_model(params) or return
     model.first(:creator_id => params[:creator], :id => params[:id])
   end
   def SimpleScraper::first_or_create_resource(params)
-    model = find_model(params[:model]) or return
+    model = find_user_model(params) or return
     model.first_or_create(:creator_id => params[:creator], :id => params[:id])
   end
   def SimpleScraper::first_tag(params)
+    find_tag_model(params) or return
     resource = first_resource(params) or return
-    return unless model_has_tag(params)
     resource.send(params[:tag_model].downcase).first(:creator_id => params[:tag_creator], :id => params[:tag_id])
   end
   def SimpleScraper::first_or_create_tag(resource_creator_id, resource_model_name, resource_id, tag_creator_id, tag_model_name, tag_id)
+    find_tag_model(params) or return
     resource = first_resource(params) or return
-    return unless model_has_tag(params)
     resource.send(params[:tag_model].downcase).first_or_create(:creator_id => params[:tag_creator], :id => params[:tag_id])
   end
   def SimpleScraper::compile_errors(*resources)
@@ -84,12 +87,10 @@ end
 
 # Display the existing members of a model.  Limited to the top 100, with an optional query string.
 get '/:model/' do
-  model = SimpleScraper::find_model(params) or return not_found
-  #like_creator = params[:creator] ? params[:creator] + '%' : nil
-  #like_id      = params[:id] ? params[:creator] + '%' : nil
+  model = DataMapper::Model.find_model(params[:model]) or return not_found
   like_criteria = {}
   model.properties.each do |property|
-    like_criteria[property.name.to_sym.like] = params[property.name] if params.include? property.name
+    like_criteria[property.name.to_sym.like] = params[property.name] + '%' if params.include? property.name
   end
   model.all({:limit => SimpleScraper::MAX_RECORDS}.merge(like_criteria)).collect {|resource| resource.location }.to_json
 end
@@ -103,18 +104,18 @@ end
 # Describe a user.
 get '/user/:id' do
   user = SimpleScraper::User.first(:id => params[:id]) or return not_found
-  user.describe
+  user.describe.to_json
 end
 
 # Get a resource by id.
-get '/:model/:creator/:id' do
+get '/user/:creator/:model/:id' do
   resource = SimpleScraper::first_resource(params) or return not_found
   resource.describe.to_json
 end
 
 # Put (replace) an existing resource by id.
 # TODO: Currently renaming buggers up any taggings.
-put '/:model/:creator/:current_id' do
+put '/user/:creator/:model/:current_id' do
   # TODO: Logged in user must be the creator or an editor.
   params.delete('creator_id') # Prevent creator change.
   return error unless params[:model].downcase != 'user' # prevent user creation
@@ -131,7 +132,7 @@ put '/:model/:creator/:current_id' do
 end
 
 # Delete a resource by id.  Delete all affiliated taggings.
-delete '/:model/:creator/:id' do
+delete '/user/:creator/:model/:id' do
   resource = SimpleScraper::first_resource(params) or return not_found
   
   # Delete affiliated taggings.
@@ -143,13 +144,13 @@ delete '/:model/:creator/:id' do
 end
 
 # Redirect to the location of the resource the tagging points to.
-get '/:model/:creator/:id/:tag_model/:tag_creator/:tag_id' do
+get '/user/:creator/:model/:id/:tag_model/:tag_creator/:tag_id' do
   tag = SimpleScraper::first_tag(params) or return not_found
   redirect tag.location
 end
 
 # Tag a resource.  Create the tag if it does not yet exist.
-put '/:model/:creator/:id/:tag_model/:tag_creator/:tag_id' do
+put '/user/:creator/:model/:id/:tag_model/:tag_creator/:tag_id' do
   resource = SimpleScraper::first_resource(params) or return not_found
   tag = SimpleScraper::first_or_create_tag(params) or return error
   
@@ -163,7 +164,7 @@ put '/:model/:creator/:id/:tag_model/:tag_creator/:tag_id' do
 end
 
 # Delete a tag.
-delete '/:model/:creator/:id/:tag_model/:tag_creator/:tag_id' do
+delete '/user/:creator/:model/:id/:tag_model/:tag_creator/:tag_id' do
   resource = SimpleScraper::first_resource(params) or return not_found
   tag = SimpleScraper::first_tag(params) or return not_found
   

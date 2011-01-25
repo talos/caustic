@@ -63,9 +63,9 @@ module DataMapper::Resource
   def describe
     description = attributes.clone
     self.class.tag_types.each do |tag_type|
-      description[tag_type] = []
+      description[tag_type + '/'] = []
       send(tag_type).all.each do |tag|
-        description[tag_type].push(tag.attribute_get(:id))
+        description[tag_type + '/'].push(tag.location)
       end
     end
     description
@@ -111,7 +111,14 @@ module SimpleScraper
     
     # Unlike other resources, user qualities are described through one-to-many relationships.
     def describe
-
+      description = attributes.clone
+      self.class.tagging_types.each do |tagging_type|
+        description[tagging_type + '/'] = []
+        send(tagging_type).all.each do |tagging|
+          description[tagging_type + '/'].push(tagging.location)
+        end
+      end
+      description
     end
   end
 

@@ -27,37 +27,32 @@ set :sessions, true
 # User.expects(:authenticate).with(any_parameters).returns(@user)
 
 module SimpleScraper
-  def random_string(length = 10)
+  NUM_TIMES = 5
+  ID_LENGTH = 10
+  def SimpleScraper::random_string(length = ID_LENGTH)
     rand(32**length).to_s(32)
   end
   class SimpleScraperTest < Test::Unit::TestCase
     include Rack::Test::Methods
-    TEST_USER_PREFIX = 'test user '
-    TEST_USER_RANGE  = (1..10)
-    TEST_MODELS = ['area', 'gatherer']
-    ID_LENGTH = 10
     
     def app
       Sinatra::Application
     end
     
     def test_001_signs_up
-      TEST_USER_RANGE.each do |n|
-        post '/signup', {:id => TEST_USER_PREFIX + n.to_s }
+      NUM_TIMES.times do
+        post '/signup', {:id => SimpleScraper::random_string}
         assert last_response.ok?, last_response.body
       end
     end
 
     def test_002_lists_user_locations
       get '/user/'
-      assert last_response.ok?
+      assert last_response.ok?, last_response.body
       
       user_locations = JSON.parse(last_response.body)
       assert_equal user_locations.class, Array
-      assert_equal user_locations.size, 10
-      TEST_USER_RANGE.each do |n|
-        assert user_locations.include? '/' + TEST_USER_PREFIX + n.to_s
-      end
+      assert_equal user_locations.size, NUM_TIMES
     end
 
     # TODO: test logins
@@ -67,16 +62,33 @@ module SimpleScraper
 
     def test_004_creates_resources
       get '/user/'
+      assert last_response.ok?
+      
       user_locations = JSON.parse(last_response.body)
-      puts user_locations
       user_locations.each do |user_location|
-        get CGI.escape(user_location)
+        get user_location
+        assert last_response.ok?
         
-        puts last_response.body
-        
-        # user_id = TEST_USER_PREFIX + n.to_s
-        # resource_id = random_string(ID_LENGTH)
-        # put '/area/' + user_id + '/' + resource_id {:name => random_str }
+        attributes = JSON.parse(last_response.body)
+        attributes.each do |name, value|
+          next if value.class != Array
+          next if not name.end_with? '/'
+          
+          NUM_TIMES.times do 
+            resource_id = SimpleScraper::random_string
+            put user_location + '/' + name + resource_id, {:id => resource_id}
+            assert last_response.ok?, last_response.body
+          end
+
+          get user_location
+          assert last_response.ok?, last_response.body
+          
+          resources = JSON.parse(last_response.body)
+          resources.each do |resource|
+            #puts resource
+            puts resource.to_json
+          end
+        end
       end
     end
   end
