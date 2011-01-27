@@ -30,42 +30,82 @@ end
 # Extend default String length from 50 to 500
 DataMapper::Property::String.length(500)
 DataMapper::Model.raise_on_save_failure = false
+module SimpleScraper
+  SimpleScraper::MAX_RECORDS = 100
+end
 
 module DataMapper::Model
-  def self.find_model (model_name)
-    self.descendants.find { |c| c.name =~ Regexp.new('(^|:)' + model_name + '$', Regexp::IGNORECASE) }
+  def self.find(name)
+    self.descendants.find { |model| model.raw_name = name }
   end
+
+  def all_like(unfiltered)
+    filtered = {}
+    properties.each do |property|
+      filtered[property.name.to_sym.like] = unfiltered[property.name] + '%' if unfiltered.include? property.name
+    end
+    all({:limit => SimpleScraper::MAX_RECORDS}.merge(filtered))
+  end
+
+  def raw_name
+    name.sub(%r{^[^:]*:+}, '').downcase
+  end
+
+  def location
+    '/' + raw_name + '/'
+  end
+
+
 end
 
 # Convenience methods for collecting tags.
 module DataMapper::Model::Relationship
+  # Tags are always either one-to-many or many-to-many.
+  def tag(name, *args)
+    has(n, name, *args)
+    name = name.to_sym
+    if(!@tag_names)
+      @tag_names = []
+    end
+    @tag_names << name
+  end
+  def tag_names
+    @tag_names or []
+  end
   def tags
-    relationships.select { |k, r| r.class == DataMapper::Associations::ManyToMany::Relationship }
+    tag_relationships = relationships.select { |k, r| tag_names.include? k.to_sym }.collect do |relationship|
+      [relationship[0], relationship[1].target_model]
+    end
+    Hash[*tag_relationships.flatten]
   end
-  def tag_types
-    tags.collect { |k, r| k }
-  end
-  def taggings
-    relationships.select { |k, r| r.class == DataMapper::Associations::OneToMany::Relationship }
-  end
-  def tagging_types
-    taggings.collect { |k, r| k }
+  # Helps make tagging classes.
+  def tagging(model1, model2)
+    belongs_to model1, :key => true
+    belongs_to model2, :key => true
   end
 end
 
 # Convenience methods for describing resources.
 module DataMapper::Resource
   def location
-    '/' + model.name.sub(/^[^:]*:+/, '').downcase + '/' + key.join('/')
+    '/' + model.raw_name + '/' + key.join('.')
   end
-
+  
+  def update_attributes(attributes)
+    attributes.delete(:creator_id)
+    attributes.delete_if do |name, value| # Delete attributes not specified in the model
+      not resource.attributes.keys.include? name.downcase.to_sym
+    end
+    resource.attributes= attributes
+  end
+  
   # Returns attributes, and lists of tags as arrays.
   def describe
     description = attributes.clone
-    self.class.tag_types.each do |tag_type|
-      description[tag_type + '/'] = []
-      send(tag_type).all.each do |tag|
-        description[tag_type + '/'].push(tag.location)
+    self.class.tag_names.each do |tag_name|
+      description[tag_name + '/'] = []
+      send(tag_name).all.each do |tag|
+        description[tag_name + '/'] << tag.location
       end
     end
     description
@@ -73,7 +113,6 @@ module DataMapper::Resource
 end
 
 module SimpleScraper
-  
   # All editable resources have a name, a description, a creator, and blessed editors.
   module Editable
     def self.included(base)
@@ -87,7 +126,7 @@ module SimpleScraper
         
         property :description, DataMapper::Property::Text
         
-        has n, :editors, :model => 'User', :through => DataMapper::Resource
+        tag :editors, :model => 'User', :through => DataMapper::Resource
       end
     end
   end
@@ -97,38 +136,24 @@ module SimpleScraper
     
     property :id, String, :key => true
     
-    has n, :areas,          :child_key => [ :creator_id ]
-    has n, :infos,          :child_key => [ :creator_id ]
-    has n, :publishes,      :child_key => [ :creator_id ]
-    has n, :defaults,       :child_key => [ :creator_id ]
-    has n, :interpreters,   :child_key => [ :creator_id ]
-    has n, :generators,     :child_key => [ :creator_id ]
-    has n, :gatherers,      :child_key => [ :creator_id ]
-    has n, :posts,          :child_key => [ :creator_id ]
-    has n, :urls,           :child_key => [ :creator_id ]
-    has n, :headers,        :child_key => [ :creator_id ]
-    has n, :cookie_headers, :child_key => [ :creator_id ]
-    
-    # Unlike other resources, user qualities are described through one-to-many relationships.
-    def describe
-      description = attributes.clone
-      self.class.tagging_types.each do |tagging_type|
-        description[tagging_type + '/'] = []
-        send(tagging_type).all.each do |tagging|
-          description[tagging_type + '/'].push(tagging.location)
-        end
-      end
-      description
-    end
+    tag :areas,          :child_key => [ :creator_id ]
+    tag :infos,          :child_key => [ :creator_id ]
+    tag :publishes,      :child_key => [ :creator_id ]
+    tag :defaults,       :child_key => [ :creator_id ]
+    tag :interpreters,   :child_key => [ :creator_id ]
+    tag :generators,     :child_key => [ :creator_id ]
+    tag :gatherers,      :child_key => [ :creator_id ]
+    tag :posts,          :child_key => [ :creator_id ]
+    tag :urls,           :child_key => [ :creator_id ]
+    tag :headers,        :child_key => [ :creator_id ]
+    tag :cookie_headers, :child_key => [ :creator_id ]
   end
 
   class GeneratorTargetArea
     include DataMapper::Resource
-
-    belongs_to :generator, :key => true
-    belongs_to :area, :key => true
+    tagging :generator, :area
   end
-
+  
   class GeneratorTargetInfo
     include DataMapper::Resource
 
@@ -150,13 +175,38 @@ module SimpleScraper
     belongs_to :info, :key => true
   end
 
-  class AreaTagging
+  class InterpreterTargetAttribute
     include DataMapper::Resource
-    
-    # property :source_creator_id, String, :key => true
-    # property :source_id, String, :key => true
-    # property :target_creator_id, String, :key => true
-    # property :target_id, String, :key => true
+    tagging :interpreter, :attribute
+  end
+
+  class InterpreterSourceAttribute
+    include DataMapper::Resource
+    tagging :interpreter, :attribute
+  end
+  
+  class GeneratorTargetAttribute
+    include DataMapper::Resource
+    tagging :generator, :attribute
+  end
+
+  class GeneratorSourceAttribute
+    include DataMapper::Resource
+    tagging :generator, :attribute
+  end
+  
+  class GathererTargetAttribute
+    include DataMapper::Resource
+    tagging :gatherer, :attribute
+  end
+
+  class GathererSourceAttribute
+    include DataMapper::Resource
+    tagging :gatherer, :attribute
+  end
+  
+  class AreaLink
+    include DataMapper::Resource
     
     belongs_to :source, 'Area', :key => true
     belongs_to :target, 'Area', :key => true
@@ -165,38 +215,53 @@ module SimpleScraper
   class Area
     include Editable
     
-    has n, :defaults, :through => Resource
+    tag :defaults, :through => Resource
 
-    has n, :gatherers, :through => Resource
-    has n, :interpreters, :through => Resource
-    #has n, :generators, :through => Resource
-    has n, :generator_sources, 'Generator', :through => :generator_source_areas, :via => :generator
+    tag :gatherers, :through => Resource
+    tag :interpreters, :through => Resource
+    tag :generator_sources, 'Generator', :through => :generator_source_areas, :via => :generator
     has n, :generator_source_areas
-    has n, :generator_targets, 'Generator', :through => :generator_target_areas, :via => :generator
+    tag :generator_targets, 'Generator', :through => :generator_target_areas, :via => :generator
     has n, :generator_target_areas
 
-    has n, :area_taggings, :model => AreaTagging, :child_key => [:source_creator_id, :source_id]
-    has n, :areas, :model => self, :through => :area_taggings, :via => :target
+    has n, :area_links, :model => AreaLink, :child_key => [:source_creator_id, :source_id]
+    tag :follow_areas, :model => self, :through => :area_links, :via => :target
   end
   
   class Info
     include Editable
     
-    has n, :publishes, :through => Resource
-
-    has n, :gatherers, :through => Resource
-    has n, :interpreters, :through => Resource
-    #has n, :generators, :through => Resource
-    has n, :generator_sources, 'Generator', :through => :generator_source_infos, :via => :generator
+    tag :publishes, :through => Resource
+    
+    tag :gatherers, :through => Resource
+    tag :interpreters, :through => Resource
+    tag :generator_sources, 'Generator', :through => :generator_source_infos, :via => :generator
     has n, :generator_source_infos
-    has n, :generator_targets, 'Generator', :through => :generator_target_infos, :via => :generator
+    tag :generator_targets, 'Generator', :through => :generator_target_infos, :via => :generator
     has n, :generator_target_infos
+  end
+
+  class Attribute
+    include Editable
+    
+    tag :generator_sources, 'Generator', :through => :generator_source_attributes, :via => :generator
+    has n, :generator_source_attributes
+    tag :generator_targets, 'Generator', :through => :generator_target_attributes, :via => :generator
+    has n, :generator_target_attributes
+    
+    tag :interpreter_sources, 'Interpreter', :through => :interpreter_source_attributes, :via => :interpreter
+    has n, :interpreter_source_attributes
+    tag :interpreter_targets, 'Interpreter', :through => :interpreter_target_attributes, :via => :interpreter
+    has n, :interpreter_target_attributes
+
+    tag :gatherer_targets, 'Gatherer', :through => :gatherer_target_attributes, :via => :gatherer
+    has n, :gatherer_target_attributes
   end
 
   class Publish # Applies to all an info's areas.
     include Editable
     
-    has n, :infos, :through => Resource
+    tag :infos, :through => Resource
 
     property :name, String
   end
@@ -204,96 +269,82 @@ module SimpleScraper
   class Default # Applies to all an area's infos.
     include Editable
     
-    has n, :areas, :through => Resource
+    tag :areas, :through => Resource
 
     property :name, String
     property :value, String
   end
-  
+
   class Interpreter
     include Editable
 
-    has n, :source_areas, 'Area', :through => Resource
-    has n, :source_infos, 'Info', :through => Resource
+    tag :source_areas, 'Area', :through => Resource
+    tag :source_infos, 'Info', :through => Resource
 
-    has n, :gatherers, :through => Resource
+    tag :gatherers, :through => Resource
 
-    property :source_attribute, String
-    property :regex, String
+    tag :source_attributes, 'Attribute', :through => :interpreter_source_attributes, :via => :attribute
+    has n, :interpreter_source_attributes
+    tag :target_attributes, 'Attribute', :through => :interpreter_target_attributes, :via => :attribute
+    has n, :interpreter_target_attributes
+
+    tag :patterns, :through => Resource
+    
     property :match_number, Integer, :default => 0, :required => true
-    property :target_attribute, String
+  end
+
+  class Pattern
+    include Editable
+    
+    tag :interpreters, :through => Resource
+    
+    property :regex, String
   end
 
   class Generator
     include Editable
 
-    #has n, :areas, :through => Resource
-    #has n, :infos, :through => Resource
-    has n, :source_areas, 'Area', :through => :generator_source_areas, :via => :area
+    tag :source_areas, 'Area', :through => :generator_source_areas, :via => :area
     has n, :generator_source_areas
-    has n, :source_infos, 'Info', :through => :generator_source_infos, :via => :info
+    tag :source_infos, 'Info', :through => :generator_source_infos, :via => :info
     has n, :generator_source_infos
 
-    has n, :gatherers, :through => Resource
-    
-    #property :target_area, String
-    #property :target_info, String
-    has n, :target_areas, 'Area', :through => :generator_target_areas, :via => :area
+    tag :gatherers, :through => Resource
+
+    tag :target_areas, 'Area', :through => :generator_target_areas, :via => :area
     has n, :generator_target_areas
-    has n, :target_infos, 'Info', :through => :generator_target_infos, :via => :info
+    tag :target_infos, 'Info', :through => :generator_target_infos, :via => :info
     has n, :generator_target_infos
 
-    property :target_attribute, String
-
-    property :source_attribute, String
-    property :regex, String
+    tag :target_attributes, 'Attribute', :through => :generator_target_attributes, :via => :attribute
+    has n, :generator_target_attributes
+    tag :source_attributes, 'Attribute', :through => :generator_source_attributes, :via => :attribute
+    has n, :generator_source_attributes
+    
+    tag :patterns, :through => Resource
   end
-
-  # class CookieGatherer
-  #   include DataMapper::Resource
-
-  #   property :cookie_creator_id, String, :key => true
-  #   property :cookie_id, String, :key => true
-  #   belongs_to :cookie, 'Cookie',
-  #     :parent_key => [:creator_id, :id],
-  #     :child_key => [:cookie_creator_id, :cookie_id],
-  #     :required => true
-
-  #   property :gatherer_creator_id, String, :key => true
-  #   property :gatherer_id, String, :key => true
-  #   belongs_to :gatherer, 'Gatherer',
-  #     :parent_key => [:creator_id, :id],
-  #     :child_key => [:gatherer_creator_id, :gatherer_id],
-  #     :required => true
-  # end
 
   class Gatherer
     include Editable
 
-    has n, :areas, :through => Resource
-    has n, :infos, :through => Resource
+    tag :areas, :through => Resource
+    tag :infos, :through => Resource
 
-    has n, :generators, :through => Resource
-    has n, :interpreters, :through => Resource
+    tag :generators, :through => Resource
+    tag :interpreters, :through => Resource
 
-    has n, :urls, :through => Resource
-    has n, :posts, :through => Resource
-    has n, :headers, :through => Resource
-    has n, :cookie_headers, :through => Resource
+    tag :stops, 'Pattern', :through => Resource
 
-    # has n, :cookie_taggings, 'CookieGatherer',
-    #   :parent_key => [:creator_id, :id],
-    #   :child_key => [:gatherer_creator_id, :gatherer_id]
-    
-    # has n, :cookies, 'Cookie', :through => :cookie_taggings, :via => :cookie
-
-    #property :url, String
+    tag :urls, :through => Resource
+    tag :posts, :through => Resource
+    tag :headers, :through => Resource
+    tag :cookie_headers, :through => Resource
   end
   
   class Url
     include Editable
     
-    has n, :gatherers, :through => Resource
+    tag :gatherers, :through => Resource
     
     property :value, String
   end
@@ -301,7 +352,7 @@ module SimpleScraper
   class Post
     include Editable
 
-    has n, :gatherers, :through => Resource
+    tag :gatherers, :through => Resource
 
     property :name,  String
     property :value, String
@@ -310,7 +361,7 @@ module SimpleScraper
   class Header
     include Editable
 
-    has n, :gatherers, :through => Resource
+    tag :gatherers, :through => Resource
 
     property :name,  String
     property :value, String
@@ -319,7 +370,7 @@ module SimpleScraper
   class CookieHeader
     include Editable
 
-    has n, :gatherers, :through => Resource
+    tag :gatherers, :through => Resource
 
     property :name,  String
     property :value, String
