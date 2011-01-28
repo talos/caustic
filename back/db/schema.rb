@@ -72,11 +72,15 @@ module DataMapper::Model::Relationship
   def tag_names
     @tag_names or []
   end
-  def tags
-    tag_relationships = relationships.select { |k, r| tag_names.include? k.to_sym }.collect do |relationship|
+  def tag_relationships
+    tag_relationships = relationships.select { |k, r| tag_names.include? k.to_sym }
+    Hash[*tag_relationships.flatten]
+  end
+  def tag_models
+    tag_models = relationships.select { |k, r| tag_names.include? k.to_sym }.collect do |relationship|
       [relationship[0], relationship[1].target_model]
     end
-    Hash[*tag_relationships.flatten]
+    Hash[*tag_models.flatten]
   end
   # Helps make tagging classes.
   def tagging(model1, model2)

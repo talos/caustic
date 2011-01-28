@@ -27,8 +27,6 @@ end
 # Helper functions to interface with the DB.
 # params: resource_model, resource_id, tag_model, tag_id
 module SimpleScraper
-  SimpleScraper::MAX_RECORDS = 100
-  
   module Resource
     def self.find_model(params)
       DataMapper::Model.find(params[:resource_model])
@@ -50,7 +48,7 @@ module SimpleScraper
   module Tag
     def self.find_model(params)
       model = SimpleScraper::Resource.find_model(params) or return
-      model.tags[params[:tag_model]]
+      model.tag_models[params[:tag_model]]
     end
 
     def self.first(params)
@@ -72,6 +70,52 @@ module SimpleScraper
       #  resource.send(params[:tag_model].downcase) << tag
       #  resource.save or tag.send(params[:model].downcase + 's') << resource
     end
+  end
+
+  module Relationship
+    def self.find(params)
+      model = SimpleScraper::Resource.find_model(params) or return
+      model.tag_relationships[params[:tag_model]]
+    end
+
+    def self.find_model(params)
+      relationship = find(params) or return
+      relationship.through.target_model
+    end
+    
+    def self.first(params)
+      r = find(params) or return # the relationship
+      resource_model = SimpleScraper::Resource.find_model(params) or return
+      tag_model = SimpleScraper::Resource.find_model(params) or return
+
+      relationship_model = r.through.target_model
+
+      #source_key_values, source_model_name, target_key_values, target_model_name
+      if r.target_model == resource_model && r.source_model == tag_model
+        source_model_name = tag_model.raw_name
+        source_key_values = params[:tag_id].split('.')
+        target_model_name = resource_model.raw_name
+        target_key_values = params[:resource_id].split('.')
+      elsif r.target_model == tag_model && r.source_model == resource_model
+        source_model_name = resource_model.raw_name
+        source_key_values = params[:tag_id].split('.')
+        target_model_name = tag_model.raw_name
+        target_key_values = params[:resource_id].split('.')
+      else
+        return
+      end
+
+      criteria = {}
+      r.target_key.each_index do |i|
+        criteria[(target_model_name + '_' + r.target_key[i].name.to_s).to_sym] = target_key_values[i]
+      end
+      r.source_key.each_index do |i|
+        criteria[(source_model_name + '_' + r.source_key[i].name.to_s).to_sym] = source_key_values[i]
+      end
+
+      relationship_model.first(criteria)
+    end
+
   end
 
   module Error
@@ -149,17 +193,15 @@ put '/:resource_model/:resource_id/:tag_model/:tag_id' do
 end
 # Delete a tag, and affiliated links.
 delete '/:resource_model/:resource_id/:tag_model/:tag_id' do
-  tag_resource = SimpleScraper::Tags.first(params) or return not_found
-  tag = resource.tag(params) or return error
-  tag.location
-  # TODO 
+  tag_relationship = SimpleScraper::Relationship.first(params) or return not_found
+  tag_relationship.destroy or error
+
   # join_model = resource.send(params[:tag_model].downcase).send('through').target_model
   # if(params[:tag_model].downcase == params[:model].downcase + 's') # self-join
   #   join_model.first(:source => resource, :target => tag).destroy
   # else
   #   join_model.first(params[:model].downcase.to_sym => model, params[:tag_model].downcase.sub(/s$/, '').to_sym => tag).destroy or error compile_errors join_model
   # end
-
 end
 
 # Redirect to the location of the actual resource, including possible further redirects.
@@ -173,14 +215,6 @@ end
 #   resource = SimpleScraper::Resource.first(params) or return not_found
 #   resource.model.tags[params[:tag]] ? redirect resource.model.tags[params[:tag]].location + '/' + params[:splat][0] : not_found
 # end
-
-# Delete a tag.
-delete '/user/:creator/:model/:id/:tag_model/:tag_creator/:tag_id' do
-  resource = SimpleScraper::first_resource(params) or return not_found
-  tag = SimpleScraper::first_tag(params) or return not_found
-  
-end
-
 
 # Get all the gatherers, generators, and interpreters associated with an area, info, and creator.
 # Returns any of the aforementioned objects if they fall within the ancestor tree of the specified area.
