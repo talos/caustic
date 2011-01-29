@@ -25,7 +25,7 @@ configure do
 end
 
 # Helper functions to interface with the DB.
-# params: resource_model, resource_id, tag_model, tag_id
+# params: resource_model, resource_id, relationship, tag_id
 module SimpleScraper
   module Resource
     def self.find_model(params)
@@ -48,26 +48,26 @@ module SimpleScraper
   module Tag
     def self.find_model(params)
       model = SimpleScraper::Resource.find_model(params) or return
-      model.tag_models[params[:tag_model]]
+      model.tag_models[params[:relationship]]
     end
 
     def self.first(params)
       tag_model = find_model(params) or return
       resource = SimpleScraper::Resource.first(params) or return
-      resource.send(params[:tag_model]).first(*params[:tag_id].split('.'))
+      resource.send(params[:relationship]).first(*params[:tag_id].split('.'))
     end
 
     def self.first_or_create(params)
       tag_model = find_model(params) or return
       resource = SimpleScraper::Resource.first(params) or return
-
+      
       tag_resource = tag_model.first_or_create(*params[:tag_id].split('.')) or return
       params.delete(:resource_id)
       tag_resource.update_attributes(params)
       
-      resource.send(params[:tag_model]) << tag_resource
+      resource.send(params[:relationship]) << tag_resource
       tag_resource
-      #  resource.send(params[:tag_model].downcase) << tag
+      #  resource.send(params[:relationship].downcase) << tag
       #  resource.save or tag.send(params[:model].downcase + 's') << resource
     end
   end
@@ -75,7 +75,7 @@ module SimpleScraper
   module Relationship
     def self.find(params)
       model = SimpleScraper::Resource.find_model(params) or return
-      model.tag_relationships[params[:tag_model]]
+      model.tag_relationships[params[:relationship]]
     end
 
     def self.find_model(params)
@@ -175,26 +175,31 @@ end
 
 ###### TAG MODELS
 # Redirect to the tag's model.
-get '/:resource_model/:tag_model/' do
+get '/:resource_model/:relationship/' do
   tag_model = SimpleScraper::Tags.find_model(params) or not_found
   redirect tag_model.location
 end
 
 ####### TAGS
 # Redirect to the location of the actual resource.
-get '/:resource_model/:resource_id/:tag_model/:tag_id' do
+get '/:resource_model/:resource_id/:relationship/:tag_id' do
   tag_resource = SimpleScraper::Tags.first(params) or return not_found
   tag_resource.location
 end
 # Create a tag.
-put '/:resource_model/:resource_id/:tag_model/:tag_id' do
+put '/:resource_model/:resource_id/:relationship/:tag_id' do
   tag_resource = SimpleScraper::Tags.first_or_create(params) or return error
   tag_resource.location
 end
 # Delete a tag, and affiliated links.
-delete '/:resource_model/:resource_id/:tag_model/:tag_id' do
-  tag_relationship = SimpleScraper::Relationship.first(params) or return not_found
-  tag_relationship.destroy or error
+delete '/:resource_model/:resource_id/:relationship/:tag_id' do
+  #tag_relationship = SimpleScraper::Relationship.first(params) or return not_found
+  #tag_relationship.destroy or error
+
+  resource = SimpleScraper::Resource.first(params) or return not_found
+  tag = SimpleScraper::Tag.first(params) or return not_found
+  
+  resource.send(params[:relationship]).first(tag.model.raw_name.to_sym => tag).destroy or return error
 
   # join_model = resource.send(params[:tag_model].downcase).send('through').target_model
   # if(params[:tag_model].downcase == params[:model].downcase + 's') # self-join
