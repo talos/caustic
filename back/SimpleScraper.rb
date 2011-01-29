@@ -27,6 +27,7 @@ end
 # Helper functions to interface with the DB.
 # params: resource_model, resource_id, relationship, tag_id
 module SimpleScraper
+  SimpleScraper::RESERVED_WORDS = [:resource_model, :resource_id, :relationship, :tag_id, :creator_id]
   module Resource
     def self.find_model(params)
       DataMapper::Model.find(params[:resource_model])
@@ -34,13 +35,13 @@ module SimpleScraper
 
     def self.first(params)
       model = find_model(params) or return
-      model.first(*params[:resource_id].split('.'))
+      model.first_from_string(params[:resource_id])
     end
     
     def self.first_or_create
       model = find_model(params) or return
-      resource = model.first_or_create(*params[:resource_id].split('.')) or return
-      params.delete(:resource_id)
+      resource = model.first_or_create_from_string(params[:resource_id]) or return
+      params.delete_if { |param| SimpleScraper::RESERVED_WORDS.include? param }
       resource.update_attributes(params)
     end
   end
@@ -54,77 +55,93 @@ module SimpleScraper
     def self.first(params)
       tag_model = find_model(params) or return
       resource = SimpleScraper::Resource.first(params) or return
-      resource.send(params[:relationship]).first(*params[:tag_id].split('.'))
+      resource.send(params[:relationship]).first(tag_model.criteria_from_key_string(params[:tag_id]))
     end
 
     def self.first_or_create(params)
       tag_model = find_model(params) or return
       resource = SimpleScraper::Resource.first(params) or return
       
-      tag_resource = tag_model.first_or_create(*params[:tag_id].split('.')) or return
-      params.delete(:resource_id)
-      tag_resource.update_attributes(params)
+      tag_resource = tag_model.first_or_create_from_string(params[:tag_id])
+
+      unless tag_resource.save # If the original creation fails, try it with both IDs.  This helps for one-to-many relationships.
+        tag_resource = tag_model.first_or_create_from_string(params[:resource_id], params[:tag_id])
+        tag_resource.save or raise SimpleScraper::Exception.new(tag_resource, resource)
+      end
+        
+      safe_params = params.clone
+      safe_params.delete_if { |key, value| SimpleScraper::RESERVED_WORDS.include? key }
+      tag_resource.update_attributes(safe_params)
+
+      puts tag_resource.describe.to_json
+      puts tag_resource.save.to_json
       
       resource.send(params[:relationship]) << tag_resource
+
+      puts tag_resource.describe.to_json
+
+      resource.save or raise SimpleScraper::Exception.new(resource, tag_resource)
       tag_resource
       #  resource.send(params[:relationship].downcase) << tag
       #  resource.save or tag.send(params[:model].downcase + 's') << resource
     end
   end
+  
+  # module Relationship
+  #   def self.find(params)
+  #     model = SimpleScraper::Resource.find_model(params) or return
+  #     model.tag_relationships[params[:relationship]]
+  #   end
 
-  module Relationship
-    def self.find(params)
-      model = SimpleScraper::Resource.find_model(params) or return
-      model.tag_relationships[params[:relationship]]
-    end
-
-    def self.find_model(params)
-      relationship = find(params) or return
-      relationship.through.target_model
-    end
+  #   def self.find_model(params)
+  #     relationship = find(params) or return
+  #     relationship.through.target_model
+  #   end
     
-    def self.first(params)
-      r = find(params) or return # the relationship
-      resource_model = SimpleScraper::Resource.find_model(params) or return
-      tag_model = SimpleScraper::Resource.find_model(params) or return
+  #   def self.first(params)
+  #     r = find(params) or return # the relationship
+  #     resource_model = SimpleScraper::Resource.find_model(params) or return
+  #     tag_model = SimpleScraper::Resource.find_model(params) or return
 
-      relationship_model = r.through.target_model
+  #     relationship_model = r.through.target_model
 
-      #source_key_values, source_model_name, target_key_values, target_model_name
-      if r.target_model == resource_model && r.source_model == tag_model
-        source_model_name = tag_model.raw_name
-        source_key_values = params[:tag_id].split('.')
-        target_model_name = resource_model.raw_name
-        target_key_values = params[:resource_id].split('.')
-      elsif r.target_model == tag_model && r.source_model == resource_model
-        source_model_name = resource_model.raw_name
-        source_key_values = params[:tag_id].split('.')
-        target_model_name = tag_model.raw_name
-        target_key_values = params[:resource_id].split('.')
-      else
-        return
-      end
+  #     #source_key_values, source_model_name, target_key_values, target_model_name
+  #     if r.target_model == resource_model && r.source_model == tag_model
+  #       source_model_name = tag_model.raw_name
+  #       source_key_values = params[:tag_id].split('.')
+  #       target_model_name = resource_model.raw_name
+  #       target_key_values = params[:resource_id].split('.')
+  #     elsif r.target_model == tag_model && r.source_model == resource_model
+  #       source_model_name = resource_model.raw_name
+  #       source_key_values = params[:tag_id].split('.')
+  #       target_model_name = tag_model.raw_name
+  #       target_key_values = params[:resource_id].split('.')
+  #     else
+  #       return
+  #     end
 
-      criteria = {}
-      r.target_key.each_index do |i|
-        criteria[(target_model_name + '_' + r.target_key[i].name.to_s).to_sym] = target_key_values[i]
-      end
-      r.source_key.each_index do |i|
-        criteria[(source_model_name + '_' + r.source_key[i].name.to_s).to_sym] = source_key_values[i]
-      end
+  #     criteria = {}
+  #     r.target_key.each_index do |i|
+  #       criteria[(target_model_name + '_' + r.target_key[i].name.to_s).to_sym] = target_key_values[i]
+  #     end
+  #     r.source_key.each_index do |i|
+  #       criteria[(source_model_name + '_' + r.source_key[i].name.to_s).to_sym] = source_key_values[i]
+  #     end
 
-      relationship_model.first(criteria)
-    end
+  #     relationship_model.first(criteria)
+  #   end
 
-  end
+  # end
 
-  module Error
-    def compile(*resources)
-      errors = {}
+  class SimpleScraper::Exception < RuntimeError
+    def initialize(*resources)
+      @errors = {}
       resources.each do |resource|
-        errors[resource.location] = resource.errors.to_a
+        @errors[resource.class.to_s] = resource.errors.to_a
       end
-      {:errors => errors}
+    end
+    def to_json
+      {:errors => @errors}.to_json
     end
   end
 end
@@ -157,7 +174,7 @@ end
 # Describe a resource. ID is broken up by '.'.
 get '/:resource_model/:resource_id' do
   resource = SimpleScraper::Resource.first(params) or return not_found
-  model.describe.to_json
+  resource.describe.to_json
 end
 # Put a resource. ID is broken up by '.'.
 put '/:resource_model/:resource_id' do
@@ -170,26 +187,31 @@ delete '/:resource_model/:resource_id' do
   resource.class.tag_names.each do |tag_name|
     resource.send(tag_name).all.each { |link| link.destroy }
   end
-  resource.destroy or error SimpleScraper::Error.compile(resource).to_json
+  
+  resource.destroy or error SimpleScraper::Exception.new(resource).to_json
 end
 
 ###### TAG MODELS
 # Redirect to the tag's model.
 get '/:resource_model/:relationship/' do
-  tag_model = SimpleScraper::Tags.find_model(params) or not_found
+  tag_model = SimpleScraper::Tag.find_model(params) or not_found
   redirect tag_model.location
 end
 
 ####### TAGS
 # Redirect to the location of the actual resource.
 get '/:resource_model/:resource_id/:relationship/:tag_id' do
-  tag_resource = SimpleScraper::Tags.first(params) or return not_found
+  tag_resource = SimpleScraper::Tag.first(params) or return not_found
   tag_resource.location
 end
 # Create a tag.
 put '/:resource_model/:resource_id/:relationship/:tag_id' do
-  tag_resource = SimpleScraper::Tags.first_or_create(params) or return error
-  tag_resource.location
+  begin
+    tag_resource = SimpleScraper::Tag.first_or_create(params)
+    tag_resource.location
+  rescue SimpleScraper::Exception => exception
+    error exception.to_json
+  end
 end
 # Delete a tag, and affiliated links.
 delete '/:resource_model/:resource_id/:relationship/:tag_id' do
@@ -199,7 +221,7 @@ delete '/:resource_model/:resource_id/:relationship/:tag_id' do
   resource = SimpleScraper::Resource.first(params) or return not_found
   tag = SimpleScraper::Tag.first(params) or return not_found
   
-  resource.send(params[:relationship]).first(tag.model.raw_name.to_sym => tag).destroy or return error
+  resource.send(params[:relationship]).first(tag.model.raw_name.to_sym => tag).destroy or error SimpleScraper::Exception.new(resource).to_json
 
   # join_model = resource.send(params[:tag_model].downcase).send('through').target_model
   # if(params[:tag_model].downcase == params[:model].downcase + 's') # self-join
@@ -223,7 +245,7 @@ end
 
 # Get all the gatherers, generators, and interpreters associated with an area, info, and creator.
 # Returns any of the aforementioned objects if they fall within the ancestor tree of the specified area.
-get '/:creator/scrapers/:area/:info' do
+get '/scrapers/:creator/:area/:info' do
 
   creator = SimpleScraper::User.first(:id => params[:creator]) or return not_found
   area = SimpleScraper::Area.first(:id => params[:area]) or return not_found

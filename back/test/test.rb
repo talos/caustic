@@ -85,7 +85,6 @@ module SimpleScraper
           
           resources = JSON.parse(last_response.body)
           resources.each do |resource|
-            #puts resource
             puts resource.to_json
           end
         end

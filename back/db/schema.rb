@@ -32,11 +32,18 @@ DataMapper::Property::String.length(500)
 DataMapper::Model.raise_on_save_failure = false
 module SimpleScraper
   SimpleScraper::MAX_RECORDS = 100
+  SimpleScraper::KEY_SEP = '.'
+  def self.explode_key(key_string)
+    key_string.split(SimpleScraper::KEY_SEP)
+  end
+  def self.join_key(*key_string)
+    key_string.join(SimpleScraper::KEY_SEP)
+  end
 end
 
 module DataMapper::Model
   def self.find(name)
-    self.descendants.find { |model| model.raw_name = name }
+    self.descendants.find { |model| model.raw_name == name }
   end
 
   def all_like(unfiltered)
@@ -47,15 +54,29 @@ module DataMapper::Model
     all({:limit => SimpleScraper::MAX_RECORDS}.merge(filtered))
   end
 
+  def key_names
+    key.collect { |k| k.name }
+  end
+  
   def raw_name
     name.sub(%r{^[^:]*:+}, '').downcase
   end
-
+  
   def location
     '/' + raw_name + '/'
   end
 
+  def criteria_from_key_string(*key_strings)
+    Hash[key_names.zip(SimpleScraper::explode_key(SimpleScraper::join_key(*key_strings)))]
+  end
 
+  def first_from_string(*key_strings)
+    first criteria_from_key_string *key_strings
+  end
+
+  def first_or_create_from_string(*key_strings)
+    first_or_create criteria_from_key_string *key_strings
+  end
 end
 
 # Convenience methods for collecting tags.
@@ -95,21 +116,20 @@ module DataMapper::Resource
     '/' + model.raw_name + '/' + key.join('.')
   end
   
-  def update_attributes(attributes)
-    attributes.delete(:creator_id)
-    attributes.delete_if do |name, value| # Delete attributes not specified in the model
-      not resource.attributes.keys.include? name.downcase.to_sym
+  def update_attributes(new_attributes)
+    new_attributes.delete_if do |name, value| # Delete attributes not specified in the model
+      not attributes.keys.include? name.downcase.to_sym
     end
-    resource.attributes= attributes
+    attributes= new_attributes
   end
   
   # Returns attributes, and lists of tags as arrays.
   def describe
     description = attributes.clone
     self.class.tag_names.each do |tag_name|
-      description[tag_name + '/'] = []
+      description[tag_name.to_s + '/'] = []
       send(tag_name).all.each do |tag|
-        description[tag_name + '/'] << tag.location
+        description[tag_name.to_s + '/'] << tag.location
       end
     end
     description
@@ -144,6 +164,7 @@ module SimpleScraper
     tag :infos,          :child_key => [ :creator_id ]
     tag :publishes,      :child_key => [ :creator_id ]
     tag :defaults,       :child_key => [ :creator_id ]
+    tag :patterns,       :child_key => [ :creator_id ]
     tag :interpreters,   :child_key => [ :creator_id ]
     tag :generators,     :child_key => [ :creator_id ]
     tag :gatherers,      :child_key => [ :creator_id ]
@@ -160,23 +181,23 @@ module SimpleScraper
   
   class GeneratorTargetInfo
     include DataMapper::Resource
-
-    belongs_to :generator, :key => true
-    belongs_to :info, :key => true
+    tagging :generator, :info
+    #belongs_to :generator, :key => true
+    #belongs_to :info, :key => true
   end
 
   class GeneratorSourceArea
     include DataMapper::Resource
-
-    belongs_to :generator, :key => true
-    belongs_to :area, :key => true
+    tagging :generator, :area
+    # belongs_to :generator, :key => true
+    # belongs_to :area, :key => true
   end
 
   class GeneratorSourceInfo
     include DataMapper::Resource
-
-    belongs_to :generator, :key => true
-    belongs_to :info, :key => true
+    tagging :generator, :info
+    #belongs_to :generator, :key => true
+    #belongs_to :info, :key => true
   end
 
   class InterpreterTargetAttribute
@@ -284,14 +305,14 @@ module SimpleScraper
 
     tag :source_areas, 'Area', :through => Resource
     tag :source_infos, 'Info', :through => Resource
-
-    tag :gatherers, :through => Resource
-
     tag :source_attributes, 'Attribute', :through => :interpreter_source_attributes, :via => :attribute
     has n, :interpreter_source_attributes
+
+    #tag :gatherers, :through => Resource
+
     tag :target_attributes, 'Attribute', :through => :interpreter_target_attributes, :via => :attribute
     has n, :interpreter_target_attributes
-
+    
     tag :patterns, :through => Resource
     
     property :match_number, Integer, :default => 0, :required => true
@@ -312,18 +333,17 @@ module SimpleScraper
     has n, :generator_source_areas
     tag :source_infos, 'Info', :through => :generator_source_infos, :via => :info
     has n, :generator_source_infos
+    tag :source_attributes, 'Attribute', :through => :generator_source_attributes, :via => :attribute
+    has n, :generator_source_attributes
 
-    tag :gatherers, :through => Resource
+    #tag :gatherers, :through => Resource
 
     tag :target_areas, 'Area', :through => :generator_target_areas, :via => :area
     has n, :generator_target_areas
     tag :target_infos, 'Info', :through => :generator_target_infos, :via => :info
     has n, :generator_target_infos
-
     tag :target_attributes, 'Attribute', :through => :generator_target_attributes, :via => :attribute
     has n, :generator_target_attributes
-    tag :source_attributes, 'Attribute', :through => :generator_source_attributes, :via => :attribute
-    has n, :generator_source_attributes
     
     tag :patterns, :through => Resource
   end
@@ -333,12 +353,15 @@ module SimpleScraper
 
     tag :areas, :through => Resource
     tag :infos, :through => Resource
-
-    tag :generators, :through => Resource
-    tag :interpreters, :through => Resource
-
+    
+    #tag :generators, :through => Resource
+    #tag :interpreters, :through => Resource
+    
+    tag :target_attributes, 'Attribute', :through => :gatherer_target_attributes, :via => :attribute
+    has n, :gatherer_target_attributes
+    
     tag :stops, 'Pattern', :through => Resource
-
+    
     tag :urls, :through => Resource
     tag :posts, :through => Resource
     tag :headers, :through => Resource
