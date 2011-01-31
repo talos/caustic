@@ -60,6 +60,9 @@ module SimpleScraper::Test
     def model
       @location.split('/')[1]
     end
+    def id
+      @location.split('/').last
+    end
   end
   
   class Test < Test::Unit::TestCase
@@ -87,7 +90,7 @@ module SimpleScraper::Test
     
     def test_001_signs_up
       NUM_TESTS.times do
-        post '/signup', {:id => SimpleScraper::random_string}
+        post '/signup', {:name => SimpleScraper::random_string}
         assert last_response.ok?, last_response.body
       end
     end
@@ -97,8 +100,8 @@ module SimpleScraper::Test
       assert last_response.ok?, last_response.body
       
       user_locations = parse(last_response.body)
-      assert_equal user_locations.class, Array
-      assert_equal user_locations.size, NUM_TESTS
+      assert_equal Array, user_locations.class
+      assert_equal NUM_TESTS, user_locations.size
     end
 
     # TODO: test logins
@@ -111,8 +114,9 @@ module SimpleScraper::Test
         user.tags.each do |tag_name, tag_locations|
           NUM_TESTS.times do 
             tag_id = SimpleScraper::random_string
-            put user.location + '/' + tag_name + tag_id, {:id => tag_id}
-            assert last_response.ok?, last_response.body
+            url = user.location + '/' + tag_name
+            put url
+            assert last_response.ok?, url + ': ' + last_response.body
           end
         end
       end
@@ -129,14 +133,19 @@ module SimpleScraper::Test
               NUM_TESTS.times do
                 url = '/' + resource.model + '/' + tag_name # get possible tags
                 get url
+                tag_model = last_response.location.split('/').last
                 follow_redirect!
                 assert last_response.ok?, url + ': ' + last_response.body
                 possible_tags = parse(last_response.body)
                 possible_tags.each do |possible_tag_location|
                   possible_tag_id = possible_tag_location.split('/').last
-                  url = resource.location + '/' + tag_name + possible_tag_id
+                  url = resource.location + '/' + tag_name + possible_tag_id 
                   put url
-                  assert last_response.ok?, url + ': ' + last_response.body
+                  if(resource.model == tag_model and possible_tag_id == resource.id)
+                    assert_equal 500, last_response.status, 'Allowed recursive self-tagging.'
+                  else
+                    assert last_response.ok?, url + ': ' + last_response.body
+                  end
                 end
               end
             end
