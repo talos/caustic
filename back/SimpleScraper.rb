@@ -51,7 +51,7 @@ module SimpleScraper
       model = SimpleScraper::Resource.find_model(params) or return
       model.tag_models[params[:relationship]]
     end
-
+    
     def self.first(params)
       tag_model = find_model(params) or return
       resource = SimpleScraper::Resource.first(params) or return
@@ -72,15 +72,10 @@ module SimpleScraper
       safe_params = params.clone
       safe_params.delete_if { |key, value| SimpleScraper::RESERVED_WORDS.include? key }
       tag_resource.update_attributes(safe_params)
-
-      puts tag_resource.describe.to_json
-      puts tag_resource.save.to_json
       
       resource.send(params[:relationship]) << tag_resource
-
-      puts tag_resource.describe.to_json
-
       resource.save or raise SimpleScraper::Exception.new(resource, tag_resource)
+      
       tag_resource
       #  resource.send(params[:relationship].downcase) << tag
       #  resource.save or tag.send(params[:model].downcase + 's') << resource
@@ -265,7 +260,6 @@ get '/scrapers/:creator/:area/:info' do
   end
   get_area_ids(SimpleScraper::Area.first(:id => params[:area]), area_ids)
   #SimpleScraper::Area.all(SimpleScraper::Area
-  puts area_ids.to_json
   
   models = [ SimpleScraper::Gatherer, SimpleScraper::Interpreter, SimpleScraper::Generator ]
   publish_collection = SimpleScraper::Publish.all

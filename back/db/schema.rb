@@ -166,6 +166,7 @@ module SimpleScraper
     tag :defaults,       :child_key => [ :creator_id ]
     tag :patterns,       :child_key => [ :creator_id ]
     tag :interpreters,   :child_key => [ :creator_id ]
+    tag :data_fields,    :child_key => [ :creator_id ]
     tag :generators,     :child_key => [ :creator_id ]
     tag :gatherers,      :child_key => [ :creator_id ]
     tag :posts,          :child_key => [ :creator_id ]
@@ -174,60 +175,29 @@ module SimpleScraper
     tag :cookie_headers, :child_key => [ :creator_id ]
   end
 
-  class GeneratorTargetArea
+  class InterpreterSourceField
     include DataMapper::Resource
-    tagging :generator, :area
+    tagging :interpreter, :data_field
+  end
+
+  class InterpreterTargetField
+    include DataMapper::Resource
+    tagging :interpreter, :data_field
+  end
+
+  class GeneratorSourceField
+    include DataMapper::Resource
+    tagging :generator, :data_field
   end
   
-  class GeneratorTargetInfo
+  class GeneratorTargetField
     include DataMapper::Resource
-    tagging :generator, :info
-    #belongs_to :generator, :key => true
-    #belongs_to :info, :key => true
+    tagging :generator, :data_field
   end
 
-  class GeneratorSourceArea
+  class GathererTargetField
     include DataMapper::Resource
-    tagging :generator, :area
-    # belongs_to :generator, :key => true
-    # belongs_to :area, :key => true
-  end
-
-  class GeneratorSourceInfo
-    include DataMapper::Resource
-    tagging :generator, :info
-    #belongs_to :generator, :key => true
-    #belongs_to :info, :key => true
-  end
-
-  class InterpreterTargetAttribute
-    include DataMapper::Resource
-    tagging :interpreter, :attribute
-  end
-
-  class InterpreterSourceAttribute
-    include DataMapper::Resource
-    tagging :interpreter, :attribute
-  end
-  
-  class GeneratorTargetAttribute
-    include DataMapper::Resource
-    tagging :generator, :attribute
-  end
-
-  class GeneratorSourceAttribute
-    include DataMapper::Resource
-    tagging :generator, :attribute
-  end
-  
-  class GathererTargetAttribute
-    include DataMapper::Resource
-    tagging :gatherer, :attribute
-  end
-
-  class GathererSourceAttribute
-    include DataMapper::Resource
-    tagging :gatherer, :attribute
+    tagging :gatherer, :data_field
   end
   
   class AreaLink
@@ -240,14 +210,9 @@ module SimpleScraper
   class Area
     include Editable
     
-    tag :defaults, :through => Resource
-
-    tag :gatherers, :through => Resource
-    tag :interpreters, :through => Resource
-    tag :generator_sources, 'Generator', :through => :generator_source_areas, :via => :generator
-    has n, :generator_source_areas
-    tag :generator_targets, 'Generator', :through => :generator_target_areas, :via => :generator
-    has n, :generator_target_areas
+    tag :defaults,    :through => Resource
+    tag :data_fields, :through => Resource
+    tag :gatherers,   :through => Resource
 
     has n, :area_links, :model => AreaLink, :child_key => [:source_creator_id, :source_id]
     tag :follow_areas, :model => self, :through => :area_links, :via => :target
@@ -256,31 +221,30 @@ module SimpleScraper
   class Info
     include Editable
     
-    tag :publishes, :through => Resource
-    
-    tag :gatherers, :through => Resource
+    tag :publishes,   :through => Resource
+    tag :data_fields, :through => Resource
+    tag :gatherers,   :through => Resource
     tag :interpreters, :through => Resource
-    tag :generator_sources, 'Generator', :through => :generator_source_infos, :via => :generator
-    has n, :generator_source_infos
-    tag :generator_targets, 'Generator', :through => :generator_target_infos, :via => :generator
-    has n, :generator_target_infos
   end
 
-  class Attribute
+  class DataField
     include Editable
     
-    tag :generator_sources, 'Generator', :through => :generator_source_attributes, :via => :generator
-    has n, :generator_source_attributes
-    tag :generator_targets, 'Generator', :through => :generator_target_attributes, :via => :generator
-    has n, :generator_target_attributes
-    
-    tag :interpreter_sources, 'Interpreter', :through => :interpreter_source_attributes, :via => :interpreter
-    has n, :interpreter_source_attributes
-    tag :interpreter_targets, 'Interpreter', :through => :interpreter_target_attributes, :via => :interpreter
-    has n, :interpreter_target_attributes
+    tag :areas, :through => Resource
+    tag :infos, :through => Resource
 
-    tag :gatherer_targets, 'Gatherer', :through => :gatherer_target_attributes, :via => :gatherer
-    has n, :gatherer_target_attributes
+    tag :generator_sources, 'Generator', :through => :generator_source_fields, :via => :generator
+    has n, :generator_source_fields
+    tag :generator_targets, 'Generator', :through => :generator_target_fields, :via => :generator
+    has n, :generator_target_fields
+    
+    tag :interpreter_sources, 'Interpreter', :through => :interpreter_source_fields, :via => :interpreter
+    has n, :interpreter_source_fields
+    tag :interpreter_targets, 'Interpreter', :through => :interpreter_target_fields, :via => :interpreter
+    has n, :interpreter_target_fields
+
+    tag :gatherer_targets, 'Gatherer', :through => :gatherer_target_fields, :via => :gatherer
+    has n, :gatherer_target_fields
   end
 
   class Publish # Applies to all an info's areas.
@@ -303,19 +267,15 @@ module SimpleScraper
   class Interpreter
     include Editable
 
-    tag :source_areas, 'Area', :through => Resource
-    tag :source_infos, 'Info', :through => Resource
-    tag :source_attributes, 'Attribute', :through => :interpreter_source_attributes, :via => :attribute
-    has n, :interpreter_source_attributes
-
-    #tag :gatherers, :through => Resource
-
-    tag :target_attributes, 'Attribute', :through => :interpreter_target_attributes, :via => :attribute
-    has n, :interpreter_target_attributes
+    tag :source_fields, 'DataField', :through => :interpreter_source_fields, :via => :data_field
+    has n, :interpreter_source_fields
+    tag :target_fields, 'DataField', :through => :interpreter_target_fields, :via => :data_field
+    has n, :interpreter_target_fields
     
     tag :patterns, :through => Resource
     
     property :match_number, Integer, :default => 0, :required => true
+    property :terminate_on_complete, Boolean, :default => false, :required => true
   end
 
   class Pattern
@@ -329,21 +289,10 @@ module SimpleScraper
   class Generator
     include Editable
 
-    tag :source_areas, 'Area', :through => :generator_source_areas, :via => :area
-    has n, :generator_source_areas
-    tag :source_infos, 'Info', :through => :generator_source_infos, :via => :info
-    has n, :generator_source_infos
-    tag :source_attributes, 'Attribute', :through => :generator_source_attributes, :via => :attribute
-    has n, :generator_source_attributes
-
-    #tag :gatherers, :through => Resource
-
-    tag :target_areas, 'Area', :through => :generator_target_areas, :via => :area
-    has n, :generator_target_areas
-    tag :target_infos, 'Info', :through => :generator_target_infos, :via => :info
-    has n, :generator_target_infos
-    tag :target_attributes, 'Attribute', :through => :generator_target_attributes, :via => :attribute
-    has n, :generator_target_attributes
+    tag :source_fields, 'DataField', :through => :generator_source_fields, :via => :data_field
+    has n, :generator_source_fields
+    tag :target_fields, 'DataField', :through => :generator_target_fields, :via => :data_field
+    has n, :generator_target_fields
     
     tag :patterns, :through => Resource
   end
@@ -354,11 +303,8 @@ module SimpleScraper
     tag :areas, :through => Resource
     tag :infos, :through => Resource
     
-    #tag :generators, :through => Resource
-    #tag :interpreters, :through => Resource
-    
-    tag :target_attributes, 'Attribute', :through => :gatherer_target_attributes, :via => :attribute
-    has n, :gatherer_target_attributes
+    tag :target_fields, 'DataField', :through => :gatherer_target_fields, :via => :data_field
+    has n, :gatherer_target_fields
     
     tag :stops, 'Pattern', :through => Resource
     

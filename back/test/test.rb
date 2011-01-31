@@ -26,21 +26,67 @@ set :sessions, true
 # @user = Factory(:user)
 # User.expects(:authenticate).with(any_parameters).returns(@user)
 
-module SimpleScraper
-  NUM_TIMES = 5
+module SimpleScraper::Test
+  NUM_TESTS = 1
   ID_LENGTH = 10
   def SimpleScraper::random_string(length = ID_LENGTH)
     rand(32**length).to_s(32)
   end
-  class SimpleScraperTest < Test::Unit::TestCase
+
+  class Resource
+    def initialize(location, obj)
+      @location = location
+      @tags = {}
+      @attributes = {}
+      obj.each do |name, value|
+        if value.class == Array and name.end_with? '/'
+          @tags[name] = value
+        elsif (value.class != Array and value.class != Hash) and not name.end_with? '/'
+          @attributes[name] = value
+        else
+          raise ArgumentError.new('Attribute "' + name + '": "' + value.to_s + '" (' + value.class.to_s + ') is neither tag nor attribute.')
+        end
+      end
+    end
+    def tags
+      @tags
+    end
+    def attributes
+      @attributes
+    end
+    def location
+      @location
+    end
+    def model
+      @location.split('/')[1]
+    end
+  end
+  
+  class Test < Test::Unit::TestCase
     include Rack::Test::Methods
     
     def app
       Sinatra::Application
     end
+
+    def parse response
+      JSON.parse(response)
+    end
+
+    def each_resource resource_name
+      get '/' + resource_name + '/'
+      assert last_response.ok?
+      
+      locations = parse(last_response.body)
+      locations.each do |location|
+        get location
+        assert last_response.ok?
+        yield Resource.new(location, parse(last_response.body))
+      end
+    end
     
     def test_001_signs_up
-      NUM_TIMES.times do
+      NUM_TESTS.times do
         post '/signup', {:id => SimpleScraper::random_string}
         assert last_response.ok?, last_response.body
       end
@@ -50,9 +96,9 @@ module SimpleScraper
       get '/user/'
       assert last_response.ok?, last_response.body
       
-      user_locations = JSON.parse(last_response.body)
+      user_locations = parse(last_response.body)
       assert_equal user_locations.class, Array
-      assert_equal user_locations.size, NUM_TIMES
+      assert_equal user_locations.size, NUM_TESTS
     end
 
     # TODO: test logins
@@ -61,31 +107,39 @@ module SimpleScraper
     end
 
     def test_004_creates_resources
-      get '/user/'
-      assert last_response.ok?
-      
-      user_locations = JSON.parse(last_response.body)
-      user_locations.each do |user_location|
-        get user_location
-        assert last_response.ok?
-        
-        attributes = JSON.parse(last_response.body)
-        attributes.each do |name, value|
-          next if value.class != Array
-          next if not name.end_with? '/'
-          
-          NUM_TIMES.times do 
-            resource_id = SimpleScraper::random_string
-            put user_location + '/' + name + resource_id, {:id => resource_id}
+      each_resource 'user' do |user|
+        user.tags.each do |tag_name, tag_locations|
+          NUM_TESTS.times do 
+            tag_id = SimpleScraper::random_string
+            put user.location + '/' + tag_name + tag_id, {:id => tag_id}
             assert last_response.ok?, last_response.body
           end
+        end
+      end
+    end
 
-          get user_location
-          assert last_response.ok?, last_response.body
-          
-          resources = JSON.parse(last_response.body)
-          resources.each do |resource|
-            puts resource.to_json
+    def test_005_tags_resources
+      each_resource 'user' do |user|
+        user.tags.each do |tag_name, tag_locations|
+          tag_locations.each do |tag_location|
+            get tag_location
+            assert last_response.ok?, tag_location + ': ' + last_response.body
+            resource = Resource.new(tag_location, parse(last_response.body))
+            resource.tags.each do |tag_name, tag_locations|
+              NUM_TESTS.times do
+                url = '/' + resource.model + '/' + tag_name # get possible tags
+                get url
+                follow_redirect!
+                assert last_response.ok?, url + ': ' + last_response.body
+                possible_tags = parse(last_response.body)
+                possible_tags.each do |possible_tag_location|
+                  possible_tag_id = possible_tag_location.split('/').last
+                  url = resource.location + '/' + tag_name + possible_tag_id
+                  put url
+                  assert last_response.ok?, url + ': ' + last_response.body
+                end
+              end
+            end
           end
         end
       end
