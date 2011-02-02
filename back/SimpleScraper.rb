@@ -160,6 +160,7 @@ end
 # Redirect to the tag's model.
 get '/:resource_model/:relationship/' do
   tag_model = SimpleScraper::Tag.find_model(params) or not_found
+  puts tag_model.location.to_json
   redirect tag_model.location
 end
 

@@ -44,7 +44,11 @@
 	updater: 'update',
 	deleter: 'delete'
     };
-
+    events = {
+	'delete': 'delete.simplescraper',
+	'put':    'put.simplescraper',
+	'get':    'get.simplescraper'
+    };
 
     functions = {
 	// Give ajax calls a standard error functionality.
@@ -218,12 +222,142 @@
 		return $('<span>').append('close').addClass(classes.closer).click(function() {
 		    $(this).closest('.' + classes.resource).simplescraper('close')
 		});
+	    },
+	    make: function(widgetType) {
+		return $('<div />').addClass(classes[widgetType]);
 	    }
 	};
-	/* Resource methods. */
+	var _widgets = {
+	    'title' : {
+		/* options.name */
+		_init : function( options ) {
+		    return $('<div />').text(options.name);
+		},
+		_class : '.title'
+	    },
+	    'resource' : {
+		/* options.id, options.model */
+		_init : function( options ) {
+		    return $('<div />')
+			.data({
+			    simplescraper : { 
+				model : options.model,
+				id : options.id
+			    }
+			})
+			.draggable()
+			.append(_factory('title', { name: options.model + ' ' + options.id } ))
+		        .append(_factory('close'))
+			.append(_factory('delete'));
+		},
+		_class : '.resource',
+		_bindings : {
+		    /* Bring the resource up-to-date with the server. */
+		    'get.simplescraper' : function( ) { 
+			$(this).empty()
+
+/////////////////////////
+			/* Controls */
+			    .append($('<div>').addClass(classes.resourceControls)
+				    .append(widgets['deleter']).append(widgets['closer']));
+			functions.ajax({
+			    type: 'get',
+			    url: $(this).data('location'),
+			    dataType: 'json',
+			    success: function(data)
+			    {
+				if('name' in data) { // If there's a name, place it first.
+				    $resource.append($('<p>')).append(widgets['attributer']('name', data['name']));
+				    delete data['name'];
+				}
+				for(var key in data) {
+				    var attribute = data[key];
+				    if(jQuery.isArray(data[key])) { // A collection of tags was retrieved.
+					$resource.append($('<p>').append(widgets['tagHolder'](key, data[key])));
+				    } else { // An individual, put-able value.
+					$resource.append($('<p>').append(widgets['attributer'](key, data[key])));
+				    }
+				}
+			    }
+			});
+		    },
+		    'put.simplescraper' : function( ) { },
+		    'delete.simplescraper' : function( ) { },
+		    'close.simplescraper' : function( ) {
+			$(this).remove();
+		    },
+		    'tag.simplescraper' : function( tag, name ) { },
+		    'untag.simplescraper' : function( tag, name ) { }
+		}
+	    },
+		    'close' : {
+		_init : function ( ) { return $('<span />').text('X'); },
+		_class : '.close',
+		_bindings : {
+		    'click' : function( ) { $(this).closest(_widgets._resource._class).trigger('close.simplescraper'); }
+		}
+	    },
+            'delete' : {
+		_init : function( ) { return $('<span />').text('delete'); },
+		_class : '.delete',
+		_bindings : {
+		    'click' : function( ) { $(this).closest(_widgets._resource._class).trigger('delete.simplescraper'); }
+		}
+	    },
+	    'tag' : {
+		_init : function( options ) { return $('<span />').text(options.type); }
+		_class : '.tag',
+		_bindings : {
+		    'delete.simplescraper' : function ( ) { }
+		}
+	    }
+	};
+	var _factory = function( type, options ) {
+	    if( ! type in widgets )
+		$.error(widget + ' is not a valid widget.');
+	    var $widget = $(widgets.type._init(options));
+	    if( _class in widgets.type )
+		$widget.addClass(widgets.type._class.replace('/\./g', ' '));
+	    return $widget;
+	};
 	var methods = {
-	    init: function(creator, model, id) {
+	    init: function( options ){
 		return this.each(function() {
+		    var $this = $(this),
+		    data = $this.data('simplescraper');
+		    
+		    if( ! data ) {
+			$(this).data('simplescraper', {
+			    resources : {}
+			});
+			
+			/* Widget bindings. */
+			for( type in _widgets ) {
+			    var widget = _widgets.type;
+			    if(widget._bindings && widget._class) {
+				for( event in widget._bindings ) {
+				    $this.find(widget._class).live(widget._bindings[event]);
+				}
+			    }
+			}
+		    }
+		}).trigger(events.get);
+	    },
+	    destroy : function( ) {
+		return this.each(function(){
+		    var $this = $(this),
+		    data = $this.data('simplescraper');
+		    
+		    /* Widget unbinding. */
+		    for( type in _widgets ) {
+			$this.find(widget.type._class).die('.simplescraper').remove();
+		    }
+		    data.simplescraper.remove();
+		    $this.removeData('simplescraper');
+		})
+	    }
+
+		/*return this.each(function() {
 		    if(!creator || !id || !model)
 			$.error('Must specify creator, model and id to create a resource.');
 		    var $resource = $(this).addClass(classes.resource).data({model: model, id: id});
@@ -240,11 +374,6 @@
 			$resource.remove();
 			return;
 		    }
-		    // Set up event handlers.
-		    /*$resource.delegate('.' + classes.updater, 'click', function() {
-			$resource.simplescraper('put');
-			return false;
-		    });*/
 		    $resource.delegate('.' + classes.attributer, 'blur', function() {
 			$resource.simplescraper('put');
 			return false;
@@ -264,32 +393,7 @@
 			return false;
 		    });
 		    $resource.simplescraper('get');
-		});
-	    },
-	    /* Identify a resource. */
-	    identify: function() {
-		var array = [];
-		this.each(function() {
-		    array.push([$(this).data('model'), $(this).data('id')].join('/'));
-		});
-		if(array.length == 1)
-		    return array[0];
-		else return array;
-	    },
-	    /* Obtain the location of a resource. */
-	    location: function() {
-		var locations = [];
-		this.each(function() {
-		    if(!$(this).data('model') || !$(this).data('id')) {
-			locations.push(false);
-		    } else {
-			locations.push([settings.backDirectory, $(this).data('model'), $(this).data('id')].join('/'));
-		    }
-		});
-		if(locations.length == 1)
-		    return locations[0];
-		return locations;
-	    },
+		});*/
 	    /* Obtain a resource's attributes from the page. */
 	    attributes: function() {
 		var attributesAry = [];
@@ -308,40 +412,6 @@
 		if(attributesAry.length == 1)
 		    return attributesAry[0];
 		return attributesAry;
-	    },
-	    /* Bring the resource up-to-date with the server. */
-	    get: function() {
-		return this.each(function() {
-		    var $resource = $(this).empty().append($('<span>').addClass(classes.title)
-							   .append($(this).data('model'))
-							   .append(': "' + $(this).data('id') + '"'));
-		    $resource.
-			append($('<div>').addClass(classes.resourceControls)
-			       .append(widgets['deleter']).append(widgets['closer']));
-		    var url = $resource.simplescraper('location');
-		    if(!url)
-			return false;
-		    functions.ajax({
-			type: 'get',
-			url: url,
-			dataType: 'json',
-			success: function(data)
-			{
-			    if('id' in data) { // If there's a id, place it first.
-				$resource.append($('<p>')).append(widgets['attributer']('id', data['id']));
-				delete data['id'];
-			    }
-			    for(var key in data) {
-				var attribute = data[key];
-				if(jQuery.isArray(data[key])) { // A collection of tags was retrieved.
-				    $resource.append($('<p>').append(widgets['tagHolder'](key, data[key])));
-				} else { // An individual, post-able value.
-				    $resource.append($('<p>').append(widgets['attributer'](key, data[key])));
-				}
-			    }
-			}
-			   });
-		});
 	    },
 	    /* Attempt to bring the server-side resource up-to-date with the page. */
 	    put: function() {

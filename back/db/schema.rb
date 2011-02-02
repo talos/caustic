@@ -42,7 +42,7 @@ module DataMapper::Model
   def all_like(unfiltered)
     filtered = {}
     properties.each do |property|
-      filtered[property.name.to_sym.like] = unfiltered[property.name] + '%' if unfiltered.include? property.name
+      filtered[property.name.to_sym.like] = unfiltered[property.name] if unfiltered.include? property.name
     end
     all({:limit => SimpleScraper::MAX_RECORDS}.merge(filtered))
   end
@@ -205,24 +205,24 @@ module SimpleScraper
   class FieldName
     include Editable
     
-    tag :datas, :through => Resource
-    tag :areas, :through => :default_fields, :via => :area
-    has n, :default_fields
+    tag :datas,    :through => Resource
+    tag :defaults, :through => Resource
+
     tag :infos, :through => :publish_fields, :via => :info
     has n, :publish_fields
   end
 
-  class DefaultField
-    include DataMapper::Resource
-    tagging :area, :field_name
+  class Default
+    include Editable
+    
+    tag :field_names, :through => Resource
     property :value, String, :required => true, :default => ''
   end
 
   class Area
     include Editable
     
-    tag :defaults, 'FieldName', :through => :default_fields, :via => :field_name
-    has n, :default_fields
+    tag :defaults,  :through => Resource
     tag :datas,     :through => Resource
     tag :gatherers, :through => Resource
 
@@ -261,31 +261,14 @@ module SimpleScraper
     has n, :interpreter_source_datas
     tag :interpreter_targets, 'Interpreter', :through => :interpreter_target_datas, :via => :interpreter
     has n, :interpreter_target_datas
-
+    
     tag :gatherer_targets, 'Gatherer', :through => :gatherer_target_datas, :via => :gatherer
     has n, :gatherer_target_datas
   end
 
-  # class Publish # Applies to all an info's areas.
-  #   include Editable
-    
-  #   tag :infos, :through => Resource
-
-  #   property :name, String
-  # end
-  
-  # class Default # Applies to all an area's infos.
-  #   include Editable
-    
-  #   tag :areas, :through => Resource
-    
-  #   property :name, String
-  #   property :value, String
-  # end
-
   class Interpreter
     include Editable
-
+    
     tag :source_datas, 'Data', :through => :interpreter_source_datas, :via => :data
     has n, :interpreter_source_datas
     tag :target_datas, 'Data', :through => :interpreter_target_datas, :via => :data
@@ -296,7 +279,7 @@ module SimpleScraper
     property :match_number, Integer, :default => 0, :required => true
     property :terminate_on_complete, Boolean, :default => false, :required => true
   end
-
+  
   class Pattern
     include Editable
     
