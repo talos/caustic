@@ -20,18 +20,10 @@ p {
     margin: 0px;
     padding: 0px;
 }
-.editor {
-    display: inline-block;
-    position: fixed;
-    top: 0px;
-    right: 0px;
-    z-index: 1;
-}
 .resource {
-    left: 25%;
-    top: 200px;
+    left: 10px;
+    top:  10px;
     display: inline-block;
-    position: relative;
     background: #DDF;
     width: 300px;
 }

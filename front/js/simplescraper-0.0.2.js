@@ -12,25 +12,25 @@
     // Prevent console failures.
     if( ! window.console ) {
 	window.console = {};
-	window.console.log = function(string) { return false; }
+	window.console.log = function(string) { return false; };
 	console = {};
-	console.log = function(string) { return false; }
+	console.log = function(string) { return false; };
     }
     
-    // Give ajax calls a standard error functionality.
+    // Give ajax calls a standard error functionality & use of JSON.
     var _ajax = function( options ) {
-	$.extend(options, {
-	    error: function(response, code) {
-		$.error('AJAX error ' + response.status + ': ' + response.responseText);
+	return $.ajax($.extend({
+	    dataType : 'json',
+	    error: function(response, errorType) {
+		$.error('Ajax Error ' + errorType + ' from response ' + response.status + ': ' + response.responseText);
 	    }
-	});
-	$.ajax(options);
+	}, options));
     },
     /* Widget generation to create components of simplescraper. */
     _factory = function ( options ) {
 	return {
 	    init : function ( ) {
-		var factory = this,
+		var factory = this;
 		factory.target = options.target;
 
 		/**** Widget definitions. *****/
@@ -55,7 +55,10 @@
 				var data = $(this).data('simplescraper');
 
 //////////////// TODO ////////////////
-				factory.target.append(factory.make('resource', { location : data.location }));
+// Needs to follow redirect. 
+				$resource = factory.make('resource', { location : data.location });
+				$resource.trigger('get.simplescraper');
+				factory.target.prepend($resource);
 				return false;
 			    },
 			    /** Delete this tag. **/
@@ -76,33 +79,37 @@
 		    /***
 ********* Tagger widget. 
 * options.target : where on the page to append new tags.
+* options.location : where on the server to put these tags.
 */
 		    'tagger' : {
 			init : function ( options ) {
 			    return $('<input>').data('simplescraper', {
 				target : options.target,
+				location : options.location,
 				prevVal : ''
 			    });
 			},
 			bindings : {
 			    /** Create a new tag. **/
 			    'blur' : function ( event ) {
-				var data = $(this).data('simplescraper'),
+				var $tagger = $(this),
+				data = $tagger.data('simplescraper'),
 				$target = data.target;
 				// Only submit if value changed.
-				if(data.prevVal === $(this).val())
+				if(data.prevVal === $tagger.val()) {
 				    return false;
+				}
 				_ajax({
 				    type : 'put',
-				    url  : $target.closest('.resource').data('simplescraper').location + '/',
+				    url  : data.location,
 				    success : function( response ) {
 					/* Once we have retrieved an ID, we can create the tag widget. */
 					$target.append(factory.make('tag', {
-					    name : $(this).val(),
+					    name : $tagger.val(),
 					    location : response
 					}));
-					data.prevVal = $(this).val();
-					$(this).empty();
+					data.prevVal = $tagger.val();
+					$tagger.val('');
 				    }
 				});
 				return false;				    
@@ -112,10 +119,12 @@
 
 		    /**
 ******* Attribute widget.
+* options.name : name of the attribute.
+* options.value : default value for the attribute.
 */
 		    'attribute' : {
 			init : function( options ) {
-			    return $('<textarea />').attr({name: options.name, value: options.value}).before($('<label />').text(options.name + ': '));
+			    return $('<textarea />').attr({name: options.name, value: options.value});
 			},
 			bindings : {
 			    'blur' : function( event ) { 
@@ -129,62 +138,74 @@
 * options.location : where to load this resource from.
 */
 		    'resource' : {
-			/* options.id, options.model */
 			init : function( options ) {
-			    $content = $('<div />');
-			    return $('<div />')
+			    $content = $('<div />'),
+			    model =  options.location.split('/')[1],
+			    id = options.location.split('/')[2];
+			    $resource = $('<div />')
 				.data({
 				    simplescraper : { 
-					location : options.location
-					model : options.location.split('/')[0],
-					id : options.location.split('/')[1],
+					location : options.location,
+					model : model,
+					id : id,
 					content : $content,
 					attributes : { }
 				    }
 				})
 				.draggable()
 			    /* Title */
-				.append($('<div />').text(options.model + ' ' + options.id).addClass('title'))
+				.append($('<div />').text(model + ' ' + id).addClass('title'))
 			    /* Controls */
 				.append($('<div />').addClass('upperright')
 					.append(factory.make('close'))
 					.append(factory.make('delete')))
 			    /* Content */
 				.append($content);
+			    return $resource;
 			},
 			bindings : {
 			    
 			    /* Bring the resource up-to-date with the server. */
 			    'get.simplescraper' : function( event ) { 
-				var data = $(this).data('simplescraper'),
+				var $resource = $(this),
+				data = $(this).data('simplescraper'),
 				$content = data.content.empty();
-				functions.ajax({
+				_ajax({
 				    type: 'get',
 				    url: data.location,
-				    dataType: 'json',
-				    success: function(response)
-				    {
-					if('name' in response) { // If there's a name, place it first.
-					    $content.append(factory.make('attribute', {'name': response['name']}));
-					    delete response['name'];
-					}
-					for(var key in response) {
+				    /* Found the resource! */
+				    success: function( response ) {
+					var key;
+					for( key in response) {
 					    // A collection of tags was retrieved.
 					    if($.isPlainObject(response[key])) {
-						var $tagHolder = $('<div />').text(key + ': '),
+						var $tagHolder = $('<div />').text(key + ': ').appendTo($resource),
 						tags = data[key];
-						for( var name in tags) {
-						    $tagHolder.append(factory.make('tag', { name: name, data: tags[name] }));
+						var name;
+						for( name in tags ) {
+						    if( tags.hasOwnProperty(name)) {
+							$tagHolder.append(factory.make('tag', { name: name, data: tags[name] }));
+						    }
 						}
-						$tagHolder.append(factory.make('tagger', { resource : $(this) }));
+						$tagHolder.append(factory.make('tagger', { target : $tagHolder, location : data.location + '/' + key }));
 						// An individual, put-able value.
 					    } else {
-						var $attribute = factory.make('attribute', { name: key, value: data[key] } )
+						console.log(response);
+						console.log(key);
+						var $attribute = factory.make('attribute', { name : key, value : response[key] });
+						$attrHolder = $('<div />')
+						    .append($('<label />').text(key + ': '))
+						    .append($attribute)
 						    .appendTo($content);
 						data.attributes[key] = $attribute;
 					    }
 					}
-				    }});
+				    },
+				    /* Could not load the resource. */
+				    error: function( response ) {
+					$resource.trigger('close.simplescraper');
+				    }
+				});
 				return false;
 			    },
 			    
@@ -192,9 +213,12 @@
 			    'put.simplescraper' : function( event ) { 
 				var data = $(this).data('simplescraper'),
 				// Obtain values from attributes.
-				values = {};
-				for ( var name in data.attributes ) {
-				    values[name] = data.attributes.val();
+				values = {},
+				name;
+				for ( name in data.attributes ) {
+				    if( data.attributes.hasOwnProperty( name ) ) {
+					values[name] = data.attributes[name].val();
+				    }
 				}
 				_ajax({
 				    type : 'put',
@@ -209,7 +233,7 @@
 			    
 			    /** Delete the resource from the server. Close resource window if successful. **/
 			    'delete.simplescraper' : function( event ) { 
-				var data = $(this).data('simplescraper'),
+				var data = $(this).data('simplescraper');
 				_ajax({
 				    type : 'delete',
 				    url : data.location,
@@ -226,94 +250,68 @@
 				return false;
 			    }
 			},
+		    },
 
-			/**
+		    /**
 ***** Close widget.
 */
-			'close' : {
-			    init : function ( ) { return $('<span />').text('X'); },
-			    bindings : {
-				'click' : function( event ) { $(this).trigger('close.simplescraper'); }
-			    }
-			},
+		    'close' : {
+			init : function ( ) { return $('<span />').text('X'); },
+			bindings : {
+			    'click' : function( event ) { $(this).trigger('close.simplescraper'); }
+			}
+		    },
 
-			/**
+		    /**
 ***** Delete widget.
 */
-			'delete' : {
-			    init : function( ) { return $('<span />').text('delete'); },
-			    bindings : {
-				'click' : function( event ) { $(this).trigger('delete.simplescraper'); }
-			    }
-			},
+		    'delete' : {
+			init : function( ) { return $('<span />').text('delete'); },
+			bindings : {
+			    'click' : function( event ) { $(this).trigger('delete.simplescraper'); }
+			}
 		    }
 		};
-	    };
-	    return factory;
-	},
-	make : function( type, options ) {
-	    if( ! type in widgets )
-		$.error(widget + ' is not a valid widget.');
-	    var $widget = widgets.type.init(options).addClass(type);
-	    if( bindings in widgets.type ) {
-		for( var event in widget.bindings ) {
-		    $widget.bind(widget.bindings[event]);
+		return factory;
+	    },
+	    make : function( type, options ) {
+		if( ! type in this.widgets ) {
+		    $.error(type + ' is not a valid widget.');
 		}
-	    }
-	    return $widget;
-	}
-    };
-
-    var methods = {
-	init: function( options ){
-	    return this.each(function( ) {
-		var $this = $(this),
-		data = $this.data('simplescraper');
-		
-		if( ! data ) {
-		    $(this).data('simplescraper', {
-			resources : {},
-			target : $this
-		    });
-		    
-		}
-	    }).trigger(events.get);
-	},
-	destroy : function( ) {
-	    return this.each(function(){
-		var $this = $(this),
-		data = $this.data('simplescraper');
-		
-		data.simplescraper.remove();
-		$this.removeData('simplescraper');
-	    })
-	}
-
-	/* Add a tag a resource. Must supply a type of tag and tag id. */
-	},
-	/* Untag a tag from a resource.  Must supply a type of tag and tag id. */
-	untag: function(tagType, tagId) {
-	    return this.each(function() {
-		var $resource = $(this);
-		if(!$resource.hasClass(classes.resource)) // Only resources can be untagged.
-		    return;
-		var url = $resource.simplescraper('location');
-		if(!url)
-		    return;
-		url = url + '/' + tagType + '/' + tagId, // Pluralizes.
-
-		functions.ajax({
-		    type: 'delete',
-		    url: url,
-		    success: function(contents)
-		    {
-			$resource.simplescraper('get');
+		var widget = this.widgets[type],
+		$widget = widget.init(options).addClass(type),
+		event;
+		if( 'bindings' in widget ) {
+		    for( event in widget.bindings ) {
+			if( widget.bindings.hasOwnProperty( event )) {
+			    $widget.bind(event, widget.bindings[event]);
+			}
 		    }
-		});
+		}
+		return $widget;
+	    }
+	};
+    };
+    
+    var methods = {
+	/* Initialized with a user resource. */
+	init: function( options ) {
+	    var factory = _factory({target: this}).init(),
+	    $target = this;
+	    _ajax({
+		type : 'post',
+		url  : '/signup',
+		data : { name : 'test' },
+		success : function( response ) {
+		    var $initialUser = factory.make('resource', { location: response });
+		    $initialUser.trigger('get.simplescraper');
+		    $target.append($initialUser);
+		}
 	    });
+	    return this;
 	}
     };
-
+    
     $.fn.simplescraper = function(method) {
 	if ( methods[method] ) {
 	    return methods[ method ].apply( this, Array.prototype.slice.call( arguments, 1 ));
@@ -323,4 +321,5 @@
 	    $.error( 'Method ' +  method + ' does not exist in simplescraper.' );
 	}
     };
-}) ( jQuery );
+})( jQuery );
+

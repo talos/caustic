@@ -38,10 +38,10 @@ module SimpleScraper
       model.first_from_key(params[:resource_id])
     end
     
-    def self.first_or_create
+    def self.first_or_create(params)
       model = find_model(params) or return
-      resource = model.first_or_create_from_id(params[:resource_id]) or return
-      params.delete_if { |param| SimpleScraper::RESERVED_WORDS.include? param }
+      resource = model.first_or_create_from_key(params[:resource_id]) or return
+      params.delete_if { |param, value| SimpleScraper::RESERVED_WORDS.include? param }
       resource.update_attributes(params)
     end
   end
@@ -112,7 +112,8 @@ end
 # Signup!
 post '/signup' do
   # TODO: handle this in a real way.
-  SimpleScraper::User.create(:name => params[:name])
+  user = SimpleScraper::User.create(:name => params[:name])
+  user.location.to_json
 end
 
 ###### RESOURCE MODELS
@@ -140,7 +141,7 @@ end
 # Replace a resource.
 put '/:resource_model/:resource_id' do
   begin
-    resource = SimpleScraper::Resource.first_or_create(params)
+    resource = SimpleScraper::Resource.first_or_create(params) or return not_found
     resource.location.to_json
   rescue SimpleScraper::Exception => exception
     error exception.to_json
@@ -152,7 +153,6 @@ delete '/:resource_model/:resource_id' do
   resource.class.tag_names.each do |tag_name|
     resource.send(tag_name).all.each { |link| link.destroy }
   end
-  
   resource.destroy or error SimpleScraper::Exception.from_resources(resource).to_json
 end
 
@@ -168,8 +168,8 @@ end
 # Create a new tag.  Returns the location of the new tag.
 put '/:resource_model/:resource_id/:relationship/' do
   begin
-    tag_resource = SimpleScraper::Tag.first_or_create(params)
-    tag_resource.location
+    tag_resource = SimpleScraper::Tag.first_or_create(params) or return not_found
+    tag_resource.location.to_json
   rescue SimpleScraper::Exception => exception
     error exception.to_json
   end

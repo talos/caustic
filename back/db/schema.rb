@@ -114,15 +114,16 @@ module DataMapper::Resource
       not attributes.keys.include? name.downcase.to_sym
     end
     attributes= new_attributes
+    self # chainable
   end
   
   # Returns attributes, and lists of tags as arrays.
   def describe
     description = attributes.clone
     self.class.tag_names.each do |tag_name|
-      description[tag_name.to_s + '/'] = []
+      description[tag_name.to_s + '/'] = {}
       send(tag_name).all.each do |tag|
-        description[tag_name.to_s + '/'] << tag.location
+        description[tag_name.to_s + '/'][tag.location] = tag.attribute_get(:name)
       end
     end
     description
