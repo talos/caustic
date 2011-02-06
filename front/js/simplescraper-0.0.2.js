@@ -63,12 +63,14 @@
 			    },
 			    /** Delete this tag. **/
 			    'delete.simplescraper' : function ( event ) {
-				var data = $(this).data('simplescraper');
+				var $resource = $(this),
+				data = $resource.data('simplescraper');
 				$_ajax({
 				    type : 'delete',
 				    url  : data.location,
 				    success : function ( ) {
-					$(this).remove();
+					$resource.remove();
+					$('.resource').trigger('get.simplescraper'); // Could affect links in other resources.
 				    }
 				});
 				return false;
@@ -85,8 +87,7 @@
 			init : function ( options ) {
 			    return $('<input>').data('simplescraper', {
 				target : options.target,
-				location : options.location,
-				prevVal : ''
+				location : options.location
 			    });
 			},
 			bindings : {
@@ -94,24 +95,20 @@
 			    'blur' : function ( event ) {
 				var $tagger = $(this),
 				data = $tagger.data('simplescraper'),
+				name = $tagger.val(),
 				$target = data.target;
-				// Only submit if value changed.
-				if(data.prevVal === $tagger.val()) {
-				    return false;
+				// Only submit if there's a value for name.
+				if($tagger.val() !== '') {
+				    _ajax({
+					type : 'put',
+					url  : data.location,
+					data : { name : name },
+					success : function( response ) {
+					    // Could affect other resources, so refresh all.
+					    $('.resource').trigger('get.simplescraper');
+					}
+				    });
 				}
-				_ajax({
-				    type : 'put',
-				    url  : data.location,
-				    success : function( response ) {
-					/* Once we have retrieved an ID, we can create the tag widget. */
-					$target.append(factory.make('tag', {
-					    name : $tagger.val(),
-					    location : response
-					}));
-					data.prevVal = $tagger.val();
-					$tagger.val('');
-				    }
-				});
 				return false;				    
 			    } 
 			}
@@ -168,7 +165,7 @@
 			    /* Bring the resource up-to-date with the server. */
 			    'get.simplescraper' : function( event ) { 
 				var $resource = $(this),
-				data = $(this).data('simplescraper'),
+				data = $resource.data('simplescraper'),
 				$content = data.content.empty();
 				_ajax({
 				    type: 'get',
@@ -178,20 +175,20 @@
 					var key;
 					for( key in response) {
 					    // A collection of tags was retrieved.
+					    console.log(response);
 					    if($.isPlainObject(response[key])) {
-						var $tagHolder = $('<div />').text(key + ': ').appendTo($resource),
-						tags = data[key];
+						var $tagHolder = $('<div />').text(key + ': ').appendTo($content),
+						tags = response[key];
 						var name;
 						for( name in tags ) {
 						    if( tags.hasOwnProperty(name)) {
-							$tagHolder.append(factory.make('tag', { name: name, data: tags[name] }));
+							console.log(tags[name]);
+							$tagHolder.append(factory.make('tag', { name: tags[name], location: name }));
 						    }
 						}
 						$tagHolder.append(factory.make('tagger', { target : $tagHolder, location : data.location + '/' + key }));
 						// An individual, put-able value.
 					    } else {
-						console.log(response);
-						console.log(key);
 						var $attribute = factory.make('attribute', { name : key, value : response[key] });
 						$attrHolder = $('<div />')
 						    .append($('<label />').text(key + ': '))
@@ -211,9 +208,10 @@
 			    
 			    /**  Replace the resource (thus updating its attributes). **/
 			    'put.simplescraper' : function( event ) { 
-				var data = $(this).data('simplescraper'),
+				var $resource = $(this),
+				data = $resource.data('simplescraper'),
 				// Obtain values from attributes.
-				values = {},
+				values = {};
 				name;
 				for ( name in data.attributes ) {
 				    if( data.attributes.hasOwnProperty( name ) ) {
@@ -225,7 +223,8 @@
 				    url : data.location,
 				    data : values,
 				    success : function( ) { // TODO: check status
-					$(this).trigger('get.simplescraper'); // See whether our changes took.
+					$resource.trigger('get.simplescraper');
+					//$('.resource').trigger('get.simplescraper');
 				    }
 				});
 				return false;
@@ -233,12 +232,13 @@
 			    
 			    /** Delete the resource from the server. Close resource window if successful. **/
 			    'delete.simplescraper' : function( event ) { 
-				var data = $(this).data('simplescraper');
+				var $resource = $(this),
+				data = $resource.data('simplescraper');
 				_ajax({
 				    type : 'delete',
 				    url : data.location,
 				    success : function( ) {
-					$(this).trigger('close.simplescraper');
+					$resource.trigger('close.simplescraper');
 				    }
 				});
 				return false;

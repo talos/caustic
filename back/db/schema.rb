@@ -29,7 +29,7 @@ end
 
 # Extend default String length from 50 to 500
 DataMapper::Property::String.length(500)
-DataMapper::Model.raise_on_save_failure = false
+DataMapper::Model.raise_on_save_failure = true
 module SimpleScraper
   SimpleScraper::MAX_RECORDS = 100
 end
@@ -64,11 +64,17 @@ module DataMapper::Model
   end
 
   def first_from_key(*key)
+    if(not key)
+      return first
+    end
     first criteria_from_key *key
   end
 
-  def first_or_create_from_key(*key)
-    first_or_create criteria_from_key *key
+  def first_or_new_from_key(*key)
+    if(not key)
+      return first_or_new
+    end
+    first_or_new criteria_from_key *key
   end
 end
 
@@ -109,16 +115,24 @@ module DataMapper::Resource
     '/' + model.raw_name + '/' + [*key].join('.')
   end
   
-  def update_attributes(new_attributes)
+  def safe_attributes= (new_attributes)
     new_attributes.delete_if do |name, value| # Delete attributes not specified in the model
       not attributes.keys.include? name.downcase.to_sym
     end
     attributes= new_attributes
-    self # chainable
+    puts new_attributes.to_json
+    puts attributes.to_json
+    puts save
+    puts attributes.to_json
+    reload
+    puts attributes.to_json
+    puts describe.to_json
+    #self # chainable
   end
   
   # Returns attributes, and lists of tags as arrays.
   def describe
+    puts attributes.to_json
     description = attributes.clone
     self.class.tag_names.each do |tag_name|
       description[tag_name.to_s + '/'] = {}
@@ -158,8 +172,8 @@ module SimpleScraper
     
     tag :areas,          :child_key => [ :creator_id ]
     tag :infos,          :child_key => [ :creator_id ]
-    #tag :publishes,      :child_key => [ :creator_id ]
-    #tag :defaults,       :child_key => [ :creator_id ]
+    tag :publish_fields, :child_key => [ :creator_id ]
+    tag :defaults,       :child_key => [ :creator_id ]
     tag :patterns,       :child_key => [ :creator_id ]
     tag :interpreters,   :child_key => [ :creator_id ]
     tag :datas,          :child_key => [ :creator_id ]

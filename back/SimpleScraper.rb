@@ -40,9 +40,11 @@ module SimpleScraper
     
     def self.first_or_create(params)
       model = find_model(params) or return
-      resource = model.first_or_create_from_key(params[:resource_id]) or return
+      resource = model.first_or_new_from_key(params[:resource_id])
       params.delete_if { |param, value| SimpleScraper::RESERVED_WORDS.include? param }
-      resource.update_attributes(params)
+      resource.safe_attributes= params
+      resource.save or raise SimpleScraper::Exception.from_resources(resource)
+      resource
     end
   end
 
@@ -66,15 +68,14 @@ module SimpleScraper
         raise SimpleScraper::Exception.new("Cannot tag a resource with itself.") 
       end
 
-      tag_resource = tag_model.first_or_create_from_key(params[:relationship_id])
-      
-      safe_params = params.clone
-      safe_params.delete_if { |key, value| SimpleScraper::RESERVED_WORDS.include? key }
-      tag_resource.update_attributes(safe_params)
-      
+      tag_resource = tag_model.first_or_new_from_key(params[:relationship_id])
       resource.send(params[:relationship]) << tag_resource
-      resource.save or raise SimpleScraper::Exception.from_resources(resource, tag_resource)
       
+      params.delete_if { |key, value| SimpleScraper::RESERVED_WORDS.include? key }
+      tag_resource.safe_attributes= params
+      
+      tag_resource.save or raise SimpleScraper::Exception.from_resources(tag_resource)
+      resource.save or raise SimpleScraper::Exception.from_resources(resource)
       tag_resource
       #  resource.send(params[:relationship].downcase) << tag
       #  resource.save or tag.send(params[:model].downcase + 's') << resource
@@ -127,7 +128,7 @@ end
 # Create a new resource. Returns the location of the new resource.
 put '/:resource_model/' do
   begin
-    resource = SimpleScraper::Resource.first_or_create(params)
+    resource = SimpleScraper::Resource.first_or_create(params) or return not_found
     resource.location.to_json
   rescue SimpleScraper::Exception => exception
     error exception.to_json
