@@ -29,7 +29,7 @@ end
 
 # Extend default String length from 50 to 500
 DataMapper::Property::String.length(500)
-DataMapper::Model.raise_on_save_failure = true
+#DataMapper::Model.raise_on_save_failure = true
 module SimpleScraper
   SimpleScraper::MAX_RECORDS = 100
 end
@@ -76,6 +76,10 @@ module DataMapper::Model
     end
     first_or_new criteria_from_key *key
   end
+  
+  def first_or_new_from_name(name)
+    first_or_new(:name => name)
+  end
 end
 
 # Convenience methods for collecting tags.
@@ -119,20 +123,11 @@ module DataMapper::Resource
     new_attributes.delete_if do |name, value| # Delete attributes not specified in the model
       not attributes.keys.include? name.downcase.to_sym
     end
-    attributes= new_attributes
-    puts new_attributes.to_json
-    puts attributes.to_json
-    puts save
-    puts attributes.to_json
-    reload
-    puts attributes.to_json
-    puts describe.to_json
-    #self # chainable
+    self.attributes=(new_attributes)
   end
   
   # Returns attributes, and lists of tags as arrays.
   def describe
-    puts attributes.to_json
     description = attributes.clone
     self.class.tag_names.each do |tag_name|
       description[tag_name.to_s + '/'] = {}
@@ -154,8 +149,7 @@ module SimpleScraper
         property :id,   DataMapper::Property::Serial
         property :name, DataMapper::Property::String,
                  :required => true,
-                 :default  => lambda { |r, p| r.model.raw_name }
-         # + '_' + r.attribute_get(:id) }
+                 :unique   => true
         property :description, DataMapper::Property::Text
         
         belongs_to :creator, :model => 'User', :required => true

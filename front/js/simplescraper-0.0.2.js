@@ -63,13 +63,13 @@
 			    },
 			    /** Delete this tag. **/
 			    'delete.simplescraper' : function ( event ) {
-				var $resource = $(this),
-				data = $resource.data('simplescraper');
+				var $tag = $(this),
+				data = $tag.data('simplescraper');
 				$_ajax({
 				    type : 'delete',
 				    url  : data.location,
 				    success : function ( ) {
-					$resource.remove();
+					//$tag.remove();
 					$('.resource').trigger('get.simplescraper'); // Could affect links in other resources.
 				    }
 				});
@@ -121,11 +121,19 @@
 */
 		    'attribute' : {
 			init : function( options ) {
-			    return $('<textarea />').attr({name: options.name, value: options.value});
+			    if(options.value === null) {
+				options.value = '';
+			    }
+			    return $('<textarea />').attr({name: options.name, value: options.value})
+				.data('simplescraper', { lastValue: options.value });
 			},
 			bindings : {
 			    'blur' : function( event ) { 
-				$(this).trigger('put.simplescraper');
+				var data = $(this).data('simplescraper');
+				if(data.lastValue != $(this).val()) { // Only update if value changed.
+				    data.lastValue = $(this).val();
+				    $(this).trigger('put.simplescraper');
+				}
 			    }
 			}
 		    },
@@ -136,10 +144,11 @@
 */
 		    'resource' : {
 			init : function( options ) {
-			    $content = $('<div />'),
+			    var $content = $('<div />'),
+			    $draggable = $('<div />').draggable(),
 			    model =  options.location.split('/')[1],
 			    id = options.location.split('/')[2];
-			    $resource = $('<div />')
+			    $resource = $('<div />').css('position', 'absolute')
 				.data({
 				    simplescraper : { 
 					location : options.location,
@@ -149,15 +158,16 @@
 					attributes : { }
 				    }
 				})
-				.draggable()
-			    /* Title */
-				.append($('<div />').text(model + ' ' + id).addClass('title'))
-			    /* Controls */
-				.append($('<div />').addClass('upperright')
-					.append(factory.make('close'))
-					.append(factory.make('delete')))
-			    /* Content */
-				.append($content);
+				.append($draggable
+					/* Title */
+					.append($('<div />').text(model + ' ' + id).addClass('title'))
+					/* Controls */
+					.append($('<div />').addClass('upperright')
+						.append(factory.make('close'))
+						.append(factory.make('delete')))
+					/* Content */
+					.append($content)
+				       );
 			    return $resource;
 			},
 			bindings : {
@@ -175,14 +185,12 @@
 					var key;
 					for( key in response) {
 					    // A collection of tags was retrieved.
-					    console.log(response);
 					    if($.isPlainObject(response[key])) {
 						var $tagHolder = $('<div />').text(key + ': ').appendTo($content),
 						tags = response[key];
 						var name;
 						for( name in tags ) {
 						    if( tags.hasOwnProperty(name)) {
-							console.log(tags[name]);
 							$tagHolder.append(factory.make('tag', { name: tags[name], location: name }));
 						    }
 						}
@@ -239,6 +247,7 @@
 				    url : data.location,
 				    success : function( ) {
 					$resource.trigger('close.simplescraper');
+					$('.resource').trigger('get.simplescraper'); // Could alter tags.
 				    }
 				});
 				return false;
@@ -294,20 +303,18 @@
     };
     
     var methods = {
-	/* Initialized with a user resource. */
+	// The 'open' option contains an array of resources, or an individual resource, to open by default.
 	init: function( options ) {
 	    var factory = _factory({target: this}).init(),
 	    $target = this;
-	    _ajax({
-		type : 'post',
-		url  : '/signup',
-		data : { name : 'test' },
-		success : function( response ) {
-		    var $initialUser = factory.make('resource', { location: response });
-		    $initialUser.trigger('get.simplescraper');
-		    $target.append($initialUser);
+	    console.log(options);
+	    if( options.open ) {
+		var openAry = $.isArray( options.open ) ? options.open : [ options.open ],
+		i;
+		for ( i = 0; i < openAry.length; i++ ) {
+		    factory.make('resource', { location: openAry[i] }).trigger('get.simplescraper').appendTo($target);
 		}
-	    });
+	    }
 	    return this;
 	}
     };

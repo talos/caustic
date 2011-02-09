@@ -15,6 +15,8 @@ $:<< Dir.pwd + '/db'
 require 'rubygems'
 require 'sinatra'
 require 'db/schema'
+require 'net/http'
+require 'net/https'
 
 # CONFIG
 configure do
@@ -68,7 +70,12 @@ module SimpleScraper
         raise SimpleScraper::Exception.new("Cannot tag a resource with itself.") 
       end
 
-      tag_resource = tag_model.first_or_new_from_key(params[:relationship_id])
+      if params[:name]
+        tag_resource = tag_model.first_or_new_from_name(params[:name])
+      else
+        tag_resource = tag_model.first_or_new_from_key(params[:relationship_id])
+      end
+
       resource.send(params[:relationship]) << tag_resource
       
       params.delete_if { |key, value| SimpleScraper::RESERVED_WORDS.include? key }
@@ -97,24 +104,55 @@ module SimpleScraper
       {:errors => @errors}.to_json
     end
   end
+
+  # Courtesy http://blog.saush.com/2009/04/02/write-a-sinatra-based-twitter-clone-in-200-lines-of-ruby-code/
+  # TODO :: Should this even be here?  Should move the API key stuff elsewhere, obviously.
+  def SimpleScraper::get_user(token)
+    u = URI.parse('https://rpxnow.com/api/v2/auth_info')
+    apiKey = '344cef0cc21bc9ff3b406a7b2c2a2dffc79d39dc'
+    req = Net::HTTP::Post.new(u.path)
+    req.set_form_data({'token' => token, 'apiKey' => apiKey, 'format' => 'json', 'extended' => 'true'})
+    http = Net::HTTP.new(u.host,u.port)
+    http.use_ssl = true if u.scheme == 'https'
+    json = JSON.parse(http.request(req).body)
+    
+    if json['stat'] == 'ok'
+      identifier = json['profile']['identifier']
+      nickname = json['profile']['preferredUsername']
+      nickname = json['profile']['displayName'] if nickname.nil?
+      email = json['profile']['email']
+      {:identifier => identifier, :nickname => nickname, :email => email}
+    else
+      raise LoginFailedError, 'Cannot log in. Try another account!' 
+    end
+  end
 end
 
 get '/' do
   redirect '/index.html'
 end
 
-# Login!
-post '/login' do
-  # TODO: session handling.
-  #  session[:user] = params[:user]
-  not_found
+get '/login' do
+  redirect '/login.html'
 end
 
-# Signup!
-post '/signup' do
-  # TODO: handle this in a real way.
-  user = SimpleScraper::User.create(:name => params[:name])
-  user.location.to_json
+# Login!
+post '/login' do
+  if params[:token]
+    rpx_user = SimpleScraper::get_user params[:token]
+    
+    # TODO: using the rpx_uxer[:identifier] is clunky, the nickname is non-unique, and the email is privacy-violating...
+    user = SimpleScraper::User.first_or_new_from_name(rpx_user[:identifier])
+    user.save or error SimpleScraper::Exception.from_resources(user).to_json
+    #user = SimpleScraper::User.first_or_create(:name => rpx_user[:identifier])
+    puts rpx_user.to_json
+    puts user.describe
+    session[:user_id] = user.attribute_get(:id)
+    #user.location.to_json
+    redirect '/#' + user.location
+  else
+    error "No RPX login token."
+  end
 end
 
 ###### RESOURCE MODELS
@@ -126,14 +164,15 @@ end
 
 ###### RESOURCES
 # Create a new resource. Returns the location of the new resource.
-put '/:resource_model/' do
-  begin
-    resource = SimpleScraper::Resource.first_or_create(params) or return not_found
-    resource.location.to_json
-  rescue SimpleScraper::Exception => exception
-    error exception.to_json
-  end
-end
+# Impossible outside of the context of an existing resource (namely, user).
+# put '/:resource_model/' do
+#   begin
+#     resource = SimpleScraper::Resource.first_or_create(params) or return not_found
+#     resource.location.to_json
+#   rescue SimpleScraper::Exception => exception
+#     error exception.to_json
+#   end
+# end
 # Describe a resource.
 get '/:resource_model/:resource_id' do
   resource = SimpleScraper::Resource.first(params) or return not_found
@@ -161,7 +200,6 @@ end
 # Redirect to the tag's model.
 get '/:resource_model/:relationship/' do
   tag_model = SimpleScraper::Tag.find_model(params) or not_found
-  puts tag_model.location.to_json
   redirect tag_model.location
 end
 

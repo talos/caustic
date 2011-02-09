@@ -11,12 +11,13 @@
     <script type="text/javascript">
 
       $(document).ready(function() {
-        $('#simplescraper').simplescraper('init', {user: 'test'});
+        $('#simplescraper').simplescraper('init', {open: window.location.hash.replace('#', '')});
       });
     </script>
   </head>
   <body>
     <noscript>SimpleScraper front requires JavaScript in order to run.</noscript>
+
     <div id="simplescraper"></div>
   </body>
 </html>
