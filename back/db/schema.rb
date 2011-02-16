@@ -154,6 +154,7 @@ module SimpleScraper
         
         belongs_to :creator, :model => 'User', :required => true
         tag :editors, :model => 'User', :through => DataMapper::Resource
+        
       end
     end
   end
@@ -164,9 +165,11 @@ module SimpleScraper
     property :id,   Serial
     property :name, String, :required => true
     
+    tag :datas,          :child_key => [ :creator_id ]
     tag :areas,          :child_key => [ :creator_id ]
     tag :infos,          :child_key => [ :creator_id ]
-    tag :publish_fields, :child_key => [ :creator_id ]
+    tag :field_names,    :child_key => [ :creator_id ]
+    #tag :publish_fields, :child_key => [ :creator_id ]
     tag :defaults,       :child_key => [ :creator_id ]
     tag :patterns,       :child_key => [ :creator_id ]
     tag :interpreters,   :child_key => [ :creator_id ]
@@ -225,7 +228,8 @@ module SimpleScraper
     include Editable
     
     tag :field_names, :through => Resource
-    property :value, String, :required => true, :default => ''
+    property :value, String, #:required => true,
+                    :default => ''
   end
 
   class Area
@@ -233,8 +237,8 @@ module SimpleScraper
     
     tag :defaults,  :through => Resource
     tag :datas,     :through => Resource
-    tag :gatherers, :through => Resource
-
+    #tag :gatherers, :through => Resource
+    
     has n, :area_links, :model => AreaLink, :child_key => [:source_id]
     tag :follow_areas,  :model => self, :through => :area_links, :via => :target
   end
@@ -250,8 +254,8 @@ module SimpleScraper
     tag :publishes, 'FieldName', :through => :publish_fields, :via => :field_name
     has n, :publish_fields
     tag :datas,       :through => Resource
-    tag :gatherers,   :through => Resource
-    tag :interpreters,:through => Resource
+    #tag :gatherers,   :through => Resource
+    #tag :interpreters,:through => Resource
   end
 
   class Data
@@ -273,6 +277,19 @@ module SimpleScraper
     
     tag :gatherer_targets, 'Gatherer', :through => :gatherer_target_datas, :via => :gatherer
     has n, :gatherer_target_datas
+
+    # Cross-product area/info/field_names
+    def to_scraper
+      object = []
+      areas.each do |area|
+        infos.each do |info|
+          field_names.each do |field_name|
+            object << [area.name, info.name, field_name.name]
+          end
+        end
+      end
+      object
+    end
   end
 
   class Interpreter
@@ -283,10 +300,21 @@ module SimpleScraper
     tag :target_datas, 'Data', :through => :interpreter_target_datas, :via => :data
     has n, :interpreter_target_datas
     
-    tag :patterns, :through => Resource
-    
+    tag :patterns,  :through => Resource
+    tag :gatherers, :through => Resource
+
     property :match_number, Integer, :default => 0, :required => true
     property :terminate_on_complete, Boolean, :default => false, :required => true
+
+    def to_scraper
+      {
+        :match_number => interpreter.match_number,
+        :terminate_on_complete => interpreter.terminate_on_complete,
+        :regexes => patterns.collect { |pattern| pattern.regex },
+        :source_attributes => source_datas.collect { |source_data| source_data.to_scraper },
+        :target_attributes => target_datas.collect { |target_data| target_data.to_scraper }
+      }
+    end
   end
   
   class Pattern
@@ -305,17 +333,23 @@ module SimpleScraper
     tag :target_datas, 'Data', :through => :generator_target_datas, :via => :data
     has n, :generator_target_datas
     
-    tag :patterns, :through => Resource
+    tag :gatherers, :through => Resource
+    tag :patterns,  :through => Resource
+
+    def to_scraper
+      {
+        :regexes => patterns.collect { |pattern| pattern.regex },
+        :source_attributes => source_datas.collect { |source_data| source_data.to_scraper },
+        :target_attributes => target_datas.collect { |target_data| target_data.to_scraper }
+      }
+    end
   end
   
   class Gatherer
     include Editable
-
-    tag :areas, :through => Resource
-    tag :infos, :through => Resource
     
-    tag :target_datas, 'Data', :through => :gatherer_target_datas, :via => :data
-    has n, :gatherer_target_datas
+    tag :interpreters, :through => Resource
+    tag :generators,   :through => Resource
     
     tag :stops, 'Pattern', :through => Resource
     
@@ -323,6 +357,28 @@ module SimpleScraper
     tag :posts, :through => Resource
     tag :headers, :through => Resource
     tag :cookie_headers, :through => Resource
+
+    def to_scraper
+      urls, posts, headers, cookies, target_field_names = [], {}, {}, {}, []
+      gatherer_id = gatherer.attribute_get(:id)
+      urls.push( *gatherer.urls.collect{ |url| url.value } )
+      gatherer.posts.each do |post|
+        posts[post.post_name] = post.value
+      end
+      gatherer.headers.each do |header|
+        posts[header.header_name] = header.value
+      end
+      gatherer.cookie_headers.each do |cookie_header|
+        posts[cookie_header.cookie_name] = cookie_header.value
+      end
+      {
+        :urls => urls,
+        :posts => posts,
+        :headers => headers,
+        :cookies => cookies,
+        :target_attributes => target_datas.collect { |target_data| target_data.to_scraper }
+      }
+    end
   end
   
   class Url
@@ -363,4 +419,4 @@ module SimpleScraper
 end
 
 DataMapper.finalize
-DataMapper.auto_migrate!
+DataMapper.auto_upgrade!

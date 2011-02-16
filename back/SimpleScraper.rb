@@ -129,11 +129,17 @@ module SimpleScraper
 end
 
 get '/' do
-  redirect '/index.html'
+  if session[:user_id].nil? 
+    redirect '/login'
+  elsif SimpleScraper::User.first(:id => session[:user_id]).nil?
+    redirect '/login'
+  else
+    File.read(File.join('../front', 'index.html'))
+  end
 end
 
 get '/login' do
-  redirect '/login.html'
+  File.read(File.join('../front', 'login.html'))
 end
 
 # Login!
@@ -145,8 +151,6 @@ post '/login' do
     user = SimpleScraper::User.first_or_new_from_name(rpx_user[:identifier])
     user.save or error SimpleScraper::Exception.from_resources(user).to_json
     #user = SimpleScraper::User.first_or_create(:name => rpx_user[:identifier])
-    puts rpx_user.to_json
-    puts user.describe
     session[:user_id] = user.attribute_get(:id)
     #user.location.to_json
     redirect '/#' + user.location
@@ -191,6 +195,8 @@ end
 delete '/:resource_model/:resource_id' do
   resource = SimpleScraper::Resource.first(params) or return not_found
   resource.class.tag_names.each do |tag_name|
+    puts tag_name
+    resource.send(tag_name).all.each { |link| puts link.to_json }
     resource.send(tag_name).all.each { |link| link.destroy }
   end
   resource.destroy or error SimpleScraper::Exception.from_resources(resource).to_json
@@ -250,114 +256,73 @@ end
 #   resource.model.tags[params[:tag]] ? redirect resource.model.tags[params[:tag]].location + '/' + params[:splat][0] : not_found
 # end
 
-# Get all the gatherers, generators, and interpreters associated with an area, info, and creator.
-# Returns any of the aforementioned objects if they fall within the ancestor tree of the specified area.
-# TODO: correct compilation of scrapers.
-get '/scrapers/:creator/:area/:info' do
-
-  creator = SimpleScraper::User.first(:id => params[:creator]) or return not_found
-  area = SimpleScraper::Area.first(:id => params[:area]) or return not_found
-  info = SimpleScraper::Info.first(:id => params[:info]) or return not_found
-
-  #area_ids = area.ancestors.collect{ |parent_area| parent_area.attribute_get(:id) }.push(area.attribute_get(:id))
+# Collect scrapers: this pulls any interpreters, gatherers, and generators that eventually link to a piece of
+# data that would be published for an information in an area.
+get '/scrapers/:area/:info' do
+  
+  #creator = SimpleScraper::User.first(:id => params[:creator]) #or return not_found # Creator is optional.
+  area = SimpleScraper::Area.first(:name => params[:area]) or return not_found
+  info = SimpleScraper::Info.first(:name => params[:info]) or return not_found
+  
   # Collect associated areas non-redundantly.
-  #area_ids = [params[:area_id]]
   area_ids = []
   def get_area_ids(check_area, area_ids)
-    area_ids.push(check_area.attribute_get(:id))
+    area_ids << check_area.attribute_get(:id)
     if area_ids.length == area_ids.uniq.length
-      check_area.areas.each { |assoc_area| get_area_ids(assoc_area, area_ids) }
+      check_area.follow_areas.each { |assoc_area| get_area_ids(assoc_area, area_ids) }
     else
       area_ids.uniq!
     end
   end
-  get_area_ids(SimpleScraper::Area.first(:id => params[:area]), area_ids)
-  #SimpleScraper::Area.all(SimpleScraper::Area
+  get_area_ids(area, area_ids)
+
+  info_id = info.attribute_get(:id)
   
-  models = [ SimpleScraper::Gatherer, SimpleScraper::Interpreter, SimpleScraper::Generator ]
-  publish_collection = SimpleScraper::Publish.all
-  default_collection = SimpleScraper::Default.all
-  
-  resources = {
-    :defaults => {}
-  }
-  models.each do |model|
-    resources[model] = (model.all(model.creator.id => params[:creator]) & \
-                        model.all(model.areas.id => areas) & \
-                        model.all(model.infos.id => params[:info]))
+  data_collection = SimpleScraper::Data.all(SimpleScraper::Data.areas.id => area_ids) & \
+                    SimpleScraper::Data.all(SimpleScraper::Data.infos.id => info_id)
+  if(params[:creator])
+    data_collection = data_collection & SimpleScraper::Data.all(:creator_id => params[:creator])
   end
-  
-  default_collection = (SimpleScraper::Default.all(SimpleScraper::Default.areas.id => area_ids) & \
-                        SimpleScraper::Default.all(SimpleScraper::Default.creator.id => params[:creator]))
-  publish_collection = (SimpleScraper::Publish.all(SimpleScraper::Publish.infos.id => params[:info]) & \
-                        SimpleScraper::Publish.all(SimpleScraper::Publish.creator.id => params[:creator]))
-  
-  resources[:publishes] = publish_collection.collect {|publish| publish.name }
-  default_collection.each do |default|
-    resources[:defaults][default.name] = default.value
+
+  data_ids = []
+  gatherers = []
+  def get_data_ids (check_datas, data_ids, gatherers)
+    check_data_ids = check_datas.collect { |check_data| check_data.attribute_get(:id) } - data_ids 
+    data_ids.push(*check_data_ids)
+    
+    interpreter_collection = SimpleScraper::Interpreter.all(SimpleScraper::Interpreter.target_datas.id => check_data_ids)
+    generator_collection   = SimpleScraper::Generator.all(SimpleScraper::Generator.target_datas.id => check_data_ids)
+    
+    gatherers.push(*interpreter_collection.collect { |interpreter| interpreter.gatherers.all } )
+    gatherers.push(*generator_collection.collect   { |generator|   generator.gatherers.all   } )
+    gatherers.uniq!
+    
+    additional_datas = []
+    additional_datas.push(*interpreter_collection.collect { |interpreter| interpreter.source_datas.all })
+    additional_datas.push(*generator_collection.collect   { |generator|   generator.source_datas.all   })
+    
+    get_data_ids additional_datas, data_ids, gatherers
   end
-  
+  get_data_ids data_collection.all, data_ids, gatherers
+
   object = {
-    :publishes => resources[:publishes],
-    :defaults => resources[:defaults],
-    :gatherers => {},
+    :publishes    => SimpleScraper::Publish.all(SimpleScraper::Publish.infos.id => info_id).collect  { |publish| publish.name },
+    :defaults     => SimpleScraper::Default.all(SimpleScraper::Default.areas.id => area_ids).collect { |default| default.name },
+    :gatherers    => {},
     :interpreters => {},
-    :generators => {}
+    :generators   => {}
   }
   
-  resources[SimpleScraper::Gatherer].each do |gatherer|
-    urls, posts, headers, cookies = [], {}, {}, {}
-    SimpleScraper::Url.all(SimpleScraper::Url.gatherers.id => gatherer.attribute_get(:id)).each do |url|
-      urls.push(url.value)
-    end
-    SimpleScraper::Post.all(SimpleScraper::Post.gatherers.id => gatherer.attribute_get(:id)).each do |post|
-      posts[post.name] = post.value
-    end
-    SimpleScraper::Header.all(SimpleScraper::Header.gatherers.id => gatherer.attribute_get(:id)).each do |header|
-      headers[header.name] = header.value
-    end
-    SimpleScraper::CookieHeader.all(SimpleScraper::CookieHeader.gatherers.id => gatherer.attribute_get(:id)).each do |cookie|
-      cookies[cookie.name] = cookie.value
-    end
-    object[:gatherers][gatherer.creator_id + '/' + gatherer.attribute_get(:id)] = {
-      :urls => urls,
-      :posts => posts,
-      :headers => headers,
-      :cookies => cookies
-    }
+  gatherers.each do |gatherer|
+    object[:gatherers][gatherer.creator_id + '/' + gatherer.attribute_get(:name)] = gatherer.to_scraper
   end
   
-  resources[SimpleScraper::Interpreter].each do |interpreter|
-    source_attributes = []
-    if interpreter.source_attribute != ''
-      source_attributes.push(interpreter.source_attribute)
-    end
-    SimpleScraper::Gatherer.all(SimpleScraper::Gatherer.interpreters.id => interpreter.attribute_get(:id)).each do |gatherer|
-      source_attributes.push('gatherer.' + gatherer.creator_id + '/' + gatherer.attribute_get(:id))
-    end
-    object[:interpreters][interpreter.creator_id + '/' + interpreter.attribute_get(:id)] = {
-      :source_attributes => source_attributes,
-      :regex => interpreter.regex,
-      :match_number => interpreter.match_number,
-      :target_attribute => interpreter.target_attribute
-    }
+  SimpleScraper::Interpreter.all(SimpleScraper::Interpreter.target_datas.id => data_ids).each do |interpreter|
+    object[:interpreters][interpreter.creator_id + '/' + interpreter.attribute_get(:name)] = interpreter.to_scraper
   end
   
-  resources[SimpleScraper::Generator].each do |generator|
-    source_attributes = []
-    if generator.source_attribute != ''
-      source_attributes.push(generator.source_attribute)
-    end
-    SimpleScraper::Gatherer.all(SimpleScraper::Gatherer.generators.id => generator.attribute_get(:id)).each do |gatherer|
-      source_attributes.push('gatherer.' + gatherer.creator_id + '/' + gatherer.attribute_get(:id))
-    end
-    object[:generators][generator.creator_id + '/' + generator.attribute_get(:id)] = {
-      :source_attributes => source_attributes,
-      :regex => generator.regex,
-      :target_area => generator.target_area,
-      :target_info => generator.target_info,
-      :target_attribute => generator.target_attribute
-    }
+  SimpleScraper::Generator.all(SimpleScraper::Generator.target_datas.id => data_ids).each do |generator|
+    object[:generators][generator.creator_id + '/' + generator.attribute_get(:name)] = generator.to_scraper
   end
   
   object.to_json
