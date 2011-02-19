@@ -128,14 +128,18 @@ module DataMapper::Resource
   
   # Returns attributes, and lists of tags as arrays.
   def describe
-    description = attributes.clone
+    # puts 'describe'
+    # puts attributes.to_json
+    # puts 'did not crash'
+    desc = attributes.clone
     self.class.tag_names.each do |tag_name|
-      description[tag_name.to_s + '/'] = {}
+      puts tag_name.to_json
+      desc[tag_name.to_s + '/'] = {}
       send(tag_name).all.each do |tag|
-        description[tag_name.to_s + '/'][tag.location] = tag.attribute_get(:name)
+        desc[tag_name.to_s + '/'][tag.location] = tag.attribute_get(:name)
       end
     end
-    description
+    desc
   end
 end
 
@@ -154,7 +158,6 @@ module SimpleScraper
         
         belongs_to :creator, :model => 'User', :required => true
         tag :editors, :model => 'User', :through => DataMapper::Resource
-        
       end
     end
   end
@@ -227,6 +230,7 @@ module SimpleScraper
   class Default
     include Editable
     
+    tag :areas,       :through => Resource
     tag :field_names, :through => Resource
     property :value, String, #:required => true,
                     :default => ''
@@ -264,7 +268,7 @@ module SimpleScraper
     tag :areas,       :through => Resource
     tag :infos,       :through => Resource
     tag :field_names, :through => Resource
-
+    
     tag :generator_sources, 'Generator', :through => :generator_source_datas, :via => :generator
     has n, :generator_source_datas
     tag :generator_targets, 'Generator', :through => :generator_target_datas, :via => :generator
@@ -277,7 +281,7 @@ module SimpleScraper
     
     tag :gatherer_targets, 'Gatherer', :through => :gatherer_target_datas, :via => :gatherer
     has n, :gatherer_target_datas
-
+    
     # Cross-product area/info/field_names
     def to_scraper
       object = []
@@ -308,8 +312,8 @@ module SimpleScraper
 
     def to_scraper
       {
-        :match_number => interpreter.match_number,
-        :terminate_on_complete => interpreter.terminate_on_complete,
+        :match_number => match_number,
+        :terminate_on_complete => terminate_on_complete,
         :regexes => patterns.collect { |pattern| pattern.regex },
         :source_attributes => source_datas.collect { |source_data| source_data.to_scraper },
         :target_attributes => target_datas.collect { |target_data| target_data.to_scraper }
@@ -350,6 +354,8 @@ module SimpleScraper
     
     tag :interpreters, :through => Resource
     tag :generators,   :through => Resource
+    tag :target_datas, 'Data', :through => :gatherer_target_datas, :via => :data
+    has n, :gatherer_target_datas
     
     tag :stops, 'Pattern', :through => Resource
     
@@ -357,25 +363,24 @@ module SimpleScraper
     tag :posts, :through => Resource
     tag :headers, :through => Resource
     tag :cookie_headers, :through => Resource
-
+    
     def to_scraper
-      urls, posts, headers, cookies, target_field_names = [], {}, {}, {}, []
-      gatherer_id = gatherer.attribute_get(:id)
-      urls.push( *gatherer.urls.collect{ |url| url.value } )
-      gatherer.posts.each do |post|
-        posts[post.post_name] = post.value
+      _posts, _headers, _cookies, _target_field_names = {}, {}, {}, []
+      _urls = self.urls.collect{ |url| url.value }
+      self.posts.each do |post|
+        _posts[post.post_name] = post.value
       end
-      gatherer.headers.each do |header|
-        posts[header.header_name] = header.value
+      self.headers.each do |header|
+        _headers[header.header_name] = header.value
       end
-      gatherer.cookie_headers.each do |cookie_header|
-        posts[cookie_header.cookie_name] = cookie_header.value
+      self.cookie_headers.each do |cookie_header|
+        _cookies[cookie_header.cookie_name] = cookie_header.value
       end
       {
-        :urls => urls,
-        :posts => posts,
-        :headers => headers,
-        :cookies => cookies,
+        :urls => _urls,
+        :posts => _posts,
+        :headers => _headers,
+        :cookies => _cookies,
         :target_attributes => target_datas.collect { |target_data| target_data.to_scraper }
       }
     end
