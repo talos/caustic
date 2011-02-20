@@ -42,7 +42,7 @@ module DataMapper::Model
   def all_like(unfiltered)
     filtered = {}
     properties.each do |property|
-      filtered[property.name.to_sym.like] = unfiltered[property.name] if unfiltered.include? property.name
+      filtered[property.name.to_sym.like] = unfiltered[property.name.to_s] if unfiltered.include? property.name.to_s
     end
     all({:limit => SimpleScraper::MAX_RECORDS}.merge(filtered))
   end
@@ -132,7 +132,7 @@ module DataMapper::Resource
     self.class.tag_names.each do |tag_name|
       desc[tag_name.to_s + '/'] = {}
       send(tag_name).all.each do |tag|
-        desc[tag_name.to_s + '/'][tag.location] = tag.attribute_get(:name)
+        desc[tag_name.to_s + '/'][tag.location] = tag.full_name
       end
     end
     desc
@@ -156,8 +156,8 @@ module SimpleScraper
         tag :editors, :model => 'User', :through => DataMapper::Resource
         
       end
-      def location_relative_to_creator
-        '/' + creator.name + '/' + model.raw_name + '/' + name
+      def full_name
+        creator.name + "'s " + name
       end
     end
   end
@@ -320,7 +320,7 @@ module SimpleScraper
         :regexes => patterns.collect { |pattern| pattern.regex },
         :source_attributes => _source_attributes,
         :target_attributes => _target_attributes,
-        :gatherers => gatherers.collect { |gatherer| gatherer.location_relative_to_creator }
+        :gatherers => gatherers.collect { |gatherer| gatherer.full_name }
       }
     end
   end
@@ -352,7 +352,7 @@ module SimpleScraper
         :regexes => patterns.collect { |pattern| pattern.regex },
         :source_attributes => _source_attributes,
         :target_attributes => _target_attributes,
-        :gatherers => gatherers.collect { |gatherer| gatherer.location_relative_to_creator }
+        :gatherers => gatherers.collect { |gatherer| gatherer.full_name }
       }
     end
   end

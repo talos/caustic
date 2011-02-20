@@ -82,18 +82,77 @@
 ********* Tagger widget. 
 * options.target : where on the page to append new tags.
 * options.location : where on the server to put these tags.
+* options.model : where on the server to grab info about existing tags.
 */
 		    'tagger' : {
 			init : function ( options ) {
 			    return $('<input>').data('simplescraper', {
-				target : options.target,
-				location : options.location
+				target   : options.target,
+				location : options.location,
+				model    : options.model
+			    }).autocomplete({
+				source    : function( request, response ) {
+				    _ajax({
+					url : options.model,
+					data : {
+					    name : request.term + '%'
+					},
+					success : function ( tags ) {
+					    labels = [];
+					    for( loc in tags ) {
+						labels.push({
+						    label : tags[loc],
+						    value : loc
+						});
+					    }
+					    response( labels );
+					}
+				    });
+				},
+				minLength : 1,
+				select    : function( event, ui ) {
+				    if( ui.item ) {
+					var $tagger = $(this),
+					data = $tagger.data('simplescraper');
+					console.log($tagger.val());
+					$tagger.val('');
+					console.log($tagger.val());
+					_ajax({
+					    type : 'put',
+					    url  : data.location + ui.item.value.split('/')[2],
+					    //data : { name : name },
+					    success : function( response ) {
+						// Could affect other resources, so refresh all.
+						$('.resource').trigger('get.simplescraper');
+					    }
+					});
+				    }
+				},
+				close : function () {
+				    var $tagger = $(this),
+				    data = $tagger.data('simplescraper'),
+				    name = $tagger.val(),
+				    $target = data.target;
+				    // Only submit if there's a value for name.
+				    if($tagger.val() !== '') {
+					_ajax({
+					    type : 'put',
+					    url  : data.location,
+					    data : { name : name },
+					    success : function( response ) {
+						// Could affect other resources, so refresh all.
+						$('.resource').trigger('get.simplescraper');
+					    }
+					});
+				    }
+				    return false;				    
+				}
 			    });
 			},
 			bindings : {
 			    /** Create a new tag. **/
 			    'blur' : function ( event ) {
-				var $tagger = $(this),
+				/*var $tagger = $(this),
 				data = $tagger.data('simplescraper'),
 				name = $tagger.val(),
 				$target = data.target;
@@ -109,7 +168,7 @@
 					}
 				    });
 				}
-				return false;				    
+				return false;				    */
 			    } 
 			}
 		    },
@@ -194,7 +253,11 @@
 							$tagHolder.append(factory.make('tag', { name: tags[name], location: name }));
 						    }
 						}
-						$tagHolder.append(factory.make('tagger', { target : $tagHolder, location : data.location + '/' + key }));
+						$tagHolder.append(factory.make('tagger', {
+						    target : $tagHolder,
+						    model  : data.model + '/' + key,
+						    location : data.location + '/' + key
+						}));
 						// An individual, put-able value.
 					    } else {
 						var $attribute = factory.make('attribute', { name : key, value : response[key] });
@@ -307,7 +370,6 @@
 	init: function( options ) {
 	    var factory = _factory({target: this}).init(),
 	    $target = this;
-	    console.log(options);
 	    if( options.open ) {
 		var openAry = $.isArray( options.open ) ? options.open : [ options.open ],
 		i;

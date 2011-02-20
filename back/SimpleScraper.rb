@@ -148,7 +148,10 @@ post '/login' do
     rpx_user = SimpleScraper::get_user params[:token]
     
     # TODO: using the rpx_uxer[:identifier] is clunky, the nickname is non-unique, and the email is privacy-violating...
-    user = SimpleScraper::User.first_or_new_from_name(rpx_user[:identifier])
+    host = URI.parse(rpx_user[:identifier]).host
+    # Synthesize a unique name.
+    name = rpx_user[:nickname] + '@' + host
+    user = SimpleScraper::User.first_or_new_from_name(name)
     user.save or error SimpleScraper::Exception.from_resources(user).to_json
     #user = SimpleScraper::User.first_or_create(:name => rpx_user[:identifier])
     session[:user_id] = user.attribute_get(:id)
@@ -163,7 +166,11 @@ end
 # Display the existing members of a model.  Limited to the top 100, with an optional query string.
 get '/:resource_model/' do
   model = SimpleScraper::Resource.find_model(params) or return not_found
-  model.all_like(params).collect {|resource| resource.location }.to_json
+  hash = {}
+  model.all_like(params).each do |resource|
+    hash[resource.location] = resource.full_name
+  end
+  hash.to_json
 end
 
 ###### RESOURCES
@@ -195,7 +202,7 @@ end
 delete '/:resource_model/:resource_id' do
   resource = SimpleScraper::Resource.first(params) or return not_found
   resource.class.tag_names.each do |tag_name|
-    resource.send(tag_name).all.each { |link| puts link.to_json }
+    #resource.send(tag_name).all.each { |link| puts link.to_json }
     resource.send(tag_name).all.each { |link| link.destroy }
   end
   resource.destroy or error SimpleScraper::Exception.from_resources(resource).to_json
@@ -205,7 +212,8 @@ end
 # Redirect to the tag's model.
 get '/:resource_model/:relationship/' do
   tag_model = SimpleScraper::Tag.find_model(params) or not_found
-  redirect tag_model.location
+  puts request.query_string
+  redirect tag_model.location + '?' + request.query_string
 end
 
 ####### TAGS
@@ -221,13 +229,13 @@ end
 # Redirect to the location of the actual resource.
 get '/:resource_model/:resource_id/:relationship/:relationship_id' do
   tag_resource = SimpleScraper::Tag.first(params) or return not_found
-  tag_resource.location
+  redirect tag_resource.location
 end
 # Replace a tag.
 put '/:resource_model/:resource_id/:relationship/:relationship_id' do
   begin
     tag_resource = SimpleScraper::Tag.first_or_create(params) or return not_found
-    tag_resource.location
+    tag_resource.location.to_json
   rescue SimpleScraper::Exception => exception
     error exception.to_json
   end
@@ -318,20 +326,20 @@ get '/scrapers/:area/:info' do
   }
   
   gatherers.each do |gatherer|
-    object[:gatherers][gatherer.location_relative_to_creator] = gatherer.to_scraper
+    object[:gatherers][gatherer.full_name] = gatherer.to_scraper
   end
   
   SimpleScraper::Data.all(:id => data_ids).each do |data|
     data.interpreter_targets.each do |interpreter|
   #SimpleScraper::Interpreter.all(SimpleScraper::Interpreter.target_datas.id => data_ids).each do |interpreter|
-      object[:interpreters][interpreter.location_relative_to_creator] = interpreter.to_scraper
+      object[:interpreters][interpreter.full_name] = interpreter.to_scraper
     end
   end
   
   SimpleScraper::Data.all(:id => data_ids).each do |data|
     data.generator_targets.each do |generator|
   #SimpleScraper::Interpreter.all(SimpleScraper::Interpreter.target_datas.id => data_ids).each do |interpreter|
-      object[:generators][generator.location_relative_to_creator] = generator.to_scraper
+      object[:generators][generator.full_name] = generator.to_scraper
     end
   end
   # SimpleScraper::Generator.all(SimpleScraper::Generator.target_datas.id => data_ids).each do |generator|
