@@ -195,7 +195,6 @@ end
 delete '/:resource_model/:resource_id' do
   resource = SimpleScraper::Resource.first(params) or return not_found
   resource.class.tag_names.each do |tag_name|
-    puts tag_name
     resource.send(tag_name).all.each { |link| puts link.to_json }
     resource.send(tag_name).all.each { |link| link.destroy }
   end
@@ -289,10 +288,12 @@ get '/scrapers/:area/:info' do
     check_data_ids = check_datas.collect { |check_data| check_data.attribute_get(:id) } - data_ids 
     data_ids.push(*check_data_ids)
     #check_datas.collect { |check_data| puts check_data.describe.to_json }
-    if check_datas.length > 0
-      puts check_datas[0].interpreter_targets.to_a.to_json
-      puts check_datas[0].generator_targets.to_a.to_json
-    end
+    #if check_datas.length > 0
+    
+    # Not sure why this is necessary. Something involving loading??
+    check_datas[0].interpreter_targets #.to_a.to_json
+    check_datas[0].generator_targets   #.to_a.to_json
+    #end
     interpreters = check_datas.collect { |check_data| check_data.interpreter_targets.all.to_a }.flatten
     generators   = check_datas.collect { |check_data| check_data.generator_targets.all.to_a   }.flatten
     gatherers.push(*interpreters.collect { |interpreter| interpreter.gatherers.all.to_a }.flatten )
@@ -317,20 +318,20 @@ get '/scrapers/:area/:info' do
   }
   
   gatherers.each do |gatherer|
-    object[:gatherers][gatherer.creator.name + '/' + gatherer.attribute_get(:name)] = gatherer.to_scraper
+    object[:gatherers][gatherer.location_relative_to_creator] = gatherer.to_scraper
   end
   
   SimpleScraper::Data.all(:id => data_ids).each do |data|
     data.interpreter_targets.each do |interpreter|
   #SimpleScraper::Interpreter.all(SimpleScraper::Interpreter.target_datas.id => data_ids).each do |interpreter|
-      object[:interpreters][interpreter.creator.name + '/' + interpreter.attribute_get(:name)] = interpreter.to_scraper
+      object[:interpreters][interpreter.location_relative_to_creator] = interpreter.to_scraper
     end
   end
   
   SimpleScraper::Data.all(:id => data_ids).each do |data|
     data.generator_targets.each do |generator|
   #SimpleScraper::Interpreter.all(SimpleScraper::Interpreter.target_datas.id => data_ids).each do |interpreter|
-      object[:generators][generator.creator.name + '/' + generator.attribute_get(:name)] = generator.to_scraper
+      object[:generators][generator.location_relative_to_creator] = generator.to_scraper
     end
   end
   # SimpleScraper::Generator.all(SimpleScraper::Generator.target_datas.id => data_ids).each do |generator|

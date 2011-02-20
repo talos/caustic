@@ -128,12 +128,8 @@ module DataMapper::Resource
   
   # Returns attributes, and lists of tags as arrays.
   def describe
-    # puts 'describe'
-    # puts attributes.to_json
-    # puts 'did not crash'
     desc = attributes.clone
     self.class.tag_names.each do |tag_name|
-      puts tag_name.to_json
       desc[tag_name.to_s + '/'] = {}
       send(tag_name).all.each do |tag|
         desc[tag_name.to_s + '/'][tag.location] = tag.attribute_get(:name)
@@ -158,6 +154,10 @@ module SimpleScraper
         
         belongs_to :creator, :model => 'User', :required => true
         tag :editors, :model => 'User', :through => DataMapper::Resource
+        
+      end
+      def location_relative_to_creator
+        '/' + creator.name + '/' + model.raw_name + '/' + name
       end
     end
   end
@@ -311,12 +311,16 @@ module SimpleScraper
     property :terminate_on_complete, Boolean, :default => false, :required => true
 
     def to_scraper
+      _source_attributes, _target_attributes = [], []
+      source_datas.each { |source_data| _source_attributes.push(*source_data.to_scraper) }
+      target_datas.each { |target_data| _target_attributes.push(*target_data.to_scraper) }
       {
         :match_number => match_number,
         :terminate_on_complete => terminate_on_complete,
         :regexes => patterns.collect { |pattern| pattern.regex },
-        :source_attributes => source_datas.collect { |source_data| source_data.to_scraper },
-        :target_attributes => target_datas.collect { |target_data| target_data.to_scraper }
+        :source_attributes => _source_attributes,
+        :target_attributes => _target_attributes,
+        :gatherers => gatherers.collect { |gatherer| gatherer.location_relative_to_creator }
       }
     end
   end
@@ -341,10 +345,14 @@ module SimpleScraper
     tag :patterns,  :through => Resource
 
     def to_scraper
+      _source_attributes, _target_attributes = [], []
+      source_datas.each { |source_data| _source_attributes.push(*source_data.to_scraper) }
+      target_datas.each { |target_data| _target_attributes.push(*target_data.to_scraper) }
       {
         :regexes => patterns.collect { |pattern| pattern.regex },
-        :source_attributes => source_datas.collect { |source_data| source_data.to_scraper },
-        :target_attributes => target_datas.collect { |target_data| target_data.to_scraper }
+        :source_attributes => _source_attributes,
+        :target_attributes => _target_attributes,
+        :gatherers => gatherers.collect { |gatherer| gatherer.location_relative_to_creator }
       }
     end
   end
