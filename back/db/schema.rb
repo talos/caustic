@@ -130,9 +130,15 @@ module DataMapper::Resource
   def describe
     desc = attributes.clone
     self.class.tag_names.each do |tag_name|
-      desc[tag_name.to_s + '/'] = {}
+      #desc[tag_name.to_s + '/'] = {}
+      desc[tag_name.to_s + '/'] = []
       send(tag_name).all.each do |tag|
-        desc[tag_name.to_s + '/'][tag.location] = tag.full_name
+        #desc[tag_name.to_s + '/'][tag.attribute_get(:id)] = tag.full_name
+        desc[tag_name.to_s + '/'] << {
+          :name  => tag.full_name,
+          :id    => tag.attribute_get(:id),
+          :model => tag.model.raw_name
+        }
       end
     end
     desc

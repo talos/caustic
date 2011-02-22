@@ -39,37 +39,64 @@
 
 		    /***
 ********* Tag widget.
-* options.name : the name of the tag.
-* options.location : the location to load the tag from.
+* options.tag_directory : the tag's relative directory (i.e. "gatherers/" )
+* options.model : the model of the resource that the tag refers to (i.e. "gatherer" )
+* options.name : the name of the tag. (optional) 
+* options.id : the ID of the tag and resource (i.e. "1") (optional)
 */
 		    'tag' : {
 			init : function ( options ) {
-			    return $('<span>').text(options.name).data('simplescraper', {
+			    return $('<span />').text(options.name ? options.name : '').data('simplescraper', {
 				name : options.name,
-				location : options.location
-			    });
+				model : options.model,
+				tag_directory : options.tag_directory,
+				id : options.id
+			    }).append(factory.make('delete'));
 			},
 			bindings : {
 			    /** Load up the resource this tag refers to. **/ 
 			    'click' : function ( event ) {
-				var data = $(this).data('simplescraper');
-
-//////////////// TODO ////////////////
-// Needs to follow redirect. 
-				$resource = factory.make('resource', { location : data.location });
+				var $tag = $(this),
+				resource_data = $tag.closest('.resource').data('simplescraper'),
+				data = $tag.data('simplescraper');
+				if(!data.id) {
+				    return false;
+				}
+				$resource = factory.make('resource', { location : data.model + '/' + data.id });
 				$resource.trigger('get.simplescraper');
 				factory.target.prepend($resource);
+				return false;
+			    },
+			    /** Update the data for this tag (creating it if it does not yet exist.) **/
+			    'put.simplescraper' : function ( event ) {
+				var $tag = $(this),
+				resource_data = $tag.closest('.resource').data('simplescraper'),
+				data = $tag.data('simplescraper');
+				if(!resource_data) {
+				    return false;
+				}
+				_ajax({
+				    type : 'put',
+				    url  : resource_data.location + '/' + data.tag_directory + (data.id ? data.id : ''),
+				    data : data.name ? { name : data.name } : {},
+				    success : function ( ) {
+					$('.resource').trigger('get.simplescraper'); // Could affect links in other resources.
+				    }
+				});
 				return false;
 			    },
 			    /** Delete this tag. **/
 			    'delete.simplescraper' : function ( event ) {
 				var $tag = $(this),
+				resource_data = $tag.closest('.resource').data('simplescraper'),
 				data = $tag.data('simplescraper');
-				$_ajax({
+				if(!data.id) {
+				    return false;
+				}
+				_ajax({
 				    type : 'delete',
-				    url  : data.location,
+				    url  : resource_data.location + '/' + data.tag_directory + data.id,
 				    success : function ( ) {
-					//$tag.remove();
 					$('.resource').trigger('get.simplescraper'); // Could affect links in other resources.
 				    }
 				});
@@ -80,96 +107,69 @@
 
 		    /***
 ********* Tagger widget. 
-* options.target : where on the page to append new tags.
-* options.location : where on the server to put these tags.
-* options.model : where on the server to grab info about existing tags.
+* options.tag_directory : the relative location of the tags. (i.e. "gatherers/")
 */
 		    'tagger' : {
 			init : function ( options ) {
-			    return $('<input>').data('simplescraper', {
-				target   : options.target,
-				location : options.location,
-				model    : options.model
+			    var $tagger = $('<input />');
+			    return $tagger.data('simplescraper', {
+				tag_directory : options.tag_directory,
+				selected : false
 			    }).autocomplete({
+				minLength : 1,
 				source    : function( request, response ) {
+				    var data = $tagger.data('simplescraper'),
+				    resource_data = $tagger.closest('.resource').data('simplescraper');
 				    _ajax({
-					url : options.model,
+					url : resource_data.model + '/' + data.tag_directory,
 					data : {
 					    name : request.term + '%'
 					},
-					success : function ( tags ) {
+					success : function ( resources ) {
 					    labels = [];
-					    for( loc in tags ) {
+					    for ( var i = 0; i < resources.length; i++ ) {
 						labels.push({
-						    label : tags[loc],
-						    value : loc
+						    label : resources[i].name,
+						    value : resources[i].id
 						});
 					    }
 					    response( labels );
 					}
 				    });
 				},
-				minLength : 1,
 				select    : function( event, ui ) {
+				    var resource_data = $tagger.closest('.resource').data('simplescraper'),
+				    data = $tagger.data('simplescraper');
 				    if( ui.item ) {
-					var $tagger = $(this),
-					data = $tagger.data('simplescraper');
-					console.log($tagger.val());
 					$tagger.val('');
-					console.log($tagger.val());
-					_ajax({
-					    type : 'put',
-					    url  : data.location + ui.item.value.split('/')[2],
-					    //data : { name : name },
-					    success : function( response ) {
-						// Could affect other resources, so refresh all.
-						$('.resource').trigger('get.simplescraper');
-					    }
+					data.selected = true;
+					$tag = factory.make('tag', {
+					    'tag_directory': data.tag_directory,
+					    model : data.model,
+					    id : ui.item.value
 					});
+					$tagger.append($tag);
+					$tag.trigger('put.simplescraper');
 				    }
-				},
-				close : function () {
-				    var $tagger = $(this),
-				    data = $tagger.data('simplescraper'),
-				    name = $tagger.val(),
-				    $target = data.target;
-				    // Only submit if there's a value for name.
-				    if($tagger.val() !== '') {
-					_ajax({
-					    type : 'put',
-					    url  : data.location,
-					    data : { name : name },
-					    success : function( response ) {
-						// Could affect other resources, so refresh all.
-						$('.resource').trigger('get.simplescraper');
-					    }
-					});
-				    }
-				    return false;				    
 				}
 			    });
 			},
 			bindings : {
-			    /** Create a new tag. **/
 			    'blur' : function ( event ) {
-				/*var $tagger = $(this),
+				var $tagger = $(this),
 				data = $tagger.data('simplescraper'),
-				name = $tagger.val(),
-				$target = data.target;
-				// Only submit if there's a value for name.
-				if($tagger.val() !== '') {
-				    _ajax({
-					type : 'put',
-					url  : data.location,
-					data : { name : name },
-					success : function( response ) {
-					    // Could affect other resources, so refresh all.
-					    $('.resource').trigger('get.simplescraper');
-					}
+				resource_data = $tagger.closest('.resource').data('simplescraper'),
+				name = $tagger.val();
+				if(name != '' && data.selected === false) {
+				    $tag = factory.make('tag', {
+					'tag_directory' : data.tag_directory,
+					model : resource_data.model,
+					name : name
 				    });
+				    $tagger.append($tag);
+				    $tag.trigger('put.simplescraper');
 				}
-				return false;				    */
-			    } 
+			    }
 			}
 		    },
 
@@ -199,7 +199,7 @@
 
 		    /**
 ******* Resource widget.
-* options.location : where to load this resource from.
+* options.location : where this resource is absolutely located (i.e. "/gatherer/1")
 */
 		    'resource' : {
 			init : function( options ) {
@@ -219,7 +219,7 @@
 				})
 				.append($draggable
 					/* Title */
-					.append($('<div />').text(model + ' ' + id).addClass('title'))
+					//.append($('<div />').text(model + ' ' + id).addClass('title'))
 					/* Controls */
 					.append($('<div />').addClass('upperright')
 						.append(factory.make('close'))
@@ -230,7 +230,6 @@
 			    return $resource;
 			},
 			bindings : {
-			    
 			    /* Bring the resource up-to-date with the server. */
 			    'get.simplescraper' : function( event ) { 
 				var $resource = $(this),
@@ -240,32 +239,33 @@
 				    type: 'get',
 				    url: data.location,
 				    /* Found the resource! */
-				    success: function( response ) {
-					var key;
-					for( key in response) {
-					    // A collection of tags was retrieved.
-					    if($.isPlainObject(response[key])) {
-						var $tagHolder = $('<div />').text(key + ': ').appendTo($content),
-						tags = response[key];
-						var name;
-						for( name in tags ) {
-						    if( tags.hasOwnProperty(name)) {
-							$tagHolder.append(factory.make('tag', { name: tags[name], location: name }));
-						    }
+				    success: function( response, obj, req ) {
+					var keys = [];
+					// Alphabetize.
+					for (var key in response) { 
+					    keys.push(key);
+					}
+					keys.sort();
+					for( var i = 0; i < keys.length; i++) {
+					    var key = keys[i];
+					    if($.isArray(response[key])) {
+						var tag_directory = key,
+						$tagHolder = $('<div />').text(tag_directory + ': ').appendTo($content),
+						tags = response[tag_directory];
+						for( var j = 0 ; j < tags.length ; j++ ) {
+						    $tagHolder.append(factory.make('tag', $.extend({
+							'tag_directory' : tag_directory
+						    }, tags[j])));
 						}
-						$tagHolder.append(factory.make('tagger', {
-						    target : $tagHolder,
-						    model  : data.model + '/' + key,
-						    location : data.location + '/' + key
-						}));
-						// An individual, put-able value.
+						$tagHolder.append(factory.make('tagger', { 'tag_directory'  : tag_directory } ));
 					    } else {
-						var $attribute = factory.make('attribute', { name : key, value : response[key] });
+						var attribute_name = key,
+						$attribute = factory.make('attribute', { name : attribute_name, value : response[attribute_name] });
 						$attrHolder = $('<div />')
 						    .append($('<label />').text(key + ': '))
 						    .append($attribute)
 						    .appendTo($content);
-						data.attributes[key] = $attribute;
+						data.attributes[attribute_name] = $attribute;
 					    }
 					}
 				    },

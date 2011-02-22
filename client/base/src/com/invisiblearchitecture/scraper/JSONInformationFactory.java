@@ -81,7 +81,7 @@ public class JSONInformationFactory implements InformationFactory {
 		area = URLEncoder.encode(area, "UTF-8");
 		info = URLEncoder.encode(info, "UTF-8");
 		
-		String url = requestUrl + '/' + requestCreator + '/' + area + '/' + info;
+		String url = requestUrl + '/' + area + '/' + info;
 		String jsonResponse;
 		
 		if(cache.containsKey(url) && useCache) {

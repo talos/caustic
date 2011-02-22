@@ -59,7 +59,13 @@ module SimpleScraper
     def self.first(params)
       tag_model = find_model(params) or return
       resource = SimpleScraper::Resource.first(params) or return
-      resource.send(params[:relationship]).first(tag_model.criteria_from_key_string(params[:relationship_id]))
+      #resource.send(params[:relationship]).first(tag_model.criteria_from_key(params[:relationship_id]))
+      tag_resource = tag_model.first_from_key(params[:relationship_id])
+
+      puts tag_resource.describe.to_json
+      tag_resource
+      
+      #resource.send(params[:relationship]).first(:id => tag_resource.attribute_get(:id))
     end
 
     def self.first_or_create(params)
@@ -166,11 +172,12 @@ end
 # Display the existing members of a model.  Limited to the top 100, with an optional query string.
 get '/:resource_model/' do
   model = SimpleScraper::Resource.find_model(params) or return not_found
-  hash = {}
-  model.all_like(params).each do |resource|
-    hash[resource.location] = resource.full_name
-  end
-  hash.to_json
+  model.all_like(params).collect do |resource|
+    {
+      :id => resource.attribute_get(:id),
+      :name => resource.full_name
+    }
+  end .to_json
 end
 
 ###### RESOURCES
