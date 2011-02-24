@@ -153,7 +153,6 @@ post '/login' do
   if params[:token]
     rpx_user = SimpleScraper::get_user params[:token]
     
-    # TODO: using the rpx_uxer[:identifier] is clunky, the nickname is non-unique, and the email is privacy-violating...
     host = URI.parse(rpx_user[:identifier]).host
     # Synthesize a unique name.
     name = rpx_user[:nickname] + '@' + host
@@ -208,9 +207,10 @@ end
 # Delete a resource and all its links.
 delete '/:resource_model/:resource_id' do
   resource = SimpleScraper::Resource.first(params) or return not_found
-  resource.class.tag_names.each do |tag_name|
-    #resource.send(tag_name).all.each { |link| puts link.to_json }
-    resource.send(tag_name).all.each { |link| link.destroy }
+  resource.model.tag_relationships.each do |name, relationship|
+    if(relationship.class == DataMapper::Associations::ManyToMany::Relationship)
+      relationship.through.target_model.all.each { |link| link.destroy }
+    end
   end
   resource.destroy or error SimpleScraper::Exception.from_resources(resource).to_json
 end
@@ -249,26 +249,16 @@ put '/:resource_model/:resource_id/:relationship/:relationship_id' do
 end
 # Delete a tagging.
 delete '/:resource_model/:resource_id/:relationship/:relationship_id' do
-  #tag_relationship = SimpleScraper::Relationship.first(params) or return not_found
-  #tag_relationship.destroy or error
-
   resource = SimpleScraper::Resource.first(params) or return not_found
   tag = SimpleScraper::Tag.first(params) or return not_found
   
-  resource.send(params[:relationship]).first(tag.model.raw_name.to_sym => tag).destroy or error SimpleScraper::Exception.from_resources(resource).to_json
+  relationship = resource.model.tag_relationships[params[:relationship]] or return not_found
+  if relationship.class == DataMapper::Associations::OneToMany::Relationship
+    tag.destroy or error SimpleScraper::Exception.from_resources(resource, tag).to_json
+  elsif relationship.class == DataMapper::Associations::ManyToMany::Relationship
+    relationship.through.target_model.first(tag.model.raw_name.to_sym => tag).destroy or error SimpleScraper::Exception.from_resources(resource, tag).to_json
+  end
 end
-
-# Redirect to the location of the actual resource, including possible further redirects.
-# get '/:resource_model/:resource_id/:tag_model/:tag_id/*' do
-#   resource = SimpleScraper::Resource.first(params) or return not_found
-#   resource.model.tags[params[:tag]] ? redirect resource.model.tags[params[:tag]].location + '/' + params[:splat][0] : not_found
-# end
-
-# # Redirect until we're at the level where a tagging is possible.
-# put '/:resource_model/:resource_id/:tag_model/:tag_id/*' do
-#   resource = SimpleScraper::Resource.first(params) or return not_found
-#   resource.model.tags[params[:tag]] ? redirect resource.model.tags[params[:tag]].location + '/' + params[:splat][0] : not_found
-# end
 
 # Collect scrapers: this pulls any interpreters, gatherers, and generators that eventually link to a piece of
 # data that would be published for an information in an area.

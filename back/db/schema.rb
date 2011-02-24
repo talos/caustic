@@ -116,7 +116,7 @@ end
 # Convenience methods for describing resources.
 module DataMapper::Resource
   def location
-    '/' + model.raw_name + '/' + [*key].join('.')
+    model.raw_name + '/' + [*key].join('.')
   end
   
   def safe_attributes= (new_attributes)

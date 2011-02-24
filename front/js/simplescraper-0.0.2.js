@@ -63,8 +63,8 @@
 				    return false;
 				}
 				$resource = factory.make('resource', { location : data.model + '/' + data.id });
-				$resource.trigger('get.simplescraper');
 				factory.target.prepend($resource);
+				$resource.trigger('get.simplescraper');
 				return false;
 			    },
 			    /** Update the data for this tag (creating it if it does not yet exist.) **/
@@ -127,6 +127,7 @@
 					},
 					success : function ( resources ) {
 					    labels = [];
+					    console.log(resources);
 					    for ( var i = 0; i < resources.length; i++ ) {
 						labels.push({
 						    label : resources[i].name,
@@ -205,16 +206,18 @@
 			init : function( options ) {
 			    var $content = $('<div />'),
 			    $draggable = $('<div />').draggable(),
-			    model =  options.location.split('/')[1],
-			    id = options.location.split('/')[2];
-			    $resource = $('<div />').css('position', 'absolute')
+			    model =  options.location.split('/')[0],
+			    id = options.location.split('/')[1],
+			    elem_class = model + id;
+			    var $resource = $('<div />').css('position', 'absolute').addClass(elem_class)
 				.data({
 				    simplescraper : { 
 					location : options.location,
 					model : model,
 					id : id,
 					content : $content,
-					attributes : { }
+					attributes : { },
+					elem_class : elem_class
 				    }
 				})
 				.append($draggable
@@ -235,6 +238,11 @@
 				var $resource = $(this),
 				data = $resource.data('simplescraper'),
 				$content = data.content.empty();
+				
+				if($('.' + data.elem_class).length > 1) { // Close if it's a dupe.
+				    $resource.trigger('close.simplescraper');
+				    return false;
+				}
 				_ajax({
 				    type: 'get',
 				    url: data.location,
@@ -293,9 +301,8 @@
 				    type : 'put',
 				    url : data.location,
 				    data : values,
-				    success : function( ) { // TODO: check status
+				    success : function( ) {
 					$resource.trigger('get.simplescraper');
-					//$('.resource').trigger('get.simplescraper');
 				    }
 				});
 				return false;
@@ -318,7 +325,13 @@
 
 			    /** Close the resource window. **/
 			    'close.simplescraper' : function( event ) {
-				$(this).remove();
+				var $resource = $(this),
+				waitForParent = setInterval(function() {
+				    if($resource.parent().length > 0) {
+					$resource.remove();
+					clearInterval(waitForParent);
+				    }
+				}, 50);
 				return false;
 			    }
 			},
@@ -374,7 +387,7 @@
 		var openAry = $.isArray( options.open ) ? options.open : [ options.open ],
 		i;
 		for ( i = 0; i < openAry.length; i++ ) {
-		    factory.make('resource', { location: openAry[i] }).trigger('get.simplescraper').appendTo($target);
+		    factory.make('resource', { location: openAry[i] }).appendTo($target).trigger('get.simplescraper');
 		}
 	    }
 	    return this;
