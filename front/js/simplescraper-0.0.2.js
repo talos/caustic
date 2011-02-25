@@ -301,9 +301,10 @@
 				    type : 'put',
 				    url : data.location,
 				    data : values,
-				    success : function( ) {
+				    complete : function( ) {
 					$resource.trigger('get.simplescraper');
-				    }
+				    },
+				    error : function( ) { return; } // TODO: let user know their changes were not committed noisily.
 				});
 				return false;
 			    },

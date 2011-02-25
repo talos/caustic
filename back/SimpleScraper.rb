@@ -81,7 +81,7 @@ module SimpleScraper
       else
         tag_resource = tag_model.first_or_new_from_key(params[:relationship_id])
       end
-
+      
       resource.send(params[:relationship]) << tag_resource
       
       params.delete_if { |key, value| SimpleScraper::RESERVED_WORDS.include? key }
@@ -137,7 +137,8 @@ end
 get '/' do
   if session[:user_id].nil? 
     redirect '/login'
-  elsif SimpleScraper::User.first(:id => session[:user_id]).nil?
+  #elsif SimpleScraper::User.first(:id => session[:user_id]).nil?
+  elsif SimpleScraper::User.get(session[:user_id]).nil?
     redirect '/login'
   else
     File.read(File.join('../front', 'index.html'))
@@ -207,11 +208,6 @@ end
 # Delete a resource and all its links.
 delete '/:resource_model/:resource_id' do
   resource = SimpleScraper::Resource.first(params) or return not_found
-  resource.model.tag_relationships.each do |name, relationship|
-    if(relationship.class == DataMapper::Associations::ManyToMany::Relationship)
-      relationship.through.target_model.all.each { |link| link.destroy }
-    end
-  end
   resource.destroy or error SimpleScraper::Exception.from_resources(resource).to_json
 end
 

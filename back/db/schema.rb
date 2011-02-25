@@ -11,6 +11,7 @@
 
 require 'rubygems'
 require 'dm-core'
+require 'dm-types'
 require 'dm-migrations'
 require 'dm-constraints'
 require 'dm-validations'
@@ -97,14 +98,16 @@ module DataMapper::Model::Relationship
     @tag_names or []
   end
   def tag_relationships
-    tag_relationships = relationships.select { |k, r| tag_names.include? k.to_sym }
+    tag_relationships = relationships.select { |k, r| tag_names.include? k.to_sym }.collect do |relationship|
+      [relationship[0].to_sym, relationship[1]]
+    end
     Hash[*tag_relationships.flatten]
   end
-  def tag_models
-    tag_models = relationships.select { |k, r| tag_names.include? k.to_sym }.collect do |relationship|
-      [relationship[0], relationship[1].target_model]
+  def tag_target_models
+    tag_target_models = relationships.select { |k, r| tag_names.include? k.to_sym }.collect do |relationship|
+      [relationship[0].to_sym, relationship[1].target_model]
     end
-    Hash[*tag_models.flatten]
+    Hash[*tag_target_models.flatten]
   end
   # Helps make tagging classes.
   def tagging(model1, model2)
@@ -119,12 +122,6 @@ module DataMapper::Resource
     model.raw_name + '/' + [*key].join('.')
   end
   
-  def safe_attributes= (new_attributes)
-    new_attributes.delete_if do |name, value| # Delete attributes not specified in the model
-      not attributes.keys.include? name.downcase.to_sym
-    end
-    self.attributes=(new_attributes)
-  end
   
   # Returns attributes, and lists of tags as arrays.
   def describe
@@ -146,33 +143,109 @@ module DataMapper::Resource
 end
 
 module SimpleScraper
-  # All editable resources have a name, a description, a creator, and blessed editors.
-  module Editable
+  # All resources have a name, a description, a creator, blessed editors, and paranoia.
+  module EditableResource
     def self.included(base)
       base.class_eval do
         include DataMapper::Resource
         
-        property :id,   DataMapper::Property::Serial
-        property :name, DataMapper::Property::String,
-                 :required => true,
-                 :unique   => true
+        property :id,   DataMapper::Property::Serial, :accessor => :private
+        property :name, DataMapper::Property::String, :required => true, :default => lambda { |r,p| r.model.raw_name }
         property :description, DataMapper::Property::Text
         
-        belongs_to :creator, :model => 'User', :required => true
-        tag :editors, :model => 'User', :through => DataMapper::Resource
+        property :created_at, DataMapper::Property::DateTime, :writer => :private, :default => lambda { |r,p| Time.now }, :accessor => :private
+        property :modified_at, DataMapper::Property::DateTime, :accessor => :private
+        property :deleted_at, DataMapper::Property::ParanoidDateTime, :accessor => :private
         
+        # Destroy tags before destroying resource.
+        before :destroy do |resource|
+          puts 'destroy'
+          model.tag_relationships.each do |name, relationship|
+            puts name
+            puts relationship.class
+            if(relationship.class == DataMapper::Associations::ManyToMany::Relationship)
+            #relationship.through.target_model.all.each { |link| link.destroy }
+              send(name).all.each do |tag|
+                puts name
+                puts tag.describe.to_json
+                untag(name, tag)
+              end
+            end
+          end
+        end
+
+        # Keep track of changes.
+        after :save do
+          puts 'after save'
+          modified_at = Time.now
+        end
+
+        validates_uniqueness_of :name, :deleted_at
       end
+
+      # Safely change a resource's attributes.
+      def safe_attributes= (new_attributes)
+        new_attributes.delete_if do |name, value| # Delete attributes not specified in the model
+          not attributes.keys.include? name.downcase.to_sym
+        end
+        new_attributes.delete_if do |name, value|
+          private_methods.include? name + '=' # Remove private attributes.
+        end
+        self.attributes=(new_attributes)
+      end
+      
+      # Tag
+      def tag (tag_name, tag)
+        raise DataMapper::UnknownRelationshipError unless model.tag_target_models[tag_name] == tag.model
+        send(tag_name) << tag
+        save
+        modified_at = Time.now
+        self
+      end
+
+      # Untag
+      def untag (tag_name, tag)
+        raise DataMapper::UnknownRelationshipError unless model.tag_target_models[tag_name] == tag.model
+        model.tag_relationships[tag_name].through.target_model.get(*[key, tag.key].flatten).destroy
+        reload
+        modified_at = Time.now
+        self
+      end
+    end
+  end
+  
+  # A Resource owned by a creator, with editors.
+  module CreatedResource
+    def self.included(base)
+      base.class_eval do
+        include EditableResource
+        
+        belongs_to :creator, :model => 'User', :required => true, :accessor => :private
+        property :creator_id, DataMapper::Property::Integer, :required => true, :accessor => :private
+        
+        tag :editors, :model => 'User', :through => DataMapper::Resource
+      end
+      
       def full_name
         creator.name + "'s " + name
       end
     end
   end
+
+  module Tagging
+    def self.included(base)
+      base.class_eval do
+        include DataMapper::Resource
+        
+        property :created_at, DataMapper::Property::DateTime, :writer => :private, :default => lambda { |r,p| Time.now }
+        property :modified_at, DataMapper::Property::DateTime
+        property :deleted_at, DataMapper::Property::ParanoidDateTime
+      end
+    end
+  end
   
   class User
-    include DataMapper::Resource
-    
-    property :id,   Serial
-    property :name, String, :required => true
+    include EditableResource
     
     tag :datas,          :child_key => [ :creator_id ]
     tag :areas,          :child_key => [ :creator_id ]
@@ -189,42 +262,46 @@ module SimpleScraper
     tag :urls,           :child_key => [ :creator_id ]
     tag :headers,        :child_key => [ :creator_id ]
     tag :cookie_headers, :child_key => [ :creator_id ]
+    
+    def full_name
+      name
+    end
   end
   
   class InterpreterSourceData
-    include DataMapper::Resource
+    include Tagging
     tagging :interpreter, :data
   end
 
   class InterpreterTargetData
-    include DataMapper::Resource
+    include Tagging
     tagging :interpreter, :data
   end
 
   class GeneratorSourceData
-    include DataMapper::Resource
+    include Tagging
     tagging :generator, :data
   end
   
   class GeneratorTargetData
-    include DataMapper::Resource
+    include Tagging
     tagging :generator, :data
   end
 
   class GathererTargetData
-    include DataMapper::Resource
+    include Tagging
     tagging :gatherer, :data
   end
   
   class AreaLink
-    include DataMapper::Resource
+    include Tagging
     
     belongs_to :source, 'Area', :key => true
     belongs_to :target, 'Area', :key => true
   end
 
   class FieldName
-    include Editable
+    include CreatedResource
     
     tag :datas,    :through => Resource
     tag :defaults, :through => Resource
@@ -234,16 +311,15 @@ module SimpleScraper
   end
 
   class Default
-    include Editable
+    include CreatedResource
     
     tag :areas,       :through => Resource
     tag :field_names, :through => Resource
-    property :value, String, #:required => true,
-                    :default => ''
+    property :value, String, :default => '', :required => true
   end
 
   class Area
-    include Editable
+    include CreatedResource
     
     tag :defaults,  :through => Resource
     tag :datas,     :through => Resource
@@ -254,12 +330,12 @@ module SimpleScraper
   end
 
   class PublishField
-    include DataMapper::Resource
+    include Tagging
     tagging :info, :field_name
   end
 
   class Info
-    include Editable
+    include CreatedResource
     
     tag :publishes, 'FieldName', :through => :publish_fields, :via => :field_name
     has n, :publish_fields
@@ -269,7 +345,7 @@ module SimpleScraper
   end
 
   class Data
-    include Editable
+    include CreatedResource
     
     tag :areas,       :through => Resource
     tag :infos,       :through => Resource
@@ -303,7 +379,7 @@ module SimpleScraper
   end
 
   class Interpreter
-    include Editable
+    include CreatedResource
     
     tag :source_datas, 'Data', :through => :interpreter_source_datas, :via => :data
     has n, :interpreter_source_datas
@@ -332,7 +408,7 @@ module SimpleScraper
   end
   
   class Pattern
-    include Editable
+    include CreatedResource
     
     tag :interpreters, :through => Resource
     
@@ -340,7 +416,7 @@ module SimpleScraper
   end
 
   class Generator
-    include Editable
+    include CreatedResource
 
     tag :source_datas, 'Data', :through => :generator_source_datas, :via => :data
     has n, :generator_source_datas
@@ -364,7 +440,7 @@ module SimpleScraper
   end
   
   class Gatherer
-    include Editable
+    include CreatedResource
     
     tag :interpreters, :through => Resource
     tag :generators,   :through => Resource
@@ -401,7 +477,7 @@ module SimpleScraper
   end
   
   class Url
-    include Editable
+    include CreatedResource
     
     tag :gatherers, :through => Resource
     
@@ -409,7 +485,7 @@ module SimpleScraper
   end
 
   class Post
-    include Editable
+    include CreatedResource
 
     tag :gatherers, :through => Resource
 
@@ -418,7 +494,7 @@ module SimpleScraper
   end
 
   class Header
-    include Editable
+    include CreatedResource
 
     tag :gatherers, :through => Resource
 
@@ -427,7 +503,7 @@ module SimpleScraper
   end
 
   class CookieHeader
-    include Editable
+    include CreatedResource
 
     tag :gatherers, :through => Resource
 
