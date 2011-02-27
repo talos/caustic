@@ -35,17 +35,12 @@ module SimpleScraper
 end
 
 module DataMapper::Model
-
   def all_like(unfiltered)
     filtered = {}
     properties.each do |property|
       filtered[property.name.to_sym.like] = unfiltered[property.name.to_s] if unfiltered.include? property.name.to_s
     end
     all({:limit => SimpleScraper::MAX_RECORDS}.merge(filtered))
-  end
-
-  def key_names
-    key.collect { |k| k.name }
   end
   
   def raw_name
@@ -54,28 +49,6 @@ module DataMapper::Model
   
   def location
     '/' + raw_name + '/'
-  end
-
-  def criteria_from_key(*key)
-    Hash[key_names.zip(key)]
-  end
-
-  def first_from_key(*key)
-    if(not key)
-      return first
-    end
-    first criteria_from_key *key
-  end
-
-  def first_or_new_from_key(*key)
-    if(not key)
-      return first_or_new
-    end
-    first_or_new criteria_from_key *key
-  end
-  
-  def first_or_new_from_name(name)
-    first_or_new(:name => name)
   end
 end
 
@@ -103,29 +76,6 @@ module DataMapper::Model::Relationship
   def tagging(model1, model2)
     belongs_to model1, :key => true
     belongs_to model2, :key => true
-  end
-end
-
-# Convenience methods for describing resources.
-module DataMapper::Resource
-  def location
-    model.raw_name + '/' + [*key].join('.')
-  end
-  
-  # Returns attributes, and lists of tags as arrays.
-  def describe
-    desc = attributes.clone
-    self.class.tag_names.each do |tag_name|
-      desc[tag_name.to_s + '/'] = []
-      send(tag_name).all.each do |tag|
-        desc[tag_name.to_s + '/'] << {
-          :name  => tag.full_name,
-          :id    => tag.attribute_get(:id),
-          :model => tag.model.raw_name
-        }
-      end
-    end
-    desc
   end
 end
 
@@ -158,7 +108,7 @@ module SimpleScraper
       end
 
       # Safely change a resource's attributes.
-      def safe_attributes= (new_attributes)
+      def modify (new_attributes)
         new_attributes.delete_if do |name, value| # Delete attributes not specified in the model
           not attributes.keys.include? name.downcase.to_sym
         end
@@ -166,6 +116,7 @@ module SimpleScraper
           private_methods.include? name + '=' # Remove private attributes.
         end
         self.attributes=(new_attributes)
+        save
       end
       
       # Untag -- does not work with CPK
@@ -179,10 +130,30 @@ module SimpleScraper
           send(tag_name).intermediaries.get([*[key, tag.key].flatten], [*[key, tag.key].flatten]).destroy
         end
       end
+
+      def location
+        model.raw_name + '/' + [*key].join('.')
+      end
+      
+      # Returns attributes, and lists of tags as arrays.
+      def describe
+        desc = attributes.clone
+        self.class.tag_names.each do |tag_name|
+          desc[tag_name.to_s + '/'] = []
+          send(tag_name).all.each do |tag|
+            desc[tag_name.to_s + '/'] << {
+              :name  => tag.full_name,
+              :id    => tag.attribute_get(:id),
+              :model => tag.model.raw_name
+            }
+          end
+        end
+        desc
+      end
     end
   end
   
-  # A Resource owned by a creator, with editors.
+  # A Resource owned by a creator, with editors.  Can be checked to see if it is editable by a user.
   module CreatedResource
     def self.included(base)
       base.class_eval do
@@ -198,11 +169,15 @@ module SimpleScraper
       end
       
       def full_name
-        creator.nickname ? creator.nickname + "'s " + name : creator.name + "'s " + name
+        (creator.nickname ? creator.nickname : creator.name) + "'s " + name
+      end
+      
+      def editable_by? (user)
+        creator == user or editors.include? user ? true : false
       end
     end
   end
-
+  
   module Tagging
     def self.included(base)
       base.class_eval do
@@ -240,7 +215,16 @@ module SimpleScraper
     def full_name
       name
     end
+
+    # Only the user can modify his/her own resource.
+    def editable_by? (user)
+      user == self ? true : false
+    end
     
+    def can_edit? (resource)
+      resource.editable_by? self
+    end
+
     # Protect name from reassignment
     before :name= do
       throw :halt unless name.nil?

@@ -26,106 +26,112 @@ configure do
   set :public, File.dirname(__FILE__) + './front'
 end
 
-# Helper functions to interface with the DB.
-# params: resource_model, resource_id, relationship, relationship_id
 module SimpleScraper
-  SimpleScraper::RESERVED_WORDS = [:resource_model, :resource_id, :relationship, :relationship_id, :creator_id]
-  def self.find_model(name)
-    DataMapper::Model.descendants.find { |model| model.raw_name == name }
-  end
-  
-  module Resource
-    def self.find_model(params)
-      SimpleScraper::find_model(params[:resource_model])
-    end
-
-    def self.first(params)
-      model = find_model(params) or return
-      model.get(params[:resource_id])
-    end
-    
-    def self.first_or_create(params)
-      model = find_model(params) or return
-      resource = model.first_or_new(:id => params[:resource_id])
-      params.delete_if { |param, value| SimpleScraper::RESERVED_WORDS.include? param }
-      resource.safe_attributes= params
-      resource.save or raise SimpleScraper::Exception.from_resources(resource)
-      resource
-    end
-  end
-
-  module Tag
-    def self.find_model(params)
-      model = SimpleScraper::Resource.find_model(params) or return
-      model.tag_names.include? params[:relationship].to_sym or return
-      model.send(params[:relationship]).model
-    end
-    
-    def self.first(params)
-      resource = SimpleScraper::Resource.first(params) or return
-      resource.model.tag_names.include? params[:relationship].to_sym or return
+  class User
+    # Courtesy http://blog.saush.com/2009/04/02/write-a-sinatra-based-twitter-clone-in-200-lines-of-ruby-code/
+    # TODO :: Should this even be here?  Should move the API key stuff elsewhere, obviously.
+    def self.from_token(token)
+      u = URI.parse('https://rpxnow.com/api/v2/auth_info')
+      apiKey = '344cef0cc21bc9ff3b406a7b2c2a2dffc79d39dc'
+      req = Net::HTTP::Post.new(u.path)
+      req.set_form_data({'token' => token, 'apiKey' => apiKey, 'format' => 'json', 'extended' => 'true'})
+      http = Net::HTTP.new(u.host,u.port)
+      http.use_ssl = true if u.scheme == 'https'
+      json = JSON.parse(http.request(req).body)
       
-      resource.send(params[:relationship]).get(params[:relationship_id])
-    end
-    
-    def self.first_or_create(params)
-      resource = SimpleScraper::Resource.first(params) or return
-      resource.model.tag_names.include? params[:relationship].to_sym or return
-      if params[:relationship_id]
-        tag_model = SimpleScraper::Tag.find_model(params) or return
-        tag = tag_model.get(params[:relationship_id]) or return
-        resource.send(params[:relationship]) << tag
-        resource.save ? resource : false
-      elsif params[:name]
-        resource.send(params[:relationship]).first_or_create(:name => params[:name])
+      if json['stat'] == 'ok'
+        identifier = json['profile']['identifier']
+        nickname = json['profile']['preferredUsername']
+        nickname = json['profile']['displayName'] if nickname.nil?
+        email = json['profile']['email']
+        # Synthesize a unique name.
+        SimpleScraper::User.first_or_create(:name => nickname + '@' + URI.parse(identifier).host)
+      else
+        raise RuntimeError, 'Cannot log in. Try another account!' 
       end
     end
   end
   
   class SimpleScraper::Exception < RuntimeError
-    def self.from_resources(*resources)
-      errors = {}
+  end
+  
+  class SimpleScraper::ResourceError < SimpleScraper::Exception
+    def initialize(*resources)
+      @errors = {}
       resources.each do |resource|
-        errors[resource.class.to_s] = resource.errors.to_a
+        @errors[resource.class.to_s] = resource.errors.to_a
       end
-      SimpleScraper::Exception.new(errors)
-    end
-    def initialize(errors)
-      @errors = errors
+      super @errors.to_s
     end
     def to_json
       {:errors => @errors}.to_json
     end
   end
 
-  # Courtesy http://blog.saush.com/2009/04/02/write-a-sinatra-based-twitter-clone-in-200-lines-of-ruby-code/
-  # TODO :: Should this even be here?  Should move the API key stuff elsewhere, obviously.
-  def SimpleScraper::get_user(token)
-    u = URI.parse('https://rpxnow.com/api/v2/auth_info')
-    apiKey = '344cef0cc21bc9ff3b406a7b2c2a2dffc79d39dc'
-    req = Net::HTTP::Post.new(u.path)
-    req.set_form_data({'token' => token, 'apiKey' => apiKey, 'format' => 'json', 'extended' => 'true'})
-    http = Net::HTTP.new(u.host,u.port)
-    http.use_ssl = true if u.scheme == 'https'
-    json = JSON.parse(http.request(req).body)
-    
-    if json['stat'] == 'ok'
-      identifier = json['profile']['identifier']
-      nickname = json['profile']['preferredUsername']
-      nickname = json['profile']['displayName'] if nickname.nil?
-      email = json['profile']['email']
-      {:identifier => identifier, :nickname => nickname, :email => email}
-    else
-      raise RuntimeError, 'Cannot log in. Try another account!' 
+  class SimpleScraper::PermissionsError < SimpleScraper::Exception
+    def initialize (user, resource)
+      @message = ( user.nickname ? user.nickname : user.name ) + 
+        'lacks permissions to modify ' + resource.model.raw_name + 
+        ' ' + resource.full_name
+      super(@message)
     end
   end
 end
 
+helpers do
+  def to_output body
+    body.to_json
+  end
+end
+
+error do
+  to_output(env['sinatra.error'] ? env['sinatra.error'] : response)
+end
+
+not_found do
+  to_output 'Not found'
+end
+
+# Find our user.
+before do
+  @user = SimpleScraper::User.get(session[:user_id])
+end
+
+# Try to find our model.
+before '/:model/*' do
+  @model = DataMapper::Model.descendants.find { |model| model.raw_name == params[:model] }
+end
+
+# Try find our resource.
+before '/:model/:resource_id*' do 
+  @resource = @model ? @model.get(params[:resource_id]) : nil
+  if @resource
+    # If we have a resource, do a permissions check for PUT, DELETE, and POST.
+    if @resource and ['PUT', 'DELETE', 'POST'].include? request.request_method
+      raise SimpleScraper::PermissionsError.new(@user, @resource) unless @user.can_edit? @resource
+    end
+  end
+end
+
+# Try find our relationship -- must be a valid one (listed in tag_names)
+before '/:model/:resource_id/:relationship*' do
+  if @resource
+    relationship_name = params[:relationship].to_sym
+    if @resource.model.tag_names.include? relationship_name
+      @relationship = @resource.send(relationship_name)
+    end
+  end
+end
+
+# If that worked, try to find our related resource.
+before '/:model/:resource_id/:relationship/:related_id' do
+  if @relationship
+    @related_resource = @relationship.get(params[:related_id])
+  end
+end
+
 get '/' do
-  if session[:user_id].nil? 
-    redirect '/login'
-  #elsif SimpleScraper::User.first(:id => session[:user_id]).nil?
-  elsif SimpleScraper::User.get(session[:user_id]).nil?
+  if @user.nil?
     redirect '/login'
   else
     File.read(File.join('../front', 'index.html'))
@@ -139,16 +145,8 @@ end
 # Login!
 post '/login' do
   if params[:token]
-    begin
-      rpx_user = SimpleScraper::get_user params[:token]
-    rescue Error => exception
-      return error exception.to_s
-    end
-    
-    # Synthesize a unique name.
-    name = rpx_user[:nickname] + '@' + URI.parse(rpx_user[:identifier]).host
-    user = SimpleScraper::User.first_or_new_from_name(name)
-    user.save or error SimpleScraper::Exception.from_resources(user).to_json
+    user = SimpleScraper::User.from_token params[:token]
+    raise SimpleScraper::ResourceError.new(user) unless user.saved?
     session[:user_id] = user.attribute_get(:id)
     redirect '/#' + user.location
   else
@@ -158,74 +156,70 @@ end
 
 ###### RESOURCE MODELS
 # Display the existing members of a model.  Limited to the top 100, with an optional query string.
-get '/:resource_model/' do
-  model = SimpleScraper::Resource.find_model(params) or return not_found
-  model.all_like(params).collect do |resource|
+get '/:model/' do
+  list = @model.all_like(params).collect do |resource|
     {
       :id => resource.attribute_get(:id),
       :name => resource.full_name
     }
-  end .to_json
+  end
+  to_output list
 end
 
 ###### RESOURCES
 # Describe a resource.
-get '/:resource_model/:resource_id' do
-  resource = SimpleScraper::Resource.first(params) or return not_found
-  resource.describe.to_json
+get '/:model/:resource_id' do
+  @resource ? to_output(@resource.describe) : not_found
 end
+
 # Replace a resource.
-put '/:resource_model/:resource_id' do
-  begin
-    resource = SimpleScraper::Resource.first_or_create(params) or return not_found
-    resource.location.to_json
-  rescue SimpleScraper::Exception => exception
-    error exception.to_json
+put '/:model/:resource_id' do
+  if @resource
+    @resource.modify params
+  elsif @model
+    @resource = @model.create(params.merge({:creator => @user}))
   end
+  @resource.saved? ? to_output(@resource.location) : raise(SimpleScraper::ResourceError.new(@resource))
 end
+
 # Delete a resource and all its links.
-delete '/:resource_model/:resource_id' do
-  resource = SimpleScraper::Resource.first(params) or return not_found
-  resource.destroy or error SimpleScraper::Exception.from_resources(resource).to_json
+delete '/:model/:resource_id' do
+  @resource ? to_output(@resource.destroy) : not_found
 end
 
 ###### TAG MODELS
 # Redirect to the tag's model.
-get '/:resource_model/:relationship/' do
-  tag_model = SimpleScraper::Tag.find_model(params) or not_found
-  redirect tag_model.location + '?' + request.query_string
+get '/:model/:relationship/' do
+  relationship_name = params[:relationship].to_sym
+  @related_model = @model ? @model.relationships[relationship_name].target_model : nil
+  @related_model ? redirect(@related_model.location + '?' + request.query_string) : not_found
 end
 
 ####### TAGS
 # Create a new tag.  Returns the location of the new tag.
-put '/:resource_model/:resource_id/:relationship/' do
-  begin
-    tag_resource = SimpleScraper::Tag.first_or_create(params) or return not_found
-    tag_resource.location.to_json
-  rescue SimpleScraper::Exception => exception
-    error exception.to_json
-  end
+put '/:model/:resource_id/:relationship/' do
+  @relationship ? to_output(@relationship.first_or_create(:creator => @user, :name => params[:name]).location) : not_found
 end
+
 # Redirect to the location of the actual resource.
-get '/:resource_model/:resource_id/:relationship/:relationship_id' do
-  tag_resource = SimpleScraper::Tag.first(params) or return not_found
-  redirect tag_resource.location
+get '/:model/:resource_id/:relationship/:related_id' do
+  @related_resource ? redirect(@related_resource.location) : not_found
 end
-# Replace a tag.  This also creates resources.
-put '/:resource_model/:resource_id/:relationship/:relationship_id' do
-  begin
-    tag_resource = SimpleScraper::Tag.first_or_create(params) or return not_found
-    tag_resource.location.to_json
-  rescue SimpleScraper::Exception => exception
-    error exception.to_json
+
+# Relate two known resources, possibly creating or replacing the second.  This also creates resources.
+put '/:model/:resource_id/:relationship/:related_id' do
+  if @related_resource
+    @related_resource.modify params
+    @resource << @related_resource
+    to_output(@resource.save) or raise SimpleScraper::ResourceError(@resource, @related_resource)
+  else
+    not_found
   end
 end
+
 # Delete a tagging.
 delete '/:resource_model/:resource_id/:relationship/:relationship_id' do
-  resource = SimpleScraper::Resource.first(params) or return not_found
-  tag = SimpleScraper::Tag.first(params) or return not_found
-  
-  resource.untag(params[:relationship], tag).to_json or error SimpleScraper::Exception.from_resources(resource, tag).to_json
+  @related_resource ? to_output(@resource.untag(params[:relationship], @related_resource)) : not_found
 end
 
 # Collect scrapers: this pulls any interpreters, gatherers, and generators that eventually link to a piece of
@@ -311,14 +305,5 @@ get '/scrapers/:area/:info' do
   #   object[:generators][generator.creator_id + '/' + generator.attribute_get(:name)] = generator.to_scraper
   # end
   
-  object.to_json
-end
-
-error do
-  puts 'Sinatra Error: ' + env['sinatra.error']
-  'Sinatra Error: ' + env['sinatra.error'].name
-end
-
-not_found do
-  'Not found'.to_json
+  to_output object
 end
