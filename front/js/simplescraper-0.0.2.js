@@ -302,7 +302,7 @@
 				    url : data.location,
 				    data : values,
 				    complete : function( ) {
-					$resource.trigger('get.simplescraper');
+					$('.resource').trigger('get.simplescraper'); // Could affect names of other resources (thus links)
 				    },
 				    error : function( ) { return; } // TODO: let user know their changes were not committed noisily.
 				});
@@ -344,7 +344,10 @@
 		    'close' : {
 			init : function ( ) { return $('<span />').text('X'); },
 			bindings : {
-			    'click' : function( event ) { $(this).trigger('close.simplescraper'); }
+			    'click' : function( event ) {
+				$(this).trigger('close.simplescraper');
+				return false;
+			    }
 			}
 		    },
 
@@ -354,7 +357,10 @@
 		    'delete' : {
 			init : function( ) { return $('<span />').text('delete'); },
 			bindings : {
-			    'click' : function( event ) { $(this).trigger('delete.simplescraper'); }
+			    'click' : function( event ) {
+				$(this).trigger('delete.simplescraper');
+				return false;
+			    }
 			}
 		    }
 		};

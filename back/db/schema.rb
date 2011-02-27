@@ -13,7 +13,6 @@ require 'rubygems'
 require 'dm-core'
 require 'dm-types'
 require 'dm-migrations'
-require 'dm-constraints'
 require 'dm-validations'
 require 'json'
 
@@ -36,9 +35,6 @@ module SimpleScraper
 end
 
 module DataMapper::Model
-  def self.find(name)
-    self.descendants.find { |model| model.raw_name == name }
-  end
 
   def all_like(unfiltered)
     filtered = {}
@@ -95,19 +91,13 @@ module DataMapper::Model::Relationship
     @tag_names << name
   end
   def tag_names
-    @tag_names or []
+     @tag_names or []
   end
-  def tag_relationships
-    tag_relationships = relationships.select { |k, r| tag_names.include? k.to_sym }.collect do |relationship|
-      [relationship[0].to_sym, relationship[1]]
+  def many_to_manys
+    many_to_manys = relationships.select do |k, r|
+      r.class == DataMapper::Associations::ManyToMany::Relationship
     end
-    Hash[*tag_relationships.flatten]
-  end
-  def tag_target_models
-    tag_target_models = relationships.select { |k, r| tag_names.include? k.to_sym }.collect do |relationship|
-      [relationship[0].to_sym, relationship[1].target_model]
-    end
-    Hash[*tag_target_models.flatten]
+    Hash[*many_to_manys.collect { |relationship| [relationship[0].to_sym, relationship[1].target_model] }.flatten]
   end
   # Helps make tagging classes.
   def tagging(model1, model2)
@@ -122,15 +112,12 @@ module DataMapper::Resource
     model.raw_name + '/' + [*key].join('.')
   end
   
-  
   # Returns attributes, and lists of tags as arrays.
   def describe
     desc = attributes.clone
     self.class.tag_names.each do |tag_name|
-      #desc[tag_name.to_s + '/'] = {}
       desc[tag_name.to_s + '/'] = []
       send(tag_name).all.each do |tag|
-        #desc[tag_name.to_s + '/'][tag.attribute_get(:id)] = tag.full_name
         desc[tag_name.to_s + '/'] << {
           :name  => tag.full_name,
           :id    => tag.attribute_get(:id),
@@ -150,36 +137,23 @@ module SimpleScraper
         include DataMapper::Resource
         
         property :id,   DataMapper::Property::Serial, :accessor => :private
-        property :name, DataMapper::Property::String, :required => true, :default => lambda { |r,p| r.model.raw_name }
-        property :description, DataMapper::Property::Text
         
         property :created_at, DataMapper::Property::DateTime, :writer => :private, :default => lambda { |r,p| Time.now }, :accessor => :private
         property :modified_at, DataMapper::Property::DateTime, :accessor => :private
         property :deleted_at, DataMapper::Property::ParanoidDateTime, :accessor => :private
         
         # Destroy tags before destroying resource.
-        before :destroy do |resource|
-          puts 'destroy'
-          model.tag_relationships.each do |name, relationship|
-            puts name
-            puts relationship.class
-            if(relationship.class == DataMapper::Associations::ManyToMany::Relationship)
-            #relationship.through.target_model.all.each { |link| link.destroy }
-              send(name).all.each do |tag|
-                puts name
-                puts tag.describe.to_json
-                untag(name, tag)
-              end
-            end
+        before :destroy do
+          model.many_to_manys.each do |name, relationship|
+            send(name).intermediaries.destroy
           end
         end
 
         # Keep track of changes.
         after :save do
-          puts 'after save'
           modified_at = Time.now
         end
-
+        
         validates_uniqueness_of :name, :deleted_at
       end
 
@@ -194,22 +168,16 @@ module SimpleScraper
         self.attributes=(new_attributes)
       end
       
-      # Tag
-      def tag (tag_name, tag)
-        raise DataMapper::UnknownRelationshipError unless model.tag_target_models[tag_name] == tag.model
-        send(tag_name) << tag
-        save
-        modified_at = Time.now
-        self
-      end
-
-      # Untag
+      # Untag -- does not work with CPK
       def untag (tag_name, tag)
-        raise DataMapper::UnknownRelationshipError unless model.tag_target_models[tag_name] == tag.model
-        model.tag_relationships[tag_name].through.target_model.get(*[key, tag.key].flatten).destroy
-        reload
-        modified_at = Time.now
-        self
+        relationship = model.relationships[tag_name.to_sym]
+        raise DataMapper::UnknownRelationshipError unless relationship.target_model == tag.model
+        
+        if relationship.class == DataMapper::Associations::OneToMany::Relationship
+          tag.destroy
+        elsif relationship.class == DataMapper::Associations::ManyToMany::Relationship
+          send(tag_name).intermediaries.get([*[key, tag.key].flatten], [*[key, tag.key].flatten]).destroy
+        end
       end
     end
   end
@@ -220,14 +188,17 @@ module SimpleScraper
       base.class_eval do
         include EditableResource
         
-        belongs_to :creator, :model => 'User', :required => true, :accessor => :private
+        property :name, DataMapper::Property::String, :required => true #, :default => lambda { |r,p| r.model.raw_name }
+        property :description, DataMapper::Property::Text
+
+        belongs_to :creator, :model => 'User', :required => true
         property :creator_id, DataMapper::Property::Integer, :required => true, :accessor => :private
         
         tag :editors, :model => 'User', :through => DataMapper::Resource
       end
       
       def full_name
-        creator.name + "'s " + name
+        creator.nickname ? creator.nickname + "'s " + name : creator.name + "'s " + name
       end
     end
   end
@@ -246,6 +217,9 @@ module SimpleScraper
   
   class User
     include EditableResource
+
+    property :name, DataMapper::Property::String, :required => true #, :default => lambda { |r,p| r.model.raw_name }
+    property :nickname, DataMapper::Property::String, :unique => true
     
     tag :datas,          :child_key => [ :creator_id ]
     tag :areas,          :child_key => [ :creator_id ]
@@ -265,6 +239,11 @@ module SimpleScraper
     
     def full_name
       name
+    end
+    
+    # Protect name from reassignment
+    before :name= do
+      throw :halt unless name.nil?
     end
   end
   
@@ -412,7 +391,7 @@ module SimpleScraper
     
     tag :interpreters, :through => Resource
     
-    property :regex, String
+    property :regex, DataMapper::Property::Regexp
   end
 
   class Generator
@@ -481,7 +460,7 @@ module SimpleScraper
     
     tag :gatherers, :through => Resource
     
-    property :value, String
+    property :value, DataMapper::Property::URI
   end
 
   class Post

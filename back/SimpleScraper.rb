@@ -30,19 +30,23 @@ end
 # params: resource_model, resource_id, relationship, relationship_id
 module SimpleScraper
   SimpleScraper::RESERVED_WORDS = [:resource_model, :resource_id, :relationship, :relationship_id, :creator_id]
+  def self.find_model(name)
+    DataMapper::Model.descendants.find { |model| model.raw_name == name }
+  end
+  
   module Resource
     def self.find_model(params)
-      DataMapper::Model.find(params[:resource_model])
+      SimpleScraper::find_model(params[:resource_model])
     end
 
     def self.first(params)
       model = find_model(params) or return
-      model.first_from_key(params[:resource_id])
+      model.get(params[:resource_id])
     end
     
     def self.first_or_create(params)
       model = find_model(params) or return
-      resource = model.first_or_new_from_key(params[:resource_id])
+      resource = model.first_or_new(:id => params[:resource_id])
       params.delete_if { |param, value| SimpleScraper::RESERVED_WORDS.include? param }
       resource.safe_attributes= params
       resource.save or raise SimpleScraper::Exception.from_resources(resource)
@@ -53,45 +57,28 @@ module SimpleScraper
   module Tag
     def self.find_model(params)
       model = SimpleScraper::Resource.find_model(params) or return
-      model.tag_models[params[:relationship]]
+      model.tag_names.include? params[:relationship].to_sym or return
+      model.send(params[:relationship]).model
     end
     
     def self.first(params)
-      tag_model = find_model(params) or return
       resource = SimpleScraper::Resource.first(params) or return
-      #resource.send(params[:relationship]).first(tag_model.criteria_from_key(params[:relationship_id]))
-      tag_resource = tag_model.first_from_key(params[:relationship_id])
-
-      puts tag_resource.describe.to_json
-      tag_resource
+      resource.model.tag_names.include? params[:relationship].to_sym or return
       
-      #resource.send(params[:relationship]).first(:id => tag_resource.attribute_get(:id))
+      resource.send(params[:relationship]).get(params[:relationship_id])
     end
-
+    
     def self.first_or_create(params)
-      tag_model = find_model(params) or return
       resource = SimpleScraper::Resource.first(params) or return
-
-      if tag_model == resource.model and params[:resource_id] == params[:relationship_id] # prevent self-following
-        raise SimpleScraper::Exception.new("Cannot tag a resource with itself.") 
+      resource.model.tag_names.include? params[:relationship].to_sym or return
+      if params[:relationship_id]
+        tag_model = SimpleScraper::Tag.find_model(params) or return
+        tag = tag_model.get(params[:relationship_id]) or return
+        resource.send(params[:relationship]) << tag
+        resource.save ? resource : false
+      elsif params[:name]
+        resource.send(params[:relationship]).first_or_create(:name => params[:name])
       end
-
-      if params[:name]
-        tag_resource = tag_model.first_or_new_from_name(params[:name])
-      else
-        tag_resource = tag_model.first_or_new_from_key(params[:relationship_id])
-      end
-      
-      resource.send(params[:relationship]) << tag_resource
-      
-      params.delete_if { |key, value| SimpleScraper::RESERVED_WORDS.include? key }
-      tag_resource.safe_attributes= params
-      
-      tag_resource.save or raise SimpleScraper::Exception.from_resources(tag_resource)
-      resource.save or raise SimpleScraper::Exception.from_resources(resource)
-      tag_resource
-      #  resource.send(params[:relationship].downcase) << tag
-      #  resource.save or tag.send(params[:model].downcase + 's') << resource
     end
   end
   
@@ -129,7 +116,7 @@ module SimpleScraper
       email = json['profile']['email']
       {:identifier => identifier, :nickname => nickname, :email => email}
     else
-      raise LoginFailedError, 'Cannot log in. Try another account!' 
+      raise RuntimeError, 'Cannot log in. Try another account!' 
     end
   end
 end
@@ -152,16 +139,17 @@ end
 # Login!
 post '/login' do
   if params[:token]
-    rpx_user = SimpleScraper::get_user params[:token]
+    begin
+      rpx_user = SimpleScraper::get_user params[:token]
+    rescue Error => exception
+      return error exception.to_s
+    end
     
-    host = URI.parse(rpx_user[:identifier]).host
     # Synthesize a unique name.
-    name = rpx_user[:nickname] + '@' + host
+    name = rpx_user[:nickname] + '@' + URI.parse(rpx_user[:identifier]).host
     user = SimpleScraper::User.first_or_new_from_name(name)
     user.save or error SimpleScraper::Exception.from_resources(user).to_json
-    #user = SimpleScraper::User.first_or_create(:name => rpx_user[:identifier])
     session[:user_id] = user.attribute_get(:id)
-    #user.location.to_json
     redirect '/#' + user.location
   else
     error "No RPX login token."
@@ -181,16 +169,6 @@ get '/:resource_model/' do
 end
 
 ###### RESOURCES
-# Create a new resource. Returns the location of the new resource.
-# Impossible outside of the context of an existing resource (namely, user).
-# put '/:resource_model/' do
-#   begin
-#     resource = SimpleScraper::Resource.first_or_create(params) or return not_found
-#     resource.location.to_json
-#   rescue SimpleScraper::Exception => exception
-#     error exception.to_json
-#   end
-# end
 # Describe a resource.
 get '/:resource_model/:resource_id' do
   resource = SimpleScraper::Resource.first(params) or return not_found
@@ -215,7 +193,6 @@ end
 # Redirect to the tag's model.
 get '/:resource_model/:relationship/' do
   tag_model = SimpleScraper::Tag.find_model(params) or not_found
-  puts request.query_string
   redirect tag_model.location + '?' + request.query_string
 end
 
@@ -234,7 +211,7 @@ get '/:resource_model/:resource_id/:relationship/:relationship_id' do
   tag_resource = SimpleScraper::Tag.first(params) or return not_found
   redirect tag_resource.location
 end
-# Replace a tag.
+# Replace a tag.  This also creates resources.
 put '/:resource_model/:resource_id/:relationship/:relationship_id' do
   begin
     tag_resource = SimpleScraper::Tag.first_or_create(params) or return not_found
@@ -248,12 +225,7 @@ delete '/:resource_model/:resource_id/:relationship/:relationship_id' do
   resource = SimpleScraper::Resource.first(params) or return not_found
   tag = SimpleScraper::Tag.first(params) or return not_found
   
-  relationship = resource.model.tag_relationships[params[:relationship]] or return not_found
-  if relationship.class == DataMapper::Associations::OneToMany::Relationship
-    tag.destroy or error SimpleScraper::Exception.from_resources(resource, tag).to_json
-  elsif relationship.class == DataMapper::Associations::ManyToMany::Relationship
-    relationship.through.target_model.first(tag.model.raw_name.to_sym => tag).destroy or error SimpleScraper::Exception.from_resources(resource, tag).to_json
-  end
+  resource.untag(params[:relationship], tag).to_json or error SimpleScraper::Exception.from_resources(resource, tag).to_json
 end
 
 # Collect scrapers: this pulls any interpreters, gatherers, and generators that eventually link to a piece of
