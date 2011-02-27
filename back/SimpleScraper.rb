@@ -20,7 +20,7 @@ require 'net/https'
 
 # CONFIG
 configure do
-  set :raise_errors, true
+  set :raise_errors, false
   set :show_exceptions, false
   set :sessions, true
   set :public, File.dirname(__FILE__) + './front'
@@ -71,7 +71,7 @@ module SimpleScraper
   class SimpleScraper::PermissionsError < SimpleScraper::Exception
     def initialize (user, resource)
       @message = ( user.nickname ? user.nickname : user.name ) + 
-        'lacks permissions to modify ' + resource.model.raw_name + 
+        ' lacks permissions to modify ' + resource.model.raw_name + 
         ' ' + resource.full_name
       super(@message)
     end
@@ -95,6 +95,7 @@ end
 # Find our user.
 before do
   @user = SimpleScraper::User.get(session[:user_id])
+  puts params.to_json
 end
 
 # Try to find our model.
@@ -190,13 +191,12 @@ end
 ###### TAG MODELS
 # Redirect to the tag's model.
 get '/:model/:relationship/' do
-  relationship_name = params[:relationship].to_sym
-  @related_model = @model ? @model.relationships[relationship_name].target_model : nil
-  @related_model ? redirect(@related_model.location + '?' + request.query_string) : not_found
+  related_model = @model ? @model.related_model(params[:relationship]) : not_found
+  related_model ? redirect(related_model.location + '?' + request.query_string) : not_found
 end
 
 ####### TAGS
-# Create a new tag.  Returns the location of the new tag.
+# Create a new tag.  Returns the location of the new tag.  This also creates resources.
 put '/:model/:resource_id/:relationship/' do
   @relationship ? to_output(@relationship.first_or_create(:creator => @user, :name => params[:name]).location) : not_found
 end
@@ -206,15 +206,15 @@ get '/:model/:resource_id/:relationship/:related_id' do
   @related_resource ? redirect(@related_resource.location) : not_found
 end
 
-# Relate two known resources, possibly creating or replacing the second.  This also creates resources.
+# Relate two known resources, possibly creating or replacing the second.
 put '/:model/:resource_id/:relationship/:related_id' do
-  if @related_resource
-    @related_resource.modify params
-    @resource << @related_resource
-    to_output(@resource.save) or raise SimpleScraper::ResourceError(@resource, @related_resource)
-  else
-    not_found
+  if @related_resource.nil?
+    puts params.to_json
+    puts @model.related_model(params[:relationship]).all.to_json
+    @related_resource = @model.related_model(params[:relationship]).get(params[:related_id]) or not_found
   end
+  @relationship << @related_resource
+  to_output(@resource.save) or raise SimpleScraper::ResourceError(@resource, @related_resource)
 end
 
 # Delete a tagging.

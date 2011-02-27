@@ -18,18 +18,9 @@ require 'json'
 
 DataMapper.setup(:default, 'sqlite://' + Dir.pwd + '/db.sqlite')
 
-class DataMapper::Validations::ValidationErrors
-  def to_a
-    collect{ |error| error.to_s }
-  end
-  def to_json
-    to_a.to_json
-  end
-end
-
 # Extend default String length from 50 to 500
 DataMapper::Property::String.length(500)
-#DataMapper::Model.raise_on_save_failure = true
+DataMapper::Model.raise_on_save_failure = true
 module SimpleScraper
   SimpleScraper::MAX_RECORDS = 100
 end
@@ -49,6 +40,10 @@ module DataMapper::Model
   
   def location
     '/' + raw_name + '/'
+  end
+
+  def related_model (relationship)
+    relationships[relationship.to_sym] ? relationships[relationship.to_sym].target_model : nil
   end
 end
 
@@ -103,8 +98,6 @@ module SimpleScraper
         after :save do
           modified_at = Time.now
         end
-        
-        validates_uniqueness_of :name, :deleted_at
       end
 
       # Safely change a resource's attributes.
@@ -166,6 +159,8 @@ module SimpleScraper
         property :creator_id, DataMapper::Property::Integer, :required => true, :accessor => :private
         
         tag :editors, :model => 'User', :through => DataMapper::Resource
+
+        #validates_uniqueness_of :creator, :name, :deleted_at
       end
       
       def full_name
@@ -173,7 +168,8 @@ module SimpleScraper
       end
       
       def editable_by? (user)
-        creator == user or editors.include? user ? true : false
+        puts editors.get(user.attribute_get(:id))
+        creator == user or editors.get(user.attribute_get(:id)) ? true : false
       end
     end
   end
@@ -193,7 +189,7 @@ module SimpleScraper
   class User
     include EditableResource
 
-    property :name, DataMapper::Property::String, :required => true #, :default => lambda { |r,p| r.model.raw_name }
+    property :name, DataMapper::Property::String, :required => true, :unique => true #, :default => lambda { |r,p| r.model.raw_name }
     property :nickname, DataMapper::Property::String, :unique => true
     
     tag :datas,          :child_key => [ :creator_id ]
@@ -215,7 +211,7 @@ module SimpleScraper
     def full_name
       name
     end
-
+    
     # Only the user can modify his/her own resource.
     def editable_by? (user)
       user == self ? true : false
@@ -286,7 +282,6 @@ module SimpleScraper
     
     tag :defaults,  :through => Resource
     tag :datas,     :through => Resource
-    #tag :gatherers, :through => Resource
     
     has n, :area_links, :model => AreaLink, :child_key => [:source_id]
     tag :follow_areas,  :model => self, :through => :area_links, :via => :target
@@ -303,8 +298,6 @@ module SimpleScraper
     tag :publishes, 'FieldName', :through => :publish_fields, :via => :field_name
     has n, :publish_fields
     tag :datas,       :through => Resource
-    #tag :gatherers,   :through => Resource
-    #tag :interpreters,:through => Resource
   end
 
   class Data
@@ -446,7 +439,7 @@ module SimpleScraper
     
     property :value, DataMapper::Property::URI
   end
-
+  
   class Post
     include CreatedResource
 

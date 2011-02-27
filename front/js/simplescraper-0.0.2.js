@@ -127,7 +127,6 @@
 					},
 					success : function ( resources ) {
 					    labels = [];
-					    console.log(resources);
 					    for ( var i = 0; i < resources.length; i++ ) {
 						labels.push({
 						    label : resources[i].name,
@@ -141,9 +140,9 @@
 				select    : function( event, ui ) {
 				    var resource_data = $tagger.closest('.resource').data('simplescraper'),
 				    data = $tagger.data('simplescraper');
+				    data.autofill_selected = true;
 				    if( ui.item ) {
 					$tagger.val('');
-					data.selected = true;
 					$tag = factory.make('tag', {
 					    'tag_directory': data.tag_directory,
 					    model : data.model,
@@ -152,6 +151,23 @@
 					$tagger.append($tag);
 					$tag.trigger('put.simplescraper');
 				    }
+				},
+				open : function (event, ui) {
+				    var resource_data = $tagger.closest('.resource').data('simplescraper'),
+				    data = $tagger.data('simplescraper');
+				    data.autofill_open = true;
+				},
+				close: function (event, ui) {
+				    console.log('close');
+				    var resource_data = $tagger.closest('.resource').data('simplescraper'),
+				    data = $tagger.data('simplescraper');
+				    console.log(data.autofill_selected);
+				    data.autofill_open = false;
+				    if(data.autofill_selected !== true) {
+					console.log('triggered');
+					$(this).trigger('blur');
+				    }
+				    data.autofill_selected = false;
 				}
 			    });
 			},
@@ -161,7 +177,10 @@
 				data = $tagger.data('simplescraper'),
 				resource_data = $tagger.closest('.resource').data('simplescraper'),
 				name = $tagger.val();
-				if(name != '' && data.selected === false) {
+				if(data.autofill_open) {
+				    return;
+				}
+				if(name != '') {
 				    $tag = factory.make('tag', {
 					'tag_directory' : data.tag_directory,
 					model : resource_data.model,
