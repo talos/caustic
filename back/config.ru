@@ -1,2 +1,3 @@
-require './simplescraper.rb'
-run Sinatra::Application
+require 'simplescraper'
+
+run SimpleScraper::Application.new

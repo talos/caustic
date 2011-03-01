@@ -19,13 +19,7 @@ require 'dm-timestamps'
 # Convenience methods for collecting tags.
 module SimpleScraper
   module Schema
-    DataMapper.setup(:default, ENV['DATABASE_URL'] || 'sqlite3://' + Dir.pwd + '/simplescraper.db')
-    
-    # Extend default String length from 50 to 500
-    DataMapper::Property::String.length(500)
-    DataMapper::Model.raise_on_save_failure = true
-
-    SimpleScraper::Schema::MAX_RECORDS = 100
+    MAX_RECORDS = 100
 
     # Tagging model factory.
     # Works as Tagging.new(:source, :target) or Tagging.new(:source => 'SourceModel', :target => 'TargetModel')
@@ -87,8 +81,8 @@ module SimpleScraper
           property :id,   DataMapper::Property::Serial, :accessor => :private
           
           property :created_at, DataMapper::Property::DateTime, :writer => :private
-          property :updated_at, DataMapper::Property::DateTime, :accessor => :private
-          property :deleted_at, DataMapper::Property::ParanoidDateTime, :accessor => :private
+          property :updated_at, DataMapper::Property::DateTime, :writer => :private
+          property :deleted_at, DataMapper::Property::ParanoidDateTime, :writer => :private
 
           # Destroy tags before destroying resource.
           before :destroy do
@@ -99,7 +93,6 @@ module SimpleScraper
             end
           end
         end
-        
         
         # Safely change a resource's attributes.
         def modify (new_attributes)
@@ -137,15 +130,15 @@ module SimpleScraper
         base.class_eval do
           include EditableResource
           
-          property :name, DataMapper::Property::String, :required => true #, :default => lambda { |r,p| r.model.raw_name }
+          property :name, DataMapper::Property::String, :required => true
           property :description, DataMapper::Property::Text
-
+          
           belongs_to :creator, :model => 'User', :required => true
-          property :creator_id, DataMapper::Property::Integer, :required => true, :accessor => :private
+          property :creator_id, DataMapper::Property::Integer, :required => true, :writer => :private
           
           tag :editors, :model => 'User', :through => DataMapper::Resource
-
-          #validates_uniqueness_of :creator, :name, :deleted_at
+          
+          validates_uniqueness_of :creator_id, :name, :deleted_at
         end
         
         def full_name
@@ -161,14 +154,13 @@ module SimpleScraper
     class User
       include EditableResource
 
-      property :name, DataMapper::Property::String, :required => true, :unique => true #, :default => lambda { |r,p| r.model.raw_name }
+      property :name, DataMapper::Property::String, :required => true, :unique => true
       property :nickname, DataMapper::Property::String, :unique => true
       
       tag :datas,          :child_key => [ :creator_id ]
       tag :areas,          :child_key => [ :creator_id ]
       tag :infos,          :child_key => [ :creator_id ]
       tag :field_names,    :child_key => [ :creator_id ]
-      #tag :publish_fields, :child_key => [ :creator_id ]
       tag :defaults,       :child_key => [ :creator_id ]
       tag :patterns,       :child_key => [ :creator_id ]
       tag :interpreters,   :child_key => [ :creator_id ]
@@ -254,20 +246,6 @@ module SimpleScraper
       
       tag :gatherer_targets, 'Gatherer', :through => :gatherer_target_datas, :via => :gatherer
       has n, :gatherer_target_datas
-      
-      # TODO : eliminate manual to_scraper methods
-      # Cross-product area/info/field_names
-      def to_scraper
-        object = []
-        areas.each do |area|
-          infos.each do |info|
-            field_names.each do |field_name|
-              object << [area.name, info.name, field_name.name]
-            end
-          end
-        end
-        object
-      end
     end
 
     class Interpreter
@@ -283,20 +261,6 @@ module SimpleScraper
 
       property :match_number, Integer, :default => 0, :required => true
       property :terminate_on_complete, Boolean, :default => false, :required => true
-
-      def to_scraper
-        _source_attributes, _target_attributes = [], []
-        source_datas.each { |source_data| _source_attributes.push(*source_data.to_scraper) }
-        target_datas.each { |target_data| _target_attributes.push(*target_data.to_scraper) }
-        {
-          :match_number => match_number,
-          :terminate_on_complete => terminate_on_complete,
-          :regexes => patterns.collect { |pattern| pattern.regex },
-          :source_attributes => _source_attributes,
-          :target_attributes => _target_attributes,
-          :gatherers => gatherers.collect { |gatherer| gatherer.full_name }
-        }
-      end
     end
     
     class Pattern
@@ -317,18 +281,6 @@ module SimpleScraper
       
       tag :gatherers, :through => Resource
       tag :patterns,  :through => Resource
-
-      def to_scraper
-        _source_attributes, _target_attributes = [], []
-        source_datas.each { |source_data| _source_attributes.push(*source_data.to_scraper) }
-        target_datas.each { |target_data| _target_attributes.push(*target_data.to_scraper) }
-        {
-          :regexes => patterns.collect { |pattern| pattern.regex },
-          :source_attributes => _source_attributes,
-          :target_attributes => _target_attributes,
-          :gatherers => gatherers.collect { |gatherer| gatherer.full_name }
-        }
-      end
     end
     
     class Gatherer
@@ -345,27 +297,6 @@ module SimpleScraper
       tag :posts, :through => Resource
       tag :headers, :through => Resource
       tag :cookie_headers, :through => Resource
-      
-      def to_scraper
-        _posts, _headers, _cookies, _target_field_names = {}, {}, {}, []
-        _urls = self.urls.collect{ |url| url.value }
-        self.posts.each do |post|
-          _posts[post.post_name] = post.value
-        end
-        self.headers.each do |header|
-          _headers[header.header_name] = header.value
-        end
-        self.cookie_headers.each do |cookie_header|
-          _cookies[cookie_header.cookie_name] = cookie_header.value
-        end
-        {
-          :urls => _urls,
-          :posts => _posts,
-          :headers => _headers,
-          :cookies => _cookies,
-          :target_attributes => target_datas.collect { |target_data| target_data.to_scraper }
-        }
-      end
     end
     
     class Url
@@ -403,16 +334,6 @@ module SimpleScraper
       property :value, String
     end
     
-    class ResourceError < RuntimeError
-      def initialize(*resources)
-        @errors = {}
-        resources.each do |resource|
-          @errors[resource.class.to_s] = resource.errors.to_a
-        end
-        super @errors.inspect
-      end
-    end
-    
     # Rockin'.
     Tagging.new('AreaLink', :source => 'Area', :target => 'Area')
     Tagging.new('PublishField', :info, :field_name)
@@ -421,9 +342,5 @@ module SimpleScraper
     Tagging.new('GeneratorSourceData', :generator, :data)
     Tagging.new('GeneratorTargetData', :generator, :data)
     Tagging.new('GathererTargetData', :gatherer, :data)
-    
-    DataMapper.finalize
-    DataMapper.auto_migrate!
   end
 end
-

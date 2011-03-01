@@ -68,5 +68,69 @@
       #     object[:generators][generator.full_name] = generator.to_scraper
       #   end
       # end
-      
+
+### FROM DATA
       # to_output object
+      # TODO : eliminate manual to_scraper methods
+      # Cross-product area/info/field_names
+      # def to_scraper
+      #   object = []
+      #   areas.each do |area|
+      #     infos.each do |info|
+      #       field_names.each do |field_name|
+      #         object << [area.name, info.name, field_name.name]
+      #       end
+      #     end
+      #   end
+      #   object
+      # end
+
+### FROM INTERPRETER
+      # def to_scraper
+      #   _source_attributes, _target_attributes = [], []
+      #   source_datas.each { |source_data| _source_attributes.push(*source_data.to_scraper) }
+      #   target_datas.each { |target_data| _target_attributes.push(*target_data.to_scraper) }
+      #   {
+      #     :match_number => match_number,
+      #     :terminate_on_complete => terminate_on_complete,
+      #     :regexes => patterns.collect { |pattern| pattern.regex },
+      #     :source_attributes => _source_attributes,
+      #     :target_attributes => _target_attributes,
+      #     :gatherers => gatherers.collect { |gatherer| gatherer.full_name }
+      #   }
+      # end
+
+### FROM GENERATOR
+      # def to_scraper
+      #   _source_attributes, _target_attributes = [], []
+      #   source_datas.each { |source_data| _source_attributes.push(*source_data.to_scraper) }
+      #   target_datas.each { |target_data| _target_attributes.push(*target_data.to_scraper) }
+      #   {
+      #     :regexes => patterns.collect { |pattern| pattern.regex },
+      #     :source_attributes => _source_attributes,
+      #     :target_attributes => _target_attributes,
+      #     :gatherers => gatherers.collect { |gatherer| gatherer.full_name }
+      #   }
+      # end
+
+### FROM GATHERER
+      #def  to_scraper
+      #   _posts, _headers, _cookies, _target_field_names = {}, {}, {}, []
+      #   _urls = self.urls.collect{ |url| url.value }
+      #   self.posts.each do |post|
+      #     _posts[post.post_name] = post.value
+      #   end
+      #   self.headers.each do |header|
+      #     _headers[header.header_name] = header.value
+      #   end
+      #   self.cookie_headers.each do |cookie_header|
+      #     _cookies[cookie_header.cookie_name] = cookie_header.value
+      #   end
+      #   {
+      #     :urls => _urls,
+      #     :posts => _posts,
+      #     :headers => _headers,
+      #     :cookies => _cookies,
+      #     :target_attributes => target_datas.collect { |target_data| target_data.to_scraper }
+      #   }
+      # end
