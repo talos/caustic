@@ -1,6 +1,6 @@
 module SimpleScraper
   module Views
-    class Resource << Mustache
+    class Resource < Mustache
       def attributes
         @resource.attributes
       end

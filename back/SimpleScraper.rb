@@ -17,12 +17,12 @@ require 'lib/rpx'
 
 module SimpleScraper
   class Application < Sinatra::Base
-    
+    register Mustache::Sinatra
+    require 'views/layout'
+
     db = Database.new
     
     configure do
-      register Mustache::Sinatra
-      
       set :logging, true
       set :raise_errors, false
       set :show_exceptions, false
@@ -39,19 +39,20 @@ module SimpleScraper
     
     error do
       #to_output(env['sinatra.error'] ? env['sinatra.error'] : response)
+      # @error = env['sinatra.error'] ? env['sinatra.error'] : response
       mustache :error
     end
 
     not_found do
-      #to_output 'Not found'
-      mustache :not_found
+      mustache :not_found, :layout => false
     end
     
     get '/' do
-      if @user.nil? and @login
+      if @user.nil?
         redirect '/login'
       else
-        mustache :index
+        #mustache :index, :layout => false
+        redirect @user.location
       end
     end
     
@@ -61,7 +62,7 @@ module SimpleScraper
     end
     
     get '/login' do
-      mustache :login
+      mustache :login, :layout => false
     end
     
     post '/login' do
@@ -70,14 +71,13 @@ module SimpleScraper
       user = options.users.first_or_create(:name => default_name)
       
       session[options.session_id] = user.attribute_get(:id)
-      puts user.location
-      redirect user.location
+      redirect '/' + user.location
     end
     
     ###### RESOURCE MODELS
     # Try to find our model.
     before '/:model/*' do
-      @model = find_model(params[:model]) or not_found
+      @model = options.database.get_model(params[:model]) or not_found
     end
     
     get '/:model/' do
