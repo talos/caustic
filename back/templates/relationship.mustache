@@ -1,0 +1,24 @@
+{{> header}}
+
+<div class="relationship">
+  {{! The relationship's name. }}
+  <div class="name">{{name}}</div>
+  {{! List the links inside this relationship. }}
+  <ul class="links">
+    {{#links}}
+      <li class="link">
+        <a href="{{location}}">{{name}}</a>
+        <form method="delete" action="{{location}}">
+          <input type="submit" name="delete" value="X" />
+        </form>
+      </li>
+    {{/links}}
+  </li>
+  {{! Allow the user to add another link to this relationship. }}
+  <form method="put" action="{{location}}">
+    <input type="text" name="link" />
+    <input type="submit" name="add" value="add" />
+  </form>
+</div>
+
+{{> footer}}

@@ -1,0 +1,14 @@
+{{> header}}
+
+<div class="model">
+  {{! The model's name. }}
+  <div class="name">Model "{{name.capitalize}}"</div>
+  {{! The name of resources in this model. }}
+  <ul class="resources">
+    {{#resources}}
+      <li class="resource"><a href="{{location}}">{{name}}</a></li>
+    {{/resources}}
+  </ul>
+</div>
+
+{{> footer}}

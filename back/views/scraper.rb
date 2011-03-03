@@ -1,4 +1,10 @@
-
+module SimpleScraper
+  class Application
+    module Views
+      
+    end
+  end
+end
       # # Collect associated areas non-redundantly.
       # area_ids = []
       # def get_area_ids(check_area, area_ids)

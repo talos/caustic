@@ -1,8 +1,10 @@
 module SimpleScraper
   class Application
     module Views
-      def errors
-        env['sinatra.error'].inspect or response
+      class Error < Mustache
+        def errors
+          env['sinatra.error'].inspect or response
+        end
       end
     end
   end

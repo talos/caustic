@@ -18,22 +18,26 @@ require 'lib/rpx'
 module SimpleScraper
   class Application < Sinatra::Base
     register Mustache::Sinatra
-    require 'views/layout'
-
-    db = Database.new
+    #require 'views/layout'
     
     configure do
+      file_path = File.dirname(__FILE__)
+      db = Database.new
+      
       set :logging, true
       set :raise_errors, false
       set :show_exceptions, false
       set :sessions, true
+      set :static, true
+      set :public, file_path + '/public/'
+
       set :database, db
       set :users, db.get_model(:user)
       set :session_id, :user_id
       set :authentication => RPX::Authentication.new(:api_key => '344cef0cc21bc9ff3b406a7b2c2a2dffc79d39dc')
       set :mustache, {
-        :views     => 'views/',
-        :templates => 'templates/'
+        :views     => file_path + '/views/',
+        :templates => file_path + '/templates/'
       }
     end
     
@@ -44,6 +48,7 @@ module SimpleScraper
     end
 
     not_found do
+      puts 'not_found'
       mustache :not_found, :layout => false
     end
     
@@ -51,7 +56,6 @@ module SimpleScraper
       if @user.nil?
         redirect '/login'
       else
-        #mustache :index, :layout => false
         redirect @user.location
       end
     end

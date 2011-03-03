@@ -1,22 +1,60 @@
 module SimpleScraper
-  module Views
-    class Resource < Mustache
-      def attributes
-        @resource.attributes
-      end
-      def relationships
-        relationships = {}
-        @resource.class.tag_names.each do |tag_name|
-          desc[tag_name.to_s + '/'] = []
-          send(tag_name).all.each do |tag|
-            desc[tag_name.to_s + '/'] << {
-              :name  => tag.full_name,
-              :id    => tag.attribute_get(:id),
-              :model => tag.model.raw_name
+  class Application
+    module Views
+      class Resource < Mustache
+        private
+        def list_attributes (attributes_names)
+          attributes_names.collect do |attribute_name|
+            {
+              :name => attribute_name,
+              :value => @resource.attribute_get(attribute_name)
             }
           end
         end
-        relationships
+
+        public
+        def creator
+          @resource.methods.include?('creator') ? @resource.creator : nil
+        end
+
+        def model
+          @resource.model
+        end
+
+        def name
+          @resource.name
+        end
+        
+        def immutables
+          list_attributes( @resource.attributes.keys.select do |attribute_name|
+            @resource.private_methods.include?(attribute_name.to_s + '=')
+          end)
+        end
+        
+        def location
+          @resource.location
+        end
+        
+        def mutables
+          list_attributes( @resource.attributes.keys.select do |attribute_name|
+            @resource.public_methods.include?(attribute_name.to_s + '=')
+          end)
+        end
+
+        def relationships
+          @resource.class.tag_names.collect do |relationship_name|
+            {
+              :name => relationship_name,
+              :location => relationship_name.to_s + '/',
+              :links => @resource.send(relationship_name).all.collect do |related_resource|
+                {
+                  :name  => related_resource.name,
+                  :location => related_resource.location
+                }
+              end
+            }
+          end
+        end
       end
     end
   end

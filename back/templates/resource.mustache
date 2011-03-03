@@ -1,0 +1,42 @@
+{{> header}}
+
+<div class="resource">
+  {{! The resource's name. }}
+  <div class="name">
+    {{#creator}}
+      {{creator.name}}'s
+    {{/creator}}
+    {{model}} {{model.raw_name}} "{{name}}"
+  </div>
+  {{! List the resource's immutable attributes. }}
+  <ul class="immutable attributes">
+    {{#immutables}}
+      <li class="immutable attribute">{{name}}: {{value}}</li>
+    {{/immutables}}
+  </ul>
+  {{! List the resource's mutable attributes.  }}
+  <ul class="mutable attributes">
+    <form method="put" action="{{location}}">
+      {{#mutables}}
+        <li class="mutable attribute">
+          <label for="{{name}}">{{name}}:</label>
+          <textarea id="{{name}}">{{value}}</textarea>
+        </li>
+      {{/mutables}}
+    </form>
+  </ul>
+  {{! List the resource's relationships. }}
+  <ul class="relationships">
+    {{#relationships}}
+      <li>{{> relationship}}</li>
+    {{/relationships}}
+  </ul>
+  {{! Delete the resource. }}
+  <div class="delete">
+    <form method="delete" action="{{location}}">
+      <input type="submit" name="delete" value="Delete" />
+    </form>
+  </div>
+</div>
+
+{{> footer}}

@@ -1,0 +1,25 @@
+{{! Header for HTML content. Should be paired with footer. }}
+<!doctype html>
+<html>
+  <head>
+    {{! Render the title if we have one. }}
+    {{#title}}
+      <title>{{title}}</title>
+    {{/title}}
+    {{! Include our scripts. }}
+    <script type="text/javascript" src="/js/jquery-1.5.1.min.js"></script>
+    <script type="text/javascript" src="/js/jquery-form.js"></script>
+    {{! Catch forms and submit them using the appropriate method. }}
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $('form').each(function() {
+           var method = $(this).attr('method');
+           $(this).ajaxForm({
+              type : method
+           });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <noscript>Sorry, you must have JavaScript enabled in your browser to edit resources.  This is because HTML does not support the PUT and DELETE verbs in forms without JavaScript.</noscript>

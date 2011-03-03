@@ -19,8 +19,6 @@ require 'dm-timestamps'
 # Convenience methods for collecting tags.
 module SimpleScraper
   module Schema
-    MAX_RECORDS = 100
-
     # Tagging model factory.
     # Works as Tagging.new(:source, :target) or Tagging.new(:source => 'SourceModel', :target => 'TargetModel')
     module Tagging
@@ -57,13 +55,6 @@ module SimpleScraper
           end
           def self.tag_names
             @tag_names or []
-          end
-          def self.all_like(unfiltered)
-            filtered = {}
-            properties.each do |property|
-              filtered[property.name.to_sym.like] = unfiltered[property.name.to_s] if unfiltered.include? property.name.to_s
-            end
-            all({:limit => SimpleScraper::Schema::MAX_RECORDS}.merge(filtered))
           end
           
           def self.raw_name
@@ -141,10 +132,6 @@ module SimpleScraper
           validates_uniqueness_of :creator_id, :name, :deleted_at
         end
         
-        def full_name
-          (creator.nickname ? creator.nickname : creator.name) + "'s " + name
-        end
-        
         def editable_by? (user)
           creator == user or editors.get(user.attribute_get(:id)) ? true : false
         end
@@ -172,8 +159,8 @@ module SimpleScraper
       tag :headers,        :child_key => [ :creator_id ]
       tag :cookie_headers, :child_key => [ :creator_id ]
       
-      def full_name
-        name
+      def nickname
+        super.nil? ? name : super
       end
       
       # Only the user can modify his/her own resource.
@@ -185,9 +172,14 @@ module SimpleScraper
         resource.editable_by? self
       end
 
-      # Protect name from reassignment
+      # Protect name from reassignment.  Only nickname should change.
       before :name= do
         throw :halt unless name.nil?
+      end
+      
+      # Cannot destroy.
+      before :destroy do
+        throw :halt
       end
     end
     
