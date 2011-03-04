@@ -21,7 +21,7 @@ module SimpleScraper
       DataMapper::Model.raise_on_save_failure = true
       
       DataMapper.finalize
-      DataMapper.auto_upgrade!
+      DataMapper.auto_migrate!
     end
     
     def get_model (name)

@@ -64,16 +64,14 @@ module SimpleScraper
           def self.location
             raw_name + '/'
           end
-
+          
           def self.related_model (relationship)
-            relationships[relationship.to_sym] ? model.relationships[relationship.to_sym].target_model : nil
+            relationships[relationship.to_sym] ? relationships[relationship.to_sym].target_model : nil
           end
           
           property :id,   DataMapper::Property::Serial, :accessor => :private
           
           property :created_at, DataMapper::Property::DateTime, :writer => :private
-          property :updated_at, DataMapper::Property::DateTime, :writer => :private
-          property :deleted_at, DataMapper::Property::ParanoidDateTime, :writer => :private
 
           # Destroy tags before destroying resource.
           before :destroy do
@@ -121,15 +119,16 @@ module SimpleScraper
         base.class_eval do
           include EditableResource
           
-          property :name, DataMapper::Property::String, :required => true
+          property :name, DataMapper::Property::String, :required => true, :unique_index => :creator_name_deleted
           property :description, DataMapper::Property::Text
           
           belongs_to :creator, :model => 'User', :required => true
-          property :creator_id, DataMapper::Property::Integer, :required => true, :writer => :private
+          property :creator_id, DataMapper::Property::Integer, :required => true, :writer => :private, :unique_index => :creator_name_deleted
           
+          property :updated_at, DataMapper::Property::DateTime, :writer => :private
+          property :deleted_at, DataMapper::Property::ParanoidDateTime, :writer => :private, :unique_index => :creator_name_deleted
+
           tag :editors, :model => 'User', :through => DataMapper::Resource
-          
-          validates_uniqueness_of :creator_id, :name, :deleted_at
         end
         
         def editable_by? (user)
@@ -151,7 +150,6 @@ module SimpleScraper
       tag :defaults,       :child_key => [ :creator_id ]
       tag :patterns,       :child_key => [ :creator_id ]
       tag :interpreters,   :child_key => [ :creator_id ]
-      tag :datas,          :child_key => [ :creator_id ]
       tag :generators,     :child_key => [ :creator_id ]
       tag :gatherers,      :child_key => [ :creator_id ]
       tag :posts,          :child_key => [ :creator_id ]

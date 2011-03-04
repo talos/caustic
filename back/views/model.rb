@@ -9,7 +9,7 @@ module SimpleScraper
         end
 
         def location
-          @model.location
+          @resource_dir + @model.location
         end
 
         def resources

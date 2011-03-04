@@ -32,7 +32,9 @@ module SimpleScraper
         end
         
         def location
-          @resource.location
+          # @resource.location
+          # @request.path
+          @resource_dir + @resource.location
         end
         
         def mutables
@@ -45,11 +47,11 @@ module SimpleScraper
           @resource.class.tag_names.collect do |relationship_name|
             {
               :name => relationship_name,
-              :location => relationship_name.to_s + '/',
+              :location => @resource_dir + @resource.location + '/' + relationship_name.to_s + '/',
               :links => @resource.send(relationship_name).all.collect do |related_resource|
                 {
                   :name  => related_resource.name,
-                  :location => related_resource.location
+                  :location => @resource_dir + related_resource.location
                 }
               end
             }
