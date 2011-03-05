@@ -2,13 +2,13 @@
 
 <div class="relationship">
   {{! The relationship's name. }}
-  <div class="name">{{name}}</div>
+  <div class="name">{{name}} (<a href="{{related_model_location}}">{{related_model}}</a>)</div>
   {{! List the links inside this relationship. }}
   <ul class="links">
     {{#links}}
       <li class="link">
-        <a href="{{location}}">{{name}}</a>
-        <form method="delete" action="{{location}}">
+        <form method="delete" action="{{tag_location}}">
+          <a href="{{resource_location}}">{{creator_name}}'s {{name}}</a>
           <input type="submit" name="delete" value="X" />
         </form>
       </li>

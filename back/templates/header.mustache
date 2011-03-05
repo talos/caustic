@@ -11,11 +11,15 @@
     <script type="text/javascript" src="/js/jquery-form.js"></script>
     {{! Catch forms and submit them using the appropriate method. }}
     <script type="text/javascript">
+      /* Allows for PUT and DELETE from forms, reloads upon success. */
       $(document).ready(function() {
         $('form').each(function() {
            var method = $(this).attr('method');
            $(this).ajaxForm({
-              type : method
+             type : method,
+             success : function() {
+               location.reload();
+             }
            });
         });
       });

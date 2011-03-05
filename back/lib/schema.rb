@@ -92,7 +92,6 @@ module SimpleScraper
             private_methods.include? name + '=' # Remove private attributes.
           end
           self.attributes=(new_attributes)
-          save
         end
         
         # Untag -- does not work with CPK
@@ -196,7 +195,7 @@ module SimpleScraper
       
       tag :areas,       :through => Resource
       tag :field_names, :through => Resource
-      property :value, String, :default => '', :required => true
+      property :value, String, :default => '' #, :required => true
     end
 
     class Area

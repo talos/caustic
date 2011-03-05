@@ -12,8 +12,14 @@
 require 'rubygems'
 require 'sinatra/base'
 require 'mustache/sinatra'
+require 'mustache_json'
 require 'lib/database'
 require 'lib/rpx'
+
+require 'rack-flash'
+
+
+#use Rack::Flash
 
 module SimpleScraper
   class Application < Sinatra::Base
@@ -21,11 +27,13 @@ module SimpleScraper
     #require 'views/layout'
     
     configure do
+      use Rack::Flash
+      
       file_path = File.dirname(__FILE__)
       db = Database.new
       
       set :logging, true
-      #set :raise_errors, false
+      set :raise_errors, true
       #set :show_exceptions, false
       set :sessions, true
       set :static, true
@@ -41,10 +49,58 @@ module SimpleScraper
       }
       set :resource_dir, '/'
     end
+
+    helpers do
+      def resource_error (*resources)
+        @resource_errors = resources.collect { |resource| resource.errors.to_a }.flatten
+        puts @resource_errors
+        halt 500
+      end
+
+      # Attempt to use request headers to determine the format of response.
+      # Most likely, the browser will permit any response -- in that case, XHR 
+      # requests receive JSON while non XHR requests receive HTML.
+      def determine_request_type
+        json_ok = request.accept.include?('*/*') or request.accept.find { |header| header =~ /json/ }
+        html_ok = request.accept.include?('*/*') or request.accept.find { |header| header =~ /html/ }
+        puts 'XHR: ' + request.xhr?.to_s
+        if json_ok and not html_ok
+          :json
+        elsif html_ok and not json_ok
+          :html
+        elsif request.xhr?
+          :json
+        else
+          :html
+        end
+        #puts @request_type.to_s
+      end
+
+      # If the client is requesting json, use the json utility on the mustache template.
+      # Otherwise, run the mustache template.
+      def mustache_response (template, options = {})
+        
+        case determine_request_type 
+        when :html then
+          mustache template, options
+        when :json then
+          #puts instance_variables.inspect
+          # klass = mustache_class(template, options)
+          # output = klass.new
+          # #output.render({})
+          # puts output.methods.inspect
+          # puts output.context
+          # puts output.context.methods.inspect
+          # puts output.to_json
+          #warn 'mustache class name: ' + mustache_class(template, options).to_json
+          #Views
+        end
+      end
+    end
     
     error do
-      puts 'error'
       #to_output(env['sinatra.error'] ? env['sinatra.error'] : response)
+      puts 'danger, will robinson!!'
       @error = env['sinatra.error'] ? env['sinatra.error'] : response
       puts @resource.saved?
       puts @related_resource.saved?
@@ -54,13 +110,18 @@ module SimpleScraper
       if @related_resource
         puts @related_resource.errors.to_a.inspect
       end
-      mustache :error, :layout => false
+      puts 'flash error: '
+      flash[:error] = 'there was an error.'
+      puts flash[:error]
+      mustache_response :error, :layout => false
+    end
+
+    error DataMapper::SaveFailureError do
+      puts 'savefailurerror'
     end
 
     not_found do
-      mustache :not_found, :layout => false
-      content_type 'text/html'
-      '<p>This page has not been found.</p>' + ( ' ' * 512 )
+      mustache_response :not_found, :layout => false
     end
     
     before do
@@ -79,7 +140,7 @@ module SimpleScraper
     
     ###### LOGIN
     get '/login' do
-      mustache :login, :layout => false
+      mustache_response :login, :layout => false
     end
     
     post '/login' do
@@ -98,7 +159,7 @@ module SimpleScraper
     end
     
     get options.resource_dir + ':model/' do
-      mustache :model
+      mustache_response :model
     end
     
     ###### RESOURCES
@@ -117,22 +178,26 @@ module SimpleScraper
     
     # Describe a resource.
     get options.resource_dir + ':model/:resource_id' do
-      @resource ? mustache(:resource) : not_found
+      not_found unless @resource
+      mustache_response :resource
     end
     
     # Replace a resource.
     put '/:model/:resource_id' do
       if @resource
         @resource.modify params
+        @resource.save or resource_error @resource
       elsif @model
         @resource = @model.create(params.merge({:creator => @user}))
       end
-      @resource_dir + @resource.location
+      mustache_response :created # @resource_dir + @resource.location
     end
     
     # Delete a resource and all its links.
     delete options.resource_dir + ':model/:resource_id' do
-      @resource ? @resource.destroy : not_found
+      not_found unless @resource
+      @resource.destroy ? @resource.destroy : not_found
+      mustache_response :destroyed
     end
     
     ###### TAG MODELS
@@ -157,10 +222,11 @@ module SimpleScraper
     
     # Create a new tag.  Returns the location of the new tag.  This also creates resources.
     put options.resource_dir + ':model/:resource_id/:relationship/' do
-      puts 'name: ' + params[:name]
       @related_resource = @relationship.first_or_new(:creator => @user, :name => params[:name])
-      @related_resource.save
-      @related_resource.location
+      @related_resource.save or resource_error @related_resource
+      @relationship << @related_resource
+      @resource.save or resource_error @resource, @related_resource
+      mustache_response :created  # @related_resource.location
     end
     
     # If that worked, try to find our related resource.
@@ -172,31 +238,33 @@ module SimpleScraper
     get options.resource_dir + ':model/:resource_id/:relationship/:related_id' do
       @related_resource ? redirect(@resource_dir + @related_resource.location) : not_found
     end
-
+    
     # Relate two known resources, possibly creating or replacing the second.
     put options.resource_dir + ':model/:resource_id/:relationship/:related_id' do
       if @related_resource.nil?
         @related_resource = @related_model.get(params[:related_id]) or not_found
       end
       @relationship << @related_resource
-      @resource.save
-      @resource_dir + @related_resource.location
+      @resource.save or resource_error @resource, @related_resource
+      mustache_response :created # @resource_dir + @related_resource.location
     end
 
     # Delete a tagging.
     delete options.resource_dir + ':model/:resource_id/:relationship/:related_id' do
-      @related_resource ? @resource.untag(@relationship_name, @related_resource) : not_found
+      not_found unless @related_resource
+      @resource.untag(@relationship_name, @related_resource)
+      mustache_response :untagged
     end
     
     # Collect scrapers: this pulls any interpreters, gatherers, and generators that eventually link to a piece of
     # data that would be published for an information in an area.
     # TODO this is a view, and should be handled as such.
-    get options.resource_dir + 'scrapers/:area/:info' do
+    get options.resource_dir + 'scraper/:area/:info' do
       creator = find_model('user').first(:id => params[:creator]) #or return not_found # Creator is optional.
       area = find_model('area').first(:name => params[:area]) or return not_found
       info = find_model('info').first(:name => params[:info]) or return not_found
 
-      mustache :scraper, :creator => creator, :area => area, :info => info
+      mustache_response :scraper, :creator => creator, :area => area, :info => info
     end
   end
 end

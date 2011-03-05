@@ -22,7 +22,8 @@ module SimpleScraper
           filters[:limit] = MAX_RESOURCES
           @model.all(filters).collect do |resource|
             {
-              :resource => resource
+              :name => (resource.methods.include?(:creator) ? resource.creator.nickname + "'s " : '' ) + resource.name,
+              :location => @resource_dir + resource.location
             }
           end
         end

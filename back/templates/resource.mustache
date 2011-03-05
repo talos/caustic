@@ -4,9 +4,9 @@
   {{! The resource's name. }}
   <div class="name">
     {{#creator}}
-      {{creator.name}}'s
+      {{creator}}'s
     {{/creator}}
-    {{model}} {{model.raw_name}} "{{name}}"
+    {{resource.name}} "{{name}}"
   </div>
   {{! List the resource's immutable attributes. }}
   <ul class="immutable attributes">
@@ -20,9 +20,10 @@
       {{#mutables}}
         <li class="mutable attribute">
           <label for="{{name}}">{{name}}:</label>
-          <textarea id="{{name}}">{{value}}</textarea>
+          <textarea name="{{name}}">{{value}}</textarea>
         </li>
       {{/mutables}}
+      <input type="submit" name="update" value="Update" />
     </form>
   </ul>
   {{! List the resource's relationships. }}

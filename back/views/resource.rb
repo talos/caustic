@@ -14,11 +14,11 @@ module SimpleScraper
 
         public
         def creator
-          @resource.methods.include?('creator') ? @resource.creator : nil
+          @resource.methods.include?(:creator) ? @resource.creator.nickname : nil
         end
 
         def model
-          @resource.model
+          @model.raw_name
         end
 
         def name
@@ -32,8 +32,6 @@ module SimpleScraper
         end
         
         def location
-          # @resource.location
-          # @request.path
           @resource_dir + @resource.location
         end
         
@@ -48,10 +46,14 @@ module SimpleScraper
             {
               :name => relationship_name,
               :location => @resource_dir + @resource.location + '/' + relationship_name.to_s + '/',
+              :related_model => @model.related_model(relationship_name).raw_name,
+              :related_model_location => @resource_dir + @model.related_model(relationship_name).location,
               :links => @resource.send(relationship_name).all.collect do |related_resource|
                 {
+                  :creator_name => related_resource.creator.nickname,
                   :name  => related_resource.name,
-                  :location => @resource_dir + related_resource.location
+                  :resource_location => @resource_dir + related_resource.location,
+                  :tag_location => @resource_dir + @resource.location + '/' + relationship_name.to_s + '/' + related_resource.attribute_get(:id).to_s
                 }
               end
             }

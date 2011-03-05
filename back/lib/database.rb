@@ -18,10 +18,10 @@ module SimpleScraper
       
       # Extend default String length from 50 to 500
       DataMapper::Property::String.length(500)
-      DataMapper::Model.raise_on_save_failure = true
+      #DataMapper::Model.raise_on_save_failure = true
       
       DataMapper.finalize
-      DataMapper.auto_migrate!
+      DataMapper.auto_upgrade!
     end
     
     def get_model (name)
