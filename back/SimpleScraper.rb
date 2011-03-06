@@ -12,7 +12,8 @@
 require 'rubygems'
 require 'sinatra/base'
 require 'mustache/sinatra'
-require 'mustache_json'
+#require 'mustache_json'
+require 'json'
 require 'lib/database'
 require 'lib/rpx'
 
@@ -63,7 +64,6 @@ module SimpleScraper
       def determine_request_type
         json_ok = request.accept.include?('*/*') or request.accept.find { |header| header =~ /json/ }
         html_ok = request.accept.include?('*/*') or request.accept.find { |header| header =~ /html/ }
-        puts 'XHR: ' + request.xhr?.to_s
         if json_ok and not html_ok
           :json
         elsif html_ok and not json_ok
@@ -73,7 +73,6 @@ module SimpleScraper
         else
           :html
         end
-        #puts @request_type.to_s
       end
 
       # If the client is requesting json, use the json utility on the mustache template.
@@ -84,35 +83,32 @@ module SimpleScraper
         when :html then
           mustache template, options
         when :json then
-          #puts instance_variables.inspect
-          # klass = mustache_class(template, options)
-          # output = klass.new
-          # #output.render({})
-          # puts output.methods.inspect
-          # puts output.context
-          # puts output.context.methods.inspect
-          # puts output.to_json
-          #warn 'mustache class name: ' + mustache_class(template, options).to_json
-          #Views
+          klass = mustache_class template.to_s, options
+          instance = klass.new
+          hash = instance.class.public_instance_methods(false).inject({}) do |result, method|
+            result[method.to_sym] = instance.send(method)
+            result
+          end
+          puts template.to_s + ': ' + hash.to_json
+          puts instance.methods.inspect
+          puts instance.class.methods.inspect
+          puts klass.methods.inspect
+          puts instance.class.public_instance_methods(false).inspect
+          puts klass.public_instance_methods(false).inspect
+          hash.to_json
         end
       end
     end
     
     error do
       #to_output(env['sinatra.error'] ? env['sinatra.error'] : response)
-      puts 'danger, will robinson!!'
       @error = env['sinatra.error'] ? env['sinatra.error'] : response
-      puts @resource.saved?
-      puts @related_resource.saved?
       if @resource
         puts @resource.errors.to_a.inspect
       end
       if @related_resource
         puts @related_resource.errors.to_a.inspect
       end
-      puts 'flash error: '
-      flash[:error] = 'there was an error.'
-      puts flash[:error]
       mustache_response :error, :layout => false
     end
 

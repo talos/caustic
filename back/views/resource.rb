@@ -42,6 +42,7 @@ module SimpleScraper
         end
 
         def relationships
+          #puts 'resource is: ' + @resource.inspect
           @resource.class.tag_names.collect do |relationship_name|
             {
               :name => relationship_name,
