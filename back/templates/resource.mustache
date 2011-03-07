@@ -1,31 +1,41 @@
-{{> header}}
-
 <div class="resource">
   {{! The resource's name. }}
   <div class="name">
     {{#creator}}
-      {{creator}}'s
+      {{creator_name}}'s
     {{/creator}}
-    {{resource.name}} "{{name}}"
+    {{model_name}} "{{resource_name}}"
   </div>
   {{! List the resource's immutable attributes. }}
   <ul class="immutable attributes">
     {{#immutables}}
       <li class="immutable attribute">{{name}}: {{value}}</li>
     {{/immutables}}
+    {{^can_edit}}
+    {{! List the resource's mutable attributes with immutables, if we can't edit. }}
+    {{#mutables}}
+      <li class="immutable attribute">{{name}}: {{value}}</li>
+    {{/mutables}}
+    {{/can_edit}}
   </ul>
-  {{! List the resource's mutable attributes.  }}
-  <ul class="mutable attributes">
-    <form method="put" action="{{location}}">
-      {{#mutables}}
-        <li class="mutable attribute">
-          <label for="{{name}}">{{name}}:</label>
-          <textarea name="{{name}}">{{value}}</textarea>
-        </li>
-      {{/mutables}}
-      <input type="submit" name="update" value="Update" />
-    </form>
-  </ul>
+  {{#can_edit}}
+    {{! List the resource's mutable attributes separately, if we can edit.  }}
+    <ul class="mutable attributes">
+      <form method="put" action="{{resource_location}}">
+        {{! Hidden input for update consistency. }}
+        {{#resource_updated_at}}
+          <input type="hidden" name="last_updated_at" value="{{resource_updated_at}}">
+        {{/resource_updated_at}}
+        {{#mutables}}
+          <li class="mutable attribute">
+            <label for="{{name}}">{{name}}:</label>
+            <textarea name="{{name}}">{{value}}</textarea>
+          </li>
+        {{/mutables}}
+        <input type="submit" name="update" value="Update" />
+      </form>
+    </ul>
+  {{/can_edit}}
   {{! List the resource's relationships. }}
   <ul class="relationships">
     {{#relationships}}
@@ -33,11 +43,11 @@
     {{/relationships}}
   </ul>
   {{! Delete the resource. }}
-  <div class="delete">
-    <form method="delete" action="{{location}}">
-      <input type="submit" name="delete" value="Delete" />
-    </form>
-  </div>
+  {{#can_edit}}
+    <div class="delete">
+      <form method="delete" action="{{resource_location}}">
+        <input type="submit" name="delete" value="Delete" />
+      </form>
+    </div>
+  {{/can_edit}}
 </div>
-
-{{> footer}}

@@ -13,7 +13,11 @@ require 'lib/schema'
 
 module SimpleScraper
   class Database
-    def initialize
+    def initialize(options = {})
+      @settings = {
+        :directory => '/'
+      }.merge(options)
+      
       DataMapper.setup(:default, ENV['DATABASE_URL'] || 'sqlite3://' + Dir.pwd + '/simplescraper.db')
       
       # Extend default String length from 50 to 500
@@ -22,6 +26,11 @@ module SimpleScraper
       
       DataMapper.finalize
       DataMapper.auto_upgrade!
+      #DataMapper.auto_migrate!
+    end
+
+    def directory
+      @settings[:directory]
     end
     
     def get_model (name)

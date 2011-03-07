@@ -1,17 +1,9 @@
 module SimpleScraper
   class Application
     module Views
-      class Model < Mustache
+      class Model < Layout
         MAX_RESOURCES = 100
         
-        def name
-          @model.raw_name
-        end
-
-        def location
-          @resource_dir + @model.location
-        end
-
         def resources
           filters = {}
           @model.properties.each do |property|
@@ -22,8 +14,8 @@ module SimpleScraper
           filters[:limit] = MAX_RESOURCES
           @model.all(filters).collect do |resource|
             {
-              :name => (resource.methods.include?(:creator) ? resource.creator.nickname + "'s " : '' ) + resource.name,
-              :location => @resource_dir + resource.location
+              :name => resource.full_name,
+              :location => resource.location
             }
           end
         end

@@ -1,5 +1,3 @@
-{{> header}}
-
 <div class="relationship">
   {{! The relationship's name. }}
   <div class="name">{{name}} (<a href="{{related_model_location}}">{{related_model}}</a>)</div>
@@ -7,18 +5,23 @@
   <ul class="links">
     {{#links}}
       <li class="link">
-        <form method="delete" action="{{tag_location}}">
-          <a href="{{resource_location}}">{{creator_name}}'s {{name}}</a>
-          <input type="submit" name="delete" value="X" />
-        </form>
+        {{#can_edit}}
+          <form method="delete" action="{{tag_location}}">
+            <a href="{{resource_location}}">{{name}}</a>
+            <input type="submit" name="delete" value="X" />
+          </form>
+        {{/can_edit}}
+        {{^can_edit}}
+        <a href="{{resource_location}}">{{name}}</a>
+        {{/can_edit}}
       </li>
     {{/links}}
   </li>
   {{! Allow the user to add another link to this relationship. }}
-  <form method="put" action="{{location}}">
-    <input type="text" name="name" />
-    <input type="submit" name="add" value="add" />
-  </form>
+  {{#can_edit}}
+    <form method="put" action="{{location}}">
+      <input type="text" name="name" />
+      <input type="submit" name="add" value="add" />
+    </form>
+  {{/can_edit}}
 </div>
-
-{{> footer}}

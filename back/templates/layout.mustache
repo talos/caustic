@@ -26,4 +26,13 @@
     </script>
   </head>
   <body>
-    <noscript>Sorry, you must have JavaScript enabled in your browser to edit resources.  This is because HTML does not support the PUT and DELETE verbs in forms without JavaScript.</noscript>
+    <noscript>Sorry, you must have JavaScript enabled in your browser to edit resources.  This is because HTML does not support HTTP's PUT and DELETE verbs without JavaScript.</noscript>
+    {{#user}}
+      <div class="header">You are logged in as {{user_name}}.
+        <span><a href="{{user_location}}">Home</a></span>
+        <span><a href="/logout">Log out</a></span>
+      </div>
+    {{/user}}
+    {{{yield}}}
+  </body>
+</html>
