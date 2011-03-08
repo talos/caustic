@@ -41,6 +41,7 @@ module SimpleScraper
 
       set :database, db
       set :users, db.get_model(:user)
+      set :login_location, '/login'
       set :session_id, :user_id
       set :authentication => RPX::Authentication.new(:api_key => '344cef0cc21bc9ff3b406a7b2c2a2dffc79d39dc')
       set :mustache, {
@@ -122,18 +123,19 @@ module SimpleScraper
 
     get '/' do
       if @user.nil?
-        redirect '/login'
+        redirect options.login_location
       else
         redirect @user.location
       end
     end
     
     ###### LOGIN
-    get '/login' do
-      mustache_response :login, :layout => false
+    get options.login_location do
+      @login_url = request.url
+      mustache_response :login
     end
     
-    post '/login' do
+    post options.login_location do
       begin
         user_params = options.authentication.login(params)
         immutable_name = user_params[:nickname] + '@' + URI.parse(user_params[:identifier]).host
