@@ -1,10 +1,15 @@
-<div class="model">
-  {{! The model's name. }}
-  <div class="name">Model "{{model_name}}"</div>
-  {{! The name of resources in this model. }}
-  <ul class="resources">
-    {{#resources}}
-      <li class="resource"><a href="{{location}}">{{name}}</a></li>
-    {{/resources}}
-  </ul>
-</div>
+{{#html_format}}
+  <div class="model">
+    {{! The model's name. }}
+    <div class="name">Model "{{model_name}}"</div>
+    {{! The name of resources in this model. }}
+    <ul class="resources">
+      {{#resources}}
+        <li class="resource"><a href="{{location}}">{{name}}</a></li>
+      {{/resources}}
+    </ul>
+  </div>
+{{/html_format}}
+{{#json_format}}
+  {{{to_json}}}
+{{/json_format}}

@@ -1,38 +1,29 @@
-{{! Header for HTML content. Should be paired with footer. }}
-<!doctype html>
-<html>
-  <head>
-    {{! Render the title if we have one. }}
-    {{#title}}
-      <title>{{title}}</title>
-    {{/title}}
-    {{! Include our scripts. }}
-    <script type="text/javascript" src="/js/jquery-1.5.1.min.js"></script>
-    <script type="text/javascript" src="/js/jquery-form.js"></script>
-    {{! Catch forms and submit them using the appropriate method. }}
-    <script type="text/javascript">
-      /* Allows for PUT and DELETE from forms, reloads upon success. */
-      $(document).ready(function() {
-        $('form').each(function() {
-           var method = $(this).attr('method');
-           $(this).ajaxForm({
-             type : method,
-             success : function() {
-               location.reload();
-             }
-           });
-        });
-      });
-    </script>
-  </head>
-  <body>
-    <noscript>Sorry, you must have JavaScript enabled in your browser to edit resources.  This is because HTML does not support HTTP's PUT and DELETE verbs without JavaScript.</noscript>
-    {{#user}}
-      <div class="header">You are logged in as {{user_name}}.
-        <span><a href="{{user_location}}">Home</a></span>
-        <span><a href="/logout">Log out</a></span>
-      </div>
-    {{/user}}
-    {{{yield}}}
-  </body>
-</html>
+{{#html_format}}
+  <!doctype html>
+  <html>
+    <head>
+      {{! Render the title if we have one. }}
+      {{#title}}
+        <title>{{title}}</title>
+      {{/title}}
+      {{! Include our scripts. }}
+      <script type="text/javascript" src="/js/jquery-1.5.1.min.js"></script>
+      <script type="text/javascript" src="/js/jquery-ui-1.8.9.custom.min.js"></script>
+      <script type="text/javascript" src="/js/jquery-form.js"></script>
+      <script type="text/javascript" src="/js/simplescraper-back.js"></script>
+    </head>
+    <body>
+      <noscript>Sorry, you must have JavaScript enabled in your browser to edit resources.  This is because HTML does not support HTTP's PUT and DELETE verbs without JavaScript.</noscript>
+      {{#user}}
+        <div class="header">You are logged in as {{user_name}}.
+          <span><a href="{{user_location}}">Home</a></span>
+          <span><a href="/logout">Log out</a></span>
+        </div>
+      {{/user}}
+      {{{yield}}}
+    </body>
+  </html>
+{{/html_format}}
+{{#json_format}}
+  {{{yield}}}
+{{/json_format}}

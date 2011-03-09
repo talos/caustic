@@ -1,3 +1,5 @@
+require 'json'
+
 module SimpleScraper
   class Application
     module Views
@@ -18,6 +20,12 @@ module SimpleScraper
               :location => resource.location
             }
           end
+        end
+        
+        def to_json
+          json = resources.collect { |resource| { :value => resource[:name] } }.to_json
+          puts json
+          json
         end
       end
     end

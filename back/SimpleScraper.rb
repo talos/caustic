@@ -73,30 +73,6 @@ module SimpleScraper
           :html
         end
       end
-
-      # If the client is requesting json, use the json utility on the mustache template.
-      # Otherwise, run the mustache template.
-      def mustache_response (template, options = {}, locals = {})
-        
-        case determine_request_type 
-        when :html then
-          mustache template, options, locals
-        when :json then
-          klass = mustache_class template.to_s, options
-          instance = klass.new
-          hash = instance.class.public_instance_methods(false).inject({}) do |result, method|
-            result[method.to_sym] = instance.send(method)
-            result
-          end
-          # puts template.to_s + ': ' + hash.to_json
-          # puts instance.methods.inspect
-          # puts instance.class.methods.inspect
-          # puts klass.methods.inspect
-          # puts instance.class.public_instance_methods(false).inspect
-          # puts klass.public_instance_methods(false).inspect
-          hash.to_json
-        end
-      end
     end
     
     error do
@@ -108,17 +84,24 @@ module SimpleScraper
       if @related_resource
         puts @related_resource.errors.to_a.inspect
       end
-      mustache_response :error
+      mustache :error
     end
     
     not_found do
-      mustache_response :not_found
+      mustache :not_found
     end
     
     before do
       @path = request.path
       @user = options.users.get(session[options.session_id])
       @db = options.database
+      
+      case determine_request_type
+      when :html
+        @html_format = true
+      when :json
+        @json_format = true
+      end
     end
 
     get '/' do
@@ -132,7 +115,7 @@ module SimpleScraper
     ###### LOGIN
     get options.login_location do
       @login_url = request.url
-      mustache_response :login
+      mustache :login
     end
     
     post options.login_location do
@@ -159,7 +142,7 @@ module SimpleScraper
     ###### LOGOUT
     get '/logout' do
       session[options.session_id] = nil
-      mustache_response :logout
+      mustache :logout
     end
     
     ###### RESOURCE MODELS
@@ -169,7 +152,7 @@ module SimpleScraper
     end
     
     get options.database.directory + ':model/' do
-      mustache_response :model #, :layout => :model
+      mustache :model #, :layout => :model
     end
     
     ###### RESOURCES
@@ -186,7 +169,7 @@ module SimpleScraper
     # Describe a resource.
     get options.database.directory + ':model/:resource_id' do
       not_found unless @resource
-      mustache_response :resource
+      mustache :resource
     end
     
     # Replace a resource.
@@ -197,14 +180,14 @@ module SimpleScraper
       elsif @model
         @resource = @model.create(params.merge({:creator => @user}))
       end
-      mustache_response :created # @resource_dir + @resource.location
+      mustache :created # @resource_dir + @resource.location
     end
     
     # Delete a resource and all its links.
     delete options.database.directory + ':model/:resource_id' do
       not_found unless @resource
       @resource.destroy ? @resource.destroy : not_found
-      mustache_response :destroyed
+      mustache :destroyed
     end
     
     ###### TAG MODELS
@@ -252,7 +235,7 @@ module SimpleScraper
       # @related_resource.save or resource_error @related_resource
       @relationship << @related_resource
       @resource.save or resource_error @resource, @related_resource
-      mustache_response :created  # @related_resource.location
+      mustache :created  # @related_resource.location
     end
     
     # If that worked, try to find our related resource.
@@ -272,14 +255,14 @@ module SimpleScraper
       end
       @relationship << @related_resource
       @resource.save or resource_error @resource, @related_resource
-      mustache_response :created # @related_resource.location
+      mustache :created # @related_resource.location
     end
 
     # Delete a tagging.
     delete options.database.directory + ':model/:resource_id/:relationship/:related_id' do
       not_found unless @related_resource
       @resource.untag(@relationship_name, @related_resource)
-      mustache_response :untagged
+      mustache :untagged
     end
     
     # Collect scrapers: this pulls any interpreters, gatherers, and generators that eventually link to a piece of
@@ -290,7 +273,7 @@ module SimpleScraper
       @area = @db.get_model(:area).first(:name => CGI::unescape(params[:area])) or return not_found
       @info = @db.get_model(:info).first(:name => CGI::unescape(params[:info])) or return not_found
       
-      mustache_response :scraper
+      mustache :scraper
     end
   end
 end

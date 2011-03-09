@@ -1,6 +1,6 @@
 <div class="relationship">
   {{! The relationship's name. }}
-  <div class="name">{{name}} (<a href="{{related_model_location}}">{{related_model}}</a>)</div>
+  <div class="name">{{name}} (<a class="related_model" href="{{related_model_location}}">{{related_model}}</a>)</div>
   {{! List the links inside this relationship. }}
   <ul class="links">
     {{#links}}
@@ -20,8 +20,8 @@
   {{! Allow the user to add another link to this relationship. }}
   {{#can_edit}}
     <form method="put" action="{{location}}">
-      <input type="text" name="name" />
-      <input type="submit" name="add" value="add" />
+      <input class="add_link" type="text" name="name"  title="{{related_model_location}}" />
+      <input type="submit" name="add" value="Add" />
     </form>
   {{/can_edit}}
 </div>
