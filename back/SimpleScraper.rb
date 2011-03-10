@@ -13,9 +13,9 @@ require 'rubygems'
 require 'sinatra/base'
 require 'mustache/sinatra'
 require 'json'
+require 'lib/scraper'
 require 'lib/database'
 require 'lib/rpx'
-#require 'CGI'
 
 #require 'rack-flash'
 #use Rack::Flash
@@ -272,7 +272,9 @@ module SimpleScraper
       @creator = @db.get_model(:user).first(:id => params[:creator]) #or return not_found # Creator is optional.
       @area = @db.get_model(:area).first(:name => CGI::unescape(params[:area])) or return not_found
       @info = @db.get_model(:info).first(:name => CGI::unescape(params[:info])) or return not_found
-      
+
+      @scraper = Scraper.new( @area, @info, @db, @creator )
+      puts 'mustaching scraper...'
       mustache :scraper
     end
   end

@@ -72,6 +72,7 @@ module SimpleScraper
             # TODO THIS IS ASSUMING EVERYTHING LIVES IN THE '/editor/' DIRECTORY
             def self.location
               '/editor/' + self.raw_name + '/'
+              # @settings[:directory] + self.raw_name + '/'
             end
 
             property :id,   DataMapper::Property::Serial, :accessor => :private
@@ -291,7 +292,7 @@ module SimpleScraper
         
         tag :interpreters, :through => Resource
         
-        property :regex, DataMapper::Property::Regexp
+        property :regex, DataMapper::Property::String, :default => '//' # Regexp.new('')
       end
 
       class Generator

@@ -3,40 +3,8 @@ require 'json'
 module SimpleScraper
   class Application
     module Views
-      class Scraper < Mustache
+      class Scraper < Layout
         private
-        def get_area_ids(check_area)
-          puts check_area.inspect
-          @area_ids << check_area.attribute_get(:id)
-          if @area_ids.length == @area_ids.uniq.length # We have not added anything redundant.
-            check_area.follow_areas.each { |assoc_area| get_area_ids(assoc_area) }
-          else
-            @area_ids.uniq!
-          end
-        end
-        
-        def get_data_ids (check_datas)
-          check_data_ids = check_datas.collect { |check_data| check_data.attribute_get(:id) } - @data_ids 
-          @data_ids.push(*check_data_ids)
-          
-          # Not sure why this is necessary. Something involving loading??
-          check_datas[0].interpreter_targets
-          check_datas[0].generator_targets
-          
-          interpreters = check_datas.collect { |check_data| check_data.interpreter_targets.all.to_a }.flatten
-          generators   = check_datas.collect { |check_data| check_data.generator_targets.all.to_a   }.flatten
-          @gatherers.push(*interpreters.collect { |interpreter| interpreter.gatherers.all.to_a }.flatten )
-          @gatherers.push(*generators.collect   { |generator|   generator.gatherers.all.to_a   }.flatten )
-          @gatherers.uniq!
-          additional_datas = []
-          additional_datas.push(*interpreters.collect { |interpreter| interpreter.source_datas.all.to_a }.flatten)
-          additional_datas.push(*generators.collect   { |generator|   generator.source_datas.all.to_a   }.flatten)
-          
-          if additional_datas.length > 0
-            get_data_ids additional_datas
-          end
-        end
-
         #Cross-product area/info/field_names
         def identify_data (data)
           array = []
@@ -51,25 +19,16 @@ module SimpleScraper
         end
         
         public
-        def initialize
-          @area_ids = []
-          get_area_ids(@area)
-          @info_id = @info.attribute_get(:id)
-          @data_model = @db.get_model(:data)
-          
-          data_collection = @data_model.all(@data_model.areas.id => @area_ids) & \
-          @data_model.all(@data_model.infos.id => @info_id)
-          if(@creator)
-            data_collection = data_collection & @data_model.all(:creator => @creator)
-          end
-          
-          @data_ids = []
-          @gatherers = []
-          get_data_ids(data_collection)
+        def area_name
+          @area.name
+        end
+        
+        def defaults
+          @scraper.defaults.collect { |default| default.name }
         end
       
         def gatherers
-          @gatherers.collect do |gatherer|
+          @scraper.gatherers.collect do |gatherer|
             {
               gatherer.full_name => {
                 :urls => gatherer.urls.collect { |url| url.value },
@@ -81,19 +40,30 @@ module SimpleScraper
             }
           end
         end
+
+        def generators
+          @scraper.generators.collect do |generator|
+            {
+              generator.full_name => {
+                :regexes => generator.patterns.collect { |pattern| pattern.regex },
+                :source_attributes => generator.source_datas.collect { |source_data| identify_data(source_data) },
+                :target_attributes => generator.target_datas.collect { |target_data| identify_data(target_data) },
+                :gatherers => generator.gatherers.collect { |gatherer| gatherer.full_name }
+              }
+            }
+          end
+        end
         
-        def publishes
-          @info.publishes.collect  { |publish| publish.name }
+        def info_name
+          @info.name
         end
 
-        def defaults
-          @db.get_model(:default).all(@db.get_model(:default).areas.id => @area_ids).collect { |default| default.name }
+        def info_name_starts_with_vowel
+          ['a','e','i','o','u'].include? @info.name.slice(0,1).downcase
         end
 
         def interpreters
-          # @data_model.all(:id => @data_ids).collect do |data|
-          #   data.interpreter_targets.each do |interpreter|
-          @data_model.all(:id => @data_ids).interpreter_targets.collect do |interpreter|
+          @scraper.interpreters.collect do |interpreter|
             {
               interpreter.full_name => {
                 :match_number => interpreter.match_number,
@@ -107,19 +77,8 @@ module SimpleScraper
           end
         end
 
-        def generators
-          # @data_model.all(:id => @data_ids).collect do |data|
-          #   data.generator_targets.each do |generator|
-          @data_model.all(:id => @data_ids).generator_targets.collect do |generator|
-            {
-              generator.full_name => {
-                :regexes => generator.patterns.collect { |pattern| pattern.regex },
-                :source_attributes => generator.source_datas.collect { |source_data| identify_data(source_data) },
-                :target_attributes => generator.target_datas.collect { |target_data| identify_data(target_data) },
-                :gatherers => generator.gatherers.collect { |gatherer| gatherer.full_name }
-              }
-            }
-          end
+        def publishes
+          @scraper.publishes.collect  { |publish| publish.name }
         end
         
         def to_json
