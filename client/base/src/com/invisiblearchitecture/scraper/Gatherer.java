@@ -358,7 +358,7 @@ public final class Gatherer {
 	}
 	
 	/**
-	 * Take a value and substitute any $R{< ReaderID >} with a Reader.  This does not currently provide
+	 * Take a value and substitute any {{variable}}.  This does not currently provide
 	 * an escape mechanism.
 	 * @param input
 	 * @param information
@@ -376,7 +376,7 @@ public final class Gatherer {
 		do {
 			prevIndex = index;
 			if(insideBrackets == true) {
-				index = input.indexOf("}", prevIndex + 1);
+				index = input.indexOf("}}", prevIndex + 1);
 				if(index == -1)
 					throw new IndexOutOfBoundsException("Could not find end brackets for value.");
 				String fieldName = input.substring(prevIndex + 3, index);
@@ -390,7 +390,7 @@ public final class Gatherer {
 				insideBrackets = false;
 
 			} else if(insideBrackets == false) {
-				index = input.indexOf("$R{", prevIndex + 1);
+				index = input.indexOf("{{", prevIndex + 1);
 				if(index == -1) {
 					output += input.substring(prevIndex + 1);
 				} else {

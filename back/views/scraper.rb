@@ -6,17 +6,17 @@ module SimpleScraper
       class Scraper < Layout
         private
         #Cross-product area/info/field_names
-        def identify_data (data)
-          array = []
-          data.areas.each do |area|
-            data.infos.each do |info|
-              data.field_names.each do |field_name|
-                array << [area.name, info.name, field_name.name]
-              end
-            end
-          end
-          array
-        end
+        # def identify_data (data)
+        #   array = []
+        #   data.areas.each do |area|
+        #     data.infos.each do |info|
+        #       data.field_names.each do |field_name|
+        #         array << [area.name, info.name, field_name.name]
+        #       end
+        #     end
+        #   end
+        #   array
+        # end
         
         public
         def area_name
@@ -34,8 +34,8 @@ module SimpleScraper
                 :urls => gatherer.urls.collect { |url| url.value },
                 :posts => gatherer.posts.collect { |post| { post.post_name => post.value } },
                 :headers => gatherer.headers.collect { |header| { header.header_name => header.value } },
-                :cookies => gatherer.cookies.collect { |cookie| { cookie.cookie_name => cookie.value } },
-                :target_attributes => gatherer.target_datas.collect { |target_data| identify_data(target_data) }
+                :cookies => gatherer.cookie_headers.collect { |cookie| { cookie.cookie_name => cookie.value } },
+                :target_datas => gatherer.target_datas.collect { |target_data| target_data.full_name }
               }
             }
           end
@@ -46,8 +46,8 @@ module SimpleScraper
             {
               generator.full_name => {
                 :regexes => generator.patterns.collect { |pattern| pattern.regex },
-                :source_attributes => generator.source_datas.collect { |source_data| identify_data(source_data) },
-                :target_attributes => generator.target_datas.collect { |target_data| identify_data(target_data) },
+                :source_datas => generator.source_datas.collect { |source_data| source_data.full_name },
+                :target_datas => generator.target_datas.collect { |target_data| target_data.full_name },
                 :gatherers => generator.gatherers.collect { |gatherer| gatherer.full_name }
               }
             }
@@ -69,9 +69,9 @@ module SimpleScraper
                 :match_number => interpreter.match_number,
                 :terminate_on_complete => interpreter.terminate_on_complete,
                 :regexes => interpreter.patterns.collect { |pattern| pattern.regex },
-                :source_attributes => interpreter.source_datas.collect { |source_data| identify_data(source_data) },
-                :target_attributes => interpreter.target_datas.collect { |target_data| identify_data(target_data) },
-                :gatherers => gatherers.collect { |gatherer| gatherer.full_name }
+                :source_datas => interpreter.source_datas.collect { |source_data| source_data.full_name },
+                :target_datas => interpreter.target_datas.collect { |target_data| target_data.full_name },
+                :gatherers => interpreter.gatherers.collect { |gatherer| gatherer.full_name }
               }
             }
           end

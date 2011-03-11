@@ -17,26 +17,31 @@ module SimpleScraper
     end
     
     def get_data_ids (check_datas)
+      return unless check_datas.length > 0
+      
       check_data_ids = check_datas.collect { |check_data| check_data.attribute_get(:id) } - @data_ids 
       @data_ids.push(*check_data_ids)
       
-      # Not sure why this is necessary. Something involving loading??
-      check_datas[0].interpreter_targets
-      check_datas[0].generator_targets
+      # Collecting through a :through association in DataMapper is bugged.
+      # See http://datamapper.lighthouseapp.com/projects/20609-datamapper/tickets/1431 .
+      # To get around this, convert collection to array before iterating over it.
+      check_datas_ary = check_datas.to_a
       
-      interpreters = check_datas.collect { |check_data| check_data.interpreter_targets.all.to_a }.flatten
-      generators   = check_datas.collect { |check_data| check_data.generator_targets.all.to_a   }.flatten
+      interpreters = check_datas_ary.collect { |check_data| check_data.interpreter_sources.all.to_a }.flatten
+      generators   = check_datas_ary.collect { |check_data| check_data.generator_sources.all.to_a   }.flatten
+      gatherers    = check_datas_ary.collect { |check_data| check_data.gatherer_sources.all.to_a    }.flatten
+
       # TODO this isn't working right.
+      @gatherers.push(*gatherers)
       @gatherers.push(*interpreters.collect { |interpreter| interpreter.gatherers.all.to_a }.flatten )
       @gatherers.push(*generators.collect   { |generator|   generator.gatherers.all.to_a   }.flatten )
       @gatherers.uniq!
+
       additional_datas = []
       additional_datas.push(*interpreters.collect { |interpreter| interpreter.source_datas.all.to_a }.flatten)
       additional_datas.push(*generators.collect   { |generator|   generator.source_datas.all.to_a   }.flatten)
-      
-      if additional_datas.length > 0
-        get_data_ids additional_datas
-      end
+
+      get_data_ids additional_datas
     end
 
     public

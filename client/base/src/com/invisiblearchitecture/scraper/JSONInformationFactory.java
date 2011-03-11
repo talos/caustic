@@ -29,10 +29,11 @@ public class JSONInformationFactory implements InformationFactory {
 	private static final String GENERATORS = "generators";
 	private static final String GATHERERS = "gatherers";
 	
-	private static final String SOURCE_ATTRIBUTES = "source_attributes";
-	private static final String REGEX = "regex";
+	private static final String SOURCE_DATAS = "source_datas";
+	private static final String REGEXES = "regexes";
 	private static final String MATCH_NUMBER = "match_number";
-	private static final String TARGET_ATTRIBUTE = "target_attribute";
+	private static final String TARGET_DATAS = "target_datas";
+	private static final String TERMINATE_ON_COMPLETE = "terminate_on_complete";
 	
 	private static final String TARGET_AREA = "target_area";
 	private static final String TARGET_INFO = "target_info";
