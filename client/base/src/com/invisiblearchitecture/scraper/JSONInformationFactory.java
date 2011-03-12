@@ -35,15 +35,10 @@ public class JSONInformationFactory implements InformationFactory {
 	private static final String TARGET_DATAS = "target_datas";
 	private static final String TERMINATE_ON_COMPLETE = "terminate_on_complete";
 	
-	private static final String TARGET_AREA = "target_area";
-	private static final String TARGET_INFO = "target_info";
-	
 	private static final String URLS = "urls";
 	private static final String POSTS = "posts";
 	private static final String COOKIES = "cookies";
 	private static final String HEADERS = "headers";
-	//private static final String TERMINATORS = "terminators";
-	
 	
 	private final Hashtable cache = new Hashtable();
 	private final boolean useCache;
@@ -77,14 +72,17 @@ public class JSONInformationFactory implements InformationFactory {
 		useCache = n_useCache;
 	}
 	
-	@Override
-	public Information get(String area, String info) throws IOException, JSONInterfaceException {
+	public Information get(String area, String info, String creator) throws IOException, JSONInterfaceException {
 		area = URLEncoder.encode(area, "UTF-8");
 		info = URLEncoder.encode(info, "UTF-8");
 		
 		String url = requestUrl + '/' + area + '/' + info;
-		String jsonResponse;
+		if(creator != null) {
+			url = url + "?creator=" + creator;
+		}
 		
+		/* Obtain JSON object. */
+		String jsonResponse;
 		if(cache.containsKey(url) && useCache) {
 			jsonResponse = (String) cache.get(url);
 		} else {
@@ -101,10 +99,12 @@ public class JSONInformationFactory implements InformationFactory {
 			jsonResponse = content.toString();
 			cache.put(url, jsonResponse);
 		}
+		
+		/* Process JSON object. */
 		JSONInterfaceTokener tokener = jsonInterface.getTokener(jsonResponse);
 		JSONInterfaceObject object = tokener.nextValue();
 		
-		JSONInterfaceArray publishesRaw = object.getJSONArray(PUBLISHES);
+		//JSONInterfaceArray publishesRaw = object.getJSONArray(PUBLISHES);
 		JSONInterfaceObject defaultsRaw = object.getJSONObject(DEFAULTS);
 		JSONInterfaceObject interpretersRaw = object.getJSONObject(INTERPRETERS);
 		JSONInterfaceObject generatorsRaw = object.getJSONObject(GENERATORS);
@@ -131,9 +131,10 @@ public class JSONInformationFactory implements InformationFactory {
 		while(iterator.hasNext()) {
 			String interpreterName = (String) iterator.next();
 			JSONInterfaceObject interpreterRaw = interpretersRaw.getJSONObject(interpreterName);
-			PatternInterface pattern = null;
-			if(interpreterRaw.has(REGEX)) {
-				pattern = regexInterface.compile(interpreterRaw.getString(REGEX));
+			//PatternInterface pattern = null;
+			if(interpreterRaw.has(REGEXES)) {
+				//pattern = regexInterface.compile(interpreterRaw.getString(REGEX));
+				
 			}
 			interpreters[i] = new Interpreter.ToField(
 					interpreterRaw.getJSONArray(SOURCE_ATTRIBUTES).toArray(),
@@ -180,6 +181,12 @@ public class JSONInformationFactory implements InformationFactory {
 		//	logger.e("Error parsing JSON in JSONInformationFactory", e);
 			throw new IOException(e);
 		}*/
+	}
+	
+	@Override
+	public Information get(String area, String info) throws IOException, JSONInterfaceException {
+		return get(area, info, null);
+		
 	}
 	
 	private Gatherer gathererFromJSON(String gatherer_name, JSONInterfaceObject gathererRaw) throws JSONInterfaceException {

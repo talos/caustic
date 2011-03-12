@@ -1,5 +1,3 @@
-#!/usr/bin/ruby
-
 ###
 #   SimpleScraper Back 0.0.1
 #

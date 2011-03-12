@@ -1,5 +1,3 @@
-#!/usr/bin/ruby
-
 ###
 #   SimpleScraper Back 0.0.1
 #
@@ -267,14 +265,13 @@ module SimpleScraper
     
     # Collect scrapers: this pulls any interpreters, gatherers, and generators that eventually link to a piece of
     # data that would be published for an information in an area.
-    # TODO this is a view, and should be handled as such.
     get '/scraper/:area/:info' do
       @creator = @db.get_model(:user).first(:id => params[:creator]) #or return not_found # Creator is optional.
       @area = @db.get_model(:area).first(:name => CGI::unescape(params[:area])) or return not_found
       @info = @db.get_model(:info).first(:name => CGI::unescape(params[:info])) or return not_found
 
       @scraper = Scraper.new( @area, @info, @db, @creator )
-      puts 'mustaching scraper...'
+      #puts 'mustaching scraper...'
       mustache :scraper
     end
   end

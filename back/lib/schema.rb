@@ -1,5 +1,3 @@
-#!/Usr/bin/ruby
-
 ###
 #   SimpleScraper Back 0.0.1
 #
@@ -21,26 +19,6 @@ require 'dm-timestamps'
 module SimpleScraper
   class Database
     module Schema
-      # Tagging model factory.
-      # Works as Tagging.new(:source, :target) or Tagging.new(:source => 'SourceModel', :target => 'TargetModel')
-      module Tagging
-        def self.new(name, *args)
-          klass = Class.new do
-            include DataMapper::Resource
-            if args.length == 2
-              belongs_to args[0].to_sym, :key => true
-              belongs_to args[1].to_sym, :key => true
-            elsif args[0].class == Hash and args[0].length == 2
-              models = args[0].to_a
-              belongs_to models[0][0].to_sym, :model => models[0][1], :key => true
-              belongs_to models[1][0].to_sym, :model => models[1][1], :key => true
-            end
-          end
-          SimpleScraper::Database::Schema.const_set(DataMapper::Inflector.camelize(name).to_sym, klass)
-          DataMapper::Inflector.pluralize(DataMapper::Inflector.underscore(name)).to_sym
-        end
-      end
-      
       # All resources have a name, a description, a creator, blessed editors, and paranoia.
       module EditableResource
         def self.included(base)
@@ -92,11 +70,12 @@ module SimpleScraper
           
           # Safely change a resource's attributes
           def modify (new_attributes, last_updated_at, editor)
-            new_attributes.delete_if do |name, value| # Delete attributes not specified in the model
-              not attributes.keys.include? name.downcase.to_sym
-            end
             new_attributes.delete_if do |name, value|
-              private_methods.include? name + '=' # Remove private attributes.
+              if not attributes.keys.include? name.downcase.to_sym # Delete attributes not specified in the model
+                true
+              elsif private_methods.include? name + '=' or value == ''  # Remove private attributes and blank strings.
+                true
+              end
             end
             self.attributes=(new_attributes)
           end
@@ -182,19 +161,10 @@ module SimpleScraper
         property :immutable_name, DataMapper::Property::String, :required => true, :unique => true, :accessor => :private
         property :name, DataMapper::Property::String, :required => true, :unique => true
         
-        tag :datas,          :child_key => [ :creator_id ]
         tag :areas,          :child_key => [ :creator_id ]
         tag :infos,          :child_key => [ :creator_id ]
-        tag :field_names,    :child_key => [ :creator_id ]
-        tag :defaults,       :child_key => [ :creator_id ]
-        tag :patterns,       :child_key => [ :creator_id ]
         tag :interpreters,   :child_key => [ :creator_id ]
-        tag :generators,     :child_key => [ :creator_id ]
         tag :gatherers,      :child_key => [ :creator_id ]
-        tag :posts,          :child_key => [ :creator_id ]
-        tag :urls,           :child_key => [ :creator_id ]
-        tag :headers,        :child_key => [ :creator_id ]
-        tag :cookie_headers, :child_key => [ :creator_id ]
         
         # Only the user can modify his/her own resource.
         def editable_by? (user)
@@ -214,108 +184,54 @@ module SimpleScraper
           send(:name=, immutable_name) if name.nil?
         end
       end
-      
-      class FieldName
-        include CreatedResource
-        
-        tag :datas,    :through => Resource
-        tag :defaults, :through => Resource
-
-        tag :infos, :through => :publish_fields, :via => :info
-        has n, :publish_fields
-      end
 
       class Default
         include CreatedResource
         
         tag :areas,       :through => Resource
-        tag :field_names, :through => Resource
-        property :value, String, :default => '' #, :required => true
+        tag :substitutes_for_interpreters, 'Interpreter', :through => Resource
+        property :value, String #, :default => '' #, :required => true
       end
-
+      
       class Area
         include CreatedResource
         
-        tag :defaults,  :through => Resource
-        tag :datas,     :through => Resource
-        
-        has n, :area_links, :model => 'AreaLink', :child_key => [:source_id]
-        tag :follow_areas,  :model => self, :through => :area_links, :via => :target
+        tag :defaults,     :through => Resource
+        tag :interpreters, :through => Resource
       end
 
       class Info
         include CreatedResource
         
-        tag :publishes, 'FieldName', :through => :publish_fields, :via => :field_name
-        has n, :publish_fields
-        tag :datas,       :through => Resource
-      end
-
-      class Data
-        include CreatedResource
-        
-        tag :areas,       :through => Resource
-        tag :infos,       :through => Resource
-        tag :field_names, :through => Resource
-        
-        tag :generator_targets, 'Generator', :through => :generator_source_datas, :via => :generator
-        has n, :generator_source_datas
-        tag :generator_sources, 'Generator', :through => :generator_target_datas, :via => :generator
-        has n, :generator_target_datas
-        
-        tag :interpreter_targets, 'Interpreter', :through => :interpreter_source_datas, :via => :interpreter
-        has n, :interpreter_source_datas
-        tag :interpreter_sources, 'Interpreter', :through => :interpreter_target_datas, :via => :interpreter
-        has n, :interpreter_target_datas
-        
-        tag :gatherer_sources, 'Gatherer', :through => :gatherer_target_datas, :via => :gatherer
-        has n, :gatherer_target_datas
+        tag :interpreters, :through => Resource
       end
 
       class Interpreter
         include CreatedResource
         
-        tag :source_datas, 'Data', :through => :interpreter_source_datas, :via => :data
-        has n, :interpreter_source_datas
-        tag :target_datas, 'Data', :through => :interpreter_target_datas, :via => :data
-        has n, :interpreter_target_datas
+        tag :areas, :through => Resource
+        tag :infos, :through => Resource
         
-        tag :patterns,  :through => Resource
-        tag :gatherers, :through => Resource
+        property :regex, String, :default => '//' # Regexp.new('')
+        property :match_number, Integer
+        property :publish, Boolean, :default => false,  :required => true
 
-        property :match_number, Integer, :default => 0, :required => true
-        property :terminate_on_complete, Boolean, :default => false, :required => true
+        tag :gatherers, :through => Resource
+        tag :interpreter_sources, 'Interpreter', :through => Resource
       end
       
-      class Pattern
+      class Regex
         include CreatedResource
         
-        tag :interpreters, :through => Resource
-        
-        property :regex, DataMapper::Property::String, :default => '//' # Regexp.new('')
+        property :regex, String, :default => '//' # Regexp.new('')
       end
 
-      class Generator
-        include CreatedResource
-
-        tag :source_datas, 'Data', :through => :generator_source_datas, :via => :data
-        has n, :generator_source_datas
-        tag :target_datas, 'Data', :through => :generator_target_datas, :via => :data
-        has n, :generator_target_datas
-        
-        tag :gatherers, :through => Resource
-        tag :patterns,  :through => Resource
-      end
-      
       class Gatherer
         include CreatedResource
         
         tag :interpreters, :through => Resource
-        tag :generators,   :through => Resource
-        tag :target_datas, 'Data', :through => :gatherer_target_datas, :via => :data
-        has n, :gatherer_target_datas
         
-        tag :stops, 'Pattern', :through => Resource
+        tag :terminates, 'Regex', String
         
         tag :urls, :through => Resource
         tag :posts, :through => Resource
@@ -357,15 +273,6 @@ module SimpleScraper
         property :cookie_name,  String
         property :value, String
       end
-      
-      # Rockin'.
-      Tagging.new('AreaLink', :source => "Area", :target => "Area")
-      Tagging.new('PublishField', :info, :field_name)
-      Tagging.new('InterpreterSourceData', :interpreter, :data)
-      Tagging.new('InterpreterTargetData', :interpreter, :data)
-      Tagging.new('GeneratorSourceData', :generator, :data)
-      Tagging.new('GeneratorTargetData', :generator, :data)
-      Tagging.new('GathererTargetData', :gatherer, :data)
     end
   end
 end
