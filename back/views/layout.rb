@@ -2,9 +2,12 @@ module SimpleScraper
   class Application
     module Views
       class Layout < Mustache
-        def can_edit
-          return unless @user
-          @user.can_edit? @resource
+        def logout_location
+          @options.logout_location
+        end
+
+        def login_location
+          @options.login_location
         end
         
         def user_name
@@ -13,8 +16,7 @@ module SimpleScraper
         end
 
         def user_location
-          return unless @user
-          @user.location
+          '/'
         end
         
         def model_name
@@ -29,7 +31,7 @@ module SimpleScraper
 
         def resource_name
           return unless @resource
-          @resource.name
+          @resource.full_name
         end
         
         def resource_location

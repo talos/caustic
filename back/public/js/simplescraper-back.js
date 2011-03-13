@@ -18,7 +18,7 @@ $(document).ready(function() {
 	    }
 	});
     });
-    $('input.add_link').each(function() {
+    $('input.add').each(function() {
 	var $input = $(this);
 	$input.autocomplete({
 	    minLength : 1,

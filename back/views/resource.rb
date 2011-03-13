@@ -14,6 +14,11 @@ module SimpleScraper
         
         public
         
+        def can_edit
+          return unless @user
+          @user.can_edit? @resource
+        end
+
         def immutables
           list_attributes( @resource.attributes.keys.select do |attribute_name|
             @resource.private_methods.include?(attribute_name.to_s + '=')
@@ -27,17 +32,17 @@ module SimpleScraper
         end
 
         def relationships
-          @resource.class.tag_names.collect do |relationship_name|
+          @resource.class.many_to_many_relationships.collect do |name, relationship|
             {
-              :name => relationship_name,
-              :location => @resource.location + '/' + relationship_name.to_s + '/',
-              :related_model => @model.related_model(relationship_name).raw_name,
-              :related_model_location => @model.related_model(relationship_name).location,
-              :links => @resource.send(relationship_name).all.collect do |related_resource|
+              :name => name.to_s,
+              :location => @resource.location + '/' + name.to_s + '/',
+              :model => @model.related_model(name).raw_name,
+              :model_location => @model.related_model(name).location,
+              :resources => @resource.send(name).all.collect do |related_resource|
                 {
                   :name  => related_resource.full_name,
-                  :resource_location => related_resource.location,
-                  :tag_location => @resource.location + '/' + relationship_name.to_s + '/' + related_resource.attribute_get(:id).to_s
+                  #:absolute_location => related_resource.location,
+                  :location => @resource.location + '/' + name.to_s + '/' + related_resource.attribute_get(:id).to_s
                 }
               end
             }
