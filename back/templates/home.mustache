@@ -1,10 +1,8 @@
 {{#html_format}}
-  <div class="home">
-    {{user_name}}
-  </div>
-  <ul class="resources">
-    {{#resources}}
-      <li>{{> collection}}</li>
-    {{/resources}}
-  </ul>
+  {{#user}}
+    <div class="home">
+      {{name}}
+    </div>
+    {{> associations}}
+  {{/user}}
 {{/html_format}}

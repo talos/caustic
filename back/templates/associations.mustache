@@ -1,0 +1,36 @@
+{{#associations}}
+  {{#html_format}}
+    <div class="association">
+      <a href="{{model_location}}">
+        {{name}}
+      </a>
+      {{! List the resources inside this collection. }}
+      <ul class="collection">
+        {{#collection}}
+          <li class="resource">
+            {{#can_edit}}
+              <form method="delete" action="{{location}}">
+                <a href="{{location}}">{{full_name}}</a>
+                <input type="submit" name="delete" value="X" />
+              </form>
+            {{/can_edit}}
+            {{^can_edit}}
+            <a href="{{location}}">{{full_name}}</a>
+            {{/can_edit}}
+            {{! If we're recursing, use a partial for the linked resource. }}
+            {{#recurse}}
+              {{> resource}}
+            {{/recurse}}
+          </li>
+        {{/collection}}
+      </ul>
+      {{! Allow the user to add another resource to this collection. }}
+      {{#can_edit}}
+        <form method="put" action="{{location}}">
+          <input class="add resource" type="text" name="title"  title="{{model_location}}" />
+          <input type="submit" value="Add" />
+        </form>
+      {{/can_edit}}
+    </div>
+  {{/html_format}}
+{{/associations}}

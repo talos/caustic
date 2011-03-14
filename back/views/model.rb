@@ -6,7 +6,15 @@ module SimpleScraper
       class Model < Layout
         MAX_RESOURCES = 100
         
-        def resources
+        def name
+          @model.raw_name
+        end
+        
+        def location
+          @model.location
+        end
+        
+        def associations
           filters = {}
           @model.properties.each do |property|
             if params.include? property.name.to_s
@@ -23,9 +31,7 @@ module SimpleScraper
         end
         
         def to_json
-          json = resources.collect { |resource| { :value => resource[:name] } }.to_json
-          puts json
-          json
+          resources.collect { |resource| { :value => resource[:name] } }.to_json
         end
       end
     end

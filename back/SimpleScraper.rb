@@ -55,6 +55,14 @@ module SimpleScraper
       # Most likely, the browser will permit any response -- in that case, XHR 
       # requests receive JSON while non XHR requests receive HTML.
       def determine_request_type
+        if request.request_method == 'GET'
+          case params[:format]
+          when 'html'
+            return :html
+          when 'json'
+            return :json
+          end
+        end
         json_ok = request.accept.include?('*/*') or request.accept.find { |header| header =~ /json/ }
         html_ok = request.accept.include?('*/*') or request.accept.find { |header| header =~ /html/ }
         if json_ok and not html_ok
@@ -91,6 +99,11 @@ module SimpleScraper
       @db = options.database
       @options = options
       
+      # Recursion only meaningful for GET
+      if request.request_method == 'GET'
+        @recurse = params[:recurse] ? true : false
+      end
+
       case determine_request_type
       when :html
         @html_format = true
@@ -175,7 +188,9 @@ module SimpleScraper
     # Describe a resource.
     get options.database.directory + ':creator_name/:model/:resource_id' do
       not_found unless @resource
-      mustache :resource
+      resource = @resource
+      @resource = nil
+      mustache :resource, :locals => {:resource => resource}
     end
     
     # Replace a resource.
@@ -216,7 +231,7 @@ module SimpleScraper
       if split_title.length == 1
         @related_resource = @related_model.first_or_new(:creator => @user, :title => params[:title])
       elsif split_title.length == 2
-        creator = @db.get_model(:user).first(:title => split_title[0]) or not_found
+        creator = @db.get_model(:user).first(:name => split_title[0]) or not_found
         @related_resource = @related_model.first_or_new(:creator => creator, :title => split_title[1])
       else
         error 'You may only use one slash, to separate the creator from the title of the resource.'

@@ -13,6 +13,7 @@ require 'dm-types'
 require 'dm-migrations'
 require 'dm-validations'
 require 'dm-timestamps'
+require 'json'
 
 module SimpleScraper
   class Database
@@ -42,6 +43,12 @@ module SimpleScraper
         has n, :datas,      :child_key => [ :creator_id ]
         has n, :web_pages,  :child_key => [ :creator_id ]
         
+        has n, :urls,    :child_key => [ :creator_id ]
+        has n, :posts,   :child_key => [ :creator_id ]
+        has n, :headers, :child_key => [ :creator_id ]
+        has n, :cookie_headers, :child_key => [ :creator_id ]
+        has n, :regexes, :child_key => [ :creator_id ]
+        
         # Only the user can modify his/her own resource.
         def editable_by? (user)
           user == self ? true : false
@@ -62,6 +69,18 @@ module SimpleScraper
         
         def location
           "/#{attribute_get(:name)}"
+        end
+        
+        ## TODO: DRY this out
+        def associations
+          model.relationships.collect do |name, relationship|
+            {
+              :name => name,
+              :model_location => relationship.target_model.location,
+              :location => location + '/' + name + '/',
+              :collection => send(name)
+            }
+          end
         end
       end
       
@@ -162,13 +181,66 @@ module SimpleScraper
           def location
             creator.location + '/' + relationships[:creator].inverse.name.to_s + '/' + attribute_get(:id).to_s
           end
+
+          def immutables
+            immutables = attributes.select do |name, value|
+              private_methods.include?(name.to_s + '=')
+            end
+            immutables.collect { |name, value| {:name => name, :value => value}}
+          end
+          
+          def mutable_attributes
+            attributes.select do |name, value|
+              public_methods.include?(name.to_s + '=')
+            end
+          end
+
+          def mutables
+            mutable_attributes.collect { |name, value| {:name => name, :value => value}}
+          end
+          
+          def associations
+            model.many_to_many_relationships.collect do |name, relationship|
+              {
+                :name => name,
+                :model_location => relationship.target_model.location,
+                :location => location + '/' + name + '/',
+                :collection => send(name).collect do |resource|
+                  # Substitute link location for real location
+                  {
+                    :full_name => resource.full_name,
+                    :location => "#{location}/#{name}/#{resource.attribute_get(:id)}",
+                    #:associations => resource.associations
+                  }
+                end
+              }
+            end
+          end
+
+          def export(recurse = true)
+            relevant_attributes = Hash[mutable_attributes]
+            relevant_attributes.delete(:description)
+            relevant_relationships = model.many_to_many_relationships.collect do |name, relationship|
+              [
+               name, send(name).collect do |resource|
+                 recurse ? resource.export(true) : resource.full_name
+               end
+              ]
+            end
+            puts relevant_relationships.inspect
+            relevant_attributes.merge(relevant_relationships)
+          end
+
+          def to_json
+            export.to_json
+          end
         end
       end
       
       class Default
         include Resource
         
-        has n, :scrapers,                      :through => DataMapper::Resource
+        #has n, :scrapers,                      :through => DataMapper::Resource
         has n, :substitutes_for_datas, 'Data', :through => DataMapper::Resource
         property :value, String #, :default => '' #, :required => true
       end
@@ -183,7 +255,7 @@ module SimpleScraper
       class Data
         include Resource
         
-        has n, :scrapers, :through => DataMapper::Resource
+        #has n, :scrapers, :through => DataMapper::Resource
         
         property :regex,        String,  :default => '//' # Regexp.new('')
         property :match_number, Integer,                     :required => false
@@ -202,7 +274,7 @@ module SimpleScraper
       class WebPage
         include Resource
         
-        has n, :datas, :through => DataMapper::Resource
+        #has n, :datas, :through => DataMapper::Resource
         
         has n, :terminates, 'Regex', String
         
@@ -215,7 +287,7 @@ module SimpleScraper
       class Url
         include Resource
         
-        has n, :web_pages, :through => DataMapper::Resource
+        #has n, :web_pages, :through => DataMapper::Resource
         
         property :value, DataMapper::Property::URI
       end
@@ -223,7 +295,7 @@ module SimpleScraper
       class Post
         include Resource
 
-        has n, :web_pages, :through => DataMapper::Resource
+        #has n, :web_pages, :through => DataMapper::Resource
 
         property :name,  String
         property :value, String
@@ -232,7 +304,7 @@ module SimpleScraper
       class Header
         include Resource
 
-        has n, :web_pages, :through => DataMapper::Resource
+        #has n, :web_pages, :through => DataMapper::Resource
 
         property :name,  String
         property :value, String
@@ -241,7 +313,7 @@ module SimpleScraper
       class CookieHeader
         include Resource
 
-        has n, :web_pages, :through => DataMapper::Resource
+        #has n, :web_pages, :through => DataMapper::Resource
 
         property :name,  String
         property :value, String

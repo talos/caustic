@@ -14,16 +14,8 @@ module SimpleScraper
         def resources
           @user.class.relationships.collect do |name, relationship|
             {
-              :name => name.to_s,
-              :location => @user.location + '/' + name.to_s + '/',
-              :model => relationship.target_model.raw_name,
-              :model_location => relationship.target_model.location,
-              :resources => @user.send(name).all.collect do |resource|
-                {
-                  :name => resource.full_name,
-                  :location => resource.location
-                }
-              end
+              :name => name,
+              :collection => @user.send(name)
             }
           end
         end
