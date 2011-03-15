@@ -176,8 +176,8 @@ module SimpleScraper
     
     ###### RESOURCES
     # Try find our resource.
-    before options.database.directory + ':creator_name/:model/:resource_id*' do 
-      @resource = @model.first(:id => params[:resource_id]) or return
+    before options.database.directory + ':creator_name/:model/:resource_title*' do 
+      @resource = @model.first(:title => CGI.unescape(params[:resource_title])) or return
       @can_edit = @user.can_edit? @resource
       # If we have a resource, do a permissions check for PUT, DELETE, and POST.
       if ['PUT', 'DELETE', 'POST'].include? request.request_method and !@can_edit
@@ -186,7 +186,7 @@ module SimpleScraper
     end
     
     # Describe a resource.
-    get options.database.directory + ':creator_name/:model/:resource_id' do
+    get options.database.directory + ':creator_name/:model/:resource_title' do
       not_found unless @resource
       resource = @resource
       @resource = nil
@@ -194,7 +194,7 @@ module SimpleScraper
     end
     
     # Replace a resource.
-    put options.database.directory + ':creator_name/:model/:resource_id' do
+    put options.database.directory + ':creator_name/:model/:resource_title' do
       if @resource
         @resource.modify params, params[:last_updated_at], @user
         @resource.save or resource_error @resource
@@ -205,19 +205,19 @@ module SimpleScraper
     end
     
     # Delete a resource and all its links.
-    delete options.database.directory + ':creator_name/:model/:resource_id' do
+    delete options.database.directory + ':creator_name/:model/:resource_title' do
       not_found unless @resource
       @resource.destroy ? @resource.destroy : not_found
       mustache :destroyed
     end
     
     ####### LINKS
-    before options.database.directory + ':creator_name/model/:resource_id/*' do
+    before options.database.directory + ':creator_name/model/:resource_title/*' do
       not_found unless @resource
     end
     
     # Link relationship must be many-to-many
-    before options.database.directory + ':creator_name/:model/:resource_id/:relationship/*' do
+    before options.database.directory + ':creator_name/:model/:resource_title/:relationship/*' do
       @relationship_name = params[:relationship].to_sym
       not_found unless @model.many_to_many_relationships.find { |name, relationship| name == @relationship_name.to_s }
       @relationship = @resource.send(@relationship_name)
@@ -225,7 +225,7 @@ module SimpleScraper
     end
     
     # Create a new link.  Returns the location of the new link.  This also creates resources.
-    put options.database.directory + ':creator_name/:model/:resource_id/:relationship/' do
+    put options.database.directory + ':creator_name/:model/:resource_title/:relationship/' do
       # Split related resource into creator/resource components
       split_title = params[:title].split '/'
       if split_title.length == 1
@@ -244,17 +244,17 @@ module SimpleScraper
     end
     
     # If that worked, try to find our related resource.
-    before options.database.directory + ':creator_name/:model/:resource_id/:relationship/:related_id' do
+    before options.database.directory + ':creator_name/:model/:resource_title/:relationship/:related_id' do
       @related_resource = @relationship.get(params[:related_id])
     end
     
     # Redirect to the location of the actual resource.
-    get options.database.directory + ':creator_name/:model/:resource_id/:relationship/:related_id' do
+    get options.database.directory + ':creator_name/:model/:resource_title/:relationship/:related_id' do
       @related_resource ? redirect(@related_resource.location) : not_found
     end
     
     # Relate two known resources, possibly creating or replacing the second.
-    put options.database.directory + ':creator_name/:model/:resource_id/:relationship/:related_id' do
+    put options.database.directory + ':creator_name/:model/:resource_title/:relationship/:related_id' do
       if @related_resource.nil?
         @related_resource = @related_model.get(params[:related_id]) or not_found
       end
@@ -264,7 +264,7 @@ module SimpleScraper
     end
 
     # Delete a link.
-    delete options.database.directory + ':creator_name/:model/:resource_id/:relationship/:related_id' do
+    delete options.database.directory + ':creator_name/:model/:resource_title/:relationship/:related_id' do
       not_found unless @related_resource
       @resource.unlink(@relationship_name, @related_resource)
       mustache :unlinked

@@ -179,7 +179,7 @@ module SimpleScraper
           
           # Resource location.
           def location
-            creator.location + '/' + relationships[:creator].inverse.name.to_s + '/' + attribute_get(:id).to_s
+            creator.location + '/' + relationships[:creator].inverse.name.to_s + '/' + attribute_get(:title)
           end
 
           def immutables
@@ -217,22 +217,39 @@ module SimpleScraper
             end
           end
 
-          def export(recurse = true)
+          #def export(recurse = true)
+          def export (options = {})
+            settings = {
+              :into => {},
+              :recurse => false
+            }.merge(options)
+            
+            dest = settings[:into]
+            
             relevant_attributes = Hash[mutable_attributes]
             relevant_attributes.delete(:description)
-            relevant_relationships = model.many_to_many_relationships.collect do |name, relationship|
-              [
-               name, send(name).collect do |resource|
-                 recurse ? resource.export(true) : resource.full_name
-               end
-              ]
-            end
-            puts relevant_relationships.inspect
-            relevant_attributes.merge(relevant_relationships)
+            relevant_attributes.delete(:title)
+            relevant_relationships = Hash[model.many_to_many_relationships.collect do |name, relationship|
+                                            [
+                                             name, send(name).collect do |resource|
+                                               ## Add related objects into the destination object.
+                                               resource.export(:into => dest, :recurse => settings[:recurse])
+                                               resource.full_name
+                                             end
+                                            ]
+                                          end]
+            relevant_relationships.delete('editors')
+
+            obj = relevant_attributes.merge(relevant_relationships)
+
+            dest[model.raw_name] = {} if dest[model.raw_name].nil?
+            dest[model.raw_name][full_name] = obj
+            dest
+            #puts relevant_relationships.inspect
           end
 
           def to_json
-            export.to_json
+            export(:recurse => true).to_json
           end
         end
       end
