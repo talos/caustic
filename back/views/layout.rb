@@ -12,7 +12,7 @@ module SimpleScraper
         
         def user_name
           return unless @user
-          @user.name
+          @user.full_name
         end
 
         def user_location

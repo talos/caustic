@@ -8,7 +8,7 @@ module SimpleScraper
         end
         
         def user_name
-          @user.name
+          @user.full_name
         end
         
         def resources
