@@ -34,8 +34,28 @@ module SimpleScraper
       
       set :database, db
       set :users, db.user_model
+      set :index_location, '/'
+      set :home_location, '/home'
       set :login_location, '/login'
+      set :registration_location, '/login'
       set :logout_location, '/logout'
+      js_dir = '/js'
+      local_js = [
+                  'jquery-1.5.1.min.js',
+                  'jquery-ui-1.8.10.custom.min.js',
+                  'jquery-form.js',
+                  'simplescraper.js'
+                 ]
+      set :javascripts, local_js.collect { |file| "#{js_dir}/#{file}" }
+      set :default_jquery_theme, 'smoothness'
+      
+      css_dir = '/css'
+      local_css = [
+                   'simplescraper.css'
+                  ]
+      set :css_dir, css_dir
+      set :stylesheets, local_css.collect { |file| "#{css_dir}/#{file}" }
+      
       set :session_id, :user_id
       set :authentication => RPX::Authentication.new(:api_key => '344cef0cc21bc9ff3b406a7b2c2a2dffc79d39dc')
       set :mustache, {
@@ -94,7 +114,6 @@ module SimpleScraper
     end
     
     before do
-      @path = request.path
       @user = options.users.get(session[options.session_id])
       @db = options.database
       @options = options
@@ -106,17 +125,32 @@ module SimpleScraper
 
       case determine_request_type
       when :html
+        theme = params[:theme] ? params[:theme] : options.default_jquery_theme
+        options.stylesheets << "#{options.css_dir}/#{theme}/jquery-ui-1.8.10.custom.css"
         @html_format = true
       when :json
         @json_format = true
       end
     end
+    
+    get options.index_location do
+      mustache :index
+    end
 
-    get '/' do
+    # Force the user to log in before going home.
+    get options.home_location do
       if @user.nil?
         redirect options.login_location
       else
         mustache :home
+      end
+    end
+    
+    # Allow user to change name via home
+    put options.home_location do
+      if params[:title] and not @user.nil?
+        @user.title = params[:title]
+        @user.save or resource_error @user
       end
     end
     
@@ -144,7 +178,7 @@ module SimpleScraper
           user = @db.get_model(:user).get(session[options.session_id])
         end
       end
-      redirect '/'
+      redirect options.home_location
     end
     
     get options.logout_location do
@@ -178,7 +212,7 @@ module SimpleScraper
     # Try find our resource.
     before options.database.directory + ':creator_title/:model/:resource_title*' do 
       @resource = @model.first(:title => CGI.unescape(params[:resource_title])) or return
-      @can_edit = @user.can_edit? @resource
+      @can_edit = @user.nil? ? false : @user.can_edit?(@resource)
       # If we have a resource, do a permissions check for PUT, DELETE, and POST.
       if ['PUT', 'DELETE', 'POST'].include? request.request_method and !@can_edit
         error "#{@user.full_name} lacks permissions to modify #{@resource.model.raw_name} #{resource.full_name}"

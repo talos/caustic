@@ -7,20 +7,20 @@
         <title>{{title}}</title>
       {{/title}}
       {{! Include our scripts. }}
-      <script type="text/javascript" src="/js/jquery-1.5.1.min.js"></script>
-      <script type="text/javascript" src="/js/jquery-ui-1.8.9.custom.min.js"></script>
-      <script type="text/javascript" src="/js/jquery-form.js"></script>
-      <script type="text/javascript" src="/js/simplescraper-back.js"></script>
+      {{#options}}
+        {{#javascripts}}
+          <script type="text/javascript" src="{{to_s}}"></script>
+        {{/javascripts}}
+        {{#stylesheets}}
+          <link rel="stylesheet" type="text/css" href="{{to_s}}" />
+        {{/stylesheets}}
+      {{/options}}
     </head>
     <body>
       <noscript>Sorry, you must have JavaScript enabled in your browser to edit resources.  This is because HTML does not support HTTP's PUT and DELETE verbs without JavaScript.</noscript>
-      {{#user}}
-        <div class="header">You are logged in as {{user_name}}.
-          <span><a href="{{user_location}}">Home</a></span>
-          <span><a href="{{logout_location}}">Log out</a></span>
-        </div>
-      {{/user}}
+      {{> user_bar}}
       {{{yield}}}
+      {{! {{> user_bar}}
     </body>
   </html>
 {{/html_format}}

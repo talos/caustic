@@ -1,5 +1,3 @@
-require 'json'
-
 module SimpleScraper
   class Application
     module Views

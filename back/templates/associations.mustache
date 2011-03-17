@@ -1,36 +1,34 @@
-{{#associations}}
-  {{#html_format}}
-    <div class="association">
-      <a href="{{model_location}}">
-        {{name}}
-      </a>
+<div id="associations" class="associations accordion ui-widget-content">
+  {{#associations}}
+    {{#html_format}}
+      <h3 class="name ui-widget-header ui-corner-top">
+        <a href="#{{name}}">{{name}} ({{size}})</a>
+      </h3>
       {{! List the resources inside this collection. }}
-      <ul class="collection">
-        {{#collection}}
-          <li class="resource">
-            {{#can_edit}}
-              <form method="delete" action="{{location}}">
-                <a href="{{location}}">{{full_name}}</a>
-                <input type="submit" name="delete" value="X" />
-              </form>
-            {{/can_edit}}
-            {{^can_edit}}
-            <a href="{{location}}">{{full_name}}</a>
-            {{/can_edit}}
-            {{! If we're recursing, use a partial for the linked resource. }}
-            {{#recurse}}
-              {{> resource}}
-            {{/recurse}}
-          </li>
-        {{/collection}}
-      </ul>
-      {{! Allow the user to add another resource to this collection. }}
-      {{#can_edit}}
-        <form method="put" action="{{location}}">
-          <input class="add resource" type="text" name="title"  title="{{model_location}}" />
-          <input type="submit" value="Add" />
-        </form>
-      {{/can_edit}}
-    </div>
-  {{/html_format}}
-{{/associations}}
+      <div class="ui-widget-content">
+        <ul class="collection">
+          {{#collection}}
+            <li class="ui-corner-all ui-widget-header tag">
+              {{#can_edit}}
+                <form method="delete" action="{{location}}">
+                  <a href="{{location}}">{{full_name}}</a>
+                  <button class="ui-widget-content" type="submit">X</button>
+                </form>
+              {{/can_edit}}
+              {{^can_edit}}
+              <a href="{{location}}">{{full_name}}</a>
+              {{/can_edit}}
+            </li>
+          {{/collection}}
+        </ul>
+        {{! Allow the user to add another resource to this collection. }}
+        {{#can_edit}}
+          <form method="put" action="{{location}}">
+            <input class="add resource" type="text" name="title"  title="{{model_location}}" />
+            <button type="submit">Add</button>
+          </form>
+        {{/can_edit}}
+      </div>
+    {{/html_format}}
+  {{/associations}}
+</div>

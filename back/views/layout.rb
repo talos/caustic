@@ -9,14 +9,9 @@ module SimpleScraper
         def login_location
           @options.login_location
         end
-        
-        def user_name
-          return unless @user
-          @user.full_name
-        end
 
-        def user_location
-          '/'
+        def home_location
+          @options.home_location
         end
       end
     end

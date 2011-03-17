@@ -7,10 +7,6 @@ module SimpleScraper
           true
         end
         
-        def user_name
-          @user.full_name
-        end
-        
         def resources
           @user.class.relationships.collect do |name, relationship|
             {

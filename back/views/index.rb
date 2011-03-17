@@ -1,8 +1,8 @@
 module SimpleScraper
   class Application
     module Views
-      class Logout < Layout
-        
+      class Index < Layout
+
       end
     end
   end

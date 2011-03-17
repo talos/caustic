@@ -18,6 +18,7 @@ $(document).ready(function() {
 	    }
 	});
     });
+    /* Autofill 'add' inputs, which are used for tagging & resource creation. */
     $('input.add').each(function() {
 	var $input = $(this);
 	$input.autocomplete({
@@ -42,5 +43,11 @@ $(document).ready(function() {
 	    }
 	});
     });
+    /* Accordion. */
+    $('.accordion').accordion({autoHeight: false});
+    /* Button. */
+    $('button').button();
+    /* Tabs. */
+    $('.tabs').tabs();
 });
 

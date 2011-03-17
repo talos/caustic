@@ -1,15 +1,13 @@
-{{#html_format}}
-  <div class="model">
-    {{! The model's name. }}
-    <div class="name">Model "{{name}}"</div>
-    {{! The name of resources in this model. }}
-    <ul class="associations">
-      {{#associations}}
-        <li class="resource"><a href="{{location}}">{{name}}</a></li>
-      {{/associations}}
-    </ul>
-  </div>
-{{/html_format}}
+{{#model}}
+  {{#html_format}}
+    <div class="model ui-widget">
+      {{! The model's name. }}
+      <span class="ui-widget-header ui-corner-top">Model "{{raw_name}}"</span>
+      {{! Resources in this model. }}
+      {{> associations}}
+    </div>
+  {{/html_format}}
+{{/model}}
 {{#json_format}}
   {{{to_json}}}
 {{/json_format}}

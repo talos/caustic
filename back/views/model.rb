@@ -6,14 +6,6 @@ module SimpleScraper
       class Model < Layout
         MAX_RESOURCES = 100
         
-        def name
-          @model.raw_name
-        end
-        
-        def location
-          @model.location
-        end
-        
         def associations
           filters = {}
           @model.properties.each do |property|
@@ -22,16 +14,17 @@ module SimpleScraper
             end
           end
           filters[:limit] = MAX_RESOURCES
-          @model.all(filters).collect do |resource|
-            {
-              :name => resource.full_name,
-              :location => resource.location
-            }
-          end
+          [{
+             :name => @model.raw_name,
+             :size => @model.all(filters).length,
+             :model_location => @model.location,
+             :location => @model.location,
+             :collection => @model.all(filters)
+           }]
         end
         
         def to_json
-          associations.collect { |resource| { :value => resource[:name] } }.to_json
+          associations.first[:collection].to_a.collect { |resource| { :value => resource.full_name } }.to_json
         end
       end
     end

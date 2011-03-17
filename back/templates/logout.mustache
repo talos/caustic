@@ -1,3 +1,15 @@
-<div class="logout">
-  {{user_name}} has been successfully logged out.
+<div class="logout ui-widget ui-widget-content">
+  {{#user}}
+    <div>
+      {{full_name}} has been successfully logged out.
+    </div>
+  {{/user}}
+  {{#options}}
+    <div>
+      {{#index_location}}
+        Return to the main site <a href="{{index_location}}">here</a>.
+      {{/index_location}}
+    </div>
+  </div>
+  {{/options}}
 </div>

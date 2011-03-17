@@ -77,6 +77,7 @@ module SimpleScraper
           model.relationships.collect do |name, relationship|
             {
               :name => name,
+              :size => send(name).length,
               :model_location => relationship.target_model.location,
               :location => location + '/' + name + '/',
               :collection => send(name)
@@ -223,6 +224,7 @@ module SimpleScraper
             model.many_to_many_relationships.collect do |name, relationship|
               {
                 :name => name,
+                :size => send(name).length,
                 :model_location => relationship.target_model.location,
                 :location => location + '/' + name + '/',
                 :collection => send(name).collect do |resource|
@@ -230,7 +232,6 @@ module SimpleScraper
                   {
                     :full_name => resource.full_name,
                     :location => "#{location}/#{name}/#{resource.attribute_get(:id)}",
-                    #:associations => resource.associations
                   }
                 end
               }
