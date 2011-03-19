@@ -48,6 +48,8 @@ $(document).ready(function() {
     /* Button. */
     $('button').button();
     /* Tabs. */
-    $('.tabs').tabs();
+    $('.tabs').tabs({
+	cookie : {}
+    });
 });
 

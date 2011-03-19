@@ -1,7 +1,7 @@
 {{#resource}}
   {{#html_format}}
     <div class="resource ui-widget">
-      <div>
+      <span class="ui-widget-header ui-corner-top">
         {{! The resource's name. }}
         {{#model}}
           <a href="{{location}}">
@@ -9,7 +9,7 @@
           </a>
         {{/model}}
         "{{full_name}}"
-      </div>
+      </span>
       {{! List the resource's immutable attributes. }}
       <div class="tabs">
         <ul>
