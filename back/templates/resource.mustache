@@ -53,7 +53,22 @@
         {{> associations}}
         {{! Test to see whether the resource 'works' }}
         <div id="test">
-
+          <ul class="variables">
+            <form method="get" action="{{location}}">
+              {{#variables}}
+                <li class="variable">
+                  <label for="{{to_s}}">{{to_s}}:</label>
+                  <textarea name="{{to_s}}"></textarea>
+                </li>
+              {{/variables}}
+              <button type="submit">Test</button>
+            </form>
+          </ul>
+          <ul class="results">
+            {{#results}}
+              pass
+            {{/results}}
+          </ul>
         </div>
         {{! Delete the resource. }}
         <div id="delete">

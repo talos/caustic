@@ -30,7 +30,7 @@ module SimpleScraper
       #set :show_exceptions, false
       set :sessions, true
       set :static, true
-      set :public, file_path + '/public/'
+      set :public, file_path + '/public'
       
       set :database, db
       set :users, db.user_model
@@ -41,13 +41,14 @@ module SimpleScraper
       set :logout_location, '/logout'
       js_dir = '/js'
       local_js = [
-                  'jquery-1.5.1.min.js',
-                  'jquery-ui-1.8.10.custom.min.js',
-                  'jquery-form.js',
-                  'jquery.cookie.js',
-                  'simplescraper.js'
-                 ]
+                 'jquery-1.5.1.min.js',
+                 'jquery-ui-1.8.10.custom.min.js',
+                 'jquery-form.js',
+                 'jquery.cookie.js',
+                 'simplescraper.js'
+                ]
       set :javascripts, local_js.collect { |file| "#{js_dir}/#{file}" }
+
       set :default_jquery_theme, 'smoothness'
       
       css_dir = '/css'
@@ -226,9 +227,11 @@ module SimpleScraper
     # Describe a resource.
     get options.database.directory + ':model/:creator_title/:resource_title' do
       not_found unless @resource
-      resource = @resource
-      @resource = nil
-      mustache :resource, :locals => {:resource => resource}
+      # Tests will be stored with the resource and displayed.
+      if params[:test]
+        @resource.test params
+      end
+      mustache :resource
     end
     
     # Replace a resource.
