@@ -6,7 +6,7 @@
 			<attribute name="owner.project.facets" value="java"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/Scraper"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Scraper Client Core"/>
 	<classpathentry kind="lib" path="/usr/lib/java/sqlitejdbc-v056.jar"/>
 	<classpathentry kind="lib" path="/usr/lib/java/httpcomponents-client-4.0.2/lib/apache-mime4j-0.6.jar"/>
 	<classpathentry kind="lib" path="/usr/lib/java/httpcomponents-client-4.0.2/lib/commons-codec-1.3.jar"/>

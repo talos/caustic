@@ -1,8 +1,14 @@
 package net.microscraper.database.schema;
 
 public class WebPage {
-	public final String url;
+	public static final String RESOURCE = "web_page";
 	
+	public static final String URL = "url";
+	public static final String TERMINATES = "terminates";
+	public static final String HEADERS  = "headers";
+	public static final String COOKIES = "cookies";
+	
+	public final String url;
 	public final Regexp[] terminates;
 	public final Post[] posts;
 	public final Header[] headers;

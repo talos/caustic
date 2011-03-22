@@ -1,6 +1,13 @@
 package net.microscraper.database.schema;
 
 public final class Scraper {	
+	public final static String RESOURCE = "scraper";
+	
+	public final static String REGEXP = "regexp";
+	public final static String MATCH_NUMBER = "match_number";
+	public final static String WEB_PAGES = "web_pages";
+	public final static String SOURCE_SCRAPERS = "source_scrapers";
+	
 	public final Regexp regexp;
 	public final Integer match_number;
 	public final WebPage[] web_pages;

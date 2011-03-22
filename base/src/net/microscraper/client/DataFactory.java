@@ -9,10 +9,8 @@ import java.util.Hashtable;
 import net.microscraper.client.deprecated.Gatherer;
 import net.microscraper.client.deprecated.Information;
 import net.microscraper.client.deprecated.Interpreter;
-import net.microscraper.client.interfaces.JSONInterface.IteratorInterface;
-import net.microscraper.client.interfaces.JSONInterface.JSONInterfaceException;
-import net.microscraper.client.interfaces.JSONInterface.JSONInterfaceObject;
-import net.microscraper.client.interfaces.JSONInterface.JSONInterfaceTokener;
+import net.microscraper.client.interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSON;
 import net.microscraper.database.schema.WebPage;
 
 /**
@@ -26,7 +24,7 @@ public interface DataFactory {
 	public static class JSON implements DataFactory {
 		private final String host;
 		private final Browser browser;
-		private final JSON j;
+		private final net.microscraper.client.interfaces.JSON j;
 		public JSON(String _host, Browser _browser) {
 			host = _host;
 			browser = _browser;
