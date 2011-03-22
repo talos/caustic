@@ -5,6 +5,7 @@ public class WebPage {
 	
 	public static final String URL = "url";
 	public static final String TERMINATES = "terminates";
+	public static final String POSTS = "posts";
 	public static final String HEADERS  = "headers";
 	public static final String COOKIES = "cookies";
 	
