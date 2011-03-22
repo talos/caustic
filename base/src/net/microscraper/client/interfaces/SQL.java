@@ -1,7 +1,7 @@
-package net.microscraper.client;
+package net.microscraper.client.interfaces;
 
-public interface SQLInterface {
-	public static interface CursorInterface {
+public interface SQL {
+	public static interface Cursor {
 		public abstract boolean next() throws SQLInterfaceException;
 		
 		public abstract String getString(String columnName) throws SQLInterfaceException;
@@ -18,7 +18,7 @@ public interface SQLInterface {
 	}
 	*/
 	
-	public abstract CursorInterface query(String sql) throws SQLInterfaceException;
+	public abstract Cursor query(String sql) throws SQLInterfaceException;
 	public abstract boolean execute(String sql) throws SQLInterfaceException;
 	
 	/**

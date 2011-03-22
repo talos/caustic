@@ -1,4 +1,7 @@
-package net.microscraper.client;
+package net.microscraper.client.deprecated;
+
+import net.microscraper.client.Utils;
+import net.microscraper.client.interfaces.LogInterface;
 
 public abstract class Interpreter {
 	protected final String[] sourceAttributes;

@@ -1,6 +1,6 @@
 package net.microscraper.client;
 
-import net.microscraper.client.LogInterface;
+import net.microscraper.client.interfaces.LogInterface;
 
 public class SystemLogInterface implements LogInterface {
 	@Override

@@ -3,7 +3,10 @@ package net.microscraper.client;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import net.microscraper.client.SQLInterface.SQLInterfaceException;
+import net.microscraper.client.deprecated.Information;
+import net.microscraper.client.deprecated.Publisher;
+import net.microscraper.client.interfaces.SQLInterface;
+import net.microscraper.client.interfaces.SQLInterface.SQLInterfaceException;
 
 
 

@@ -37,18 +37,16 @@ public class Mustache {
 			if(variables.containsKey(tag))
 				result += variables.get(tag);
 			else
-				throw new MissingVariable();
+				throw new MissingVariable(tag);
 		}
 		return result + template.substring(close_tag_pos);
 	}
 	
-	
-	
-	public static class CloseTagException extends TemplateException {
+	public static class TemplateException extends Exception {
 		public TemplateException(String msg) { super(msg); }
 	}
 	
 	public static class MissingVariable extends Exception {
-		public MissingVariable(String msg) { super(msg); }
+		public MissingVariable(String tag) { super("Variable " + tag + " is missing, cannot compile template."); }
 	}
 }

@@ -15,8 +15,8 @@ import java.util.Map;
 
 import net.microscraper.client.CookieInterface;
 import net.microscraper.client.CookieStoreInterface;
-import net.microscraper.client.EntityInterface;
-import net.microscraper.client.HttpInterface;
+import net.microscraper.client.deprecated.EntityInterface;
+import net.microscraper.client.deprecated.HttpInterface;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

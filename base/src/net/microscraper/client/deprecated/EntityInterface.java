@@ -1,4 +1,4 @@
-package net.microscraper.client;
+package net.microscraper.client.deprecated;
 
 import java.io.IOException;
 import java.io.InputStream;

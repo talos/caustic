@@ -2,7 +2,7 @@
  * Geogrape
  * A project to enable public access to public building information.
  */
-package net.microscraper.client;
+package net.microscraper.client.deprecated;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -12,6 +12,12 @@ import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import net.microscraper.client.CookieInterface;
+import net.microscraper.client.CookieStoreInterface;
+import net.microscraper.client.Utils;
+import net.microscraper.client.CookieInterface.ScraperCookie;
+import net.microscraper.client.interfaces.LogInterface;
 
 /**
  * This class generates a gatherer from gatherer input and output tables.

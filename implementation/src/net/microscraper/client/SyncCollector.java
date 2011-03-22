@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.client.Collector;
-import net.microscraper.client.Gatherer;
-import net.microscraper.client.Information;
-import net.microscraper.client.LogInterface;
-import net.microscraper.client.Gatherer.InsufficientInformationException;
+import net.microscraper.client.deprecated.Gatherer;
+import net.microscraper.client.deprecated.Information;
+import net.microscraper.client.deprecated.Gatherer.InsufficientInformationException;
+import net.microscraper.client.interfaces.LogInterface;
 
 
 public class SyncCollector implements Collector {

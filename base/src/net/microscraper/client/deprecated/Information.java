@@ -2,11 +2,15 @@
  * Geogrape
  * A project to enable public access to public building information.
  */
-package net.microscraper.client;
+package net.microscraper.client.deprecated;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import net.microscraper.client.CookieStoreInterface;
+import net.microscraper.client.Utils;
+import net.microscraper.client.interfaces.LogInterface;
 
 /**
  * Abstract information store.  Implementations must also execute gatherers.

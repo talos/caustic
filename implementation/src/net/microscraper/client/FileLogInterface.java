@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 
-import net.microscraper.client.LogInterface;
+import net.microscraper.client.interfaces.LogInterface;
 
 
 public class FileLogInterface implements LogInterface {

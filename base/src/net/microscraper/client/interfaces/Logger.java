@@ -1,6 +1,6 @@
-package net.microscraper.client;
+package net.microscraper.client.interfaces;
 
-public interface LogInterface {
+public interface Logger {
 	/**
 	 * Provide the ability to log errors.
 	 */

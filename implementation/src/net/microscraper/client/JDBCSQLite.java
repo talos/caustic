@@ -7,8 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import net.microscraper.client.LogInterface;
-import net.microscraper.client.SQLInterface;
+import net.microscraper.client.interfaces.LogInterface;
+import net.microscraper.client.interfaces.SQLInterface;
 
 
 public class JDBCSQLite implements SQLInterface {

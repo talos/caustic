@@ -11,9 +11,16 @@ import net.microscraper.client.JSONInterface.JSONInterfaceArray;
 import net.microscraper.client.JSONInterface.JSONInterfaceException;
 import net.microscraper.client.JSONInterface.JSONInterfaceObject;
 import net.microscraper.client.JSONInterface.JSONInterfaceTokener;
+import net.microscraper.client.deprecated.EntityInterface;
+import net.microscraper.client.deprecated.Gatherer;
+import net.microscraper.client.deprecated.HttpInterface;
+import net.microscraper.client.deprecated.Information;
+import net.microscraper.client.deprecated.Interpreter;
+import net.microscraper.client.deprecated.Publisher;
+import net.microscraper.client.interfaces.LogInterface;
 
 
-public class JSONInformationFactory implements InformationFactory {
+public class JSONDataFactory implements DataFactory {
 	private final HttpInterface httpInterface;
 	private final String requestUrl;
 	private final String requestCreator;
@@ -57,10 +64,10 @@ public class JSONInformationFactory implements InformationFactory {
 	 * @param useCache Whether the factory should save JSON information objects based off of area/info pairs.
 	 * 	Should be false in development, true in production.
 	 */
-	public JSONInformationFactory(String reqUrl, String reqCreator,
+	public JSONDataFactory(String reqUrl, String reqCreator,
 			HttpInterface httpInt,
 			LogInterface log, RegexInterface regexInt,
-			JSONInterface jsonInt, Collector collect,
+			Json jsonInt, Collector collect,
 			Publisher publish, boolean n_useCache) {
 		requestUrl = reqUrl;
 		requestCreator = reqCreator;
@@ -179,12 +186,6 @@ public class JSONInformationFactory implements InformationFactory {
 		//	logger.e("Error parsing JSON in JSONInformationFactory", e);
 			throw new IOException(e);
 		}*/
-	}
-	
-	@Override
-	public Information get(String area, String info) throws IOException, JSONInterfaceException {
-		return get(area, info, null);
-		
 	}
 	
 	private Gatherer gathererFromJSON(String gatherer_name, JSONInterfaceObject gathererRaw) throws JSONInterfaceException {
