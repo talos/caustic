@@ -10,15 +10,15 @@ public class WebPage {
 	public static final String COOKIES = "cookies";
 	
 	public final String url;
-	public final Regexp[] terminates;
-	public final Post[] posts;
-	public final Header[] headers;
-	public final Cookie[] cookies;
+	public final Reference[] terminates;
+	public final Reference[] posts;
+	public final Reference[] headers;
+	public final Reference[] cookies;
 		
 	public WebPage(
-				String _url, Post[] _posts,
-				Header[] _headers, Cookie[] _cookies,
-				Regexp[] _terminates) {
+				String _url, Reference[] _posts,
+				Reference[] _headers, Reference[] _cookies,
+				Reference[] _terminates) {
 		url = _url;
 		terminates = _terminates;
 		posts = _posts;
@@ -28,9 +28,9 @@ public class WebPage {
 	
 	public WebPage(String _url) {
 		url = _url;
-		terminates = new Regexp[] { };
-		posts = new Post[] { };
-		headers = new Header[] { };
-		cookies = new Cookie[] { };
+		terminates = new Reference[] { };
+		posts = new Reference[] { };
+		headers = new Reference[] { };
+		cookies = new Reference[] { };
 	}
 }
