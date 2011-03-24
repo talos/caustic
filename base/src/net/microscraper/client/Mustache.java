@@ -43,10 +43,21 @@ public class Mustache {
 	}
 	
 	public static class TemplateException extends Exception {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5637439870858686438L;
+
 		public TemplateException(String msg) { super(msg); }
 	}
 	
 	public static class MissingVariable extends Exception {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 8720790457856091375L;
+
 		public MissingVariable(String tag) { super("Variable " + tag + " is missing, cannot compile template."); }
 	}
 }

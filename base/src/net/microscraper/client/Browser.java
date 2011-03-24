@@ -3,6 +3,7 @@ package net.microscraper.client;
 
 import java.util.Hashtable;
 
+import net.microscraper.database.schema.Regexp;
 import net.microscraper.database.schema.WebPage;
 
 public interface Browser {
