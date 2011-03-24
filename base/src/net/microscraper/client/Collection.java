@@ -2,9 +2,8 @@ package net.microscraper.client;
 
 import java.util.Hashtable;
 
-import net.microscraper.client.interfaces.JSON.Iterator;
-import net.microscraper.client.interfaces.JSON.JSONInterfaceException;
-import net.microscraper.client.interfaces.JSON.Object;
+import net.microscraper.client.interfaces.Interfaces.JSON;
+import net.microscraper.client.interfaces.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.database.schema.Cookie;
 import net.microscraper.database.schema.Data;
 import net.microscraper.database.schema.Default;
@@ -39,9 +38,9 @@ public class Collection {
 		defaults = _defaults;
 	}
 	
-	public Collection inflateJSON(Object json_obj) throws JSONInterfaceException {
-		Iterator i;
-		Object raw;
+	public Collection inflateJSON(JSON.Object json_obj) throws JSONInterfaceException {
+		JSON.Iterator i;
+		JSON.Object raw;
 		
 		Hashtable posts = new Hashtable();
 		if(json_obj.has(Post.RESOURCE)) {
@@ -49,7 +48,7 @@ public class Collection {
 			i = raw.keys();
 			while(i.hasNext()) {
 				String ref = (String) i.next();
-				Object post = raw.getJSONObject(ref);
+				JSON.Object post = raw.getJSONObject(ref);
 				posts.put(new Reference(ref), new Post(post.getString(Post.NAME), post.getString(Post.VALUE)));
 			}
 		}
@@ -60,7 +59,7 @@ public class Collection {
 			i = raw.keys();
 			while(i.hasNext()) {
 				String ref = (String) i.next();
-				Object cookie = raw.getJSONObject(ref);
+				JSON.Object cookie = raw.getJSONObject(ref);
 				cookies.put(new Reference(ref), new Cookie(cookie.getString(Cookie.NAME), cookie.getString(Cookie.VALUE)));
 			}
 		}
@@ -71,7 +70,7 @@ public class Collection {
 			i = raw.keys();
 			while(i.hasNext()) {
 				String ref = (String) i.next();
-				Object header = raw.getJSONObject(ref);
+				JSON.Object header = raw.getJSONObject(ref);
 				headers.put(new Reference(ref), new Header(header.getString(Header.NAME), header.getString(Header.VALUE)));
 			}
 		}
@@ -82,7 +81,7 @@ public class Collection {
 			i = raw.keys();
 			while(i.hasNext()) {
 				String ref = (String) i.next();
-				Object regexp = raw.getJSONObject(ref);
+				JSON.Object regexp = raw.getJSONObject(ref);
 				regexps.put(new Reference(ref), new Regexp(regexp.getString(Regexp.REGEXP)));
 			}
 		}
@@ -93,7 +92,7 @@ public class Collection {
 			i = raw.keys();
 			while(i.hasNext()) {
 				String ref = (String) i.next();
-				Object web_page = raw.getJSONObject(ref);
+				JSON.Object web_page = raw.getJSONObject(ref);
 
 				web_pages.put(new Reference(ref), new WebPage(
 					web_page.getString(WebPage.URL),
@@ -111,7 +110,7 @@ public class Collection {
 			i = raw.keys();
 			while(i.hasNext()) {
 				String ref = (String) i.next();
-				Object scraper = raw.getJSONObject(ref);
+				JSON.Object scraper = raw.getJSONObject(ref);
 				
 				scrapers.put(new Reference(ref), new Scraper(
 					scraper.getString(Scraper.REGEXP),
@@ -128,7 +127,7 @@ public class Collection {
 			i = raw.keys();
 			while(i.hasNext()) {
 				String ref = (String) i.next();
-				Object _default = raw.getJSONObject(ref);
+				JSON.Object _default = raw.getJSONObject(ref);
 				
 				defaults.put(new Reference(ref), new Default(
 					_default.getString(Default.VALUE),
@@ -143,7 +142,7 @@ public class Collection {
 			i = raw.keys();
 			while(i.hasNext()) {
 				String ref = (String) i.next();
-				Object data = raw.getJSONObject(ref);
+				JSON.Object data = raw.getJSONObject(ref);
 				String[] data_default_titles = data.getJSONArray(Data.DEFAULTS).toArray();
 				String[] data_scraper_titles = data.getJSONArray(Data.SCRAPERS).toArray();
 				Default[] data_defaults = new Default[data_default_titles.length];
