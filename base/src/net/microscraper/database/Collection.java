@@ -1,34 +1,14 @@
 package net.microscraper.database;
 
-import java.util.Hashtable;
+import net.microscraper.database.DatabaseException.PrematureRevivalException;
 
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Utils;
-import net.microscraper.client.Interfaces.JSON;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
-import net.microscraper.database.DatabaseException.ModelNotFoundException;
-import net.microscraper.database.DatabaseException.ResourceNotFoundException;
-
-public class Collection {
-	public final AbstractModel model;
+public interface Collection {
+	public AbstractModel model();
+	public Resource get(Reference ref) throws PrematureRevivalException;
+	public Resource[] all() throws PrematureRevivalException;
+	/*public final AbstractModel model;
 	private final Hashtable resources = new Hashtable();
-	
-	/**
-	 * Fill a collection with resources pulled from a JSON object.
-	 * @param _model
-	 * @param json_obj
-	 * @throws JSONInterfaceException
-	 */
-	public Collection(AbstractModel _model, Interfaces.JSON.Object json_obj) throws JSONInterfaceException {
-		model = _model;
-		JSON.Iterator i = json_obj.keys();
-		while(i.hasNext()) {
-			String key = (String) i.next();
-			Reference ref = new Reference(key);
-			resources.put(ref, model.resource(ref, json_obj.getJSONObject(key)) );
-		}
-	}
-	
+	*/
 	/**
 	 * Fill a collection with resources pulled via reference from a Database.
 	 * @param _model
@@ -37,6 +17,7 @@ public class Collection {
 	 * @throws ResourceNotFoundException 
 	 * @throws ModelNotFoundException 
 	 */
+	/*
 	public Collection(AbstractModel _model, Reference[] references, Database db)
 				throws ModelNotFoundException, ResourceNotFoundException {
 		model = _model;
@@ -46,17 +27,18 @@ public class Collection {
 		}
 	}
 	
-	public AbstractResource get(Reference ref) throws ResourceNotFoundException {
+	public Resource get(Reference ref) throws ResourceNotFoundException, PrematureRevivalException {
 		try {
-			return (AbstractResource) resources.get(ref);
+			return ((Resource) resources.get(ref)).revive();
 		} catch(NullPointerException e) {
 			throw new ResourceNotFoundException();
 		}
 	}
 	
-	public AbstractResource[] all() {
-		AbstractResource[] resources_ary = new AbstractResource[resources.size()];
+	public Resource[] all() {
+		Resource[] resources_ary = new Resource[resources.size()];
 		Utils.hashtableValues(resources, resources_ary);
 		return resources_ary;
 	}
+	*/
 }

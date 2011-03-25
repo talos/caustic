@@ -2,27 +2,67 @@ package net.microscraper.database;
 
 import java.util.Hashtable;
 
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Utils;
+import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.Utils;
+import net.microscraper.database.DatabaseException.PrematureRevivalException;
 
-public abstract class AbstractModel {
+public abstract class AbstractModel implements Collection {
 	protected abstract String _key();
 	protected abstract String[] _attributes();
 	protected abstract Relationship[] _relationships();
+	
 	public final String key;
 	public final String[] attributes;
+	//public final Relationship[] relationships;
 	public final Relationships relationships;
-
-	protected final AbstractModel _model = this;
+	protected Database db;
+	protected boolean initialized = false;
+	private final Hashtable resources = new Hashtable();
+	
 	protected AbstractModel() {
 		key = _key();
 		attributes = _attributes();
 		relationships = new Relationships(_relationships());
 	}
-
-	public abstract AbstractResource resource(Reference ref, Interfaces.JSON.Object json_obj)
-				throws JSONInterfaceException;
+	
+	/**
+	 * Fill a model with resources pulled from a JSON object.
+	 * @param json_obj
+	 * @throws JSONInterfaceException
+	 */
+	public void inflate (JSON.Object json_obj) throws JSONInterfaceException {
+		JSON.Iterator i = json_obj.keys();
+		while(i.hasNext()) {
+			String key = (String) i.next();
+			Reference ref = new Reference(key);
+			resources.put(ref, Resource.inflate(this, ref, json_obj.getJSONObject(key)) );
+		}
+	}
+	
+	protected AbstractModel initialize(Database _db) {
+		db = _db;
+		initialized = true;
+		return this;
+	}
+	
+	public Resource get(Reference ref) throws PrematureRevivalException {
+		return ((Resource) resources.get(ref));
+	}
+	
+	public Resource[] all() throws PrematureRevivalException {
+		Reference[] references = new Reference[resources.size()];
+		Resource[] resources_ary = new Resource[resources.size()];
+		Utils.hashtableKeys(resources, references);
+		for(int i = 0; i < references.length; i++) {
+			resources_ary[i] = get(references[i]);
+		}
+		return resources_ary;
+	}
+	
+	public AbstractModel model() {
+		return this;
+	}
 	
 	public boolean equals(Object obj) {
 		if(this == obj)
@@ -37,20 +77,19 @@ public abstract class AbstractModel {
 	}
 	
 	public static class Relationships {
-		Hashtable relationships = new Hashtable();
-		public Relationships(Relationship[] _relationships) {
-			for(int i = 0; i < _relationships.length; i++ ) {
-				Relationship r = _relationships[i];
-				relationships.put(r.key, r.model);
+		private final Relationship[] relationships_ary;
+		private final Hashtable relationships = new Hashtable();
+		private Relationships(Relationship[] _relationships) {
+			relationships_ary = _relationships;
+			for(int i = 0; i < _relationships.length; i ++) {
+				relationships.put(_relationships[i].key, _relationships[i]);
 			}
 		}
-		public AbstractModel get(String relationship_name) {
-			return (AbstractModel) relationships.get(relationship_name);
+		public Relationship get(String relationship_key) {
+			return (Relationship) relationships.get(relationship_key);
 		}
-		public String[] keys() {
-			String[] keys = new String[relationships.size()];
-			Utils.hashtableKeys(relationships, keys);
-			return keys;
+		public Relationship[] all() {
+			return relationships_ary;
 		}
 	}
 }

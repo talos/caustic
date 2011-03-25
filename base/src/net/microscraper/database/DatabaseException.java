@@ -32,4 +32,10 @@ public class DatabaseException extends Exception {
 		private static final long serialVersionUID = 4352576432005070821L;
 		
 	}
+	/*
+	public static class DeadObjectException extends DatabaseException {
+
+		private static final long serialVersionUID = -7658238490730656148L;
+		
+	}*/
 }
