@@ -38,7 +38,6 @@ public class Resource {
 	 * @throws PrematureRevivalException If the object has not been revived.
 	 */
 	public Resource[] relationship(String relationship_key) throws PrematureRevivalException {
-		//return //relationship.all(this);
 		return relationship((Relationship) model.relationships.get(relationship_key));
 	}
 	

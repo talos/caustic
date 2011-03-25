@@ -1,9 +1,24 @@
 package net.microscraper.database.schema;
 
+import net.microscraper.client.ResultSet;
 import net.microscraper.database.AbstractModel;
+import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.Relationship;
+import net.microscraper.database.Resource;
 
 public class Default {
+	private final Resource resource;
+	public Default(Resource _resource) {
+		resource = _resource;
+	}
+	
+	public void enterDefaults(ResultSet results) throws PrematureRevivalException {
+		Resource[] substituted_scrapers = resource.relationship(Model.SUBSTITUTES_FOR);
+		for(int i = 0; i < substituted_scrapers.length; i ++) {
+			results.put(substituted_scrapers[i].ref, resource.attribute_get(Model.VALUE));
+		}
+	}
+	
 	public static class Model extends AbstractModel {
 		public static final String KEY = "default";
 	

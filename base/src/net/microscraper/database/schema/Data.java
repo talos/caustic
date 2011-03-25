@@ -27,9 +27,10 @@ public class Data {
 					throws PrematureRevivalException {
 		Resource[] defaults = resource.relationship(Model.DEFAULTS);
 		for(int i = 0; i < defaults.length; i ++) {
-			//Default _default = new Default(defaults[i], db);
+			//Default _default = new Default(defaults[i]);
 			//Resource _default = defaults[i];
-			
+			Default _default = new Default(defaults[i]);
+			//Resource[] substituted_scrapers = _default.relationship(Default.Model.SUBSTITUTES_FOR);
 			
 		}
 		Resource[] scrapers = resource.relationship(Model.SCRAPERS);
