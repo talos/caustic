@@ -72,13 +72,29 @@ public class Utils {
 	 * @param array 
 	 * @return
 	 */
-	public static void copyHashtableValuesIntoArray(Hashtable hashtable, Object[] array) {
+	public static void hashtableValues(Hashtable hashtable, Object[] array) {
 		Enumeration keys = hashtable.keys();
 		int i = 0;
 		while(keys.hasMoreElements()) {
 			i++;
 			Object key = keys.nextElement();
 			array[i] = hashtable.get(key);
+		}
+	}
+
+	/**
+	 * Copy all keys from a Hashtable into an array.
+	 * @param hashtable
+	 * @param keys
+	 * @param array 
+	 * @return
+	 */
+	public static void hashtableKeys(Hashtable hashtable, Object[] array) {
+		Enumeration keys = hashtable.keys();
+		int i = 0;
+		while(keys.hasMoreElements()) {
+			i++;
+			array[i] = keys.nextElement();
 		}
 	}
 	

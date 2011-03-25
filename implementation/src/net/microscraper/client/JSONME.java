@@ -1,6 +1,6 @@
 package net.microscraper.client;
 
-import net.microscraper.client.JSONInterface;
+import net.microscraper.client.Interfaces.JSON;
 
 import org.json.me.JSONArray;
 import org.json.me.JSONException;
@@ -8,20 +8,20 @@ import org.json.me.JSONObject;
 import org.json.me.JSONTokener;
 
 
-public class JSONME implements JSONInterface {
+public class JSONME implements Interfaces.JSON {
 
 	@Override
-	public JSONInterfaceTokener getTokener(String jsonString) {
+	public Interfaces.JSON.Tokener getTokener(String jsonString) {
 		return new JSONMETokener(jsonString);
 	}
 	
-	private static class JSONMETokener implements JSONInterfaceTokener {
+	private static class JSONMETokener implements Interfaces.JSON.Tokener {
 		private final JSONTokener tokener;
 		public JSONMETokener(String JSONString) {
 			tokener = new JSONTokener(JSONString);
 		}
 		@Override
-		public JSONInterfaceObject nextValue() throws JSONInterfaceException {
+		public Interfaces.JSON.Object nextValue() throws JSONInterfaceException {
 			try {
 				return new JSONMEObject((JSONObject) tokener.nextValue());
 			} catch (JSONException e) {
@@ -30,7 +30,7 @@ public class JSONME implements JSONInterface {
 		}
 	}
 	
-	private static class JSONMEObject implements JSONInterfaceObject {
+	private static class JSONMEObject implements Interfaces.JSON.Object {
 		private final JSONObject object;
 		
 		public JSONMEObject(JSONObject obj) {
@@ -38,7 +38,7 @@ public class JSONME implements JSONInterface {
 		}
 		
 		@Override
-		public JSONInterfaceArray getJSONArray(String name)
+		public Interfaces.JSON.Array getJSONArray(String name)
 				throws JSONInterfaceException {
 			try {
 				return new JSONMEArray(object.getJSONArray(name));
@@ -48,7 +48,7 @@ public class JSONME implements JSONInterface {
 		}
 
 		@Override
-		public JSONInterfaceObject getJSONObject(String name)
+		public Interfaces.JSON.Object getJSONObject(String name)
 				throws JSONInterfaceException {
 			try {
 				return new JSONMEObject(object.getJSONObject(name));
@@ -86,7 +86,7 @@ public class JSONME implements JSONInterface {
 		}
 
 		@Override
-		public IteratorInterface keys() {
+		public Interfaces.JSON.Iterator keys() {
 			return new EnumerationIterator(object.keys());
 		}
 		
@@ -97,14 +97,14 @@ public class JSONME implements JSONInterface {
 		
 	}
 	
-	private static class JSONMEArray implements JSONInterfaceArray {
+	private static class JSONMEArray implements Interfaces.JSON.Array {
 		private final JSONArray array;
 		public JSONMEArray(JSONArray ary) {
 			array = ary;
 		}
 		
 		@Override
-		public JSONInterfaceArray getJSONArray(int index)
+		public Interfaces.JSON.Array getJSONArray(int index)
 				throws JSONInterfaceException {
 			try {
 				return new JSONMEArray(array.getJSONArray(index));
@@ -114,7 +114,7 @@ public class JSONME implements JSONInterface {
 		}
 
 		@Override
-		public JSONInterfaceObject getJSONObject(int index)
+		public Interfaces.JSON.Object getJSONObject(int index)
 				throws JSONInterfaceException {
 			try {
 				return new JSONMEObject(array.getJSONObject(index));

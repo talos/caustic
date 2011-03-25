@@ -1,4 +1,4 @@
-package net.microscraper.client.interfaces;
+package net.microscraper.client;
 
 import java.util.Enumeration;
 

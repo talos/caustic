@@ -1,14 +1,9 @@
 package net.microscraper.client;
 
-
-import java.util.Hashtable;
-
-import net.microscraper.database.schema.Regexp;
 import net.microscraper.database.schema.WebPage;
 
 public interface Browser {
-	public String load(WebPage web_page) throws InterruptedException;
-
+	public String load(WebPage.Resource web_page) throws InterruptedException;
 	
 	/**
 	 * An equivalent interface to CookieStore, implemented by the network
