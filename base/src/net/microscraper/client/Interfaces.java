@@ -147,18 +147,17 @@ public interface Interfaces {
 				super(e);
 			}
 		}
-
 	}
 	
 	public interface Logger {
 		/**
 		 * Provide the ability to log errors.
 		 */
-		public abstract void logError(String errorText, Throwable e);
+		public abstract void e(Throwable e);
 		
 		/**
 		 * Provide the ability to log information.
 		 */
-		public abstract void logInformation(String infoText);
+		public abstract void i(String infoText);
 	}
 }
