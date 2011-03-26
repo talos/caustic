@@ -14,7 +14,6 @@ public abstract class AbstractModel implements Collection {
 	
 	public final String key;
 	public final String[] attributes;
-	//public final Relationship[] relationships;
 	public final Relationships relationships;
 	protected Database db;
 	protected boolean initialized = false;

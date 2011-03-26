@@ -1,8 +1,13 @@
 package net.microscraper.database.schema;
 
+import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.client.Browser;
+import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Interfaces;
+import net.microscraper.client.Mustache.MissingVariable;
+import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.ResultSet;
 import net.microscraper.client.ResultSet.Result;
 import net.microscraper.client.Utils;
@@ -22,11 +27,22 @@ public class Scraper {
 		Utils.arrayIntoVector(resource.relationship(Model.WEB_PAGES), web_pages_to_load);
 		Utils.arrayIntoVector(resource.relationship(Model.SOURCE_SCRAPERS), prerequisite_scrapers);
 	}
-	public boolean execute(Browser browser, ResultSet results, Result result) {
+	public Result[] execute(Browser browser, Hashtable variables, Interfaces.Regexp regexp_interface)
+					throws PrematureRevivalException, TemplateException, InterruptedException {
 		for(int i = 0; i < web_pages_to_load.size(); i++) {
-			WebPage web_page = new WebPage((Resource) web_pages_to_load.elementAt(i), results.getVariables(result));
-			browser.load(web_page);
+			try {
+				WebPage web_page = new WebPage((Resource) web_pages_to_load.elementAt(i), variables, regexp_interface);
+				String source_string = browser.load(web_page);
+				source_strings_to_process.addElement(source_string);
+			} catch(MissingVariable e) {
+				// Missing a variable, leave the web page resource in the vector.
+			} catch(BrowserException e) {
+				// Something went wrong loading the web page, pull it out of the vector.
+				// TODO: logging?
+				web_pages_to_load.removeElementAt(i);
+			}
 		}
+		return null;
 	}
 	
 	public static class Model extends AbstractModel {

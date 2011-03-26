@@ -3,8 +3,16 @@ package net.microscraper.client;
 import net.microscraper.database.schema.WebPage;
 
 public interface Browser {
-	public String load(WebPage web_page) throws InterruptedException;
+	public String load(WebPage web_page) throws InterruptedException, BrowserException;
 	
+	public static class BrowserException extends Exception {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -849994574375042801L;
+		
+	}
 	/**
 	 * An equivalent interface to CookieStore, implemented by the network
 	 * library (org.apache.* etc.) of choice.  It is recommended that implementations
