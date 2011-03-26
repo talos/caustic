@@ -81,16 +81,27 @@ public interface Interfaces {
 			 * @param matchNumber The number of matches to skip.
 			 * @return The first grouped match, the entire match, or null.
 			 */
-			public abstract String match(String input, int matchNumber);
+			public abstract String match(String input, int matchNumber) throws NoMatches;
 			
 			/**
 			 * Iterate through the input, and repeatedly provide the match from the first set
 			 * of parentheses; if there are not parentheses, this becomes an alias for split(String input).
 			 * @param input
-			 * @return An array of all the first group matchings, or an array of all the matches,
-			 * or null.
+			 * @return An array of all the first group matchings, or an array of all the matches.
 			 */
-			public abstract String[] allMatches(String input);
+			public abstract String[] allMatches(String input) throws NoMatches;
+		}
+		
+		public static class NoMatches extends Exception {
+			
+			public NoMatches(Pattern pattern, String string) {
+				super(pattern.toString() + " did not match against " + string);
+			}
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -1808377327875482874L;
+			
 		}
 	}
 	

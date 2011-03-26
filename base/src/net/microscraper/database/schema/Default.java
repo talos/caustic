@@ -1,6 +1,9 @@
 package net.microscraper.database.schema;
 
+import java.util.Hashtable;
+
 import net.microscraper.client.ResultSet;
+import net.microscraper.client.ResultSet.Variables;
 import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.Relationship;
@@ -12,7 +15,7 @@ public class Default {
 		resource = _resource;
 	}
 	
-	public void enterDefaults(ResultSet results) throws PrematureRevivalException {
+	public Result[] simulate(Variables variables) throws PrematureRevivalException {
 		Resource[] substituted_scrapers = resource.relationship(Model.SUBSTITUTES_FOR);
 		for(int i = 0; i < substituted_scrapers.length; i ++) {
 			results.put(substituted_scrapers[i].ref, resource.attribute_get(Model.VALUE));

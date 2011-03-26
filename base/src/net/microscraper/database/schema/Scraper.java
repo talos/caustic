@@ -6,26 +6,32 @@ import java.util.Vector;
 import net.microscraper.client.Browser;
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces;
+import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Log;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.ResultSet.Result;
 import net.microscraper.client.Utils;
+import net.microscraper.client.Utils.Variables;
 import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
+import net.microscraper.database.Reference;
 import net.microscraper.database.Relationship;
 import net.microscraper.database.Resource;
 
 
 public class Scraper {
-	//private final Resource resource;
 	private final Vector web_pages_to_load = new Vector();
 	private final Vector prerequisite_scrapers = new Vector();
-	private final Vector source_strings_to_process = new Vector();
+	//private final Vector source_strings_to_process = new Vector();
 	private final String pattern_string;
 	private final Integer match_number;
+	public final boolean branch;
+	public final Reference ref;
+	
 	public Scraper(Resource resource) throws PrematureRevivalException {
-		//resource = _resource;
+		ref = resource.ref;
+		branch = match_number == null ? true : false;
 		pattern_string = resource.attribute_get(Model.REGEXP);
 		String match_number_string = resource.attribute_get(Model.MATCH_NUMBER);
 		if(match_number_string == null) {
@@ -36,15 +42,17 @@ public class Scraper {
 		Utils.arrayIntoVector(resource.relationship(Model.WEB_PAGES), web_pages_to_load);
 		Utils.arrayIntoVector(resource.relationship(Model.SOURCE_SCRAPERS), prerequisite_scrapers);
 	}
-	public Result[] execute(Browser browser, Hashtable variables, Interfaces.Regexp regexp_interface)
+	public Result[] execute(Browser browser, Variables variables, Interfaces.Regexp regexp_interface, Result source_result)
 					throws PrematureRevivalException, TemplateException, InterruptedException {
 		try {
+			Vector results = new Vector();
 			Regexp regexp = new Regexp(pattern_string, regexp_interface, variables);
 			for(int i = 0; i < web_pages_to_load.size(); i++) {
 				try {
 					WebPage web_page = new WebPage((Resource) web_pages_to_load.elementAt(i), variables, regexp_interface);
 					try {
-						source_strings_to_process.addElement(browser.load(web_page));
+						// The Browser should handle caching, so we can re-load at our pleasure.
+						results.addElement(processString(browser.load(web_page), source_result));
 					}  catch(BrowserException e) {
 						Log.e(e);
 					}
@@ -67,12 +75,25 @@ public class Scraper {
 					Log.i(new MissingVariable(scraper.ref.toString()).getMessage());
 				}
 			}
-			for(int i = 0; i < source_strings_to_process.size(); i ++) {
-				String source_string = (String) source_strings_to_process.elementAt(i);
-			}
+			Result[] results_ary = new Result[results.size()];
+			results.copyInto(results_ary);
+			return results_ary;
 		} catch (MissingVariable e) { // Could not process the regular expression through Mustache.
 			Log.i(e.getMessage());
 			return new Result[] {};
+		}
+	}
+	
+	private Result processString(String source, Result source_result) {
+		String input = (String) source_strings_to_process.elementAt(i);
+		try {
+			if(match_number == null) {
+				String[] matches = regexp.pattern.allMatches(input);
+			} else {
+				String match = regexp.pattern.match(input, match_number);
+			}
+		} catch(NoMatches e) {
+			Log.e(e);
 		}
 	}
 	

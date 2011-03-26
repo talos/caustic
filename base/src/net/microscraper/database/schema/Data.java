@@ -2,24 +2,29 @@ package net.microscraper.database.schema;
 
 
 import java.util.Hashtable;
+import java.util.Vector;
 
 import net.microscraper.client.Browser;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.ResultSet;
+import net.microscraper.client.Utils;
 import net.microscraper.client.Interfaces.Regexp;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.database.AbstractModel;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
+import net.microscraper.database.schema.Scraper.Model;
 import net.microscraper.database.Reference;
 import net.microscraper.database.Relationship;
 import net.microscraper.database.Resource;
 
 public class Data {
-	private Resource resource;
+	private final Vector defaults = new Vector();
+	private final Vector scrapers = new Vector();
 	
-	public Data(Resource _resource) {
-		resource = _resource;
+	public Data(Resource resource) throws PrematureRevivalException {
+		Utils.arrayIntoVector(resource.relationship(Model.DEFAULTS), defaults);
+		Utils.arrayIntoVector(resource.relationship(Model.SCRAPERS), scrapers);
 	}
 	
 	public ResultSet scrape(Browser browser, Regexp regex_interface)
@@ -32,8 +37,10 @@ public class Data {
 		Resource[] scrapers = resource.relationship(Model.SCRAPERS);
 		for(int i = 0; i < scrapers.length; i ++) {
 			Scraper scraper = new Scraper(scrapers[i]);
-			
 		}
+		do {
+			
+		} while();
 		return results;
 	}
 	

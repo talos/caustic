@@ -43,7 +43,7 @@ public class JavaUtilRegexInterface implements RegexInterface {
 		}
 		
 		@Override
-		public String match(String input, int matchNumber) {
+		public String match(String input, int matchNumber) throws NoMatches {
 	/*		int inputHashCode = cheapHashCode(input);
 			if(savedFirstMatches.containsKey(inputHashCode)) {
 				//System.out.println("skipping firstMatch, cache size = " + savedFirstMatches.size());
@@ -54,34 +54,37 @@ public class JavaUtilRegexInterface implements RegexInterface {
 			int i = 0;
 			while(matcher.find()) {
 				if(i == matchNumber) {
-					if(groupCount > 0) {
+					if(groupCount > 0)
 						return matcher.group(1);
-					} else {
+					else
 						return matcher.group();
-					}
+					
 				} else if(i > matchNumber) { break; }
 				i++;
 			}
-			return null;
+			throw new NoMatches(this, input);
 			//savedFirstMatches.put(inputHashCode, match);
 		}
 		
 		@Override
-		public String[] allMatches(String input) {
-			if(groupCount == 0) {
+		public String[] allMatches(String input) throws NoMatches {
+			/*if(groupCount == 0) {
 				String[] matches = split(input);
 				if(matches.length == 0)
 					return null;
 				return matches;
-			}
+			}*/
 			Matcher matcher = pattern.matcher(input);
 			
 			List<String> matchesList = new ArrayList<String>();
 			while(matcher.find()) {
-				matchesList.add(matcher.group(1));
+				if(groupCount > 0)
+					matchesList.add(matcher.group(1));
+				else
+					matchesList.add(matcher.group());
 			}
 			if(matchesList.size() == 0)
-				return null;
+				throw new NoMatches(this, input);
 			
 			String[] matches = new String[matchesList.size()];
 			
