@@ -1,10 +1,30 @@
 package net.microscraper.database.schema;
 
+import java.util.Hashtable;
+
+import net.microscraper.client.Mustache;
+import net.microscraper.client.Mustache.MissingVariable;
+import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.client.ResultSet;
 import net.microscraper.database.AbstractModel;
+import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.Relationship;
+import net.microscraper.database.Resource;
 
 public class WebPage  {
-
+	public final String url;
+	public final AbstractHeader[] posts;
+	public final AbstractHeader[] cookies;
+	public final AbstractHeader[] headers;
+	public final Regexp[] terminates;
+	public WebPage(Resource resource, Hashtable variables) throws MissingVariable, PrematureRevivalException, TemplateException {
+		url = Mustache.compile(resource.attribute_get(Model.URL), variables);
+		Resource[] _posts = resource.relationship(Model.POSTS);
+		Resource[] _cookies = resource.relationship(Model.COOKIES);
+		Resource[] _headers = resource.relationship(Model.HEADERS);
+		Resource[] _terminates = resource.relationship(Model.TERMINATES);
+	}
+	
 	/**
 	 * This creates a one-off WebPage resource for loading a random page with the browser.
 	 * @param url

@@ -7,7 +7,7 @@ import java.util.Vector;
 import net.microscraper.database.Reference;
 
 public class ResultSet {
-	private abstract class Result {
+	public abstract class Result {
 		public static final boolean TRUNK = true;
 		public static final boolean BRANCH = false;
 		
@@ -17,7 +17,7 @@ public class ResultSet {
 		protected final Result source_result;
 		protected final boolean klass;
 		
-		protected Result(Reference _source_scraper_ref, Reference _scraper_ref,
+		private Result(Reference _source_scraper_ref, Reference _scraper_ref,
 				String _source_value, boolean _klass) {
 			source_scraper_ref = _source_scraper_ref;
 			source_value = _source_value;
@@ -100,20 +100,20 @@ public class ResultSet {
 	// Hashtable keyed by scraper containing Hashtables keyed by result value.
 	private final Hashtable scraper_value_results = new Hashtable();
 		
-	public void put(Reference executing_scraper_ref, String value) {
-		new Trunk(null, executing_scraper_ref, null, value);
+	public Result put(Reference executing_scraper_ref, String value) {
+		return new Trunk(null, executing_scraper_ref, null, value);
 	}
 	
-	public void put(Reference executing_scraper_ref, String[] values) {
-		new Branch(null, executing_scraper_ref, null, values);
+	public Result put(Reference executing_scraper_ref, String[] values) {
+		return new Branch(null, executing_scraper_ref, null, values);
 	}
 	
-	public void put(Reference source_scraper_ref, Reference executing_scraper_ref, String source_value, String value) {
-		new Trunk(source_scraper_ref, executing_scraper_ref, source_value, value);
+	public Result put(Reference source_scraper_ref, Reference executing_scraper_ref, String source_value, String value) {
+		return new Trunk(source_scraper_ref, executing_scraper_ref, source_value, value);
 	}
 	
-	public void put(Reference source_scraper_ref, Reference executing_scraper_ref, String source_value, String[] values) {
-		new Branch(source_scraper_ref, executing_scraper_ref, source_value, values);
+	public Result put(Reference source_scraper_ref, Reference executing_scraper_ref, String source_value, String[] values) {
+		return new Branch(source_scraper_ref, executing_scraper_ref, source_value, values);
 	}
 	
 	/**
@@ -136,20 +136,20 @@ public class ResultSet {
 	}
 	/**
 	 * Get a hashtable of values appropriate for the context of a specific scraper result.
-	 * @param source_scraper_ref The Reference of the executing scraper's source scraper (if any).
-	 * @param source_value The source value of the executing scraper's source scraper (if any).
+	 * @param cur_source The result context from which to obtain variables (if any).
 	 * @return A Hashtable, keyed by executing scraper refs, of available values.
 	 */
-	public Hashtable getVariables(Reference source_scraper_ref, String source_value) {
+	//public Hashtable getVariables(Reference source_scraper_ref, String source_value) {
+	public Hashtable getVariables(Result cur_source) {
 		Hashtable variables = getVariables();
-		if(source_scraper_ref == null) {
+		if(cur_source == null) {
 			return variables;
 		} else {
 			// Copy in all values from trunk results sharing a source with this scraper.
 			
 			// Copy in values from all this scraper's sources, in addition to any values from 
 			// scrapers that share a source as a trunk.
-			Result cur_source = (Result) ((Hashtable) scraper_value_results.get(source_scraper_ref)).get(source_value);
+			//Result cur_source = (Result) ((Hashtable) scraper_value_results.get(source_scraper_ref)).get(source_value);
 			while(cur_source != null) {
 				if(cur_source.klass == Result.TRUNK) {
 					Trunk trunk = (Trunk) cur_source;

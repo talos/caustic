@@ -1,9 +1,23 @@
 package net.microscraper.database.schema;
 
+import java.util.Hashtable;
+
+import net.microscraper.client.Mustache;
+import net.microscraper.client.Mustache.MissingVariable;
+import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.AbstractModel;
 import net.microscraper.database.Relationship;
+import net.microscraper.database.Resource;
 
 public class AbstractHeader {
+	private final Resource resource;
+	public final String name;
+	public final String value;
+	public AbstractHeader(Resource _resource, Hashtable variables) throws TemplateException, MissingVariable {
+		resource = _resource;
+		name = Mustache.compile(resource.attribute_get(AbstractHeaderModel.NAME), variables);
+		value = Mustache.compile(resource.attribute_get(AbstractHeaderModel.VALUE), variables);
+	}
 	protected static abstract class AbstractHeaderModel extends AbstractModel {
 		public static final String NAME = "name";
 		public static final String VALUE = "value";

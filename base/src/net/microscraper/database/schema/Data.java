@@ -23,21 +23,19 @@ public class Data {
 		resource = _resource;
 	}
 	
-	public void scrape(ResultSet result_set, Browser browser, Regexp regex_interface)
+	public ResultSet scrape(Browser browser, Regexp regex_interface)
 					throws PrematureRevivalException {
+		ResultSet results = new ResultSet();
 		Resource[] defaults = resource.relationship(Model.DEFAULTS);
 		for(int i = 0; i < defaults.length; i ++) {
-			//Default _default = new Default(defaults[i]);
-			//Resource _default = defaults[i];
-			Default _default = new Default(defaults[i]);
-			//Resource[] substituted_scrapers = _default.relationship(Default.Model.SUBSTITUTES_FOR);
-			
+			new Default(defaults[i]).enterDefaults(results);
 		}
 		Resource[] scrapers = resource.relationship(Model.SCRAPERS);
 		for(int i = 0; i < scrapers.length; i ++) {
-			//Scraper.Resource scraper = (Scraper.Resource) scrapers[i];
+			Scraper scraper = new Scraper(scrapers[i]);
 			
 		}
+		return results;
 	}
 	
 	public static class Model extends AbstractModel {

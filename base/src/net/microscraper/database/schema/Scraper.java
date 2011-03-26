@@ -1,10 +1,34 @@
 package net.microscraper.database.schema;
 
+import java.util.Vector;
+
+import net.microscraper.client.Browser;
+import net.microscraper.client.ResultSet;
+import net.microscraper.client.ResultSet.Result;
+import net.microscraper.client.Utils;
 import net.microscraper.database.AbstractModel;
+import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.Relationship;
+import net.microscraper.database.Resource;
 
 
 public class Scraper {
+	private final Resource resource;
+	private final Vector web_pages_to_load = new Vector();
+	private final Vector prerequisite_scrapers = new Vector();
+	private final Vector source_strings_to_process = new Vector();
+	public Scraper(Resource _resource) throws PrematureRevivalException {
+		resource = _resource;
+		Utils.arrayIntoVector(resource.relationship(Model.WEB_PAGES), web_pages_to_load);
+		Utils.arrayIntoVector(resource.relationship(Model.SOURCE_SCRAPERS), prerequisite_scrapers);
+	}
+	public boolean execute(Browser browser, ResultSet results, Result result) {
+		for(int i = 0; i < web_pages_to_load.size(); i++) {
+			WebPage web_page = new WebPage((Resource) web_pages_to_load.elementAt(i), results.getVariables(result));
+			browser.load(web_page);
+		}
+	}
+	
 	public static class Model extends AbstractModel {
 		public static final String KEY = "scraper";
 	
