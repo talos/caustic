@@ -33,9 +33,9 @@ public class Relationship {
 	public boolean equals(Object obj) {
 		if(this == obj)
 			return true;
-		if(!(obj instanceof AbstractModel))
+		if(!(obj instanceof Relationship))
 			return false;
-		return key.equals(((AbstractModel) obj).key);
+		return key.equals(((Relationship) obj).key);
 	}
 	
 	public int hashCode() {

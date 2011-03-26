@@ -154,11 +154,11 @@ public interface Interfaces {
 		/**
 		 * Provide the ability to log errors.
 		 */
-		public abstract void e(String errorText, Throwable e);
+		public abstract void logError(String errorText, Throwable e);
 		
 		/**
 		 * Provide the ability to log information.
 		 */
-		public abstract void i(String infoText);
+		public abstract void logInformation(String infoText);
 	}
 }

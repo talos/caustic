@@ -7,7 +7,7 @@ import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Utils;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 
-public abstract class AbstractModel implements Collection {
+public abstract class AbstractModel {
 	protected abstract String _key();
 	protected abstract String[] _attributes();
 	protected abstract Relationship[] _relationships();
@@ -15,8 +15,6 @@ public abstract class AbstractModel implements Collection {
 	public final String key;
 	public final String[] attributes;
 	public final Relationships relationships;
-	protected Database db;
-	protected boolean initialized = false;
 	private final Hashtable resources = new Hashtable();
 	
 	protected AbstractModel() {
@@ -39,12 +37,6 @@ public abstract class AbstractModel implements Collection {
 		}
 	}
 	
-	protected AbstractModel initialize(Database _db) {
-		db = _db;
-		initialized = true;
-		return this;
-	}
-	
 	public Resource get(Reference ref) throws PrematureRevivalException {
 		return ((Resource) resources.get(ref));
 	}
@@ -59,10 +51,6 @@ public abstract class AbstractModel implements Collection {
 		return resources_ary;
 	}
 	
-	public AbstractModel model() {
-		return this;
-	}
-	
 	public boolean equals(Object obj) {
 		if(this == obj)
 			return true;
@@ -75,7 +63,7 @@ public abstract class AbstractModel implements Collection {
 		return key.hashCode();
 	}
 	
-	public static class Relationships {
+	protected static class Relationships {
 		private final Relationship[] relationships_ary;
 		private final Hashtable relationships = new Hashtable();
 		private Relationships(Relationship[] _relationships) {

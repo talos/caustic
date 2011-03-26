@@ -9,7 +9,6 @@ import net.microscraper.client.ResultSet;
 import net.microscraper.client.Interfaces.Regexp;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.database.AbstractModel;
-import net.microscraper.database.Collection;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.Reference;
