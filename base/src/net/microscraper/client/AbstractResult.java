@@ -39,7 +39,7 @@ public abstract class AbstractResult {
 		private final AbstractResult source;
 		private final String value;
 		
-		public Result(Result _source, Scraper _scraper, String _value) {
+		public Result(AbstractResult _source, Scraper _scraper, String _value) {
 			source = _source;
 			source.addChild(this);
 			scraper_ref = _scraper.ref;

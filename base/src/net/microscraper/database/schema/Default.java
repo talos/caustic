@@ -1,8 +1,9 @@
 package net.microscraper.database.schema;
 
-import java.util.Hashtable;
-
+import net.microscraper.client.AbstractResult;
 import net.microscraper.client.Mustache;
+import net.microscraper.client.Mustache.MissingVariable;
+import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
@@ -10,16 +11,15 @@ import net.microscraper.database.Relationship;
 import net.microscraper.database.Resource;
 
 public class Default {
-	private final String raw_value;
-	public Default(Resource resource) {
-		raw_value = resource.attribute_get(Model.VALUE);
+	private final String value;
+	private final Resource[] substituted_scrapers;
+	public Default(Resource resource, Variables variables) throws TemplateException, MissingVariable, PrematureRevivalException {
+		value = Mustache.compile(resource.attribute_get(Model.VALUE), variables);
+		substituted_scrapers = resource.relationship(Model.SUBSTITUTES_FOR);
 	}
 	
-	public int simulate(Result source, Variables variables) throws PrematureRevivalException {
-		String compiled_value = Mustache.compile(raw_value, variables);
-		Resource[] substituted_scrapers = resource.relationship(Model.SUBSTITUTES_FOR);
+	public void simulate(AbstractResult source) throws PrematureRevivalException {
 		for(int i = 0; i < substituted_scrapers.length; i ++) {
-			//put(substituted_scrapers[i].ref, resource.attribute_get(Model.VALUE));
 			new Scraper(substituted_scrapers[i]).createResult(source, value);
 		}
 	}

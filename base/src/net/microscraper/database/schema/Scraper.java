@@ -45,7 +45,7 @@ public class Scraper {
 		Utils.arrayIntoVector(resource.relationship(Model.SOURCE_SCRAPERS), prerequisite_scrapers);
 	}
 	
-	public void createResult(Result source, String value) {
+	public void createResult(AbstractResult source, String value) {
 		new Result(source, this, value);
 	}
 	

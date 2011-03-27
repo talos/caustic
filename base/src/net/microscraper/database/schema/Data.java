@@ -4,6 +4,7 @@ package net.microscraper.database.schema;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.microscraper.client.AbstractResult;
 import net.microscraper.client.AbstractResult.Result;
 import net.microscraper.client.AbstractResult.ResultRoot;
 import net.microscraper.client.Browser;
@@ -11,6 +12,7 @@ import net.microscraper.client.Interfaces;
 import net.microscraper.client.Utils;
 import net.microscraper.client.Interfaces.Regexp;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.Variables;
 import net.microscraper.database.AbstractModel;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
@@ -31,14 +33,17 @@ public class Data {
 	public ResultRoot scrape(Browser browser, Regexp regex_interface)
 					throws PrematureRevivalException {
 		ResultRoot root_result = new ResultRoot();
-		for(int i = 0; i < defaults.size(); i ++) {
-			try {
-				new Default(defaults.elementAt(i)).enterDefaults(root_result);
+		//AbstractResult curRoot = root_result;
+		for(int i = 0; i < scrapers.size(); i ++) {
+			Variables variables = root_result.variables();
+			for(int j = 0; i < defaults.size(); j ++) {
+				try {
+					new Default((Resource) defaults.elementAt(j), variables).simulate(root_result);
+				} catch() {
+					
+				}
 			}
-		}
-		Resource[] scrapers = resource.relationship(Model.SCRAPERS);
-		for(int i = 0; i < scrapers.length; i ++) {
-			Scraper scraper = new Scraper(scrapers[i]);
+			Scraper scraper = new Scraper((Resource) scrapers.elementAt(i));
 		}
 		return root_result;
 	}
