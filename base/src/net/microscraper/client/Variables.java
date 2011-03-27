@@ -17,7 +17,7 @@ public class Variables {
 	public Variables put(Reference key, String value) throws NullPointerException {
 		variables_by_ref.put(key, value);
 		if(variables_by_title.containsKey(key.title)) {
-			Log.i("Overwrote a redundant reference in Variables, with title " + key.title);
+			Client.context().log.i("Overwrote a redundant reference in Variables, with title " + key.title);
 		}
 		variables_by_title.put(key.title, value);
 		

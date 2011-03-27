@@ -1,23 +1,15 @@
 package net.microscraper.database.schema;
 
-
-import java.util.Hashtable;
 import java.util.Vector;
 
-import net.microscraper.client.AbstractResult;
-import net.microscraper.client.AbstractResult.Result;
 import net.microscraper.client.AbstractResult.ResultRoot;
-import net.microscraper.client.Browser;
-import net.microscraper.client.Interfaces;
+import net.microscraper.client.Client;
+import net.microscraper.client.Mustache.MissingVariable;
+import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils;
-import net.microscraper.client.Interfaces.Regexp;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.AbstractModel;
-import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
-import net.microscraper.database.schema.Scraper.Model;
-import net.microscraper.database.Reference;
 import net.microscraper.database.Relationship;
 import net.microscraper.database.Resource;
 
@@ -30,20 +22,29 @@ public class Data {
 		Utils.arrayIntoVector(resource.relationship(Model.SCRAPERS), scrapers);
 	}
 	
-	public ResultRoot scrape()
-					throws PrematureRevivalException {
+	public ResultRoot scrape() throws PrematureRevivalException, InterruptedException {
 		ResultRoot root_result = new ResultRoot();
-		//AbstractResult curRoot = root_result;
 		for(int i = 0; i < scrapers.size(); i ++) {
 			Variables variables = root_result.variables();
 			for(int j = 0; i < defaults.size(); j ++) {
 				try {
-					new Default((Resource) defaults.elementAt(j), variables).simulate(root_result);
-				} catch() {
-					
+					try {
+						new Default((Resource) defaults.elementAt(j), variables).simulate(root_result);
+					} catch (TemplateException e) { // Bad template, we still pull it off the list.
+						Client.context().log.e(e);
+					}
+					defaults.removeElementAt(j);
+					j--;
+				} catch(MissingVariable e) { // Missing variable, skip the default.
+					Client.context().log.w(e);
 				}
 			}
 			Scraper scraper = new Scraper((Resource) scrapers.elementAt(i));
+			try {
+				scraper.execute(variables, root_result);
+			} catch(TemplateException e) {
+				Client.context().log.e(e);
+			}
 		}
 		return root_result;
 	}

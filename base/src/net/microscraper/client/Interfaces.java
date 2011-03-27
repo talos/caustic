@@ -161,9 +161,14 @@ public interface Interfaces {
 	
 	public interface Logger {
 		/**
-		 * Provide the ability to log errors.
+		 * Provide the ability to log throwables as errors.
 		 */
 		public abstract void e(Throwable e);
+		
+		/**
+		 * Provide the ability to log throwables as warnings.
+		 */
+		public abstract void w(Throwable w);
 		
 		/**
 		 * Provide the ability to log information.

@@ -80,7 +80,7 @@ public class Scraper {
 					i--;
 				} catch(NullPointerException e) {
 					// Missing a scraper, leave the prereq scraper in the vector.
-					Client.context().log.i(new MissingVariable(scraper.ref.toString()).getMessage());
+					Client.context().log.w(new MissingVariable(scraper.ref.toString()));
 				}
 			}
 			Result[] results_ary = new Result[results.size()];
