@@ -4,9 +4,10 @@ package net.microscraper.database.schema;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.microscraper.client.AbstractResult.Result;
+import net.microscraper.client.AbstractResult.ResultRoot;
 import net.microscraper.client.Browser;
 import net.microscraper.client.Interfaces;
-import net.microscraper.client.ResultSet;
 import net.microscraper.client.Utils;
 import net.microscraper.client.Interfaces.Regexp;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
@@ -27,21 +28,19 @@ public class Data {
 		Utils.arrayIntoVector(resource.relationship(Model.SCRAPERS), scrapers);
 	}
 	
-	public ResultSet scrape(Browser browser, Regexp regex_interface)
+	public ResultRoot scrape(Browser browser, Regexp regex_interface)
 					throws PrematureRevivalException {
-		ResultSet results = new ResultSet();
-		Resource[] defaults = resource.relationship(Model.DEFAULTS);
-		for(int i = 0; i < defaults.length; i ++) {
-			new Default(defaults[i]).enterDefaults(results);
+		ResultRoot root_result = new ResultRoot();
+		for(int i = 0; i < defaults.size(); i ++) {
+			try {
+				new Default(defaults.elementAt(i)).enterDefaults(root_result);
+			}
 		}
 		Resource[] scrapers = resource.relationship(Model.SCRAPERS);
 		for(int i = 0; i < scrapers.length; i ++) {
 			Scraper scraper = new Scraper(scrapers[i]);
 		}
-		do {
-			
-		} while();
-		return results;
+		return root_result;
 	}
 	
 	public static class Model extends AbstractModel {

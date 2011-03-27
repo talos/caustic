@@ -2,23 +2,25 @@ package net.microscraper.database.schema;
 
 import java.util.Hashtable;
 
-import net.microscraper.client.ResultSet;
-import net.microscraper.client.ResultSet.Variables;
+import net.microscraper.client.Mustache;
+import net.microscraper.client.Variables;
 import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.Relationship;
 import net.microscraper.database.Resource;
 
 public class Default {
-	private final Resource resource;
-	public Default(Resource _resource) {
-		resource = _resource;
+	private final String raw_value;
+	public Default(Resource resource) {
+		raw_value = resource.attribute_get(Model.VALUE);
 	}
 	
-	public Result[] simulate(Variables variables) throws PrematureRevivalException {
+	public int simulate(Result source, Variables variables) throws PrematureRevivalException {
+		String compiled_value = Mustache.compile(raw_value, variables);
 		Resource[] substituted_scrapers = resource.relationship(Model.SUBSTITUTES_FOR);
 		for(int i = 0; i < substituted_scrapers.length; i ++) {
-			results.put(substituted_scrapers[i].ref, resource.attribute_get(Model.VALUE));
+			//put(substituted_scrapers[i].ref, resource.attribute_get(Model.VALUE));
+			new Scraper(substituted_scrapers[i]).createResult(source, value);
 		}
 	}
 	

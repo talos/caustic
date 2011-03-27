@@ -6,6 +6,7 @@ import net.microscraper.client.Interfaces;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.client.Variables;
 import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.Relationship;
@@ -17,7 +18,7 @@ public class WebPage  {
 	public final AbstractHeader[] cookies;
 	public final AbstractHeader[] headers;
 	public final Regexp[] terminates;
-	public WebPage(Resource resource, Hashtable variables, Interfaces.Regexp regex_interface)
+	public WebPage(Resource resource, Variables variables, Interfaces.Regexp regex_interface)
 				throws MissingVariable, PrematureRevivalException, TemplateException {
 		url = Mustache.compile(resource.attribute_get(Model.URL), variables);
 		Resource[] _posts = resource.relationship(Model.POSTS);

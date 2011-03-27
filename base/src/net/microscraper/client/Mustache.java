@@ -1,9 +1,7 @@
 package net.microscraper.client;
 
-import java.util.Hashtable;
-
 /**
- * Mustache-like substitutions from Hashtables.
+ * Mustache-like substitutions from Variables.
  * This does not currently support any commenting.
  * @author john
  *
@@ -13,14 +11,14 @@ public class Mustache {
 	public static final String close_tag = "}}";
 	
 	/**
-	 * Attempt to compile a template from data in a Hashtable.
+	 * Attempt to compile a template from data in a Variables instance.
 	 * @param template
 	 * @param variables
 	 * @return
 	 * @throws TemplateException The template was invalid.
-	 * @throws MissingVariable The Hashtable was missing a variable.
+	 * @throws MissingVariable The Variables instance was missing a variable.
 	 */
-	public static String compile(String template, Hashtable variables)
+	public static String compile(String template, Variables variables)
 				throws TemplateException, MissingVariable {
 		int close_tag_pos = 0;
 		int open_tag_pos;
@@ -34,8 +32,8 @@ public class Mustache {
 			
 			String tag = template.substring(open_tag_pos + 2, close_tag_pos - 2);
 			
-			if(variables.containsKey(tag))
-				result += variables.get(tag);
+			if(variables.containsTitle(tag))
+				result += variables.getByTitle(tag);
 			else
 				throw new MissingVariable(tag);
 		}

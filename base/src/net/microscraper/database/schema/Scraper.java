@@ -3,6 +3,8 @@ package net.microscraper.database.schema;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.microscraper.client.AbstractResult;
+import net.microscraper.client.AbstractResult.Result;
 import net.microscraper.client.Browser;
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces;
@@ -10,9 +12,8 @@ import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Log;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.client.ResultSet.Result;
 import net.microscraper.client.Utils;
-import net.microscraper.client.Utils.Variables;
+import net.microscraper.client.Variables;
 import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.Reference;
@@ -31,18 +32,24 @@ public class Scraper {
 	
 	public Scraper(Resource resource) throws PrematureRevivalException {
 		ref = resource.ref;
-		branch = match_number == null ? true : false;
 		pattern_string = resource.attribute_get(Model.REGEXP);
 		String match_number_string = resource.attribute_get(Model.MATCH_NUMBER);
 		if(match_number_string == null) {
 			match_number = null;
+			branch = true;
 		} else {
 			match_number = Integer.parseInt(match_number_string);
+			branch = false;
 		}
 		Utils.arrayIntoVector(resource.relationship(Model.WEB_PAGES), web_pages_to_load);
 		Utils.arrayIntoVector(resource.relationship(Model.SOURCE_SCRAPERS), prerequisite_scrapers);
 	}
-	public Result[] execute(Browser browser, Variables variables, Interfaces.Regexp regexp_interface, Result source_result)
+	
+	public void createResult(Result source, String value) {
+		new Result(source, this, value);
+	}
+	
+	public int execute(Browser browser, Variables variables, Interfaces.Regexp regexp_interface, AbstractResult source_result)
 					throws PrematureRevivalException, TemplateException, InterruptedException {
 		try {
 			Vector results = new Vector();
