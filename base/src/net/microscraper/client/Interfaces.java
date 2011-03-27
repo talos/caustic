@@ -105,7 +105,6 @@ public interface Interfaces {
 		}
 	}
 	
-
 	public interface SQL {
 		public static interface Cursor {
 			public abstract boolean next() throws SQLInterfaceException;

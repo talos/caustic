@@ -7,6 +7,7 @@ import net.microscraper.client.AbstractResult;
 import net.microscraper.client.AbstractResult.Result;
 import net.microscraper.client.Browser;
 import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Log;
@@ -49,26 +50,26 @@ public class Scraper {
 		new Result(source, this, value);
 	}
 	
-	public int execute(Browser browser, Variables variables, Interfaces.Regexp regexp_interface, AbstractResult source_result)
+	public int execute(Variables variables, AbstractResult source_result)
 					throws PrematureRevivalException, TemplateException, InterruptedException {
 		try {
 			Vector results = new Vector();
-			Regexp regexp = new Regexp(pattern_string, regexp_interface, variables);
+			Regexp regexp = new Regexp(pattern_string, variables);
 			for(int i = 0; i < web_pages_to_load.size(); i++) {
 				try {
-					WebPage web_page = new WebPage((Resource) web_pages_to_load.elementAt(i), variables, regexp_interface);
+					WebPage web_page = new WebPage((Resource) web_pages_to_load.elementAt(i), variables);
 					try {
 						// The Browser should handle caching, so we can re-load at our pleasure.
-						results.addElement(processString(browser.load(web_page), source_result));
+						results.addElement(processString(Client.browser.load(web_page), source_result));
 					}  catch(BrowserException e) {
-						Log.e(e);
+						Client.context().log.e(e);
 					}
 					// We still want to pull it out of the vector if there was a problem loading besides a MissingVariable.
 					web_pages_to_load.removeElementAt(i);
 					i--;
 				} catch(MissingVariable e) {
 					// Missing a variable, leave the web page resource in the vector.
-					Log.i(e.getMessage());
+					Client.context().log.i(e.getMessage());
 				}
 			}
 			for(int i = 0; i < prerequisite_scrapers.size(); i++) {
@@ -79,14 +80,14 @@ public class Scraper {
 					i--;
 				} catch(NullPointerException e) {
 					// Missing a scraper, leave the prereq scraper in the vector.
-					Log.i(new MissingVariable(scraper.ref.toString()).getMessage());
+					Client.context().log.i(new MissingVariable(scraper.ref.toString()).getMessage());
 				}
 			}
 			Result[] results_ary = new Result[results.size()];
 			results.copyInto(results_ary);
 			return results_ary;
 		} catch (MissingVariable e) { // Could not process the regular expression through Mustache.
-			Log.i(e.getMessage());
+			Client.context().log.i(e.getMessage());
 			return new Result[] {};
 		}
 	}
@@ -100,7 +101,7 @@ public class Scraper {
 				String match = regexp.pattern.match(input, match_number);
 			}
 		} catch(NoMatches e) {
-			Log.e(e);
+			Client.context().log.e(e);
 		}
 	}
 	

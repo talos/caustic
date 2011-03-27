@@ -30,7 +30,7 @@ public class Data {
 		Utils.arrayIntoVector(resource.relationship(Model.SCRAPERS), scrapers);
 	}
 	
-	public ResultRoot scrape(Browser browser, Regexp regex_interface)
+	public ResultRoot scrape()
 					throws PrematureRevivalException {
 		ResultRoot root_result = new ResultRoot();
 		//AbstractResult curRoot = root_result;

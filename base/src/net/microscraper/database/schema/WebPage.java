@@ -1,7 +1,5 @@
 package net.microscraper.database.schema;
 
-import java.util.Hashtable;
-
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
@@ -39,7 +37,7 @@ public class WebPage  {
 		Resource[] _terminates = resource.relationship(Model.TERMINATES);
 		terminates = new Regexp[_terminates.length];
 		for(int i = 0; i < _terminates.length ; i ++) {
-			terminates[i] = new Regexp(_terminates[i], regex_interface, variables);
+			terminates[i] = new Regexp(_terminates[i], variables);
 		}
 	}
 	
