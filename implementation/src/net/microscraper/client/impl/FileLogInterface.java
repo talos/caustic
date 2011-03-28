@@ -1,11 +1,11 @@
-package net.microscraper.client;
+package net.microscraper.client.impl;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 
-import net.microscraper.client.interfaces.LogInterface;
+import net.microscraper.client.impl.interfaces.LogInterface;
 
 
 public class FileLogInterface implements LogInterface {

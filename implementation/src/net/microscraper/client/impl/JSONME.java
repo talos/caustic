@@ -1,6 +1,6 @@
-package net.microscraper.client;
+package net.microscraper.client.impl;
 
-import net.microscraper.client.Interfaces.JSON;
+import net.microscraper.client.impl.Interfaces.JSON;
 
 import org.json.me.JSONArray;
 import org.json.me.JSONException;

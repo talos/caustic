@@ -1,12 +1,12 @@
-package net.microscraper.client;
+package net.microscraper.client.impl;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.microscraper.client.PatternInterface;
-import net.microscraper.client.RegexInterface;
+import net.microscraper.client.impl.PatternInterface;
+import net.microscraper.client.impl.RegexInterface;
 
 
 public class JavaUtilRegexInterface implements RegexInterface {

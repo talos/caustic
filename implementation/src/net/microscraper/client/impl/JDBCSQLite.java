@@ -1,4 +1,4 @@
-package net.microscraper.client;
+package net.microscraper.client.impl;
 
 //import java.sql.*;
 import java.sql.Connection;
@@ -7,8 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import net.microscraper.client.interfaces.LogInterface;
-import net.microscraper.client.interfaces.SQLInterface;
+import net.microscraper.client.impl.interfaces.LogInterface;
+import net.microscraper.client.impl.interfaces.SQLInterface;
 
 
 public class JDBCSQLite implements SQLInterface {

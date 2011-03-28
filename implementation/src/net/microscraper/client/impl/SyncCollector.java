@@ -1,13 +1,13 @@
-package net.microscraper.client;
+package net.microscraper.client.impl;
 
 import java.io.IOException;
 import java.util.Vector;
 
-import net.microscraper.client.Collector;
-import net.microscraper.client.deprecated.Gatherer;
-import net.microscraper.client.deprecated.Information;
-import net.microscraper.client.deprecated.Gatherer.InsufficientInformationException;
-import net.microscraper.client.interfaces.LogInterface;
+import net.microscraper.client.impl.Collector;
+import net.microscraper.client.impl.deprecated.Gatherer;
+import net.microscraper.client.impl.deprecated.Information;
+import net.microscraper.client.impl.deprecated.Gatherer.InsufficientInformationException;
+import net.microscraper.client.impl.interfaces.LogInterface;
 
 
 public class SyncCollector implements Collector {

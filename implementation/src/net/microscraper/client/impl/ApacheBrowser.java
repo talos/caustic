@@ -1,4 +1,4 @@
-package net.microscraper.client;
+package net.microscraper.client.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,10 +13,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import net.microscraper.client.CookieInterface;
-import net.microscraper.client.CookieStoreInterface;
-import net.microscraper.client.deprecated.EntityInterface;
-import net.microscraper.client.deprecated.HttpInterface;
+import net.microscraper.client.Browser;
+import net.microscraper.client.impl.CookieInterface;
+import net.microscraper.client.impl.CookieStoreInterface;
+import net.microscraper.client.impl.deprecated.EntityInterface;
+import net.microscraper.client.impl.deprecated.HttpInterface;
+import net.microscraper.database.schema.WebPage;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -41,7 +43,16 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 
-public class ApacheHttpInterface implements HttpInterface {
+//public class ApacheHttpInterface implements HttpInterface {
+public class ApacheBrowser implements Browser {
+
+	@Override
+	public String load(WebPage web_page) throws InterruptedException,
+			BrowserException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	/**
 	 * Private method, converts a Map<String, String> to an UrlEncodedFormEntity.
 	 * @param hm The Map to be encoded.
@@ -290,5 +301,5 @@ public class ApacheHttpInterface implements HttpInterface {
 		}
 		
 	}
-	
+
 }
