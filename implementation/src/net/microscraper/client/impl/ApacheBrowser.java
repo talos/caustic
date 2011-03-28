@@ -14,10 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.microscraper.client.Browser;
-import net.microscraper.client.impl.CookieInterface;
-import net.microscraper.client.impl.CookieStoreInterface;
-import net.microscraper.client.impl.deprecated.EntityInterface;
-import net.microscraper.client.impl.deprecated.HttpInterface;
+import net.microscraper.client.Client;
+import net.microscraper.database.schema.AbstractHeader;
 import net.microscraper.database.schema.WebPage;
 
 import org.apache.http.HttpEntity;
@@ -45,261 +43,118 @@ import org.apache.http.util.EntityUtils;
 
 //public class ApacheHttpInterface implements HttpInterface {
 public class ApacheBrowser implements Browser {
+	private final BasicCookieStore cookie_store = new BasicCookieStore();
+	private final HttpParams http_params = new BasicHttpParams();
+	private final DefaultHttpClient http_client = new DefaultHttpClient();
 
+	public ApacheBrowser() {
+		http_params.setParameter(ClientPNames.HANDLE_REDIRECTS, true);
+		http_params.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
+		http_params.setParameter(ClientPNames.REJECT_RELATIVE_REDIRECT, false);
+		http_params.setParameter(ClientPNames.MAX_REDIRECTS, 100);
+		
+		http_client.setCookieStore(cookie_store);
+		http_client.setParams(http_params);
+	}
+	
 	@Override
 	public String load(WebPage web_page) throws InterruptedException,
 			BrowserException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			URI uri = new URI(web_page.url);
+			
+			AbstractHeader[] posts = web_page.posts;
+			AbstractHeader[] cookies = web_page.cookies;
+			AbstractHeader[] headers = web_page.headers;
+			
+			// Set up our httpclient to handle 302 redirects properly.
+			http_client.setRedirectHandler(new RedirectHandler(uri));
+			
+			HttpRequestBase http_request;
+			
+			// Add posts.
+			if(posts.length > 0) {
+				HttpPost http_post = new HttpPost(uri);
+				
+				http_post.setEntity(generateFormEntity(posts));
+				http_request = http_post;
+			} else {
+				http_request = new HttpGet(uri);
+			}
+			
+			// Add headers.
+			for(int i = 0 ; i < headers.length ; i ++) {
+				http_request.addHeader(headers[i].name, headers[i].value);
+			}
+
+			// Add cookies.
+			for(int i = 0 ; i < cookies.length ; i ++) {
+				BasicClientCookie cookie = new BasicClientCookie(cookies[i].name, cookies[i].value);
+				cookie.setDomain(uri.getHost());
+				cookie_store.addCookie(cookie);
+			}
+			
+			HttpResponse response = http_client.execute(http_request);
+
+			StatusLine status = response.getStatusLine();
+			
+			if(status.getStatusCode() == 200) {
+				//return response.getEntity();
+				HttpEntity entity = response.getEntity();
+				InputStream stream = entity.getContent();
+				byte[] buffer = new byte[512];
+				while(stream.read(buffer) != -1) {
+					Client.context().log.i(new String(buffer));
+				}
+			} else {
+				throw new HttpResponseException(status.getStatusCode(), "Unable to get content: " + Integer.toString(status.getStatusCode()));
+			}
+
+		} catch(URISyntaxException e) {
+			throw new BrowserException(e.toString());
+		}
 	}
 	
 	/**
-	 * Private method, converts a Map<String, String> to an UrlEncodedFormEntity.
-	 * @param hm The Map to be encoded.
+	 * Private method, converts an array of AbstractHeaders to an UrlEncodedFormEntity.
+	 * @param headers.
 	 * @throws UnsupportedEncodingException If the Map contains a string that cannot be encoded.
 	 */
-	private UrlEncodedFormEntity toUrlEncodedFormEntity(Map<String, String> hm) throws UnsupportedEncodingException {
-		List<BasicNameValuePair> nvps = new ArrayList<BasicNameValuePair>();
-		if(hm == null) {
-			return new UrlEncodedFormEntity(nvps); // Return an empty.
+	private static UrlEncodedFormEntity generateFormEntity(AbstractHeader[] headers)
+				throws UnsupportedEncodingException {
+		List<BasicNameValuePair> pairs = new ArrayList<BasicNameValuePair>();
+		for(int i = 0; i < headers.length ; i ++) {
+			pairs.add(new BasicNameValuePair(headers[i].name, headers[i].value));
 		}
-		
-		Iterator<String> iterator = hm.keySet().iterator();
-		while(iterator.hasNext()) {
-			String k = iterator.next();
-			nvps.add(new BasicNameValuePair(k, hm.get(k)));
-		}	
-		
-		UrlEncodedFormEntity uefe = new UrlEncodedFormEntity(nvps);
-		
-		return uefe;
+		return new UrlEncodedFormEntity(pairs);
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@Override
-	public EntityInterface attributesToEntity(String urlString,
-			CookieStoreInterface gCookieStore, 
-			Hashtable gets, Hashtable posts, CookieInterface[] gCookies,
-			Hashtable headers) throws IOException {
-		
-		final URI url;
-		try {
-			url = new URI(urlString);
-		} catch(URISyntaxException e) {
-			throw new IOException(e.toString());
+	// Force handling of 302s.  Default implementation does not handle them
+	// with POST requests.
+	private static class RedirectHandler extends DefaultRedirectHandler {
+		private final URI uri;
+		public RedirectHandler(URI _uri) {
+			uri = _uri;
 		}
-		if(gets == null)
-			gets = new Hashtable();
-		if(posts == null)
-			posts = new Hashtable();
-		if(headers == null)
-			headers = new Hashtable();
-		if(gCookieStore == null)
-			gCookieStore = newCookieStore();
+		@Override
+		public boolean isRedirectRequested(HttpResponse response, HttpContext context) {
+			if(response.getStatusLine().getStatusCode() == 302) {
+				return true;
+			} else {
+				return super.isRedirectRequested(response, context);
+			}
+		}
 		
-		if(gCookies != null)
-			gCookieStore.addCookies(gCookies);
-				
-		// Set up our httpclient to handle redirects.
-		HttpParams httpParams = new BasicHttpParams();
-		httpParams.setParameter(ClientPNames.HANDLE_REDIRECTS, true);
-		httpParams.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
-		httpParams.setParameter(ClientPNames.REJECT_RELATIVE_REDIRECT, false);
-		httpParams.setParameter(ClientPNames.MAX_REDIRECTS, 100);
-		final DefaultHttpClient httpClient = new DefaultHttpClient();
-		httpClient.setParams(httpParams);
-		
-		httpClient.setRedirectHandler(new DefaultRedirectHandler() {
+		// Only use the overriden method with 302s.
+		@Override
+		public URI getLocationURI(HttpResponse response, HttpContext context) throws ProtocolException {
+			if(response.getStatusLine().getStatusCode() != 302) {
+				return super.getLocationURI(response, context);
+			}
+			String redirect = response.getFirstHeader("Location").getValue();
 			
-			// Force handling of 302s.  Default implementation does not handle them
-			// with POST requests.
-			@Override
-			public boolean isRedirectRequested(HttpResponse response, HttpContext context) {
-				if(response.getStatusLine().getStatusCode() == 302) {
-					return true;
-				} else {
-					return super.isRedirectRequested(response, context);
-				}
-			}
-			
-			// Only use the overriden method with 302s.
-			@Override
-			public URI getLocationURI(HttpResponse response, HttpContext context) throws ProtocolException {
-				if(response.getStatusLine().getStatusCode() != 302) {
-					return super.getLocationURI(response, context);
-				}
-				String redirect = response.getFirstHeader("Location").getValue();
-				
-				return url.resolve(redirect);
-			}
-		});
-		
-		// Do we have a Post request or a Get request?
-		String getArgs = EntityUtils.toString(toUrlEncodedFormEntity(gets));
-		final HttpRequestBase httpRequest;
-		if(posts.size() > 0) {
-			httpRequest = new HttpPost(url.toString() + '?' + getArgs);
-			
-			((HttpEntityEnclosingRequestBase) httpRequest).setEntity(toUrlEncodedFormEntity(posts));
-		} else {
-			httpRequest = new HttpGet(url.toString() + '?' + getArgs);
-		}
-		
-		Enumeration headerKeys = headers.keys();
-		while(headerKeys.hasMoreElements()) {
-			String key = (String) headerKeys.nextElement();
-			String value = (String) headers.get(key);
-			httpRequest.addHeader(key, value);
-		}
-		
-		BasicCookieStore reqCookieStore = new BasicCookieStore();
-		Cookie[] reqCookies = ApacheCookie.arrayToCookieArray(gCookieStore.getCookies());
-		reqCookieStore.addCookies(reqCookies);
-		
-		httpClient.setCookieStore(reqCookieStore);
-		
-		HttpResponse response = httpClient.execute(httpRequest);
-		
-		// Add any additional cookies from the response back to the cookieStore interface.
-		List<CookieInterface> responseCookies = new ArrayList<CookieInterface>();
-		for(int i = 0; i < reqCookieStore.getCookies().size(); i++) {
-			responseCookies.add(new ApacheCookie(reqCookieStore.getCookies().get(i)));
-		}
-		
-		gCookieStore.addCookies(responseCookies.toArray(new CookieInterface[0]));
-		
-		// Deal with errors.  Does this follow redirects? I hope so.
-		StatusLine status = response.getStatusLine();
-		
-		if(status.getStatusCode() == 200) {
-			return new ApacheEntity(response.getEntity());
-		} else {
-			/*HttpEntity entity = response.getEntity();
-			InputStream stream = entity.getContent();
-			byte[] buffer = new byte[512];
-			while(stream.read(buffer) != -1) {
-				System.out.println(new String(buffer));
-			}*/
-			throw new HttpResponseException(status.getStatusCode(), "Unable to get content: " + Integer.toString(status.getStatusCode()));
-		}
-	}
-
-	@Override
-	public CookieStoreInterface newCookieStore() {
-		return new ApacheCookieStore();
-	}
-	
-	/**
-	 * Synchronized implementation of GeograpeCookieStore based off of Apache HTTP libraries.
-	 * @author realest
-	 *
-	 */
-	private static class ApacheCookieStore implements CookieStoreInterface {
-		private final BasicCookieStore cookieStore = new BasicCookieStore();
-		
-		@Override
-		public CookieInterface[] getCookies() {
-			List<Cookie> cookies = cookieStore.getCookies();
-			CookieInterface[] gCookies = new CookieInterface[cookies.size()];
-			for(int i = 0; i < cookies.size(); i++) {
-				gCookies[i] = new ApacheCookie(cookies.get(i));
-			}
-			return gCookies;
-		}
-		
-		@Override
-		public synchronized void addCookies(CookieInterface[] gCookies) {
-			Cookie[] cookies = new Cookie[gCookies.length];
-			for(int i = 0; i < gCookies.length; i++) {
-				CookieInterface gCookie = gCookies[i];
-				BasicClientCookie cookie = new BasicClientCookie(gCookie.getName(), gCookie.getValue());
-				cookie.setPath(gCookie.getPath());
-				cookie.setDomain(gCookie.getDomain());
-				cookie.setExpiryDate(gCookie.getExpiryDate());
-				cookies[i] = cookie;
-			}
-			cookieStore.addCookies(cookies);
-		}
-		
-		@Override
-		public String toString() {
-			return cookieStore.toString();
-		}
-	}
-	
-	/**
-	 * Implementation of GeograpeCookie based off Apache HTTP libraries.
-	 * Initialized with a Cookie interface.
-	 * @author realest
-	 *
-	 */
-	private static class ApacheCookie implements CookieInterface {
-		private final Cookie cookie;
-		public ApacheCookie(Cookie c) {
-			cookie = c;
-		}
-		@Override
-		public String getDomain() { return cookie.getDomain(); }
-
-		@Override
-		public Date getExpiryDate() { return cookie.getExpiryDate(); }
-
-		@Override
-		public String getName() { return cookie.getName(); }
-
-		@Override
-		public String getPath() { return cookie.getPath(); }
-
-		@Override
-		public String getValue() { return cookie.getValue(); }
-		
-		@Override
-		public String toString() {
-			return cookie.toString();
-		}
-		
-		/**
-		 * Convert an ApacheCookie to a Cookie that can be added to a CookieStore.
-		 * @return
-		 */
-		public static final Cookie toCookie(CookieInterface c) {
-			BasicClientCookie cookie = new BasicClientCookie(c.getName(), c.getValue());
-			cookie.setDomain(c.getDomain());
-			cookie.setExpiryDate(c.getExpiryDate());
-			cookie.setPath(c.getPath());
-			return cookie;
-		}
-		
-		/**
-		 * Convert an array of ApacheCookies to a Cookie that can be added to a CookieStore
-		 */
-		public static final Cookie[] arrayToCookieArray(CookieInterface[] cArray) {
-			Cookie[] cookies = new Cookie[cArray.length];
-			for(int i = 0 ; i < cookies.length; i++) {
-				cookies[i] = toCookie(cArray[i]);
-			}
-			return cookies;
-		}
-	}
-	
-
-	final class ApacheEntity implements EntityInterface {
-		private HttpEntity entity;
-		
-		public ApacheEntity(HttpEntity e) {
-			entity = e;
-		}
-		
-		@Override
-		public InputStream getInputStream() throws IllegalStateException, IOException {
-			return entity.getContent();
-		}
-
-		@Override
-		public void consumeContent() throws IOException {
-			entity.consumeContent();
+			return uri.resolve(redirect);
 		}
 		
 	}
-
 }
