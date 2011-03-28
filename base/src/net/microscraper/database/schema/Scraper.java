@@ -51,8 +51,11 @@ public class Scraper {
 	}
 	*/
 	
-	public int execute(Variables variables, AbstractResult source_result)
+	public boolean execute(Variables variables, AbstractResult source_result)
 					throws PrematureRevivalException, TemplateException, InterruptedException {
+		if(source_result.contains(source_result, this)) {
+			
+		}
 		/*
 		try {
 			Vector results = new Vector();
@@ -115,10 +118,10 @@ public class Scraper {
 		public static final String[] ATTRIBUTES = { REGEXP, MATCH_NUMBER, PUBLISH };
 		
 		public static final String WEB_PAGES = "web_pages";
-		public static final String TARGET_SCRAPERS = "target_scrapers";
+		public static final String SOURCE_SCRAPERS = "source_scraper";
 		public final Relationship web_pages = new Relationship( WEB_PAGES, new WebPage.Model());
-		public final Relationship target_scrapers = new Relationship( TARGET_SCRAPERS, new Scraper.Model());
-		public final Relationship[] relationships = { web_pages, target_scrapers };
+		public final Relationship source_scraper = new Relationship( SOURCE_SCRAPERS, new Scraper.Model());
+		public final Relationship[] relationships = { web_pages, source_scraper };
 		
 		protected String _key() { return KEY; }
 		protected String[] _attributes() { return ATTRIBUTES; }
