@@ -21,6 +21,7 @@ public class Data {
 		ResultRoot root_result = new ResultRoot();
 		int prev_size = 0;
 		while(root_result.size() != prev_size) {
+			prev_size = root_result.size();
 			for(int i = 0 ; i < defaults.length ; i ++) {
 				Default _default = new Default(defaults[i]);
 				try {
