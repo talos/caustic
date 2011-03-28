@@ -29,7 +29,7 @@ public class Scraper {
 		if(match_number_string == null) {
 			match_number = null;
 		} else {
-			match_number = Integer.parseInt(match_number_string);
+			match_number = new Integer(match_number_string);
 		}
 		web_pages = resource.relationship(Model.WEB_PAGES);
 		source_scrapers = resource.relationship(Model.SOURCE_SCRAPERS);
@@ -69,7 +69,7 @@ public class Scraper {
 				String[] matches = pattern.allMatches(input);
 				source_result.addOneToMany(ref, matches);
 			} else {
-				source_result.addOneToOne(ref, pattern.match(input, match_number));
+				source_result.addOneToOne(ref, pattern.match(input, match_number.intValue()));
 			}
 		} catch(NoMatches e) {
 			Client.context().log.w(e);

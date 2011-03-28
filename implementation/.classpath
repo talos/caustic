@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
-		<attributes>
-			<attribute name="owner.project.facets" value="java"/>
-		</attributes>
-	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Scraper Client Core"/>
 	<classpathentry kind="lib" path="/usr/lib/java/sqlitejdbc-v056.jar"/>
 	<classpathentry kind="lib" path="/usr/lib/java/httpcomponents-client-4.0.2/lib/apache-mime4j-0.6.jar"/>

@@ -35,12 +35,10 @@ public interface Interfaces {
 				enumeration = e;
 			}
 			
-			@Override
 			public boolean hasNext() {
 				return enumeration.hasMoreElements();
 			}
 
-			@Override
 			public java.lang.Object next() {
 				return enumeration.nextElement();
 			}
