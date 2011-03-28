@@ -3,11 +3,7 @@ package net.microscraper.database.schema;
 import java.util.Vector;
 
 import net.microscraper.client.AbstractResult.ResultRoot;
-import net.microscraper.client.Client;
-import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils;
-import net.microscraper.client.Variables;
 import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.Relationship;
@@ -24,8 +20,11 @@ public class Data {
 	
 	public ResultRoot scrape() throws PrematureRevivalException, InterruptedException {
 		ResultRoot root_result = new ResultRoot();
-		
-		// TODO: the way this should be done now is to iterate through the -web pages-
+		int prev_size = 0;
+		while(root_result.size() != prev_size) {
+			
+		}
+		return root_result;
 		/*
 		for(int i = 0; i < scrapers.size(); i ++) {
 			Variables variables = root_result.variables();

@@ -1,26 +1,39 @@
 package net.microscraper.database.schema;
 
 import net.microscraper.client.AbstractResult;
+import net.microscraper.client.Client;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.client.Variables;
 import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.Relationship;
 import net.microscraper.database.Resource;
 
 public class Default {
-	private final String value;
+	private final String raw_value;
 	private final Resource[] substituted_scrapers;
-	public Default(Resource resource, Variables variables) throws TemplateException, MissingVariable, PrematureRevivalException {
-		value = Mustache.compile(resource.attribute_get(Model.VALUE), variables);
-		substituted_scrapers = resource.relationship(Model.SUBSTITUTES_FOR);
+	public Default(Resource resource) throws PrematureRevivalException {
+		raw_value = resource.attribute_get(Model.VALUE);
+		substituted_scrapers = resource.relationship(Model.SCRAPERS);
 	}
 	
-	public void simulate(AbstractResult source) throws PrematureRevivalException {
-		for(int i = 0; i < substituted_scrapers.length; i ++) {
-			new Scraper(substituted_scrapers[i]).createResult(source, value);
+	/**
+	 * Simulate the Default for the specified source.  This is done by inserting the value
+	 * for each of the substituted scrapers.
+	 * @param source
+	 * @return True if any action has been taken, false otherwise.
+	 * @throws PrematureRevivalException
+	 * @throws TemplateException
+	 */
+	public void simulate(AbstractResult source) throws PrematureRevivalException, TemplateException {
+		try {
+			String value = Mustache.compile(raw_value, source.variables());
+			for(int i = 0; i < substituted_scrapers.length; i ++) {
+				source.addOneToOne(substituted_scrapers[i].ref, value);
+			}
+		} catch (MissingVariable e) {
+			Client.context().log.w(e);
 		}
 	}
 	
