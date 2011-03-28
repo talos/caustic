@@ -24,8 +24,13 @@ public class Data {
 	
 	public ResultRoot scrape() throws PrematureRevivalException, InterruptedException {
 		ResultRoot root_result = new ResultRoot();
+		
+		// TODO: the way this should be done now is to iterate through the -web pages-
+		/*
 		for(int i = 0; i < scrapers.size(); i ++) {
 			Variables variables = root_result.variables();
+			
+			// Before we try a new scraper, see if we can execute more defaults.
 			for(int j = 0; i < defaults.size(); j ++) {
 				try {
 					try {
@@ -47,6 +52,7 @@ public class Data {
 			}
 		}
 		return root_result;
+		*/
 	}
 	
 	public static class Model extends AbstractModel {

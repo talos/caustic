@@ -31,7 +31,7 @@ public class Scraper {
 	public final boolean branch;
 	public final Reference ref;
 	
-	public Scraper(Resource resource) throws PrematureRevivalException {
+	public Scraper(Resource resource, Variables variables) throws PrematureRevivalException {
 		ref = resource.ref;
 		pattern_string = resource.attribute_get(Model.REGEXP);
 		String match_number_string = resource.attribute_get(Model.MATCH_NUMBER);
@@ -45,13 +45,15 @@ public class Scraper {
 		Utils.arrayIntoVector(resource.relationship(Model.WEB_PAGES), web_pages_to_load);
 		Utils.arrayIntoVector(resource.relationship(Model.SOURCE_SCRAPERS), prerequisite_scrapers);
 	}
-	
+	/*
 	public void createResult(AbstractResult source, String value) {
 		new Result(source, this, value);
 	}
+	*/
 	
 	public int execute(Variables variables, AbstractResult source_result)
 					throws PrematureRevivalException, TemplateException, InterruptedException {
+		/*
 		try {
 			Vector results = new Vector();
 			Regexp regexp = new Regexp(pattern_string, variables);
@@ -60,7 +62,7 @@ public class Scraper {
 					WebPage web_page = new WebPage((Resource) web_pages_to_load.elementAt(i), variables);
 					try {
 						// The Browser should handle caching, so we can re-load at our pleasure.
-						results.addElement(processString(Client.browser.load(web_page), source_result));
+						results.addElement(processString(Client.browser.load(web_page), regexp));
 					}  catch(BrowserException e) {
 						Client.context().log.e(e);
 					}
@@ -89,19 +91,18 @@ public class Scraper {
 		} catch (MissingVariable e) { // Could not process the regular expression through Mustache.
 			Client.context().log.i(e.getMessage());
 			return new Result[] {};
-		}
+		}*/
 	}
 	
-	private Result processString(String source, Result source_result) {
-		String input = (String) source_strings_to_process.elementAt(i);
+	private Result processString(String source) {
 		try {
 			if(match_number == null) {
-				String[] matches = regexp.pattern.allMatches(input);
+				String[] matches = pattern.allMatches(input);
 			} else {
 				String match = regexp.pattern.match(input, match_number);
 			}
 		} catch(NoMatches e) {
-			Client.context().log.e(e);
+			Client.context().log.w(e);
 		}
 	}
 	
@@ -114,10 +115,10 @@ public class Scraper {
 		public static final String[] ATTRIBUTES = { REGEXP, MATCH_NUMBER, PUBLISH };
 		
 		public static final String WEB_PAGES = "web_pages";
-		public static final String SOURCE_SCRAPERS = "source_scrapers";
+		public static final String TARGET_SCRAPERS = "target_scrapers";
 		public final Relationship web_pages = new Relationship( WEB_PAGES, new WebPage.Model());
-		public final Relationship source_scrapers = new Relationship( SOURCE_SCRAPERS, new Scraper.Model());
-		public final Relationship[] relationships = { web_pages, source_scrapers };
+		public final Relationship target_scrapers = new Relationship( TARGET_SCRAPERS, new Scraper.Model());
+		public final Relationship[] relationships = { web_pages, target_scrapers };
 		
 		protected String _key() { return KEY; }
 		protected String[] _attributes() { return ATTRIBUTES; }

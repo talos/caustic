@@ -30,9 +30,9 @@ public class Default {
 		public static final String VALUE = "value";
 		public static final String[] ATTRIBUTES = { VALUE };
 		
-		public static final String SUBSTITUTES_FOR = "substitutes_for";
-		public final Relationship substitutes_for = new Relationship( SUBSTITUTES_FOR, new Scraper.Model());
-		public final Relationship[] relationships = { substitutes_for };
+		public static final String SCRAPERS = "scrapers";
+		public final Relationship scrapers = new Relationship( SCRAPERS, new Scraper.Model());
+		public final Relationship[] relationships = { scrapers };
 		
 		protected String _key() { return KEY; }
 		protected String[] _attributes() { return ATTRIBUTES; }
