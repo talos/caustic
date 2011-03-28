@@ -1,57 +1,44 @@
 package net.microscraper.database.schema;
 
-import java.util.Vector;
-
 import net.microscraper.client.AbstractResult.ResultRoot;
-import net.microscraper.client.Utils;
+import net.microscraper.client.Client;
+import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.Relationship;
 import net.microscraper.database.Resource;
 
 public class Data {
-	private final Vector defaults = new Vector();
-	private final Vector scrapers = new Vector();
+	private final Resource[] defaults;
+	private final Resource[] scrapers;
 	
 	public Data(Resource resource) throws PrematureRevivalException {
-		Utils.arrayIntoVector(resource.relationship(Model.DEFAULTS), defaults);
-		Utils.arrayIntoVector(resource.relationship(Model.SCRAPERS), scrapers);
+		defaults = resource.relationship(Model.DEFAULTS);
+		scrapers = resource.relationship(Model.SCRAPERS);
 	}
 	
 	public ResultRoot scrape() throws PrematureRevivalException, InterruptedException {
 		ResultRoot root_result = new ResultRoot();
 		int prev_size = 0;
 		while(root_result.size() != prev_size) {
-			
-		}
-		return root_result;
-		/*
-		for(int i = 0; i < scrapers.size(); i ++) {
-			Variables variables = root_result.variables();
-			
-			// Before we try a new scraper, see if we can execute more defaults.
-			for(int j = 0; i < defaults.size(); j ++) {
+			for(int i = 0 ; i < defaults.length ; i ++) {
+				Default _default = new Default(defaults[i]);
 				try {
-					try {
-						new Default((Resource) defaults.elementAt(j), variables).simulate(root_result);
-					} catch (TemplateException e) { // Bad template, we still pull it off the list.
-						Client.context().log.e(e);
-					}
-					defaults.removeElementAt(j);
-					j--;
-				} catch(MissingVariable e) { // Missing variable, skip the default.
+					_default.simulate(root_result);
+				} catch (TemplateException e) {
 					Client.context().log.w(e);
 				}
 			}
-			Scraper scraper = new Scraper((Resource) scrapers.elementAt(i));
-			try {
-				scraper.execute(variables, root_result);
-			} catch(TemplateException e) {
-				Client.context().log.e(e);
+			for(int i = 0; i < scrapers.length ; i ++) {
+				Scraper scraper = new Scraper(scrapers[i]);
+				try {
+					scraper.execute(root_result);
+				} catch (TemplateException e) {
+					Client.context().log.w(e);
+				}
 			}
 		}
 		return root_result;
-		*/
 	}
 	
 	public static class Model extends AbstractModel {
