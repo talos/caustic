@@ -1,20 +1,17 @@
 package net.microscraper.client.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import net.microscraper.client.Browser;
 import net.microscraper.client.Client;
+import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.database.schema.AbstractHeader;
 import net.microscraper.database.schema.WebPage;
 
@@ -22,14 +19,11 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
 import org.apache.http.StatusLine;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.params.ClientPNames;
-import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectHandler;
@@ -38,10 +32,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
 
-
-//public class ApacheHttpInterface implements HttpInterface {
 public class ApacheBrowser implements Browser {
 	private final BasicCookieStore cookie_store = new BasicCookieStore();
 	private final HttpParams http_params = new BasicHttpParams();
@@ -66,6 +57,7 @@ public class ApacheBrowser implements Browser {
 			AbstractHeader[] posts = web_page.posts;
 			AbstractHeader[] cookies = web_page.cookies;
 			AbstractHeader[] headers = web_page.headers;
+			Pattern[] terminates = web_page.terminates;
 			
 			// Set up our httpclient to handle 302 redirects properly.
 			http_client.setRedirectHandler(new RedirectHandler(uri));
@@ -98,19 +90,34 @@ public class ApacheBrowser implements Browser {
 
 			StatusLine status = response.getStatusLine();
 			
+			// Convert the stream into a string.
 			if(status.getStatusCode() == 200) {
-				//return response.getEntity();
 				HttpEntity entity = response.getEntity();
 				InputStream stream = entity.getContent();
+				ByteArrayOutputStream content = new ByteArrayOutputStream();
+				String content_string;
 				byte[] buffer = new byte[512];
-				while(stream.read(buffer) != -1) {
+				int readBytes;
+				
+				loading: while ((readBytes = stream.read(buffer)) != -1) {
 					Client.context().log.i(new String(buffer));
-				}
-			} else {
-				throw new HttpResponseException(status.getStatusCode(), "Unable to get content: " + Integer.toString(status.getStatusCode()));
-			}
 
+					content.write(buffer, 0, readBytes);
+					content_string = new String(content.toByteArray());
+					for(int i = 0; i < terminates.length; i++) {
+						if(terminates[i].matches(content_string)){
+							Client.context().log.i("Terminating " + uri.toString() + " due to pattern " + terminates[i].toString());
+							break loading;
+						}
+					}
+				}
+				return content.toString();
+			} else {
+				throw new BrowserException("Unable to get content: " + Integer.toString(status.getStatusCode()));
+			}
 		} catch(URISyntaxException e) {
+			throw new BrowserException(e.toString());
+		} catch(IOException e) {
 			throw new BrowserException(e.toString());
 		}
 	}
