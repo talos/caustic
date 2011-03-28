@@ -1,24 +1,21 @@
 package net.microscraper.client.impl;
 
-//import java.sql.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import net.microscraper.client.impl.interfaces.LogInterface;
-import net.microscraper.client.impl.interfaces.SQLInterface;
+import net.microscraper.client.Client;
+import net.microscraper.client.Interfaces;
 
 
-public class JDBCSQLite implements SQLInterface {
+public class JDBCSQLite implements Interfaces.SQL {
 	private final Connection connection;
-	private final LogInterface logger;
 	
 	// ../../db/scraper.db"
-	public JDBCSQLite(String pathToDB, LogInterface log) throws SQLInterfaceException {
+	public JDBCSQLite(String pathToDB) throws SQLInterfaceException {
 		try {
-			logger = log;
 			Class.forName("org.sqlite.JDBC"); // Make sure we have this class.
 			connection = DriverManager.getConnection("jdbc:sqlite:" + pathToDB);
 		} catch(SQLException e) {
@@ -29,10 +26,10 @@ public class JDBCSQLite implements SQLInterface {
 	}
 	
 	@Override
-	public CursorInterface query(String sql) throws SQLInterfaceException {
+	public Interfaces.SQL.Cursor query(String sql) throws SQLInterfaceException {
 		//return new JDBCSqliteStatement(connection, sql);
 		try {
-			logger.i("Querying: " + sql);
+			Client.context().log.i("Querying: " + sql);
 			Statement statement = connection.createStatement();
 			return new JDBCSQLiteCursor(statement.executeQuery(sql));
 		} catch (SQLException e) {
@@ -43,7 +40,7 @@ public class JDBCSQLite implements SQLInterface {
 	@Override
 	public boolean execute(String sql) throws SQLInterfaceException {
 		try {
-			logger.i("Executing: " + sql);
+			Client.context().log.i("Executing: " + sql);
 			Statement statement = connection.createStatement();
 			return statement.execute(sql);
 		} catch(SQLException e) {
@@ -68,7 +65,7 @@ public class JDBCSQLite implements SQLInterface {
 		}	
 	}
 	*/
-	private static class JDBCSQLiteCursor implements CursorInterface {
+	private static class JDBCSQLiteCursor implements Interfaces.SQL.Cursor {
 		private final ResultSet resultSet;
 		
 		public JDBCSQLiteCursor(ResultSet rs) {

@@ -75,10 +75,12 @@ public class ApacheBrowser implements Browser {
 			}
 			
 			// Add headers.
-			for(int i = 0 ; i < headers.length ; i ++) {
-				http_request.addHeader(headers[i].name, headers[i].value);
-			}
-
+			addHeaders(http_request, Browser.DEFAULT_HEADERS);
+			addHeaders(http_request, new AbstractHeader[] {
+				new AbstractHeader(Browser.REFERER_HEADER_NAME, uri.toString())	
+			});
+			addHeaders(http_request, headers);
+			
 			// Add cookies.
 			for(int i = 0 ; i < cookies.length ; i ++) {
 				BasicClientCookie cookie = new BasicClientCookie(cookies[i].name, cookies[i].value);
@@ -119,6 +121,12 @@ public class ApacheBrowser implements Browser {
 			throw new BrowserException(e.toString());
 		} catch(IOException e) {
 			throw new BrowserException(e.toString());
+		}
+	}
+	
+	private static void addHeaders(HttpRequestBase http_request, AbstractHeader[] headers) {
+		for(int i = 0 ; i < headers.length ; i ++) {
+			http_request.addHeader(headers[i].name, headers[i].value);
 		}
 	}
 	

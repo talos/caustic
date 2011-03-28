@@ -21,19 +21,22 @@ public class Client {
 	private static Client instance;
 	
 	private Client (Browser _browser, Interfaces.Regexp _regexp,
-			Interfaces.JSON _json, Interfaces.SQL _sql, Logger[] loggers) {
+			Interfaces.JSON _json, /*Interfaces.SQL _sql,*/ Logger[] loggers) {
 		browser = _browser;
 		regexp = _regexp;
 		json = _json;
-		sql = _sql;
+		for(int i = 0; i < loggers.length ; i ++) {
+			log.register(loggers[i]);
+		}
+		//sql = _sql;
 	}
 	
 	public static Client initialize (Browser _browser, Interfaces.Regexp _regexp,
-			Interfaces.JSON _json, Interfaces.SQL _sql, Logger[] loggers) {
+			Interfaces.JSON _json, /*Interfaces.SQL _sql,*/ Logger[] loggers) {
 		if(instance != null)
 			return instance;
 		else
-			return new Client(_browser, _regexp, _json, _sql, loggers);
+			return new Client(_browser, _regexp, /*_sql,*/ _json, loggers);
 	}
 	
 	public static Client context () {

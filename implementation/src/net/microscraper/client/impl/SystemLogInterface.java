@@ -1,18 +1,23 @@
 package net.microscraper.client.impl;
 
-import net.microscraper.client.impl.interfaces.LogInterface;
+import net.microscraper.client.Interfaces.Logger;
 
-public class SystemLogInterface implements LogInterface {
+public class SystemLogInterface implements Logger {
 	@Override
-	public void e(String errorText, Throwable e) {
-		e.printStackTrace();
-		System.out.print("Error: " +  errorText);
+	public void i(String infoText) {
+		System.out.print("Info: " + infoText);
 		System.out.println();
 	}
 
 	@Override
-	public void i(String infoText) {
-		System.out.print("Info: " + infoText);
+	public void e(Throwable e) {
+		System.out.print("Error: " +  e.getMessage());
+		System.out.println();
+	}
+	
+	@Override
+	public void w(Throwable w) {
+		System.out.print("Warning: " +  w.getMessage());
 		System.out.println();
 	}
 }

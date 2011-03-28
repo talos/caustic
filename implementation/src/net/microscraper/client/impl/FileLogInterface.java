@@ -5,16 +5,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 
-import net.microscraper.client.impl.interfaces.LogInterface;
+import net.microscraper.client.Interfaces;
 
-
-public class FileLogInterface implements LogInterface {
+public class FileLogInterface implements Interfaces.Logger {
 	
 	private final String pathToLogFile;
 	private File logFile;
 	private PrintWriter logWriter;
-	
-	private final LogInterface subLogger = new SystemLogInterface();
 	
 	public FileLogInterface(String path) {
 		pathToLogFile = path;
@@ -22,8 +19,7 @@ public class FileLogInterface implements LogInterface {
 	
 	public void open() throws IOException {
 		logFile = new File(pathToLogFile);
-		//outputStream = new BufferedOutputStream(new FileOutputStream(logFile));
-		 logWriter = new PrintWriter(logFile);
+		logWriter = new PrintWriter(logFile);
 	}
 	
 	public void close() throws IOException {
@@ -31,24 +27,25 @@ public class FileLogInterface implements LogInterface {
 	}
 	
 	@Override
-	public void e(String errorText, Throwable e) {
+	public void e(Throwable e) {
 		Date now = new Date();
-		errorText = now + ": " + errorText;
-		subLogger.e(errorText, e);
 		
 		e.printStackTrace(logWriter);
-		logWriter.print("Error: " + errorText);
+		logWriter.print(now + " Error: " + e.getMessage());
 		logWriter.println();
 	}
 
 	@Override
 	public void i(String infoText) {
 		Date now = new Date();
-		infoText = now + ": " + infoText;
-		
-		subLogger.i(infoText);
-		logWriter.print("Info: " + infoText);
+		logWriter.print(now + " Info: " + infoText);
 		logWriter.println();
 	}
 
+	@Override
+	public void w(Throwable w) {
+		Date now = new Date();
+		logWriter.print(now + " Warning: " + w.getMessage());
+		logWriter.println();
+	}
 }

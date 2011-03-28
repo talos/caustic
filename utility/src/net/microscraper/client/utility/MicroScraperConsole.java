@@ -1,9 +1,11 @@
 package net.microscraper.client.utility;
 
 import net.microscraper.client.Client;
-import net.microscraper.client.impl.JDBCSQLite;
+import net.microscraper.client.Interfaces;
+import net.microscraper.client.impl.ApacheBrowser;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
+import net.microscraper.client.impl.SystemLogInterface;
 
 //import java.io.*;
 
@@ -12,7 +14,9 @@ public class MicroScraperConsole {
 		new ApacheBrowser(),
 		new JavaUtilRegexInterface(),
 		new JSONME(),
-		new JDBCSQLite()
+		new Interfaces.Logger[] {
+			new SystemLogInterface()
+		}
 	);
 	public static void main (String[] args) {
 		

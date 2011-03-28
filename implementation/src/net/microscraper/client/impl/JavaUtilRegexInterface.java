@@ -3,28 +3,25 @@ package net.microscraper.client.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import net.microscraper.client.impl.PatternInterface;
-import net.microscraper.client.impl.RegexInterface;
+import net.microscraper.client.Interfaces.Regexp;
 
-
-public class JavaUtilRegexInterface implements RegexInterface {
+public class JavaUtilRegexInterface implements Regexp {
 	//private static final List<PatternInterface> patterns = new ArrayList<PatternInterface>();
 	@Override
-	public PatternInterface compile(String patternString) {
+	public Pattern compile(String patternString) {
 		return new JavaUtilPattern(patternString);
 	}
 	
-	public final class JavaUtilPattern implements PatternInterface {
+	public final class JavaUtilPattern implements Pattern {
 	/*	private final Map<Integer, Boolean> savedMatches = new HashMap<Integer, Boolean>();
 		private final Map<Integer, String[]> savedAllMatches = new HashMap<Integer, String[]>();
 		private final Map<Integer, String> savedFirstMatches = new HashMap<Integer, String>();*/
-		private Pattern pattern;
+		private java.util.regex.Pattern pattern;
 		private final int groupCount;
 		
 		public JavaUtilPattern(String pString) {
-			pattern =Pattern.compile(pString);
+			pattern = java.util.regex.Pattern.compile(pString);
 			groupCount = pattern.matcher("").groupCount();
 		}
 		
@@ -92,11 +89,11 @@ public class JavaUtilRegexInterface implements RegexInterface {
 			
 			return matches;
 		}
-
+		/*
 		private String[] split(String input) {
 			return pattern.split(input);
 		}
-		
+		*/
 		@Override
 		public String toString() {
 			return pattern.toString();
