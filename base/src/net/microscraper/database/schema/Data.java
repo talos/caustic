@@ -17,8 +17,8 @@ public class Data {
 		scrapers = resource.relationship(Model.SCRAPERS);
 	}
 	
-	public ResultRoot scrape() throws PrematureRevivalException, InterruptedException {
-		ResultRoot root_result = new ResultRoot();
+	public void scrape(ResultRoot root_result)
+					throws PrematureRevivalException, InterruptedException {
 		int prev_size = 0;
 		while(root_result.size() != prev_size) {
 			prev_size = root_result.size();
@@ -39,23 +39,24 @@ public class Data {
 				}
 			}
 		}
-		return root_result;
+		//return root_result;
 	}
 	
 	public static class Model extends AbstractModel {
 		public static final String KEY = "data";
 		
-		public static final String[] ATTRIBUTES = { };
-		
 		public static final String DEFAULTS = "defaults";
 		public static final String SCRAPERS = "scrapers";
-		public final Relationship defaults = new Relationship( DEFAULTS, new Default.Model());
-		public final Relationship scrapers = new Relationship( SCRAPERS, new Scraper.Model());
-	
-		public final Relationship[] relationships = { defaults, scrapers };
 		
 		protected String _key() { return KEY; }
-		protected String[] _attributes() { return ATTRIBUTES; }
-		protected Relationship[] _relationships() { return relationships; }
+		protected String[] _attributes() {
+			return new String[] { };
+		}
+		protected Relationship[] _relationships() {
+			return new Relationship[] {
+					new Relationship( DEFAULTS, new Default.Model()),
+					new Relationship( SCRAPERS, new Scraper.Model())
+			};
+		}
 	}
 }

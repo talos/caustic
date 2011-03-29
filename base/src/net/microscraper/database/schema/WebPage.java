@@ -3,6 +3,7 @@ package net.microscraper.database.schema;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.client.Utils;
 import net.microscraper.client.Variables;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.database.AbstractModel;
@@ -54,26 +55,50 @@ public class WebPage  {
 		terminates = new Pattern[] {};
 	}
 	
+	/**
+	 * Test for equality against another web page.  Considered 'equal' if the URL and all
+	 * headers/posts/cookies/terminates are identical.
+	 * @param web_page
+	 * @return
+	 */
+	public boolean equals(Object obj) {
+		if(this == obj)
+			return true;
+		if(!(obj instanceof AbstractHeader))
+			return false;
+		WebPage other = (WebPage) obj;
+		if(!this.url.equals(other.url))
+			return false;
+		if(!Utils.arraysEqual(this.posts, other.posts))
+			return false;
+		if(!Utils.arraysEqual(this.headers, other.headers))
+			return false;
+		if(!Utils.arraysEqual(this.cookies, other.cookies))
+			return false;
+		if(!Utils.arraysEqual(this.terminates, other.terminates))
+			return false;
+		return true;
+	}
+	
 	public static class Model extends AbstractModel {
 		public static final String KEY = "web_page";
 	
 		public static final String URL = "url";
-		public static final String[] ATTRIBUTES = { URL };
 		
 		public static final String TERMINATES = "terminates";
 		public static final String POSTS = "posts";
 		public static final String HEADERS = "headers";
 		public static final String COOKIES = "cookies";
-		public final Relationship terminates = new Relationship( TERMINATES, new Regexp.Model());
-		public final Relationship posts = new Relationship( POSTS, new AbstractHeader.Post.Model());
-		public final Relationship headers = new Relationship( HEADERS, new AbstractHeader.Header.Model());
-		public final Relationship cookies = new Relationship( COOKIES, new AbstractHeader.Cookie.Model());
-		public final Relationship[] relationships =
-				{ terminates, posts, headers, cookies };
-		
+					
 		protected String _key() { return KEY; }
-		protected String[] _attributes() { return ATTRIBUTES; }
-		protected Relationship[] _relationships() { return relationships; }
-		
+		protected String[] _attributes() { return new String[] { URL }; }
+		protected Relationship[] _relationships() {
+			return new Relationship[] {
+				new Relationship( TERMINATES, new Regexp.Model()),
+				new Relationship( POSTS, new AbstractHeader.Post.Model()),
+				new Relationship( HEADERS, new AbstractHeader.Header.Model()),
+				new Relationship( COOKIES, new AbstractHeader.Cookie.Model())
+			};
+		}
 	}
 }

@@ -50,6 +50,24 @@ public class Utils {
 			vector.addElement(array[i]);
 		}
 	}
+
+	/**
+	 * Test to see if two arrays are equal.
+	 * @param array1
+	 * @param array2
+	 * @return True if array1 has all members of array2 and vice versa, regardless of order.
+	 */
+	public static boolean arraysEqual(Object[] array1, Object[] array2) {
+		if(array1.length != array2.length)
+			return false;
+		Vector vector = new Vector();
+		Utils.arrayIntoVector(array1, vector);
+		for(int i = 0; i < array2.length; i ++) {
+			if(vector.contains(array2[i]))
+				return false;
+		}
+		return true;
+	}
 	
 	/**
 	 * Copy one Hashtable into another. Preexisting keys in hashtable2 will be overwritten.

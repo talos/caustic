@@ -20,17 +20,26 @@ public class Regexp {
 					throws TemplateException, MissingVariable {
 		pattern = Client.context().regexp.compile(Mustache.compile(pattern_string, variables));
 	}
+	public boolean equals(Object obj) {
+		if(this == obj)
+			return true;
+		if(!(obj instanceof Regexp))
+			return false;
+		Regexp other = (Regexp) obj;
+		return this.pattern.toString().equals(other.pattern.toString());	
+	}
 	
 	public static class Model extends AbstractModel {
 		public static final String KEY = "regexp";
 	
 		public static final String REGEXP = "regexp";
-		public static final String[] ATTRIBUTES = { REGEXP };
-		
-		public final Relationship[] relationships = { };
 		
 		protected String _key() { return KEY; }
-		protected String[] _attributes() { return ATTRIBUTES; }
-		protected Relationship[] _relationships() { return relationships; }
+		protected String[] _attributes() {
+			return new String[] { REGEXP };
+		}
+		protected Relationship[] _relationships() {
+			return new Relationship[] { };
+		}
 	}
 }

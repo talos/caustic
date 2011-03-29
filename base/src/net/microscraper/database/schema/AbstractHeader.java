@@ -5,6 +5,7 @@ import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.AbstractModel;
+import net.microscraper.database.Database;
 import net.microscraper.database.Relationship;
 import net.microscraper.database.Resource;
 
@@ -19,15 +20,24 @@ public class AbstractHeader {
 		name = _name;
 		value = _value;
 	}
+	public boolean equals(Object obj) {
+		if(this == obj)
+			return true;
+		if(!(obj instanceof AbstractHeader))
+			return false;
+		AbstractHeader other = (AbstractHeader) obj;
+		if(this.name.equals(other.name) && this.value.equals(other.value))
+			return true;
+		else
+			return false;		
+	}
+	
 	protected static abstract class AbstractHeaderModel extends AbstractModel {
 		public static final String NAME = "name";
 		public static final String VALUE = "value";
-		public static final String[] ATTRIBUTES = { NAME, VALUE };
 		
-		public final Relationship[] relationships = {};
-		
-		protected String[] _attributes() { return ATTRIBUTES; }
-		protected Relationship[] _relationships() { return relationships; }
+		protected String[] _attributes() { return new String[] { NAME, VALUE }; }
+		protected Relationship[] _relationships(Database db) { return new Relationship[] {}; }
 	
 	}
 	public static class Post {

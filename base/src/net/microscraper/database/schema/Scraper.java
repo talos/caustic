@@ -51,7 +51,8 @@ public class Scraper {
 						processInput(source_string, source_result);
 					}  catch(BrowserException e) {
 						Client.context().log.e(e);
-					}				} catch(MissingVariable e) {
+					}
+				} catch(MissingVariable e) {
 					// Missing a variable, leave the web page resource in the vector.
 					Client.context().log.i(e.getMessage());
 				}
@@ -82,16 +83,19 @@ public class Scraper {
 		public static final String REGEXP = "regexp";
 		public static final String MATCH_NUMBER = "match_number";
 		public static final String PUBLISH = "publish";
-		public static final String[] ATTRIBUTES = { REGEXP, MATCH_NUMBER, PUBLISH };
 		
 		public static final String WEB_PAGES = "web_pages";
 		public static final String SOURCE_SCRAPERS = "source_scraper";
-		public final Relationship web_pages = new Relationship( WEB_PAGES, new WebPage.Model());
-		public final Relationship source_scraper = new Relationship( SOURCE_SCRAPERS, new Scraper.Model());
-		public final Relationship[] relationships = { web_pages, source_scraper };
 		
 		protected String _key() { return KEY; }
-		protected String[] _attributes() { return ATTRIBUTES; }
-		protected Relationship[] _relationships() { return relationships; }
+		protected String[] _attributes() {
+			return new String[] { REGEXP, MATCH_NUMBER, PUBLISH };
+		}
+		protected Relationship[] _relationships() {
+			return new Relationship[] {
+				new Relationship( WEB_PAGES, new WebPage.Model()),
+				new Relationship( SOURCE_SCRAPERS, new Scraper.Model())
+			};
+		}
 	}
 }

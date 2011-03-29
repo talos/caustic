@@ -2,13 +2,16 @@ package net.microscraper.database;
 
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.database.AbstractModel.Relationships;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.schema.*;
 
 public class Database {
-	private final AbstractModel data_model;
-	private final AbstractModel[] models;
+	/*private final AbstractModel data_model;
+	private final AbstractModel[] models;*/
 	//private final Logger logger;
+	
+	private final Hashtable collections;
 	/**
 	 * Inflate a new, functioning database from a JSON object.
 	 * @param json_obj
@@ -35,5 +38,15 @@ public class Database {
 			datas[i] = new Data(resources[i]);
 		}
 		return datas;
+	}
+	
+	public class ModelFactory {
+		public AbstractModel getModel(Schema schema) {
+			return new Model {
+				key = _key();
+				attributes = _attributes();
+				relationships = new Relationships(_relationships(db));
+			};
+		}
 	}
 }

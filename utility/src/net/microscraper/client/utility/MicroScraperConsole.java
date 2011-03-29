@@ -1,6 +1,7 @@
 package net.microscraper.client.utility;
 
 import net.microscraper.client.Client;
+import net.microscraper.client.Client.MicroScraperClientException;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.impl.ApacheBrowser;
 import net.microscraper.client.impl.JSONME;
@@ -10,7 +11,7 @@ import net.microscraper.client.impl.SystemLogInterface;
 //import java.io.*;
 
 public class MicroScraperConsole {
-	private static Client client = Client.initialize(
+	private final Client client = Client.initialize(
 		new ApacheBrowser(),
 		new JavaUtilRegexInterface(),
 		new JSONME(),
@@ -19,7 +20,14 @@ public class MicroScraperConsole {
 		}
 	);
 	public static void main (String[] args) {
-		
+		new MicroScraperConsole(args);
+	}
+	public MicroScraperConsole(String[] args) {
+		try {
+			client.scrape(args[0]);
+		} catch (MicroScraperClientException e) {
+			client.log.e(e);
+		}
 	}
 		/*
 	   public static void main (String[] args) {
