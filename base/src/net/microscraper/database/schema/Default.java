@@ -5,10 +5,10 @@ import net.microscraper.client.Client;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
+import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.Reference;
-import net.microscraper.database.Relationship;
+import net.microscraper.database.Relationships.Relationship;
 import net.microscraper.database.Resource;
 
 public class Default {
@@ -48,18 +48,18 @@ public class Default {
 		}
 	}
 	
-	public static class Model extends AbstractModel {
+	public static class Model implements ModelDefinition {
 		public static final String KEY = "default";
 	
 		public static final String VALUE = "value";
 		
 		public static final String SCRAPERS = "scrapers";
 		
-		protected String _key() { return KEY; }
-		protected String[] _attributes() { return new String[] { VALUE }; }
-		protected Relationship[] _relationships() {
+		public String key() { return KEY; }
+		public String[] attributes() { return new String[] { VALUE }; }
+		public Relationship[] relationships() {
 			return new Relationship[] {
-				new Relationship( SCRAPERS, new Scraper.Model())
+				new Relationship( SCRAPERS, Scraper.Model.KEY )
 			};
 		}
 	}

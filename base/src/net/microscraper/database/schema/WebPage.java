@@ -6,10 +6,13 @@ import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils;
 import net.microscraper.client.Variables;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
-import net.microscraper.database.Relationship;
+import net.microscraper.database.ModelDefinition;
+import net.microscraper.database.Relationships.Relationship;
 import net.microscraper.database.Resource;
+import net.microscraper.database.schema.AbstractHeader.Cookie;
+import net.microscraper.database.schema.AbstractHeader.Header;
+import net.microscraper.database.schema.AbstractHeader.Post;
 
 public class WebPage  {
 	public final String url;
@@ -80,7 +83,7 @@ public class WebPage  {
 		return true;
 	}
 	
-	public static class Model extends AbstractModel {
+	public static class Model implements ModelDefinition {
 		public static final String KEY = "web_page";
 	
 		public static final String URL = "url";
@@ -90,14 +93,14 @@ public class WebPage  {
 		public static final String HEADERS = "headers";
 		public static final String COOKIES = "cookies";
 					
-		protected String _key() { return KEY; }
-		protected String[] _attributes() { return new String[] { URL }; }
-		protected Relationship[] _relationships() {
+		public String key() { return KEY; }
+		public String[] attributes() { return new String[] { URL }; }
+		public Relationship[] relationships() {
 			return new Relationship[] {
-				new Relationship( TERMINATES, new Regexp.Model()),
-				new Relationship( POSTS, new AbstractHeader.Post.Model()),
-				new Relationship( HEADERS, new AbstractHeader.Header.Model()),
-				new Relationship( COOKIES, new AbstractHeader.Cookie.Model())
+				new Relationship( TERMINATES, Regexp.Model.KEY ),
+				new Relationship( POSTS, Post.Model.KEY ),
+				new Relationship( HEADERS, Header.Model.KEY ),
+				new Relationship( COOKIES, Cookie.Model.KEY )
 			};
 		}
 	}

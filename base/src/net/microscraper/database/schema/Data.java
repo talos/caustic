@@ -3,9 +3,9 @@ package net.microscraper.database.schema;
 import net.microscraper.client.AbstractResult.ResultRoot;
 import net.microscraper.client.Client;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
-import net.microscraper.database.Relationship;
+import net.microscraper.database.ModelDefinition;
+import net.microscraper.database.Relationships.Relationship;
 import net.microscraper.database.Resource;
 
 public class Data {
@@ -42,20 +42,20 @@ public class Data {
 		//return root_result;
 	}
 	
-	public static class Model extends AbstractModel {
+	public static class Model implements ModelDefinition {
 		public static final String KEY = "data";
 		
 		public static final String DEFAULTS = "defaults";
 		public static final String SCRAPERS = "scrapers";
 		
-		protected String _key() { return KEY; }
-		protected String[] _attributes() {
+		public String key() { return KEY; }
+		public String[] attributes() {
 			return new String[] { };
 		}
-		protected Relationship[] _relationships() {
+		public Relationship[] relationships() {
 			return new Relationship[] {
-					new Relationship( DEFAULTS, new Default.Model()),
-					new Relationship( SCRAPERS, new Scraper.Model())
+				new Relationship( DEFAULTS, Default.Model.KEY),
+				new Relationship( SCRAPERS, Scraper.Model.KEY)
 			};
 		}
 	}

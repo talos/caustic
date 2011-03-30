@@ -1,11 +1,37 @@
 package net.microscraper.database;
 
 import java.util.Hashtable;
-import java.util.Vector;
 
-import net.microscraper.database.DatabaseException.PrematureRevivalException;
+public class Relationships {
+	private final Relationship[] relationships_ary;
+	private final Hashtable relationships = new Hashtable();
+	private Relationships(Relationship[] _relationships, Database db) {
+		relationships_ary = _relationships;
+		for(int i = 0; i < _relationships.length; i ++) {
+			relationships.put(_relationships[i].key, _relationships[i]);
+		}
+	}
+	public Resource[] get(Relationship relationship) {
+		
+	}
+	
+	public static class Relationship {
+		public final String key;
+		public final String model_key;
+		public Relationship(String _key, String _model_key) {
+			key = _key;
+			model_key = _model_key;
+		}
+	}
+	/*public Relationship get(String relationship_key) {
+		return (Relationship) relationships.get(relationship_key);
+	}
+	public Relationship[] all() {
+		return relationships_ary;
+	}*/
+}
 
-public class Relationship {
+	/*
 	public final String key;
 	public final AbstractModel model;
 	private final Hashtable resource_references = new Hashtable();
@@ -41,4 +67,12 @@ public class Relationship {
 	public int hashCode() {
 		return key.hashCode();
 	}
-}
+	
+	public static class AbstractRelationship {
+		public final String key;
+		public final String model_key;
+		public AbstractRelationship(String _key, String _model_key) {
+			key = _key;
+			model_key = _model_key;
+		}
+	}*/

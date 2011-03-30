@@ -8,12 +8,11 @@ import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.database.AbstractModel;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
+import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.Reference;
-import net.microscraper.database.Relationship;
+import net.microscraper.database.Relationships.Relationship;
 import net.microscraper.database.Resource;
-
 
 public class Scraper {
 	private final Reference ref;
@@ -77,7 +76,7 @@ public class Scraper {
 		}
 	}
 	
-	public static class Model extends AbstractModel {
+	public static class Model implements ModelDefinition {
 		public static final String KEY = "scraper";
 	
 		public static final String REGEXP = "regexp";
@@ -87,14 +86,14 @@ public class Scraper {
 		public static final String WEB_PAGES = "web_pages";
 		public static final String SOURCE_SCRAPERS = "source_scraper";
 		
-		protected String _key() { return KEY; }
-		protected String[] _attributes() {
+		public String key() { return KEY; }
+		public String[] attributes() {
 			return new String[] { REGEXP, MATCH_NUMBER, PUBLISH };
 		}
-		protected Relationship[] _relationships() {
+		public Relationship[] relationships() {
 			return new Relationship[] {
-				new Relationship( WEB_PAGES, new WebPage.Model()),
-				new Relationship( SOURCE_SCRAPERS, new Scraper.Model())
+				new Relationship( WEB_PAGES, WebPage.Model.KEY),
+				new Relationship( SOURCE_SCRAPERS, Scraper.Model.KEY)
 			};
 		}
 	}

@@ -52,8 +52,8 @@ public class Resource {
 	public static Resource inflate(AbstractModel model, Reference reference, JSON.Object json_obj)
 					throws JSONInterfaceException {
 		Hashtable attributes = new Hashtable();
-		for(int i = 0; i < model.attributes.length; i++) {
-			String name = model.attributes[i];
+		for(int i = 0; i < model.attributes().length; i++) {
+			String name = model.attributes()[i];
 			attributes.put(name, json_obj.getString(name));
 		}
 		Resource resource = new Resource(model, reference, attributes);

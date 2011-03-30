@@ -4,9 +4,8 @@ import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
-import net.microscraper.database.AbstractModel;
-import net.microscraper.database.Database;
-import net.microscraper.database.Relationship;
+import net.microscraper.database.ModelDefinition;
+import net.microscraper.database.Relationships.Relationship;
 import net.microscraper.database.Resource;
 
 public class AbstractHeader {
@@ -32,30 +31,30 @@ public class AbstractHeader {
 			return false;		
 	}
 	
-	protected static abstract class AbstractHeaderModel extends AbstractModel {
+	protected static abstract class AbstractHeaderModel implements ModelDefinition {
 		public static final String NAME = "name";
 		public static final String VALUE = "value";
 		
-		protected String[] _attributes() { return new String[] { NAME, VALUE }; }
-		protected Relationship[] _relationships(Database db) { return new Relationship[] {}; }
+		public String[] attributes() { return new String[] { NAME, VALUE }; }
+		public Relationship[] relationships() { return new Relationship[] {}; }
 	
 	}
-	public static class Post {
+	public static abstract class Post {
 		public static class Model extends AbstractHeaderModel {
 			public static String KEY = "post";
-			protected String _key() { return KEY; }
+			public String key() { return KEY; }
 		}
 	}
-	public static class Header {
+	public static abstract class Header {
 		public static class Model extends AbstractHeaderModel {
 			public static String KEY = "header";
-			protected String _key() { return KEY; }
+			public String key() { return KEY; }
 		}
 	}
-	public static class Cookie {
+	public static abstract class Cookie {
 		public static class Model extends AbstractHeaderModel {
 			public static String KEY = "cookie";
-			protected String _key() { return KEY; }
+			public String key() { return KEY; }
 		}
 	}
 }
