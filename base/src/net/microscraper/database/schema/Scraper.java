@@ -11,7 +11,7 @@ import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.Reference;
-import net.microscraper.database.Relationships.Relationship;
+import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Resource;
 
 public class Scraper {
@@ -24,21 +24,24 @@ public class Scraper {
 	public Scraper(Resource resource) throws PrematureRevivalException {
 		ref = resource.ref;
 		pattern = Client.context().regexp.compile(resource.attribute_get(Model.REGEXP));
-		String match_number_string = resource.attribute_get(Model.MATCH_NUMBER);
-		if(match_number_string == null) {
-			match_number = null;
-		} else {
-			match_number = new Integer(match_number_string);
+		Integer _match_number;
+		try {
+			_match_number = new Integer(resource.attribute_get(Model.MATCH_NUMBER));
+		} catch(NumberFormatException e) {
+			_match_number = null;
 		}
+		match_number = _match_number;
 		web_pages = resource.relationship(Model.WEB_PAGES);
 		source_scrapers = resource.relationship(Model.SOURCE_SCRAPERS);
 	}
 	
 	public void execute(AbstractResult parent_result)
 					throws PrematureRevivalException, TemplateException, InterruptedException {
-		Result[] results = parent_result.livingResults(this.ref);
+		AbstractResult[] results = parent_result.livingResults();
+		Client.context().log.i("Executing scraper " + ref.toString());
+		
 		for(int i = 0; i < results.length; i ++) {
-			Result source_result = results[i];
+			AbstractResult source_result = results[i];
 			if(source_result.contains(ref))
 				continue;
 			for(int j = 0; j < web_pages.length; j++) {
@@ -57,8 +60,17 @@ public class Scraper {
 				}
 			}
 			for(int j = 0; j < source_scrapers.length; j++) {
-				Scraper scraper = new Scraper(source_scrapers[j]);
-				scraper.execute(source_result);
+				Resource source_scraper = source_scrapers[j];
+				if(!source_result.contains(source_scraper.ref)) {
+					Scraper scraper = new Scraper(source_scraper);
+					scraper.execute(source_result);
+				}
+				if(source_result.contains(source_scraper.ref)) {
+					Result[] source_results = source_result.get(source_scraper.ref);
+					for(int k = 0 ; k < source_results.length; k++) {
+						processInput(source_results[k].value, source_results[k] );
+					}
+				}
 			}
 		}
 	}
@@ -83,17 +95,16 @@ public class Scraper {
 		public static final String MATCH_NUMBER = "match_number";
 		public static final String PUBLISH = "publish";
 		
-		public static final String WEB_PAGES = "web_pages";
-		public static final String SOURCE_SCRAPERS = "source_scraper";
+		public static final RelationshipDefinition WEB_PAGES = new RelationshipDefinition( "web_pages", WebPage.Model.KEY);
+		public static final RelationshipDefinition SOURCE_SCRAPERS = new RelationshipDefinition( "source_scrapers", Scraper.Model.KEY);
 		
 		public String key() { return KEY; }
 		public String[] attributes() {
 			return new String[] { REGEXP, MATCH_NUMBER, PUBLISH };
 		}
-		public Relationship[] relationships() {
-			return new Relationship[] {
-				new Relationship( WEB_PAGES, WebPage.Model.KEY),
-				new Relationship( SOURCE_SCRAPERS, Scraper.Model.KEY)
+		public RelationshipDefinition[] relationships() {
+			return new RelationshipDefinition[] {
+				WEB_PAGES, SOURCE_SCRAPERS
 			};
 		}
 	}

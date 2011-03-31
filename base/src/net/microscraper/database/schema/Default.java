@@ -8,7 +8,7 @@ import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.Reference;
-import net.microscraper.database.Relationships.Relationship;
+import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Resource;
 
 public class Default {
@@ -53,14 +53,12 @@ public class Default {
 	
 		public static final String VALUE = "value";
 		
-		public static final String SCRAPERS = "scrapers";
+		public static final RelationshipDefinition SCRAPERS = new RelationshipDefinition( "scrapers", Scraper.Model.KEY );
 		
 		public String key() { return KEY; }
 		public String[] attributes() { return new String[] { VALUE }; }
-		public Relationship[] relationships() {
-			return new Relationship[] {
-				new Relationship( SCRAPERS, Scraper.Model.KEY )
-			};
+		public RelationshipDefinition[] relationships() {
+			return new RelationshipDefinition[] { SCRAPERS };
 		}
 	}
 }

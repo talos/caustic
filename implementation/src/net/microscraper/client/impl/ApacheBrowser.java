@@ -7,6 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import net.microscraper.client.Browser;
@@ -37,6 +38,8 @@ public class ApacheBrowser implements Browser {
 	private final BasicCookieStore cookie_store = new BasicCookieStore();
 	private final HttpParams http_params = new BasicHttpParams();
 	private final DefaultHttpClient http_client = new DefaultHttpClient();
+	
+	private final HashMap<WebPage, String> cache = new HashMap<WebPage, String>();
 
 	public ApacheBrowser() {
 		http_params.setParameter(ClientPNames.HANDLE_REDIRECTS, true);
@@ -51,7 +54,14 @@ public class ApacheBrowser implements Browser {
 	@Override
 	public String load(WebPage web_page) throws InterruptedException,
 			BrowserException {
+		Client.context().log.i("Loading WebPage " + web_page.ref.toString());
+		Client.context().log.i(Integer.toString(web_page.hashCode()));
+		if(cache.containsKey(web_page)) {
+			Client.context().log.i("Caught in cache");
+			return cache.get(web_page);
+		}
 		try {
+			
 			URI uri = new URI(web_page.url);
 			
 			AbstractHeader[] posts = web_page.posts;
@@ -102,7 +112,7 @@ public class ApacheBrowser implements Browser {
 				int readBytes;
 				
 				loading: while ((readBytes = stream.read(buffer)) != -1) {
-					Client.context().log.i(new String(buffer));
+					//Client.context().log.i(new String(buffer));
 
 					content.write(buffer, 0, readBytes);
 					content_string = new String(content.toByteArray());
@@ -113,7 +123,9 @@ public class ApacheBrowser implements Browser {
 						}
 					}
 				}
-				return content.toString();
+				String string_content = content.toString();
+				cache.put(web_page, string_content);
+				return string_content;
 			} else {
 				throw new BrowserException("Unable to get content: " + Integer.toString(status.getStatusCode()));
 			}

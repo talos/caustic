@@ -1,5 +1,6 @@
 package net.microscraper.database.schema;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
@@ -8,13 +9,16 @@ import net.microscraper.client.Variables;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.ModelDefinition;
-import net.microscraper.database.Relationships.Relationship;
+import net.microscraper.database.Reference;
+import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Resource;
 import net.microscraper.database.schema.AbstractHeader.Cookie;
 import net.microscraper.database.schema.AbstractHeader.Header;
 import net.microscraper.database.schema.AbstractHeader.Post;
 
 public class WebPage  {
+	public final Reference ref;
+	
 	public final String url;
 	public final AbstractHeader[] posts;
 	public final AbstractHeader[] cookies;
@@ -22,6 +26,9 @@ public class WebPage  {
 	public final Pattern[] terminates;
 	public WebPage(Resource resource, Variables variables)
 				throws MissingVariable, PrematureRevivalException, TemplateException {
+		ref = resource.ref;
+		Client.context().log.i("Generating WebPage " + ref.toString());
+		
 		url = Mustache.compile(resource.attribute_get(Model.URL), variables);
 		Resource[] _posts = resource.relationship(Model.POSTS);
 		posts = new AbstractHeader[_posts.length];
@@ -51,6 +58,7 @@ public class WebPage  {
 	 * @return A web page with the specified URL and no headers.
 	 */
 	public WebPage(String _url) {
+		ref = new Reference("One-off web page");
 		url = _url;
 		posts = new AbstractHeader[] {};
 		headers = new AbstractHeader[] {};
@@ -83,24 +91,33 @@ public class WebPage  {
 		return true;
 	}
 	
+	public int hashCode() {
+		int hashCode = 0;
+		
+		hashCode += url.hashCode();
+		hashCode += Utils.arrayHashCode(posts);
+		hashCode += Utils.arrayHashCode(headers);
+		hashCode += Utils.arrayHashCode(cookies);
+		hashCode += Utils.arrayHashCode(terminates);
+		
+		return hashCode;
+	}
+	
 	public static class Model implements ModelDefinition {
 		public static final String KEY = "web_page";
-	
+		
 		public static final String URL = "url";
 		
-		public static final String TERMINATES = "terminates";
-		public static final String POSTS = "posts";
-		public static final String HEADERS = "headers";
-		public static final String COOKIES = "cookies";
-					
+		public static final RelationshipDefinition TERMINATES = new RelationshipDefinition( "terminates", Regexp.Model.KEY );
+		public static final RelationshipDefinition POSTS = new RelationshipDefinition( "posts", Post.Model.KEY );
+		public static final RelationshipDefinition HEADERS = new RelationshipDefinition( "headers", Header.Model.KEY );
+		public static final RelationshipDefinition COOKIES = new RelationshipDefinition( "cookies", Cookie.Model.KEY );
+		
 		public String key() { return KEY; }
 		public String[] attributes() { return new String[] { URL }; }
-		public Relationship[] relationships() {
-			return new Relationship[] {
-				new Relationship( TERMINATES, Regexp.Model.KEY ),
-				new Relationship( POSTS, Post.Model.KEY ),
-				new Relationship( HEADERS, Header.Model.KEY ),
-				new Relationship( COOKIES, Cookie.Model.KEY )
+		public RelationshipDefinition[] relationships() {
+			return new RelationshipDefinition[] {
+				TERMINATES, POSTS, HEADERS, COOKIES
 			};
 		}
 	}

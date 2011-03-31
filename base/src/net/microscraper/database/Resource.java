@@ -7,14 +7,18 @@ import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.database.DatabaseException.PrematureRevivalException;
 
 public class Resource {
-	public final AbstractModel model;
+	public final ModelDefinition model;
 	public final Reference ref;
 	private final Hashtable attributes;
-		
-	private Resource(AbstractModel _model, Reference _ref, Hashtable _attributes) {
+	private final Hashtable relationships;
+	private final Database db;
+	
+	private Resource(Database _db, ModelDefinition _model, Reference _ref, Hashtable _attributes, Hashtable _relationships) {
+		db = _db;
 		model = _model;
 		ref = _ref;
 		attributes = _attributes;
+		relationships = _relationships;
 	}
 	
 	public String attribute_get(String name) {
@@ -27,18 +31,14 @@ public class Resource {
 	 * @return
 	 * @throws PrematureRevivalException If the object has not been revived.
 	 */
-	public Resource[] relationship(Relationship relationship) throws PrematureRevivalException {
-		return relationship.all(this);
-	}
-	
-	/**
-	 * Retrieve all the resources related through a specific Relationship.
-	 * @param relationship_key
-	 * @return
-	 * @throws PrematureRevivalException If the object has not been revived.
-	 */
-	public Resource[] relationship(String relationship_key) throws PrematureRevivalException {
-		return relationship((Relationship) model.relationships.get(relationship_key));
+	public Resource[] relationship(RelationshipDefinition relationship) throws PrematureRevivalException {
+		//return relationship.all(this);
+		Reference[] references = (Reference[]) relationships.get(relationship.key);
+		Resource[] resources = new Resource[references.length];
+		for(int i = 0; i < references.length ; i ++) {
+			resources[i] = db.get(relationship.model_key, references[i]);
+		}
+		return resources;
 	}
 	
 	/**
@@ -49,22 +49,23 @@ public class Resource {
 	 * @return
 	 * @throws JSONInterfaceException
 	 */
-	public static Resource inflate(AbstractModel model, Reference reference, JSON.Object json_obj)
+	public static Resource inflate(Database db, ModelDefinition model, Reference reference, JSON.Object json_obj)
 					throws JSONInterfaceException {
 		Hashtable attributes = new Hashtable();
 		for(int i = 0; i < model.attributes().length; i++) {
 			String name = model.attributes()[i];
 			attributes.put(name, json_obj.getString(name));
 		}
-		Resource resource = new Resource(model, reference, attributes);
-		Relationship[] relationships = model.relationships.all();
-		for(int i = 0; i < relationships.length; i ++) {
-			Relationship relationship = relationships[i];
-			String[] references = json_obj.getJSONArray(relationship.key).toArray();
+		Hashtable relationships = new Hashtable();
+		RelationshipDefinition[] relationship_definitions = model.relationships();
+		for(int i = 0; i < relationship_definitions.length; i ++) {
+			RelationshipDefinition relationship_def = relationship_definitions[i];
+			String[] references = json_obj.getJSONArray(relationship_def.key).toArray();
+			relationships.put(relationship_def.key, new Reference[references.length]);
 			for(int j = 0; j < references.length; j ++ ) {
-				relationship.put(resource, new Reference(references[j]));
+				((Reference[]) relationships.get(relationship_def.key))[j] = new Reference(references[j]);
 			}
 		}
-		return resource;
+		return new Resource(db, model, reference, attributes, relationships);
 	}
 }

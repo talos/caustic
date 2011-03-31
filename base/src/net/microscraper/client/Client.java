@@ -10,6 +10,7 @@ import net.microscraper.client.Interfaces.SQL;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
+import net.microscraper.database.Resource;
 import net.microscraper.database.schema.Data;
 import net.microscraper.database.schema.Default;
 import net.microscraper.database.schema.WebPage;
@@ -62,7 +63,8 @@ public class Client {
 			
 			Database db = new Database(json.getTokener(raw_obj).nextValue());
 			
-			Data[] datas = db.datas();
+			//Data[] datas = db.datas();
+			Resource[] datas = db.get(Data.Model.KEY);
 			ResultRoot[] results = new ResultRoot[datas.length];
 			for(int i = 0; i < datas.length; i ++) {
 				results[i] = new ResultRoot();
@@ -73,7 +75,8 @@ public class Client {
 						log.w(e);
 					}
 				}
-				datas[i].scrape(results[i]);
+				Data data = new Data(datas[i]);
+				data.scrape(results[i]);
 			}
 			
 			return results;

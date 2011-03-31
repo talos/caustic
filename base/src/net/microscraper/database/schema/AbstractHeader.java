@@ -5,7 +5,7 @@ import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.ModelDefinition;
-import net.microscraper.database.Relationships.Relationship;
+import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Resource;
 
 public class AbstractHeader {
@@ -30,13 +30,16 @@ public class AbstractHeader {
 		else
 			return false;		
 	}
+	public int hashCode() {
+		return name.hashCode() + value.hashCode();
+	}
 	
 	protected static abstract class AbstractHeaderModel implements ModelDefinition {
 		public static final String NAME = "name";
 		public static final String VALUE = "value";
 		
 		public String[] attributes() { return new String[] { NAME, VALUE }; }
-		public Relationship[] relationships() { return new Relationship[] {}; }
+		public RelationshipDefinition[] relationships() { return new RelationshipDefinition[] {}; }
 	
 	}
 	public static abstract class Post {

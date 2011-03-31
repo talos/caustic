@@ -23,11 +23,16 @@ public class MicroScraperConsole {
 		new MicroScraperConsole(args);
 	}
 	public MicroScraperConsole(String[] args) {
-		try {
-			client.scrape(args[0]);
-		} catch (MicroScraperClientException e) {
-			client.log.e(e);
+		if(args.length < 1) {
+			client.log.i("Must specify a URL to load the scraper object from.");
+		} else {
+			try {
+				client.scrape(args[0]);
+			} catch (MicroScraperClientException e) {
+				client.log.e(e);
+			}
 		}
+		client.log.i("Finished execution.");
 	}
 		/*
 	   public static void main (String[] args) {

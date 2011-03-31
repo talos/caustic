@@ -3,20 +3,20 @@ package net.microscraper.database;
 import java.util.Hashtable;
 
 import net.microscraper.client.Interfaces;
+import net.microscraper.client.Interfaces.JSON.Iterator;
 import net.microscraper.client.Utils;
-import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
-import net.microscraper.database.AbstractModel.Relationships;
-import net.microscraper.database.DatabaseException.PrematureRevivalException;
 import net.microscraper.database.schema.*;
 
 public class Database {
 	//private final AbstractModel data_model;
-	private static final AbstractModel[] _abstract_models = new AbstractModel[] {
+	private static final ModelDefinition[] models = new ModelDefinition[] {
 		new Data.Model(), new Default.Model(), new Regexp.Model(), new Scraper.Model(),
 		new WebPage.Model(), new AbstractHeader.Cookie.Model(), new AbstractHeader.Header.Model(),
 		new AbstractHeader.Post.Model()
 	};
+	
+	private Hashtable resources = new Hashtable();
 	
 	/**
 	 * Inflate a new, functioning database from a JSON object.
@@ -27,10 +27,23 @@ public class Database {
 		for(int i = 0; i < models.length; i++) {
 			if(json_obj.has(models[i].key())) {
 				//models[i].inflate(json_obj.getJSONObject(models[i].key()));
+				inflateModel(json_obj.getJSONObject(models[i].key()), models[i]);
 			}
 		}
 	}
-	
+	public Resource get(String model_key, Reference reference) {
+		return (Resource) modelResources(model_key).get(reference);
+	}
+	public Resource[] get(String model_key) {
+		Hashtable model_resources = modelResources(model_key);
+		Resource[] resources = new Resource[model_resources.size()];
+		Utils.hashtableValues(model_resources, resources);
+		return resources;
+	}
+	private Hashtable modelResources(String model_key) {
+		return (Hashtable) resources.get(model_key);
+	}
+	/*
 	public Data[] datas() throws PrematureRevivalException {
 		Resource[] resources = data_model.all();
 		Data[] datas = new Data[resources.length];
@@ -39,15 +52,23 @@ public class Database {
 		}
 		return datas;
 	}
-
+	*/
+	private void inflateModel(Interfaces.JSON.Object json_obj, ModelDefinition model) throws JSONInterfaceException {
+		if(!resources.containsKey(model.key()))
+			resources.put(model.key(), new Hashtable());
+		Hashtable model_resources = (Hashtable) resources.get(model.key());
+		Iterator keys = json_obj.keys();
+		while(keys.hasNext()) {
+			String key = (String) keys.next();
+			Resource resource = Resource.inflate(this, model, new Reference(key), json_obj.getJSONObject(key));
+			model_resources.put(resource.ref, resource);
+		}
+	}
+	/*
 	public class Model implements AbstractModel {
 		private final Hashtable resources = new Hashtable();
 		private final AbstractModel base_model;
 		
-		/*private Model(AbstractModel _base_model) {
-			base_model = _base_model;
-		}
-		*/
 		public String key() {
 			return base_model.key();
 		}
@@ -58,11 +79,6 @@ public class Database {
 			return base_model.relationships();
 		}
 		
-		/**
-		 * Fill a model with resources pulled from a JSON object.
-		 * @param json_obj
-		 * @throws JSONInterfaceException
-		 */
 		public Model (AbstractModel _base_model, JSON.Object json_obj) throws JSONInterfaceException {
 			base_model = _base_model;
 			JSON.Iterator i = json_obj.keys();
@@ -76,27 +92,5 @@ public class Database {
 		public Resource get(Reference ref) throws PrematureRevivalException {
 			return ((Resource) resources.get(ref));
 		}
-		/*
-		public Resource[] all() throws PrematureRevivalException {
-			Reference[] references = new Reference[resources.size()];
-			Resource[] resources_ary = new Resource[resources.size()];
-			Utils.hashtableKeys(resources, references);
-			for(int i = 0; i < references.length; i++) {
-				resources_ary[i] = get(references[i]);
-			}
-			return resources_ary;
-		}
-		*/
-		public boolean equals(Object obj) {
-			if(this == obj)
-				return true;
-			if(!(obj instanceof AbstractModel))
-				return false;
-			return key().equals(((AbstractModel) obj).key());
-		}
-		
-		public int hashCode() {
-			return key().hashCode();
-		}
-	}
+	}*/
 }

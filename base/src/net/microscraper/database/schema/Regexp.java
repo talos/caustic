@@ -7,7 +7,7 @@ import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.ModelDefinition;
-import net.microscraper.database.Relationships.Relationship;
+import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Resource;
 
 public class Regexp {
@@ -28,6 +28,9 @@ public class Regexp {
 		Regexp other = (Regexp) obj;
 		return this.pattern.toString().equals(other.pattern.toString());	
 	}
+	public int hashCode() {
+		return pattern.toString().hashCode();
+	}
 	
 	public static class Model implements ModelDefinition {
 		public static final String KEY = "regexp";
@@ -38,8 +41,8 @@ public class Regexp {
 		public String[] attributes() {
 			return new String[] { REGEXP };
 		}
-		public Relationship[] relationships() {
-			return new Relationship[] { };
+		public RelationshipDefinition[] relationships() {
+			return new RelationshipDefinition[] { };
 		}
 	}
 }

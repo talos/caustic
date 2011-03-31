@@ -28,25 +28,18 @@ public abstract class AbstractResult {
 		children.copyInto(children_ary);
 		return children_ary;
 	}
-	public Result[] livingResults(Reference ref) {
+	public AbstractResult[] livingResults() {
 		Vector branches = new Vector();
-		if(isOneToMany() && contains(ref))
+		//if(isOneToMany() && contains(ref))
+		if(isOneToMany())
 			branches.addElement(this);
 		Result[] children = children();
 		for(int i = 0; i < children.length; i++) {
-			Utils.arrayIntoVector(children[i].livingResults(ref), branches);
+			Utils.arrayIntoVector(children[i].livingResults(), branches);
 		}
-		Result[] branches_ary = new Result[branches.size()];
+		AbstractResult[] branches_ary = new AbstractResult[branches.size()];
 		branches.copyInto(branches_ary);
 		return branches_ary;
-	}
-	public boolean contains(Reference ref) {
-		Result[] children = children();
-		for(int i = 0 ; i < children.length ; i ++) {
-			if(children[i].scraper_ref.equals(ref))
-				return true;
-		}
-		return false;
 	}
 	public Variables variables() {
 		Variables variables = new Variables();
@@ -67,7 +60,27 @@ public abstract class AbstractResult {
 		}
 		return size;
 	}
-	
+	public boolean contains(Reference ref) {
+		Result[] children = children();
+		for(int i = 0 ; i < children.length ; i ++) {
+			if(children[i].scraper_ref.equals(ref))
+				return true;
+		}
+		return false;
+	}
+	public Result[] get(Reference ref) {
+		Vector results = new Vector();
+		Result[] children = children();
+		for(int i = 0; i < children.length ; i++) {
+			if(children[i].scraper_ref.equals(ref))
+				//results.addElement(children[i].value);
+				results.addElement(children[i]);
+		}
+		Result[] results_ary = new Result[results.size()];
+		results.copyInto(results_ary);
+		return results_ary;
+	}
+
 	public abstract boolean isOneToMany();
 	public abstract AbstractResult origin();
 	
@@ -75,7 +88,7 @@ public abstract class AbstractResult {
 		private final Reference scraper_ref;
 		private final boolean one_to_many;
 		private final AbstractResult source;
-		private final String value;
+		public final String value;
 		
 		private Result(AbstractResult _source, Reference _scraper_ref, String _value, boolean _one_to_many) {
 			source = _source;

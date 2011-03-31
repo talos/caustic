@@ -70,6 +70,20 @@ public class Utils {
 	}
 	
 	/**
+	 * Generates a hashcode based off an array of objects.  Each individual object should implement
+	 * hashCode().
+	 * @param array
+	 * @return
+	 */
+	public static int arrayHashCode(Object[] array) {
+		int hashCode = 0;
+		for (int i = 0; i < array.length ; i ++) {
+			hashCode += array[i].hashCode();
+		}
+		return hashCode;
+	}
+	
+	/**
 	 * Copy one Hashtable into another. Preexisting keys in hashtable2 will be overwritten.
 	 * @param hashtable1
 	 * @param hashtable2
@@ -94,9 +108,9 @@ public class Utils {
 		Enumeration keys = hashtable.keys();
 		int i = 0;
 		while(keys.hasMoreElements()) {
-			i++;
 			Object key = keys.nextElement();
 			array[i] = hashtable.get(key);
+			i++;
 		}
 	}
 

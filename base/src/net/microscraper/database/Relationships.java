@@ -3,7 +3,7 @@ package net.microscraper.database;
 import java.util.Hashtable;
 
 public class Relationships {
-	private final Relationship[] relationships_ary;
+	/*private final RelationshipDefinition[] relationships_ary;
 	private final Hashtable relationships = new Hashtable();
 	private Relationships(Relationship[] _relationships, Database db) {
 		relationships_ary = _relationships;
@@ -15,14 +15,7 @@ public class Relationships {
 		
 	}
 	
-	public static class Relationship {
-		public final String key;
-		public final String model_key;
-		public Relationship(String _key, String _model_key) {
-			key = _key;
-			model_key = _model_key;
-		}
-	}
+	*/
 	/*public Relationship get(String relationship_key) {
 		return (Relationship) relationships.get(relationship_key);
 	}
