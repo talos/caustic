@@ -35,51 +35,52 @@ public class Scraper {
 		source_scrapers = resource.relationship(Model.SOURCE_SCRAPERS);
 	}
 	
-	public void execute(AbstractResult parent_result)
+	public void execute(AbstractResult calling_result)
 					throws PrematureRevivalException, TemplateException, InterruptedException {
-		AbstractResult[] results = parent_result.livingResults();
+		//AbstractResult[] calling_results = calling_result.livingResults();
 		Client.context().log.i("Executing scraper " + ref.toString());
 		
-		for(int i = 0; i < results.length; i ++) {
-			AbstractResult source_result = results[i];
-			if(source_result.contains(ref))
-				continue;
-			for(int j = 0; j < web_pages.length; j++) {
+		//for(int i = 0; i < calling_results.length; i ++) {
+		//	AbstractResult calling_result = calling_results[i];
+		//	if(calling_result.contains(ref))
+		//		continue;
+		if(calling_result.contains(this.ref))
+			return;
+		for(int j = 0; j < web_pages.length; j++) {
+			try {
+				WebPage web_page = new WebPage((Resource) web_pages[j], calling_result.variables());
 				try {
-					WebPage web_page = new WebPage((Resource) web_pages[j], source_result.variables());
-					try {
-						// The Browser should handle caching, so we can re-load at our pleasure.
-						String source_string = Client.context().browser.load(web_page);
-						processInput(source_string, source_result);
-					}  catch(BrowserException e) {
-						Client.context().log.e(e);
-					}
-				} catch(MissingVariable e) {
-					// Missing a variable, leave the web page resource in the vector.
-					Client.context().log.i(e.getMessage());
+					// The Browser should handle caching, so we can re-load at our pleasure.
+					String source_string = Client.context().browser.load(web_page);
+					processInput(source_string, calling_result);
+				}  catch(BrowserException e) {
+					Client.context().log.e(e);
 				}
+			} catch(MissingVariable e) {
+				// Missing a variable.
+				Client.context().log.i(e.getMessage());
 			}
-			for(int j = 0; j < source_scrapers.length; j++) {
-				Resource source_scraper = source_scrapers[j];
-				if(!source_result.contains(source_scraper.ref)) {
-					Scraper scraper = new Scraper(source_scraper);
-					scraper.execute(source_result);
-				}
-				if(source_result.contains(source_scraper.ref)) {
-					Result[] source_results = source_result.get(source_scraper.ref);
-					for(int k = 0 ; k < source_results.length; k++) {
-						processInput(source_results[k].value, source_results[k] );
-					}
+		}
+		for(int j = 0; j < source_scrapers.length; j++) {
+			Resource source_scraper = source_scrapers[j];
+			if(!calling_result.contains(source_scraper.ref)) {
+				new Scraper(source_scraper).execute(calling_result);
+			}
+			if(calling_result.contains(source_scraper.ref)) {
+				Result[] source_results = calling_result.get(source_scraper.ref);
+				for(int k = 0 ; k < source_results.length; k++) {
+					//Client.context().log.i(source_results[k].value);
+					processInput(source_results[k].value, calling_result );
 				}
 			}
 		}
+		//}
 	}
 	
 	private void processInput(String input, AbstractResult source_result) {
 		try {
 			if(match_number == null) {
-				String[] matches = pattern.allMatches(input);
-				source_result.addOneToMany(ref, matches);
+				source_result.addOneToMany(ref, pattern.allMatches(input));
 			} else {
 				source_result.addOneToOne(ref, pattern.match(input, match_number.intValue()));
 			}

@@ -8,10 +8,6 @@ import net.microscraper.database.Reference;
 public abstract class AbstractResult {
 	private final Vector children = new Vector();
 	
-	/*protected void addChild(Result result) {
-		children.addElement(result);
-	}*/
-	
 	public void addOneToOne(Reference scraper_ref, String value) {
 		Result child = new Result(this, scraper_ref, value, false);
 		children.addElement(child);
@@ -28,9 +24,35 @@ public abstract class AbstractResult {
 		children.copyInto(children_ary);
 		return children_ary;
 	}
+	
+	public Result[] oneToOneDescendents() {
+		Result[] children = children();
+		Vector oneToOneDescendents = new Vector();
+		for(int i = 0 ; i < children.length ; i ++) {
+			if(!children[i].isOneToMany()) {
+				oneToOneDescendents.addElement(children[i]);
+				Utils.arrayIntoVector(children[i].oneToOneDescendents(), oneToOneDescendents);
+			}
+		}
+		Result[] oneToOneDescendents_ary = new Result[oneToOneDescendents.size()];
+		oneToOneDescendents.copyInto(oneToOneDescendents_ary);
+		return oneToOneDescendents_ary;
+	}
+	
+	public Result[] descendents() {
+		Result[] children = children();
+		Vector descendents = new Vector();
+		for(int i = 0 ; i < children.length ; i ++) {
+			descendents.addElement(children[i]);
+			Utils.arrayIntoVector(children[i].descendents(), descendents);
+		}
+		Result[] oneToOneDescendents_ary = new Result[descendents.size()];
+		descendents.copyInto(oneToOneDescendents_ary);
+		return oneToOneDescendents_ary;
+	}
+	/*
 	public AbstractResult[] livingResults() {
 		Vector branches = new Vector();
-		//if(isOneToMany() && contains(ref))
 		if(isOneToMany())
 			branches.addElement(this);
 		Result[] children = children();
@@ -41,17 +63,7 @@ public abstract class AbstractResult {
 		branches.copyInto(branches_ary);
 		return branches_ary;
 	}
-	public Variables variables() {
-		Variables variables = new Variables();
-		
-		Result[] children = children();
-		for(int i = 0; i < children.length; i++) {
-			if(children[i].isOneToMany() == false) {
-				variables.merge(children[i].variables());
-			}
-		}
-		return variables;
-	}
+	*/
 	public int size() {
 		int size = 1;
 		Result[] children = children();
@@ -60,50 +72,73 @@ public abstract class AbstractResult {
 		}
 		return size;
 	}
+	public Variables variables() {
+		Variables variables = new Variables();
+		Result[] desc = oneToOneDescendents();
+		for(int i = 0; i < desc.length; i++) {
+			variables.merge(desc[i].variables());
+		}
+		return variables;
+	}
+	
+	/*
+	 * Are there any results for scraping a ref within this scope?
+	 */
 	public boolean contains(Reference ref) {
-		Result[] children = children();
-		for(int i = 0 ; i < children.length ; i ++) {
-			if(children[i].scraper_ref.equals(ref))
+		Result[] descendents = descendents();
+		for(int i = 0; i < descendents.length; i++) {
+			if(descendents[i].ref.equals(ref))
 				return true;
 		}
 		return false;
 	}
+	
+	/*
+	 * Get all the results scraping a particular ref within this scope.
+	 */
 	public Result[] get(Reference ref) {
 		Vector results = new Vector();
-		Result[] children = children();
-		for(int i = 0; i < children.length ; i++) {
-			if(children[i].scraper_ref.equals(ref))
-				//results.addElement(children[i].value);
-				results.addElement(children[i]);
+		Result[] descendents = descendents();
+		for(int i = 0; i < descendents.length; i++) {
+			if(descendents[i].ref.equals(ref))
+				results.addElement(descendents[i]);
 		}
 		Result[] results_ary = new Result[results.size()];
 		results.copyInto(results_ary);
 		return results_ary;
 	}
-
+	
 	public abstract boolean isOneToMany();
 	public abstract AbstractResult origin();
+	public abstract int num();
 	
 	public static class Result extends AbstractResult {
-		private final Reference scraper_ref;
+		public final Reference ref;
 		private final boolean one_to_many;
-		private final AbstractResult source;
+		public final AbstractResult caller;
+		private final int num;
 		public final String value;
 		
-		private Result(AbstractResult _source, Reference _scraper_ref, String _value, boolean _one_to_many) {
-			source = _source;
+		private static int count = 0;
+		
+		private Result(AbstractResult _caller, Reference _scraper_ref, String _value, boolean _one_to_many) {
+			count = count + 1;
+			
+			num = count;
+			caller = _caller;
+			
 			//source.addChild(this);
-			scraper_ref = _scraper_ref;
+			ref = _scraper_ref;
 			one_to_many = _one_to_many;
 			value = _value;
 		}
 		
 		public Variables variables() {
-			Variables variables = super.variables().put(scraper_ref, value);
-			variables.merge(source.variables());
+			Variables variables = super.variables().put(ref, value);
+			variables.merge(caller.variables());
 			return variables;
 		}
-
+		
 		public boolean isOneToMany() {
 			return one_to_many;
 		}
@@ -115,6 +150,9 @@ public abstract class AbstractResult {
 			}
 			return origin;
 		}
+		public int num() {
+			return num;
+		}
 	}
 	
 	
@@ -124,6 +162,9 @@ public abstract class AbstractResult {
 		}
 		public AbstractResult origin() {
 			return this;
+		}
+		public int num() {
+			return 0;
 		}
 	}
 }

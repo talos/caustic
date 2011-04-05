@@ -136,6 +136,7 @@ public interface Interfaces {
 		 */
 		public abstract String keyColumnDefinition();
 		public abstract String dataColumnType();
+		public abstract String intColumnType();
 		/**
 		 * Quote a field.
 		 * @param field

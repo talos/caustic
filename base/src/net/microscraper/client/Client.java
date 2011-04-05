@@ -6,7 +6,7 @@ import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Interfaces.Regexp;
-import net.microscraper.client.Interfaces.SQL;
+import net.microscraper.client.Interfaces.SQL.SQLInterfaceException;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
@@ -17,14 +17,13 @@ import net.microscraper.database.schema.WebPage;
 
 public class Client {
 	public final Log log = new Log();
-	public Regexp regexp;
-	public JSON json;
-	public SQL sql;
-	public Browser browser;
+	public final Regexp regexp;
+	public final JSON json;
+	public final Browser browser;
 	private static Client instance;
 	
 	private Client (Browser _browser, Interfaces.Regexp _regexp,
-			Interfaces.JSON _json, /*Interfaces.SQL _sql,*/ Logger[] loggers) {
+			Interfaces.JSON _json, Logger[] loggers) {
 		browser = _browser;
 		regexp = _regexp;
 		json = _json;
@@ -34,10 +33,10 @@ public class Client {
 	}
 	
 	public static Client initialize (Browser _browser, Interfaces.Regexp _regexp,
-			Interfaces.JSON _json, /*Interfaces.SQL _sql,*/ Logger[] loggers) {
+			Interfaces.JSON _json, Logger[] loggers) {
 		if(instance != null)
 			return instance;
-		instance = new Client(_browser, _regexp, /*_sql,*/ _json, loggers);
+		instance = new Client(_browser, _regexp, _json, loggers);
 		return instance;
 	}
 	
@@ -48,22 +47,22 @@ public class Client {
 			return instance;
 	}
 	
-	public AbstractResult[] scrape(String db_location) throws MicroScraperClientException {
-		return scrape(db_location, new Default[] {});
+	public AbstractResult[] scrape(String json_url, Interfaces.SQL sql_interface) throws MicroScraperClientException {
+		return scrape(json_url, new Default[] {}, sql_interface);
 	}
 	
-	public AbstractResult[] scrape(String db_location, Default[] extra_defaults)
+	public AbstractResult[] scrape(String json_url, Default[] extra_defaults, Interfaces.SQL sql_interface)
 					throws MicroScraperClientException {
 		try {
-			WebPage db_web_page = new WebPage(db_location);
-			log.i("Scraping based off of object loaded from " + db_location);
+			WebPage json_web_page = new WebPage(json_url);
+			log.i("Scraping based off of object loaded from " + json_url);
 			
-			String raw_obj = browser.load(db_web_page);
+			String raw_obj = browser.load(json_web_page);
 			log.i("Raw scraping object: " + raw_obj);
 			
+			Publisher publisher = new Publisher(sql_interface);
 			Database db = new Database(json.getTokener(raw_obj).nextValue());
 			
-			//Data[] datas = db.datas();
 			Resource[] datas = db.get(Data.Model.KEY);
 			ResultRoot[] results = new ResultRoot[datas.length];
 			for(int i = 0; i < datas.length; i ++) {
@@ -77,6 +76,8 @@ public class Client {
 				}
 				Data data = new Data(datas[i]);
 				data.scrape(results[i]);
+				
+				publisher.publish(results[i]);
 			}
 			
 			return results;
@@ -90,6 +91,9 @@ public class Client {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		} catch(DatabaseException e) {
+			log.e(e);
+			throw new MicroScraperClientException(e);
+		} catch(SQLInterfaceException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		}

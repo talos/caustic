@@ -75,7 +75,7 @@ public class WebPage  {
 	public boolean equals(Object obj) {
 		if(this == obj)
 			return true;
-		if(!(obj instanceof AbstractHeader))
+		if(!(obj instanceof WebPage))
 			return false;
 		WebPage other = (WebPage) obj;
 		if(!this.url.equals(other.url))

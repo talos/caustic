@@ -124,6 +124,11 @@ public class JDBCSQLite implements Interfaces.SQL {
 	public String dataColumnType() {
 		return "VARCHAR";
 	}
+	
+	@Override
+	public String intColumnType() {
+		return "INTEGER";
+	}
 
 	@Override
 	public String quoteField(String field) throws SQLInterfaceException {
