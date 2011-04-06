@@ -30,8 +30,9 @@ public class Mustache {
 			if(close_tag_pos == -1)
 				throw new TemplateException("No close tag for opening tag at position " + open_tag_pos + " in Mustache template " + template);
 			
-			String tag = template.substring(open_tag_pos + 2, close_tag_pos);
+			String tag = template.substring(open_tag_pos + open_tag.length(), close_tag_pos);
 			
+			close_tag_pos += close_tag.length();
 			if(variables.containsTitle(tag))
 				result += variables.getByTitle(tag);
 			else
