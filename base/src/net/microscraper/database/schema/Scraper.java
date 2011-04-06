@@ -94,14 +94,13 @@ public class Scraper {
 	
 		public static final String REGEXP = "regexp";
 		public static final String MATCH_NUMBER = "match_number";
-		public static final String PUBLISH = "publish";
 		
 		public static final RelationshipDefinition WEB_PAGES = new RelationshipDefinition( "web_pages", WebPage.Model.KEY);
 		public static final RelationshipDefinition SOURCE_SCRAPERS = new RelationshipDefinition( "source_scrapers", Scraper.Model.KEY);
 		
 		public String key() { return KEY; }
 		public String[] attributes() {
-			return new String[] { REGEXP, MATCH_NUMBER, PUBLISH };
+			return new String[] { REGEXP, MATCH_NUMBER };
 		}
 		public RelationshipDefinition[] relationships() {
 			return new RelationshipDefinition[] {

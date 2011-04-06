@@ -25,7 +25,7 @@ public class Default {
 	}
 	public Default(String name, String value) {
 		substituted_scraper_refs = new Reference[] {
-			new Reference(value)
+			new Reference(name)
 		};
 		raw_value = value;
 	}
@@ -41,7 +41,9 @@ public class Default {
 		try {
 			String value = Mustache.compile(raw_value, source.variables());
 			for(int i = 0; i < substituted_scraper_refs.length; i ++) {
+				Client.context().log.i("Replacing '" + substituted_scraper_refs[i].toString() + "' with default value '" + value + "'");
 				source.addOneToOne(substituted_scraper_refs[i], value);
+				Client.context().log.i(source.variables().toString());
 			}
 		} catch (MissingVariable e) {
 			Client.context().log.w(e);

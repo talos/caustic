@@ -69,7 +69,7 @@ public class Client {
 				results[i] = new ResultRoot();
 				for(int j = 0 ; j < extra_defaults.length; j ++) {
 					try {
-						extra_defaults[i].simulate(results[i]);
+						extra_defaults[j].simulate(results[i]);
 					} catch (TemplateException e) { // A problem with the mustache template for one of the defaults.  Skip it.
 						log.w(e);
 					}

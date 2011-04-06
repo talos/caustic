@@ -11,6 +11,7 @@ import net.microscraper.client.impl.JDBCSQLite;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.SystemLogInterface;
+import net.microscraper.database.schema.Default;
 
 public class MicroScraperConsole {
 	private final SystemLogInterface log = new SystemLogInterface();
@@ -30,7 +31,13 @@ public class MicroScraperConsole {
 			} else {
 				try {
 					Interfaces.SQL sql_interface = new JDBCSQLite("./" + DateFormat.getTimeInstance() + ".sqlite");
-					client.scrape(args[0], sql_interface);
+					Default[] defaults = new Default[] {
+						new Default("Borough_Number", "3"),
+						new Default("House_Number", "373"),
+						new Default("Street_Name", "Atlantic Ave"),
+						new Default("Apartment_Number", "")
+					};
+					client.scrape(args[0], defaults, sql_interface);
 				} catch (MicroScraperClientException e) {
 					client.log.e(e);
 				}

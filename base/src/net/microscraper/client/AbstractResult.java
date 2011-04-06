@@ -76,7 +76,8 @@ public abstract class AbstractResult {
 		Variables variables = new Variables();
 		Result[] desc = oneToOneDescendents();
 		for(int i = 0; i < desc.length; i++) {
-			variables.merge(desc[i].variables());
+			variables.put(desc[i].ref, desc[i].value);
+			//variables.merge(desc[i].value);
 		}
 		return variables;
 	}
@@ -131,12 +132,6 @@ public abstract class AbstractResult {
 			ref = _scraper_ref;
 			one_to_many = _one_to_many;
 			value = _value;
-		}
-		
-		public Variables variables() {
-			Variables variables = super.variables().put(ref, value);
-			variables.merge(caller.variables());
-			return variables;
 		}
 		
 		public boolean isOneToMany() {
