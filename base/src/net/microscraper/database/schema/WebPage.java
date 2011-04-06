@@ -7,7 +7,8 @@ import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils;
 import net.microscraper.client.Variables;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.database.DatabaseException.PrematureRevivalException;
+import net.microscraper.database.DatabaseException.ModelNotFoundException;
+import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.Reference;
 import net.microscraper.database.RelationshipDefinition;
@@ -25,7 +26,7 @@ public class WebPage  {
 	public final AbstractHeader[] headers;
 	public final Pattern[] terminates;
 	public WebPage(Resource resource, Variables variables)
-				throws MissingVariable, PrematureRevivalException, TemplateException {
+				throws MissingVariable, TemplateException, ResourceNotFoundException, ModelNotFoundException {
 		ref = resource.ref;
 		Client.context().log.i("Generating WebPage " + ref.toString());
 		

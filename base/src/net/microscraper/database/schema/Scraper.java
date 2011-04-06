@@ -8,7 +8,8 @@ import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.database.DatabaseException.PrematureRevivalException;
+import net.microscraper.database.DatabaseException.ModelNotFoundException;
+import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.Reference;
 import net.microscraper.database.RelationshipDefinition;
@@ -21,7 +22,7 @@ public class Scraper {
 	private final Resource[] web_pages;
 	private final Resource[] source_scrapers;
 	
-	public Scraper(Resource resource) throws PrematureRevivalException {
+	public Scraper(Resource resource) throws ResourceNotFoundException, ModelNotFoundException {
 		ref = resource.ref;
 		pattern = Client.context().regexp.compile(resource.attribute_get(Model.REGEXP));
 		Integer _match_number;
@@ -36,7 +37,7 @@ public class Scraper {
 	}
 	
 	public void execute(AbstractResult calling_result)
-					throws PrematureRevivalException, TemplateException, InterruptedException {
+					throws TemplateException, InterruptedException, ResourceNotFoundException, ModelNotFoundException {
 		//AbstractResult[] calling_results = calling_result.livingResults();
 		Client.context().log.i("Executing scraper " + ref.toString());
 		

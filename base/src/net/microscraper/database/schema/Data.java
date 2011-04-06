@@ -3,7 +3,8 @@ package net.microscraper.database.schema;
 import net.microscraper.client.AbstractResult.ResultRoot;
 import net.microscraper.client.Client;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.database.DatabaseException.PrematureRevivalException;
+import net.microscraper.database.DatabaseException.ModelNotFoundException;
+import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.Reference;
 import net.microscraper.database.RelationshipDefinition;
@@ -14,14 +15,13 @@ public class Data {
 	private final Resource[] scrapers;
 	private final Reference ref;
 	
-	public Data(Resource resource) throws PrematureRevivalException {
+	public Data(Resource resource) throws ResourceNotFoundException, ModelNotFoundException {
 		ref = resource.ref;
 		defaults = resource.relationship(Model.DEFAULTS);
 		scrapers = resource.relationship(Model.SCRAPERS);
 	}
 	
-	public void scrape(ResultRoot root_result)
-					throws PrematureRevivalException, InterruptedException {
+	public void scrape(ResultRoot root_result) throws InterruptedException, ResourceNotFoundException, ModelNotFoundException {
 		int prev_size = 0;
 		Client.context().log.i("Scraping data " + ref.toString());
 		while(root_result.size() != prev_size) {

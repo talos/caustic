@@ -5,7 +5,8 @@ import net.microscraper.client.Client;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.database.DatabaseException.PrematureRevivalException;
+import net.microscraper.database.DatabaseException.ModelNotFoundException;
+import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.Reference;
 import net.microscraper.database.RelationshipDefinition;
@@ -14,7 +15,7 @@ import net.microscraper.database.Resource;
 public class Default {
 	private final String raw_value;
 	private final Reference[] substituted_scraper_refs;
-	protected Default(Resource resource) throws PrematureRevivalException {
+	protected Default(Resource resource) throws ResourceNotFoundException, ModelNotFoundException  {
 		raw_value = resource.attribute_get(Model.VALUE);
 		//substituted_scrapers = resource.relationship(Model.SCRAPERS);
 		Resource[] substituted_scrapers = resource.relationship(Model.SCRAPERS);
@@ -37,7 +38,7 @@ public class Default {
 	 * @throws PrematureRevivalException
 	 * @throws TemplateException
 	 */
-	public void simulate(AbstractResult source) throws PrematureRevivalException, TemplateException {
+	public void simulate(AbstractResult source) throws TemplateException {
 		try {
 			String value = Mustache.compile(raw_value, source.variables());
 			for(int i = 0; i < substituted_scraper_refs.length; i ++) {

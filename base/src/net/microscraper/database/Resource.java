@@ -4,7 +4,8 @@ import java.util.Hashtable;
 
 import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
-import net.microscraper.database.DatabaseException.PrematureRevivalException;
+import net.microscraper.database.DatabaseException.ModelNotFoundException;
+import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 
 public class Resource {
 	public final ModelDefinition model;
@@ -29,9 +30,10 @@ public class Resource {
 	 * Retrieve all the resources related through a specific Relationship.
 	 * @param relationship
 	 * @return
-	 * @throws PrematureRevivalException If the object has not been revived.
+	 * @throws ModelNotFoundException 
+	 * @throws ResourceNotFoundException
 	 */
-	public Resource[] relationship(RelationshipDefinition relationship) throws PrematureRevivalException {
+	public Resource[] relationship(RelationshipDefinition relationship) throws ResourceNotFoundException, ModelNotFoundException {
 		//return relationship.all(this);
 		Reference[] references = (Reference[]) relationships.get(relationship.key);
 		Resource[] resources = new Resource[references.length];
