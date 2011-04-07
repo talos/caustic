@@ -131,15 +131,16 @@ public class JDBCSQLite implements Interfaces.SQL {
 	}
 
 	@Override
+	public String nullValue() {
+		return "NULL";
+	}
+	
+	// TODO stronger protection against injection!
+	@Override
 	public String quoteField(String field) throws SQLInterfaceException {
 		if(field == null)
 			throw new SQLInterfaceException("Supplied field cannot be null.");
 		return "`" + field + "`";
-	}
-	
-	@Override
-	public String nullValue() {
-		return "NULL";
 	}
 	
 	@Override

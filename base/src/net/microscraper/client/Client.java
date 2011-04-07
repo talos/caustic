@@ -47,11 +47,11 @@ public class Client {
 			return instance;
 	}
 	
-	public AbstractResult[] scrape(String json_url, Interfaces.SQL sql_interface) throws MicroScraperClientException {
-		return scrape(json_url, new Default[] {}, sql_interface);
+	public AbstractResult[] scrape(String json_url) throws MicroScraperClientException {
+		return scrape(json_url, new Default[] {});
 	}
 	
-	public AbstractResult[] scrape(String json_url, Default[] extra_defaults, Interfaces.SQL sql_interface)
+	public AbstractResult[] scrape(String json_url, Default[] extra_defaults)
 					throws MicroScraperClientException {
 		try {
 			WebPage json_web_page = new WebPage(json_url);
@@ -60,7 +60,6 @@ public class Client {
 			String raw_obj = browser.load(json_web_page);
 			log.i("Raw scraping object: " + raw_obj);
 			
-			Publisher publisher = new Publisher(sql_interface);
 			Database db = new Database(json.getTokener(raw_obj).nextValue());
 			
 			Resource[] datas = db.get(Data.Model.KEY);
@@ -76,8 +75,6 @@ public class Client {
 				}
 				Data data = new Data(datas[i]);
 				data.scrape(results[i]);
-				
-				publisher.publish(results[i]);
 			}
 			
 			return results;
@@ -91,9 +88,6 @@ public class Client {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		} catch(DatabaseException e) {
-			log.e(e);
-			throw new MicroScraperClientException(e);
-		} catch(SQLInterfaceException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		}
