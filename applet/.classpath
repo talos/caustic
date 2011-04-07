@@ -2,5 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="/MicroScraper Base"/>
+	<classpathentry kind="src" path="/MicroScraper Apache Implementation"/>
+	<classpathentry kind="src" path="/MicroScraper JSON Implementation"/>
+	<classpathentry kind="src" path="/MicroScraper Regexp Implementation"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

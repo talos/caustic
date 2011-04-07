@@ -28,28 +28,26 @@ public class MicroScraperConsole {
 		new MicroScraperConsole(args);
 	}
 	public MicroScraperConsole(String[] args) {
-		try {
-			if(args.length < 1) {
-				client.log.i("Must specify a URL to load the scraper object from.");
-			} else {
-				try {
-					Publisher publisher = new SQLPublisher(new JDBCSQLite("./" + DateFormat.getTimeInstance() + ".sqlite", client.log));
-					Default[] defaults = new Default[] {
-						new Default("Borough_Number", "3"),
-						new Default("House_Number", "373"),
-						new Default("Street_Name", "Atlantic Ave"),
-						new Default("Apartment_Number", "")
-					};
-					publisher.publish(client.scrape(args[0], defaults));
-				} catch (MicroScraperClientException e) {
-					client.log.e(e);
-				} catch (PublisherException e) {
-					client.log.e(e);
-				}
+		if(args.length < 1) {
+			client.log.i("Must specify a URL to load the scraper object from.");
+		} else {
+			try {
+				Publisher publisher = new SQLPublisher(new JDBCSQLite("./" + DateFormat.getTimeInstance() + ".sqlite", client.log));
+				Default[] defaults = new Default[] {
+					new Default("Borough_Number", "3"),
+					new Default("House_Number", "373"),
+					new Default("Street_Name", "Atlantic Ave"),
+					new Default("Apartment_Number", "")
+				};
+				publisher.publish(client.scrape(args[0], defaults));
+				client.log.i("Finished execution.");
+			} catch (MicroScraperClientException e) {
+				client.log.e(e);
+			} catch (PublisherException e) {
+				client.log.e(e);
+			} catch (SQLInterfaceException e) {
+				client.log.e(e);
 			}
-			client.log.i("Finished execution.");
-		} catch (SQLInterfaceException e) {
-			client.log.e(e);
 		}
 	}
 }
