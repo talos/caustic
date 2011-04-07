@@ -9,6 +9,5 @@
 	<classpathentry kind="lib" path="lib/httpcomponents-client-4.0.2/lib/httpclient-4.0.2.jar"/>
 	<classpathentry kind="lib" path="lib/httpcomponents-client-4.0.2/lib/httpcore-4.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/httpcomponents-client-4.0.2/lib/httpmime-4.0.2.jar"/>
-	<classpathentry kind="lib" path="lib/sqlitejdbc-v056/lib/sqlitejdbc-v056.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

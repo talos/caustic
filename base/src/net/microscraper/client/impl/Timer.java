@@ -10,7 +10,6 @@ public abstract class Timer {
 	
 	public static Timer alwaysOn() {
 		return new Timer() {
-			@Override
 			protected boolean isActive(Calendar now) { return true; }
 		};
 	}

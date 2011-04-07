@@ -2,10 +2,9 @@ package net.microscraper.client.impl;
 
 import net.microscraper.client.AbstractResult;
 import net.microscraper.client.Client;
-import net.microscraper.client.Interfaces;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.AbstractResult.Result;
-import net.microscraper.client.Interfaces.SQL.SQLInterfaceException;
+import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 
 public class SQLPublisher implements Publisher {
 	
@@ -18,8 +17,8 @@ public class SQLPublisher implements Publisher {
 	public static final String SCRAPER_REF = "scraper_ref";
 	public static final String SCRAPER_VALUE = "value";
 	
-	private final Interfaces.SQL inter;
-	public SQLPublisher(Interfaces.SQL sql_interface) throws SQLInterfaceException {
+	private final SQLInterface inter;
+	public SQLPublisher(SQLInterface sql_interface) throws SQLInterfaceException {
 		inter = sql_interface;
 		
 		try {

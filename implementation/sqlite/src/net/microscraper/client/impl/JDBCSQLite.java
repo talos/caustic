@@ -7,10 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import net.microscraper.client.Client;
-import net.microscraper.client.Interfaces;
 
-
-public class JDBCSQLite implements Interfaces.SQL {
+public class JDBCSQLite implements SQLInterface {
 	private final Connection connection;
 	
 	// ../../db/scraper.db"
@@ -26,7 +24,7 @@ public class JDBCSQLite implements Interfaces.SQL {
 	}
 	
 	@Override
-	public Interfaces.SQL.Cursor query(String sql) throws SQLInterfaceException {
+	public SQLInterface.Cursor query(String sql) throws SQLInterfaceException {
 		//return new JDBCSqliteStatement(connection, sql);
 		try {
 			Client.context().log.i("Querying: " + sql);
@@ -65,7 +63,7 @@ public class JDBCSQLite implements Interfaces.SQL {
 		}	
 	}
 	*/
-	private static class JDBCSQLiteCursor implements Interfaces.SQL.Cursor {
+	private static class JDBCSQLiteCursor implements SQLInterface.Cursor {
 		private final ResultSet resultSet;
 		
 		public JDBCSQLiteCursor(ResultSet rs) {

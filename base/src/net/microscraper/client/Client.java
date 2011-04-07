@@ -6,7 +6,6 @@ import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Interfaces.Regexp;
-import net.microscraper.client.Interfaces.SQL.SQLInterfaceException;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;

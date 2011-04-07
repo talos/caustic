@@ -26,7 +26,6 @@ public class FileLogInterface implements Interfaces.Logger {
 		logWriter.close();
 	}
 	
-	@Override
 	public void e(Throwable e) {
 		Date now = new Date();
 		
@@ -35,14 +34,12 @@ public class FileLogInterface implements Interfaces.Logger {
 		logWriter.println();
 	}
 
-	@Override
 	public void i(String infoText) {
 		Date now = new Date();
 		logWriter.print(now + " Info: " + infoText);
 		logWriter.println();
 	}
 
-	@Override
 	public void w(Throwable w) {
 		Date now = new Date();
 		logWriter.print(now + " Warning: " + w.getMessage());
