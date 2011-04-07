@@ -33,8 +33,11 @@ public class MicroScraperApplet extends Applet {
 			new Interfaces.Logger[] { log }
 		);*/
 	
-	public String scrape(String url) {
-		return "different hello " + url;
+	public String scrape(String url, String args) {
+		String class_name = args.getClass().toString();
+		return "url: " + url +
+				", args class: " + class_name +
+				", args as string: " + args.toString();
 	}
 		/*try {
 			//Publisher publisher = new SQLPublisher(new JDBCSQLite("./" + DateFormat.getTimeInstance() + ".sqlite", client.log));
