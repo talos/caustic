@@ -6,13 +6,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import net.microscraper.client.Client;
+import net.microscraper.client.Log;
 
 public class JDBCSQLite implements SQLInterface {
 	private final Connection connection;
+	private final Log log;
 	
-	// ../../db/scraper.db"
-	public JDBCSQLite(String pathToDB) throws SQLInterfaceException {
+	public JDBCSQLite(String pathToDB, Log _log) throws SQLInterfaceException {
+		log = _log;
 		try {
 			Class.forName("org.sqlite.JDBC"); // Make sure we have this class.
 			connection = DriverManager.getConnection("jdbc:sqlite:" + pathToDB);
@@ -27,7 +28,7 @@ public class JDBCSQLite implements SQLInterface {
 	public SQLInterface.Cursor query(String sql) throws SQLInterfaceException {
 		//return new JDBCSqliteStatement(connection, sql);
 		try {
-			Client.context().log.i("Querying: " + sql);
+			log.i("Querying: " + sql);
 			Statement statement = connection.createStatement();
 			return new JDBCSQLiteCursor(statement.executeQuery(sql));
 		} catch (SQLException e) {
@@ -38,7 +39,7 @@ public class JDBCSQLite implements SQLInterface {
 	@Override
 	public boolean execute(String sql) throws SQLInterfaceException {
 		try {
-			Client.context().log.i("Executing: " + sql);
+			log.i("Executing: " + sql);
 			Statement statement = connection.createStatement();
 			return statement.execute(sql);
 		} catch(SQLException e) {

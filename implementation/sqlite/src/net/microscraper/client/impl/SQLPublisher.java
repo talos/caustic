@@ -34,25 +34,27 @@ public class SQLPublisher implements Publisher {
 		}
 	}
 	
-	public void publish(AbstractResult result) throws PublisherException {
-		try {
-			Result[] entries = result.children();
-			for(int i = 0; i < entries.length ; i ++ ) {
-				String insert_sql = "INSERT INTO " + inter.quoteField(TABLE_NAME) + " (" +
-					inter.quoteField(CALLING_SCRAPER_NUMBER) + ", " +
-					inter.quoteField(SCRAPER_NUMBER) + ", " + 
-					inter.quoteField(SCRAPER_REF) + ", " +
-					inter.quoteField(SCRAPER_VALUE) +
-					") VALUES (" + 
-					inter.quoteValue(Integer.toString(entries[i].caller.num())) + ", " +
-					inter.quoteValue(Integer.toString(entries[i].num())) + ", " +
-					inter.quoteValue(entries[i].ref.toString()) + ", " +
-					inter.quoteValue(entries[i].value) + " )";
-				inter.execute(insert_sql);
+	public void publish(AbstractResult[] results) throws PublisherException {
+		for(int i = 0; i < results.length; i ++) {
+			try {
+				Result[] entries = results[i].children();
+				for(int j = 0; j < entries.length ; j ++ ) {
+					String insert_sql = "INSERT INTO " + inter.quoteField(TABLE_NAME) + " (" +
+						inter.quoteField(CALLING_SCRAPER_NUMBER) + ", " +
+						inter.quoteField(SCRAPER_NUMBER) + ", " + 
+						inter.quoteField(SCRAPER_REF) + ", " +
+						inter.quoteField(SCRAPER_VALUE) +
+						") VALUES (" + 
+						inter.quoteValue(Integer.toString(entries[j].caller.num())) + ", " +
+						inter.quoteValue(Integer.toString(entries[j].num())) + ", " +
+						inter.quoteValue(entries[j].ref.toString()) + ", " +
+						inter.quoteValue(entries[j].value) + " )";
+					inter.execute(insert_sql);
+				}
+			} catch(SQLInterfaceException e) {
+				Client.context().log.e(e);
+				throw new PublisherException();
 			}
-		} catch(SQLInterfaceException e) {
-			Client.context().log.e(e);
-			throw new PublisherException();
 		}
 	}
 }
