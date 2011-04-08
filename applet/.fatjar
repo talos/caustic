@@ -1,0 +1,14 @@
+#Fat Jar Configuration File
+#Fri Apr 08 17:53:12 EDT 2011
+onejar.license.required=false
+manifest.classpath=.classpath
+manifest.removesigners=true
+onejar.checkbox=false
+jarname=MicroScraperApplet.jar
+manifest.mergeall=true
+manifest.mainclass=net.microscraper.client.applet.MicroScraperApplet
+manifest.file=<createnew>
+jarname.isextern=false
+onejar.expand=
+excludes=
+includes=
