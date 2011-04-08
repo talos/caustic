@@ -1,20 +1,15 @@
 package net.microscraper.client.applet;
-/*
-import java.text.DateFormat;
 
+import java.applet.Applet;
+
+import net.microscraper.client.AbstractResult;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
-import net.microscraper.client.Publisher;
-import net.microscraper.client.Client.MicroScraperClientException;
-import net.microscraper.client.Publisher.PublisherException;
+import net.microscraper.client.Utils;
 import net.microscraper.client.impl.ApacheBrowser;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
-import net.microscraper.client.impl.SystemLogInterface;
 import net.microscraper.database.schema.Default;
-*/
-
-import java.applet.Applet;
 
 public class MicroScraperApplet extends Applet {
 
@@ -22,22 +17,53 @@ public class MicroScraperApplet extends Applet {
 	 * 
 	 */
 	private static final long serialVersionUID = 2768937336583253219L;
-	/*public static void main(String[] args)
+	/*
+	public static void main(String[] args)
 	{
-	}*/
-	/*private final SystemLogInterface log = new SystemLogInterface();
-	private final Client client = Client.initialize(
-			new ApacheBrowser(),
-			new JavaUtilRegexInterface(),
-			new JSONME(),
-			new Interfaces.Logger[] { log }
-		);*/
+	}
+	*/
 	
-	public String scrape(String url, String args) {
-		String class_name = args.getClass().toString();
-		return "url: " + url +
-				", args class: " + class_name +
-				", args as string: " + args.toString();
+	
+	private final Client client = Client.initialize(new ApacheBrowser(),
+			new JavaUtilRegexInterface(), new JSONME(),
+			new Interfaces.Logger[] {}
+			);
+	
+	public String scrape(String url, String params_string) {
+		try {
+			String[] params = Utils.split(params_string, "&");
+			//return "changed: " + Integer.toString(params.length);
+			
+			Default[] defaults = new Default[params.length];
+			
+			try {
+				for(int i = 0 ; i < params.length ; i ++ ) {
+					String[] name_value = Utils.split(params[i], "=");
+					defaults[i] = new Default(name_value[0], name_value[1]);
+				}
+				
+				String response = "";
+				for(int i = 0; i < defaults.length ; i ++ ) {
+					response += defaults[i].toString();
+				}
+			} catch(IndexOutOfBoundsException e) {
+				throw new Exception("Invalid parameters.");
+			}
+			AbstractResult[] results = client.scrape(url, defaults);
+			
+			String response = "";
+			for(int i = 0; i < results.length ; i ++ ) {
+				response += results[i].variables().toString();
+			}
+			return response;
+			
+		} catch(Throwable e) {
+			e.printStackTrace();
+			return "ERROR: " + e.toString();
+		}
+		//return "changed again and again and again and again!! " + url;
+
+		/**/
 	}
 		/*try {
 			//Publisher publisher = new SQLPublisher(new JDBCSQLite("./" + DateFormat.getTimeInstance() + ".sqlite", client.log));

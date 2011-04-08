@@ -28,7 +28,38 @@ public class Utils {
 		}
 		return joined;
 	}
-	
+
+	/**
+	 * Split a string into words based off of spaces without using regex or .split().
+	 * @param input
+	 * @param splitter
+	 * @return
+	 */
+	public static String[] split(String input, String splitter) {
+		int splitLoc = 0;
+		String wordsString = input.trim();
+		Vector splitString = new Vector();
+    	do {
+    		splitLoc = wordsString.indexOf(splitter);
+    		String word;
+    		switch(splitLoc) {
+    			case 0:
+        			wordsString = wordsString.substring(splitter.length());
+        			continue;
+    			case -1:
+    				word = wordsString;
+    				break;
+    			default:
+        			word = wordsString.substring(0, splitLoc);
+        			wordsString = wordsString.substring(splitLoc);
+    		}
+    		splitString.addElement(word);
+    	} while(splitLoc != -1);
+    	
+    	String[] output = new String[splitString.size()];
+    	splitString.copyInto(output);
+    	return output;
+	}
 	/**
 	 * Copy one vector into another.
 	 * @param vector1

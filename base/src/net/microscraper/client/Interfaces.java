@@ -2,9 +2,9 @@ package net.microscraper.client;
 
 import java.util.Enumeration;
 
-public interface Interfaces {
-	public interface JSON {
-		public interface Object {
+public class Interfaces {
+	public static interface JSON {
+		public static interface Object {
 			public abstract JSON.Array getJSONArray(String name) throws JSONInterfaceException;
 			public abstract JSON.Object getJSONObject(String name) throws JSONInterfaceException;
 			public abstract String getString(String name) throws JSONInterfaceException;
@@ -15,21 +15,21 @@ public interface Interfaces {
 			public abstract int length();
 		}
 		
-		public interface Array {
+		public static interface Array {
 			public abstract JSON.Array getJSONArray(int index) throws JSONInterfaceException;
 			public abstract JSON.Object getJSONObject(int index) throws JSONInterfaceException;
 			public abstract String getString(int index) throws JSONInterfaceException;
 			public abstract String[] toArray() throws JSONInterfaceException; 
 			public abstract int length();
 		}
-		public interface Tokener {
+		public static interface Tokener {
 			public abstract Object nextValue() throws JSONInterfaceException;
 		}
-		public interface Iterator {
+		public static interface Iterator {
 			public abstract boolean hasNext();
 			public abstract java.lang.Object next();
 		}
-		public final class EnumerationIterator implements Iterator {
+		public static final class EnumerationIterator implements Iterator {
 			private final Enumeration enumeration;
 			public EnumerationIterator(Enumeration e) {
 				enumeration = e;
@@ -44,7 +44,7 @@ public interface Interfaces {
 			}
 		}
 		
-		public abstract class JSONInterfaceException extends Exception {
+		public static abstract class JSONInterfaceException extends Exception {
 			private static final long serialVersionUID = 1L;};
 		
 		public abstract Tokener getTokener(String jsonString);
@@ -56,7 +56,7 @@ public interface Interfaces {
 	 * @author john
 	 *
 	 */
-	public interface Regexp {
+	public static interface Regexp {
 		/**
 		 * Equivalent to java.util.regex.Compile.
 		 * @param patternString A pattern string to compile.
@@ -64,7 +64,7 @@ public interface Interfaces {
 		 */
 		public abstract Pattern compile(String patternString);
 		
-		public interface Pattern {
+		public static interface Pattern {
 			/**
 			 * True/false based on whether we find a match.
 			 * @param input
@@ -103,7 +103,7 @@ public interface Interfaces {
 		}
 	}
 	
-	public interface Logger {
+	public static interface Logger {
 		/**
 		 * Provide the ability to log throwables as errors.
 		 */
