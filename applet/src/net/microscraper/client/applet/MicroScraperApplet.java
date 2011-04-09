@@ -1,98 +1,61 @@
 package net.microscraper.client.applet;
 
 import java.applet.Applet;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 
-import net.microscraper.client.AbstractResult;
-import net.microscraper.client.Client;
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Utils;
-import net.microscraper.client.impl.ApacheBrowser;
-import net.microscraper.client.impl.JSONME;
-import net.microscraper.client.impl.JavaUtilRegexInterface;
-import net.microscraper.database.schema.Default;
-
+/**
+ * Provides interface between browser and scraper applet through public methods.
+ * @author john
+ *
+ */
 public class MicroScraperApplet extends Applet {
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 2768937336583253219L;
-	/*
-	public static void main(String[] args)
-	{
-		return;
-	}
-	*/
+	private final ThreadSafeLogger log = new ThreadSafeLogger();
+
+	public static final String encoding = "UTF-8";
+	private Thread thread;
 	
-	private final Client client = Client.initialize(new ApacheBrowser(),
-			new JavaUtilRegexInterface(), new JSONME(),
-			new Interfaces.Logger[] {}
-			);
-	
-	public String scrape(String url, String params_string) {
-		return AccessController.doPrivileged(new ScrapeAction(url, params_string));
-	}
-	
-	private class ScrapeAction implements PrivilegedAction<String> {
-		private final String url;
-		private final Default[] defaults;
-		public ScrapeAction(String _url, String params_string) {
-			url = _url;
-			String[] params = Utils.split(params_string, "&");
-			defaults = new Default[params.length];
-			
-			try {
-				for(int i = 0 ; i < params.length ; i ++ ) {
-					String[] name_value = Utils.split(params[i], "=");
-					defaults[i] = new Default(name_value[0], name_value[1]);
-				}
-				
-				String response = "";
-				for(int i = 0; i < defaults.length ; i ++ ) {
-					response += defaults[i].toString();
-				}
-			} catch(IndexOutOfBoundsException e) {
-				throw new IllegalArgumentException("Invalid parameters.");
+	/**
+	 * Starts the ScrapeAction.
+	 * @param url
+	 * @param params_string
+	 */
+	public boolean start(String url, String params_string) {
+		try {
+			if(!isAlive()) {
+				thread = new Thread(new ScrapeRunnable(url, params_string, log));
+				thread.run();
+				return true;
 			}
+		} catch(Exception e) {
+			log.e(e);
 		}
-		@Override
-		public String run() {
-			//return "changed: " + Integer.toString(params.length);
-			try {
-				AbstractResult[] results = client.scrape(url, defaults);
-				
-				String response = "";
-				for(int i = 0; i < results.length ; i ++ ) {
-					response += results[i].variables().toString();
-				}
-				return response;
-			} catch(Throwable e) {
-				//e.printStackTrace();
-				StackTraceElement[] traces = e.getStackTrace();
-				String traces_string = "";
-				for(int i = 0 ; i < 10 && i < traces.length; i ++ ) {
-					traces_string += traces[i].toString();
-				}
-				return "Error: " + e.toString() + "Trace: " + traces_string;
-			}
-		}
+		return false;
 	}
-		/*try {
-			//Publisher publisher = new SQLPublisher(new JDBCSQLite("./" + DateFormat.getTimeInstance() + ".sqlite", client.log));
-			Default[] defaults = new Default[] {
-				new Default("Borough_Number", "3"),
-				new Default("House_Number", "373"),
-				new Default("Street_Name", "Atlantic Ave"),
-				new Default("Apartment_Number", "")
-			};
-			client.scrape(url, defaults);
-			//publisher.publish(client.scrape(args[0], defaults));
-			//client.log.i("Finished execution.");
-		} catch (MicroScraperClientException e) {
-			client.log.e(e);
-		} catch (PublisherException e) {
-			client.log.e(e);
-		}*/
+	
+	public boolean kill() {
+		try {
+			thread.interrupt();
+			return true;
+		} catch(Exception e) {
+			log.e(e);
+		}
+		return false;
+	}
+	
+	public boolean isAlive() {
+		try {
+			if(thread == null) {
+				return false;
+			} else {
+				return thread.isAlive();
+			}
+		} catch(Exception e) {
+			log.e(e);
+		}
+		return false;
+	}
+	
+	public String log() {
+		return log.unshift();
+	}
 }
