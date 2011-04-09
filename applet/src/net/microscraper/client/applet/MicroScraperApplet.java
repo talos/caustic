@@ -26,7 +26,6 @@ public class MicroScraperApplet extends Applet {
 	}
 	*/
 	
-	
 	private final Client client = Client.initialize(new ApacheBrowser(),
 			new JavaUtilRegexInterface(), new JSONME(),
 			new Interfaces.Logger[] {}
@@ -70,8 +69,13 @@ public class MicroScraperApplet extends Applet {
 				}
 				return response;
 			} catch(Throwable e) {
-				e.printStackTrace();
-				return "TERROR: " + e.toString();
+				//e.printStackTrace();
+				StackTraceElement[] traces = e.getStackTrace();
+				String traces_string = "";
+				for(int i = 0 ; i < 10 && i < traces.length; i ++ ) {
+					traces_string += traces[i].toString();
+				}
+				return "Error: " + e.toString() + "Trace: " + traces_string;
 			}
 		}
 	}
