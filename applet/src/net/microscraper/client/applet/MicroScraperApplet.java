@@ -1,6 +1,8 @@
 package net.microscraper.client.applet;
 
 import java.applet.Applet;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import net.microscraper.client.AbstractResult;
 import net.microscraper.client.Client;
@@ -20,6 +22,7 @@ public class MicroScraperApplet extends Applet {
 	/*
 	public static void main(String[] args)
 	{
+		return;
 	}
 	*/
 	
@@ -30,11 +33,16 @@ public class MicroScraperApplet extends Applet {
 			);
 	
 	public String scrape(String url, String params_string) {
-		try {
+		return AccessController.doPrivileged(new ScrapeAction(url, params_string));
+	}
+	
+	private class ScrapeAction implements PrivilegedAction<String> {
+		private final String url;
+		private final Default[] defaults;
+		public ScrapeAction(String _url, String params_string) {
+			url = _url;
 			String[] params = Utils.split(params_string, "&");
-			//return "changed: " + Integer.toString(params.length);
-			
-			Default[] defaults = new Default[params.length];
+			defaults = new Default[params.length];
 			
 			try {
 				for(int i = 0 ; i < params.length ; i ++ ) {
@@ -47,23 +55,25 @@ public class MicroScraperApplet extends Applet {
 					response += defaults[i].toString();
 				}
 			} catch(IndexOutOfBoundsException e) {
-				throw new Exception("Invalid parameters.");
+				throw new IllegalArgumentException("Invalid parameters.");
 			}
-			AbstractResult[] results = client.scrape(url, defaults);
-			
-			String response = "";
-			for(int i = 0; i < results.length ; i ++ ) {
-				response += results[i].variables().toString();
-			}
-			return response;
-			
-		} catch(Throwable e) {
-			e.printStackTrace();
-			return "ERROR: " + e.toString();
 		}
-		//return "changed again and again and again and again!! " + url;
-
-		/**/
+		@Override
+		public String run() {
+			//return "changed: " + Integer.toString(params.length);
+			try {
+				AbstractResult[] results = client.scrape(url, defaults);
+				
+				String response = "";
+				for(int i = 0; i < results.length ; i ++ ) {
+					response += results[i].variables().toString();
+				}
+				return response;
+			} catch(Throwable e) {
+				e.printStackTrace();
+				return "TERROR: " + e.toString();
+			}
+		}
 	}
 		/*try {
 			//Publisher publisher = new SQLPublisher(new JDBCSQLite("./" + DateFormat.getTimeInstance() + ".sqlite", client.log));

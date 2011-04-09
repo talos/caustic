@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- This ant script builds the microscraper applet into the expected location for a microscraper-server instance. -->
+<project default="copy_class_file" name="Export Applet into MicroScraper-Server">
+    <!--ANT 1.7 is required                                        -->
+
+    <!-- Location of the microscraper-server directories.  TODO: move this to conf file? -->
+    <property name="microscraper.server.dir" value="../../microscraper-server" />
+    <property name="microscraper.server.applet.dir" value="${microscraper.server.dir}/public/applets" />
+
+    <!-- Create the applet jar file in the proper location. -->
+    <target name="create_applet_jar">
+        <jar destfile="${microscraper.server.applet.dir}/MicroScraperApplet.jar" filesetmanifest="mergewithoutmain">
+        <!-- <jar destfile="../../microscraper-server/public/applets/MicroScraperApplet.jar" filesetmanifest="mergewithoutmain"> -->
+            <manifest>
+                <attribute name="Main-Class" value="net.microscraper.client.applet.MicroScraperApplet"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="bin"/>
+            <fileset dir="../base/build/classes"/>
+            <zipfileset excludes="META-INF/*.SF" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpcore-4.0.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpclient-4.0.2.jar"/>
+            <fileset dir="../implementation/apache/build/classes"/>
+            <zipfileset excludes="META-INF/*.SF" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/commons-logging-1.1.1.jar"/>
+            <fileset dir="../implementation/regexp/bin"/>
+            <fileset dir="../implementation/json/bin"/>
+        </jar>
+    </target>
+
+    <!-- Copy the applet class files. -->
+    <target name="copy_class_file" depends="create_applet_jar">
+      <mkdir dir="${microscraper.server.applet.dir}/net" />
+      <copy todir="${microscraper.server.applet.dir}/net">
+	<fileset dir="bin/net" />
+      </copy>
+    </target>
+</project>
