@@ -23,16 +23,20 @@ public class Mustache {
 		int close_tag_pos = 0;
 		int open_tag_pos;
 		String result = "";
+		//Client.context().log.i("mustache template: " + template);
 		while((open_tag_pos = template.indexOf(open_tag, close_tag_pos)) != -1) {
 			result += template.substring(open_tag_pos, close_tag_pos);
 			
+			//Client.context().log.i(Integer.toString(close_tag_pos));
 			close_tag_pos = template.indexOf(close_tag, open_tag_pos);
+			//Client.context().log.i(Integer.toString(close_tag_pos));
 			if(close_tag_pos == -1)
 				throw new TemplateException("No close tag for opening tag at position " + open_tag_pos + " in Mustache template " + template);
 			
 			String tag = template.substring(open_tag_pos + open_tag.length(), close_tag_pos);
 			
 			close_tag_pos += close_tag.length();
+			//Client.context().log.i(Integer.toString(close_tag_pos));
 			if(variables.containsTitle(tag))
 				result += variables.getByTitle(tag);
 			else

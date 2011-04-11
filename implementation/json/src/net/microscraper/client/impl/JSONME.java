@@ -1,5 +1,8 @@
 package net.microscraper.client.impl;
 
+import java.util.Enumeration;
+import java.util.Hashtable;
+
 import net.microscraper.client.Interfaces;
 
 import org.json.me.JSONArray;
@@ -7,10 +10,28 @@ import org.json.me.JSONException;
 import org.json.me.JSONObject;
 import org.json.me.JSONTokener;
 
-
 public class JSONME implements Interfaces.JSON {
 
-	@Override
+	/**
+	 * Convert a hashtable to a very simple JSON string.
+	 * @throws JSONInterfaceException 
+	 */
+	public String toJSON(Hashtable hash) throws JSONInterfaceException {
+		try {
+			JSONObject obj = new JSONObject();
+			
+			Enumeration e = hash.keys();
+			while(e.hasMoreElements()) {
+				String key = (String) e.nextElement();
+				obj.put(key, (String) hash.get(key));
+			}
+			
+			return obj.toString();
+		} catch(JSONException e) {
+			throw new JSONMEException(e);
+		}
+	}
+	
 	public Interfaces.JSON.Tokener getTokener(String jsonString) {
 		return new JSONMETokener(jsonString);
 	}
@@ -20,7 +41,6 @@ public class JSONME implements Interfaces.JSON {
 		public JSONMETokener(String JSONString) {
 			tokener = new JSONTokener(JSONString);
 		}
-		@Override
 		public Interfaces.JSON.Object nextValue() throws JSONInterfaceException {
 			try {
 				return new JSONMEObject((JSONObject) tokener.nextValue());
@@ -37,7 +57,6 @@ public class JSONME implements Interfaces.JSON {
 			object = obj;
 		}
 		
-		@Override
 		public Interfaces.JSON.Array getJSONArray(String name)
 				throws JSONInterfaceException {
 			try {
@@ -47,7 +66,6 @@ public class JSONME implements Interfaces.JSON {
 			}
 		}
 
-		@Override
 		public Interfaces.JSON.Object getJSONObject(String name)
 				throws JSONInterfaceException {
 			try {
@@ -57,7 +75,6 @@ public class JSONME implements Interfaces.JSON {
 			}
 		}
 
-		@Override
 		public String getString(String name) throws JSONInterfaceException {
 			try {
 				return object.getString(name);
@@ -66,7 +83,6 @@ public class JSONME implements Interfaces.JSON {
 			}
 		}
 
-		@Override
 		public int getInt(String name) throws JSONInterfaceException {
 			try {
 				return object.getInt(name);
@@ -75,22 +91,18 @@ public class JSONME implements Interfaces.JSON {
 			}
 		}
 
-		@Override
 		public boolean has(String name) {
 			return object.has(name);
 		}
 
-		@Override
 		public boolean isNull(String name) {
 			return object.isNull(name);
 		}
 
-		@Override
 		public Interfaces.JSON.Iterator keys() {
 			return new EnumerationIterator(object.keys());
 		}
 		
-		@Override
 		public int length() {
 			return object.length();
 		}
@@ -103,7 +115,6 @@ public class JSONME implements Interfaces.JSON {
 			array = ary;
 		}
 		
-		@Override
 		public Interfaces.JSON.Array getJSONArray(int index)
 				throws JSONInterfaceException {
 			try {
@@ -113,7 +124,6 @@ public class JSONME implements Interfaces.JSON {
 			}
 		}
 
-		@Override
 		public Interfaces.JSON.Object getJSONObject(int index)
 				throws JSONInterfaceException {
 			try {
@@ -123,7 +133,6 @@ public class JSONME implements Interfaces.JSON {
 			}
 		}
 
-		@Override
 		public String getString(int index) throws JSONInterfaceException {
 			try {
 				return array.getString(index);
@@ -132,12 +141,10 @@ public class JSONME implements Interfaces.JSON {
 			}
 		}
 
-		@Override
 		public int length() {
 			return array.length();
 		}
 
-		@Override
 		public String[] toArray() throws JSONInterfaceException {
 			try {
 				String[] stringArray = new String[array.length()];

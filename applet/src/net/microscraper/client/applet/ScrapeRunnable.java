@@ -6,12 +6,8 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import net.microscraper.client.Client;
-import net.microscraper.client.Interfaces;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.Utils;
-import net.microscraper.client.impl.ApacheBrowser;
-import net.microscraper.client.impl.JSONME;
-import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.database.schema.Default;
 
 public class ScrapeRunnable implements Runnable {
@@ -21,16 +17,13 @@ public class ScrapeRunnable implements Runnable {
 	private final Client client;
 	private final Publisher publisher;
 	
-	public ScrapeRunnable(String _url, String params_string, ThreadSafePublisher _publisher, ThreadSafeLogger log) {
+	public ScrapeRunnable(String _url, String params_string, ThreadSafePublisher _publisher, Client _client) {
 		url = _url;
 		publisher = _publisher;
 		String[] params = Utils.split(params_string, "&");
 		defaults = new Default[params.length];
 		
-		client = Client.initialize(new ApacheBrowser(),
-					new JavaUtilRegexInterface(), new JSONME(),
-					new Interfaces.Logger[] { log }
-				);
+		client = _client;
 		
 		try {
 			for(int i = 0 ; i < params.length ; i ++ ) {
@@ -41,15 +34,11 @@ public class ScrapeRunnable implements Runnable {
 								URLDecoder.decode(name_value[1], MicroScraperApplet.encoding)
 								);
 			}
-			
-			String response = "";
-			for(int i = 0; i < defaults.length ; i ++ ) {
-				response += defaults[i].toString();
-			}
 		} catch(IndexOutOfBoundsException e) {
-			throw new IllegalArgumentException("Parameters should be serialized like HTTP Post data.");
+			throw new IllegalArgumentException("Parameters '" + params_string + "' should be serialized like HTTP Post data.");
 		} catch(UnsupportedEncodingException e) {
-			throw new IllegalArgumentException("Unsupported encoding: " + e);
+			//throw new IllegalArgumentException("Unsupported encoding: " + e.getMessage());
+			throw new Error(e);
 		}
 	}
 	@Override

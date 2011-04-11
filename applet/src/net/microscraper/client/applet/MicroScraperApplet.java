@@ -1,10 +1,15 @@
 package net.microscraper.client.applet;
 
 import java.applet.Applet;
+import java.util.Hashtable;
 
+import net.microscraper.client.Client;
+import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.ResultSet.Result;
+import net.microscraper.client.impl.ApacheBrowser;
 import net.microscraper.client.impl.JSONME;
+import net.microscraper.client.impl.JavaUtilRegexInterface;
 
 /**
  * Provides interface between browser and scraper applet through public methods.
@@ -13,12 +18,17 @@ import net.microscraper.client.impl.JSONME;
  */
 public class MicroScraperApplet extends Applet {
 	private static final long serialVersionUID = 2768937336583253219L;
-	private final ThreadSafeLogger log = new ThreadSafeLogger();
 	private final ThreadSafePublisher publisher = new ThreadSafePublisher();
 	private final JSON json = new JSONME();
+	private final ThreadSafeLogger log = new ThreadSafeLogger(json);
 	
 	public static final String encoding = "UTF-8";
 	private Thread thread;
+	private final Client client = Client.initialize(
+			new ApacheBrowser(false),
+			new JavaUtilRegexInterface(), json,
+			new Interfaces.Logger[] { log }
+		);
 	
 	/**
 	 * Starts the ScrapeAction.
@@ -28,8 +38,8 @@ public class MicroScraperApplet extends Applet {
 	public boolean start(String url, String params_string) {
 		try {
 			if(!isAlive()) {
-				thread = new Thread(new ScrapeRunnable(url, params_string, publisher, log));
-				thread.run();
+				thread = new Thread(new ScrapeRunnable(url, params_string, publisher, client));
+				thread.start();
 				return true;
 			}
 		} catch(Exception e) {
@@ -64,7 +74,11 @@ public class MicroScraperApplet extends Applet {
 	public String results() {
 		try {
 			Result result = publisher.unshift();
-			return "<result><ref>" + result.ref.toString() + "</ref><value>" + result.value + "</value></div>";
+			if(result != null) {
+				Hashtable<String, String> result_table = new Hashtable<String, String>();
+				result_table.put(result.ref.toString(), result.value);
+				return json.toJSON(result_table);
+			}
 		} catch(Exception e) {
 			log.e(e);
 		}

@@ -40,8 +40,10 @@ public class ApacheBrowser implements Browser {
 	private final DefaultHttpClient http_client = new DefaultHttpClient();
 	
 	private final HashMap<WebPage, String> cache = new HashMap<WebPage, String>();
-
-	public ApacheBrowser() {
+	private final boolean use_cache;
+	
+	public ApacheBrowser(boolean _use_cache) {
+		use_cache = _use_cache;
 		http_params.setParameter(ClientPNames.HANDLE_REDIRECTS, true);
 		http_params.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
 		http_params.setParameter(ClientPNames.REJECT_RELATIVE_REDIRECT, false);
@@ -55,14 +57,20 @@ public class ApacheBrowser implements Browser {
 	public String load(WebPage web_page) throws InterruptedException,
 			BrowserException {
 		Client.context().log.i("Loading WebPage " + web_page.ref.toString());
-		Client.context().log.i(Integer.toString(web_page.hashCode()));
-		if(cache.containsKey(web_page)) {
+		if(cache.containsKey(web_page) && use_cache == true) {
 			Client.context().log.i("Caught in cache");
 			return cache.get(web_page);
 		}
 		try {
+			Client.context().log.i("......");
 			
+			Client.context().log.i(web_page.url);
+			
+			Client.context().log.i("......");
 			URI uri = new URI(web_page.url);
+			//URI uri = new URI("http://www.google.com/");
+			
+			Client.context().log.i(uri.toString());
 			
 			AbstractHeader[] posts = web_page.posts;
 			AbstractHeader[] cookies = web_page.cookies;
@@ -71,8 +79,12 @@ public class ApacheBrowser implements Browser {
 			
 			// Set up our httpclient to handle 302 redirects properly.
 			http_client.setRedirectHandler(new RedirectHandler(uri));
+
+			Client.context().log.i("......");
 			
 			HttpRequestBase http_request;
+
+			Client.context().log.i("......");
 			
 			// Add posts.
 			if(posts.length > 0) {
@@ -91,6 +103,8 @@ public class ApacheBrowser implements Browser {
 			});
 			addHeaders(http_request, headers);
 			
+			Client.context().log.i("......");
+			
 			// Add cookies.
 			for(int i = 0 ; i < cookies.length ; i ++) {
 				BasicClientCookie cookie = new BasicClientCookie(cookies[i].name, cookies[i].value);
@@ -99,7 +113,7 @@ public class ApacheBrowser implements Browser {
 			}
 			
 			HttpResponse response = http_client.execute(http_request);
-
+			
 			StatusLine status = response.getStatusLine();
 			
 			// Convert the stream into a string.

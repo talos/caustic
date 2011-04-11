@@ -39,23 +39,27 @@ public class Utils {
 		int splitLoc = 0;
 		String wordsString = input.trim();
 		Vector splitString = new Vector();
-    	do {
-    		splitLoc = wordsString.indexOf(splitter);
-    		String word;
-    		switch(splitLoc) {
-    			case 0:
-        			wordsString = wordsString.substring(splitter.length());
-        			continue;
-    			case -1:
-    				word = wordsString;
-    				break;
-    			default:
-        			word = wordsString.substring(0, splitLoc);
-        			wordsString = wordsString.substring(splitLoc);
-    		}
-    		splitString.addElement(word);
-    	} while(splitLoc != -1);
-    	
+		if(input.equals("")) {
+			return new String[] { };
+		} else {
+	    	do {
+	    		splitLoc = wordsString.indexOf(splitter);
+	    		String word;
+	    		switch(splitLoc) {
+	    			case 0:
+	        			wordsString = wordsString.substring(splitter.length());
+	        			continue;
+	    			case -1:
+	    				word = wordsString;
+	    				break;
+	    			default:
+	        			word = wordsString.substring(0, splitLoc);
+	        			wordsString = wordsString.substring(splitLoc);
+	    		}
+	    		splitString.addElement(word);
+	    	} while(splitLoc != -1);
+		}
+		
     	String[] output = new String[splitString.size()];
     	splitString.copyInto(output);
     	return output;
