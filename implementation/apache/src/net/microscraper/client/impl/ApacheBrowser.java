@@ -62,13 +62,7 @@ public class ApacheBrowser implements Browser {
 			return cache.get(web_page);
 		}
 		try {
-			Client.context().log.i("......");
-			
-			Client.context().log.i(web_page.url);
-			
-			Client.context().log.i("......");
 			URI uri = new URI(web_page.url);
-			//URI uri = new URI("http://www.google.com/");
 			
 			Client.context().log.i(uri.toString());
 			
@@ -79,12 +73,8 @@ public class ApacheBrowser implements Browser {
 			
 			// Set up our httpclient to handle 302 redirects properly.
 			http_client.setRedirectHandler(new RedirectHandler(uri));
-
-			Client.context().log.i("......");
 			
 			HttpRequestBase http_request;
-
-			Client.context().log.i("......");
 			
 			// Add posts.
 			if(posts.length > 0) {
