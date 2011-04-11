@@ -38,13 +38,8 @@ public class Scraper {
 	
 	public void execute(ResultSet calling_result)
 					throws TemplateException, InterruptedException, ResourceNotFoundException, ModelNotFoundException {
-		//AbstractResult[] calling_results = calling_result.livingResults();
 		Client.context().log.i("Executing scraper " + ref.toString());
 		
-		//for(int i = 0; i < calling_results.length; i ++) {
-		//	AbstractResult calling_result = calling_results[i];
-		//	if(calling_result.contains(ref))
-		//		continue;
 		if(calling_result.contains(this.ref))
 			return;
 		for(int j = 0; j < web_pages.length; j++) {
@@ -75,7 +70,6 @@ public class Scraper {
 				}
 			}
 		}
-		//}
 	}
 	
 	private void processInput(String input, ResultSet source_result) {

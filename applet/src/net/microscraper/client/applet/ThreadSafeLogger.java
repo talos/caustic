@@ -21,14 +21,14 @@ public class ThreadSafeLogger implements Logger {
 	@Override
 	public void e(Throwable e) {
 		List<String> list = stackTraceList(e);
-		list.add(0, buildJSON("error", e.toString()));
+		list.add(buildJSON("error", e.toString()));
 		log_list.addAll(list);
 	}
 
 	@Override
 	public void w(Throwable w) {
 		List<String> list = stackTraceList(w);
-		list.add(0, buildJSON("warning", w.toString()));
+		list.add(buildJSON("warning", w.toString()));
 		log_list.addAll(list);
 	}
 
@@ -66,7 +66,7 @@ public class ThreadSafeLogger implements Logger {
 		StackTraceElement[] traces = t.getStackTrace();
 		List<String> list = new ArrayList<String>();
 		int depth = traces.length < STACK_TRACE_DEPTH ? traces.length : STACK_TRACE_DEPTH;
-		for( int i = depth ; i >= 0; i--) {
+		for( int i = depth - 1 ; i >= 0; i--) {
 			list.add(buildJSON("trace", traces[i].toString()));
 		}
 		return list;

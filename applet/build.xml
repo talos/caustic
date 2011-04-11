@@ -7,54 +7,30 @@
     <property name="microscraper.server.dir" value="../../microscraper-server" />
     <property name="microscraper.server.applet.dir" value="${microscraper.server.dir}/public/applets" />
     <property name="microscraper.server.applet.jar" value="${microscraper.server.applet.dir}/MicroScraperApplet.jar" />
-    <property name="build" value="${microscraper.server.applet.dir}/build" />
-
-    <path id="applet.path">
-      <fileset includes="**/*.class" dir="../base/build/classes"/>
-      <!-- <zipfileset excludes="META-INF/*.SF" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpcore-4.0.1.jar"/> -->
-      <!-- <zipfileset excludes="META-INF/*.SF" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpclient-4.0.2.jar"/> -->
-      <!-- <zipfileset excludes="META-INF/*.SF" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/commons-logging-1.1.1.jar"/> -->
-      <fileset includes="**/*.class" dir="../implementation/apache/build/classes"/>
-      <fileset includes="**/*.class" dir="../implementation/regexp/bin"/>
-      <fileset includes="**/*.class" dir="../implementation/json/bin"/>
-      <fileset includes="**/*.class" dir="bin"/>
-    </path>
 
     <!-- Clear out destination -->
     <target name="init">
-      <delete dir="${microscraper.server.applet.dir}" />
-      <mkdir dir="${microscraper.server.applet.dir}" />
-      <mkdir dir="${build}" />
+      <delete file="${microscraper.server.applet.jar}"/>
+     <!-- <delete dir="${microscraper.server.applet.dir}" />
+      <mkdir dir="${microscraper.server.applet.dir}" /> -->
     </target>
-    
-    <target name="compile" depends="init">
-      <javac srcdir="src" destdir="${build}" classpathref="applet.path" />
-    </target>
-
+	
     <!-- Create the applet jar file in the proper location. -->
-    <target name="create_applet_jar" depends="compile">
-      <jar destfile="${microscraper.server.applet.jar}" filesetmanifest="mergewithoutmain" index="true" indexMetaInf="true">
-      <!-- <jar destfile="${microscraper.server.applet.jar}" filesetmanifest="mergewithoutmain"> -->
-        <fileset includes="**/*.class" dir="../base/build/classes"/>
-        <zipfileset excludes="META-INF/*.SF" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpcore-4.0.1.jar"/>
-        <zipfileset excludes="META-INF/*.SF" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpclient-4.0.2.jar"/>
-        <zipfileset excludes="META-INF/*.SF" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/commons-logging-1.1.1.jar"/>
-        <fileset includes="**/*.class" dir="../implementation/apache/build/classes"/>
-        <fileset includes="**/*.class" dir="../implementation/regexp/bin"/>
-        <fileset includes="**/*.class" dir="../implementation/json/bin"/>
-        <fileset includes="**/*.class" dir="bin"/>
+    <target name="create_applet_jar" depends="init">
+      <jar destfile="${microscraper.server.applet.jar}" filesetmanifest="mergewithoutmain">
+        <fileset excludes="META-INF/*" includes="**/*.class" dir="bin"/>
+        <fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/apache/build/classes"/>
+        <fileset excludes="META-INF/*" includes="**/*.class" dir="../base/build/classes"/>
+        <fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/regexp/bin"/>
+        <fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/json/bin"/>
+	    <zipfileset excludes="META-INF/*" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpcore-4.0.1.jar"/>
+        <zipfileset excludes="META-INF/*" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpclient-4.0.2.jar"/>
+        <zipfileset excludes="META-INF/*" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/commons-logging-1.1.1.jar"/>
 	
         <manifest>
           <!-- <attribute name="Main-Class" value="net.microscraper.client.applet.MicroScraperApplet"/> -->
-	  <attribute name="Class-Path" value="." />
+	 	  <!-- <attribute name="Class-Path" value="." /> -->
         </manifest>
       </jar>
     </target>
-
-    <!-- Copy the applet class files. -->
-    <!-- <target name="copy_class_file" depends="create_applet_jar"> -->
-    <!--   <copy todir="${microscraper.server.applet.dir}/net"> -->
-    <!-- 	<fileset dir="bin/net" /> -->
-    <!--   </copy> -->
-    <!-- </target> -->
 </project>

@@ -18,6 +18,8 @@ import net.microscraper.client.impl.JavaUtilRegexInterface;
  */
 public class MicroScraperApplet extends Applet {
 	private static final long serialVersionUID = 2768937336583253219L;
+	private static final String version = ".01";
+	
 	private final ThreadSafePublisher publisher = new ThreadSafePublisher();
 	private final JSON json = new JSONME();
 	private final ThreadSafeLogger log = new ThreadSafeLogger(json);
@@ -29,6 +31,8 @@ public class MicroScraperApplet extends Applet {
 			new JavaUtilRegexInterface(), json,
 			new Interfaces.Logger[] { log }
 		);
+	
+	public String version() { return version; }
 	
 	/**
 	 * Starts the ScrapeAction.

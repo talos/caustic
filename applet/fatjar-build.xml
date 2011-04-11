@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<project name="FatJar MicroScraperApplet.jar (experimental)" default="main" basedir=".">
+    <!-- this file was created by Fat-Jar Eclipse Plug-in -->
+    <!-- the ANT-Export is in a very early stage, so this -->
+    <!-- is only experimental, ANT 1.6 or above is        -->
+    <!-- required, feedback is always welcome:            -->
+    <!--       http://sourceforge.net/projects/fjep       -->
+
+	<property name="microscraper.server.dir" value="../../microscraper-server" />
+	<property name="microscraper.server.applet.dir" value="${microscraper.server.dir}/public/applets" />
+	<property name="microscraper.server.applet.jar" value="${microscraper.server.applet.dir}/MicroScraperApplet.jar" />
+	
+	<target name="init">
+      <delete dir="${microscraper.server.applet.dir}" />
+      <mkdir dir="${microscraper.server.applet.dir}" />
+    </target>
+    	
+    <!-- uncomment the following lines if using ANT outside Eclipse -->
+    <!--
+        <property name="fjepPath" value="reference:file:plugins/net.sf.fjep.fatjar_0.0.31.jarfatjar.jar"/>
+        <taskdef name="fatjar.build" classname="net.sf.fjep.anttask.FJBuildTask" classpath="${fjepPath}"/>
+        <typedef name="fatjar.manifest" classname="net.sf.fjep.anttask.FJManifestType" classpath="${fjepPath}"/>
+        <typedef name="fatjar.exclude" classname="net.sf.fjep.anttask.FJExcludeType" classpath="${fjepPath}"/>
+        <typedef name="fatjar.jarsource" classname="net.sf.fjep.anttask.FJJarSourceType" classpath="${fjepPath}"/>
+        <typedef name="fatjar.filesource" classname="net.sf.fjep.anttask.FJFileSourceType" classpath="${fjepPath}"/>
+    -->
+    <!-- uncomment the above lines to use ANT outside of Eclipse -->
+	
+    <target name="main" depends="init">
+        <fatjar.build output="${microscraper.server.applet.jar}">
+            <fatjar.manifest mainclass="net.microscraper.client.applet.MicroScraperApplet" classpath=".classpath"/>
+            <fatjar.filesource path="../applet/bin" relpath=""/>
+            <fatjar.filesource path="../implementation/apache/build/classes" relpath=""/>
+            <fatjar.filesource path="../base/build/classes" relpath=""/>
+            <fatjar.filesource path="../implementation/regexp/bin" relpath=""/>
+           	<fatjar.filesource path="../implementation/json/bin" relpath=""/>
+            <fatjar.jarsource file="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpcore-4.0.1.jar" relpath=""/>
+            <fatjar.jarsource file="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpclient-4.0.2.jar" relpath=""/>
+            <fatjar.jarsource file="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/commons-logging-1.1.1.jar" relpath=""/>
+        </fatjar.build>
+    </target>
+</project>
