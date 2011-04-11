@@ -1,10 +1,10 @@
 package net.microscraper.database.schema;
 
-import net.microscraper.client.AbstractResult;
 import net.microscraper.client.Client;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.client.ResultSet;
 import net.microscraper.database.DatabaseException.ModelNotFoundException;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
@@ -38,7 +38,7 @@ public class Default {
 	 * @throws PrematureRevivalException
 	 * @throws TemplateException
 	 */
-	public void simulate(AbstractResult source) throws TemplateException {
+	public void simulate(ResultSet source) throws TemplateException {
 		try {
 			String value = Mustache.compile(raw_value, source.variables());
 			for(int i = 0; i < substituted_scraper_refs.length; i ++) {

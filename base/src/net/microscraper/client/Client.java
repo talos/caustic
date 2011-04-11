@@ -1,6 +1,5 @@
 package net.microscraper.client;
 
-import net.microscraper.client.AbstractResult.ResultRoot;
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
@@ -46,11 +45,11 @@ public class Client {
 			return instance;
 	}
 	
-	public AbstractResult[] scrape(String json_url) throws MicroScraperClientException {
-		return scrape(json_url, new Default[] {});
+	public void scrape(String json_url, Publisher publisher) throws MicroScraperClientException {
+		scrape(json_url, new Default[] {}, publisher);
 	}
 	
-	public AbstractResult[] scrape(String json_url, Default[] extra_defaults)
+	public void scrape(String json_url, Default[] extra_defaults, Publisher publisher)
 					throws MicroScraperClientException {
 		try {
 			WebPage json_web_page = new WebPage(json_url);
@@ -62,21 +61,22 @@ public class Client {
 			Database db = new Database(json.getTokener(raw_obj).nextValue());
 			
 			Resource[] datas = db.get(Data.Model.KEY);
-			ResultRoot[] results = new ResultRoot[datas.length];
+			//ResultRoot[] results = new ResultRoot[datas.length];
 			for(int i = 0; i < datas.length; i ++) {
-				results[i] = new ResultRoot();
+				//results[i] = new ResultRoot(publisher);
+				ResultSet results = new ResultSet(publisher);
 				for(int j = 0 ; j < extra_defaults.length; j ++) {
 					try {
-						extra_defaults[j].simulate(results[i]);
+						extra_defaults[j].simulate(results);
 					} catch (TemplateException e) { // A problem with the mustache template for one of the defaults.  Skip it.
 						log.w(e);
 					}
 				}
 				Data data = new Data(datas[i]);
-				data.scrape(results[i]);
+				data.scrape(results);
 			}
 			
-			return results;
+			//return results;
 		} catch(BrowserException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);

@@ -2,21 +2,38 @@ package net.microscraper.client;
 
 import java.util.Vector;
 
+import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Reference;
 
-public abstract class AbstractResult {
+public class ResultSet {
+	private final Publisher publisher;
 	private final Vector children = new Vector();
+	private int count = 0;
+
+	public ResultSet(Publisher _publisher) {
+		publisher = _publisher;
+	}
 	
 	public void addOneToOne(Reference scraper_ref, String value) {
 		Result child = new Result(this, scraper_ref, value, false);
 		children.addElement(child);
+		tryPublish(child);
 	}
 	public void addOneToMany(Reference scraper_ref, String[] values) {
 		for(int i = 0; i < values.length; i ++) {
 			Result child = new Result(this, scraper_ref, values[i], true);
 			children.addElement(child);
+			tryPublish(child);
 		}
+	}
+	
+	private void tryPublish(Result result) {
+		try {
+			publisher.publish(result);
+		} catch (PublisherException e) {
+			Client.context().log.e(e);
+		} 
 	}
 	
 	public Result[] children() {
@@ -50,20 +67,7 @@ public abstract class AbstractResult {
 		descendents.copyInto(oneToOneDescendents_ary);
 		return oneToOneDescendents_ary;
 	}
-	/*
-	public AbstractResult[] livingResults() {
-		Vector branches = new Vector();
-		if(isOneToMany())
-			branches.addElement(this);
-		Result[] children = children();
-		for(int i = 0; i < children.length; i++) {
-			Utils.arrayIntoVector(children[i].livingResults(), branches);
-		}
-		AbstractResult[] branches_ary = new AbstractResult[branches.size()];
-		branches.copyInto(branches_ary);
-		return branches_ary;
-	}
-	*/
+	
 	public int size() {
 		int size = 1;
 		Result[] children = children();
@@ -109,26 +113,29 @@ public abstract class AbstractResult {
 		return results_ary;
 	}
 	
-	public abstract boolean isOneToMany();
-	public abstract AbstractResult origin();
-	public abstract int num();
+	public boolean isOneToMany() {
+		return true;
+	}
+	public int num() {
+		return 0;
+	}
 	
-	public static class Result extends AbstractResult {
+	public class Result extends ResultSet {
 		public final Reference ref;
 		private final boolean one_to_many;
-		public final AbstractResult caller;
+		public final ResultSet caller;
 		private final int num;
 		public final String value;
 		
-		private static int count = 0;
 		
-		private Result(AbstractResult _caller, Reference _scraper_ref, String _value, boolean _one_to_many) {
+		private Result(ResultSet _caller, Reference _scraper_ref, String _value, boolean _one_to_many) {
+			super(publisher);
+			
 			count = count + 1;
 			
 			num = count;
 			caller = _caller;
 			
-			//source.addChild(this);
 			ref = _scraper_ref;
 			one_to_many = _one_to_many;
 			value = _value;
@@ -137,29 +144,8 @@ public abstract class AbstractResult {
 		public boolean isOneToMany() {
 			return one_to_many;
 		}
-		
-		public AbstractResult origin() {
-			AbstractResult origin = this;
-			while(origin.isOneToMany() == false) {
-				origin = origin.origin();
-			}
-			return origin;
-		}
 		public int num() {
 			return num;
-		}
-	}
-	
-	
-	public static class ResultRoot extends AbstractResult {
-		public boolean isOneToMany() {
-			return true;
-		}
-		public AbstractResult origin() {
-			return this;
-		}
-		public int num() {
-			return 0;
 		}
 	}
 }

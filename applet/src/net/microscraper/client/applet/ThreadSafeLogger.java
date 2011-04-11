@@ -13,26 +13,26 @@ public class ThreadSafeLogger implements Logger {
 	@Override
 	public void e(Throwable e) {
 		List<String> list = stackTraceList(e);
-		list.add(0, "ERROR: " + e.toString());
+		list.add(0, "<error>" + e.toString() + "</error>");
 		log_list.addAll(list);
 	}
 
 	@Override
 	public void w(Throwable w) {
 		List<String> list = stackTraceList(w);
-		list.add(0, "WARNING: " + w.toString());
+		list.add(0, "<warning>" + w.toString() + "</warning>");
 		log_list.addAll(list);
 	}
 
 	@Override
 	public void i(String infoText) {
 		List<String> list = new ArrayList<String>();
-		list.add("INFO: " + infoText);
+		list.add("<info>" + infoText + "</info>");
 		log_list.addAll(list);
 	}
 	
 	/**
-	 * Pull out the most recent log item.
+	 * Pull out the oldest log item.
 	 * @return The log item, or null if there is none.
 	 */
 	public String unshift() {
@@ -49,7 +49,7 @@ public class ThreadSafeLogger implements Logger {
 		List<String> list = new ArrayList<String>();
 		int depth = traces.length < STACK_TRACE_DEPTH ? traces.length : STACK_TRACE_DEPTH;
 		for( int i = depth ; i >= 0; i--) {
-			list.add("TRACE: " + traces[i].toString());
+			list.add("<trace>" + traces[i].toString() + "</trace>");
 		}
 		return list;
 	}

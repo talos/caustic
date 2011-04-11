@@ -5,9 +5,9 @@ import java.net.URLDecoder;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import net.microscraper.client.AbstractResult;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
+import net.microscraper.client.Publisher;
 import net.microscraper.client.Utils;
 import net.microscraper.client.impl.ApacheBrowser;
 import net.microscraper.client.impl.JSONME;
@@ -18,11 +18,12 @@ public class ScrapeRunnable implements Runnable {
 	private final String url;
 	private final Default[] defaults;
 	
-	
 	private final Client client;
+	private final Publisher publisher;
 	
-	public ScrapeRunnable(String _url, String params_string, ThreadSafeLogger log) {
+	public ScrapeRunnable(String _url, String params_string, ThreadSafePublisher _publisher, ThreadSafeLogger log) {
 		url = _url;
+		publisher = _publisher;
 		String[] params = Utils.split(params_string, "&");
 		defaults = new Default[params.length];
 		
@@ -57,32 +58,11 @@ public class ScrapeRunnable implements Runnable {
 	}
 	
 	private class ScrapeAction implements PrivilegedAction<Void> {
-		//return "changed: " + Integer.toString(params.length);
-		
-		// test infinite looping
 		public Void run() {
-			boolean loop = true;
-			int test = 0;
-			while(loop == true) {
-				test++;
-				client.log.i(Integer.toString(test));
-			}
 			try {
-				AbstractResult[] results = client.scrape(url, defaults);
-				
-				String response = "";
-				for(int i = 0; i < results.length ; i ++ ) {
-					response += results[i].variables().toString();
-				}
-				//return response;
+				client.scrape(url, defaults, publisher);
 			} catch(Throwable e) {
-				//e.printStackTrace();
-				StackTraceElement[] traces = e.getStackTrace();
-				String traces_string = "";
-				for(int i = 0 ; i < 10 && i < traces.length; i ++ ) {
-					traces_string += traces[i].toString();
-				}
-				//return "Error: " + e.toString() + "Trace: " + traces_string;
+				client.log.e(e);
 			}
 			return null;
 		}

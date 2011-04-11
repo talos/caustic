@@ -1,13 +1,13 @@
 package net.microscraper.database.schema;
 
-import net.microscraper.client.AbstractResult;
-import net.microscraper.client.AbstractResult.Result;
+import net.microscraper.client.ResultSet;
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.client.ResultSet.Result;
 import net.microscraper.database.DatabaseException.ModelNotFoundException;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
@@ -36,7 +36,7 @@ public class Scraper {
 		source_scrapers = resource.relationship(Model.SOURCE_SCRAPERS);
 	}
 	
-	public void execute(AbstractResult calling_result)
+	public void execute(ResultSet calling_result)
 					throws TemplateException, InterruptedException, ResourceNotFoundException, ModelNotFoundException {
 		//AbstractResult[] calling_results = calling_result.livingResults();
 		Client.context().log.i("Executing scraper " + ref.toString());
@@ -78,7 +78,7 @@ public class Scraper {
 		//}
 	}
 	
-	private void processInput(String input, AbstractResult source_result) {
+	private void processInput(String input, ResultSet source_result) {
 		try {
 			if(match_number == null) {
 				source_result.addOneToMany(ref, pattern.allMatches(input));

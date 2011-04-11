@@ -1,6 +1,6 @@
 package net.microscraper.database.schema;
 
-import net.microscraper.client.AbstractResult.ResultRoot;
+import net.microscraper.client.ResultSet;
 import net.microscraper.client.Client;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.DatabaseException.ModelNotFoundException;
@@ -21,7 +21,7 @@ public class Data {
 		scrapers = resource.relationship(Model.SCRAPERS);
 	}
 	
-	public void scrape(ResultRoot root_result) throws InterruptedException, ResourceNotFoundException, ModelNotFoundException {
+	public void scrape(ResultSet root_result) throws InterruptedException, ResourceNotFoundException, ModelNotFoundException {
 		int prev_size = 0;
 		Client.context().log.i("Scraping data " + ref.toString());
 		while(root_result.size() != prev_size) {

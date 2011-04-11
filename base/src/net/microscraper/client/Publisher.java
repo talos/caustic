@@ -1,7 +1,9 @@
 package net.microscraper.client;
 
+import net.microscraper.client.ResultSet.Result;
+
 public interface Publisher {
-	public void publish(AbstractResult[] result) throws PublisherException;
+	public void publish(Result result) throws PublisherException;
 	
 	public class PublisherException extends Exception {
 
