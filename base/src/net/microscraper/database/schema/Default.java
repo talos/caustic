@@ -47,9 +47,10 @@ public class Default extends AbstractResource {
 	 */
 	public String[] execute(ResultSet source) throws TemplateException, MissingVariable {
 		String raw_value = attribute_get(VALUE);
-		return new String[] {
+		AbstractResource[] scrapers = relationship(SUBSTITUTED_SCRAPERS);
+		/*return new String[] {
 			Mustache.compile(raw_value, source.variables())
-		};
+		};*/
 	}
 	
 	private static final String VALUE = "value";

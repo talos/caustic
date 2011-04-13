@@ -1,12 +1,13 @@
 package net.microscraper.client;
 
 import net.microscraper.database.schema.AbstractHeader;
+import net.microscraper.database.schema.Cookie;
 import net.microscraper.database.schema.Header;
-import net.microscraper.database.schema.WebPage;
+import net.microscraper.database.schema.Post;
 
 public interface Browser {
-	
-	public String load(WebPage web_page) throws InterruptedException, BrowserException;
+	public String load(String url) throws InterruptedException, BrowserException;
+	public String load(String url, Post[] posts, Header[] headers, Cookie[] cookies) throws InterruptedException, BrowserException;
 	
 	public static final AbstractHeader[] DEFAULT_HEADERS = new AbstractHeader[] {
 		new Header("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.1; Windows XP)"),

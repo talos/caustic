@@ -52,10 +52,9 @@ public class Client {
 	public void scrape(String json_url, String model_name, Reference resource, Default[] extra_defaults, Publisher publisher)
 					throws MicroScraperClientException {
 		try {
-			WebPage json_web_page = new WebPage(json_url);
 			log.i("Scraping based off of object loaded from " + json_url);
 			
-			String raw_obj = browser.load(json_web_page);
+			String raw_obj = browser.load(json_url);
 			log.i("Raw scraping object: " + raw_obj);
 			
 			Database db = new Database(json.getTokener(raw_obj).nextValue());
