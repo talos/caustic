@@ -4,28 +4,25 @@ import net.microscraper.client.Client;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.client.ResultSet;
 import net.microscraper.client.Utils;
 import net.microscraper.client.Variables;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.database.DatabaseException.ModelNotFoundException;
+import net.microscraper.database.AbstractResource;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.Reference;
 import net.microscraper.database.RelationshipDefinition;
-import net.microscraper.database.Resource;
-import net.microscraper.database.schema.AbstractHeader.Cookie;
-import net.microscraper.database.schema.AbstractHeader.Header;
-import net.microscraper.database.schema.AbstractHeader.Post;
 
-public class WebPage  {
-	public final Reference ref;
+public class WebPage extends AbstractResource {
+	/*public final Reference ref;
 	
 	public final String url;
 	public final AbstractHeader[] posts;
 	public final AbstractHeader[] cookies;
 	public final AbstractHeader[] headers;
-	public final Pattern[] terminates;
-	public WebPage(Resource resource, Variables variables)
+	public final Pattern[] terminates;*/
+	/*public WebPage(Resource resource, Variables variables)
 				throws MissingVariable, TemplateException, ResourceNotFoundException, ModelNotFoundException {
 		ref = resource.ref;
 		Client.context().log.i("Generating WebPage " + ref.toString());
@@ -52,13 +49,13 @@ public class WebPage  {
 			terminates[i] = new Regexp(_terminates[i], variables).pattern;
 		}
 	}
-	
+	*/
 	/**
 	 * This creates a one-off WebPage resource for loading a page with the browser.
 	 * @param url
 	 * @return A web page with the specified URL and no headers.
 	 */
-	public WebPage(String _url) {
+	/*public WebPage(String _url) {
 		ref = new Reference("One-off web page");
 		url = _url;
 		posts = new AbstractHeader[] {};
@@ -66,13 +63,14 @@ public class WebPage  {
 		cookies = new AbstractHeader[] {};
 		terminates = new Pattern[] {};
 	}
-	
+	*/
 	/**
 	 * Test for equality against another web page.  Considered 'equal' if the URL and all
 	 * headers/posts/cookies/terminates are identical.
 	 * @param web_page
 	 * @return
 	 */
+	/*
 	public boolean equals(Object obj) {
 		if(this == obj)
 			return true;
@@ -103,23 +101,33 @@ public class WebPage  {
 		
 		return hashCode;
 	}
+	*/
+
+	public void execute(ResultSet source_result) throws TemplateException,
+			MissingVariable, ResourceNotFoundException {
+		Client.context().browser.load(
+				
+		);
+	}
+	private static final String URL = "url";
 	
-	public static class Model implements ModelDefinition {
-		public static final String KEY = "web_page";
-		
-		public static final String URL = "url";
-		
-		public static final RelationshipDefinition TERMINATES = new RelationshipDefinition( "terminates", Regexp.Model.KEY );
-		public static final RelationshipDefinition POSTS = new RelationshipDefinition( "posts", Post.Model.KEY );
-		public static final RelationshipDefinition HEADERS = new RelationshipDefinition( "headers", Header.Model.KEY );
-		public static final RelationshipDefinition COOKIES = new RelationshipDefinition( "cookies", Cookie.Model.KEY );
-		
-		public String key() { return KEY; }
-		public String[] attributes() { return new String[] { URL }; }
-		public RelationshipDefinition[] relationships() {
-			return new RelationshipDefinition[] {
-				TERMINATES, POSTS, HEADERS, COOKIES
-			};
-		}
+	private static final RelationshipDefinition TERMINATES =
+		new RelationshipDefinition( "terminates", Regexp.class );
+	private static final RelationshipDefinition POSTS =
+		new RelationshipDefinition( "posts", Post.class );
+	private static final RelationshipDefinition HEADERS =
+		new RelationshipDefinition( "headers", Header.class );
+	private static final RelationshipDefinition COOKIES =
+		new RelationshipDefinition( "cookies", Cookie.class );
+	
+	public ModelDefinition definition() {
+		return new ModelDefinition() {
+			public String[] attributes() { return new String[] { URL }; }
+			public RelationshipDefinition[] relationships() {
+				return new RelationshipDefinition[] {
+					TERMINATES, POSTS, HEADERS, COOKIES
+				};
+			}
+		};
 	}
 }

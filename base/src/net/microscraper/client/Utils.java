@@ -8,6 +8,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.microscraper.database.AbstractResource;
+
 /**
  * @author john
  *
@@ -177,5 +179,4 @@ public class Utils {
 			array[i] = hashtable.get(keys[i]);
 		}
 	}
-	
 }

@@ -3,10 +3,12 @@ package net.microscraper.database;
 public class Reference {
 	public static final String SEPARATOR = "/";
 	
+	public final Model model;
 	public final String creator;
 	public final String title;
 	
-	public Reference(String full_name) throws IllegalArgumentException {
+	public Reference(Model model, String full_name) throws IllegalArgumentException {
+		this.model = model;
 		int sep_index = full_name.indexOf(SEPARATOR);
 		if(sep_index == -1) {
 			creator = null;
@@ -17,13 +19,13 @@ public class Reference {
 		}
 		check();
 	}
-	
-	public Reference(String _creator, String _title) throws IllegalArgumentException {
+	/*
+	public Reference(String model, String _creator, String _title) throws IllegalArgumentException {
 		creator = _creator;
 		title = _title;
 		check();
 	}
-
+*/
 	private void check() throws IllegalArgumentException {
 		if(title == null) {
 			throw new IllegalArgumentException("Title of reference cannot be null.");
@@ -31,11 +33,8 @@ public class Reference {
 	}
 	
 	public String toString() {
-		if(creator != null) {
-			return creator + SEPARATOR + title;
-		} else {
-			return title;
-		}
+		String creator_string = (creator == null) ? "" : creator;
+		return model + SEPARATOR + creator_string + SEPARATOR + title;
 	}
 	
 	public boolean equals(Object obj) {
@@ -50,15 +49,16 @@ public class Reference {
 		return this.toString().hashCode();
 	}
 	
-	public static Reference[] fromArray(String[] strings) {
+	public static Reference[] fromArray(String model_name, String[] strings) {
 		Reference[] references = new Reference[strings.length];
 		for(int i = 0; i < strings.length; i ++) {
-			references[i] = new Reference(strings[i]);
+			references[i] = new Reference(Model.get(model_name), strings[i]);
 		}
 		return references;
 	}
-	
+	/*
 	public static Reference blank() {
 		return new Reference("", "");
 	}
+	*/
 }

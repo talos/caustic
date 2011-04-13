@@ -1,23 +1,23 @@
 package net.microscraper.database.schema;
 
 import net.microscraper.client.Mustache;
+import net.microscraper.client.ResultSet;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
+import net.microscraper.database.AbstractResource;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
-import net.microscraper.database.Resource;
 
-public class AbstractHeader {
-	public final String name;
-	public final String value;
-	public AbstractHeader(Resource resource, Variables variables) throws TemplateException, MissingVariable {
-		name = Mustache.compile(resource.attribute_get(AbstractHeaderModel.NAME), variables);
-		value = Mustache.compile(resource.attribute_get(AbstractHeaderModel.VALUE), variables);
+public abstract class AbstractHeader extends AbstractResource {
+	public void execute(ResultSet source_result) throws TemplateException, MissingVariable {
+		
 	}
-	public AbstractHeader(String _name, String _value) {
-		name = _name;
-		value = _value;
+	public String name(Variables variables) throws TemplateException, MissingVariable {
+		return Mustache.compile(attribute_get(NAME), variables);
+	}
+	public String value(Variables variables) throws TemplateException, MissingVariable {
+		return Mustache.compile(attribute_get(VALUE), variables);
 	}
 	public boolean equals(Object obj) {
 		if(this == obj)
@@ -33,31 +33,13 @@ public class AbstractHeader {
 	public int hashCode() {
 		return name.hashCode() + value.hashCode();
 	}
-	
-	protected static abstract class AbstractHeaderModel implements ModelDefinition {
-		public static final String NAME = "name";
-		public static final String VALUE = "value";
-		
-		public String[] attributes() { return new String[] { NAME, VALUE }; }
-		public RelationshipDefinition[] relationships() { return new RelationshipDefinition[] {}; }
-	
-	}
-	public static abstract class Post {
-		public static class Model extends AbstractHeaderModel {
-			public static String KEY = "post";
-			public String key() { return KEY; }
-		}
-	}
-	public static abstract class Header {
-		public static class Model extends AbstractHeaderModel {
-			public static String KEY = "header";
-			public String key() { return KEY; }
-		}
-	}
-	public static abstract class Cookie {
-		public static class Model extends AbstractHeaderModel {
-			public static String KEY = "cookie";
-			public String key() { return KEY; }
-		}
+	public static final String NAME = "name";
+	public static final String VALUE = "value";
+
+	public ModelDefinition definition() {
+		return new ModelDefinition() {
+			public String[] attributes() { return new String[] { NAME, VALUE }; }
+			public RelationshipDefinition[] relationships() { return new RelationshipDefinition[] {}; }
+		};
 	}
 }

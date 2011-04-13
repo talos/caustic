@@ -99,10 +99,10 @@ public class ResultSet {
 	}
 	
 	/*
-	 * Get all the results scraping a particular ref within this scope.
+	 * Get all the string results scraping a particular ref within this scope.
 	 */
-	public Result[] get(Reference ref) {
-		Vector results = new Vector();
+	public String[] get(Reference ref) {
+		/*Vector results = new Vector();
 		Result[] descendents = descendents();
 		for(int i = 0; i < descendents.length; i++) {
 			if(descendents[i].ref.equals(ref))
@@ -110,7 +110,16 @@ public class ResultSet {
 		}
 		Result[] results_ary = new Result[results.size()];
 		results.copyInto(results_ary);
-		return results_ary;
+		return results_ary;*/
+		Vector results = new Vector();
+		Result[] descendents = descendents();
+		for(int i = 0; i < descendents.length; i++) {
+			if(descendents[i].ref.equals(ref))
+				results.addElement(descendents[i].value);
+		}
+		String[] result_values_ary = new String[results.size()];
+		results.copyInto(result_values_ary);
+		return result_values_ary;
 	}
 	
 	public boolean isOneToMany() {

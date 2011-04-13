@@ -1,5 +1,5 @@
 package net.microscraper.database;
-
+/*
 import java.util.Hashtable;
 
 import net.microscraper.client.Interfaces.JSON;
@@ -14,7 +14,7 @@ public class Resource {
 	private final Hashtable relationships;
 	private final Database db;
 	
-	private Resource(Database _db, ModelDefinition _model, Reference _ref, Hashtable _attributes, Hashtable _relationships) {
+	protected Resource(Database _db, ModelDefinition _model, Reference _ref, Hashtable _attributes, Hashtable _relationships) {
 		db = _db;
 		model = _model;
 		ref = _ref;
@@ -26,13 +26,6 @@ public class Resource {
 		return (String) attributes.get(name);
 	}
 	
-	/**
-	 * Retrieve all the resources related through a specific Relationship.
-	 * @param relationship
-	 * @return
-	 * @throws ModelNotFoundException 
-	 * @throws ResourceNotFoundException
-	 */
 	public Resource[] relationship(RelationshipDefinition relationship) throws ResourceNotFoundException, ModelNotFoundException {
 		//return relationship.all(this);
 		Reference[] references = (Reference[]) relationships.get(relationship.key);
@@ -43,14 +36,6 @@ public class Resource {
 		return resources;
 	}
 	
-	/**
-	 * Inflate a resource serialized in JSON.
-	 * @param model
-	 * @param reference
-	 * @param json_obj
-	 * @return
-	 * @throws JSONInterfaceException
-	 */
 	public static Resource inflate(Database db, ModelDefinition model, Reference reference, JSON.Object json_obj)
 					throws JSONInterfaceException {
 		Hashtable attributes = new Hashtable();
@@ -68,6 +53,8 @@ public class Resource {
 				((Reference[]) relationships.get(relationship_def.key))[j] = new Reference(references[j]);
 			}
 		}
+		
 		return new Resource(db, model, reference, attributes, relationships);
 	}
 }
+*/
