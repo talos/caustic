@@ -10,6 +10,8 @@ import net.microscraper.client.ResultSet.Result;
 import net.microscraper.client.impl.ApacheBrowser;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
+import net.microscraper.client.impl.ThreadSafePublisher;
+import net.microscraper.database.Reference;
 
 /**
  * Provides interface between browser and scraper applet through public methods.
@@ -39,10 +41,10 @@ public class MicroScraperApplet extends Applet {
 	 * @param url
 	 * @param params_string
 	 */
-	public boolean start(String url, String params_string) {
+	public boolean start(String url, String model, String resource_ref, String params_string) {
 		try {
 			if(!isAlive()) {
-				thread = new Thread(new ScrapeRunnable(url, params_string, publisher, client));
+				thread = new Thread(new ScrapeRunnable(url, model, new Reference(resource_ref), params_string, publisher, client));
 				thread.start();
 				return true;
 			}

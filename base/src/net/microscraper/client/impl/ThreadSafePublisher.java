@@ -1,16 +1,13 @@
-package net.microscraper.client.applet;
+package net.microscraper.client.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Vector;
 
 import net.microscraper.client.Publisher;
 import net.microscraper.client.ResultSet.Result;
 
 public class ThreadSafePublisher implements Publisher {
-	List<Result> results = Collections.synchronizedList(new ArrayList<Result>());
+	Vector results = new Vector();
 	
-	@Override
 	public void publish(Result result) throws PublisherException {
 		results.add(result);
 	}
@@ -21,7 +18,7 @@ public class ThreadSafePublisher implements Publisher {
 	 */
 	public Result unshift() {
 		try {
-			return results.remove(0);
+			return (Result) results.remove(0);
 		} catch(IndexOutOfBoundsException e) {
 			return null;
 		}

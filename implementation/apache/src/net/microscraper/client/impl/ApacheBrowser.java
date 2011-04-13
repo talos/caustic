@@ -35,6 +35,9 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 public class ApacheBrowser implements Browser {
+	public static final boolean USE_CACHE = true;
+	public static final boolean DO_NOT_USE_CACHE = false;
+	
 	private final BasicCookieStore cookie_store = new BasicCookieStore();
 	private final HttpParams http_params = new BasicHttpParams();
 	private final DefaultHttpClient http_client = new DefaultHttpClient();

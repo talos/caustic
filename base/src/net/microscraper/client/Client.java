@@ -8,8 +8,7 @@ import net.microscraper.client.Interfaces.Regexp;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
-import net.microscraper.database.Resource;
-import net.microscraper.database.schema.Data;
+import net.microscraper.database.Reference;
 import net.microscraper.database.schema.Default;
 import net.microscraper.database.schema.WebPage;
 
@@ -45,11 +44,12 @@ public class Client {
 			return instance;
 	}
 	
-	public void scrape(String json_url, Publisher publisher) throws MicroScraperClientException {
+	/*public void scrape(String json_url, Publisher publisher) throws MicroScraperClientException {
 		scrape(json_url, new Default[] {}, publisher);
-	}
+	}*/
 	
-	public void scrape(String json_url, Default[] extra_defaults, Publisher publisher)
+	//public void scrape(String json_url, Default[] extra_defaults, Publisher publisher)
+	public void scrape(String json_url, String model_name, Reference resource, Default[] extra_defaults, Publisher publisher)
 					throws MicroScraperClientException {
 		try {
 			WebPage json_web_page = new WebPage(json_url);
@@ -60,6 +60,18 @@ public class Client {
 			
 			Database db = new Database(json.getTokener(raw_obj).nextValue());
 			
+			ResultSet results = new ResultSet(publisher);
+			for(int j = 0 ; j < extra_defaults.length; j ++) {
+				try {
+					extra_defaults[j].simulate(results);
+				} catch (TemplateException e) { // A problem with the mustache template for one of the defaults.  Skip it.
+					log.w(e);
+				}
+			}
+			
+			db.get(model_name, resource);
+			
+			/*
 			Resource[] datas = db.get(Data.Model.KEY);
 			//ResultRoot[] results = new ResultRoot[datas.length];
 			for(int i = 0; i < datas.length; i ++) {
@@ -75,7 +87,7 @@ public class Client {
 				Data data = new Data(datas[i]);
 				data.scrape(results);
 			}
-			
+			*/
 			//return results;
 		} catch(BrowserException e) {
 			log.e(e);

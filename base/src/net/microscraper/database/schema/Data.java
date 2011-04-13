@@ -44,7 +44,6 @@ public class Data {
 			}
 			Client.context().log.i(Integer.toString(root_result.size()));
 		}
-		//return root_result;
 	}
 	
 	public static class Model implements ModelDefinition {

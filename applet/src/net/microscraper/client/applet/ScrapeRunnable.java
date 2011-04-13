@@ -1,45 +1,30 @@
 package net.microscraper.client.applet;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
-import net.microscraper.client.Utils;
+import net.microscraper.client.impl.ThreadSafePublisher;
+import net.microscraper.database.Reference;
 import net.microscraper.database.schema.Default;
 
 public class ScrapeRunnable implements Runnable {
 	private final String url;
+	private final String model;
+	private final Reference resource_ref;
 	private final Default[] defaults;
 	
 	private final Client client;
 	private final Publisher publisher;
 	
-	public ScrapeRunnable(String _url, String params_string, ThreadSafePublisher _publisher, Client _client) {
+	public ScrapeRunnable(String _url, String _model, Reference _resource_ref, String params_string, ThreadSafePublisher _publisher, Client _client) {
 		url = _url;
 		publisher = _publisher;
-		String[] params = Utils.split(params_string, "&");
-		defaults = new Default[params.length];
-		
+		model = _model;
+		resource_ref = _resource_ref;
 		client = _client;
-		
-		try {
-			for(int i = 0 ; i < params.length ; i ++ ) {
-				String[] name_value = Utils.split(params[i], "=");
-				defaults[i] =
-					new Default(
-								URLDecoder.decode(name_value[0], MicroScraperApplet.encoding),
-								URLDecoder.decode(name_value[1], MicroScraperApplet.encoding)
-								);
-			}
-		} catch(IndexOutOfBoundsException e) {
-			throw new IllegalArgumentException("Parameters '" + params_string + "' should be serialized like HTTP Post data.");
-		} catch(UnsupportedEncodingException e) {
-			//throw new IllegalArgumentException("Unsupported encoding: " + e.getMessage());
-			throw new Error(e);
-		}
+		defaults = Default.fromFormParams(params_string, MicroScraperApplet.encoding);
 	}
 	@Override
 	public void run() {
@@ -49,7 +34,7 @@ public class ScrapeRunnable implements Runnable {
 	private class ScrapeAction implements PrivilegedAction<Void> {
 		public Void run() {
 			try {
-				client.scrape(url, defaults, publisher);
+				client.scrape(url, model, resource_ref, defaults, publisher);
 			} catch(Throwable e) {
 				client.log.e(e);
 			}

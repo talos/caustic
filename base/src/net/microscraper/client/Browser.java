@@ -4,6 +4,7 @@ import net.microscraper.database.schema.AbstractHeader;
 import net.microscraper.database.schema.WebPage;
 
 public interface Browser {
+	
 	public String load(WebPage web_page) throws InterruptedException, BrowserException;
 	
 	public static final AbstractHeader[] DEFAULT_HEADERS = new AbstractHeader[] {

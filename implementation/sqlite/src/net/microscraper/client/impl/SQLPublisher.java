@@ -1,9 +1,8 @@
 package net.microscraper.client.impl;
 
-import net.microscraper.client.AbstractResult;
 import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
-import net.microscraper.client.AbstractResult.Result;
+import net.microscraper.client.ResultSet.Result;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 
 public class SQLPublisher implements Publisher {
@@ -34,27 +33,22 @@ public class SQLPublisher implements Publisher {
 		}
 	}
 	
-	public void publish(AbstractResult[] results) throws PublisherException {
-		for(int i = 0; i < results.length; i ++) {
-			try {
-				Result[] entries = results[i].children();
-				for(int j = 0; j < entries.length ; j ++ ) {
-					String insert_sql = "INSERT INTO " + inter.quoteField(TABLE_NAME) + " (" +
-						inter.quoteField(CALLING_SCRAPER_NUMBER) + ", " +
-						inter.quoteField(SCRAPER_NUMBER) + ", " + 
-						inter.quoteField(SCRAPER_REF) + ", " +
-						inter.quoteField(SCRAPER_VALUE) +
-						") VALUES (" + 
-						inter.quoteValue(Integer.toString(entries[j].caller.num())) + ", " +
-						inter.quoteValue(Integer.toString(entries[j].num())) + ", " +
-						inter.quoteValue(entries[j].ref.toString()) + ", " +
-						inter.quoteValue(entries[j].value) + " )";
-					inter.execute(insert_sql);
-				}
-			} catch(SQLInterfaceException e) {
-				Client.context().log.e(e);
-				throw new PublisherException();
-			}
+	public void publish(Result result) throws PublisherException {
+		try {
+			String insert_sql = "INSERT INTO " + inter.quoteField(TABLE_NAME) + " (" +
+				inter.quoteField(CALLING_SCRAPER_NUMBER) + ", " +
+				inter.quoteField(SCRAPER_NUMBER) + ", " + 
+				inter.quoteField(SCRAPER_REF) + ", " +
+				inter.quoteField(SCRAPER_VALUE) +
+				") VALUES (" + 
+				inter.quoteValue(Integer.toString(result.caller.num())) + ", " +
+				inter.quoteValue(Integer.toString(result.num())) + ", " +
+				inter.quoteValue(result.ref.toString()) + ", " +
+				inter.quoteValue(result.value) + " )";
+			inter.execute(insert_sql);
+		} catch(SQLInterfaceException e) {
+			Client.context().log.e(e);
+			throw new PublisherException();
 		}
 	}
 }
