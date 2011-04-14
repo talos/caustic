@@ -2,8 +2,8 @@ package net.microscraper.client.impl;
 
 import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
-import net.microscraper.client.ResultSet.Result;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
+import net.microscraper.database.Result;
 
 public class SQLPublisher implements Publisher {
 	
@@ -41,8 +41,8 @@ public class SQLPublisher implements Publisher {
 				inter.quoteField(SCRAPER_REF) + ", " +
 				inter.quoteField(SCRAPER_VALUE) +
 				") VALUES (" + 
-				inter.quoteValue(Integer.toString(result.caller.num())) + ", " +
-				inter.quoteValue(Integer.toString(result.num())) + ", " +
+				inter.quoteValue(Integer.toString(result.caller.id)) + ", " +
+				inter.quoteValue(Integer.toString(result.id)) + ", " +
 				inter.quoteValue(result.ref.toString()) + ", " +
 				inter.quoteValue(result.value) + " )";
 			inter.execute(insert_sql);
@@ -50,5 +50,9 @@ public class SQLPublisher implements Publisher {
 			Client.context().log.e(e);
 			throw new PublisherException();
 		}
+	}
+
+	public boolean live() {
+		return true;
 	}
 }

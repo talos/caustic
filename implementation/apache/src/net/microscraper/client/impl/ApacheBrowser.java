@@ -7,14 +7,17 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import net.microscraper.client.Browser;
 import net.microscraper.client.Client;
+import net.microscraper.client.Mustache.MissingVariable;
+import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
+import net.microscraper.database.AbstractResource;
+import net.microscraper.database.DatabaseException.ResourceNotFoundException;
+import net.microscraper.database.Result;
 import net.microscraper.database.schema.AbstractHeader;
-import net.microscraper.database.schema.WebPage;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -35,18 +38,18 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 public class ApacheBrowser implements Browser {
-	public static final boolean USE_CACHE = true;
-	public static final boolean DO_NOT_USE_CACHE = false;
+	//public static final boolean USE_CACHE = true;
+	//public static final boolean DO_NOT_USE_CACHE = false;
 	
 	private final BasicCookieStore cookie_store = new BasicCookieStore();
 	private final HttpParams http_params = new BasicHttpParams();
 	private final DefaultHttpClient http_client = new DefaultHttpClient();
 	
-	private final HashMap<WebPage, String> cache = new HashMap<WebPage, String>();
-	private final boolean use_cache;
+	//private final HashMap<WebPage, String> cache = new HashMap<WebPage, String>();
+	//private final boolean use_cache;
 	
-	public ApacheBrowser(boolean _use_cache) {
-		use_cache = _use_cache;
+	public ApacheBrowser(/*boolean _use_cache*/) {
+		//use_cache = _use_cache;
 		http_params.setParameter(ClientPNames.HANDLE_REDIRECTS, true);
 		http_params.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
 		http_params.setParameter(ClientPNames.REJECT_RELATIVE_REDIRECT, false);
@@ -55,24 +58,31 @@ public class ApacheBrowser implements Browser {
 		http_client.setCookieStore(cookie_store);
 		http_client.setParams(http_params);
 	}
+
+
+	@Override
+	public String load(String url) throws InterruptedException,
+			BrowserException {
+		try {
+			return load(url, new AbstractResource[] {}, new AbstractResource[] {}, new AbstractResource[] {}, new AbstractResource[] {}, null);
+		} catch (Exception e) {
+			Client.context().log.e(e);
+			throw new BrowserException(e.toString());
+		}
+	}
 	
 	@Override
-	public String load(WebPage web_page) throws InterruptedException,
-			BrowserException {
-		Client.context().log.i("Loading WebPage " + web_page.ref.toString());
-		if(cache.containsKey(web_page) && use_cache == true) {
+	public String load(String url, AbstractResource[] posts, AbstractResource[] headers,
+			AbstractResource[] cookies, AbstractResource[] terminates, Result caller)
+			throws InterruptedException, BrowserException, ResourceNotFoundException, TemplateException, MissingVariable {
+		/*if(cache.containsKey(web_page) && use_cache == true) {
 			Client.context().log.i("Caught in cache");
 			return cache.get(web_page);
-		}
+		}*/
 		try {
-			URI uri = new URI(web_page.url);
+			URI uri = new URI(url);
 			
 			Client.context().log.i(uri.toString());
-			
-			AbstractHeader[] posts = web_page.posts;
-			AbstractHeader[] cookies = web_page.cookies;
-			AbstractHeader[] headers = web_page.headers;
-			Pattern[] terminates = web_page.terminates;
 			
 			// Set up our httpclient to handle 302 redirects properly.
 			http_client.setRedirectHandler(new RedirectHandler(uri));
@@ -83,24 +93,25 @@ public class ApacheBrowser implements Browser {
 			if(posts.length > 0) {
 				HttpPost http_post = new HttpPost(uri);
 				
-				http_post.setEntity(generateFormEntity(posts));
+				http_post.setEntity(generateFormEntity(posts, caller));
 				http_request = http_post;
 			} else {
 				http_request = new HttpGet(uri);
 			}
 			
 			// Add headers.
-			addHeaders(http_request, Browser.DEFAULT_HEADERS);
+			addHeaders(http_request, Browser.DEFAULT_HEADERS, caller);
 			addHeaders(http_request, new AbstractHeader[] {
 				new AbstractHeader(Browser.REFERER_HEADER_NAME, uri.toString())	
-			});
-			addHeaders(http_request, headers);
+			}, caller);
+			addHeaders(http_request, headers, caller);
 			
 			Client.context().log.i("......");
 			
 			// Add cookies.
 			for(int i = 0 ; i < cookies.length ; i ++) {
-				BasicClientCookie cookie = new BasicClientCookie(cookies[i].name, cookies[i].value);
+				Result cookie_result = headers[i].getValue(caller)[0];
+				BasicClientCookie cookie = new BasicClientCookie(cookie_result.key, cookie_result.value);
 				cookie.setDomain(uri.getHost());
 				cookie_store.addCookie(cookie);
 			}
@@ -109,6 +120,12 @@ public class ApacheBrowser implements Browser {
 			
 			StatusLine status = response.getStatusLine();
 			
+			// Set up patterns
+			Pattern[] patterns = new Pattern[terminates.length];
+			for(int i = 0; i < terminates.length; i++) {
+				patterns[i] = Client.context().regexp.compile(terminates[i].getValue(caller)[0].value);
+			}
+
 			// Convert the stream into a string.
 			if(status.getStatusCode() == 200) {
 				HttpEntity entity = response.getEntity();
@@ -120,18 +137,17 @@ public class ApacheBrowser implements Browser {
 				
 				loading: while ((readBytes = stream.read(buffer)) != -1) {
 					//Client.context().log.i(new String(buffer));
-
 					content.write(buffer, 0, readBytes);
 					content_string = new String(content.toByteArray());
-					for(int i = 0; i < terminates.length; i++) {
-						if(terminates[i].matches(content_string)){
+					for(int i = 0 ; i < patterns.length ; i ++) {
+						if(patterns[i].matches(content_string)){
 							Client.context().log.i("Terminating " + uri.toString() + " due to pattern " + terminates[i].toString());
 							break loading;
 						}
 					}
 				}
 				String string_content = content.toString();
-				cache.put(web_page, string_content);
+				//cache.put(web_page, string_content);
 				return string_content;
 			} else {
 				throw new BrowserException("Unable to get content: " + Integer.toString(status.getStatusCode()));
@@ -143,9 +159,11 @@ public class ApacheBrowser implements Browser {
 		}
 	}
 	
-	private static void addHeaders(HttpRequestBase http_request, AbstractHeader[] headers) {
+	private static void addHeaders(HttpRequestBase http_request, AbstractResource[] headers, Result caller)
+				throws ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException, BrowserException {
 		for(int i = 0 ; i < headers.length ; i ++) {
-			http_request.addHeader(headers[i].name, headers[i].value);
+			Result header = headers[i].getValue(caller)[0];
+			http_request.addHeader(header.key, header.value);
 		}
 	}
 	
@@ -153,12 +171,18 @@ public class ApacheBrowser implements Browser {
 	 * Private method, converts an array of AbstractHeaders to an UrlEncodedFormEntity.
 	 * @param headers.
 	 * @throws UnsupportedEncodingException If the Map contains a string that cannot be encoded.
+	 * @throws BrowserException 
+	 * @throws InterruptedException 
+	 * @throws MissingVariable 
+	 * @throws TemplateException 
+	 * @throws ResourceNotFoundException 
 	 */
-	private static UrlEncodedFormEntity generateFormEntity(AbstractHeader[] headers)
-				throws UnsupportedEncodingException {
+	private static UrlEncodedFormEntity generateFormEntity(AbstractResource[] headers, Result caller)
+				throws UnsupportedEncodingException, ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException, BrowserException {
 		List<BasicNameValuePair> pairs = new ArrayList<BasicNameValuePair>();
 		for(int i = 0; i < headers.length ; i ++) {
-			pairs.add(new BasicNameValuePair(headers[i].name, headers[i].value));
+			Result header = headers[i].getValue(caller)[0];
+			pairs.add(new BasicNameValuePair(header.key, header.value));
 		}
 		return new UrlEncodedFormEntity(pairs);
 	}

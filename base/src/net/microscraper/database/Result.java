@@ -2,6 +2,9 @@ package net.microscraper.database;
 
 import java.util.Vector;
 
+import net.microscraper.client.Client;
+import net.microscraper.client.Publisher;
+import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.client.Utils;
 import net.microscraper.client.Variables;
 
@@ -15,6 +18,7 @@ public class Result {
 	public final String value;
 	public final int id;
 	private static int number = 0;
+	private final Publisher publisher = Client.context().publisher;
 	public Result(Result caller, AbstractResource resource, String key, String value) {
 		this.caller = caller;
 		this.ref = resource.ref();
@@ -29,6 +33,14 @@ public class Result {
 		this.caller.addCalled(this);
 		this.id = number;
 		number++;
+		
+		if(publisher.live()) {
+			try {
+				publisher.publish(this);
+			} catch (PublisherException e) {
+				Client.context().log.e(e);
+			}
+		}
 	}
 	public void addCalled(Result called) {
 		this.called.addElement(called);

@@ -14,6 +14,13 @@ import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Result;
 
 public class Default extends AbstractResource {	
+	private String name;
+	private String value;
+	public Default() {};
+	public Default(String name, String value) {
+		this.name = name;
+		this.value = value;
+	}
 	/**
 	 * Simulate the Default for the specified source.
 	 * @param source
@@ -24,15 +31,15 @@ public class Default extends AbstractResource {
 	 * @throws ResourceNotFoundException 
 	 */
 	public Result[] execute(Result caller) throws TemplateException, MissingVariable, ResourceNotFoundException {
-		String raw_value = attribute_get(VALUE);
+		String raw_value = value != null ? value : attribute_get(VALUE);
 		AbstractResource[] scrapers = relationship(SUBSTITUTED_SCRAPERS);
 		Result[] results = new Result[scrapers.length];
 		for(int i = 0 ; i < scrapers.length ; i ++) {
-			results[i] = new Result(caller, scrapers[i], scrapers[i].ref().title, Mustache.compile(raw_value, caller.variables()));
+			results[i] = new Result(caller, scrapers[i], name != null ? name : scrapers[i].ref().title, Mustache.compile(raw_value, caller.variables()));
 		}
 		return results;
 	}
-
+	
 	/**
 	 * Simulate defaults from a form-style parameter string, like
 	 * key1=val1&key2=val2 ...
@@ -42,18 +49,18 @@ public class Default extends AbstractResource {
 	 * @throws MissingVariable 
 	 * @throws TemplateException 
 	 */
-	public static Result[] simulateFromFormParams(String params_string, String encoding, Result caller)
+	public static Default[] fromFormParams(String params_string, String encoding, Result caller)
 				throws TemplateException, MissingVariable {
 		String[] params = Utils.split(params_string, "&");
-		Result[] results = new Result[params.length];
+		Default[] defaults = new Default[params.length];
 		try {
 			for(int i = 0 ; i < params.length ; i ++ ) {
 				String[] name_value = Utils.split(params[i], "=");
 				String name = URLDecoder.decode(name_value[0], encoding);
 				String value = URLDecoder.decode(name_value[1], encoding);
-				results[i] = new Result(caller, new Scraper(), name, Mustache.compile(value, caller.variables()));
+				defaults[i] = new Default(name, value); //, name, Mustache.compile(value, caller.variables()));
 			}
-			return results;
+			return defaults;
 		} catch(IndexOutOfBoundsException e) {
 			throw new IllegalArgumentException("Parameters '" + params_string + "' should be serialized like HTTP Post data.");
 		} catch(UnsupportedEncodingException e) {

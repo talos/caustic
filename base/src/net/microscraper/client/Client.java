@@ -5,35 +5,38 @@ import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Interfaces.Regexp;
+import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
 import net.microscraper.database.Reference;
+import net.microscraper.database.Result;
 import net.microscraper.database.schema.Default;
-import net.microscraper.database.schema.WebPage;
 
 public class Client {
 	public final Log log = new Log();
 	public final Regexp regexp;
 	public final JSON json;
 	public final Browser browser;
+	public final Publisher publisher;
 	private static Client instance;
 	
-	private Client (Browser _browser, Interfaces.Regexp _regexp,
-			Interfaces.JSON _json, Logger[] loggers) {
-		browser = _browser;
-		regexp = _regexp;
-		json = _json;
+	private Client (Browser browser, Interfaces.Regexp regexp,
+			Interfaces.JSON json, Logger[] loggers, Publisher publisher) {
+		this.browser = browser;
+		this.regexp = regexp;
+		this.json = json;
+		this.publisher = publisher;
 		for(int i = 0; i < loggers.length ; i ++) {
 			log.register(loggers[i]);
 		}
 	}
 	
-	public static Client initialize (Browser _browser, Interfaces.Regexp _regexp,
-			Interfaces.JSON _json, Logger[] loggers) {
+	public static Client initialize (Browser browser, Interfaces.Regexp regexp,
+			Interfaces.JSON json, Logger[] loggers, Publisher publisher) {
 		if(instance != null)
 			return instance;
-		instance = new Client(_browser, _regexp, _json, loggers);
+		instance = new Client(browser, regexp, json, loggers, publisher);
 		return instance;
 	}
 	
@@ -44,12 +47,7 @@ public class Client {
 			return instance;
 	}
 	
-	/*public void scrape(String json_url, Publisher publisher) throws MicroScraperClientException {
-		scrape(json_url, new Default[] {}, publisher);
-	}*/
-	
-	//public void scrape(String json_url, Default[] extra_defaults, Publisher publisher)
-	public void scrape(String json_url, String model_name, Reference resource, Default[] extra_defaults, Publisher publisher)
+	public Result[] scrape(String json_url, Reference ref, Default[] extra_defaults)
 					throws MicroScraperClientException {
 		try {
 			log.i("Scraping based off of object loaded from " + json_url);
@@ -57,16 +55,15 @@ public class Client {
 			String raw_obj = browser.load(json_url);
 			log.i("Raw scraping object: " + raw_obj);
 			
-			Database db = new Database(json.getTokener(raw_obj).nextValue());
-			
-			for(int j = 0 ; j < extra_defaults.length; j ++) {
-				try {
-					extra_defaults[j].simulate(results);
-				} catch (TemplateException e) { // A problem with the mustache template for one of the defaults.  Skip it.
-					log.w(e);
-				}
+			Result _default = null;
+			if(extra_defaults.length > 0)
+				_default = extra_defaults[0].getValue(null)[0];
+			for(int i = 1 ; i < extra_defaults.length ; i ++) {
+				extra_defaults[i].getValue(_default);
 			}
 			
+			Database db = new Database(json.getTokener(raw_obj).nextValue());
+			return db.get(ref).getValue(_default);
 		} catch(BrowserException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);
@@ -77,6 +74,18 @@ public class Client {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		} catch(DatabaseException e) {
+			log.e(e);
+			throw new MicroScraperClientException(e);
+		} catch(InstantiationException e) {
+			log.e(e);
+			throw new MicroScraperClientException(e);
+		} catch(IllegalAccessException e) {
+			log.e(e);
+			throw new MicroScraperClientException(e);
+		} catch(TemplateException e) {
+			log.e(e);
+			throw new MicroScraperClientException(e);
+		} catch(MissingVariable e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		}

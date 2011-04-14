@@ -17,7 +17,7 @@ public class WebPage extends AbstractResource {
 		return new Result[] {
 			new Result(caller, this, this.ref().title, Client.context().browser.load(
 				attribute_get(URL), relationship(POSTS), relationship(HEADERS), relationship(COOKIES), relationship(TERMINATES),
-				caller.variables()
+				caller
 			))
 		};
 	}

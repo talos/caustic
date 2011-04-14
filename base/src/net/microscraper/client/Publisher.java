@@ -5,6 +5,11 @@ import net.microscraper.database.Result;
 public interface Publisher {
 	public void publish(Result result) throws PublisherException;
 	
+	/**
+	 * Publish results as they appear?
+	 * @return
+	 */
+	public boolean live();
 	public class PublisherException extends Exception {
 
 		/**

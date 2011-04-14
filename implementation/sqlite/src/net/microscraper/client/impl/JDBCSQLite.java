@@ -6,14 +6,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import net.microscraper.client.Log;
+import net.microscraper.client.Interfaces;
 
 public class JDBCSQLite implements SQLInterface {
 	private final Connection connection;
-	private final Log log;
+	private final Interfaces.Logger log;
 	
-	public JDBCSQLite(String pathToDB, Log _log) throws SQLInterfaceException {
-		log = _log;
+	public JDBCSQLite(String pathToDB, Interfaces.Logger log) throws SQLInterfaceException {
+		this.log = log;
 		try {
 			Class.forName("org.sqlite.JDBC"); // Make sure we have this class.
 			connection = DriverManager.getConnection("jdbc:sqlite:" + pathToDB);
