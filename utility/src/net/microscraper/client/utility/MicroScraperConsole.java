@@ -26,7 +26,7 @@ public class MicroScraperConsole {
 	}
 	public MicroScraperConsole(String[] args) {
 		
-		if(args.length < 4) {
+		if(args.length < 3) {
 			log.i("Proper use: microscraperconsole <url> <model> <resource> <defaults>");
 		} else {
 			try {
@@ -39,7 +39,10 @@ public class MicroScraperConsole {
 				);
 				String url = args[0];
 				Reference resource_ref = new Reference(Model.get(args[1]), args[2]);
-				Default[] defaults = Default.fromFormParams(args[3], ENCODING, null);
+				Default[] defaults = new Default[] {};
+				if(args[3] != null) {
+					defaults = Default.fromFormParams(args[3], ENCODING, null);
+				}
 				/*Default[] defaults = new Default[] {
 					new Default("Borough_Number", "3"),
 					new Default("House_Number", "373"),
