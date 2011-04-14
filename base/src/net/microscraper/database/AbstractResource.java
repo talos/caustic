@@ -2,6 +2,7 @@ package net.microscraper.database;
 
 import java.util.Hashtable;
 
+import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
@@ -59,10 +60,10 @@ public abstract class AbstractResource {
 	
 	public abstract ModelDefinition definition();
 	protected abstract Result[] execute(Result calling_result)
-			throws TemplateException, MissingVariable, ResourceNotFoundException;
+			throws TemplateException, MissingVariable, ResourceNotFoundException, InterruptedException, BrowserException;
 	
 	public Result[] getValue(Result calling_result)
-			throws ResourceNotFoundException, TemplateException, MissingVariable {
+			throws ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException, BrowserException {
 		Client.context().log.i("Result '" + calling_result.toString() + "' calling '" + ref().toString() + "'");
 		
 		// Catch if this has already been from that calling_result.

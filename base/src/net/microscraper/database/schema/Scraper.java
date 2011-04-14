@@ -2,6 +2,7 @@ package net.microscraper.database.schema;
 
 import java.util.Vector;
 
+import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
@@ -15,7 +16,7 @@ import net.microscraper.database.Result;
 
 public class Scraper extends AbstractResource {
 	public Result[] execute(Result caller)
-					throws TemplateException, ResourceNotFoundException, MissingVariable {
+					throws TemplateException, ResourceNotFoundException, MissingVariable, InterruptedException, BrowserException {
 		AbstractResource[] web_pages = relationship(WEB_PAGES);
 		AbstractResource[] source_scrapers = relationship(SOURCE_SCRAPERS);
 		Vector input_strings = new Vector();

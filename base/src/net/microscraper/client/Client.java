@@ -59,7 +59,6 @@ public class Client {
 			
 			Database db = new Database(json.getTokener(raw_obj).nextValue());
 			
-			ResultSet results = new ResultSet(publisher);
 			for(int j = 0 ; j < extra_defaults.length; j ++) {
 				try {
 					extra_defaults[j].simulate(results);
@@ -68,26 +67,6 @@ public class Client {
 				}
 			}
 			
-			db.get(model_name, resource);
-			
-			/*
-			Resource[] datas = db.get(Data.Model.KEY);
-			//ResultRoot[] results = new ResultRoot[datas.length];
-			for(int i = 0; i < datas.length; i ++) {
-				//results[i] = new ResultRoot(publisher);
-				ResultSet results = new ResultSet(publisher);
-				for(int j = 0 ; j < extra_defaults.length; j ++) {
-					try {
-						extra_defaults[j].simulate(results);
-					} catch (TemplateException e) { // A problem with the mustache template for one of the defaults.  Skip it.
-						log.w(e);
-					}
-				}
-				Data data = new Data(datas[i]);
-				data.scrape(results);
-			}
-			*/
-			//return results;
 		} catch(BrowserException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);

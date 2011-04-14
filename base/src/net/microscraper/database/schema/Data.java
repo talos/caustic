@@ -1,8 +1,10 @@
 package net.microscraper.database.schema;
 
-import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.ResultSet;
+import java.util.Vector;
+
+import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
+import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.AbstractResource;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
@@ -11,24 +13,33 @@ import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Result;
 
 public class Data extends AbstractResource {
-	public Result[] execute(Result calling_result)
-			throws TemplateException, MissingVariable, ResourceNotFoundException {
+	public Result[] execute(Result caller)
+			throws TemplateException, MissingVariable, ResourceNotFoundException, InterruptedException, BrowserException {
 		AbstractResource[] defaults = relationship(DEFAULTS);
 		AbstractResource[] scrapers = relationship(SCRAPERS);
 		
-		/*
-		int prev_size = 0;
-		while(root_result.size() != prev_size) {
-			prev_size = root_result.size();
+		Vector results = new Vector();
+		int lastSize;
+		do {
+			lastSize = results.size();
 			for(int i = 0 ; i < defaults.length ; i ++) {
-				defaults[i].execute(root_result);
+				try {
+					results.addElement(defaults[i].getValue(caller));
+				} catch(MissingVariable e) {
+					Client.context().log.w(e);
+				}
 			}
-			for(int i = 0; i < scrapers.length ; i ++) {
-				scrapers[i].execute(root_result);
+			for(int i = 0 ; i < scrapers.length ; i ++) {
+				try {
+					results.addElement(scrapers[i].getValue(caller));
+				} catch(MissingVariable e) {
+					Client.context().log.w(e);
+				}
 			}
-			Client.context().log.i(Integer.toString(root_result.size()));
-		}
-		*/
+		} while(lastSize != results.size());
+		Result[] results_ary = new Result[results.size()];
+		results.copyInto(results_ary);
+		return results_ary;
 	}
 	
 	private static final RelationshipDefinition DEFAULTS =

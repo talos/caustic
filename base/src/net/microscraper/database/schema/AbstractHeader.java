@@ -9,7 +9,7 @@ import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Result;
 
-public abstract class AbstractHeader extends AbstractResource {
+public class AbstractHeader extends AbstractResource {
 	private String name;
 	private String value;
 	public AbstractHeader() { }
