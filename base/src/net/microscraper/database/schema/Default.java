@@ -3,40 +3,17 @@ package net.microscraper.database.schema;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
-import net.microscraper.client.Client;
 import net.microscraper.client.Mustache;
-import net.microscraper.client.Utils;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.client.ResultSet;
+import net.microscraper.client.Utils;
 import net.microscraper.database.AbstractResource;
-import net.microscraper.database.DatabaseException.ModelNotFoundException;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
-import net.microscraper.database.Reference;
 import net.microscraper.database.RelationshipDefinition;
-import net.microscraper.database.Resource;
+import net.microscraper.database.Result;
 
-public class Default extends AbstractResource {
-	/*
-	private final String raw_value;
-	private final Reference[] substituted_scraper_refs;
-	protected Default(Resource resource) throws ResourceNotFoundException, ModelNotFoundException  {
-		raw_value = resource.attribute_get(Model.VALUE);
-		//substituted_scrapers = resource.relationship(Model.SCRAPERS);
-		Resource[] substituted_scrapers = resource.relationship(Model.SCRAPERS);
-		substituted_scraper_refs = new Reference[substituted_scrapers.length];
-		for(int i = 0 ; i < substituted_scrapers.length ; i ++) {
-			substituted_scraper_refs[i] = substituted_scrapers[i].ref;
-		}
-	}
-	public Default(String name, String value) {
-		substituted_scraper_refs = new Reference[] {
-			new Reference(name)
-		};
-		raw_value = value;
-	}
-	*/
+public class Default extends AbstractResource {	
 	/**
 	 * Simulate the Default for the specified source.
 	 * @param source
@@ -44,13 +21,44 @@ public class Default extends AbstractResource {
 	 * @throws PrematureRevivalException
 	 * @throws TemplateException
 	 * @throws MissingVariable 
+	 * @throws ResourceNotFoundException 
 	 */
-	public String[] execute(ResultSet source) throws TemplateException, MissingVariable {
+	public Result[] execute(Result caller) throws TemplateException, MissingVariable, ResourceNotFoundException {
 		String raw_value = attribute_get(VALUE);
 		AbstractResource[] scrapers = relationship(SUBSTITUTED_SCRAPERS);
-		/*return new String[] {
-			Mustache.compile(raw_value, source.variables())
-		};*/
+		Result[] results = new Result[scrapers.length];
+		for(int i = 0 ; i < scrapers.length ; i ++) {
+			results[i] = new Result(caller, scrapers[i], scrapers[i].ref().title, Mustache.compile(raw_value, caller.variables()));
+		}
+		return results;
+	}
+
+	/**
+	 * Simulate defaults from a form-style parameter string, like
+	 * key1=val1&key2=val2 ...
+	 * @param params_string
+	 * @param encoding
+	 * @return
+	 * @throws MissingVariable 
+	 * @throws TemplateException 
+	 */
+	public static Result[] simulateFromFormParams(String params_string, String encoding, Result caller)
+				throws TemplateException, MissingVariable {
+		String[] params = Utils.split(params_string, "&");
+		Result[] results = new Result[params.length];
+		try {
+			for(int i = 0 ; i < params.length ; i ++ ) {
+				String[] name_value = Utils.split(params[i], "=");
+				String name = URLDecoder.decode(name_value[0], encoding);
+				String value = URLDecoder.decode(name_value[1], encoding);
+				results[i] = new Result(caller, new Scraper(), name, Mustache.compile(value, caller.variables()));
+			}
+			return results;
+		} catch(IndexOutOfBoundsException e) {
+			throw new IllegalArgumentException("Parameters '" + params_string + "' should be serialized like HTTP Post data.");
+		} catch(UnsupportedEncodingException e) {
+			throw new IllegalArgumentException("Encoding " + encoding + " not supported: " + e.getMessage());
+		}
 	}
 	
 	private static final String VALUE = "value";

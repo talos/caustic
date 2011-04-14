@@ -8,13 +8,15 @@ import net.microscraper.database.AbstractResource;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
+import net.microscraper.database.Result;
 
 public class Data extends AbstractResource {
-	public void execute(ResultSet root_result)
+	public Result[] execute(Result calling_result)
 			throws TemplateException, MissingVariable, ResourceNotFoundException {
 		AbstractResource[] defaults = relationship(DEFAULTS);
 		AbstractResource[] scrapers = relationship(SCRAPERS);
 		
+		/*
 		int prev_size = 0;
 		while(root_result.size() != prev_size) {
 			prev_size = root_result.size();
@@ -26,13 +28,14 @@ public class Data extends AbstractResource {
 			}
 			Client.context().log.i(Integer.toString(root_result.size()));
 		}
+		*/
 	}
 	
 	private static final RelationshipDefinition DEFAULTS =
 		new RelationshipDefinition( "defaults", Default.class);
 	private static final RelationshipDefinition SCRAPERS =
 		new RelationshipDefinition( "scrapers", Scraper.class);
-
+	
 	public ModelDefinition definition() {
 		return new ModelDefinition() {
 			public String[] attributes() {

@@ -37,8 +37,8 @@ public class Mustache {
 			
 			close_tag_pos += close_tag.length();
 			//Client.context().log.i(Integer.toString(close_tag_pos));
-			if(variables.containsTitle(tag))
-				result += variables.getByTitle(tag);
+			if(variables.containsKey(tag))
+				result += variables.get(tag);
 			else
 				throw new MissingVariable(tag);
 		}

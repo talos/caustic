@@ -8,8 +8,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import net.microscraper.database.AbstractResource;
-
 /**
  * @author john
  *
@@ -140,7 +138,7 @@ public class Utils {
 	 * @param keys
 	 * @param array 
 	 * @return
-	 */
+	 *//*
 	public static void hashtableValues(Hashtable hashtable, Object[] array) {
 		Enumeration keys = hashtable.keys();
 		int i = 0;
@@ -149,7 +147,7 @@ public class Utils {
 			array[i] = hashtable.get(key);
 			i++;
 		}
-	}
+	}*/
 
 	/**
 	 * Copy all keys from a Hashtable into an array.
@@ -158,6 +156,7 @@ public class Utils {
 	 * @param array 
 	 * @return
 	 */
+	/*
 	public static void hashtableKeys(Hashtable hashtable, Object[] array) {
 		Enumeration keys = hashtable.keys();
 		int i = 0;
@@ -165,7 +164,7 @@ public class Utils {
 			i++;
 			array[i] = keys.nextElement();
 		}
-	}
+	}*/
 	
 	/**
 	 * Copy a selection of keys from a Hashtable into another array.
@@ -174,9 +173,10 @@ public class Utils {
 	 * @param array 
 	 * @return
 	 */
+	/*
 	public static void selectHashtableValuesIntoArray(Hashtable hashtable, Object[] keys, Object[] array) {
 		for(int i = 0; i < keys.length; i++) {
 			array[i] = hashtable.get(keys[i]);
 		}
-	}
+	}*/
 }

@@ -128,7 +128,7 @@ public class ResultSet {
 	public int num() {
 		return 0;
 	}
-	
+	/*
 	public class Result extends ResultSet {
 		public final Reference ref;
 		private final boolean one_to_many;
@@ -157,4 +157,5 @@ public class ResultSet {
 			return num;
 		}
 	}
+	*/
 }
