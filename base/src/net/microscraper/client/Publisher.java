@@ -6,7 +6,7 @@ public interface Publisher {
 	public void publish(Result result) throws PublisherException;
 	
 	/**
-	 * Publish results as they appear?
+	 * Should we publish results as they appear?
 	 * @return
 	 */
 	public boolean live();

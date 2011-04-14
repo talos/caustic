@@ -5,10 +5,8 @@ import java.text.DateFormat;
 import net.microscraper.client.Client;
 import net.microscraper.client.Client.MicroScraperClientException;
 import net.microscraper.client.Interfaces;
-import net.microscraper.client.Log;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.client.Publisher;
 import net.microscraper.client.impl.ApacheBrowser;
 import net.microscraper.client.impl.JDBCSQLite;
 import net.microscraper.client.impl.JSONME;
@@ -18,7 +16,6 @@ import net.microscraper.client.impl.SQLPublisher;
 import net.microscraper.client.impl.SystemLogInterface;
 import net.microscraper.database.Model;
 import net.microscraper.database.Reference;
-import net.microscraper.database.Result;
 import net.microscraper.database.schema.Default;
 
 public class MicroScraperConsole {
