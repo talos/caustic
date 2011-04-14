@@ -76,4 +76,7 @@ public class Model {
 			throw new IllegalArgumentException("Unable to instantiate model " + model_class.toString(), e);
 		}
 	}
+	public String toString() {
+		return klass.getName();
+	}
 }
