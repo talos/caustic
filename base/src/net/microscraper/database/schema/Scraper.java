@@ -9,13 +9,14 @@ import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.AbstractResource;
+import net.microscraper.database.AbstractResult;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Result;
 
 public class Scraper extends AbstractResource {
-	public Result[] execute(Result caller)
+	public Result[] execute(AbstractResult caller)
 					throws TemplateException, ResourceNotFoundException, MissingVariable, InterruptedException, BrowserException {
 		AbstractResource[] web_pages = relationship(WEB_PAGES);
 		AbstractResource[] source_scrapers = relationship(SOURCE_SCRAPERS);
@@ -42,7 +43,7 @@ public class Scraper extends AbstractResource {
 		return processInput(input_strings, caller);
 	}
 	
-	private Result[] processInput(Vector input_strings, Result caller) throws TemplateException, MissingVariable {
+	private Result[] processInput(Vector input_strings, AbstractResult caller) throws TemplateException, MissingVariable {
 		Integer match_number;
 		try {
 			match_number = new Integer(attribute_get(MATCH_NUMBER));

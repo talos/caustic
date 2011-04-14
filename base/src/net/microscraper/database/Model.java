@@ -8,11 +8,11 @@ import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.database.RelationshipDefinition;
 
 public class Model {
-	public final Class klass;
-	private final ModelDefinition definition;
-	private Model(Class klass, ModelDefinition definition) {
+	private final Class klass;
+	//private final ModelDefinition definition;
+	private Model(Class klass /*, ModelDefinition definition*/) {
 		this.klass = klass;
-		this.definition = definition;
+		//this.definition = definition;
 	};
 
 	/**
@@ -33,6 +33,8 @@ public class Model {
 		while(iter.hasNext()) {
 			// Create a blank instance of the resource.
 			resources[k] = (AbstractResource) klass.newInstance();
+			ModelDefinition definition = resources[k].definition();
+			
 			String key = (String) iter.next();
 			JSON.Object resource_json = resources_json.getJSONObject(key);
 			
@@ -69,7 +71,7 @@ public class Model {
 	}
 	public static Model get(Class model_class) {
 		try {
-			return new Model(model_class, ((AbstractResource) model_class.newInstance()).definition());
+			return new Model(model_class /*, ((AbstractResource) model_class.newInstance()).definition()*/);
 		} catch (Exception e) {
 			throw new IllegalArgumentException("Unable to instantiate model " + model_class.toString(), e);
 		}

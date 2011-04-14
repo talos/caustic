@@ -5,6 +5,7 @@ import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.AbstractResource;
+import net.microscraper.database.AbstractResult;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Result;
@@ -17,11 +18,11 @@ public class AbstractHeader extends AbstractResource {
 		this.name = name;
 		this.value = value;
 	}
-	public Result[] execute(Result source_result) throws TemplateException, MissingVariable {
-		Variables variables = source_result.variables();
+	public Result[] execute(AbstractResult caller) throws TemplateException, MissingVariable {
+		Variables variables = caller.variables();
 		return new Result[] {
 				new Result(
-						source_result, this,
+						caller, this,
 						Mustache.compile(name  != null ? name : attribute_get(NAME), variables),
 						Mustache.compile(value != null ? value :attribute_get(VALUE), variables))
 		};

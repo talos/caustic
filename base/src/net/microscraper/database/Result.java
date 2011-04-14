@@ -4,35 +4,29 @@ import java.util.Vector;
 
 import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
-import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.client.Utils;
-import net.microscraper.client.Variables;
+import net.microscraper.client.Publisher.PublisherException;
 
-public class Result {
-	public final Result caller;
-	private final Vector called = new Vector();
+public class Result extends AbstractResult {
+	public final AbstractResult caller;
 	public final Reference ref;
 	protected final boolean isOneToOne;
-	private final boolean isVariable;
+	protected final boolean isVariable;
 	public final String key;
 	public final String value;
-	public final int id;
-	private static int number = 0;
 	private final Publisher publisher = Client.context().publisher;
-	public Result(Result caller, AbstractResource resource, String key, String value) {
+	
+	public Result(AbstractResult caller, AbstractResource resource, String key, String value) {
+		if(caller == null || resource == null || key == null || value == null)
+			throw new IllegalArgumentException();
 		this.caller = caller;
 		this.ref = resource.ref();
-		if(this.caller != null) {
-			this.isOneToOne = resource.branchesResults();
-		} else {
-			this.isOneToOne = false;
-		}
+		this.isOneToOne = resource.branchesResults();
+		
 		this.isVariable = resource.isVariable();
 		this.key = key;
 		this.value = value;
 		this.caller.addCalled(this);
-		this.id = number;
-		number++;
 		
 		if(publisher.live()) {
 			try {
@@ -42,29 +36,10 @@ public class Result {
 			}
 		}
 	}
-	public void addCalled(Result called) {
-		this.called.addElement(called);
-	}
-	/**
-	 * Put everything within this Result's scope that is marked as a variable into a Variables object.
-	 * @return
-	 */
-	public Variables variables() {
-		Result[] scope = scope();
-		Variables variables = new Variables();
-		for(int i = 0 ; i < scope.length ; i ++) {
-			if(scope[i].isVariable) {
-				variables.put(scope[i].key, scope[i].value);
-			}
-		}
-		return variables;
-	}
-	/**
-	 * Find all the other results in this result's scope.
-	 * @return
-	 */
+	
 	protected Result[] scope() {
 		Vector scope = new Vector();
+		//Vector scope = new Vector();
 		// Check the scope above.
 		if(this.caller != null) {
 			Utils.arrayIntoVector(this.caller.scope(), scope);
@@ -75,12 +50,7 @@ public class Result {
 		} else {
 		// If this is not one to one, pull in the scope of all its one-to-one called results.
 			scope.addElement(this);
-			for(int i = 0; i < this.called.size() ; i++ ) {
-				Result called = (Result) this.called.elementAt(i);
-				if(called.isOneToOne) {
-					Utils.arrayIntoVector(called.scope(), scope);
-				}
-			}
+			Utils.arrayIntoVector(super.scope(), scope);
 		}
 		
 		Result[] scope_ary = new Result[scope.size()];

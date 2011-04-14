@@ -11,6 +11,7 @@ import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
 import net.microscraper.database.Reference;
 import net.microscraper.database.Result;
+import net.microscraper.database.ResultRoot;
 import net.microscraper.database.schema.Default;
 
 public class Client {
@@ -50,20 +51,19 @@ public class Client {
 	public Result[] scrape(String json_url, Reference ref, Default[] extra_defaults)
 					throws MicroScraperClientException {
 		try {
+			ResultRoot root = new ResultRoot();
+			
 			log.i("Scraping based off of object loaded from " + json_url);
 			
-			String raw_obj = browser.load(json_url);
+			String raw_obj = browser.load(json_url, root);
 			log.i("Raw scraping object: " + raw_obj);
 			
-			Result _default = null;
-			if(extra_defaults.length > 0)
-				_default = extra_defaults[0].getValue(null)[0];
-			for(int i = 1 ; i < extra_defaults.length ; i ++) {
-				extra_defaults[i].getValue(_default);
+			for(int i = 0 ; i < extra_defaults.length ; i ++) {
+				extra_defaults[i].getValue(root);
 			}
 			
 			Database db = new Database(json.getTokener(raw_obj).nextValue());
-			return db.get(ref).getValue(_default);
+			return db.get(ref).getValue(root);
 		} catch(BrowserException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);

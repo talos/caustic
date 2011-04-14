@@ -15,6 +15,7 @@ import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.database.AbstractResource;
+import net.microscraper.database.AbstractResult;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.Result;
 import net.microscraper.database.schema.AbstractHeader;
@@ -61,10 +62,10 @@ public class ApacheBrowser implements Browser {
 
 
 	@Override
-	public String load(String url) throws InterruptedException,
+	public String load(String url, AbstractResult caller) throws InterruptedException,
 			BrowserException {
 		try {
-			return load(url, new AbstractResource[] {}, new AbstractResource[] {}, new AbstractResource[] {}, new AbstractResource[] {}, null);
+			return load(url, new AbstractResource[] {}, new AbstractResource[] {}, new AbstractResource[] {}, new AbstractResource[] {}, caller);
 		} catch (Exception e) {
 			Client.context().log.e(e);
 			throw new BrowserException(e.toString());
@@ -73,7 +74,7 @@ public class ApacheBrowser implements Browser {
 	
 	@Override
 	public String load(String url, AbstractResource[] posts, AbstractResource[] headers,
-			AbstractResource[] cookies, AbstractResource[] terminates, Result caller)
+			AbstractResource[] cookies, AbstractResource[] terminates, AbstractResult caller)
 			throws InterruptedException, BrowserException, ResourceNotFoundException, TemplateException, MissingVariable {
 		/*if(cache.containsKey(web_page) && use_cache == true) {
 			Client.context().log.i("Caught in cache");
@@ -159,7 +160,7 @@ public class ApacheBrowser implements Browser {
 		}
 	}
 	
-	private static void addHeaders(HttpRequestBase http_request, AbstractResource[] headers, Result caller)
+	private static void addHeaders(HttpRequestBase http_request, AbstractResource[] headers, AbstractResult caller)
 				throws ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException, BrowserException {
 		for(int i = 0 ; i < headers.length ; i ++) {
 			Result header = headers[i].getValue(caller)[0];
@@ -177,7 +178,7 @@ public class ApacheBrowser implements Browser {
 	 * @throws TemplateException 
 	 * @throws ResourceNotFoundException 
 	 */
-	private static UrlEncodedFormEntity generateFormEntity(AbstractResource[] headers, Result caller)
+	private static UrlEncodedFormEntity generateFormEntity(AbstractResource[] headers, AbstractResult caller)
 				throws UnsupportedEncodingException, ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException, BrowserException {
 		List<BasicNameValuePair> pairs = new ArrayList<BasicNameValuePair>();
 		for(int i = 0; i < headers.length ; i ++) {

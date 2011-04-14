@@ -18,7 +18,7 @@ public abstract class AbstractResource {
 	/*
 	 * Hashtable of result[] keyed off of calling_result.
 	 */
-	private Hashtable results;
+	private Hashtable results = new Hashtable();
 	
 	public Reference ref() {
 		return ref;
@@ -28,6 +28,10 @@ public abstract class AbstractResource {
 	}
 	public boolean branchesResults() {
 		return false;
+	}
+	public AbstractResource() {
+		this.ref = Reference.blank(this);
+		Client.context().log.i(ref.toString());
 	}
 	public AbstractResource initialize(Database db, String key, Hashtable attributes, Hashtable relationships) {
 		this.db = db;
@@ -59,19 +63,18 @@ public abstract class AbstractResource {
 	}
 	
 	public abstract ModelDefinition definition();
-	protected abstract Result[] execute(Result calling_result)
+	protected abstract Result[] execute(AbstractResult caller)
 			throws TemplateException, MissingVariable, ResourceNotFoundException, InterruptedException, BrowserException;
 	
-	public Result[] getValue(Result calling_result)
+	public Result[] getValue(AbstractResult caller)
 			throws ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException, BrowserException {
-		Client.context().log.i("Result '" + calling_result.toString() + "' calling '" + ref().toString() + "'");
-		
-		// Catch if this has already been from that calling_result.
-		if(this.results.containsKey(calling_result)) {
-			return (Result[]) results.get(calling_result); // (Result) results.get(calling_result);
+		Client.context().log.i("Result '" + caller.toString() + "' calling '" + ref.toString() + "'");		
+		// Catch if this has already been from that caller.
+		if(this.results.containsKey(caller)) {
+			return (Result[]) results.get(caller); // (Result) results.get(calling_result);
 		} else {
-			Result[] results = execute(calling_result);
-			this.results.put(calling_result, results);
+			Result[] results = execute(caller);
+			this.results.put(caller, results);
 			return results;
 		}
 	}

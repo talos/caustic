@@ -3,14 +3,14 @@ package net.microscraper.client;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.AbstractResource;
-import net.microscraper.database.Result;
+import net.microscraper.database.AbstractResult;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.schema.AbstractHeader;
 
 public interface Browser {
-	public String load(String url) throws InterruptedException, BrowserException;
+	public String load(String url, AbstractResult caller) throws InterruptedException, BrowserException;
 	public String load(String url, AbstractResource[] posts, AbstractResource[] headers,
-			AbstractResource[] cookies, AbstractResource[] terminates, Result caller)
+			AbstractResource[] cookies, AbstractResource[] terminates, AbstractResult caller)
 			throws InterruptedException, BrowserException, ResourceNotFoundException, TemplateException, MissingVariable;
 	
 	public static final AbstractHeader[] DEFAULT_HEADERS = new AbstractHeader[] {

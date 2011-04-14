@@ -4,6 +4,7 @@ import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.AbstractResource;
+import net.microscraper.database.AbstractResult;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Result;
@@ -16,7 +17,7 @@ public class Regexp extends AbstractResource {
 		this.regexp = regexp;
 	}
 	
-	public Result[] execute(Result caller) throws TemplateException, MissingVariable {
+	public Result[] execute(AbstractResult caller) throws TemplateException, MissingVariable {
 		return new Result[] {
 			new Result(caller, this, this.ref().title,
 					Mustache.compile(regexp != null ? regexp : attribute_get(REGEXP), caller.variables()))

@@ -8,6 +8,7 @@ import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils;
 import net.microscraper.database.AbstractResource;
+import net.microscraper.database.AbstractResult;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
@@ -30,7 +31,7 @@ public class Default extends AbstractResource {
 	 * @throws MissingVariable 
 	 * @throws ResourceNotFoundException 
 	 */
-	public Result[] execute(Result caller) throws TemplateException, MissingVariable, ResourceNotFoundException {
+	public Result[] execute(AbstractResult caller) throws TemplateException, MissingVariable, ResourceNotFoundException {
 		String raw_value = value != null ? value : attribute_get(VALUE);
 		AbstractResource[] scrapers = relationship(SUBSTITUTED_SCRAPERS);
 		Result[] results = new Result[scrapers.length];

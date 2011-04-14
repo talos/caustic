@@ -7,13 +7,14 @@ import net.microscraper.client.Client;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.AbstractResource;
+import net.microscraper.database.AbstractResult;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Result;
 
 public class Data extends AbstractResource {
-	public Result[] execute(Result caller)
+	public Result[] execute(AbstractResult caller)
 			throws TemplateException, MissingVariable, ResourceNotFoundException, InterruptedException, BrowserException {
 		AbstractResource[] defaults = relationship(DEFAULTS);
 		AbstractResource[] scrapers = relationship(SCRAPERS);

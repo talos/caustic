@@ -40,7 +40,7 @@ public class MicroScraperConsole {
 				String url = args[0];
 				Reference resource_ref = new Reference(Model.get(args[1]), args[2]);
 				Default[] defaults = new Default[] {};
-				if(args[3] != null) {
+				if(args.length > 3) {
 					defaults = Default.fromFormParams(args[3], ENCODING, null);
 				}
 				/*Default[] defaults = new Default[] {
