@@ -24,7 +24,7 @@ public class ThreadSafeLogger implements Logger {
 		list.add(buildJSON("error", e.toString()));
 		log_list.addAll(list);
 	}
-
+	
 	@Override
 	public void w(Throwable w) {
 		List<String> list = stackTraceList(w);

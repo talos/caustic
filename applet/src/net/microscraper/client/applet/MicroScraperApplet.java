@@ -23,9 +23,9 @@ import net.microscraper.database.Result;
 public class MicroScraperApplet extends Applet {
 	private static final long serialVersionUID = 2768937336583253219L;
 	
-	private final ThreadSafePublisher publisher = new ThreadSafePublisher();
-	private final JSON json = new JSONME();
-	private final ThreadSafeLogger log = new ThreadSafeLogger(json);
+	private static final ThreadSafePublisher publisher = new ThreadSafePublisher();
+	private static final JSON json = new JSONME();
+	private static final ThreadSafeLogger log = new ThreadSafeLogger(json);
 	
 	public static final String encoding = "UTF-8";
 	private Thread current_thread;
@@ -33,7 +33,7 @@ public class MicroScraperApplet extends Applet {
 			new ApacheBrowser(/*false*/),
 			new JavaUtilRegexInterface(), json,
 			new Interfaces.Logger[] { log },
-			new ThreadSafePublisher()
+			publisher
 		);
 		
 	// thx http://stackoverflow.com/questions/1272648/need-to-read-own-jars-manifest-and-not-root-classloaders-manifest
@@ -58,31 +58,27 @@ public class MicroScraperApplet extends Applet {
 	 * @param url
 	 * @param params_string
 	 */
-	public boolean start(String url, String model, String full_name, String params_string) {
+	public void start(String url, String model, String full_name, String params_string) {
 		try {
 			if(!isAlive()) {
 				Thread thread = new Thread(new ScrapeRunnable(url, model, full_name, params_string, client));
 				thread.start();
 				current_thread = thread;
-				return true;
 			} else {
-				log.i("Not starting test, another test has yet to complete.  Stop it manually to test this now.");
+				client.log.i("Not starting test, another test has yet to complete.  Stop it manually to test this now.");
 			}
 		} catch(Throwable e) {
-			log.e(e);
+			client.log.e(e);
 		}
-		return false;
 	}
 	
-	public boolean kill() {
+	public void stop() {
 		try {
 			current_thread.interrupt();
-			log.i("Killed test.");
-			return true;
+			client.log.i("Killed test.");
 		} catch(Throwable e) {
-			log.e(e);
+			client.log.e(e);
 		}
-		return false;
 	}
 	
 	public boolean isAlive() {
@@ -93,7 +89,7 @@ public class MicroScraperApplet extends Applet {
 				return current_thread.isAlive();
 			}
 		} catch(Throwable e) {
-			log.e(e);
+			client.log.e(e);
 		}
 		return false;
 	}
@@ -107,12 +103,16 @@ public class MicroScraperApplet extends Applet {
 				return json.toJSON(result_table);
 			}
 		} catch(Throwable e) {
-			log.e(e);
+			client.log.e(e);
 		}
 		return null;
 	}
 	
 	public String log() {
-		return log.shift();
+		try {
+			return log.shift();
+		} catch(Throwable e) {
+			return "Error pulling from log: " + e.toString();
+		}
 	}
 }
