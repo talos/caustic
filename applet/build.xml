@@ -8,7 +8,10 @@
 	<property name="microscraper.server.applet.dir" value="${microscraper.server.dir}/public/applets" />
 	<property name="microscraper.server.applet.jar" value="${microscraper.server.applet.dir}/MicroScraperApplet.jar" />
 	<property name="microscraper.client.key.default_alias" value="microscraper" />
-	
+	<tstamp>
+      <format property="microscraper.timestamp" pattern="MM/dd/yyyy hh:mm:ss" />
+    </tstamp>
+
 	<!-- Clear out destination -->
 	<target name="init">
 	  <delete file="${microscraper.server.applet.jar}"/>
@@ -31,10 +34,11 @@
 	    <manifest>
 	      <!-- <attribute name="Main-Class" value="net.microscraper.client.applet.MicroScraperApplet"/> -->
 	 	  <!-- <attribute name="Class-Path" value="." /> -->
+	    	<attribute name="timestamp" value="${microscraper.timestamp}" />
 	    </manifest>
 	  </jar>
-	</target>	
-	  
+	</target>
+	
     <target name="sign_applet_jar" depends="create_applet_jar">
 	    <input message="Please enter the key alias to sign the JAR. Default is ${microscraper.client.key.default_alias}." addproperty="jarsigner.alias" defaultvalue="${microscraper.client.key.default_alias}" >
 		

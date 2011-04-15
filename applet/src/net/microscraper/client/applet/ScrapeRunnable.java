@@ -14,7 +14,6 @@ public class ScrapeRunnable implements Runnable {
 	private final Default[] defaults;
 	
 	private final Client client;
-	//private final Publisher publisher;
 	
 	public ScrapeRunnable(String url, String model, String full_name,
 			String params_string, Client client) {
@@ -23,6 +22,7 @@ public class ScrapeRunnable implements Runnable {
 		this.client = client;
 		this.defaults = Default.fromFormParams(params_string, MicroScraperApplet.encoding);
 	}
+	
 	@Override
 	public void run() {
 		try {

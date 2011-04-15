@@ -1,7 +1,10 @@
 package net.microscraper.client.applet;
 
 import java.applet.Applet;
+import java.net.URL;
 import java.util.Hashtable;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
@@ -19,7 +22,6 @@ import net.microscraper.database.Result;
  */
 public class MicroScraperApplet extends Applet {
 	private static final long serialVersionUID = 2768937336583253219L;
-	private static final String version = ".05";
 	
 	private final ThreadSafePublisher publisher = new ThreadSafePublisher();
 	private final JSON json = new JSONME();
@@ -33,8 +35,23 @@ public class MicroScraperApplet extends Applet {
 			new Interfaces.Logger[] { log },
 			new ThreadSafePublisher()
 		);
-	
-	public String version() { return version; }
+		
+	// thx http://stackoverflow.com/questions/1272648/need-to-read-own-jars-manifest-and-not-root-classloaders-manifest
+	public String manifest(String key) {
+		try {
+			String className = MicroScraperApplet.class.getSimpleName() + ".class";
+			String classPath = MicroScraperApplet.class.getResource(className).toString();
+			String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) +
+				"/META-INF/MANIFEST.MF";
+		
+			Manifest manifest = new Manifest(new URL(manifestPath).openStream());
+			Attributes attr = manifest.getMainAttributes();
+			
+			return (String) attr.getValue(key);
+		} catch (Throwable e) {
+			return "Error obtaining " + key + " from manifest: " + e.toString();
+		}
+	}
 	
 	/**
 	 * Starts the ScrapeAction.
@@ -51,7 +68,7 @@ public class MicroScraperApplet extends Applet {
 			} else {
 				log.i("Not starting test, another test has yet to complete.  Stop it manually to test this now.");
 			}
-		} catch(Exception e) {
+		} catch(Throwable e) {
 			log.e(e);
 		}
 		return false;
@@ -75,7 +92,7 @@ public class MicroScraperApplet extends Applet {
 			} else {
 				return current_thread.isAlive();
 			}
-		} catch(Exception e) {
+		} catch(Throwable e) {
 			log.e(e);
 		}
 		return false;
@@ -89,7 +106,7 @@ public class MicroScraperApplet extends Applet {
 				result_table.put(result.key, result.value);
 				return json.toJSON(result_table);
 			}
-		} catch(Exception e) {
+		} catch(Throwable e) {
 			log.e(e);
 		}
 		return null;

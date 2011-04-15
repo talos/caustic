@@ -11,7 +11,7 @@ public interface Browser {
 	public String load(String url, AbstractResult caller) throws InterruptedException, BrowserException;
 	public String load(String url, AbstractResource[] posts, AbstractResource[] headers,
 			AbstractResource[] cookies, AbstractResource[] terminates, AbstractResult caller)
-			throws BrowserException, ResourceNotFoundException, TemplateException, MissingVariable;
+			throws BrowserException, ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException;
 	
 	public static final AbstractHeader[] DEFAULT_HEADERS = new AbstractHeader[] {
 		new AbstractHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.1; Windows XP)"),

@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -29,12 +30,14 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.params.ClientPNames;
+import org.apache.http.conn.params.ConnManagerPNames;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectHandler;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
@@ -42,6 +45,7 @@ public class ApacheBrowser implements Browser {
 	//public static final boolean USE_CACHE = true;
 	//public static final boolean DO_NOT_USE_CACHE = false;
 	
+	private static final int TIMEOUT = 5000;
 	private final BasicCookieStore cookie_store = new BasicCookieStore();
 	private final HttpParams http_params = new BasicHttpParams();
 	//private final DefaultHttpClient http_client = new DefaultHttpClient();
@@ -55,12 +59,11 @@ public class ApacheBrowser implements Browser {
 		http_params.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
 		http_params.setParameter(ClientPNames.REJECT_RELATIVE_REDIRECT, false);
 		http_params.setParameter(ClientPNames.MAX_REDIRECTS, 100);
-		
-		//http_client.setCookieStore(cookie_store);
-		//http_client.setParams(http_params);
+		http_params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, TIMEOUT);
+		http_params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, TIMEOUT);
+		http_params.setLongParameter(ConnManagerPNames.TIMEOUT, TIMEOUT);
 	}
-
-
+	
 	@Override
 	public String load(String url, AbstractResult caller) throws InterruptedException,
 			BrowserException {
@@ -75,7 +78,7 @@ public class ApacheBrowser implements Browser {
 	@Override
 	public String load(String url, AbstractResource[] posts, AbstractResource[] headers,
 			AbstractResource[] cookies, AbstractResource[] terminates, AbstractResult caller)
-			throws BrowserException, ResourceNotFoundException, TemplateException, MissingVariable {
+			throws BrowserException, ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException {
 		/*if(cache.containsKey(web_page) && use_cache == true) {
 			Client.context().log.i("Caught in cache");
 			return cache.get(web_page);
@@ -119,9 +122,6 @@ public class ApacheBrowser implements Browser {
 				cookie.setDomain(uri.getHost());
 				cookie_store.addCookie(cookie);
 			}
-			HttpResponse response = http_client.execute(http_request);
-			
-			StatusLine status = response.getStatusLine();
 			
 			// Set up patterns
 			Pattern[] patterns = new Pattern[terminates.length];
@@ -129,6 +129,12 @@ public class ApacheBrowser implements Browser {
 				patterns[i] = Client.context().regexp.compile(terminates[i].getValue(caller)[0].value);
 			}
 
+			Client.context().log.i("Waiting for response from " + uri.toString() + "...");
+			HttpResponse response = http_client.execute(http_request);
+			
+			StatusLine status = response.getStatusLine();
+			
+			Client.context().log.i("Loading " + uri.toString() + "...");
 			// Convert the stream into a string.
 			if(status.getStatusCode() == 200) {
 				HttpEntity entity = response.getEntity();
@@ -138,10 +144,13 @@ public class ApacheBrowser implements Browser {
 				byte[] buffer = new byte[512];
 				int readBytes;
 				
-				Thread.interrupted();
-				
 				loading: while ((readBytes = stream.read(buffer)) != -1) {
 					//Client.context().log.i(new String(buffer));
+					if(Thread.interrupted()) {
+						entity.consumeContent();
+						throw new InterruptedException("Interrupted loading of " + uri.toString());
+					}
+					
 					content.write(buffer, 0, readBytes);
 					content_string = new String(content.toByteArray());
 					for(int i = 0 ; i < patterns.length ; i ++) {
@@ -156,17 +165,19 @@ public class ApacheBrowser implements Browser {
 				//cache.put(web_page, string_content);
 				return string_content;
 			} else {
-				throw new BrowserException("Unable to get content: " + Integer.toString(status.getStatusCode()));
+				throw new BrowserException(uri.toString() + "returned error status: " + Integer.toString(status.getStatusCode()));
 			}
 		} catch(URISyntaxException e) {
-			throw new BrowserException(e.toString());
+			throw new BrowserException(url + " is not a well-formed URL.");
+		} catch(SocketTimeoutException e) {
+			throw new BrowserException("Timeout waiting for " + url + " to respond.");
 		} catch(IOException e) {
-			throw new BrowserException(e.toString());
+			throw new BrowserException("Error " + e.toString() + " loading " + url);
 		}
 	}
 	
 	private static void addHeaders(HttpRequestBase http_request, AbstractResource[] headers, AbstractResult caller)
-				throws ResourceNotFoundException, TemplateException, MissingVariable, BrowserException {
+				throws ResourceNotFoundException, TemplateException, MissingVariable, BrowserException, InterruptedException {
 		for(int i = 0 ; i < headers.length ; i ++) {
 			Result header = headers[i].getValue(caller)[0];
 			http_request.addHeader(header.key, header.value);
@@ -184,7 +195,7 @@ public class ApacheBrowser implements Browser {
 	 * @throws ResourceNotFoundException 
 	 */
 	private static UrlEncodedFormEntity generateFormEntity(AbstractResource[] headers, AbstractResult caller)
-				throws UnsupportedEncodingException, ResourceNotFoundException, TemplateException, MissingVariable, BrowserException {
+				throws UnsupportedEncodingException, ResourceNotFoundException, TemplateException, MissingVariable, BrowserException, InterruptedException {
 		List<BasicNameValuePair> pairs = new ArrayList<BasicNameValuePair>();
 		for(int i = 0; i < headers.length ; i ++) {
 			Result header = headers[i].getValue(caller)[0];
