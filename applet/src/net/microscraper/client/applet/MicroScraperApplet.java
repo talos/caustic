@@ -6,12 +6,11 @@ import java.util.Hashtable;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON;
-import net.microscraper.client.ResultSet.Result;
 import net.microscraper.client.impl.ApacheBrowser;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.ThreadSafePublisher;
-import net.microscraper.database.Reference;
+import net.microscraper.database.Result;
 
 /**
  * Provides interface between browser and scraper applet through public methods.
@@ -29,9 +28,10 @@ public class MicroScraperApplet extends Applet {
 	public static final String encoding = "UTF-8";
 	private Thread thread;
 	private final Client client = Client.initialize(
-			new ApacheBrowser(false),
+			new ApacheBrowser(/*false*/),
 			new JavaUtilRegexInterface(), json,
-			new Interfaces.Logger[] { log }
+			new Interfaces.Logger[] { log },
+			new ThreadSafePublisher()
 		);
 	
 	public String version() { return version; }
@@ -41,10 +41,10 @@ public class MicroScraperApplet extends Applet {
 	 * @param url
 	 * @param params_string
 	 */
-	public boolean start(String url, String model, String resource_ref, String params_string) {
+	public boolean start(String url, String model, String full_name, String params_string) {
 		try {
 			if(!isAlive()) {
-				thread = new Thread(new ScrapeRunnable(url, model, new Reference(resource_ref), params_string, publisher, client));
+				thread = new Thread(new ScrapeRunnable(url, model, full_name, params_string, client));
 				thread.start();
 				return true;
 			}
@@ -82,7 +82,7 @@ public class MicroScraperApplet extends Applet {
 			Result result = publisher.unshift();
 			if(result != null) {
 				Hashtable<String, String> result_table = new Hashtable<String, String>();
-				result_table.put(result.ref.toString(), result.value);
+				result_table.put(result.key, result.value);
 				return json.toJSON(result_table);
 			}
 		} catch(Exception e) {

@@ -32,13 +32,21 @@ public class Default extends AbstractResource {
 	 * @throws ResourceNotFoundException 
 	 */
 	public Result[] execute(AbstractResult caller) throws TemplateException, MissingVariable, ResourceNotFoundException {
-		String raw_value = value != null ? value : attribute_get(VALUE);
-		AbstractResource[] scrapers = relationship(SUBSTITUTED_SCRAPERS);
-		Result[] results = new Result[scrapers.length];
-		for(int i = 0 ; i < scrapers.length ; i ++) {
-			results[i] = new Result(caller, scrapers[i], name != null ? name : scrapers[i].ref().title, Mustache.compile(raw_value, caller.variables()));
+		if(name != null && value != null) {
+			return new Result[] { new Result(caller, this, name, value) }; 
+		} else {
+			String raw_value = attribute_get(VALUE);
+			AbstractResource[] scrapers = relationship(SUBSTITUTED_SCRAPERS);
+			Result[] results = new Result[scrapers.length];
+			for(int i = 0 ; i < scrapers.length ; i ++) {
+				results[i] = new Result(caller, scrapers[i], scrapers[i].ref().title, Mustache.compile(raw_value, caller.variables()));
+			}
+			return results;
 		}
-		return results;
+	}
+	
+	public boolean isVariable() {
+		return true;
 	}
 	
 	/**
@@ -50,8 +58,7 @@ public class Default extends AbstractResource {
 	 * @throws MissingVariable 
 	 * @throws TemplateException 
 	 */
-	public static Default[] fromFormParams(String params_string, String encoding, Result caller)
-				throws TemplateException, MissingVariable {
+	public static Default[] fromFormParams(String params_string, String encoding) {
 		String[] params = Utils.split(params_string, "&");
 		Default[] defaults = new Default[params.length];
 		try {
@@ -59,7 +66,7 @@ public class Default extends AbstractResource {
 				String[] name_value = Utils.split(params[i], "=");
 				String name = URLDecoder.decode(name_value[0], encoding);
 				String value = URLDecoder.decode(name_value[1], encoding);
-				defaults[i] = new Default(name, value); //, name, Mustache.compile(value, caller.variables()));
+				defaults[i] = new Default(name, value);
 			}
 			return defaults;
 		} catch(IndexOutOfBoundsException e) {

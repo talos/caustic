@@ -17,16 +17,6 @@ public class Reference {
 			creator = full_name.substring(0, sep_index);
 			title = full_name.substring(sep_index + 1);
 		}
-		check();
-	}
-	/*
-	public Reference(String model, String _creator, String _title) throws IllegalArgumentException {
-		creator = _creator;
-		title = _title;
-		check();
-	}
-*/
-	private void check() throws IllegalArgumentException {
 		if(title == null) {
 			throw new IllegalArgumentException("Title of reference cannot be null.");
 		}

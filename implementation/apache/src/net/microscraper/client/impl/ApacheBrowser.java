@@ -83,7 +83,7 @@ public class ApacheBrowser implements Browser {
 		try {
 			URI uri = new URI(url);
 			
-			Client.context().log.i(uri.toString());
+			Client.context().log.i("Browser loading URL '" + uri.toString() + "'");
 			
 			// Set up our httpclient to handle 302 redirects properly.
 			http_client.setRedirectHandler(new RedirectHandler(uri));
@@ -106,9 +106,7 @@ public class ApacheBrowser implements Browser {
 				new AbstractHeader(Browser.REFERER_HEADER_NAME, uri.toString())	
 			}, caller);
 			addHeaders(http_request, headers, caller);
-			
-			Client.context().log.i("......");
-			
+						
 			// Add cookies.
 			for(int i = 0 ; i < cookies.length ; i ++) {
 				Result cookie_result = headers[i].getValue(caller)[0];

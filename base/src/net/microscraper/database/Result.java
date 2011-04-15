@@ -1,11 +1,9 @@
 package net.microscraper.database;
 
-import java.util.Vector;
-
 import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
-import net.microscraper.client.Utils;
 import net.microscraper.client.Publisher.PublisherException;
+import net.microscraper.client.Variables;
 
 public class Result extends AbstractResult {
 	public final AbstractResult caller;
@@ -21,7 +19,7 @@ public class Result extends AbstractResult {
 			throw new IllegalArgumentException();
 		this.caller = caller;
 		this.ref = resource.ref();
-		this.isOneToOne = resource.branchesResults();
+		this.isOneToOne = !resource.branchesResults();
 		
 		this.isVariable = resource.isVariable();
 		this.key = key;
@@ -37,25 +35,13 @@ public class Result extends AbstractResult {
 		}
 	}
 	
-	protected Result[] scope() {
-		Vector scope = new Vector();
-		//Vector scope = new Vector();
-		// Check the scope above.
-		if(this.caller != null) {
-			Utils.arrayIntoVector(this.caller.scope(), scope);
-		}
-		// If this is one to one, it will be included in a parent's scope already -- don't include it!
+	// If this is one-to-one, intercept variables call and toss it up the caller chain.
+	public Variables variables() {
 		if(isOneToOne) {
-			
+			return caller.variables();
 		} else {
-		// If this is not one to one, pull in the scope of all its one-to-one called results.
-			scope.addElement(this);
-			Utils.arrayIntoVector(super.scope(), scope);
+			return super.variables();
 		}
-		
-		Result[] scope_ary = new Result[scope.size()];
-		scope.copyInto(scope_ary);
-		return scope_ary;
 	}
 	
 	/**

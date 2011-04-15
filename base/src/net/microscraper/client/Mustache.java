@@ -40,7 +40,7 @@ public class Mustache {
 			if(variables.containsKey(tag))
 				result += variables.get(tag);
 			else
-				throw new MissingVariable(tag);
+				throw new MissingVariable(tag, variables);
 		}
 		return result + template.substring(close_tag_pos);
 	}
@@ -61,6 +61,8 @@ public class Mustache {
 		 */
 		private static final long serialVersionUID = 8720790457856091375L;
 
-		public MissingVariable(String tag) { super("Variable " + tag + " is missing, cannot compile template."); }
+		public MissingVariable(String tag, Variables variables) {
+			super("Variable " + tag + " is missing from variables " + variables.toString() + ", cannot compile template.");
+		}
 	}
 }

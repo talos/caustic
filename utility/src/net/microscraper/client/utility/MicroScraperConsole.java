@@ -5,8 +5,6 @@ import java.text.DateFormat;
 import net.microscraper.client.Client;
 import net.microscraper.client.Client.MicroScraperClientException;
 import net.microscraper.client.Interfaces;
-import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.impl.ApacheBrowser;
 import net.microscraper.client.impl.JDBCSQLite;
 import net.microscraper.client.impl.JSONME;
@@ -40,8 +38,9 @@ public class MicroScraperConsole {
 				String url = args[0];
 				Reference resource_ref = new Reference(Model.get(args[1]), args[2]);
 				Default[] defaults = new Default[] {};
+				
 				if(args.length > 3) {
-					defaults = Default.fromFormParams(args[3], ENCODING, null);
+					defaults = Default.fromFormParams(args[3], ENCODING);
 				}
 				/*Default[] defaults = new Default[] {
 					new Default("Borough_Number", "3"),
@@ -54,10 +53,6 @@ public class MicroScraperConsole {
 			} catch (MicroScraperClientException e) {
 				log.e(e);
 			} catch (SQLInterfaceException e) {
-				log.e(e);
-			} catch (MissingVariable e) {
-				log.e(e);
-			} catch (TemplateException e) {
 				log.e(e);
 			}
 		}

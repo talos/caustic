@@ -35,6 +35,7 @@ public abstract class AbstractResult {
 	}
 	/**
 	 * Find all the other results in this result's scope.
+	 * Will return all one-to-one called results.
 	 * @return
 	 */
 	protected Result[] scope() {
@@ -42,6 +43,7 @@ public abstract class AbstractResult {
 		for(int i = 0; i < this.called.size() ; i++ ) {
 			Result called = (Result) this.called.elementAt(i);
 			if(called.isOneToOne) {
+				scope.addElement(called);
 				Utils.arrayIntoVector(called.scope(), scope);
 			}
 		}

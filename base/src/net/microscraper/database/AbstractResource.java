@@ -31,7 +31,6 @@ public abstract class AbstractResource {
 	}
 	public AbstractResource() {
 		this.ref = Reference.blank(this);
-		Client.context().log.i(ref.toString());
 	}
 	public AbstractResource initialize(Database db, String key, Hashtable attributes, Hashtable relationships) {
 		this.db = db;
