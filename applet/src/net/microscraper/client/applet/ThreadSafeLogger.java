@@ -43,7 +43,7 @@ public class ThreadSafeLogger implements Logger {
 	 * Pull out the oldest log item.
 	 * @return The log item, or null if there is none.
 	 */
-	public String unshift() {
+	public String shift() {
 		try {
 			return log_list.remove(0);
 		} catch(IndexOutOfBoundsException e) {

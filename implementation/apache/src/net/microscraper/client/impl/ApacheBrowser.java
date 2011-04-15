@@ -44,7 +44,7 @@ public class ApacheBrowser implements Browser {
 	
 	private final BasicCookieStore cookie_store = new BasicCookieStore();
 	private final HttpParams http_params = new BasicHttpParams();
-	private final DefaultHttpClient http_client = new DefaultHttpClient();
+	//private final DefaultHttpClient http_client = new DefaultHttpClient();
 	
 	//private final HashMap<WebPage, String> cache = new HashMap<WebPage, String>();
 	//private final boolean use_cache;
@@ -56,8 +56,8 @@ public class ApacheBrowser implements Browser {
 		http_params.setParameter(ClientPNames.REJECT_RELATIVE_REDIRECT, false);
 		http_params.setParameter(ClientPNames.MAX_REDIRECTS, 100);
 		
-		http_client.setCookieStore(cookie_store);
-		http_client.setParams(http_params);
+		//http_client.setCookieStore(cookie_store);
+		//http_client.setParams(http_params);
 	}
 
 
@@ -75,7 +75,7 @@ public class ApacheBrowser implements Browser {
 	@Override
 	public String load(String url, AbstractResource[] posts, AbstractResource[] headers,
 			AbstractResource[] cookies, AbstractResource[] terminates, AbstractResult caller)
-			throws InterruptedException, BrowserException, ResourceNotFoundException, TemplateException, MissingVariable {
+			throws BrowserException, ResourceNotFoundException, TemplateException, MissingVariable {
 		/*if(cache.containsKey(web_page) && use_cache == true) {
 			Client.context().log.i("Caught in cache");
 			return cache.get(web_page);
@@ -84,6 +84,11 @@ public class ApacheBrowser implements Browser {
 			URI uri = new URI(url);
 			
 			Client.context().log.i("Browser loading URL '" + uri.toString() + "'");
+			
+			// Set up our HttpClient
+			DefaultHttpClient http_client = new DefaultHttpClient();
+			http_client.setCookieStore(cookie_store);
+			http_client.setParams(http_params);
 			
 			// Set up our httpclient to handle 302 redirects properly.
 			http_client.setRedirectHandler(new RedirectHandler(uri));
@@ -114,7 +119,6 @@ public class ApacheBrowser implements Browser {
 				cookie.setDomain(uri.getHost());
 				cookie_store.addCookie(cookie);
 			}
-			
 			HttpResponse response = http_client.execute(http_request);
 			
 			StatusLine status = response.getStatusLine();
@@ -134,6 +138,8 @@ public class ApacheBrowser implements Browser {
 				byte[] buffer = new byte[512];
 				int readBytes;
 				
+				Thread.interrupted();
+				
 				loading: while ((readBytes = stream.read(buffer)) != -1) {
 					//Client.context().log.i(new String(buffer));
 					content.write(buffer, 0, readBytes);
@@ -141,6 +147,7 @@ public class ApacheBrowser implements Browser {
 					for(int i = 0 ; i < patterns.length ; i ++) {
 						if(patterns[i].matches(content_string)){
 							Client.context().log.i("Terminating " + uri.toString() + " due to pattern " + terminates[i].toString());
+							entity.consumeContent();
 							break loading;
 						}
 					}
@@ -159,7 +166,7 @@ public class ApacheBrowser implements Browser {
 	}
 	
 	private static void addHeaders(HttpRequestBase http_request, AbstractResource[] headers, AbstractResult caller)
-				throws ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException, BrowserException {
+				throws ResourceNotFoundException, TemplateException, MissingVariable, BrowserException {
 		for(int i = 0 ; i < headers.length ; i ++) {
 			Result header = headers[i].getValue(caller)[0];
 			http_request.addHeader(header.key, header.value);
@@ -177,7 +184,7 @@ public class ApacheBrowser implements Browser {
 	 * @throws ResourceNotFoundException 
 	 */
 	private static UrlEncodedFormEntity generateFormEntity(AbstractResource[] headers, AbstractResult caller)
-				throws UnsupportedEncodingException, ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException, BrowserException {
+				throws UnsupportedEncodingException, ResourceNotFoundException, TemplateException, MissingVariable, BrowserException {
 		List<BasicNameValuePair> pairs = new ArrayList<BasicNameValuePair>();
 		for(int i = 0; i < headers.length ; i ++) {
 			Result header = headers[i].getValue(caller)[0];

@@ -14,7 +14,7 @@ import net.microscraper.database.Result;
 public class WebPage extends AbstractResource {
 
 	public Result[] execute(AbstractResult caller) throws TemplateException,
-			MissingVariable, ResourceNotFoundException, InterruptedException, BrowserException {
+			MissingVariable, ResourceNotFoundException, BrowserException {
 		return new Result[] {
 			new Result(caller, this, this.ref().title, Client.context().browser.load(
 				attribute_get(URL), relationship(POSTS), relationship(HEADERS), relationship(COOKIES), relationship(TERMINATES),

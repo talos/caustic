@@ -53,10 +53,10 @@ public class Client {
 		try {
 			ResultRoot root = new ResultRoot();
 			
-			log.i("Scraping based off of object loaded from " + json_url);
+			log.i("Scraping '" + ref.toString() + "' from JSON loaded from " + json_url);
 			
 			String raw_obj = browser.load(json_url, root);
-			log.i("Raw scraping object: " + raw_obj);
+			log.i("Raw scraping JSON: " + raw_obj);
 			
 			for(int i = 0 ; i < extra_defaults.length ; i ++) {
 				extra_defaults[i].getValue(root);

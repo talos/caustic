@@ -17,7 +17,7 @@ import net.microscraper.database.Result;
 
 public class Data extends AbstractResource {
 	public Result[] execute(AbstractResult caller)
-			throws TemplateException, MissingVariable, ResourceNotFoundException, InterruptedException, BrowserException {
+			throws TemplateException, MissingVariable, ResourceNotFoundException, BrowserException {
 		AbstractResource[] defaults = relationship(DEFAULTS);
 		AbstractResource[] scrapers = relationship(SCRAPERS);
 		

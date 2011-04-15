@@ -25,7 +25,11 @@ public class ScrapeRunnable implements Runnable {
 	}
 	@Override
 	public void run() {
-		AccessController.doPrivileged(new ScrapeAction());
+		try {
+			AccessController.doPrivileged(new ScrapeAction());
+		} catch(Throwable e) {
+			client.log.e(e);
+		}
 	}
 	
 	private class ScrapeAction implements PrivilegedAction<Void> {

@@ -17,7 +17,7 @@ import net.microscraper.database.Result;
 
 public class Scraper extends AbstractResource {
 	public Result[] execute(AbstractResult caller)
-					throws TemplateException, ResourceNotFoundException, MissingVariable, InterruptedException, BrowserException {
+					throws TemplateException, ResourceNotFoundException, MissingVariable, BrowserException {
 		AbstractResource[] web_pages = relationship(WEB_PAGES);
 		AbstractResource[] source_scrapers = relationship(SOURCE_SCRAPERS);
 		Vector input_strings = new Vector();

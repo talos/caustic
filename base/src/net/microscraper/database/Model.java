@@ -66,14 +66,14 @@ public class Model {
 			Class klass = Class.forName("net.microscraper.database.schema." + model_name);
 			return get(klass);
 		} catch (ClassNotFoundException e) {
-			throw new IllegalArgumentException("Unable to instantiate model " + model_name, e);
+			throw new IllegalArgumentException("Unable to instantiate model '" + model_name + "'", e);
 		}
 	}
 	public static Model get(Class model_class) {
 		try {
 			return new Model(model_class /*, ((AbstractResource) model_class.newInstance()).definition()*/);
 		} catch (Exception e) {
-			throw new IllegalArgumentException("Unable to instantiate model " + model_class.toString(), e);
+			throw new IllegalArgumentException("Unable to instantiate model '" + model_class.toString() + "'", e);
 		}
 	}
 	public String toString() {

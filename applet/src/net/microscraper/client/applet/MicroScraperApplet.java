@@ -19,14 +19,14 @@ import net.microscraper.database.Result;
  */
 public class MicroScraperApplet extends Applet {
 	private static final long serialVersionUID = 2768937336583253219L;
-	private static final String version = ".01";
+	private static final String version = ".05";
 	
 	private final ThreadSafePublisher publisher = new ThreadSafePublisher();
 	private final JSON json = new JSONME();
 	private final ThreadSafeLogger log = new ThreadSafeLogger(json);
 	
 	public static final String encoding = "UTF-8";
-	private Thread thread;
+	private Thread current_thread;
 	private final Client client = Client.initialize(
 			new ApacheBrowser(/*false*/),
 			new JavaUtilRegexInterface(), json,
@@ -44,9 +44,12 @@ public class MicroScraperApplet extends Applet {
 	public boolean start(String url, String model, String full_name, String params_string) {
 		try {
 			if(!isAlive()) {
-				thread = new Thread(new ScrapeRunnable(url, model, full_name, params_string, client));
+				Thread thread = new Thread(new ScrapeRunnable(url, model, full_name, params_string, client));
 				thread.start();
+				current_thread = thread;
 				return true;
+			} else {
+				log.i("Not starting test, another test has yet to complete.  Stop it manually to test this now.");
 			}
 		} catch(Exception e) {
 			log.e(e);
@@ -56,9 +59,10 @@ public class MicroScraperApplet extends Applet {
 	
 	public boolean kill() {
 		try {
-			thread.interrupt();
+			current_thread.interrupt();
+			log.i("Killed test.");
 			return true;
-		} catch(Exception e) {
+		} catch(Throwable e) {
 			log.e(e);
 		}
 		return false;
@@ -66,10 +70,10 @@ public class MicroScraperApplet extends Applet {
 	
 	public boolean isAlive() {
 		try {
-			if(thread == null) {
+			if(current_thread == null) {
 				return false;
 			} else {
-				return thread.isAlive();
+				return current_thread.isAlive();
 			}
 		} catch(Exception e) {
 			log.e(e);
@@ -92,6 +96,6 @@ public class MicroScraperApplet extends Applet {
 	}
 	
 	public String log() {
-		return log.unshift();
+		return log.shift();
 	}
 }
