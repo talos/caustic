@@ -1,6 +1,7 @@
 package net.microscraper.client.impl;
 
 import java.io.ByteArrayOutputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -41,14 +42,13 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
+
 public class ApacheBrowser implements Browser {
 	//public static final boolean USE_CACHE = true;
 	//public static final boolean DO_NOT_USE_CACHE = false;
 	
-	private static final int TIMEOUT = 5000;
 	private final BasicCookieStore cookie_store = new BasicCookieStore();
 	private final HttpParams http_params = new BasicHttpParams();
-	//private final DefaultHttpClient http_client = new DefaultHttpClient();
 	
 	//private final HashMap<WebPage, String> cache = new HashMap<WebPage, String>();
 	//private final boolean use_cache;
@@ -58,7 +58,7 @@ public class ApacheBrowser implements Browser {
 		http_params.setParameter(ClientPNames.HANDLE_REDIRECTS, true);
 		http_params.setParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);
 		http_params.setParameter(ClientPNames.REJECT_RELATIVE_REDIRECT, false);
-		http_params.setParameter(ClientPNames.MAX_REDIRECTS, 100);
+		http_params.setParameter(ClientPNames.MAX_REDIRECTS, MAX_REDIRECTS);
 		http_params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, TIMEOUT);
 		http_params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, TIMEOUT);
 		http_params.setLongParameter(ConnManagerPNames.TIMEOUT, TIMEOUT);
@@ -66,13 +66,9 @@ public class ApacheBrowser implements Browser {
 	
 	@Override
 	public String load(String url, AbstractResult caller) throws InterruptedException,
-			BrowserException {
-		try {
-			return load(url, new AbstractResource[] {}, new AbstractResource[] {}, new AbstractResource[] {}, new AbstractResource[] {}, caller);
-		} catch (Exception e) {
-			Client.context().log.e(e);
-			throw new BrowserException(e.toString());
-		}
+			BrowserException, ResourceNotFoundException, TemplateException, MissingVariable {
+		return load(url, new AbstractResource[] {}, new AbstractResource[] {}, new AbstractResource[] {}, new AbstractResource[] {}, caller);
+		
 	}
 	
 	@Override
@@ -117,7 +113,7 @@ public class ApacheBrowser implements Browser {
 						
 			// Add cookies.
 			for(int i = 0 ; i < cookies.length ; i ++) {
-				Result cookie_result = headers[i].getValue(caller)[0];
+				Result cookie_result = cookies[i].getValue(caller)[0];
 				BasicClientCookie cookie = new BasicClientCookie(cookie_result.key, cookie_result.value);
 				cookie.setDomain(uri.getHost());
 				cookie_store.addCookie(cookie);
@@ -161,9 +157,9 @@ public class ApacheBrowser implements Browser {
 						}
 					}
 				}
-				String string_content = content.toString();
+				content_string = content.toString();
 				//cache.put(web_page, string_content);
-				return string_content;
+				return content_string;
 			} else {
 				throw new BrowserException(uri.toString() + "returned error status: " + Integer.toString(status.getStatusCode()));
 			}
