@@ -23,14 +23,14 @@
 	<target name="create_applet_jar" depends="init">
 	  <jar destfile="${microscraper.server.applet.jar}" filesetmanifest="mergewithoutmain">
 	    <fileset excludes="META-INF/*" includes="**/*.class" dir="bin"/>
-	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/apache/build/classes"/>
+	    <!--<fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/apache/build/classes"/>-->
 	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../base/build/classes"/>
 	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/regexp/bin"/>
 	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/json/bin"/>
-	    <zipfileset excludes="META-INF/*" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpcore-4.0.1.jar"/>
+	    <!--<zipfileset excludes="META-INF/*" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpcore-4.0.1.jar"/>
 	    <zipfileset excludes="META-INF/*" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpclient-4.0.2.jar"/>
 	    <zipfileset excludes="META-INF/*" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/commons-logging-1.1.1.jar"/>
-	
+		-->
 	    <manifest>
 	      <!-- <attribute name="Main-Class" value="net.microscraper.client.applet.MicroScraperApplet"/> -->
 	 	  <!-- <attribute name="Class-Path" value="." /> -->

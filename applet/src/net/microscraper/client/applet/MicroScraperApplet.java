@@ -9,8 +9,8 @@ import java.util.jar.Manifest;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON;
-import net.microscraper.client.impl.ApacheBrowser;
 import net.microscraper.client.impl.JSONME;
+import net.microscraper.client.impl.JavaNetBrowser;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.ThreadSafePublisher;
 import net.microscraper.database.Result;
@@ -30,7 +30,7 @@ public class MicroScraperApplet extends Applet {
 	public static final String encoding = "UTF-8";
 	private Thread current_thread;
 	private final Client client = Client.initialize(
-			new ApacheBrowser(/*false*/),
+			new JavaNetBrowser(),
 			new JavaUtilRegexInterface(), json,
 			new Interfaces.Logger[] { log },
 			publisher

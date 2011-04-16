@@ -59,6 +59,29 @@ public class JavaNetBrowser implements Browser {
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
 			conn.setReadTimeout(TIMEOUT);
+
+			// Add cookies passed directly into cookie store. Very primitive.
+			for(int i = 0 ; i < cookies.length ; i ++) {
+				Result r = cookies[i].getValue(caller)[0];
+				cookie_store.put(r.key, r.value);
+			}
+			
+			// Add generic Headers.
+			addHeaders(conn, Browser.DEFAULT_HEADERS, caller);
+			addHeaders(conn, new AbstractHeader[] {
+				new AbstractHeader(Browser.REFERER_HEADER_NAME, url.toString())
+			}, caller);
+			addHeaders(conn, headers, caller);
+
+			// Add cookie headers.
+			if(cookies.length > 0) {
+				String cookie_string = "";
+				for(int i = 0 ; i < cookies.length ; i ++) {
+					Result cookie_result = cookies[i].getValue(caller)[0];
+					cookie_string += cookie_result.key + '=' + cookie_result.value + "; ";
+				}
+				conn.setRequestProperty("Cookie", cookie_string);
+			}
 			
 			// Add Posts & set request type
 			if(posts.length > 0) {
@@ -68,19 +91,6 @@ public class JavaNetBrowser implements Browser {
 				writer.flush();
 			} else {
 				conn.setRequestMethod("GET");
-			}
-			
-			// Add Headers.
-			addHeaders(conn, Browser.DEFAULT_HEADERS, caller);
-			addHeaders(conn, new AbstractHeader[] {
-				new AbstractHeader(Browser.REFERER_HEADER_NAME, url.toString())
-			}, caller);
-			addHeaders(conn, headers, caller);
-			
-			// Add cookies to cookie store. Very primitive.
-			for(int i = 0 ; i < cookies.length ; i ++) {
-				Result r = cookies[i].getValue(caller)[0];
-				cookie_store.put(r.key, r.value);
 			}
 			
 			// Set up patterns
@@ -109,9 +119,11 @@ public class JavaNetBrowser implements Browser {
 				content.write(buffer, 0, readBytes);
 				content_string = new String(content.toByteArray());
 				for(int i = 0 ; i < patterns.length ; i++) {
-					Client.context().log.i("Terminating " + url.toString() + " due to pattern " + terminates[i].toString());
-					stream.close();
-					break loading;
+					if(patterns[i].matches(content_string)){
+						Client.context().log.i("Terminating " + url.toString() + " due to pattern " + terminates[i].toString());
+						stream.close();
+						break loading;
+					}
 				}
 			}
 			content_string = content.toString();
@@ -122,18 +134,6 @@ public class JavaNetBrowser implements Browser {
 			throw new BrowserException("Error " + e.toString() + " loading " + url_string);
 		}
 	}
-	/*
-	private static void finalize(InputStream stream, OutputStreamWriter writer, String url_string) throws BrowserException {
-		try {
-		if(stream != null)
-			stream.close();
-		if(writer != null)
-			writer.close();
-		} catch (IOException e) {
-			throw new BrowserException("Error " + e.toString() + " loading " + url_string);
-		}
-	}
-	*/
 	
 	private static void addHeaders(HttpURLConnection conn, AbstractResource[] headers, AbstractResult caller)
 			throws ResourceNotFoundException, TemplateException, MissingVariable, BrowserException, InterruptedException {
@@ -152,7 +152,6 @@ public class JavaNetBrowser implements Browser {
 				URLEncoder.encode(r.key, ENCODING) + "=" + URLEncoder.encode(r.value, ENCODING);
 		}
 		return post_strings;
-		//return Utils.join(post_strings, "&");
 	}
 	
 	// Indebted to jcookie (http://jcookie.sourceforge.net/doc.html)
@@ -186,10 +185,10 @@ public class JavaNetBrowser implements Browser {
 	 * @param conn
 	 */
 	private void updateCookieStore(HttpURLConnection conn) {
-		for(int i = 0 ; conn.getHeaderField(i) != null ; i++) {
-			String header_name = conn.getHeaderFieldKey(i);
+		String header_name, header_value;
+		for(int i = 0 ; (header_name = conn.getHeaderFieldKey(i)) != null ; i++) {
 			if(header_name.equals("Set-Cookie") || header_name.equals("Set-Cookie2")) {
-				String header_value = conn.getHeaderField(i);
+				header_value = conn.getHeaderField(i);
 				int equals_loc = header_value.indexOf('=');
 				if(equals_loc != -1) {
 					String name = header_value.substring(0, equals_loc);

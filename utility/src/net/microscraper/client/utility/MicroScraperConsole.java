@@ -5,9 +5,9 @@ import java.text.DateFormat;
 import net.microscraper.client.Client;
 import net.microscraper.client.Client.MicroScraperClientException;
 import net.microscraper.client.Interfaces;
-import net.microscraper.client.impl.ApacheBrowser;
 import net.microscraper.client.impl.JDBCSQLite;
 import net.microscraper.client.impl.JSONME;
+import net.microscraper.client.impl.JavaNetBrowser;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.client.impl.SQLPublisher;
@@ -29,7 +29,7 @@ public class MicroScraperConsole {
 		} else {
 			try {
 				Client client = Client.initialize(
-						new ApacheBrowser(/*ApacheBrowser.DO_NOT_USE_CACHE*/),
+						new JavaNetBrowser(/*ApacheBrowser.DO_NOT_USE_CACHE*/),
 						new JavaUtilRegexInterface(),
 						new JSONME(),
 						new Interfaces.Logger[] { log },
@@ -42,12 +42,6 @@ public class MicroScraperConsole {
 				if(args.length > 3) {
 					defaults = Default.fromFormParams(args[3], ENCODING);
 				}
-				/*Default[] defaults = new Default[] {
-					new Default("Borough_Number", "3"),
-					new Default("House_Number", "373"),
-					new Default("Street_Name", "Atlantic Ave"),
-					new Default("Apartment_Number", "")
-				};*/
 				client.scrape(url, resource_ref, defaults);
 				client.log.i("Finished execution.");
 			} catch (MicroScraperClientException e) {

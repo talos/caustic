@@ -13,7 +13,7 @@ public interface Browser {
 	public static final int SUCCESS_CODE = 200;
 	public static final String LOCATION_HEADER_NAME = "location";
 	public static final String REFERER_HEADER_NAME = "Referer";
-
+	
 	public String load(String url, AbstractResult caller)
 			throws InterruptedException, BrowserException, ResourceNotFoundException, TemplateException, MissingVariable;
 	public String load(String url, AbstractResource[] posts, AbstractResource[] headers,
