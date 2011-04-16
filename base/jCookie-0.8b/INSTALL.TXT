@@ -1,5 +1,0 @@
-jCookie v0.8b Installation Instructions
----------------------------------------
-
-1.) Extract the archive (if any) into a directory of your choice.
-2.) Add the "classes" subdirectory of the above chosen directory, to the CLASSPATH.
