@@ -20,14 +20,38 @@ public class Scraper extends AbstractResource {
 		return ref().title;
 	}
 	
-	public Result[] getResults(AbstractResult caller)
-			throws FatalExecutionException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	protected Result.Success execute(AbstractResult caller, AbstractResource source)
-			throws TemplateException, ResourceNotFoundException, InterruptedException, MissingVariable, NoMatches {
+	public Result[] getResults(AbstractResult caller) throws FatalExecutionException {
+		AbstractResource[] web_pages = relationship(WEB_PAGES);
+		AbstractResource[] source_scrapers = relationship(SOURCE_SCRAPERS);
+		Vector input_strings = new Vector();
+		//Vector premature_results = new Vector();
+		for(int i = 0; i < web_pages.length; i++) {
+			WebPage web_page = (WebPage) web_pages[i];
+			input_strings.addElement(web_page.getSuccess(caller).value);
+		}
+		for(int i = 0; i < source_scrapers.length; i++) {
+			Result[] source_results = source_scrapers[i].getResults(caller);
+			for(int j = 0 ; j < source_results.length ; j++) {
+				if(source_results[i].successful) {
+					input_strings.addElement(((Result.Success) source_results[j]).value);					
+				}
+			}
+		}
+		
+		Result[] results;
+		try {
+			results = processInput(input_strings, caller);
+		} catch(MissingVariable e) {
+			results = new Result[] { new Result.Premature(caller, this, e) };
+		} catch(NoMatches e) {
+			results = new Result[] { new Result.Failure(caller, this, e) };
+		}
+		//Utils.arrayIntoVector(processed_results, premature_results);
+		//Result[] results = new Result[premature_results.size()];
+		//premature_results.copyInto(results);
+		return results;
+
+		
 		Result[] source_results = source.getValues(caller);
 		for(int i = 0 ; i < source_results.length ; i ++) {
 			if(source_results[i].successful) {
@@ -64,46 +88,7 @@ public class Scraper extends AbstractResource {
 				}
 			}
 		}
-		
-		AbstractResource[] web_pages = relationship(WEB_PAGES);
-		AbstractResource[] source_scrapers = relationship(SOURCE_SCRAPERS);
-		Vector input_strings = new Vector();
-		//Vector premature_results = new Vector();
-		for(int i = 0; i < web_pages.length; i++) {
-			Result r = web_pages[i].getValue(caller)[0];
-			if(r.successful) {
-				input_strings.addElement(((Result.Success) r).value);
-			}/* else {
-				premature_results.addElement(
-						new Result.Premature(caller, this, new MissingVariable((Result.Premature) r)));
-			}*/
-		}
-		for(int i = 0; i < source_scrapers.length; i++) {
-			Result[] source_results = source_scrapers[i].getValue(caller);
-			for(int j = 0 ; j < source_results.length ; j++) {
-				if(source_results[i].successful) {
-					input_strings.addElement(((Result.Success) source_results[j]).value);					
-				}/* else {
-					premature_results.addElement(
-							new Result.Premature(caller, this, new MissingVariable((Result.Premature) source_results[i])));
-				}*/
-			}
-		}
-		
-		Result[] results;
-		try {
-			results = processInput(input_strings, caller);
-		} catch(MissingVariable e) {
-			results = new Result[] { new Result.Premature(caller, this, e) };
-		} catch(NoMatches e) {
-			results = new Result[] { new Result.Failure(caller, this, e) };
-		}
-		//Utils.arrayIntoVector(processed_results, premature_results);
-		//Result[] results = new Result[premature_results.size()];
-		//premature_results.copyInto(results);
-		return results;
 	}
-	
 	public boolean isVariable() {
 		return true;
 	}
