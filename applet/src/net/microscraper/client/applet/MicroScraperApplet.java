@@ -12,7 +12,7 @@ import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaNetBrowser;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
-import net.microscraper.client.impl.ThreadSafePublisher;
+import net.microscraper.client.impl.ThreadSafeJSONPublisher;
 import net.microscraper.database.Result;
 
 /**
@@ -23,7 +23,7 @@ import net.microscraper.database.Result;
 public class MicroScraperApplet extends Applet {
 	private static final long serialVersionUID = 2768937336583253219L;
 	
-	private static final ThreadSafePublisher publisher = new ThreadSafePublisher();
+	private static final ThreadSafeJSONPublisher publisher = new ThreadSafeJSONPublisher();
 	private static final JSON json = new JSONME();
 	private static final ThreadSafeLogger log = new ThreadSafeLogger(json);
 	
@@ -96,12 +96,13 @@ public class MicroScraperApplet extends Applet {
 	
 	public String results() {
 		try {
-			Result result = publisher.unshift();
-			if(result != null) {
+			//Result result = publisher.shift();
+			/*if(result != null) {
 				Hashtable<String, String> result_table = new Hashtable<String, String>();
 				result_table.put(result.key, result.value);
 				return json.toJSON(result_table);
-			}
+			}*/
+			return publisher.toJSON();
 		} catch(Throwable e) {
 			client.log.e(e);
 		}

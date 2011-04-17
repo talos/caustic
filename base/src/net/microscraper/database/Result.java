@@ -1,29 +1,34 @@
 package net.microscraper.database;
 
 import net.microscraper.client.Client;
+import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.client.Variables;
 
-public class Result extends AbstractResult {
+public abstract class Result extends AbstractResult {
+	public static final String ERROR = "error";
+	public static final String MISSING_VARIABLE = "missing";
+	public static final String VALUE = "value";
+	public static final String KEY = "key";
+	
 	public final AbstractResult caller;
 	public final Reference ref;
 	protected final boolean isOneToOne;
 	protected final boolean isVariable;
-	public final String key;
-	public final String value;
-	private final Publisher publisher = Client.context().publisher;
+	public final boolean successful;
+	protected final Publisher publisher = Client.context().publisher;
+	protected final Variables messages = new Variables();
 	
-	public Result(AbstractResult caller, AbstractResource resource, String key, String value) {
-		if(caller == null || resource == null || key == null || value == null)
+	protected Result(AbstractResult caller, AbstractResource resource, boolean successful) {
+		if(caller == null || resource == null)
 			throw new IllegalArgumentException();
 		this.caller = caller;
 		this.ref = resource.ref();
 		this.isOneToOne = !resource.branchesResults();
 		
 		this.isVariable = resource.isVariable();
-		this.key = key;
-		this.value = value;
+		this.successful = successful;
 		this.caller.addCalled(this);
 		
 		if(publisher.live()) {
@@ -35,26 +40,44 @@ public class Result extends AbstractResult {
 		}
 	}
 	
-	// If this is one-to-one, intercept variables call and toss it up the caller chain.
-	public Variables variables() {
-		if(isOneToOne) {
-			return caller.variables();
-		} else {
-			return super.variables();
+	public static class Success extends Result {
+		public final String key;
+		public final String value;
+		public Success(AbstractResult caller, AbstractResource resource, String key, String value) {
+			super(caller, resource, true);
+			if(key == null || value == null)
+				throw new IllegalArgumentException();
+			this.key = key;
+			this.value = value;
+			messages.put(KEY, this.key);
+			messages.put(VALUE, this.value);
+		}
+		
+		// If this is one-to-one, intercept variables call and toss it up the caller chain.
+		public Variables variables() {
+			if(isOneToOne) {
+				return caller.variables();
+			} else {
+				return super.variables();
+			}
 		}
 	}
 	
-	/**
-	 * Allow this to be used in a hash.
-	 */
-	public boolean equals(Object obj) {
-		if(this == obj)
-			return true;
-		if(!(obj instanceof Result))
-			return false;
-		return this.id == ((Result) obj).id;
+	public static class Premature extends Result {
+		public final MissingVariable error;
+		public Premature(AbstractResult caller, AbstractResource resource, MissingVariable error) {
+			super(caller, resource, false);
+			this.error = error;
+			messages.put(MISSING_VARIABLE, error.missing_tag);
+		}
 	}
-	public int hashCode() {
-		return this.id;
+	
+	public static class Failure extends Result {
+		public final Throwable error;
+		public Failure(AbstractResult caller, AbstractResource resource, Throwable error) {
+			super(caller, resource, false);
+			this.error = error;
+			messages.put(ERROR, error.getMessage());
+		}
 	}
 }

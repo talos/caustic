@@ -5,7 +5,7 @@ import java.util.Vector;
 import net.microscraper.client.Publisher;
 import net.microscraper.database.Result;
 
-public class ThreadSafePublisher implements Publisher {
+public class ThreadSafeJSONPublisher implements Publisher {
 	Vector results = new Vector();
 	
 	public boolean live() {
@@ -14,16 +14,20 @@ public class ThreadSafePublisher implements Publisher {
 	public void publish(Result result) throws PublisherException {
 		results.add(result);
 	}
+	public String toJSON() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 	/**
 	 * Pull out the oldest result.
 	 * @return
 	 */
-	public Result unshift() {
+	/*public Result shift() {
 		try {
 			return (Result) results.remove(0);
 		} catch(IndexOutOfBoundsException e) {
 			return null;
 		}
-	}
+	}*/
 }

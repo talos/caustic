@@ -18,14 +18,17 @@ public class AbstractHeader extends AbstractResource {
 		this.name = name;
 		this.value = value;
 	}
-	public Result[] execute(AbstractResult caller) throws TemplateException, MissingVariable {
+	protected Result[] execute(AbstractResult caller) throws TemplateException {
 		Variables variables = caller.variables();
-		return new Result[] {
-				new Result(
-						caller, this,
-						Mustache.compile(name  != null ? name : attribute_get(NAME), variables),
-						Mustache.compile(value != null ? value :attribute_get(VALUE), variables))
-		};
+		try {
+			return new Result[] {
+					new Result.Success(caller, this,
+							Mustache.compile(name  != null ? name : attribute_get(NAME), variables),
+							Mustache.compile(value != null ? value :attribute_get(VALUE), variables))
+			};
+		} catch(MissingVariable e) {
+			return new Result[] { new Result.Failure(caller, this, e) };			
+		}
 	}
 	
 	public static final String NAME = "name";

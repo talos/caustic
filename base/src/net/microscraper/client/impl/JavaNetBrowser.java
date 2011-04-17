@@ -4,24 +4,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 import net.microscraper.client.Browser;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils;
-import net.microscraper.database.AbstractResource;
-import net.microscraper.database.AbstractResult;
-import net.microscraper.database.DatabaseException.ResourceNotFoundException;
-import net.microscraper.database.Result;
-import net.microscraper.database.schema.AbstractHeader;
 
 /**
  * This is a very, very lightweight browser.  It will add headers & posts, and do -very- primitive cookie handling.  It only
@@ -30,21 +23,16 @@ import net.microscraper.database.schema.AbstractHeader;
  *
  */
 public class JavaNetBrowser implements Browser {
-	private static final String ENCODING = "UTF-8";
-	public String load(String url, AbstractResult caller)
-			throws InterruptedException, BrowserException, ResourceNotFoundException, TemplateException, MissingVariable {
-		return load(url, new AbstractResource[] {}, new AbstractResource[] {},
-				new AbstractResource[] {}, new AbstractResource[] {},
-				caller);
+	public String load(String url)
+			throws InterruptedException, BrowserException {
+		return load(url, new Hashtable(), new Hashtable(), new Hashtable(), new Pattern[] {});
 	}
 	private final Hashtable cookie_store = new Hashtable();
 
-	// Thank you from http://www.exampledepot.com/egs/java.net/Post.html
-	public String load(String url_string, AbstractResource[] posts,
-			AbstractResource[] headers, AbstractResource[] cookies,
-			AbstractResource[] terminates, AbstractResult caller)
-			throws BrowserException, ResourceNotFoundException,
-			TemplateException, MissingVariable, InterruptedException {
+	public String load(String url_string, Hashtable posts,
+			Hashtable headers, Hashtable cookies,
+			Pattern[] terminates)
+			throws BrowserException, InterruptedException {
 		
 		OutputStreamWriter writer = null;
 		InputStream stream = null;
@@ -61,42 +49,45 @@ public class JavaNetBrowser implements Browser {
 			conn.setReadTimeout(TIMEOUT);
 
 			// Add cookies passed directly into cookie store. Very primitive.
-			for(int i = 0 ; i < cookies.length ; i ++) {
-				Result r = cookies[i].getValue(caller)[0];
-				cookie_store.put(r.key, r.value);
-			}
+			Utils.hashtableIntoHashtable(cookies, cookie_store);
 			
 			// Add generic Headers.
-			addHeaders(conn, Browser.DEFAULT_HEADERS, caller);
-			addHeaders(conn, new AbstractHeader[] {
-				new AbstractHeader(Browser.REFERER_HEADER_NAME, url.toString())
-			}, caller);
-			addHeaders(conn, headers, caller);
+			Hashtable default_headers = new Hashtable();
+			default_headers.put(REFERER_HEADER_NAME, url.toString());
+			default_headers.put(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER_DEFAULT_VALUE);
+			default_headers.put(ACCEPT_HEADER_NAME, ACCEPT_HEADER_DEFAULT_VALUE);
+			addHeaders(conn, default_headers);
+			addHeaders(conn, headers);
 
 			// Add cookie headers.
-			if(cookies.length > 0) {
+			if(cookies.size() > 0) {
 				String cookie_string = "";
-				for(int i = 0 ; i < cookies.length ; i ++) {
-					Result cookie_result = cookies[i].getValue(caller)[0];
-					cookie_string += cookie_result.key + '=' + cookie_result.value + "; ";
+				Enumeration e = cookies.keys();
+				while(e.hasMoreElements()) {
+					String key = (String) e.nextElement();
+					cookie_string += URLEncoder.encode(key, ENCODING) + '=' + URLEncoder.encode((String) cookies.get(key), ENCODING) + "; ";
 				}
+				
 				conn.setRequestProperty("Cookie", cookie_string);
 			}
 			
 			// Add Posts & set request type
-			if(posts.length > 0) {
+			if(posts.size() > 0) {
+				String post_data = "";
+				Enumeration e = posts.keys();
+				while(e.hasMoreElements()) {
+					String key = (String) e.nextElement();
+					post_data += URLEncoder.encode(key, ENCODING) + '=' + URLEncoder.encode((String) posts.get(key), ENCODING) + '&';
+				}
+				post_data = post_data.substring(0, post_data.length() -1); // trim trailing ampersand
+
 				conn.setRequestMethod("POST");
 				writer = new OutputStreamWriter(conn.getOutputStream());
-				writer.write(Utils.join(encodeNameValuePairs(posts, caller), "&"));
+				
+				writer.write(post_data);
 				writer.flush();
 			} else {
 				conn.setRequestMethod("GET");
-			}
-			
-			// Set up patterns
-			Pattern[] patterns = new Pattern[terminates.length];
-			for(int i = 0; i < terminates.length; i++) {
-				patterns[i] = Client.context().regexp.compile(terminates[i].getValue(caller)[0].value);
 			}
 			
 			Client.context().log.i("Waiting for response from " + url.toString() + "...");
@@ -118,8 +109,8 @@ public class JavaNetBrowser implements Browser {
 				
 				content.write(buffer, 0, readBytes);
 				content_string = new String(content.toByteArray());
-				for(int i = 0 ; i < patterns.length ; i++) {
-					if(patterns[i].matches(content_string)){
+				for(int i = 0 ; i < terminates.length ; i++) {
+					if(terminates[i].matches(content_string)){
 						Client.context().log.i("Terminating " + url.toString() + " due to pattern " + terminates[i].toString());
 						stream.close();
 						break loading;
@@ -135,23 +126,12 @@ public class JavaNetBrowser implements Browser {
 		}
 	}
 	
-	private static void addHeaders(HttpURLConnection conn, AbstractResource[] headers, AbstractResult caller)
-			throws ResourceNotFoundException, TemplateException, MissingVariable, BrowserException, InterruptedException {
-		for(int i = 0 ; i < headers.length ; i ++) {
-			Result r = headers[i].getValue(caller)[0];
-			conn.setRequestProperty(r.key, r.value);
+	private static void addHeaders(HttpURLConnection conn, Hashtable headers)  {
+		Enumeration e = headers.keys();
+		while(e.hasMoreElements()) {
+			String key = (String) e.nextElement();
+			conn.setRequestProperty(key, (String) headers.get(key));
 		}
-	}
-	
-	private static String[] encodeNameValuePairs(AbstractResource[] posts, AbstractResult caller)
-			throws ResourceNotFoundException, TemplateException, MissingVariable, BrowserException, InterruptedException, UnsupportedEncodingException {
-		String[] post_strings = new String[posts.length];
-		for(int i = 0 ; i < posts.length ; i ++ ) {
-			Result r = posts[i].getValue(caller)[0];
-			post_strings[i] =
-				URLEncoder.encode(r.key, ENCODING) + "=" + URLEncoder.encode(r.value, ENCODING);
-		}
-		return post_strings;
 	}
 	
 	// Indebted to jcookie (http://jcookie.sourceforge.net/doc.html)

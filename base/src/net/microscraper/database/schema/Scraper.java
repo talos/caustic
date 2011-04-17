@@ -14,19 +14,20 @@ import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Result;
+import net.microscraper.database.Result.Premature;
 
 public class Scraper extends AbstractResource {
 	public Result[] execute(AbstractResult caller)
-					throws TemplateException, ResourceNotFoundException, MissingVariable, BrowserException, InterruptedException {
+					throws TemplateException, ResourceNotFoundException, InterruptedException {
 		AbstractResource[] web_pages = relationship(WEB_PAGES);
 		AbstractResource[] source_scrapers = relationship(SOURCE_SCRAPERS);
 		Vector input_strings = new Vector();
 		for(int i = 0; i < web_pages.length; i++) {
 			try {
-				input_strings.addElement(web_pages[i].getValue(caller)[0].value);
+				Result web_page_result = web_pages[i].getValue(caller)[0];
+				//input_strings.addElement(.value;
 			} catch(MissingVariable e) {
-				// Missing a variable, skip this WebPage
-				Client.context().log.i(e.getMessage());
+				
 			}
 		}
 		for(int i = 0; i < source_scrapers.length; i++) {
@@ -63,11 +64,10 @@ public class Scraper extends AbstractResource {
 					matches = new String[] { pattern.match(input, match_number.intValue()) };
 				}
 				for(int j = 0 ; j < matches.length ; j ++) {
-					results.addElement(new Result(caller, this, this.ref().title, matches[j]));
+					results.addElement(new Result.Success(caller, this, this.ref().title, matches[j]));
 				}
 			} catch(NoMatches e) {
-				Client.context().log.w(e);
-				return new Result[] {};
+				results.addElement(new Result.Failure(caller, this, e));
 			}
 		}
 		Result[] results_ary = new Result[results.size()];

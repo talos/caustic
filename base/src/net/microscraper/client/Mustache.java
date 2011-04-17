@@ -1,5 +1,7 @@
 package net.microscraper.client;
 
+import net.microscraper.database.Result;
+
 /**
  * Mustache-like substitutions from Variables.
  * This does not currently support any commenting.
@@ -60,9 +62,13 @@ public class Mustache {
 		 * 
 		 */
 		private static final long serialVersionUID = 8720790457856091375L;
-
-		public MissingVariable(String tag, Variables variables) {
-			super("Variable " + tag + " is missing from variables " + variables.toString() + ", cannot compile template.");
+		public final String missing_tag;
+		public MissingVariable(String missing_tag, Variables variables) {
+			Client.context().log.i("Variable " + missing_tag + " is missing from variables " + variables.toString() + ", cannot compile template.");
+			this.missing_tag = missing_tag;
+		}
+		public MissingVariable(Result.Premature premature_result) {
+			this.missing_tag = premature_result.error.missing_tag;
 		}
 	}
 }

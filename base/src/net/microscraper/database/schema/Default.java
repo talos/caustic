@@ -31,15 +31,19 @@ public class Default extends AbstractResource {
 	 * @throws MissingVariable 
 	 * @throws ResourceNotFoundException 
 	 */
-	public Result[] execute(AbstractResult caller) throws TemplateException, MissingVariable, ResourceNotFoundException {
+	public Result[] execute(AbstractResult caller) throws TemplateException, ResourceNotFoundException {
 		if(name != null && value != null) {
-			return new Result[] { new Result(caller, this, name, value) }; 
+			return new Result[] { new Result.Success(caller, this, name, value) }; 
 		} else {
 			String raw_value = attribute_get(VALUE);
 			AbstractResource[] scrapers = relationship(SUBSTITUTED_SCRAPERS);
 			Result[] results = new Result[scrapers.length];
 			for(int i = 0 ; i < scrapers.length ; i ++) {
-				results[i] = new Result(caller, scrapers[i], scrapers[i].ref().title, Mustache.compile(raw_value, caller.variables()));
+				try {
+					results[i] = new Result.Success(caller, scrapers[i], scrapers[i].ref().title, Mustache.compile(raw_value, caller.variables()));
+				} catch (MissingVariable e) {
+					results[i] = new Result.Premature(caller, scrapers[i], e);
+				}
 			}
 			return results;
 		}

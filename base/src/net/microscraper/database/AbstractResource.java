@@ -63,15 +63,15 @@ public abstract class AbstractResource {
 	
 	public abstract ModelDefinition definition();
 	protected abstract Result[] execute(AbstractResult caller)
-			throws TemplateException, MissingVariable, ResourceNotFoundException, BrowserException, InterruptedException ;
+			throws TemplateException, ResourceNotFoundException, InterruptedException ;
 	
 	public Result[] getValue(AbstractResult caller)
-			throws ResourceNotFoundException, TemplateException, MissingVariable, BrowserException, InterruptedException {
+			throws ResourceNotFoundException, TemplateException, InterruptedException {
 		if(Thread.interrupted())
 			throw new InterruptedException("Interrupted " + ref.toString());
 		
 		Client.context().log.i("Result '" + caller.toString() + "' calling '" + ref.toString() + "'");		
-		// Catch if this has already been from that caller.
+		// Catch if this has already been called from this caller.
 		if(this.results.containsKey(caller)) {
 			return (Result[]) results.get(caller); // (Result) results.get(calling_result);
 		} else {
