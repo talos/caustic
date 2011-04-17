@@ -1,14 +1,11 @@
 package net.microscraper.database;
 
 import net.microscraper.client.Client;
-import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.AbstractResource.FatalExecutionException;
-import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 
 public abstract class Result extends AbstractResult {
 	public static final String ERROR = "error";
@@ -18,7 +15,6 @@ public abstract class Result extends AbstractResult {
 	
 	public final AbstractResult caller;
 	public final AbstractResource resource;
-	public final AbstractResource source;
 	public final Reference ref;
 	protected final boolean isOneToOne;
 	protected final boolean isVariable;

@@ -5,8 +5,7 @@ import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Interfaces.Regexp;
-import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.database.AbstractResource.FatalExecutionException;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
 import net.microscraper.database.Reference;
@@ -50,39 +49,45 @@ public class Client {
 	
 	public Result[] scrape(String json_url, Reference ref, Default[] extra_defaults)
 					throws MicroScraperClientException {
+		ResultRoot root = new ResultRoot();
+		String raw_obj;
 		try {
-			ResultRoot root = new ResultRoot();
-			
 			log.i("Scraping '" + ref.toString() + "' from JSON loaded from " + json_url);
 			
-			String raw_obj = browser.load(json_url);
+			raw_obj = browser.load(json_url);
 			log.i("Raw scraping JSON: " + raw_obj);
-			
-			for(int i = 0 ; i < extra_defaults.length ; i ++) {
-				extra_defaults[i].getValue(root);
-			}
-			
-			Database db = new Database(json.getTokener(raw_obj).nextValue());
-			return db.get(ref).getValue(root);
 		} catch(BrowserException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		} catch(InterruptedException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);
-		} catch(JSONInterfaceException e) {
-			log.e(e);
-			throw new MicroScraperClientException(e);
-		} catch(DatabaseException e) {
-			log.e(e);
-			throw new MicroScraperClientException(e);
-		} catch(InstantiationException e) {
-			log.e(e);
-			throw new MicroScraperClientException(e);
-		} catch(IllegalAccessException e) {
-			log.e(e);
-			throw new MicroScraperClientException(e);
-		} catch(TemplateException e) {
+		}
+		
+		try {
+			Database db;
+			try {
+				for(int i = 0 ; i < extra_defaults.length ; i ++) {
+					extra_defaults[i].getResults(root);
+				}
+				db = new Database(json.getTokener(raw_obj).nextValue());
+			}  catch(JSONInterfaceException e) {
+				log.e(e);
+				throw new MicroScraperClientException(e);
+			} catch(InstantiationException e) {
+				log.e(e);
+				throw new MicroScraperClientException(e);
+			} catch(IllegalAccessException e) {
+				log.e(e);
+				throw new MicroScraperClientException(e);
+			}
+			try {
+				return db.get(ref).getResults(root);
+			} catch(DatabaseException e) {
+				log.e(e);
+				throw new MicroScraperClientException(e);
+			}
+		} catch(FatalExecutionException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		}
