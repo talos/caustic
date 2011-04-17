@@ -55,7 +55,7 @@ public class Client {
 			
 			log.i("Scraping '" + ref.toString() + "' from JSON loaded from " + json_url);
 			
-			String raw_obj = browser.load(json_url, root);
+			String raw_obj = browser.load(json_url);
 			log.i("Raw scraping JSON: " + raw_obj);
 			
 			for(int i = 0 ; i < extra_defaults.length ; i ++) {
@@ -83,9 +83,6 @@ public class Client {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		} catch(TemplateException e) {
-			log.e(e);
-			throw new MicroScraperClientException(e);
-		} catch(MissingVariable e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		}

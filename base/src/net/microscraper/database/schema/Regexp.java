@@ -7,25 +7,13 @@ import net.microscraper.database.AbstractResource;
 import net.microscraper.database.AbstractResult;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
-import net.microscraper.database.Result;
 
-public class Regexp extends AbstractResource {
+public class Regexp extends AbstractResource.Simple {
 	private static final String REGEXP = "regexp";
 	private String regexp;
 	public Regexp() { }
 	public Regexp(String regexp) {
 		this.regexp = regexp;
-	}
-	
-	public Result[] execute(AbstractResult caller) throws TemplateException {
-		try {
-			return new Result[] {
-				new Result.Success(caller, this, this.ref().title,
-						Mustache.compile(regexp != null ? regexp : attribute_get(REGEXP), caller.variables()))
-			};
-		} catch(MissingVariable e) {
-			return new Result[] { new Result.Premature(caller, this, e) };
-		}
 	}
 	
 	public ModelDefinition definition() {
@@ -38,5 +26,11 @@ public class Regexp extends AbstractResource {
 			}
 		};
 	}
-
+	
+	protected String getName(AbstractResult caller) {
+		return this.ref().title;
+	}
+	protected String getValue(AbstractResult caller) throws TemplateException, MissingVariable {
+		return Mustache.compile(regexp != null ? regexp : attribute_get(REGEXP), caller.variables());
+	}
 }

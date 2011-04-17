@@ -22,30 +22,34 @@ public class Default extends AbstractResource {
 		this.name = name;
 		this.value = value;
 	}
-	/**
-	 * Simulate the Default for the specified source.
-	 * @param source
-	 * @return True if any action has been taken, false otherwise.
-	 * @throws PrematureRevivalException
-	 * @throws TemplateException
-	 * @throws MissingVariable 
-	 * @throws ResourceNotFoundException 
-	 */
-	public Result[] execute(AbstractResult caller) throws TemplateException, ResourceNotFoundException {
+	
+	protected boolean branchesResults() throws FatalExecutionException {
+		return false;
+	}
+	
+	public Result[] getResults(AbstractResult caller)
+			throws FatalExecutionException {
 		if(name != null && value != null) {
 			return new Result[] { new Result.Success(caller, this, name, value) }; 
 		} else {
-			String raw_value = attribute_get(VALUE);
-			AbstractResource[] scrapers = relationship(SUBSTITUTED_SCRAPERS);
-			Result[] results = new Result[scrapers.length];
-			for(int i = 0 ; i < scrapers.length ; i ++) {
-				try {
-					results[i] = new Result.Success(caller, scrapers[i], scrapers[i].ref().title, Mustache.compile(raw_value, caller.variables()));
-				} catch (MissingVariable e) {
-					results[i] = new Result.Premature(caller, scrapers[i], e);
+			try {
+				String raw_value = attribute_get(VALUE);
+				AbstractResource[] scrapers = relationship(SUBSTITUTED_SCRAPERS);
+				Result[] results = new Result[scrapers.length];
+				for(int i = 0 ; i < scrapers.length ; i ++) {
+					Scraper scraper = (Scraper) scrapers[i];
+					try {
+						results[i] = new Result.Success(caller, scrapers[i], scraper.getName(), Mustache.compile(raw_value, caller.variables()));
+					} catch (MissingVariable e) {
+						results[i] = new Result.Premature(caller, scrapers[i], e);
+					}
 				}
+				return results;
+			} catch(ResourceNotFoundException e) {
+				throw new FatalExecutionException(e);
+			} catch(TemplateException e) {
+				throw new FatalExecutionException(e);
 			}
-			return results;
 		}
 	}
 	

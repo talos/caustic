@@ -15,8 +15,50 @@ import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Result;
 
 public class Scraper extends AbstractResource {
-	public Result[] execute(AbstractResult caller)
-					throws TemplateException, ResourceNotFoundException, InterruptedException {
+	
+	public String getName() {
+		return ref().title;
+	}
+	
+	protected Result.Success execute(AbstractResult caller, AbstractResource source)
+			throws TemplateException, ResourceNotFoundException, InterruptedException, MissingVariable, NoMatches {
+		Result[] source_results = source.getValues(caller);
+		for(int i = 0 ; i < source_results.length ; i ++) {
+			if(source_results[i].successful) {
+				String source_string = ((Result.Success) source_results[i]).value;
+				
+				// Match against all if match_number is null.
+				Integer match_number;
+				try {
+					match_number = new Integer(attribute_get(MATCH_NUMBER));
+				} catch(NumberFormatException e) {
+					match_number = null;
+				}
+				Result pattern_result = new Regexp(attribute_get(REGEXP)).execute(caller)[0];
+				if(pattern_result.successful) {
+					Pattern pattern = Client.context().regexp.compile(((Result.Success) pattern_result).value);
+					Vector results = new Vector();
+					for(int i = 0 ; i < input_strings.size() ; i ++) {
+						String input = (String) input_strings.elementAt(i);
+						String[] matches;
+						if(match_number == null) {
+							matches = pattern.allMatches(input);
+						} else {
+							matches = new String[] { pattern.match(input, match_number.intValue()) };
+						}
+						for(int j = 0 ; j < matches.length ; j ++) {
+							results.addElement(new Result.Success(caller, this, this.ref().title, matches[j]));
+						}
+					}
+					Result[] results_ary = new Result[results.size()];
+					results.copyInto(results_ary);
+					return results_ary;
+				} else {
+					throw new MissingVariable(((Result.Premature) pattern_result));
+				}
+			}
+		}
+		
 		AbstractResource[] web_pages = relationship(WEB_PAGES);
 		AbstractResource[] source_scrapers = relationship(SOURCE_SCRAPERS);
 		Vector input_strings = new Vector();
@@ -56,46 +98,17 @@ public class Scraper extends AbstractResource {
 		return results;
 	}
 	
-	private Result[] processInput(Vector input_strings, AbstractResult caller)
-					throws TemplateException, MissingVariable, NoMatches {
-		
-		// Match against all if match_number is null.
-		Integer match_number;
-		try {
-			match_number = new Integer(attribute_get(MATCH_NUMBER));
-		} catch(NumberFormatException e) {
-			match_number = null;
-		}
-		Result pattern_result = new Regexp(attribute_get(REGEXP)).execute(caller)[0];
-		if(pattern_result.successful) {
-			Pattern pattern = Client.context().regexp.compile(((Result.Success) pattern_result).value);
-			Vector results = new Vector();
-			for(int i = 0 ; i < input_strings.size() ; i ++) {
-				String input = (String) input_strings.elementAt(i);
-				String[] matches;
-				if(match_number == null) {
-					matches = pattern.allMatches(input);
-				} else {
-					matches = new String[] { pattern.match(input, match_number.intValue()) };
-				}
-				for(int j = 0 ; j < matches.length ; j ++) {
-					results.addElement(new Result.Success(caller, this, this.ref().title, matches[j]));
-				}
-			}
-			Result[] results_ary = new Result[results.size()];
-			results.copyInto(results_ary);
-			return results_ary;
-		} else {
-			throw new MissingVariable(((Result.Premature) pattern_result));
-		}
-	}
 	public boolean isVariable() {
 		return true;
 	}
-	public boolean branchesResults() {
-		if(attribute_get(MATCH_NUMBER) == null) 
-			return true;
-		return false;
+	protected boolean branchesResults() throws FatalExecutionException {
+		try {
+			if(attribute_get(MATCH_NUMBER) == null || relationship(WEB_PAGES).length + relationship(SOURCE_SCRAPERS).length > 1)
+				return true;
+			return false;
+		} catch(ResourceNotFoundException e) {
+			throw new FatalExecutionException(e);
+		}
 	}
 	private static final String REGEXP = "regexp";
 	private static final String MATCH_NUMBER = "match_number";
@@ -116,4 +129,5 @@ public class Scraper extends AbstractResource {
 			}
 		};
 	}
+
 }
