@@ -17,11 +17,15 @@ public class Regexp extends AbstractResource {
 		this.regexp = regexp;
 	}
 	
-	public Result[] execute(AbstractResult caller) throws TemplateException, MissingVariable {
-		return new Result[] {
-			new Result(caller, this, this.ref().title,
-					Mustache.compile(regexp != null ? regexp : attribute_get(REGEXP), caller.variables()))
-		};
+	public Result[] execute(AbstractResult caller) throws TemplateException {
+		try {
+			return new Result[] {
+				new Result.Success(caller, this, this.ref().title,
+						Mustache.compile(regexp != null ? regexp : attribute_get(REGEXP), caller.variables()))
+			};
+		} catch(MissingVariable e) {
+			return new Result[] { new Result.Premature(caller, this, e) };
+		}
 	}
 	
 	public ModelDefinition definition() {

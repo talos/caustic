@@ -2,7 +2,6 @@ package net.microscraper.database.schema;
 
 import java.util.Vector;
 
-import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
@@ -14,7 +13,6 @@ import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Result;
-import net.microscraper.database.Result.Premature;
 
 public class Scraper extends AbstractResource {
 	public Result[] execute(AbstractResult caller)
@@ -22,41 +20,58 @@ public class Scraper extends AbstractResource {
 		AbstractResource[] web_pages = relationship(WEB_PAGES);
 		AbstractResource[] source_scrapers = relationship(SOURCE_SCRAPERS);
 		Vector input_strings = new Vector();
+		//Vector premature_results = new Vector();
 		for(int i = 0; i < web_pages.length; i++) {
-			try {
-				Result web_page_result = web_pages[i].getValue(caller)[0];
-				//input_strings.addElement(.value;
-			} catch(MissingVariable e) {
-				
-			}
+			Result r = web_pages[i].getValue(caller)[0];
+			if(r.successful) {
+				input_strings.addElement(((Result.Success) r).value);
+			}/* else {
+				premature_results.addElement(
+						new Result.Premature(caller, this, new MissingVariable((Result.Premature) r)));
+			}*/
 		}
 		for(int i = 0; i < source_scrapers.length; i++) {
-			try {
-				Result[] source_results = source_scrapers[i].getValue(caller);
-				for(int j = 0 ; j < source_results.length ; j++) {
-					input_strings.addElement(source_results[j].value);
-				}
-			} catch (MissingVariable e) {
-				// Missing a variable, skip this Scraper
-				Client.context().log.i(e.getMessage());
+			Result[] source_results = source_scrapers[i].getValue(caller);
+			for(int j = 0 ; j < source_results.length ; j++) {
+				if(source_results[i].successful) {
+					input_strings.addElement(((Result.Success) source_results[j]).value);					
+				}/* else {
+					premature_results.addElement(
+							new Result.Premature(caller, this, new MissingVariable((Result.Premature) source_results[i])));
+				}*/
 			}
 		}
-		return processInput(input_strings, caller);
+		
+		Result[] results;
+		try {
+			results = processInput(input_strings, caller);
+		} catch(MissingVariable e) {
+			results = new Result[] { new Result.Premature(caller, this, e) };
+		} catch(NoMatches e) {
+			results = new Result[] { new Result.Failure(caller, this, e) };
+		}
+		//Utils.arrayIntoVector(processed_results, premature_results);
+		//Result[] results = new Result[premature_results.size()];
+		//premature_results.copyInto(results);
+		return results;
 	}
 	
-	private Result[] processInput(Vector input_strings, AbstractResult caller) throws TemplateException, MissingVariable {
+	private Result[] processInput(Vector input_strings, AbstractResult caller)
+					throws TemplateException, MissingVariable, NoMatches {
+		
+		// Match against all if match_number is null.
 		Integer match_number;
 		try {
 			match_number = new Integer(attribute_get(MATCH_NUMBER));
 		} catch(NumberFormatException e) {
 			match_number = null;
 		}
-		Pattern pattern = Client.context().regexp.compile(
-				new Regexp(attribute_get(REGEXP)).execute(caller)[0].value);
-		Vector results = new Vector();
-		for(int i = 0 ; i < input_strings.size() ; i ++) {
-			String input = (String) input_strings.elementAt(i);
-			try {
+		Result pattern_result = new Regexp(attribute_get(REGEXP)).execute(caller)[0];
+		if(pattern_result.successful) {
+			Pattern pattern = Client.context().regexp.compile(((Result.Success) pattern_result).value);
+			Vector results = new Vector();
+			for(int i = 0 ; i < input_strings.size() ; i ++) {
+				String input = (String) input_strings.elementAt(i);
 				String[] matches;
 				if(match_number == null) {
 					matches = pattern.allMatches(input);
@@ -66,13 +81,13 @@ public class Scraper extends AbstractResource {
 				for(int j = 0 ; j < matches.length ; j ++) {
 					results.addElement(new Result.Success(caller, this, this.ref().title, matches[j]));
 				}
-			} catch(NoMatches e) {
-				results.addElement(new Result.Failure(caller, this, e));
 			}
+			Result[] results_ary = new Result[results.size()];
+			results.copyInto(results_ary);
+			return results_ary;
+		} else {
+			throw new MissingVariable(((Result.Premature) pattern_result));
 		}
-		Result[] results_ary = new Result[results.size()];
-		results.copyInto(results_ary);
-		return results_ary;
 	}
 	public boolean isVariable() {
 		return true;
