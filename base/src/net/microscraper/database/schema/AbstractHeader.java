@@ -27,7 +27,7 @@ public class AbstractHeader extends AbstractResource.Simple {
 			public RelationshipDefinition[] relationships() { return new RelationshipDefinition[] {}; }
 		};
 	}
-	protected String getName(AbstractResult caller) throws TemplateException, MissingVariable {
+	public String getName(AbstractResult caller) throws TemplateException, MissingVariable {
 		Variables variables = caller.variables();
 		return Mustache.compile(name  != null ? name : attribute_get(NAME), variables);
 	}

@@ -20,6 +20,12 @@ public class Scraper extends AbstractResource {
 		return ref().title;
 	}
 	
+	public Result[] getResults(AbstractResult caller)
+			throws FatalExecutionException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	protected Result.Success execute(AbstractResult caller, AbstractResource source)
 			throws TemplateException, ResourceNotFoundException, InterruptedException, MissingVariable, NoMatches {
 		Result[] source_results = source.getValues(caller);
