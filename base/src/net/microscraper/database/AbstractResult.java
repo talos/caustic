@@ -16,7 +16,7 @@ public abstract class AbstractResult {
 		number++;
 	}
 	
-	protected void addCalled(Result result) {
+	protected void addCalled(Success result) {
 		this.called.addElement(result);
 	}
 	
@@ -42,7 +42,7 @@ public abstract class AbstractResult {
 	protected Success[] scope() {
 		Vector scope = new Vector();
 		for(int i = 0; i < this.called.size() ; i++ ) {
-			Result called = (Result) this.called.elementAt(i);
+			Success called = (Success) this.called.elementAt(i);
 			if(called.isOneToOne && called.successful) {
 				scope.addElement((Success) called);
 				Utils.arrayIntoVector(called.scope(), scope);

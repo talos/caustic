@@ -47,7 +47,7 @@ public class WebPage extends AbstractResource.Simple {
 			NoMatches, FatalExecutionException{
 		Hashtable hash = new Hashtable();
 		for(int i = 0 ; i < resources.length ; i ++) {
-			Result.Success r = ((AbstractResource.Simple) resources[i]).getSuccess(caller);
+			Result.Success r = ((AbstractHeader) resources[i]).getSuccess(caller);
 			hash.put(((Result.Success) r).key, ((Result.Success) r).value);
 		}
 		return hash;

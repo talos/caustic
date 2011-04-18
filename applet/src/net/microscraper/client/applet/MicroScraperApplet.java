@@ -2,7 +2,6 @@ package net.microscraper.client.applet;
 
 import java.applet.Applet;
 import java.net.URL;
-import java.util.Hashtable;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -13,7 +12,6 @@ import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaNetBrowser;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.ThreadSafeJSONPublisher;
-import net.microscraper.database.Result;
 
 /**
  * Provides interface between browser and scraper applet through public methods.

@@ -16,8 +16,6 @@ public abstract class Result extends AbstractResult {
 	public final AbstractResult caller;
 	public final AbstractResource resource;
 	public final Reference ref;
-	protected final boolean isOneToOne;
-	protected final boolean isVariable;
 	public final boolean successful;
 	public final boolean premature;
 	public final boolean failure;
@@ -30,25 +28,16 @@ public abstract class Result extends AbstractResult {
 		this.caller = caller;
 		this.resource = resource;
 		this.ref = resource.ref();
-		this.isOneToOne = !resource.branchesResults();
 		
 		this.successful = successful;
 		this.premature = premature;
 		this.failure = failure;
-		
-		this.isVariable = resource.isVariable();
-		this.caller.addCalled(this);
-		
-		if(publisher.live()) {
-			try {
-				publisher.publish(this);
-			} catch (PublisherException e) {
-				Client.context().log.e(e);
-			}
-		}
 	}
 	
 	public static class Success extends Result {
+		protected final boolean isVariable;
+		protected final boolean isOneToOne;
+
 		public final String key;
 		public final String value;
 		public Success(AbstractResult caller, AbstractResource resource, String key, String value) throws FatalExecutionException {
@@ -59,6 +48,18 @@ public abstract class Result extends AbstractResult {
 			this.value = value;
 			messages.put(KEY, this.key);
 			messages.put(VALUE, this.value);
+			this.isOneToOne = !resource.branchesResults();
+
+			this.isVariable = resource.isVariable();
+			this.caller.addCalled(this);
+			
+			if(publisher.live()) {
+				try {
+					publisher.publish(this);
+				} catch (PublisherException e) {
+					Client.context().log.e(e);
+				}
+			}
 		}
 		
 		// If this is one-to-one, intercept variables call and toss it up the caller chain.

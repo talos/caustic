@@ -19,7 +19,7 @@ public class Data extends AbstractResource.Simple {
 			NoMatches, FatalExecutionException {
 		return ref().title;
 	}
-
+	
 	protected String getValue(AbstractResult caller) throws TemplateException,
 			ResourceNotFoundException, InterruptedException, MissingVariable,
 			NoMatches, FatalExecutionException {
