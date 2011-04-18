@@ -4,6 +4,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.Utils;
 import net.microscraper.database.Reference;
@@ -16,6 +17,7 @@ public class ThreadSafeJSONPublisher implements Publisher {
 		return true;
 	}
 	public void publish(Result result) throws PublisherException {
+		Client.context().log.i("publishing");
 		//results.add(result.ref, result);
 		Vector results_for_ref;
 		if(results.containsKey(result.ref))

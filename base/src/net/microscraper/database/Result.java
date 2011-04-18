@@ -43,6 +43,15 @@ public abstract class Result extends AbstractResult {
 		this.successful = successful;
 		this.premature = premature;
 		this.failure = failure;
+		
+		if(publisher.live()) {
+			try {
+				publisher.publish(this);
+			} catch (PublisherException e) {
+				Client.context().log.e(e);
+			}
+		}
+
 	}
 	
 	public static class Success extends Result {
@@ -64,13 +73,6 @@ public abstract class Result extends AbstractResult {
 			this.isVariable = resource.isVariable();
 			this.caller.addCalled(this);
 			
-			if(publisher.live()) {
-				try {
-					publisher.publish(this);
-				} catch (PublisherException e) {
-					Client.context().log.e(e);
-				}
-			}
 		}
 		
 		// If this is one-to-one, intercept variables call and toss it up the caller chain.
