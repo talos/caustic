@@ -42,7 +42,7 @@ public class Default extends AbstractResource {
 				Scraper scraper = (Scraper) retry_scrapers.elementAt(i);
 				try {
 					results.addElement(successForScraper(caller, scraper));
-					retry_scrapers.remove(i);
+					retry_scrapers.removeElementAt(i);
 					i--;
 				} catch(MissingVariable e) {
 					// failed second time in a row

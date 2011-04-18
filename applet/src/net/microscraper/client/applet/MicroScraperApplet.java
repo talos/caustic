@@ -12,6 +12,7 @@ import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaNetBrowser;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.ThreadSafeJSONPublisher;
+import net.microscraper.database.Result;
 
 /**
  * Provides interface between browser and scraper applet through public methods.
@@ -94,13 +95,10 @@ public class MicroScraperApplet extends Applet {
 	
 	public String results() {
 		try {
-			//Result result = publisher.shift();
-			/*if(result != null) {
-				Hashtable<String, String> result_table = new Hashtable<String, String>();
-				result_table.put(result.key, result.value);
-				return json.toJSON(result_table);
-			}*/
-			return publisher.toJSON();
+			Result result = publisher.shift();
+			if(result != null) {
+				return result.toJSON();
+			}
 		} catch(Throwable e) {
 			client.log.e(e);
 		}
