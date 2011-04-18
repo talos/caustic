@@ -65,7 +65,7 @@ public class ApacheBrowser implements Browser {
 	}
 	
 	@Override
-	public String load(String url, AbstractResult caller) throws InterruptedException,
+	public String load(String url) throws InterruptedException,
 			BrowserException, ResourceNotFoundException, TemplateException, MissingVariable {
 		return load(url, new AbstractResource[] {}, new AbstractResource[] {}, new AbstractResource[] {}, new AbstractResource[] {}, caller);
 		

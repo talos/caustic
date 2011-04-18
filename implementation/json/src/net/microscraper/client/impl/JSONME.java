@@ -28,12 +28,16 @@ public class JSONME implements Interfaces.JSON {
 			
 			return obj.toString();
 		} catch(JSONException e) {
-			throw new JSONMEException(e);
+			throw new JSONInterfaceException(e);
 		}
 	}
 	
-	public Interfaces.JSON.Tokener getTokener(String jsonString) {
-		return new JSONMETokener(jsonString);
+	public Interfaces.JSON.Tokener getTokener(String jsonString) throws JSONInterfaceException {
+		try {
+			return new JSONMETokener(jsonString);
+		} catch(Exception e) {
+			throw new JSONInterfaceException("URL for scraper is not in JSON format.");
+		}
 	}
 	
 	private static class JSONMETokener implements Interfaces.JSON.Tokener {
@@ -45,7 +49,9 @@ public class JSONME implements Interfaces.JSON {
 			try {
 				return new JSONMEObject((JSONObject) tokener.nextValue());
 			} catch (JSONException e) {
-				throw new JSONMEException(e);
+				throw new JSONInterfaceException(e);
+			} catch (ClassCastException e) {
+				throw new JSONInterfaceException("Cannot read this JSON.");
 			}
 		}
 	}
@@ -62,7 +68,7 @@ public class JSONME implements Interfaces.JSON {
 			try {
 				return new JSONMEArray(object.getJSONArray(name));
 			} catch(JSONException e) {
-				throw new JSONMEException(e);
+				throw new JSONInterfaceException(e);
 			}
 		}
 
@@ -71,7 +77,7 @@ public class JSONME implements Interfaces.JSON {
 			try {
 				return new JSONMEObject(object.getJSONObject(name));
 			} catch(JSONException e) {
-				throw new JSONMEException(e);
+				throw new JSONInterfaceException(e);
 			}
 		}
 
@@ -79,7 +85,7 @@ public class JSONME implements Interfaces.JSON {
 			try {
 				return object.getString(name);
 			} catch(JSONException e) {
-				throw new JSONMEException(e);
+				throw new JSONInterfaceException(e);
 			}
 		}
 
@@ -87,7 +93,7 @@ public class JSONME implements Interfaces.JSON {
 			try {
 				return object.getInt(name);
 			} catch(JSONException e) {
-				throw new JSONMEException(e);
+				throw new JSONInterfaceException(e);
 			}
 		}
 
@@ -120,7 +126,7 @@ public class JSONME implements Interfaces.JSON {
 			try {
 				return new JSONMEArray(array.getJSONArray(index));
 			} catch(JSONException e) {
-				throw new JSONMEException(e);
+				throw new JSONInterfaceException(e);
 			}
 		}
 
@@ -129,7 +135,7 @@ public class JSONME implements Interfaces.JSON {
 			try {
 				return new JSONMEObject(array.getJSONObject(index));
 			} catch(JSONException e) {
-				throw new JSONMEException(e);
+				throw new JSONInterfaceException(e);
 			}
 		}
 
@@ -137,7 +143,7 @@ public class JSONME implements Interfaces.JSON {
 			try {
 				return array.getString(index);
 			} catch(JSONException e) {
-				throw new JSONMEException(e);
+				throw new JSONInterfaceException(e);
 			}
 		}
 
@@ -153,24 +159,9 @@ public class JSONME implements Interfaces.JSON {
 				}
 				return stringArray;
 			} catch(JSONException e) {
-				throw new JSONMEException(e);
+				throw new JSONInterfaceException(e);
 			}
 		}
 		
-	}
-	
-	private static class JSONMEException extends JSONInterfaceException {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		private final JSONException e;
-		public JSONMEException(JSONException exception) {
-			e = exception;
-		}
-		
-		public String getMessage() { return e.getMessage(); }
-		public String toString() { return e.toString(); }
-		public void printStackTrace() { e.printStackTrace(); }
 	}
 }

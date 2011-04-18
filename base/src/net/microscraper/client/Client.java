@@ -55,7 +55,7 @@ public class Client {
 			log.i("Scraping '" + ref.toString() + "' from JSON loaded from " + json_url);
 			
 			raw_obj = browser.load(json_url);
-			log.i("Raw scraping JSON: " + raw_obj);
+				log.i("Raw scraping JSON: " + raw_obj);
 		} catch(BrowserException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);

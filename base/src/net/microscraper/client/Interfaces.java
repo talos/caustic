@@ -45,10 +45,13 @@ public class Interfaces {
 			}
 		}
 		
-		public static abstract class JSONInterfaceException extends Exception {
-			private static final long serialVersionUID = 1L;};
+		public static class JSONInterfaceException extends Exception {
+			private static final long serialVersionUID = 1L;
+			public JSONInterfaceException(String message ) {super(message); }
+			public JSONInterfaceException(Throwable e ) {super(e); }
+		};
 		
-		public abstract Tokener getTokener(String jsonString);
+		public abstract Tokener getTokener(String jsonString) throws JSONInterfaceException;
 		public abstract String toJSON(Hashtable hashtable) throws JSONInterfaceException;
 	}
 
