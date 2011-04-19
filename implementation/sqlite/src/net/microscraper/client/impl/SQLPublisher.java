@@ -8,13 +8,12 @@ import net.microscraper.database.Result;
 public class SQLPublisher implements Publisher {
 	
 	public static final String TABLE_NAME = "results";
-	
-	public static final String ID_COLUMN_NAME = "id";
-	
-	public static final String CALLING_SCRAPER_NUMBER = "calling_scraper_number";
-	public static final String SCRAPER_NUMBER = "scraper_number";
-	public static final String SCRAPER_REF = "scraper_ref";
-	public static final String SCRAPER_VALUE = "value";
+		
+	public static final String CALLER_ID = "caller_id";
+	public static final String ID = "id";
+	public static final String REF = "ref";
+	public static final String KEY = "key";
+	public static final String VALUE = "value";
 	
 	private final SQLInterface inter;
 	public SQLPublisher(SQLInterface sql_interface) throws SQLInterfaceException {
@@ -22,14 +21,26 @@ public class SQLPublisher implements Publisher {
 		
 		try {
 			String create_table_sql = "CREATE TABLE " + inter.quoteField(TABLE_NAME) + " (" +
-				inter.quoteField(ID_COLUMN_NAME) + " " + inter.idColumnType() + " " + inter.keyColumnDefinition() + ", " +
-				inter.quoteField(CALLING_SCRAPER_NUMBER) + " " + inter.intColumnType() + ", " +
-				inter.quoteField(SCRAPER_NUMBER) + " " + inter.intColumnType() + ", " +
-				inter.quoteField(SCRAPER_REF) + " " + inter.dataColumnType() + ", " + 
-				inter.quoteField(SCRAPER_VALUE) + " " + inter.dataColumnType() + " )";
+				inter.quoteField(CALLER_ID) + " " + inter.intColumnType() + ", " +
+				inter.quoteField(ID) + " " + inter.idColumnType() + " " + inter.keyColumnDefinition() + ", " +
+				inter.quoteField(REF) + " " + inter.dataColumnType() + ", " + 
+				inter.quoteField(KEY) + " " + inter.dataColumnType() + ", " + 
+				inter.quoteField(VALUE) + " " + inter.dataColumnType() + " )";
 			inter.execute(create_table_sql);
-		} catch(SQLInterfaceException e) { // Table may just already exist -- test.
-			inter.query("SELECT * FROM " + inter.quoteField(TABLE_NAME));
+		} catch(SQLInterfaceException e) {
+			// The table might already exist.
+			try {
+				inter.query("SELECT " + inter.quoteField(CALLER_ID) +
+					inter.quoteField(ID) +
+					inter.quoteField(REF) +
+					inter.quoteField(KEY) +
+					inter.quoteField(VALUE) +
+					" FROM " + inter.quoteField(TABLE_NAME));
+			} catch (SQLInterfaceException e2) {
+				// Something is weird -- wrong schema in the specified SQL file?  Abort.
+				throw new SQLInterfaceException("Error creating or using results table from the" +
+						" specified SQL interface.", e2);
+			}
 		}
 	}
 	
@@ -38,14 +49,16 @@ public class SQLPublisher implements Publisher {
 			if(r.successful) {
 				Result.Success result = (Result.Success) r;
 				String insert_sql = "INSERT INTO " + inter.quoteField(TABLE_NAME) + " (" +
-					inter.quoteField(CALLING_SCRAPER_NUMBER) + ", " +
-					inter.quoteField(SCRAPER_NUMBER) + ", " + 
-					inter.quoteField(SCRAPER_REF) + ", " +
-					inter.quoteField(SCRAPER_VALUE) +
+					inter.quoteField(CALLER_ID) + ", " +
+					inter.quoteField(ID) + ", " + 
+					inter.quoteField(REF) + ", " +
+					inter.quoteField(KEY) + ", " +
+					inter.quoteField(VALUE) +
 					") VALUES (" + 
 					inter.quoteValue(Integer.toString(result.caller.id)) + ", " +
 					inter.quoteValue(Integer.toString(result.id)) + ", " +
 					inter.quoteValue(result.ref.toString()) + ", " +
+					inter.quoteValue(result.key) + ", " +
 					inter.quoteValue(result.value) + " )";
 				inter.execute(insert_sql);
 			}

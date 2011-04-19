@@ -46,11 +46,8 @@ public interface SQLInterface {
 	
 	public static final class SQLInterfaceException extends Throwable {
 		private static final long serialVersionUID = 1L;
-		public SQLInterfaceException(String message) {
-			super(message);
-		}
-		public SQLInterfaceException(Throwable e) {
-			super(e);
-		}
+		public SQLInterfaceException(String message) { super(message); }
+		public SQLInterfaceException(Throwable e) { super(e); }
+		public SQLInterfaceException(String message, Throwable e) { super(message, e); }
 	}
 }

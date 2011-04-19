@@ -6,10 +6,12 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import net.microscraper.client.Browser;
 import net.microscraper.client.Client;
@@ -36,10 +38,14 @@ public class JavaNetBrowser implements Browser {
 		
 		OutputStreamWriter writer = null;
 		InputStream stream = null;
-		
+		URL url;
 		try {
-			URL url = new URL(url_string);
-			
+			url = new URL(url_string);
+		} catch(MalformedURLException e) {
+			throw new BrowserException(url_string + " is not a well-formed URL (" + e.getMessage() + ")");
+		}
+		 
+		try {
 			Client.context().log.i("Browser loading URL '" + url.toString() + "'");
 			
 			HttpURLConnection.setFollowRedirects(true);
@@ -91,8 +97,7 @@ public class JavaNetBrowser implements Browser {
 			}
 			
 			Client.context().log.i("Waiting for response from " + url.toString() + "...");
-			//conn.connect();
-			connectHandlingRedirectCookies(conn, 0);
+			connectHandlingRedirectCookies(conn);
 
 			Client.context().log.i("Loading " + url.toString() + "...");
 			// Pull response.
@@ -119,8 +124,6 @@ public class JavaNetBrowser implements Browser {
 			}
 			content_string = content.toString();
 			return content_string;
-		} catch(MalformedURLException e) {
-			throw new BrowserException(url_string + " is not a well-formed URL.");
 		} catch(IOException e) {
 			throw new BrowserException("Error " + e.toString() + " loading " + url_string);
 		}
@@ -135,22 +138,47 @@ public class JavaNetBrowser implements Browser {
 	}
 	
 	// Indebted to jcookie (http://jcookie.sourceforge.net/doc.html)
-	private InputStream connectHandlingRedirectCookies(HttpURLConnection conn, int redirects_followed) throws IOException {
+	private InputStream connectHandlingRedirectCookies(HttpURLConnection conn)
+				throws IOException {
+		return connectHandlingRedirectCookies(conn, new Vector());
+	}
+	private InputStream connectHandlingRedirectCookies(HttpURLConnection conn, Vector redirects_followed)
+				throws IOException {
 		conn.setInstanceFollowRedirects(false);
 		conn.connect();
 		InputStream stream = conn.getInputStream();
-		
 		int code = conn.getResponseCode();
 		
-		if(redirects_followed <= MAX_REDIRECTS) {
+		if(redirects_followed.size() <= MAX_REDIRECTS) {
 			updateCookieStore(conn);
 			if(code >= 300 && code < 400 ) {
-				Client.context().log.i("Following redirect #" + Integer.toString(redirects_followed));
-				stream.close();
-				URL url = new URL(conn.getHeaderField(LOCATION_HEADER_NAME));
-				conn.disconnect();
+				String redirect_string = conn.getHeaderField(LOCATION_HEADER_NAME);
+				if(redirects_followed.contains(redirect_string)) {
+					throw new IOException("Not following circular redirect from " +
+							conn.getURL().toString() + " to " + redirect_string);
+				} else {
+					redirects_followed.addElement(redirect_string);
+				}
 				
-				return connectHandlingRedirectCookies((HttpURLConnection) url.openConnection(), redirects_followed + 1);
+				Client.context().log.i("Following redirect #"
+					+ Integer.toString(redirects_followed.size()) + " from " + conn.getURL().toString()
+					+ " to " + redirect_string);
+				
+				URI new_uri;
+				try {
+					new_uri = new URI(conn.getURL().toString()).resolve(redirect_string);
+					Client.context().log.i(conn.getURL().toString());
+					Client.context().log.i(redirect_string);					
+					Client.context().log.i(new_uri.toString());
+
+				} catch(Exception e) {
+					throw new IOException("Unable to parse redirect from " + conn.getURL().toString()
+							+ " to " + redirect_string + " (" + e.getMessage() + ")");
+				}
+				stream.close();
+				conn.disconnect();
+				return connectHandlingRedirectCookies(
+						(HttpURLConnection) new_uri.toURL().openConnection(), redirects_followed);
 			} else if(code != SUCCESS_CODE) {
 				throw new IOException("Can't deal with this response code (" + code + ").");
 			}

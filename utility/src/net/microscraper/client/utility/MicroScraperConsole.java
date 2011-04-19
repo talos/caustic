@@ -1,6 +1,7 @@
 package net.microscraper.client.utility;
 
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import net.microscraper.client.Client;
 import net.microscraper.client.Client.MicroScraperClientException;
@@ -17,6 +18,8 @@ import net.microscraper.database.Reference;
 import net.microscraper.database.schema.Default;
 
 public class MicroScraperConsole {
+	private static final SimpleDateFormat DATETIME_FORMAT =
+		new SimpleDateFormat("yyyyMMddkkmmss");
 	private static final String ENCODING = "UTF-8";
 	private final Interfaces.Logger log = new SystemLogInterface();
 	public static void main (String[] args) {
@@ -33,7 +36,8 @@ public class MicroScraperConsole {
 						new JavaUtilRegexInterface(),
 						new JSONME(),
 						new Interfaces.Logger[] { log },
-						new SQLPublisher(new JDBCSQLite("./" + DateFormat.getTimeInstance() + ".sqlite", log))
+						new SQLPublisher(
+								new JDBCSQLite("./" + DATETIME_FORMAT.format(new Date()) + ".sqlite", log))
 				);
 				String url = args[0];
 				Reference resource_ref = new Reference(Model.get(args[1]), args[2]);
