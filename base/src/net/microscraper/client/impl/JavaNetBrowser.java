@@ -59,12 +59,13 @@ public class JavaNetBrowser implements Browser {
 			
 			// Add generic Headers.
 			Hashtable default_headers = new Hashtable();
-			default_headers.put(REFERER_HEADER_NAME, url.toString());
-			default_headers.put(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER_DEFAULT_VALUE);
 			default_headers.put(ACCEPT_HEADER_NAME, ACCEPT_HEADER_DEFAULT_VALUE);
+			default_headers.put(ACCEPT_LANGUAGE_HEADER_NAME, ACCEPT_LANGUAGE_HEADER_DEFAULT_VALUE);
+			default_headers.put(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER_DEFAULT_VALUE);
+			default_headers.put(REFERER_HEADER_NAME, url.toString());
 			addHeaders(conn, default_headers);
 			addHeaders(conn, headers);
-
+			
 			// Add cookie headers.
 			if(cookies.size() > 0) {
 				String cookie_string = "";
@@ -73,7 +74,7 @@ public class JavaNetBrowser implements Browser {
 					String key = (String) e.nextElement();
 					cookie_string += URLEncoder.encode(key, ENCODING) + '=' + URLEncoder.encode((String) cookies.get(key), ENCODING) + "; ";
 				}
-				
+				Client.context().log.i("Using cookies: " + cookie_string);
 				conn.setRequestProperty("Cookie", cookie_string);
 			}
 			
@@ -96,9 +97,10 @@ public class JavaNetBrowser implements Browser {
 				conn.setRequestMethod("GET");
 			}
 			
-			Client.context().log.i("Waiting for response from " + url.toString() + "...");
+			Client.context().log.i("Waiting for " + conn.getRequestMethod()
+					+ " response from " + url.toString() + "...");
 			connectHandlingRedirectCookies(conn);
-
+			
 			Client.context().log.i("Loading " + url.toString() + "...");
 			// Pull response.
 			ByteArrayOutputStream content = new ByteArrayOutputStream();
@@ -167,9 +169,6 @@ public class JavaNetBrowser implements Browser {
 				URI new_uri;
 				try {
 					new_uri = new URI(conn.getURL().toString()).resolve(redirect_string);
-					Client.context().log.i(conn.getURL().toString());
-					Client.context().log.i(redirect_string);					
-					Client.context().log.i(new_uri.toString());
 
 				} catch(Exception e) {
 					throw new IOException("Unable to parse redirect from " + conn.getURL().toString()
@@ -194,7 +193,8 @@ public class JavaNetBrowser implements Browser {
 	 */
 	private void updateCookieStore(HttpURLConnection conn) {
 		String header_name, header_value;
-		for(int i = 0 ; (header_name = conn.getHeaderFieldKey(i)) != null ; i++) {
+		for(int i = 0 ; (header_name = conn.getHeaderFieldKey(i)) != null || i == 0 ; i++) {
+			if(header_name == null) continue; // A mess, but sometimes the first header is null.
 			if(header_name.equals("Set-Cookie") || header_name.equals("Set-Cookie2")) {
 				header_value = conn.getHeaderField(i);
 				int equals_loc = header_value.indexOf('=');

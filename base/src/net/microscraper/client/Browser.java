@@ -15,6 +15,9 @@ public interface Browser {
 	public static final String USER_AGENT_HEADER_NAME = "User-Agent";
 	public static final String USER_AGENT_HEADER_DEFAULT_VALUE = "Mozilla/4.0 (compatible; MSIE 6.1; Windows XP)";
 	
+	public static final String ACCEPT_LANGUAGE_HEADER_NAME = "Accept-Language";
+	public static final String ACCEPT_LANGUAGE_HEADER_DEFAULT_VALUE = "en-US,en;q=0.8";
+	
 	public static final String ACCEPT_HEADER_NAME = "Accept";
 	public static final String ACCEPT_HEADER_DEFAULT_VALUE = "application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
 	

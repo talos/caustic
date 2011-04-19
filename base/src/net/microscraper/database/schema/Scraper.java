@@ -55,19 +55,18 @@ public class Scraper extends AbstractResource {
 				boolean all_successful = true;
 				String[] this_scrapers_input_strings = new String[source_results.length];
 				for(int j = 0 ; j < source_results.length ; j++) {
-					/*if(source_results[j].successful) {
-						input_strings.addElement(((Result.Success) source_results[j]).value);
+					// TODO: only retry the individual string that failed?
+					if(source_results[j].successful) {
+						this_scrapers_input_strings[j] = (((Result.Success) source_results[j]).value);
 					} else {
-						// TODO: only retry the individual string that failed?
-						retry_source_scrapers.addElement(scraper);
-					}*/
-					this_scrapers_input_strings[j] = (((Result.Success) source_results[j]).value);
-					if(!source_results[j].successful) {
 						all_successful = false;
+						break;
 					}
 				}
 				if(all_successful) {
 					Utils.arrayIntoVector(this_scrapers_input_strings, input_strings);
+					retry_source_scrapers.removeElementAt(i);
+					i--;
 				}
 			}
 			

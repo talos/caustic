@@ -25,6 +25,13 @@ public class WebPage extends AbstractResource.Simple {
 	protected String getValue(AbstractResult caller) throws TemplateException,
 			ResourceNotFoundException, InterruptedException, MissingVariable,
 			NoMatches, FatalExecutionException {
+		
+		AbstractResource[] login_web_pages = relationship(LOGIN_WEB_PAGES);
+		for(int i = 0 ; i < login_web_pages.length ; i ++) {
+			WebPage login_web_page = (WebPage) login_web_pages[i];
+			login_web_page.getValue(caller); // we only care about headers.
+		}
+		
 		Hashtable posts = resourcesToHashtable(relationship(POSTS), caller);
 		Hashtable headers = resourcesToHashtable(relationship(HEADERS), caller);
 		Hashtable cookies = resourcesToHashtable(relationship(COOKIES), caller);
@@ -64,12 +71,15 @@ public class WebPage extends AbstractResource.Simple {
 	private static final RelationshipDefinition COOKIES =
 		new RelationshipDefinition( "cookies", Cookie.class );
 	
+	private static final RelationshipDefinition LOGIN_WEB_PAGES =
+		new RelationshipDefinition( "login_web_pages", WebPage.class );
+	
 	public ModelDefinition definition() {
 		return new ModelDefinition() {
 			public String[] attributes() { return new String[] { URL }; }
 			public RelationshipDefinition[] relationships() {
 				return new RelationshipDefinition[] {
-					TERMINATES, POSTS, HEADERS, COOKIES
+					TERMINATES, POSTS, HEADERS, COOKIES, LOGIN_WEB_PAGES
 				};
 			}
 		};
