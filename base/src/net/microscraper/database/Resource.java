@@ -3,6 +3,7 @@ package net.microscraper.database;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.database.Attribute.Attributes;
 import net.microscraper.database.Execution.FatalExecutionException;
+import net.microscraper.database.Execution.ResourceExecution;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.Relationships;
 
@@ -27,5 +28,5 @@ public abstract class Resource {
 	}
 	
 	public abstract ModelDefinition definition();
-	public abstract Result execute(Execution caller) throws MissingVariable, FatalExecutionException;
+	public abstract ResourceExecution getExecution(Execution caller) throws MissingVariable, FatalExecutionException;
 }

@@ -47,12 +47,6 @@ public abstract class Execution {
 		id = count++;
 	}
 	
-	public void add(Resource resource) {
-		if(!call.contains(resource.ref)) {
-			call.addElement(resource.ref);
-		}
-	}
-	
 	public Status execute() throws FatalExecutionException {
 		SuccessMatrix matrix = new SuccessMatrix();
 		for(int i = 0 ; i < call.size() ; i ++) {
@@ -69,9 +63,7 @@ public abstract class Execution {
 		return execute(); // loop back if matrix has changed
 	}
 	
-	public Result[] results() {
-		
-	}
+	public abstract Result getResult() throws MissingVariable;
 	
 	public final Variables variables() {
 		//TODO
@@ -97,6 +89,15 @@ public abstract class Execution {
 	}
 	public int hashCode() {
 		return id;
+	}
+	
+	public static abstract class ResourceExecution extends Execution {
+		private final Resource resource;
+		protected final Execution caller;
+		public ResourceExecution(Resource resource, Execution caller) {
+			this.resource = resource;
+			this.caller = caller;
+		}
 	}
 	
 	public static final class Root extends Execution {

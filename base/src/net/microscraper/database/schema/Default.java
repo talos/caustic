@@ -10,9 +10,7 @@ import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils;
 import net.microscraper.database.Attribute.AttributeDefinition;
-import net.microscraper.database.DatabaseException.ResourceNotFoundException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
@@ -24,72 +22,6 @@ public class Default extends Resource {
 	public Default(String name, String value) {
 		this.name = name;
 		this.value = value;
-	}
-	
-	protected boolean branchesResults() throws FatalExecutionException {
-		return false;
-	}
-
-	public Status execute(Execution exc) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	private final Hashtable results_hash = new Hashtable();
-	private final Hashtable retry_scrapers_for_caller = new Hashtable();
-	public Result[] getResults(AbstractResult caller) throws FatalExecutionException {
-		Vector results; // = new Vector();
-		Vector retry_scrapers;
-		if(results_hash.containsKey(caller)) {
-			results = (Vector) results_hash.get(caller);
-			retry_scrapers = (Vector) retry_scrapers_for_caller.get(caller);
-			// Retry certain failed portions.
-			for(int i = 0 ; i < retry_scrapers.size() ; i ++ ) {
-				Scraper scraper = (Scraper) retry_scrapers.elementAt(i);
-				try {
-					results.addElement(successForScraper(caller, scraper));
-					retry_scrapers.removeElementAt(i);
-					i--;
-				} catch(MissingVariable e) {
-					// failed second time in a row
-				} catch(TemplateException e) {
-					throw new FatalExecutionException(e);
-				}
-			}
-		} else { // first time this is being run for this caller.
-			results = new Vector();
-			retry_scrapers = new Vector();
-			// Fixed defaults are not compiled.
-			if(name != null && value != null) {
-				results.addElement(new Result.Success(caller, this, name, value)); 
-			} else {
-				try {
-					AbstractResource[] scrapers = relationship(SUBSTITUTED_SCRAPERS);
-					for(int i = 0 ; i < scrapers.length ; i ++) {
-						Scraper scraper = (Scraper) scrapers[i];
-						try {
-							results.addElement(successForScraper(caller, scraper));
-						} catch (MissingVariable e) {
-							results.addElement(new Result.Premature(caller, this, e));
-							retry_scrapers.addElement(scraper);
-						}
-					}
-				} catch(ResourceNotFoundException e) {
-					throw new FatalExecutionException(e);
-				} catch(TemplateException e) {
-					throw new FatalExecutionException(e);
-				}
-			}
-			retry_scrapers_for_caller.put(caller, retry_scrapers);
-			results_hash.put(caller, results);
-		}
-		Result[] results_ary = new Result[results.size()];
-		results.copyInto(results_ary);
-		return results_ary;
-	}
-	
-	public boolean isVariable() {
-		return true;
 	}
 	
 	/**
