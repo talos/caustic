@@ -9,14 +9,15 @@ import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils;
-import net.microscraper.database.AbstractResource;
-import net.microscraper.database.AbstractResult;
+import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
-import net.microscraper.database.ModelDefinition;
-import net.microscraper.database.RelationshipDefinition;
-import net.microscraper.database.Result;
+import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.Status;
+import net.microscraper.database.Model.ModelDefinition;
+import net.microscraper.database.Relationship.RelationshipDefinition;
+import net.microscraper.database.Resource;
 
-public class Default extends AbstractResource {	
+public class Default extends Resource {	
 	private String name;
 	private String value;
 	public Default() {};
@@ -27,6 +28,11 @@ public class Default extends AbstractResource {
 	
 	protected boolean branchesResults() throws FatalExecutionException {
 		return false;
+	}
+
+	public Status execute(Execution exc) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 	private final Hashtable results_hash = new Hashtable();
@@ -113,19 +119,13 @@ public class Default extends AbstractResource {
 		}
 	}
 	
-	private Result.Success successForScraper(AbstractResult caller, Scraper scraper)
-				throws FatalExecutionException, MissingVariable, TemplateException {
-		return new Result.Success(caller, scraper, scraper.getName(), Mustache.compile(attribute_get(VALUE), caller.variables()));
-		
-	}
-	
-	private static final String VALUE = "value";
+	private static final AttributeDefinition VALUE = new AttributeDefinition("value");
 	private static final RelationshipDefinition SUBSTITUTED_SCRAPERS =
 		new RelationshipDefinition( "scrapers", Scraper.class );
 	
 	public ModelDefinition definition() {
 		return new ModelDefinition() {
-			public String[] attributes() { return new String[] { VALUE }; }
+			public AttributeDefinition[] attributes() { return new AttributeDefinition[] { VALUE }; }
 			public RelationshipDefinition[] relationships() {
 				return new RelationshipDefinition[] { SUBSTITUTED_SCRAPERS };
 			}

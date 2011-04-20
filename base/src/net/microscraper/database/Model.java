@@ -1,20 +1,19 @@
 package net.microscraper.database;
 
-import java.util.Hashtable;
-
 import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.Iterator;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
-import net.microscraper.database.RelationshipDefinition;
+import net.microscraper.database.Attribute.AttributeDefinition;
+import net.microscraper.database.Attribute.Attributes;
+import net.microscraper.database.Relationship.RelationshipDefinition;
+import net.microscraper.database.Relationship.Relationships;
 
 public class Model {
 	private final Class klass;
-	//private final ModelDefinition definition;
-	private Model(Class klass /*, ModelDefinition definition*/) {
+	private Model(Class klass) {
 		this.klass = klass;
-		//this.definition = definition;
 	};
-
+	
 	/**
 	 * Inflate a resource serialized in JSON.
 	 * @param model
@@ -23,39 +22,37 @@ public class Model {
 	 * @return
 	 * @throws JSONInterfaceException
 	 * @throws IllegalAccessException 
-	 * @throws  
+	 * @throws InstantiationException
 	 */
-	public AbstractResource[] inflate(Database db, JSON.Object resources_json)
+	public Resource[] inflate(Database db, JSON.Object resources_json)
 					throws JSONInterfaceException, InstantiationException, IllegalAccessException {
-		AbstractResource[] resources = new AbstractResource[resources_json.length()];
+		Resource[] resources = new Resource[resources_json.length()];
 		int k = 0;
 		Iterator iter = resources_json.keys();
 		while(iter.hasNext()) {
 			// Create a blank instance of the resource.
-			resources[k] = (AbstractResource) klass.newInstance();
+			resources[k] = (Resource) klass.newInstance();
 			ModelDefinition definition = resources[k].definition();
 			
 			String key = (String) iter.next();
 			JSON.Object resource_json = resources_json.getJSONObject(key);
 			
-			Hashtable attributes = new Hashtable();
+			Attributes attributes = new Attributes();
 			for(int i = 0; i < definition.attributes().length; i++) {
-				String name = definition.attributes()[i];
-				attributes.put(name, resource_json.getString(name));
+				AttributeDefinition def = definition.attributes()[i];
+				attributes.put(def, resource_json.getString(def.name));
 			}
 			
-			Hashtable relationships = new Hashtable();
+			Relationships relationships = new Relationships();
 			RelationshipDefinition[] relationship_definitions = definition.relationships();
 			for(int i = 0; i < relationship_definitions.length; i ++) {
-				RelationshipDefinition relationship_def = relationship_definitions[i];
-				String[] references = resource_json.getJSONArray(relationship_def.key).toArray();
-				relationships.put(relationship_def.key, new Reference[references.length]);
+				RelationshipDefinition def = relationship_definitions[i];
+				String[] references = resource_json.getJSONArray(def.key).toArray();
 				for(int j = 0; j < references.length; j ++ ) {
-					((Reference[]) relationships.get(relationship_def.key))[j] =
-						new Reference(relationship_def.target_model, references[j]);
+					relationships.put(def, new Reference(def.target_model, references[j]));
 				}
 			}
-			resources[k].initialize(db, key, attributes, relationships);
+			resources[k].initialize(key, attributes, relationships);
 			k++;
 		}
 		return resources;
@@ -78,5 +75,10 @@ public class Model {
 	}
 	public String toString() {
 		return klass.getName();
+	}
+	
+	public interface ModelDefinition {
+		public AttributeDefinition[] attributes();
+		public RelationshipDefinition[] relationships();
 	}
 }

@@ -5,6 +5,7 @@ import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.database.AbstractResource;
 import net.microscraper.database.AbstractResult;
+import net.microscraper.database.Execution;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
 
@@ -26,11 +27,31 @@ public class Regexp extends AbstractResource.Simple {
 			}
 		};
 	}
-	
+	/*
 	protected String getName(AbstractResult caller) {
 		return this.ref().title;
 	}
 	protected String getValue(AbstractResult caller) throws TemplateException, MissingVariable {
 		return Mustache.compile(regexp != null ? regexp : attribute_get(REGEXP), caller.variables());
+	}*/
+	
+	protected Execution getExecution(Execution source) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	private final class RegexpExecution extends Execution {
+		protected RegexpExecution(Execution caller) {
+			super(caller);
+		}
+
+		public void run() {
+			// TODO Auto-generated method stub
+			source.variables();
+		}
+
+		protected Status status() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 }

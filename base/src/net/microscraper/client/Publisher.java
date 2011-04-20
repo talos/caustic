@@ -1,15 +1,10 @@
 package net.microscraper.client;
 
-import net.microscraper.database.Result;
+import net.microscraper.database.Execution;
 
 public interface Publisher {
-	public void publish(Result result) throws PublisherException;
-	
-	/**
-	 * Should we publish results as they appear?
-	 * @return
-	 */
-	public boolean live();
+	public void publish(Execution execution) throws PublisherException;
+
 	public class PublisherException extends Exception {
 
 		/**

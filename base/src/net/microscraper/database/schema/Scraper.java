@@ -12,11 +12,13 @@ import net.microscraper.client.Utils;
 import net.microscraper.database.AbstractResource;
 import net.microscraper.database.AbstractResult;
 import net.microscraper.database.DatabaseException.ResourceNotFoundException;
+import net.microscraper.database.Execution;
 import net.microscraper.database.ModelDefinition;
 import net.microscraper.database.RelationshipDefinition;
 import net.microscraper.database.Result;
 
 public class Scraper extends AbstractResource {
+	
 	
 	public String getName() {
 		return ref().title;
@@ -200,4 +202,36 @@ public class Scraper extends AbstractResource {
 		};
 	}
 
+	protected Execution getExecution(Execution caller) {
+		return new ScraperExecution(caller);
+	}
+	
+	private final class ScraperExecution extends Execution {
+		private final Hashtable source_result = new Hashtable();
+		private final Regexp regexp;
+		protected ScraperExecution(Execution caller) {
+			super(caller);
+			regexp = new Regexp(attribute_get(REGEXP));
+		}
+		public void run() {
+			RegexpExecution regexpExc = call(regexp);
+			if(regexpExc.isSuccessful()) {
+				
+				AbstractResource[] webPages = relationship(WEB_PAGES);
+				AbstractResource[] sourceScrapers = relationship(SOURCE_SCRAPERS);
+				
+				for(int i = 0 ; i < webPages.length ; i ++) {
+					WebPage webPage = (WebPage) webPages[i];
+					
+					call(webPage);
+				}
+				
+				for(int i = 0 ; i < sourceScrapers.length ; i ++) {
+					Scraper sourceScraper = (Scraper) sourceScrapers[i];
+					
+					
+				}
+			}
+		}
+	}
 }

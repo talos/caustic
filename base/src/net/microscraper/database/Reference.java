@@ -46,7 +46,7 @@ public class Reference {
 		}
 		return references;
 	}
-	public static Reference blank(AbstractResource resource) {
+	public static Reference blank(Resource resource) {
 		return new Reference(Model.get(resource.getClass()), "");
 	}
 }

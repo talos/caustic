@@ -5,54 +5,50 @@ import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Interfaces.Regexp;
-import net.microscraper.database.AbstractResource.FatalExecutionException;
+import net.microscraper.database.Execution.FatalExecutionException;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
+import net.microscraper.database.Execution;
 import net.microscraper.database.Reference;
-import net.microscraper.database.Result;
-import net.microscraper.database.ResultRoot;
 import net.microscraper.database.schema.Default;
 
 public class Client {
-	public final Log log = new Log();
-	public final Regexp regexp;
-	public final JSON json;
-	public final Browser browser;
-	public final Publisher publisher;
-	private static Client instance;
+	private Log _log = new Log();
+	private Regexp _regexp;
+	private JSON _json;
+	private Browser _browser;
+	private Publisher _publisher;
+	private Database _db = new Database();
 	
-	private Client (Browser browser, Interfaces.Regexp regexp,
+	private static Client instance = new Client();
+	public static final Log log = instance._log;
+	public static final Regexp regexp = instance._regexp;
+	public static final JSON json = instance._json;
+	public static final Browser browser = instance._browser;
+	public static final Publisher publisher = instance._publisher;
+	public static final Database db = instance._db;
+	
+	private Client() { }
+	public static Client get(Browser browser, Interfaces.Regexp regexp,
 			Interfaces.JSON json, Logger[] loggers, Publisher publisher) {
-		this.browser = browser;
-		this.regexp = regexp;
-		this.json = json;
-		this.publisher = publisher;
+		
+		instance._browser = browser;
+		instance._regexp = regexp;
+		instance._json = json;
+		instance._publisher = publisher;
 		for(int i = 0; i < loggers.length ; i ++) {
-			log.register(loggers[i]);
+			instance._log.register(loggers[i]);
 		}
-	}
-	
-	public static Client initialize (Browser browser, Interfaces.Regexp regexp,
-			Interfaces.JSON json, Logger[] loggers, Publisher publisher) {
-		if(instance != null)
-			return instance;
-		instance = new Client(browser, regexp, json, loggers, publisher);
+		
 		return instance;
 	}
 	
-	public static Client context () {
-		if(instance == null)
-			throw new IllegalStateException("The client has not been initialized.");
-		else
-			return instance;
-	}
-	
-	public Result[] scrape(String json_url, Reference ref, Default[] extra_defaults)
+	public Execution.Root scrape(String json_url, Reference ref, Default[] extra_defaults)
 					throws MicroScraperClientException {
-		ResultRoot root = new ResultRoot();
+		//ResultRoot root = new ResultRoot();
 		String raw_obj;
 		try {
-			log.i("Scraping '" + ref.toString() + "' from JSON loaded from " + json_url);
+			Client.log.i("Scraping '" + ref.toString() + "' from JSON loaded from " + json_url);
 			
 			raw_obj = browser.load(json_url);
 				log.i("Raw scraping JSON: " + raw_obj);
@@ -64,13 +60,13 @@ public class Client {
 			throw new MicroScraperClientException(e);
 		}
 		
+		Execution.Root root = new Execution.Root();
 		try {
-			Database db;
 			try {
 				for(int i = 0 ; i < extra_defaults.length ; i ++) {
-					extra_defaults[i].getResults(root);
+					root.add(extra_defaults[i]);
 				}
-				db = new Database(json.getTokener(raw_obj).nextValue());
+				db.inflate(json.getTokener(raw_obj).nextValue());
 			}  catch(JSONInterfaceException e) {
 				log.e(e);
 				throw new MicroScraperClientException(e);
@@ -82,7 +78,10 @@ public class Client {
 				throw new MicroScraperClientException(e);
 			}
 			try {
-				return db.get(ref).getResults(root);
+				//return db.get(ref).getResults(root);
+				root.add(db.get(ref));
+				root.execute();
+				return root;
 			} catch(DatabaseException e) {
 				log.e(e);
 				throw new MicroScraperClientException(e);

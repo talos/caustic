@@ -1,7 +1,5 @@
 package net.microscraper.client;
 
-import net.microscraper.database.Result;
-
 /**
  * Mustache-like substitutions from Variables.
  * This does not currently support any commenting.
@@ -25,20 +23,16 @@ public class Mustache {
 		int close_tag_pos = 0;
 		int open_tag_pos;
 		String result = "";
-		//Client.context().log.i("mustache template: " + template);
 		while((open_tag_pos = template.indexOf(open_tag, close_tag_pos)) != -1) {
 			result += template.substring(open_tag_pos, close_tag_pos);
 			
-			//Client.context().log.i(Integer.toString(close_tag_pos));
 			close_tag_pos = template.indexOf(close_tag, open_tag_pos);
-			//Client.context().log.i(Integer.toString(close_tag_pos));
 			if(close_tag_pos == -1)
 				throw new TemplateException("No close tag for opening tag at position " + open_tag_pos + " in Mustache template " + template);
 			
 			String tag = template.substring(open_tag_pos + open_tag.length(), close_tag_pos);
 			
 			close_tag_pos += close_tag.length();
-			//Client.context().log.i(Integer.toString(close_tag_pos));
 			if(variables.containsKey(tag))
 				result += variables.get(tag);
 			else
@@ -64,11 +58,8 @@ public class Mustache {
 		private static final long serialVersionUID = 8720790457856091375L;
 		public final String missing_tag;
 		public MissingVariable(String missing_tag, Variables variables) {
-			Client.context().log.i("Variable " + missing_tag + " is missing from variables " + variables.toString() + ", cannot compile template.");
+			Client.log.i("Variable " + missing_tag + " is missing from variables " + variables.toString() + ", cannot compile template.");
 			this.missing_tag = missing_tag;
-		}
-		public MissingVariable(Result.Premature premature_result) {
-			this.missing_tag = premature_result.error.missing_tag;
 		}
 	}
 }
