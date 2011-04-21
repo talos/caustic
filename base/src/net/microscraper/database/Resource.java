@@ -3,19 +3,24 @@ package net.microscraper.database;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.client.Mustache;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Attribute.Attributes;
-import net.microscraper.database.Execution.FatalExecutionException;
+import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Model.ModelDefinition;
+import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Relationship.Relationships;
 
 public abstract class Resource {
 	protected Reference ref = Reference.blank(this);
-	protected Attributes attributes;
-	protected Relationships relationships;
+	
+	private Attributes attributes = new Attributes();
+	private Relationships relationships = new Relationships();
 	private Hashtable executionsByCaller = new Hashtable();
 	
 	public Resource initialize(String key, Attributes attributes, Relationships relationships) {
@@ -24,45 +29,77 @@ public abstract class Resource {
 		this.relationships = relationships;
 		return this;
 	}
+	public Reference ref() {
+		return ref;
+	}
 	
-	protected String getAttribute(AttributeDefinition def) {
+	protected String getAttributeValueRaw(AttributeDefinition def) {
 		return attributes.get(def);
 	}
-	
+	protected Resource[] getResourcesToCall(RelationshipDefinition def) throws ResourceNotFoundException {
+		return relationships.get(def);
+	}
 	public abstract ModelDefinition definition();
 	
-	
-	public final ResourceExecution getExecution(Execution caller) throws FatalExecutionException {
-		if(executionsByCaller.containsKey(caller))
-			return (ResourceExecution) executionsByCaller.get(caller);
-		ResourceExecution exc = generateExecution(caller);
-		executionsByCaller.put(caller, exc);
-		return exc;
+	public final Execution[] callFrom(Execution caller) throws ResourceNotFoundException {
+		if(!executionsByCaller.containsKey(caller)) {
+			return (Execution[]) executionsByCaller.get(caller);
+		} else {
+			Execution[] executions = generateExecutions(caller);
+			executionsByCaller.put(caller, executions);
+			return executions;
+		}
 	}
-	protected abstract ResourceExecution generateExecution(Execution caller) throws FatalExecutionException;
+	protected abstract ResourceExecution[] generateExecutions(Execution caller) throws ResourceNotFoundException;
 	
 	protected abstract class ResourceExecution extends Execution {
-		protected ResourceExecution(Execution caller) {
-			//this.caller = caller;
+		private final Execution source;
+		private String name;
+		private String value;
+		protected ResourceExecution(Execution caller) throws ResourceNotFoundException {
 			if(isOneToMany()) {
 				this.source = this;
 			} else {
 				this.source = caller;
 			}
-		}
-		
-		public abstract Result getResult() throws MissingVariable, FatalExecutionException;
-		
-		protected abstract Status execute() throws FatalExecutionException;
-		
-		protected String getAttribute(AttributeDefinition def) throws TemplateException, MissingVariable {
-			return attributes.get(def, getVariables());
-		}
-		
-		public abstract boolean isOneToMany();
-		
-		private Variables getVariables() {
 			
+			RelationshipDefinition[] defs = definition().relationships();
+			for(int i = 0 ; i < defs.length ; i ++ ) {
+				Resource resources[] = getResourcesToCall(defs[i]);
+				for(int j = 0 ; j < resources.length ; j ++) {
+					call(resources[j]); // Resource caches these, we won't get duplicates.
+				}
+			}
 		}
+		
+		protected final Execution getSourceExecution() {
+			return source;
+		}
+
+		protected final String getName() throws MissingVariable, BrowserException,
+				FatalExecutionException, NoMatches {
+			if(name != null)
+				return name;
+			return generateName();
+		}
+		
+		protected final String getValue() throws MissingVariable, BrowserException,
+				FatalExecutionException, NoMatches {
+			if(value != null)
+				return value;
+			return generateValue();
+		}
+		
+		protected final String getAttributeValue(AttributeDefinition def)
+					throws TemplateException, MissingVariable {
+			return (String) Mustache.compile(getAttributeValueRaw(def), getVariables());
+		}
+		
+		protected abstract String generateName()
+			throws MissingVariable, BrowserException, FatalExecutionException, NoMatches;
+		protected abstract String generateValue()
+			throws MissingVariable, BrowserException, FatalExecutionException, NoMatches;
+		protected abstract boolean isOneToMany();
+		protected abstract Variables getLocalVariables();
 	}
 }

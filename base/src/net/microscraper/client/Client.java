@@ -5,9 +5,8 @@ import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Interfaces.Regexp;
-import net.microscraper.database.Execution.FatalExecutionException;
+import net.microscraper.database.Database.DatabaseException;
 import net.microscraper.database.Database;
-import net.microscraper.database.DatabaseException;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Reference;
 import net.microscraper.database.schema.Default;
@@ -62,30 +61,16 @@ public class Client {
 		
 		Execution.Root root = new Execution.Root();
 		try {
-			try {
-				for(int i = 0 ; i < extra_defaults.length ; i ++) {
-					root.call(extra_defaults[i]);
-				}
-				db.inflate(json.getTokener(raw_obj).nextValue());
-			}  catch(JSONInterfaceException e) {
-				log.e(e);
-				throw new MicroScraperClientException(e);
-			} catch(InstantiationException e) {
-				log.e(e);
-				throw new MicroScraperClientException(e);
-			} catch(IllegalAccessException e) {
-				log.e(e);
-				throw new MicroScraperClientException(e);
+			for(int i = 0 ; i < extra_defaults.length ; i ++) {
+				root.call(extra_defaults[i]);
 			}
-			try {
-				//return db.get(ref).getResults(root);
-				root.call(db.get(ref));
-				return root;
-			} catch(DatabaseException e) {
-				log.e(e);
-				throw new MicroScraperClientException(e);
-			}
-		} catch(FatalExecutionException e) {
+			db.inflate(json.getTokener(raw_obj).nextValue());
+			root.call(db.get(ref));
+			return root;
+		}  catch(JSONInterfaceException e) {
+			log.e(e);
+			throw new MicroScraperClientException(e);
+		} catch(DatabaseException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		}

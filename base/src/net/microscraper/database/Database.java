@@ -18,15 +18,23 @@ public class Database {
 	 * @throws InstantiationException 
 	 */
 	public void inflate(Interfaces.JSON.Object json_obj)
-			throws JSONInterfaceException, InstantiationException, IllegalAccessException {
-		Iterator iter = json_obj.keys();
-		while(iter.hasNext()) {
-			String model_name = (String) iter.next();
-			Model model = Model.get(model_name);
-			Resource[] resources_ary = model.inflate(this, json_obj.getJSONObject(model_name));
-			for(int i = 0 ; i < resources_ary.length ; i ++ ) {
-				resources.put(resources_ary[i].ref(), resources_ary[i]);
+			throws DatabaseException {
+		try {
+			Iterator iter = json_obj.keys();
+			while(iter.hasNext()) {
+				String model_name = (String) iter.next();
+				Model model = Model.get(model_name);
+				Resource[] resources_ary = model.inflate(this, json_obj.getJSONObject(model_name));
+				for(int i = 0 ; i < resources_ary.length ; i ++ ) {
+					resources.put(resources_ary[i].ref(), resources_ary[i]);
+				}
 			}
+		} catch(JSONInterfaceException e) {
+			throw new DatabaseException(e);
+		} catch(IllegalAccessException e) {
+			throw new DatabaseException(e);
+		} catch(InstantiationException e) {
+			throw new DatabaseException(e);
 		}
 	}
 	
@@ -44,7 +52,7 @@ public class Database {
 		 */
 		private static final long serialVersionUID = -4737299738008794427L;
 		public DatabaseException(String message) { super(message); }
-		
+		public DatabaseException(Throwable e) { super(e); }
 	}
 
 	public static class ResourceNotFoundException extends DatabaseException {

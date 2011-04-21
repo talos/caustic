@@ -4,7 +4,10 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 public class Variables {
-	private final Hashtable variables = new Hashtable();
+	private final Hashtable variables;
+	public Variables() {
+		variables = new Hashtable();
+	}
 	public Variables put(String key, String value) throws NullPointerException {
 		variables.put(key, value);
 		return this;
@@ -26,7 +29,15 @@ public class Variables {
 		}
 		return keys;
 	}
-	public Variables merge(Variables variables) {
-		variables = new Variables();
+	/**
+	 * This alters the subject Variables.
+	 * @param other
+	 * @return
+	 */
+	public Variables merge(Variables other) {
+		//Hashtable copy = (Hashtable) this.variables.clone();
+		Utils.hashtableIntoHashtable(other.variables, this.variables);
+		return this;
+		//return new Variables(copy);
 	}
 }

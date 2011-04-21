@@ -29,16 +29,6 @@ public class Relationship {
 			}
 			return resources;
 		}
-		/*
-		public Result[] get(RelationshipDefinition def, Execution caller)
-					throws ResourceNotFoundException, MissingVariable, FatalExecutionException {
-			Resource[] resources = get(def);
-			Result[] results = new Result[resources.length];
-			for(int i = 0 ; i < resources.length ; i ++) {
-				results[i] = resources[i].execute(caller);
-			}
-			return results;
-		}*/
 	}
 	
 	public static class RelationshipDefinition {
