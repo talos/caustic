@@ -17,7 +17,7 @@ public class ThreadSafeJSONPublisher implements Publisher {
 		return true;
 	}
 	public void publish(Result result) throws PublisherException {
-		Client.context().log.i("publishing");
+		Client.log.i("publishing");
 		//results.add(result.ref, result);
 		Vector results_for_ref;
 		if(results.containsKey(result.ref))

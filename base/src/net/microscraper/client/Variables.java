@@ -1,5 +1,6 @@
 package net.microscraper.client;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 public class Variables {
@@ -16,5 +17,16 @@ public class Variables {
 	}
 	public String toString() {
 		return variables.toString();
+	}
+	public String[] keys() {
+		String[] keys = new String[variables.size()];
+		Enumeration e = variables.keys();
+		for(int i = 0 ; e.hasMoreElements() ; i ++) {
+			keys[i] = (String) e.nextElement();
+		}
+		return keys;
+	}
+	public Variables merge(Variables variables) {
+		variables = new Variables();
 	}
 }

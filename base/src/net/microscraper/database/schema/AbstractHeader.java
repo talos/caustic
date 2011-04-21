@@ -1,13 +1,11 @@
 package net.microscraper.database.schema;
 
-import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Execution.FatalExecutionException;
-import net.microscraper.database.Execution.ResourceExecution;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
@@ -32,25 +30,28 @@ public class AbstractHeader extends Resource {
 		};
 	}
 	
-	private static class AbstractHeaderResult implements Result {
+	public static class AbstractHeaderResult implements Result {
 		private final String name;
 		private final String value;
-		protected AbstractHeaderResult(String name, String value) {
+		private AbstractHeaderResult(String name, String value) {
 			this.name = name;
 			this.value = value;
 		}
-		public Object value() {
-			// TODO Auto-generated method stub
-			return null;
+		public String getName() {
+			return name;
+		}
+		public String getValue() {
+			return value;
 		}
 	}
 
 	private class AbstractHeaderExecution extends ResourceExecution {
-		public AbstractHeaderExecution(Resource resource, Execution caller) {
-			super(resource, caller);
+		private final Execution caller;
+		public AbstractHeaderExecution(Execution caller) {
+			this.caller = caller;
 		}
-
-		public Result getResult() throws MissingVariable {
+		
+		public Result getResult() throws MissingVariable, FatalExecutionException {
 			try {
 				return new AbstractHeaderResult(
 					attributes.get(NAME, caller.variables()),
@@ -60,10 +61,27 @@ public class AbstractHeader extends Resource {
 				throw new FatalExecutionException(e);
 			}
 		}
+
+		protected Status execute() throws FatalExecutionException {
+			try {
+				getResult();
+				return Status.SUCCESSFUL;
+			} catch(MissingVariable e) {
+				return Status.IN_PROGRESS;
+			}
+		}
+
+		public Variables variables() {
+			return new Variables();
+		}
+
+		public boolean isOneToMany() {
+			return false;
+		}
 	}
 	
 	public ResourceExecution getExecution(Execution caller)
 			throws MissingVariable, FatalExecutionException {
-		return new AbstractHeaderExecution(this, caller);
+		return new AbstractHeaderExecution(caller);
 	}
 }

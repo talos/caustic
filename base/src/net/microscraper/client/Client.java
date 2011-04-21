@@ -64,7 +64,7 @@ public class Client {
 		try {
 			try {
 				for(int i = 0 ; i < extra_defaults.length ; i ++) {
-					root.add(extra_defaults[i]);
+					root.call(extra_defaults[i]);
 				}
 				db.inflate(json.getTokener(raw_obj).nextValue());
 			}  catch(JSONInterfaceException e) {
@@ -79,8 +79,7 @@ public class Client {
 			}
 			try {
 				//return db.get(ref).getResults(root);
-				root.add(db.get(ref));
-				root.execute();
+				root.call(db.get(ref));
 				return root;
 			} catch(DatabaseException e) {
 				log.e(e);

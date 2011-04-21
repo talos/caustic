@@ -46,7 +46,7 @@ public class JavaNetBrowser implements Browser {
 		}
 		 
 		try {
-			Client.context().log.i("Browser loading URL '" + url.toString() + "'");
+			Client.log.i("Browser loading URL '" + url.toString() + "'");
 			
 			HttpURLConnection.setFollowRedirects(true);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();			
@@ -74,7 +74,7 @@ public class JavaNetBrowser implements Browser {
 					String key = (String) e.nextElement();
 					cookie_string += URLEncoder.encode(key, ENCODING) + '=' + URLEncoder.encode((String) cookies.get(key), ENCODING) + "; ";
 				}
-				Client.context().log.i("Using cookies: " + cookie_string);
+				Client.log.i("Using cookies: " + cookie_string);
 				conn.setRequestProperty("Cookie", cookie_string);
 			}
 			
@@ -97,11 +97,11 @@ public class JavaNetBrowser implements Browser {
 				conn.setRequestMethod("GET");
 			}
 			
-			Client.context().log.i("Waiting for " + conn.getRequestMethod()
+			Client.log.i("Waiting for " + conn.getRequestMethod()
 					+ " response from " + url.toString() + "...");
 			connectHandlingRedirectCookies(conn);
 			
-			Client.context().log.i("Loading " + url.toString() + "...");
+			Client.log.i("Loading " + url.toString() + "...");
 			// Pull response.
 			ByteArrayOutputStream content = new ByteArrayOutputStream();
 			//reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -118,7 +118,7 @@ public class JavaNetBrowser implements Browser {
 				content_string = new String(content.toByteArray());
 				for(int i = 0 ; i < terminates.length ; i++) {
 					if(terminates[i].matches(content_string)){
-						Client.context().log.i("Terminating " + url.toString() + " due to pattern " + terminates[i].toString());
+						Client.log.i("Terminating " + url.toString() + " due to pattern " + terminates[i].toString());
 						stream.close();
 						break loading;
 					}
@@ -162,7 +162,7 @@ public class JavaNetBrowser implements Browser {
 					redirects_followed.addElement(redirect_string);
 				}
 				
-				Client.context().log.i("Following redirect #"
+				Client.log.i("Following redirect #"
 					+ Integer.toString(redirects_followed.size()) + " from " + conn.getURL().toString()
 					+ " to " + redirect_string);
 				
@@ -201,7 +201,7 @@ public class JavaNetBrowser implements Browser {
 				if(equals_loc != -1) {
 					String name = header_value.substring(0, equals_loc);
 					String value = header_value.substring(equals_loc + 1);
-					Client.context().log.i("Storing cookie '" + name + "' with value '" + value + "'");
+					Client.log.i("Storing cookie '" + name + "' with value '" + value + "'");
 					cookie_store.put(name, value);
 				}
 			}

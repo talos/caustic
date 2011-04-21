@@ -2,81 +2,33 @@ package net.microscraper.database;
 
 import java.util.Vector;
 
-import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Variables;
+import net.microscraper.database.Resource.ResourceExecution;
 
 public abstract class Execution {
-	protected final static class Status {
-		public static Status SUCCESSFUL = new Status();
-		public static Status IN_PROGRESS = new Status();
-		public static Status FAILURE = new Status();
-	}
-
-	private class SuccessMatrix {
-		private int successes = 0;
-		private int in_progresses = 0;
-		private int failures = 0;
-		public void add(Status status) {
-			if(status == Status.SUCCESSFUL)
-				successes++;
-			if(status == Status.IN_PROGRESS)
-				in_progresses++;
-			if(status == Status.FAILURE)
-				failures++;
-		}
-		public Status summarize() {
-			if(in_progresses == 0 && failures == 0)
-				return Status.SUCCESSFUL;
-			if(failures > 0)
-				return Status.FAILURE;
-			return Status.IN_PROGRESS;
-		}
-		private boolean equals(SuccessMatrix other) {
-			if(successes == other.successes)
-				return true;
-			return false;
-		}
-	}
 	
 	private static int count = 0;
+	//private final ExecutionMatrix matrix = new ExecutionMatrix();
+	private Vector calledExecutions = new Vector();
 	public final int id;
-	private final Vector call = new Vector();
-	private final SuccessMatrix lastMatrix = new SuccessMatrix();
 	
-	public Execution() {
+	protected Execution() {
 		id = count++;
 	}
 	
-	public Status execute() throws FatalExecutionException {
-		SuccessMatrix matrix = new SuccessMatrix();
-		for(int i = 0 ; i < call.size() ; i ++) {
-			Resource resource = (Resource) call.elementAt(i);
-			try {
-				resource.execute(this);
-				matrix.add(Status.SUCCESSFUL);
-			} catch(MissingVariable e) {
-				matrix.add(Status.IN_PROGRESS);
-			}
-		}
-		if(matrix.equals(lastMatrix))
-			return matrix.summarize();
-		return execute(); // loop back if matrix has changed
+	public void call(Resource resource) throws FatalExecutionException {
+		calledExecutions.add(resource.getExecution(this));
 	}
 	
-	public abstract Result getResult() throws MissingVariable;
-	
-	public final Variables variables() {
-		//TODO
-		return null;
+	public ResourceExecution[] getCalledExecutions() {
+		ResourceExecution[] executions = new ResourceExecution[calledExecutions.size()];
+		calledExecutions.copyInto(executions);
+		return executions;
 	}
 	
-	/**
-	 * Overridden for those few executions that are one-to-many.
-	 * @return
-	 */
-	public boolean isOneToMany() {
-		return false;
-	}
+	public abstract Execution getSourceExecution();
+	public abstract Status getStatus();
+	public abstract Variables getVariables();
 	
 	public boolean equals(Object obj) {
 		if(this == obj)
@@ -91,19 +43,47 @@ public abstract class Execution {
 		return id;
 	}
 	
-	public static abstract class ResourceExecution extends Execution {
-		private final Resource resource;
-		protected final Execution caller;
-		public ResourceExecution(Resource resource, Execution caller) {
-			this.resource = resource;
-			this.caller = caller;
+	public static final class Root extends Execution {
+		public Status getStatus() {
+			return new StatusMatrix().summarize();
+		}
+		
+		public Variables getVariables() {
+			Variables variables = new Variables();
+			ResourceExecution[] executions = getCalledExecutions();
+			for(int i = 0 ; i < executions.length ; i ++) {
+				variables.merge(executions[i].getVariables());
+			}
+			return variables;
+		}
+
+		public Execution getSourceExecution() {
+			return this;
 		}
 	}
 	
-	public static final class Root extends Execution {
-		
+	protected final static class Status {
+		public static Status SUCCESSFUL = new Status();
+		public static Status IN_PROGRESS = new Status();
+		public static Status FAILURE = new Status();
 	}
 	
+	protected final class StatusMatrix {
+		public Status summarize() {
+			for(int i = 0 ; i < calledExecutions.size() ; i ++) {
+				ResourceExecution exc = (ResourceExecution) calledExecutions.elementAt(i);
+				if(exc.getStatus() == Status.IN_PROGRESS)
+					return Status.IN_PROGRESS;
+				if(exc.getStatus() == Status.FAILURE)
+					return Status.FAILURE;
+			}
+			return Status.SUCCESSFUL;
+		}
+		public boolean isProgressSince(StatusMatrix comparison) {
+			
+		}
+	}
+
 	public static final class FatalExecutionException extends Exception {
 
 		/**

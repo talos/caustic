@@ -1,6 +1,7 @@
 package net.microscraper.database.schema;
 
 import net.microscraper.client.Mustache.MissingVariable;
+import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
@@ -26,21 +27,43 @@ public class Data extends Resource {
 		};
 	}
 
-	public Result execute(Execution caller) throws MissingVariable,
-			FatalExecutionException {
-		try {
-			Resource[] defaults = relationships.get(DEFAULTS);
-			Resource[] scrapers = relationships.get(SCRAPERS);
-		} catch(ResourceNotFoundException e) {
-			throw new FatalExecutionException(e);
-		}
-	}
-	
 	public class DataResult implements Result {
 		
-		public Object value() {
+	}
+
+	public ResourceExecution getExecution(Execution caller)
+			throws MissingVariable, FatalExecutionException {
+		return new DataExecution(caller);
+	}
+	
+	public class DataExecution extends ResourceExecution {
+		public DataExecution(Execution caller) {
+			super(caller);
+		}
+
+		public Result getResult() throws MissingVariable,
+				FatalExecutionException {
 			// TODO Auto-generated method stub
 			return null;
+		}
+
+		protected Status execute(Variables v) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		protected Status execute() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
+		public Variables variables() {
+			Variables variables = new Variables();
+			
+		}
+
+		public boolean isOneToMany() {
+			return false;
 		}
 	}
 }
