@@ -8,6 +8,7 @@ import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Mustache;
+import net.microscraper.client.Utils;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Attribute.Attributes;
@@ -36,8 +37,22 @@ public abstract class Resource {
 	protected String getAttributeValueRaw(AttributeDefinition def) {
 		return attributes.get(def);
 	}
-	protected Resource[] getResourcesToCall(RelationshipDefinition def) throws ResourceNotFoundException {
+	protected Resource[] getRelatedResources(RelationshipDefinition def) throws ResourceNotFoundException {
 		return relationships.get(def);
+	}
+	protected int getNumberOfRelatedResources(RelationshipDefinition def) {
+		return relationships.getSize(def);
+	}
+	
+	protected Execution[] callRelatedResources(Execution caller, RelationshipDefinition def) throws ResourceNotFoundException {
+		Resource[] relatedResources = getRelatedResources(def);
+		Vector executions = new Vector();
+		for(int i = 0 ; i < relatedResources.length ; i ++) {
+			Utils.arrayIntoVector(caller.call(relatedResources[i]), executions);
+		}
+		Execution[] executionsAry = new Execution[executions.size()];
+		executions.copyInto(executionsAry);
+		return executionsAry;
 	}
 	public abstract ModelDefinition definition();
 	
@@ -50,7 +65,9 @@ public abstract class Resource {
 			return executions;
 		}
 	}
-	protected abstract ResourceExecution[] generateExecutions(Execution caller) throws ResourceNotFoundException;
+	protected abstract ResourceExecution[] generateExecutions(Execution caller)
+			throws ResourceNotFoundException,
+			MissingVariable; // this happens when a missingvariable prevents us from knowing how many executions would be spawned
 	
 	protected abstract class ResourceExecution extends Execution {
 		private final Execution source;
@@ -62,7 +79,7 @@ public abstract class Resource {
 			} else {
 				this.source = caller;
 			}
-			
+			/*
 			RelationshipDefinition[] defs = definition().relationships();
 			for(int i = 0 ; i < defs.length ; i ++ ) {
 				Resource resources[] = getResourcesToCall(defs[i]);
@@ -70,6 +87,7 @@ public abstract class Resource {
 					call(resources[j]); // Resource caches these, we won't get duplicates.
 				}
 			}
+			*/
 		}
 		
 		protected final Execution getSourceExecution() {

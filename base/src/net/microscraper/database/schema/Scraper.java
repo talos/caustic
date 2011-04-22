@@ -42,27 +42,70 @@ public class Scraper extends Resource {
 	}
 	
 	protected ResourceExecution[] generateExecutions(Execution caller) throws ResourceNotFoundException {
-		if(getResourcesToCall(WEB_PAGES).length + getResourcesToCall(REGEXPS).length +
-				getResourcesToCall(SOURCE_SCRAPERS).length > 1) // one-to-many if pulling from multiple sources.
-			return new ScraperOneToManyExecution(caller);
-		return new ScraperOneToOneExecution(caller);
+		
+		Resource[] webPageSources = getRelatedResources(WEB_PAGES);
+		Resource[] scraperSources = getRelatedResources(SOURCE_SCRAPERS);
+		Resource[] sources = new Resource[webPageSources.length + scraperSources.length];
+		for(int i = 0 ; i < webPageSources.length ; i ++) {
+			sources[i] = webPageSources[i];
+		}
+		for(int i = 0 ; i < scraperSources.length ; i ++) {
+			sources[i + webPageSources.length] = scraperSources[i];
+		}
+		
+		//Execution[] regexps = callRelatedResources(caller, REGEXPS);
+		Resource[] regexps = getRelatedResources(REGEXPS);
+		ScraperExecution[] executions = new ScraperExecution[regexps.length * sources.length];
+		for(int i = 0 ; i < sources.length ; i ++ ) {
+			for(int j = 0 ; j < regexps.length ; j++) {
+				ScraperExecution exc = new ScraperExecution(caller, regexps[j]);
+				executions[(i*j) + j] = exc;
+				exc.call(sources[i]);
+			}
+		}
+		return executions;
 	}
 	
-	private abstract class ScraperExecution extends ResourceExecution {
-		private ScraperExecution(Execution caller) throws ResourceNotFoundException {
+	private boolean isScraperOneToMany() {
+		if((getNumberOfRelatedResources(WEB_PAGES) + getNumberOfRelatedResources(REGEXPS)) > 1 ||
+				getNumberOfRelatedResources(SOURCE_SCRAPERS) > 1) // one-to-many if pulling from multiple sources, or multiple regexps.
+			return true;
+		return false;
+	}
+	
+	private final class ScraperExecution extends ResourceExecution {
+		private final Resource source;
+		private final Resource regexp;
+		protected ScraperExecution(Execution caller, Resource source, Resource regexp) throws ResourceNotFoundException {
 			super(caller);
+			this.source = source;
+			this.regexp = regexp;
+			
 		}
 		protected String generateName() throws MissingVariable,
 				BrowserException, FatalExecutionException, NoMatches {
 			// TODO Auto-generated method stub
 			return null;
 		}
+		protected String generateValue() throws MissingVariable,
+				BrowserException, FatalExecutionException, NoMatches {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		protected boolean isOneToMany() {
+			return isScraperOneToMany();
+		}
+		protected Variables getLocalVariables() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
+	/*
 	private final class ScraperOneToOneExecution extends ScraperExecution {
 		private ScraperOneToOneExecution(Execution caller) throws ResourceNotFoundException {
 			super(caller);
 		}
-
+		
 		protected String generateValue() throws MissingVariable,
 				BrowserException, FatalExecutionException, NoMatches {
 			// TODO Auto-generated method stub
@@ -70,7 +113,6 @@ public class Scraper extends Resource {
 		}
 
 		protected boolean isOneToMany() {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
@@ -86,13 +128,6 @@ public class Scraper extends Resource {
 		
 		protected String generateValue() throws MissingVariable,
 				BrowserException, FatalExecutionException, NoMatches {
-			Pattern pattern;
-			try {
-				pattern = Client.regexp.compile(getAttributeValue(REGEXP));
-			} catch(TemplateException e) {
-				throw new FatalExecutionException(e);
-			}
-			Execution[] executions = getCalledExecutions();
 			
 		}
 
@@ -104,5 +139,5 @@ public class Scraper extends Resource {
 			// TODO Auto-generated method stub
 			return null;
 		}
-	}
+	}*/
 }

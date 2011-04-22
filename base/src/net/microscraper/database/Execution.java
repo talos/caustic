@@ -17,8 +17,10 @@ public abstract class Execution {
 		id = count++;
 	}
 	
-	public final void call(Resource resource) throws ResourceNotFoundException {
-		calledExecutions.add(resource.callFrom(this));
+	public final Execution[] call(Resource resource) throws ResourceNotFoundException {
+		Execution[] executions = resource.callFrom(this);
+		calledExecutions.add(executions);
+		return executions;
 	}
 	
 	protected final Execution[] getCalledExecutions() {

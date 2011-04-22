@@ -29,6 +29,10 @@ public class Relationship {
 			}
 			return resources;
 		}
+		
+		public int getSize(RelationshipDefinition def) {
+			return ((Vector) relationships.get(def)).size();
+		}
 	}
 	
 	public static class RelationshipDefinition {

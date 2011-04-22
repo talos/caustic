@@ -16,7 +16,12 @@ public class Regexp extends Resource {
 	private static final AttributeDefinition REGEXP = new AttributeDefinition("regexp");
 	private static final AttributeDefinition MATCH_NUMBER = new AttributeDefinition("match_number");
 
-	public Regexp() { }
+	//public Regexp() { }
+	private final boolean isRegexpOneToMany() {
+		if(getAttributeValueRaw(MATCH_NUMBER) == null)
+			return true;
+		return false;
+	}
 	
 	public ModelDefinition definition() {
 		return new ModelDefinition() {	
@@ -28,18 +33,20 @@ public class Regexp extends Resource {
 			}
 		};
 	}
-	protected ResourceExecution generateExecution(Execution caller) throws ResourceNotFoundException {
-		return new RegexpExecution(caller);
+	protected ResourceExecution[] generateExecutions(Execution caller)
+			throws ResourceNotFoundException, MissingVariable {
+		
 	}
 	private final class RegexpExecution extends ResourceExecution {
 		protected RegexpExecution(Execution caller) throws ResourceNotFoundException {
 			super(caller);
+			
 		}
 		
 		protected boolean isOneToMany() {
-			return false;
+			return isRegexpOneToMany();
 		}
-
+		
 		protected Variables getLocalVariables() {
 			return new Variables();
 		}
@@ -48,7 +55,7 @@ public class Regexp extends Resource {
 				BrowserException, FatalExecutionException, NoMatches {
 			return ref().toString();
 		}
-
+		
 		protected String generateValue() throws FatalExecutionException, MissingVariable {
 			try {
 				return getAttributeValue(REGEXP);
