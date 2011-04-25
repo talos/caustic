@@ -17,13 +17,13 @@ public abstract class Execution {
 		id = count++;
 	}
 	
-	public final Execution[] call(Resource resource) throws ResourceNotFoundException {
-		Execution[] executions = resource.callFrom(this);
-		calledExecutions.add(executions);
-		return executions;
+	public final Execution call(Resource resource) throws ResourceNotFoundException {
+		Execution execution = resource.getExecution(this);
+		calledExecutions.add(execution);
+		return execution;
 	}
 	
-	protected final Execution[] getCalledExecutions() {
+	private final Execution[] getCalledExecutions() {
 		Execution[] executions = new Execution[calledExecutions.size()];
 		calledExecutions.copyInto(executions);
 		return executions;

@@ -5,13 +5,18 @@ import java.net.URLDecoder;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils;
+import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
+import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Model.ModelDefinition;
+import net.microscraper.database.Reference;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
 
@@ -62,5 +67,42 @@ public class Default extends Resource {
 				return new RelationshipDefinition[] { SUBSTITUTED_SCRAPERS };
 			}
 		};
+	}
+	protected ResourceExecution getExecution(Execution caller)
+			throws ResourceNotFoundException {
+		return new DefaultExecution(caller);
+	}
+	
+	public class DefaultExecution extends ResourceExecution {
+		private Reference[] substitutedReferences;
+		private String value;
+		protected DefaultExecution(Execution caller) throws ResourceNotFoundException {
+			super(caller);
+			Resource[] substitutedScrapers = getRelatedResources(SUBSTITUTED_SCRAPERS);
+			substitutedReferences = new Reference[substitutedScrapers.length];
+			for(int i = 0 ; i < substitutedScrapers.length ; i ++ ) {
+				substitutedReferences[i] = substitutedScrapers[i].ref();
+			}
+		}
+
+		protected boolean isOneToMany() {
+			return false;
+		}
+
+		protected Variables getLocalVariables() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		protected void execute() throws MissingVariable, BrowserException,
+				FatalExecutionException, NoMatches {
+			try {
+				value = getAttributeValue(VALUE);
+			} catch(TemplateException e) {
+				throw new FatalExecutionException(e);
+			}
+		}
+		
+		
 	}
 }

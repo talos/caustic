@@ -1,15 +1,15 @@
 package net.microscraper.database.schema;
 
+import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.FatalExecutionException;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
-import net.microscraper.database.Result;
 
 public class Data extends Resource {
 	
@@ -27,43 +27,28 @@ public class Data extends Resource {
 		};
 	}
 
-	public class DataResult implements Result {
-		
-	}
-
-	public ResourceExecution getExecution(Execution caller)
-			throws MissingVariable, FatalExecutionException {
+	public ResourceExecution getExecution(Execution caller) throws ResourceNotFoundException {
 		return new DataExecution(caller);
 	}
 	
 	public class DataExecution extends ResourceExecution {
-		public DataExecution(Execution caller) {
+		public DataExecution(Execution caller) throws ResourceNotFoundException {
 			super(caller);
 		}
 
-		public Result getResult() throws MissingVariable,
-				FatalExecutionException {
-			// TODO Auto-generated method stub
-			return null;
+		protected boolean isOneToMany() {
+			return false;
 		}
-
-		protected Status execute(Variables v) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		protected Status execute() {
+		
+		protected Variables getLocalVariables() {
 			// TODO Auto-generated method stub
 			return null;
 		}
 		
-		public Variables variables() {
-			Variables variables = new Variables();
+		protected void execute() throws MissingVariable, BrowserException,
+				FatalExecutionException, NoMatches {
+			// TODO Auto-generated method stub
 			
-		}
-
-		public boolean isOneToMany() {
-			return false;
 		}
 	}
 }

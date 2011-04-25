@@ -8,21 +8,11 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.FatalExecutionException;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
-import net.microscraper.database.Result;
 
 public class AbstractHeader extends Resource {
-	private String name;
-	private String value;
-	public AbstractHeader() { }
-	public AbstractHeader(String name, String value) {
-		this.name = name;
-		this.value = value;
-	}
-	
 	public static final AttributeDefinition NAME = new AttributeDefinition("name");
 	public static final AttributeDefinition VALUE = new AttributeDefinition("value");
 
@@ -33,7 +23,14 @@ public class AbstractHeader extends Resource {
 		};
 	}
 
-	private class AbstractHeaderExecution extends ResourceExecution {
+	protected ResourceExecution getExecution(Execution caller)
+			throws ResourceNotFoundException {
+		return new AbstractHeaderExecution(caller);
+	}
+	
+	protected class AbstractHeaderExecution extends ResourceExecution {
+		private String name;
+		private String value;
 		public AbstractHeaderExecution(Execution caller) throws ResourceNotFoundException {
 			super(caller);
 		}
@@ -41,28 +38,24 @@ public class AbstractHeader extends Resource {
 		public boolean isOneToMany() {
 			return false;
 		}
-
-		protected String generateName() throws MissingVariable,
-				BrowserException, FatalExecutionException, NoMatches {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		protected String generateValue() throws MissingVariable,
-				BrowserException, FatalExecutionException, NoMatches {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
 		protected Variables getLocalVariables() {
-			// TODO Auto-generated method stub
-			return null;
+			return new Variables();
 		}
-	}
-	
-	protected ResourceExecution generateExecution(Execution caller)
-			throws ResourceNotFoundException {
-		// TODO Auto-generated method stub
-		return null;
+
+		protected void execute() throws MissingVariable, BrowserException,
+				FatalExecutionException, NoMatches {
+			try {
+				name = getAttributeValue(NAME);
+				value = getAttributeValue(VALUE);
+			} catch(TemplateException e) {
+				throw new FatalExecutionException(e);
+			}
+		}
+		public String getName() {
+			return name;
+		}
+		public String getValue() {
+			return value;
+		}
 	}
 }

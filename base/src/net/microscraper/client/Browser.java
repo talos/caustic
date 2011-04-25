@@ -2,7 +2,7 @@ package net.microscraper.client;
 
 import java.util.Hashtable;
 
-import net.microscraper.client.Interfaces.Regexp.Pattern;
+import net.microscraper.database.schema.Regexp.RegexpExecution;
 
 public interface Browser {
 	public static final int TIMEOUT = 5000;
@@ -26,7 +26,7 @@ public interface Browser {
 	public String load(String url)
 			throws BrowserException, InterruptedException;
 	public String load(String url, Hashtable posts, Hashtable headers,
-			Hashtable cookies, Pattern[] terminates)
+			Hashtable cookies, RegexpExecution[] terminates)
 			throws BrowserException, InterruptedException;
 	
 	public static class BrowserException extends Exception {

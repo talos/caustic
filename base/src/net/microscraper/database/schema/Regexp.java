@@ -1,7 +1,9 @@
 package net.microscraper.database.schema;
 
 import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
+import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
@@ -33,14 +35,21 @@ public class Regexp extends Resource {
 			}
 		};
 	}
-	protected ResourceExecution[] generateExecutions(Execution caller)
-			throws ResourceNotFoundException, MissingVariable {
-		
+	protected ResourceExecution getExecution(Execution caller)
+			throws ResourceNotFoundException {
+		return new RegexpExecution(caller);
 	}
-	private final class RegexpExecution extends ResourceExecution {
+	public final class RegexpExecution extends ResourceExecution {
+		private Pattern pattern;
+		private final Integer matchNumber;
 		protected RegexpExecution(Execution caller) throws ResourceNotFoundException {
 			super(caller);
-			
+			String matchNumberString = getAttributeValueRaw(MATCH_NUMBER);
+			if(matchNumberString == null) {
+				matchNumber = null;
+			} else {
+				matchNumber = new Integer(matchNumberString);
+			}
 		}
 		
 		protected boolean isOneToMany() {
@@ -51,16 +60,33 @@ public class Regexp extends Resource {
 			return new Variables();
 		}
 
-		protected String generateName() throws MissingVariable,
-				BrowserException, FatalExecutionException, NoMatches {
-			return ref().toString();
+		protected void execute() throws MissingVariable, BrowserException,
+				FatalExecutionException, NoMatches {
+			try {
+				pattern = Client.regexp.compile(getAttributeValue(REGEXP));
+			} catch (TemplateException e) {
+				throw new FatalExecutionException(e);
+			}
 		}
 		
-		protected String generateValue() throws FatalExecutionException, MissingVariable {
-			try {
-				return getAttributeValue(REGEXP);
-			} catch(TemplateException e) {
-				throw new FatalExecutionException(e);
+		public boolean matches(String input) {
+			if(matchNumber != null) {
+				try {
+					pattern.match(input, matchNumber.intValue());
+					return true;
+				} catch(NoMatches e) {
+					return false;
+				}
+			} else {
+				return pattern.matches(input);
+			}
+		}
+		
+		public String[] allMatches(String input) throws NoMatches {
+			if(matchNumber != null) {
+				return new String[] { pattern.match(input, matchNumber.intValue()) };
+			} else {
+				return pattern.allMatches(input);
 			}
 		}
 	}

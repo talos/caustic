@@ -41,29 +41,11 @@ public class Scraper extends Resource {
 		};
 	}
 	
-	protected ResourceExecution[] generateExecutions(Execution caller) throws ResourceNotFoundException {
-		
+	protected ResourceExecution getExecution(Execution caller) throws ResourceNotFoundException {
 		Resource[] webPageSources = getRelatedResources(WEB_PAGES);
 		Resource[] scraperSources = getRelatedResources(SOURCE_SCRAPERS);
-		Resource[] sources = new Resource[webPageSources.length + scraperSources.length];
-		for(int i = 0 ; i < webPageSources.length ; i ++) {
-			sources[i] = webPageSources[i];
-		}
-		for(int i = 0 ; i < scraperSources.length ; i ++) {
-			sources[i + webPageSources.length] = scraperSources[i];
-		}
-		
-		//Execution[] regexps = callRelatedResources(caller, REGEXPS);
-		Resource[] regexps = getRelatedResources(REGEXPS);
-		ScraperExecution[] executions = new ScraperExecution[regexps.length * sources.length];
-		for(int i = 0 ; i < sources.length ; i ++ ) {
-			for(int j = 0 ; j < regexps.length ; j++) {
-				ScraperExecution exc = new ScraperExecution(caller, regexps[j]);
-				executions[(i*j) + j] = exc;
-				exc.call(sources[i]);
-			}
-		}
-		return executions;
+		Resource[] regexpResources = getRelatedResources(REGEXPS);
+		return new ScraperExecution(caller, webPageSources, scraperSources, regexpResources);
 	}
 	
 	private boolean isScraperOneToMany() {
@@ -74,23 +56,9 @@ public class Scraper extends Resource {
 	}
 	
 	private final class ScraperExecution extends ResourceExecution {
-		private final Resource source;
-		private final Resource regexp;
-		protected ScraperExecution(Execution caller, Resource source, Resource regexp) throws ResourceNotFoundException {
+		protected ScraperExecution(Execution caller, Resource[] webPageSources, Resource[] scraperResources, Resource[] regexpResources)
+					throws ResourceNotFoundException {
 			super(caller);
-			this.source = source;
-			this.regexp = regexp;
-			
-		}
-		protected String generateName() throws MissingVariable,
-				BrowserException, FatalExecutionException, NoMatches {
-			// TODO Auto-generated method stub
-			return null;
-		}
-		protected String generateValue() throws MissingVariable,
-				BrowserException, FatalExecutionException, NoMatches {
-			// TODO Auto-generated method stub
-			return null;
 		}
 		protected boolean isOneToMany() {
 			return isScraperOneToMany();
@@ -99,45 +67,10 @@ public class Scraper extends Resource {
 			// TODO Auto-generated method stub
 			return null;
 		}
-	}
-	/*
-	private final class ScraperOneToOneExecution extends ScraperExecution {
-		private ScraperOneToOneExecution(Execution caller) throws ResourceNotFoundException {
-			super(caller);
-		}
-		
-		protected String generateValue() throws MissingVariable,
-				BrowserException, FatalExecutionException, NoMatches {
+		protected void execute() throws MissingVariable, BrowserException,
+				FatalExecutionException, NoMatches {
 			// TODO Auto-generated method stub
-			return null;
-		}
-
-		protected boolean isOneToMany() {
-			return false;
-		}
-
-		protected Variables getLocalVariables() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-	}
-	private final class ScraperOneToManyExecution extends ScraperExecution {
-		private ScraperOneToManyExecution(Execution caller) throws ResourceNotFoundException {
-			super(caller);
-		}
-		
-		protected String generateValue() throws MissingVariable,
-				BrowserException, FatalExecutionException, NoMatches {
 			
 		}
-
-		protected boolean isOneToMany() {
-			return true;
-		}
-
-		protected Variables getLocalVariables() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-	}*/
+	}
 }
