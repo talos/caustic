@@ -30,14 +30,14 @@ public class Variables {
 		return keys;
 	}
 	/**
-	 * This alters the subject Variables.
+	 * This alters the subject Variables.  If passed 'null', nothing is changed.
 	 * @param other
 	 * @return
 	 */
 	public Variables merge(Variables other) {
-		//Hashtable copy = (Hashtable) this.variables.clone();
-		Utils.hashtableIntoHashtable(other.variables, this.variables);
+		if(other != null) {
+			Utils.hashtableIntoHashtable(other.variables, this.variables);
+		}
 		return this;
-		//return new Variables(copy);
 	}
 }

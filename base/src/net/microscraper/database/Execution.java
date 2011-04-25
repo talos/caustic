@@ -3,6 +3,9 @@ package net.microscraper.database;
 import java.util.Vector;
 
 import net.microscraper.client.Variables;
+import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Interfaces.Regexp.NoMatches;
+import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Resource.ResourceExecution;
 
@@ -12,29 +15,32 @@ public abstract class Execution {
 	//private final ExecutionMatrix matrix = new ExecutionMatrix();
 	private final Vector calledExecutions = new Vector();
 	public final int id;
-	
-	protected Execution() {
+		
+	private final Execution source;
+	protected Execution(Execution caller) {
 		id = count++;
+		if(isOneToMany()) {
+			this.source = this;
+		} else {
+			this.source = caller;
+		}
+	}
+	protected abstract boolean isOneToMany();
+
+	protected final Execution getSourceExecution() {
+		return source;
 	}
 	
-	public final Execution call(Resource resource) throws ResourceNotFoundException {
-		Execution execution = resource.getExecution(this);
-		calledExecutions.add(execution);
-		return execution;
-	}
-	
-	private final Execution[] getCalledExecutions() {
-		Execution[] executions = new Execution[calledExecutions.size()];
-		calledExecutions.copyInto(executions);
-		return executions;
+	public final void addCalledExecution(Execution called) {
+		calledExecutions.addElement(called);
 	}
 	
 	protected final Variables getVariables() {
 		Variables variables = new Variables();
-		Execution[] executions = getCalledExecutions();
-		for(int i = 0 ; i < executions.length ; i ++) {
-			if(!executions[i].isOneToMany()) {
-				variables.merge(executions[i].getLocalVariables());
+		for(int i = 0 ; i < calledExecutions.size() ; i ++) {
+			Execution calledExecution = (Execution) calledExecutions.elementAt(i);
+			if(!calledExecution.isOneToMany()) {
+				variables.merge(calledExecution.getLocalVariables());
 			}
 		}
 		// Ascend up the source tree.
@@ -45,12 +51,15 @@ public abstract class Execution {
 		}
 	}
 	
+	protected abstract Variables getLocalVariables();
+	/*
 	public Status getStatus() {
 		return new StatusMatrix().summarize();
 	}
-	
-	protected abstract Execution getSourceExecution();
-	
+	*/
+	protected abstract void execute()
+			throws MissingVariable, BrowserException, FatalExecutionException, NoMatches;
+
 	public final boolean equals(Object obj) {
 		if(this == obj)
 			return true;
@@ -66,8 +75,22 @@ public abstract class Execution {
 	
 	public static final class Root extends Execution {
 
-		public Execution getSourceExecution() {
-			return this;
+		public Root() {
+			super(null);
+		}
+
+		protected boolean isOneToMany() {
+			return true;
+		}
+
+		protected Variables getLocalVariables() {
+			return null;
+		}
+
+		protected void execute() throws MissingVariable, BrowserException,
+				FatalExecutionException, NoMatches {
+			// TODO Auto-generated method stub
+			
 		}
 	}
 	
@@ -77,6 +100,7 @@ public abstract class Execution {
 		public static Status FAILURE = new Status();
 	}
 	
+	/*
 	private final class StatusMatrix {
 		private static final int SUCCESSFUL = 0;
 		private static final int IN_PROGRESS = 1;
@@ -117,7 +141,7 @@ public abstract class Execution {
 			return status;
 		}
 	}
-
+*/
 	public static final class FatalExecutionException extends Exception {
 
 		/**

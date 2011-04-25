@@ -41,30 +41,16 @@ public abstract class Resource {
 	}
 	
 	public abstract ModelDefinition definition();
-	protected abstract ResourceExecution getExecution(Execution caller) throws ResourceNotFoundException;
+	//protected abstract ResourceExecution getExecution(Execution caller) throws ResourceNotFoundException;
 	
 	protected abstract class ResourceExecution extends Execution {
-		private final Execution source;
-		protected ResourceExecution(Execution caller) throws ResourceNotFoundException {
-			if(isOneToMany()) {
-				this.source = this;
-			} else {
-				this.source = caller;
-			}
+		protected ResourceExecution(Execution caller) {
+			super(caller);
 		}
-		
-		protected final Execution getSourceExecution() {
-			return source;
-		}
-		
+
 		protected final String getAttributeValue(AttributeDefinition def)
 					throws TemplateException, MissingVariable {
 			return (String) Mustache.compile(getAttributeValueRaw(def), getVariables());
 		}
-		
-		protected abstract boolean isOneToMany();
-		protected abstract Variables getLocalVariables();
-		protected abstract void execute()
-			throws MissingVariable, BrowserException, FatalExecutionException, NoMatches;
 	}
 }
