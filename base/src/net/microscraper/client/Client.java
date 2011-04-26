@@ -42,7 +42,7 @@ public class Client {
 		return instance;
 	}
 	
-	public Execution.Root scrape(String json_url, Reference ref, Default[] extra_defaults)
+	public Execution.Root scrape(String json_url, Reference ref, Variables extraVariables)
 					throws MicroScraperClientException {
 		//ResultRoot root = new ResultRoot();
 		String raw_obj;
@@ -61,11 +61,9 @@ public class Client {
 		
 		Execution.Root root = new Execution.Root();
 		try {
-			for(int i = 0 ; i < extra_defaults.length ; i ++) {
-				root.call(extra_defaults[i]);
-			}
+			root.addVariables(extraVariables);
 			db.inflate(json.getTokener(raw_obj).nextValue());
-			root.call(db.get(ref));
+			db.get(ref).execute(root);
 			return root;
 		}  catch(JSONInterfaceException e) {
 			log.e(e);

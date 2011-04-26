@@ -6,8 +6,6 @@ import net.microscraper.client.Variables;
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.database.Database.ResourceNotFoundException;
-import net.microscraper.database.Resource.ResourceExecution;
 
 public abstract class Execution {
 	
@@ -24,14 +22,16 @@ public abstract class Execution {
 		} else {
 			this.source = caller;
 		}
+		this.source.addCalledExecution(this);
 	}
+	
 	protected abstract boolean isOneToMany();
 
 	protected final Execution getSourceExecution() {
 		return source;
 	}
 	
-	public final void addCalledExecution(Execution called) {
+	private final void addCalledExecution(Execution called) {
 		calledExecutions.addElement(called);
 	}
 	
@@ -74,7 +74,7 @@ public abstract class Execution {
 	}
 	
 	public static final class Root extends Execution {
-
+		Variables variables = new Variables();
 		public Root() {
 			super(null);
 		}
@@ -84,13 +84,16 @@ public abstract class Execution {
 		}
 
 		protected Variables getLocalVariables() {
-			return null;
+			return variables;
 		}
 
 		protected void execute() throws MissingVariable, BrowserException,
 				FatalExecutionException, NoMatches {
 			// TODO Auto-generated method stub
 			
+		}
+		public void addVariables(Variables extraVariables) {
+			variables.merge(extraVariables);
 		}
 	}
 	

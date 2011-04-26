@@ -43,6 +43,8 @@ public class Scraper extends Resource {
 		};
 	}
 	
+	private String substituteValue = null;
+	
 	private boolean isScraperOneToMany() {
 		if((getNumberOfRelatedResources(WEB_PAGES) + getNumberOfRelatedResources(REGEXPS)) > 1 ||
 				getNumberOfRelatedResources(SOURCE_SCRAPERS) > 1) // one-to-many if pulling from multiple sources, or multiple regexps.
@@ -50,16 +52,24 @@ public class Scraper extends Resource {
 		return false;
 	}
 	
+	public Execution[] getExecutions(Execution caller) {
+		
+	}
+	
+	public void execute(Execution caller) {
+		getExecutions(caller);
+	}
+	
+	public void substitute(String value) {
+		substituteValue = value;
+	}
+	
 	public final class ScraperExecution extends ResourceExecution {
 		private final String sourceString;
 		private final RegexpExecution regexpExc;
 		private final Hashtable matches = new Hashtable();
 		private ScraperExecution(Execution caller, RegexpExecution regexpExecution,
-				WebPageExecution webPageExecution) {
-			super(caller);
-		}
-		private ScraperExecution(Execution caller, RegexpExecution regexpExecution,
-				ScraperExecution scraperExecution) {
+				String source) {
 			super(caller);
 		}
 		protected boolean isOneToMany() {

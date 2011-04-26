@@ -35,7 +35,7 @@ public class Regexp extends Resource {
 			}
 		};
 	}
-	protected ResourceExecution getExecution(Execution caller)
+	public RegexpExecution getExecution(Execution caller)
 			throws ResourceNotFoundException {
 		return new RegexpExecution(caller);
 	}

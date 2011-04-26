@@ -1,11 +1,8 @@
 package net.microscraper.database;
 
-import net.microscraper.client.Browser.BrowserException;
-import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Mustache;
-import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Attribute.Attributes;
 import net.microscraper.database.Database.ResourceNotFoundException;
@@ -41,6 +38,7 @@ public abstract class Resource {
 	}
 	
 	public abstract ModelDefinition definition();
+	public abstract void execute(Execution caller) throws ResourceNotFoundException;
 	//protected abstract ResourceExecution getExecution(Execution caller) throws ResourceNotFoundException;
 	
 	protected abstract class ResourceExecution extends Execution {

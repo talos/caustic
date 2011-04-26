@@ -23,9 +23,13 @@ public class AbstractHeader extends Resource {
 		};
 	}
 
-	protected ResourceExecution getExecution(Execution caller)
+	public AbstractHeaderExecution getExecution(Execution caller)
 			throws ResourceNotFoundException {
 		return new AbstractHeaderExecution(caller);
+	}
+
+	public void execute(Execution caller) throws ResourceNotFoundException {
+		getExecution(caller);
 	}
 	
 	protected class AbstractHeaderExecution extends ResourceExecution {

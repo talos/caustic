@@ -10,6 +10,7 @@ import net.microscraper.database.Execution;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
+import net.microscraper.database.schema.Default.DefaultExecution;
 
 public class Data extends Resource {
 	
@@ -30,10 +31,22 @@ public class Data extends Resource {
 	public ResourceExecution getExecution(Execution caller) throws ResourceNotFoundException {
 		return new DataExecution(caller);
 	}
+
+	public void execute(Execution caller) throws ResourceNotFoundException {
+		getExecution(caller);
+	}
 	
 	public class DataExecution extends ResourceExecution {
+		private final DefaultExecution[] defaults;
+		private final Resource[] scrapers;
 		public DataExecution(Execution caller) throws ResourceNotFoundException {
 			super(caller);
+			Resource[] defaultResources = getRelatedResources(DEFAULTS);
+			defaults = new DefaultExecution[defaultResources.length];
+			for(int i = 0 ; i < defaultResources.length ; i ++) {
+				defaults[i] = ((Default) defaultResources[i]).getExecution(getSourceExecution());
+			}
+			scrapers = getRelatedResources(SCRAPERS);
 		}
 
 		protected boolean isOneToMany() {
@@ -47,8 +60,12 @@ public class Data extends Resource {
 		
 		protected void execute() throws MissingVariable, BrowserException,
 				FatalExecutionException, NoMatches {
-			// TODO Auto-generated method stub
-			
+			for(int i = 0 ; i < defaults.length ; i ++ ) {
+				defaults[i].execute();
+			}
+			for(int i = 0 ; i < scrapers.length ; i ++ ) {
+				
+			}
 		}
 	}
 }

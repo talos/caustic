@@ -19,13 +19,6 @@ import net.microscraper.database.schema.AbstractHeader.AbstractHeaderExecution;
 import net.microscraper.database.schema.Regexp.RegexpExecution;
 
 public class WebPage extends Resource {
-	protected ResourceExecution[] generateExecutions(Execution caller)
-			throws ResourceNotFoundException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	
 	private static final AttributeDefinition URL = new AttributeDefinition("url");
 	
 	private static final RelationshipDefinition TERMINATES =
@@ -51,9 +44,12 @@ public class WebPage extends Resource {
 		};
 	}
 
-	protected ResourceExecution getExecution(Execution caller)
-			throws ResourceNotFoundException {
+	protected WebPageExecution getExecution(Execution caller) throws ResourceNotFoundException {
 		return new WebPageExecution(caller);
+	}
+
+	public void execute(Execution caller) throws ResourceNotFoundException {
+		getExecution(caller);
 	}
 	
 	public class WebPageExecution extends ResourceExecution {
@@ -74,7 +70,7 @@ public class WebPage extends Resource {
 				NoMatches, FatalExecutionException {
 			Hashtable hash = new Hashtable();
 			for(int i = 0 ; i < resources.length ; i ++) {
-				AbstractHeaderExecution exc = (AbstractHeaderExecution) call(resources[i]);
+				AbstractHeaderExecution exc = ((AbstractHeader) resources[i]).getExecution(getSourceExecution());
 				hash.put(exc.getName(), exc.getValue());
 			}
 			return hash;
@@ -85,7 +81,7 @@ public class WebPage extends Resource {
 		}
 
 		protected Variables getLocalVariables() {
-			return new Variables();
+			return null;
 		}
 
 		protected void execute() throws MissingVariable, BrowserException,
@@ -93,7 +89,7 @@ public class WebPage extends Resource {
 			try {
 				Resource[] loginWebPages = getRelatedResources(LOGIN_WEB_PAGES);
 				for(int i = 0 ; i < loginWebPages.length ; i ++) {
-					call(loginWebPages[i]);
+					((WebPage) loginWebPages[i]).getExecution(getSourceExecution()).execute();
 				}
 				
 				Hashtable posts = resourcesToHashtable(getRelatedResources(POSTS));
@@ -103,9 +99,7 @@ public class WebPage extends Resource {
 				Resource[] terminatesResources = getRelatedResources(TERMINATES);
 				RegexpExecution[] terminates = new RegexpExecution[terminatesResources.length];
 				for(int i = 0 ; i < terminatesResources.length; i ++) {
-					//String pattern = ((AbstractResource.Simple) terminates_resources[i]).getSuccess(caller).value;
-					//terminates[i] = Client.context().regexp.compile(pattern);
-					terminates[i] = (RegexpExecution) call(terminatesResources[i]);
+					terminates[i] = ((Regexp) terminatesResources[i]).getExecution(getSourceExecution());
 				}
 				webPageString = Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
 			} catch(DatabaseException e) {
