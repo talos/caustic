@@ -4,7 +4,6 @@ import java.util.Hashtable;
 
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
-import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
@@ -12,6 +11,8 @@ import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.DatabaseException;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.FatalExecutionException;
+import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
@@ -48,8 +49,17 @@ public class WebPage extends Resource {
 		return new WebPageExecution(caller);
 	}
 
-	public void execute(Execution caller) throws ResourceNotFoundException {
-		getExecution(caller);
+	public Status execute(Execution caller) throws ResourceNotFoundException {
+		try {
+			getExecution(caller).execute();
+			return Status.SUCCESSFUL;
+		} catch(MissingVariable e) {
+			return Status.IN_PROGRESS;
+		} catch(BrowserException e) {
+			return Status.FAILURE;
+		} catch(FatalExecutionException e) {
+			return Status.FAILURE;
+		}
 	}
 	
 	public class WebPageExecution extends ResourceExecution {
@@ -61,13 +71,13 @@ public class WebPage extends Resource {
 		
 		protected String load() throws TemplateException,
 				ResourceNotFoundException, InterruptedException, MissingVariable,
-				NoMatches, FatalExecutionException {
+				FatalExecutionException {
 			return webPageString;
 		}
 
 		private final Hashtable resourcesToHashtable(Resource[] resources)
 				throws ResourceNotFoundException, TemplateException, MissingVariable,
-				NoMatches, FatalExecutionException {
+				FatalExecutionException {
 			Hashtable hash = new Hashtable();
 			for(int i = 0 ; i < resources.length ; i ++) {
 				AbstractHeaderExecution exc = ((AbstractHeader) resources[i]).getExecution(getSourceExecution());
@@ -85,7 +95,7 @@ public class WebPage extends Resource {
 		}
 
 		protected void execute() throws MissingVariable, BrowserException,
-				FatalExecutionException, NoMatches {
+				FatalExecutionException {
 			try {
 				Resource[] loginWebPages = getRelatedResources(LOGIN_WEB_PAGES);
 				for(int i = 0 ; i < loginWebPages.length ; i ++) {

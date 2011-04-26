@@ -1,6 +1,5 @@
 package net.microscraper.database.schema;
 
-import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
@@ -10,6 +9,8 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.FatalExecutionException;
+import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
@@ -39,6 +40,16 @@ public class Regexp extends Resource {
 			throws ResourceNotFoundException {
 		return new RegexpExecution(caller);
 	}
+	public Status execute(Execution caller) throws ResourceNotFoundException {
+		try {
+			getExecution(caller).execute();
+			return Status.SUCCESSFUL;
+		} catch(MissingVariable e) {
+			return Status.IN_PROGRESS;
+		} catch(FatalExecutionException e) {
+			return Status.FAILURE;
+		}
+	}
 	public final class RegexpExecution extends ResourceExecution {
 		private Pattern pattern;
 		private final Integer matchNumber;
@@ -59,9 +70,9 @@ public class Regexp extends Resource {
 		protected Variables getLocalVariables() {
 			return new Variables();
 		}
-
-		protected void execute() throws MissingVariable, BrowserException,
-				FatalExecutionException, NoMatches {
+		
+		protected void execute() throws MissingVariable,
+				FatalExecutionException {
 			try {
 				pattern = Client.regexp.compile(getAttributeValue(REGEXP));
 			} catch (TemplateException e) {

@@ -97,7 +97,7 @@ public abstract class Execution {
 		}
 	}
 	
-	protected final static class Status {
+	public final static class Status {
 		public static Status SUCCESSFUL = new Status();
 		public static Status IN_PROGRESS = new Status();
 		public static Status FAILURE = new Status();

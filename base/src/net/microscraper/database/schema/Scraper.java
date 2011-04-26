@@ -15,6 +15,7 @@ import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Execution.FatalExecutionException;
+import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
@@ -52,12 +53,24 @@ public class Scraper extends Resource {
 		return false;
 	}
 	
-	public Execution[] getExecutions(Execution caller) {
-		
+	public ScraperExecution[] getExecutions(Execution caller) throws ResourceNotFoundException {
+		Resource[] regexps = getRelatedResources(REGEXPS);
+		Resource[] scrapers = getRelatedResources(SOURCE_SCRAPERS);
+		Resource[] webPages = getRelatedResources(WEB_PAGES);
+		for(int i = 0 ; i < regexps.length ; i ++ ) {
+			RegexpExecution regexp = ((Regexp) regexps[i]).getExecution(caller);
+			for(int j = 0 ; j < scrapers.length ; j ++) {
+				ScraperExecution[] scraperExc = ((Scraper) scrapers[j]).getExecutions(caller);
+			}
+			
+		}
 	}
 	
-	public void execute(Execution caller) {
-		getExecutions(caller);
+	public Status execute(Execution caller) throws ResourceNotFoundException {
+		ScraperExecution[] excs = getExecutions(caller);
+		for(int i = 0 ; i < excs.length ; i ++) {
+			excs[i].execute();
+		}
 	}
 	
 	public void substitute(String value) {

@@ -9,7 +9,6 @@ import net.microscraper.database.Database.DatabaseException;
 import net.microscraper.database.Database;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Reference;
-import net.microscraper.database.schema.Default;
 
 public class Client {
 	private Log _log = new Log();

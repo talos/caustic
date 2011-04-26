@@ -1,13 +1,13 @@
 package net.microscraper.database.schema;
 
-import net.microscraper.client.Browser.BrowserException;
-import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.FatalExecutionException;
+import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
@@ -28,8 +28,15 @@ public class AbstractHeader extends Resource {
 		return new AbstractHeaderExecution(caller);
 	}
 
-	public void execute(Execution caller) throws ResourceNotFoundException {
-		getExecution(caller);
+	public Status execute(Execution caller) throws ResourceNotFoundException {
+		try {
+			getExecution(caller).execute();	
+			return Status.SUCCESSFUL;
+		} catch(MissingVariable e) {
+			return Status.IN_PROGRESS;
+		} catch(FatalExecutionException e) {
+			return Status.FAILURE;
+		}
 	}
 	
 	protected class AbstractHeaderExecution extends ResourceExecution {
@@ -46,8 +53,7 @@ public class AbstractHeader extends Resource {
 			return new Variables();
 		}
 
-		protected void execute() throws MissingVariable, BrowserException,
-				FatalExecutionException, NoMatches {
+		protected void execute() throws MissingVariable, FatalExecutionException {
 			try {
 				name = getAttributeValue(NAME);
 				value = getAttributeValue(VALUE);

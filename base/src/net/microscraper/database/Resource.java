@@ -6,6 +6,7 @@ import net.microscraper.client.Mustache;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Attribute.Attributes;
 import net.microscraper.database.Database.ResourceNotFoundException;
+import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Relationship.Relationships;
@@ -38,7 +39,7 @@ public abstract class Resource {
 	}
 	
 	public abstract ModelDefinition definition();
-	public abstract void execute(Execution caller) throws ResourceNotFoundException;
+	public abstract Status execute(Execution caller) throws ResourceNotFoundException;
 	//protected abstract ResourceExecution getExecution(Execution caller) throws ResourceNotFoundException;
 	
 	protected abstract class ResourceExecution extends Execution {
