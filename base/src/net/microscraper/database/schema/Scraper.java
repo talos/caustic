@@ -48,35 +48,7 @@ public class Scraper extends Resource {
 		return false;
 	}
 	
-	public ScraperExecution[] getExecutions(Execution caller) throws ResourceNotFoundException {
-		Resource[] regexps = getRelatedResources(REGEXPS);
-		Resource[] scrapers = getRelatedResources(SOURCE_SCRAPERS);
-		Resource[] webPages = getRelatedResources(WEB_PAGES);
-		
-		Vector executions = new Vector();
-		for(int i = 0 ; i < regexps.length ; i ++ ) {
-			Vector sourceStrings = new Vector();
-			RegexpExecution regexp = ((Regexp) regexps[i]).getExecution(caller);
-			for(int j = 0 ; j < scrapers.length ; j ++) {
-				ScraperExecution[] scraperExecutions = ((Scraper) scrapers[j]).getExecutions(caller);
-				for(int k = 0 ; k < scraperExecutions.length ; k ++ ) {
-					ScraperExecution scraperExecution = scraperExecutions[k];
-					scraperExecution.execute();
-					Utils.arrayIntoVector(scraperExecution.matches(), sourceStrings);
-				}
-			}
-			for(int j = 0 ; j < webPages.length ; j ++) {
-				WebPageExecution webPageExecution = ((WebPage) webPages[j]).getExecution(caller);
-				webPageExecution.execute();
-				sourceStrings.addElement(webPageExecution.load());
-			}
-			for(int j = 0 ; j < sourceStrings.size() ; j ++) {
-				executions.addElement(new ScraperExecution(caller, regexp, (String) sourceStrings.elementAt(j)));
-			}
-		}
-		ScraperExecution[] executionsAry = new ScraperExecution[executions.size()];
-		executions.copyInto(executionsAry);
-		return executionsAry;
+	public ScraperExecution[] getExecution(Execution caller) throws ResourceNotFoundException {
 	}
 	
 	public Status execute(Execution caller) throws ResourceNotFoundException {
@@ -91,10 +63,15 @@ public class Scraper extends Resource {
 	}
 	
 	public final class ScraperExecution extends ResourceExecution {
-		private final String sourceString;
+		private String sourceString;
 		private final RegexpExecution regexpExecution;
 		//private final Hashtable matches = new Hashtable();
-		private String[] matches;
+		private String match;
+		private ScraperExecution(Execution caller) {
+			Resource[] regexps = getRelatedResources(REGEXPS);
+			Resource[] scrapers = getRelatedResources(SOURCE_SCRAPERS);
+			Resource[] webPages = getRelatedResources(WEB_PAGES);
+		}
 		private ScraperExecution(Execution caller, RegexpExecution regexpExecution,
 				String sourceString) {
 			super(caller);
@@ -107,12 +84,32 @@ public class Scraper extends Resource {
 		protected Variables getLocalVariables() {
 			return null;
 		}
+		//TODO: execute() eventually creates new dupe scraperexecutions using the second constructor.
 		protected void execute() throws MissingVariable, BrowserException,
 				FatalExecutionException, NoMatches {
-			matches = regexpExecution.allMatches(sourceString);
+			for(int i = 0 ; i < regexps.length ; i ++ ) {
+				Vector sourceStrings = new Vector();
+				RegexpExecution regexp = ((Regexp) regexps[i]).getExecution(caller);
+				for(int j = 0 ; j < scrapers.length ; j ++) {
+					ScraperExecution[] scraperExecutions = ((Scraper) scrapers[j]).getExecutions(caller);
+					for(int k = 0 ; k < scraperExecutions.length ; k ++ ) {
+						ScraperExecution scraperExecution = scraperExecutions[k];
+						scraperExecution.execute();
+						Utils.arrayIntoVector(scraperExecution.matches(), sourceStrings);
+					}
+				}
+				for(int j = 0 ; j < webPages.length ; j ++) {
+					WebPageExecution webPageExecution = ((WebPage) webPages[j]).getExecution(caller);
+					webPageExecution.execute();
+					sourceStrings.addElement(webPageExecution.load());
+				}
+				for(int j = 0 ; j < sourceStrings.size() ; j ++) {
+					executions.addElement(new ScraperExecution(caller, regexp, (String) sourceStrings.elementAt(j)));
+				}
+			}
 		}
-		public String[] matches() {
-			return matches;
+		public String match {
+			return match;
 		}
 	}
 }
