@@ -54,22 +54,14 @@ public class WebPage extends Resource {
 		return (WebPageExecution) executions.get(caller);
 	}
 
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
-		try {
-			WebPageExecution exc = getExecution(null);
-			exc.addVariables(extraVariables);
-			exc.execute();
-			return Status.SUCCESSFUL;
-		} catch(MissingVariable e) {
-			return Status.IN_PROGRESS;
-		} catch(BrowserException e) {
-			return Status.FAILURE;
-		} catch(FatalExecutionException e) {
-			return Status.FAILURE;
-		}
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException, FatalExecutionException {
+		WebPageExecution exc = getExecution(null);
+		exc.addVariables(extraVariables);
+		return exc.execute();
 	}
 	
 	public class WebPageExecution extends ResourceExecution {
+		private Status status = Status.IN_PROGRESS;
 		private String webPageString = null;
 		protected WebPageExecution(Resource resource, Execution caller)
 				throws ResourceNotFoundException {
@@ -79,8 +71,8 @@ public class WebPage extends Resource {
 		protected String load() throws FatalExecutionException {
 			if(webPageString == null) {
 				execute();
-				return webPageString;
 			}
+			return webPageString;
 		}
 
 		private final Hashtable resourcesToHashtable(Resource[] resources)
@@ -109,25 +101,34 @@ public class WebPage extends Resource {
 					((WebPage) loginWebPages[i]).getExecution(getSourceExecution()).execute();
 				}
 				
-				Hashtable posts = resourcesToHashtable(getRelatedResources(POSTS));
-				Hashtable headers = resourcesToHashtable(getRelatedResources(HEADERS));
-				Hashtable cookies = resourcesToHashtable(getRelatedResources(COOKIES));
-				
-				Resource[] terminatesResources = getRelatedResources(TERMINATES);
-				RegexpExecution[] terminates = new RegexpExecution[terminatesResources.length];
-				for(int i = 0 ; i < terminatesResources.length; i ++) {
-					terminates[i] = ((Regexp) terminatesResources[i]).getExecution(getSourceExecution());
+				try {
+					Hashtable posts = resourcesToHashtable(getRelatedResources(POSTS));
+					Hashtable headers = resourcesToHashtable(getRelatedResources(HEADERS));
+					Hashtable cookies = resourcesToHashtable(getRelatedResources(COOKIES));
+					
+					Resource[] terminatesResources = getRelatedResources(TERMINATES);
+					RegexpExecution[] terminates = new RegexpExecution[terminatesResources.length];
+					for(int i = 0 ; i < terminatesResources.length; i ++) {
+						terminates[i] = ((Regexp) terminatesResources[i]).getExecution(getSourceExecution());
+					}
+					webPageString = Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
+					status = Status.SUCCESSFUL;
+				} catch(MissingVariable e) {
+					status = Status.IN_PROGRESS;
+				} catch(BrowserException e) {
+					status = Status.FAILURE;
 				}
-				webPageString = Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
 			} catch(DatabaseException e) {
-				throw new FatalExecutionException(e);
-			} catch(BrowserException e) {
 				throw new FatalExecutionException(e);
 			} catch(TemplateException e) {
 				throw new FatalExecutionException(e);
 			} catch(InterruptedException e ) {
 				throw new FatalExecutionException(e);				
 			}
+			return status;
+		}
+		public Status getStatus() {
+			return status;
 		}
 	}
 }
