@@ -4,7 +4,6 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.client.Browser.BrowserException;
-import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Variables;
@@ -131,7 +130,7 @@ public class Scraper extends Resource {
 			}
 		}
 		// Replicate once we have a source.
-		protected void execute(String source) throws NoMatches {
+		protected void execute(String source) throws NoMatches, MissingVariable, FatalExecutionException {
 			String[] matches = regexpExecution.allMatches(source);
 			match = matches[0];
 			for(int i = 1 ; i < matches.length ; i ++) {
@@ -167,7 +166,7 @@ public class Scraper extends Resource {
 			super(scraper, caller, regexp);
 			this.sourceScraper = sourceScraper;
 		}
-		protected void execute() throws FatalExecutionException, NoMatches {
+		protected void execute() throws FatalExecutionException, NoMatches, MissingVariable {
 			try {
 				if(sourceScraper.execute(getSourceExecution()) == Status.SUCCESSFUL) {
 					ScraperExecution[] sourceScraperExecutions = sourceScraper.getExecutions(getSourceExecution());

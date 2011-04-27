@@ -15,7 +15,9 @@ import java.util.Vector;
 
 import net.microscraper.client.Browser;
 import net.microscraper.client.Client;
+import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Utils;
+import net.microscraper.database.Execution.FatalExecutionException;
 import net.microscraper.database.schema.Regexp.RegexpExecution;
 
 /**
@@ -42,7 +44,7 @@ public class JavaNetBrowser implements Browser {
 		try {
 			url = new URL(url_string);
 		} catch(MalformedURLException e) {
-			throw new BrowserException(url_string + " is not a well-formed URL (" + e.getMessage() + ")");
+			throw new BrowserException(url_string, e);
 		}
 		 
 		try {
@@ -127,7 +129,11 @@ public class JavaNetBrowser implements Browser {
 			content_string = content.toString();
 			return content_string;
 		} catch(IOException e) {
-			throw new BrowserException("Error " + e.toString() + " loading " + url_string);
+			throw new BrowserException(url_string, e);
+		} catch(FatalExecutionException e) {
+			throw new BrowserException(url_string, e);
+		} catch(MissingVariable e) {
+			throw new BrowserException(url_string, e);
 		}
 	}
 	

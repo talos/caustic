@@ -30,8 +30,8 @@ public interface Browser {
 			throws BrowserException, InterruptedException;
 	
 	public static class BrowserException extends Exception {
-		public BrowserException(String message) {
-			super(message);
+		public BrowserException(String url, Throwable e) {
+			super("Loading " + url, e);
 		}
 		/**
 		 * 

@@ -5,9 +5,12 @@ import java.util.Hashtable;
 
 public class Interfaces {
 	public static interface JSON {
+		
+		
 		public static interface Object {
 			public abstract JSON.Array getJSONArray(String name) throws JSONInterfaceException;
 			public abstract JSON.Object getJSONObject(String name) throws JSONInterfaceException;
+			public abstract java.lang.Object get(String name) throws JSONInterfaceException;
 			public abstract String getString(String name) throws JSONInterfaceException;
 			public abstract int getInt(String name) throws JSONInterfaceException;
 			public abstract boolean has(String name);
@@ -19,10 +22,15 @@ public class Interfaces {
 		public static interface Array {
 			public abstract JSON.Array getJSONArray(int index) throws JSONInterfaceException;
 			public abstract JSON.Object getJSONObject(int index) throws JSONInterfaceException;
+			public abstract java.lang.Object get(int index) throws JSONInterfaceException;
 			public abstract String getString(int index) throws JSONInterfaceException;
 			public abstract String[] toArray() throws JSONInterfaceException; 
 			public abstract int length();
-		}
+		}/*
+		public static interface Null {
+			public abstract boolean equals(Object obj);
+			public abstract String toString();
+		}*/
 		public static interface Tokener {
 			public abstract Object nextValue() throws JSONInterfaceException;
 		}
@@ -50,9 +58,11 @@ public class Interfaces {
 			public JSONInterfaceException(String message ) {super(message); }
 			public JSONInterfaceException(Throwable e ) {super(e); }
 		};
+
 		
 		public abstract Tokener getTokener(String jsonString) throws JSONInterfaceException;
 		public abstract String toJSON(Hashtable hashtable) throws JSONInterfaceException;
+		//public abstract Null getNull();
 	}
 
 

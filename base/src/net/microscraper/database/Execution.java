@@ -2,7 +2,6 @@ package net.microscraper.database;
 
 import java.util.Vector;
 
-import net.microscraper.client.Client;
 import net.microscraper.client.Variables;
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
@@ -19,12 +18,6 @@ public abstract class Execution {
 	protected Execution(Execution caller) {
 		id = count++;
 		this.caller = caller;
-		/*if(isOneToMany()) {
-			this.source = this;
-		} else {
-			this.source = caller;
-		}
-		this.source.addCalledExecution(this);*/
 		if(caller != null) {
 			this.caller.addCalledExecution(this);
 		}
@@ -41,7 +34,6 @@ public abstract class Execution {
 	}
 	
 	private final void addCalledExecution(Execution called) {
-		Client.log.i("adding called");
 		getSourceExecution().calledExecutions.addElement(called);
 	}
 	

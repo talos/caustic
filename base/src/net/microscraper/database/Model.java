@@ -41,8 +41,12 @@ public class Model {
 			Attributes attributes = new Attributes();
 			for(int i = 0; i < definition.attributes().length; i++) {
 				AttributeDefinition def = definition.attributes()[i];
-				attributes.put(def, resource_json.getString(def.name));
-
+				Object rawValue = resource_json.get(def.name);
+				if(rawValue.equals(null)) {
+					attributes.put(def, null);
+				} else {
+					attributes.put(def, (String) rawValue);
+				}
 			}
 			
 			Relationships relationships = new Relationships();

@@ -21,19 +21,32 @@ public class Relationship {
 			references.addElement(reference);
 		}
 		
-		public Resource[] get(RelationshipDefinition def) throws ResourceNotFoundException {
+		private Vector getVector(RelationshipDefinition def) {
 			if(!relationships.containsKey(def))
+				return null;
+			return (Vector) relationships.get(def);
+		}
+		
+		public Resource[] get(RelationshipDefinition def) throws ResourceNotFoundException {
+			Vector references = getVector(def);
+			if(references == null) {
 				return new Resource[] {};
-			Vector references = (Vector) relationships.get(def);
-			Resource[] resources = new Resource[references.size()];
-			for(int i = 0; i < references.size() ; i ++) {
-				resources[i] = Client.db.get((Reference) references.elementAt(i));
+			} else {
+				Resource[] resources = new Resource[references.size()];
+				for(int i = 0; i < references.size() ; i ++) {
+					resources[i] = Client.db.get((Reference) references.elementAt(i));
+				}
+				return resources;
 			}
-			return resources;
 		}
 		
 		public int getSize(RelationshipDefinition def) {
-			return ((Vector) relationships.get(def)).size();
+			Vector references = getVector(def);
+			if(references == null) {
+				return 0;
+			} else {
+				return references.size();
+			}
 		}
 	}
 	

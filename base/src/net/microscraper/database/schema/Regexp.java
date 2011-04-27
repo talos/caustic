@@ -84,7 +84,9 @@ public class Regexp extends Resource {
 			}
 		}
 		
-		public boolean matches(String input) {
+		public boolean matches(String input) throws MissingVariable, FatalExecutionException {
+			if(pattern == null)
+				execute();
 			if(matchNumber != null) {
 				try {
 					pattern.match(input, matchNumber.intValue());
@@ -97,7 +99,9 @@ public class Regexp extends Resource {
 			}
 		}
 		
-		public String[] allMatches(String input) throws NoMatches {
+		public String[] allMatches(String input) throws NoMatches, MissingVariable, FatalExecutionException {
+			if(pattern == null)
+				execute();
 			if(matchNumber != null) {
 				return new String[] { pattern.match(input, matchNumber.intValue()) };
 			} else {
