@@ -12,7 +12,6 @@ import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaNetBrowser;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.ThreadSafeJSONPublisher;
-import net.microscraper.database.Result;
 
 /**
  * Provides interface between browser and scraper applet through public methods.
@@ -28,7 +27,7 @@ public class MicroScraperApplet extends Applet {
 	
 	public static final String encoding = "UTF-8";
 	private Thread current_thread;
-	private final Client client = Client.initialize(
+	private final Client client = Client.get(
 			new JavaNetBrowser(),
 			new JavaUtilRegexInterface(), json,
 			new Interfaces.Logger[] { log },
@@ -64,19 +63,19 @@ public class MicroScraperApplet extends Applet {
 				thread.start();
 				current_thread = thread;
 			} else {
-				client.log.i("Not starting test, another test has yet to complete.  Stop it manually to test this now.");
+				Client.log.i("Not starting test, another test has yet to complete.  Stop it manually to test this now.");
 			}
 		} catch(Throwable e) {
-			client.log.e(e);
+			Client.log.e(e);
 		}
 	}
 	
 	public void stop() {
 		try {
 			current_thread.interrupt();
-			client.log.i("Killed test.");
+			Client.log.i("Killed test.");
 		} catch(Throwable e) {
-			client.log.e(e);
+			Client.log.e(e);
 		}
 	}
 	
@@ -88,19 +87,16 @@ public class MicroScraperApplet extends Applet {
 				return current_thread.isAlive();
 			}
 		} catch(Throwable e) {
-			client.log.e(e);
+			Client.log.e(e);
 		}
 		return false;
 	}
 	
-	public String results() {
+	public String nextExecution() {
 		try {
-			Result result = publisher.shift();
-			if(result != null) {
-				return result.toJSON();
-			}
+			return publisher.next().toJSON();
 		} catch(Throwable e) {
-			client.log.e(e);
+			Client.log.e(e);
 		}
 		return null;
 	}

@@ -6,6 +6,7 @@ import java.util.Date;
 import net.microscraper.client.Client;
 import net.microscraper.client.Client.MicroScraperClientException;
 import net.microscraper.client.Interfaces;
+import net.microscraper.client.Variables;
 import net.microscraper.client.impl.JDBCSQLite;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaNetBrowser;
@@ -31,7 +32,7 @@ public class MicroScraperConsole {
 			log.i("Proper use: microscraperconsole <url> <model> <resource> <defaults>");
 		} else {
 			try {
-				Client client = Client.initialize(
+				Client client = Client.get(
 						new JavaNetBrowser(/*ApacheBrowser.DO_NOT_USE_CACHE*/),
 						new JavaUtilRegexInterface(),
 						new JSONME(),
@@ -41,13 +42,14 @@ public class MicroScraperConsole {
 				);
 				String url = args[0];
 				Reference resource_ref = new Reference(Model.get(args[1]), args[2]);
-				Default[] defaults = new Default[] {};
-				
+				Variables variables;
 				if(args.length > 3) {
-					defaults = Default.fromFormParams(args[3], ENCODING);
+					variables = Variables.fromFormParams(args[3], ENCODING);
+				} else {
+					variables = new Variables();
 				}
-				client.scrape(url, resource_ref, defaults);
-				client.log.i("Finished execution.");
+				client.scrape(url, resource_ref, variables);
+				Client.log.i("Finished execution.");
 			} catch (MicroScraperClientException e) {
 				log.e(e);
 			} catch (SQLInterfaceException e) {

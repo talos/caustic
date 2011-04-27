@@ -52,11 +52,11 @@ public abstract class Execution {
 	}
 	
 	protected abstract Variables getLocalVariables();
-	/*
-	public Status getStatus() {
-		return new StatusMatrix().summarize();
+	
+	public String toJSON() {
+		return "";
 	}
-	*/
+	
 	protected abstract void execute()
 			throws MissingVariable, BrowserException, FatalExecutionException, NoMatches;
 
