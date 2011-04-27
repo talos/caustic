@@ -1,5 +1,7 @@
 package net.microscraper.database.schema;
 
+import java.util.Hashtable;
+
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
@@ -18,8 +20,8 @@ import net.microscraper.database.Resource;
 public class Regexp extends Resource {
 	private static final AttributeDefinition REGEXP = new AttributeDefinition("regexp");
 	private static final AttributeDefinition MATCH_NUMBER = new AttributeDefinition("match_number");
-
-	//public Regexp() { }
+	private final Hashtable executions = new Hashtable();
+	
 	private final boolean isRegexpOneToMany() {
 		if(getAttributeValueRaw(MATCH_NUMBER) == null)
 			return true;
@@ -36,10 +38,15 @@ public class Regexp extends Resource {
 			}
 		};
 	}
+	
 	public RegexpExecution getExecution(Execution caller)
 			throws ResourceNotFoundException {
-		return new RegexpExecution(caller);
+		if(!executions.containsKey(caller)) {
+			executions.put(caller, new RegexpExecution(caller));
+		}
+		return (RegexpExecution) executions.get(caller);
 	}
+	
 	public Status execute(Execution caller) throws ResourceNotFoundException {
 		try {
 			getExecution(caller).execute();
@@ -50,6 +57,7 @@ public class Regexp extends Resource {
 			return Status.FAILURE;
 		}
 	}
+	
 	public final class RegexpExecution extends ResourceExecution {
 		private Pattern pattern;
 		private final Integer matchNumber;

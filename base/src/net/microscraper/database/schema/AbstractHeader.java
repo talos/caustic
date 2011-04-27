@@ -49,6 +49,7 @@ public class AbstractHeader extends Resource {
 		public boolean isOneToMany() {
 			return false;
 		}
+		
 		protected Variables getLocalVariables() {
 			return new Variables();
 		}

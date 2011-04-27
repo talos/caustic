@@ -16,7 +16,6 @@ import net.microscraper.client.impl.SQLPublisher;
 import net.microscraper.client.impl.SystemLogInterface;
 import net.microscraper.database.Model;
 import net.microscraper.database.Reference;
-import net.microscraper.database.schema.Default;
 
 public class MicroScraperConsole {
 	private static final SimpleDateFormat DATETIME_FORMAT =

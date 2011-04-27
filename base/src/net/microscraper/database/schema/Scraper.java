@@ -1,5 +1,8 @@
 package net.microscraper.database.schema;
 
+import java.util.Hashtable;
+import java.util.Vector;
+
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
@@ -16,6 +19,8 @@ import net.microscraper.database.schema.Regexp.RegexpExecution;
 import net.microscraper.database.schema.WebPage.WebPageExecution;
 
 public class Scraper extends Resource {
+	private final Hashtable executions = new Hashtable();
+	
 	private static final RelationshipDefinition WEB_PAGES =
 		new RelationshipDefinition( "web_pages", WebPage.class );
 	private static final RelationshipDefinition SOURCE_SCRAPERS =
@@ -52,23 +57,25 @@ public class Scraper extends Resource {
 	public ScraperExecution[] getExecutions(Execution caller) throws ResourceNotFoundException {
 		if(substituteValue != null) {
 			return new ScraperExecution[] {new ScraperExecution(caller, substituteValue) };
-		} else {
+		}
+		
+		if(!executions.containsKey(caller)) {
 			Resource[] regexps =  getRelatedResources(REGEXPS);
 			Resource[] scrapers = getRelatedResources(SOURCE_SCRAPERS); 
 			Resource[] webPages = getRelatedResources(WEB_PAGES);
-			ScraperExecution[] executions = new ScraperExecution[regexps.length * (scrapers.length + webPages.length)];
 			for(int i = 0 ; i < regexps.length ; i ++ ) {
 				for(int j = 0 ; j < scrapers.length ; j ++) {
-					executions[(i * j) + j] =
-						new ScraperExecutionFromScraper(caller, (Regexp) regexps[i], (Scraper) scrapers[j]);
+					new ScraperExecutionFromScraper(caller, (Regexp) regexps[i], (Scraper) scrapers[j]);
 				}
 				for(int j = 0 ; j < webPages.length ; j ++) {
-					executions[(i * (j + scrapers.length) ) + j] =
-						new ScraperExecutionFromWebPage(caller, (Regexp) regexps[i], (WebPage) webPages[j]);
+					new ScraperExecutionFromWebPage(caller, (Regexp) regexps[i], (WebPage) webPages[j]);
 				}
 			}
-			return executions;
 		}
+		Vector executionsForCaller = (Vector) executions.get(caller);
+		ScraperExecution[] executionsAry = new ScraperExecution[executionsForCaller.size()];
+		executionsForCaller.copyInto(executionsAry);
+		return executionsAry;
 	}
 	
 	public Status execute(Execution caller) throws ResourceNotFoundException {
@@ -97,6 +104,11 @@ public class Scraper extends Resource {
 		private ScraperExecution(Execution caller, Regexp regexp) throws ResourceNotFoundException {
 			super(caller);
 			regexpExecution = regexp.getExecution(getSourceExecution());
+			if(!executions.containsKey(caller)) {
+				executions.put(caller, new Vector());
+			}
+			Vector executionsForCaller = (Vector) executions.get(caller);
+			executionsForCaller.addElement(this);
 		}
 		private ScraperExecution(Execution caller, String match) {
 			super(caller);

@@ -20,6 +20,8 @@ import net.microscraper.database.schema.AbstractHeader.AbstractHeaderExecution;
 import net.microscraper.database.schema.Regexp.RegexpExecution;
 
 public class WebPage extends Resource {
+	private final Hashtable executions = new Hashtable();
+	
 	private static final AttributeDefinition URL = new AttributeDefinition("url");
 	
 	private static final RelationshipDefinition TERMINATES =
@@ -46,7 +48,10 @@ public class WebPage extends Resource {
 	}
 
 	protected WebPageExecution getExecution(Execution caller) throws ResourceNotFoundException {
-		return new WebPageExecution(caller);
+		if(!executions.containsKey(caller)) {
+			executions.put(caller, new WebPageExecution(caller));
+		}
+		return (WebPageExecution) executions.get(caller);
 	}
 
 	public Status execute(Execution caller) throws ResourceNotFoundException {

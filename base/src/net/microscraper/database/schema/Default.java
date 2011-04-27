@@ -1,5 +1,7 @@
 package net.microscraper.database.schema;
 
+import java.util.Hashtable;
+
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
@@ -17,6 +19,8 @@ public class Default extends Resource {
 	private static final RelationshipDefinition SUBSTITUTED_SCRAPERS =
 		new RelationshipDefinition( "scrapers", Scraper.class );
 	
+	private final Hashtable executions = new Hashtable();
+	
 	public ModelDefinition definition() {
 		return new ModelDefinition() {
 			public AttributeDefinition[] attributes() { return new AttributeDefinition[] { VALUE }; }
@@ -28,7 +32,10 @@ public class Default extends Resource {
 	
 	protected DefaultExecution getExecution(Execution caller)
 			throws ResourceNotFoundException {
-		return new DefaultExecution(caller);
+		if(!executions.containsKey(caller)) {
+			executions.put(caller, new DefaultExecution(caller));
+		}
+		return (DefaultExecution) executions.get(caller);
 	}
 
 	public Status execute(Execution caller) throws ResourceNotFoundException {
