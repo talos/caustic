@@ -1,9 +1,8 @@
 package net.microscraper.client.impl;
 
-import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
-import net.microscraper.database.Result;
+import net.microscraper.database.Execution;
 
 public class SQLPublisher implements Publisher {
 	
@@ -44,10 +43,9 @@ public class SQLPublisher implements Publisher {
 		}
 	}
 	
-	public void publish(Result r) throws PublisherException {
-		try {
-			if(r.successful) {
-				Result.Success result = (Result.Success) r;
+	public void publish(Execution execution) throws PublisherException {
+	/*	try {
+			if(execution.successful) {
 				String insert_sql = "INSERT INTO " + inter.quoteField(TABLE_NAME) + " (" +
 					inter.quoteField(CALLER_ID) + ", " +
 					inter.quoteField(ID) + ", " + 
@@ -55,17 +53,17 @@ public class SQLPublisher implements Publisher {
 					inter.quoteField(KEY) + ", " +
 					inter.quoteField(VALUE) +
 					") VALUES (" + 
-					inter.quoteValue(Integer.toString(result.caller.id)) + ", " +
-					inter.quoteValue(Integer.toString(result.id)) + ", " +
-					inter.quoteValue(result.ref.toString()) + ", " +
-					inter.quoteValue(result.key) + ", " +
-					inter.quoteValue(result.value) + " )";
+					inter.quoteValue(Integer.toString(execution.caller.id)) + ", " +
+					inter.quoteValue(Integer.toString(execution.id)) + ", " +
+					inter.quoteValue(execution.ref.toString()) + ", " +
+					inter.quoteValue(execution.key) + ", " +
+					inter.quoteValue(execution.value) + " )";
 				inter.execute(insert_sql);
 			}
 		} catch(SQLInterfaceException e) {
-			Client.context().log.e(e);
+			Client.log.e(e);
 			throw new PublisherException();
-		}
+		}*/
 	}
 
 	public boolean live() {

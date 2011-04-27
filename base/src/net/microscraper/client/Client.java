@@ -12,30 +12,29 @@ import net.microscraper.database.Reference;
 
 public class Client {
 	private Log _log = new Log();
-	private Regexp _regexp;
+	/*private Regexp _regexp;
 	private JSON _json;
-	private Browser _browser;
+	private Browser _browser = null;
 	private Publisher _publisher;
 	private Database _db = new Database();
-	
+	*/
 	private static Client instance = new Client();
-	public static final Log log = instance._log;
-	public static final Regexp regexp = instance._regexp;
-	public static final JSON json = instance._json;
-	public static final Browser browser = instance._browser;
-	public static final Publisher publisher = instance._publisher;
-	public static final Database db = instance._db;
+	public static  Log log = instance._log;
+	public static  Regexp regexp;
+	public static  JSON json;
+	public static  Browser browser;
+	public static  Publisher publisher;
+	public static  Database db = new Database();
 	
 	private Client() { }
 	public static Client get(Browser browser, Interfaces.Regexp regexp,
 			Interfaces.JSON json, Logger[] loggers, Publisher publisher) {
-		
-		instance._browser = browser;
-		instance._regexp = regexp;
-		instance._json = json;
-		instance._publisher = publisher;
+		Client.browser = browser;
+		Client.regexp = regexp;
+		Client.json = json;
+		Client.publisher = publisher;
 		for(int i = 0; i < loggers.length ; i ++) {
-			instance._log.register(loggers[i]);
+			Client.log.register(loggers[i]);
 		}
 		
 		return instance;
@@ -49,7 +48,7 @@ public class Client {
 			Client.log.i("Scraping '" + ref.toString() + "' from JSON loaded from " + json_url);
 			
 			raw_obj = browser.load(json_url);
-				log.i("Raw scraping JSON: " + raw_obj);
+			log.i("Raw scraping JSON: " + raw_obj);
 		} catch(BrowserException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);
