@@ -86,5 +86,10 @@ public class Data extends Resource {
 		public Status getStatus() {
 			return status;
 		}
+
+		public String getPublishValue() {
+			// TODO Auto-generated method stub
+			return "";
+		}
 	}
 }

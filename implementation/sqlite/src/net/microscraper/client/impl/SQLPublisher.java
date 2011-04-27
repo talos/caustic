@@ -13,7 +13,7 @@ public class SQLPublisher implements Publisher {
 	public static final String CALLER_ID = "caller_id";
 	public static final String ID = "id";
 	//public static final String REF = "ref";
-	public static final String KEY = "key";
+	public static final String NAME = "name";
 	public static final String VALUE = "value";
 	
 	private final SQLInterface inter;
@@ -25,7 +25,7 @@ public class SQLPublisher implements Publisher {
 				inter.quoteField(CALLER_ID) + " " + inter.intColumnType() + ", " +
 				inter.quoteField(ID) + " " + inter.idColumnType() + " " + inter.keyColumnDefinition() + ", " +
 			//	inter.quoteField(REF) + " " + inter.dataColumnType() + ", " + 
-				inter.quoteField(KEY) + " " + inter.dataColumnType() + ", " + 
+				inter.quoteField(NAME) + " " + inter.dataColumnType() + ", " + 
 				inter.quoteField(VALUE) + " " + inter.dataColumnType() + " )";
 			inter.execute(create_table_sql);
 		} catch(SQLInterfaceException e) {
@@ -34,7 +34,7 @@ public class SQLPublisher implements Publisher {
 				inter.query("SELECT " + inter.quoteField(CALLER_ID) +
 					inter.quoteField(ID) +
 			//		inter.quoteField(REF) +
-					inter.quoteField(KEY) +
+					inter.quoteField(NAME) +
 					inter.quoteField(VALUE) +
 					" FROM " + inter.quoteField(TABLE_NAME));
 			} catch (SQLInterfaceException e2) {
@@ -52,14 +52,14 @@ public class SQLPublisher implements Publisher {
 					inter.quoteField(CALLER_ID) + ", " +
 					inter.quoteField(ID) + ", " + 
 			//		inter.quoteField(REF) + ", " +
-					inter.quoteField(KEY) + ", " +
+					inter.quoteField(NAME) + ", " +
 					inter.quoteField(VALUE) +
 					") VALUES (" + 
 					inter.quoteValue(Integer.toString(execution.getSourceExecution().id)) + ", " +
 					inter.quoteValue(Integer.toString(execution.id)) + ", " +
-					inter.quoteValue(execution.ref.toString()) + ", " +
-					inter.quoteValue(execution.key) + ", " +
-					inter.quoteValue(execution.value) + " )";
+			//		inter.quoteValue(execution.ref.toString()) + ", " +
+					inter.quoteValue(execution.getPublishName()) + ", " +
+					inter.quoteValue(execution.getPublishValue()) + " )";
 				inter.execute(insert_sql);
 			}
 		} catch(SQLInterfaceException e) {

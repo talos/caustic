@@ -80,5 +80,9 @@ public class Default extends Resource {
 		public Status getStatus() {
 			return status;
 		}
+
+		public String getPublishValue() {
+			return value;
+		}
 	}
 }

@@ -151,6 +151,9 @@ public class Scraper extends Resource {
 		public Status getStatus() {
 			return status;
 		}
+		public String getPublishValue() {
+			return match;
+		}
 	}
 	
 	private static class ScraperExecutionFromWebPage extends ScraperExecution {

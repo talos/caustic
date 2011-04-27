@@ -45,9 +45,14 @@ public abstract class Resource {
 	
 	protected static abstract class ResourceExecution extends Execution {
 		private final Resource resource;
+		private final String publishName;
 		protected ResourceExecution(Resource resource, Execution caller) {
 			super(caller);
 			this.resource = resource;
+			this.publishName = resource.ref().toString();
+		}
+		public String getPublishName() {
+			return publishName;
 		}
 
 		protected final String getAttributeValue(AttributeDefinition def)

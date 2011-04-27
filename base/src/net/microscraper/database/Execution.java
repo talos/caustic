@@ -56,6 +56,8 @@ public abstract class Execution {
 	protected abstract boolean isOneToMany();
 	protected abstract Variables getLocalVariables();
 	public abstract Status getStatus();
+	public abstract String getPublishName();
+	public abstract String getPublishValue();
 	protected abstract Status execute() throws FatalExecutionException;
 
 	public final boolean equals(Object obj) {

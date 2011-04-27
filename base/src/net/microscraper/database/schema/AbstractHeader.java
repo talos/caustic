@@ -70,7 +70,9 @@ public class AbstractHeader extends Resource {
 		public String getValue() {
 			return value;
 		}
-
+		public String getPublishValue() {
+			return getName() + '=' + getValue();
+		}
 		public Status getStatus() {
 			return status;
 		}

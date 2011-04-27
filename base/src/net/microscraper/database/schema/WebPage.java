@@ -130,5 +130,9 @@ public class WebPage extends Resource {
 		public Status getStatus() {
 			return status;
 		}
+
+		public String getPublishValue() {
+			return webPageString;
+		}
 	}
 }

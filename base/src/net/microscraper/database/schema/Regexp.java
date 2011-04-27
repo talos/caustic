@@ -110,5 +110,9 @@ public class Regexp extends Resource {
 				return pattern.allMatches(input);
 			}
 		}
+
+		public String getPublishValue() {
+			return pattern.toString();
+		}
 	}
 }
