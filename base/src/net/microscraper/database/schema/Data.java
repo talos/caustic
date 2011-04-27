@@ -39,9 +39,11 @@ public class Data extends Resource {
 		return (DataExecution) executions.get(caller);
 	}
 
-	public Status execute(Execution caller) throws ResourceNotFoundException {
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
 		try { 
-			getExecution(caller).execute();
+			DataExecution exc = getExecution(null);
+			exc.addVariables(extraVariables);
+			exc.execute();
 			return Status.SUCCESSFUL;
 		} catch(MissingVariable e) {
 			return Status.IN_PROGRESS;
@@ -77,7 +79,7 @@ public class Data extends Resource {
 			}
 			for(int i = 0 ; i < scrapers.length ; i ++ ) {
 				try {
-					scrapers[i].execute(getSourceExecution());
+					((Scraper) scrapers[i]).execute(getSourceExecution());
 				} catch(ResourceNotFoundException e) {
 					throw new FatalExecutionException(e);
 				}

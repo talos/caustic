@@ -78,11 +78,13 @@ public class Scraper extends Resource {
 		return executionsAry;
 	}
 	
-	public Status execute(Execution caller) throws ResourceNotFoundException {
+	private Status execute(Execution caller, Variables extraVariables) throws ResourceNotFoundException {
 		ScraperExecution[] scrapers = getExecutions(caller);
 		Status status = Status.SUCCESSFUL;
 		for(int i = 0 ; i < scrapers.length ; i++) {
 			try {
+				if(extraVariables != null)
+					scrapers[i].addVariables(extraVariables);
 				scrapers[i].execute();
 			} catch(MissingVariable e) {
 				status = Status.IN_PROGRESS;
@@ -95,6 +97,14 @@ public class Scraper extends Resource {
 			}
 		}
 		return status;
+	}
+	
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
+		return execute(null, extraVariables);
+	}
+	
+	public Status execute(Execution caller) throws ResourceNotFoundException {
+		return execute(caller, null);
 	}
 	
 	public static class ScraperExecution extends ResourceExecution {

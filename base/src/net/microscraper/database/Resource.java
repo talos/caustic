@@ -3,6 +3,7 @@ package net.microscraper.database;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Mustache;
+import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Attribute.Attributes;
 import net.microscraper.database.Database.ResourceNotFoundException;
@@ -39,7 +40,7 @@ public abstract class Resource {
 	}
 	
 	public abstract ModelDefinition definition();
-	public abstract Status execute(Execution caller) throws ResourceNotFoundException;
+	public abstract Status execute(Variables extraVariables) throws ResourceNotFoundException;
 	
 	protected static abstract class ResourceExecution extends Execution {
 		private final Resource resource;

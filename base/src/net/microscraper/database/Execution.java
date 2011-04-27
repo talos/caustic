@@ -12,6 +12,7 @@ public abstract class Execution {
 	private static int count = 0;
 	private final Vector calledExecutions = new Vector();
 	public final int id;
+	private final Variables extraVariables = new Variables();
 		
 	//private final Execution source;
 	private final Execution caller;
@@ -38,7 +39,7 @@ public abstract class Execution {
 	}
 	
 	protected final Variables getVariables() {
-		Variables variables = new Variables();
+		Variables variables = new Variables().merge(extraVariables);
 		for(int i = 0 ; i < calledExecutions.size() ; i ++) {
 			Execution calledExecution = (Execution) calledExecutions.elementAt(i);
 			if(!calledExecution.isOneToMany()) {
@@ -51,6 +52,10 @@ public abstract class Execution {
 		} else {
 			return variables.merge(getSourceExecution().getVariables());
 		}
+	}
+
+	public void addVariables(Variables extraVariables) {
+		this.extraVariables.merge(extraVariables);
 	}
 	
 	protected abstract Variables getLocalVariables();
@@ -74,31 +79,6 @@ public abstract class Execution {
 	public final int hashCode() {
 		return id;
 	}
-	
-	public static final class Root extends Execution {
-		Variables variables = new Variables();
-		public Root() {
-			super(null);
-		}
-
-		protected boolean isOneToMany() {
-			return true;
-		}
-
-		protected Variables getLocalVariables() {
-			return variables;
-		}
-
-		protected void execute() throws MissingVariable, BrowserException,
-				FatalExecutionException, NoMatches {
-			// TODO Auto-generated method stub
-			
-		}
-		public void addVariables(Variables extraVariables) {
-			variables.merge(extraVariables);
-		}
-	}
-	
 	public final static class Status {
 		public static Status SUCCESSFUL = new Status();
 		public static Status IN_PROGRESS = new Status();

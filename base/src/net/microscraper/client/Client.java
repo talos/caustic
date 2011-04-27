@@ -35,7 +35,7 @@ public class Client {
 		return instance;
 	}
 	
-	public Execution.Root scrape(String json_url, Reference ref, Variables extraVariables)
+	public void scrape(String json_url, Reference ref, Variables extraVariables)
 					throws MicroScraperClientException {
 		//ResultRoot root = new ResultRoot();
 		String raw_obj;
@@ -52,18 +52,16 @@ public class Client {
 			throw new MicroScraperClientException(e);
 		}
 		
-		Execution.Root root = new Execution.Root();
 		try {
-			root.addVariables(extraVariables);
+			//root.addVariables(extraVariables);
 			db.inflate(json.getTokener(raw_obj).nextValue());
 			Resource resource = db.get(ref);
 			
 			// Loop while we're in progress.
 			Status curStatus = Status.IN_PROGRESS;
 			while(curStatus == Status.IN_PROGRESS) {
-				curStatus = resource.execute(root);
+				curStatus = resource.execute(extraVariables);
 			}
-			return root;
 		}  catch(JSONInterfaceException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);

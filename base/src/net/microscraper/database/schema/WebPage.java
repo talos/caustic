@@ -54,9 +54,11 @@ public class WebPage extends Resource {
 		return (WebPageExecution) executions.get(caller);
 	}
 
-	public Status execute(Execution caller) throws ResourceNotFoundException {
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
 		try {
-			getExecution(caller).execute();
+			WebPageExecution exc = getExecution(null);
+			exc.addVariables(extraVariables);
+			exc.execute();
 			return Status.SUCCESSFUL;
 		} catch(MissingVariable e) {
 			return Status.IN_PROGRESS;
