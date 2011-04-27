@@ -35,12 +35,14 @@ public class Model {
 			ModelDefinition definition = resources[k].definition();
 			
 			String key = (String) iter.next();
+			
 			JSON.Object resource_json = resources_json.getJSONObject(key);
 			
 			Attributes attributes = new Attributes();
 			for(int i = 0; i < definition.attributes().length; i++) {
 				AttributeDefinition def = definition.attributes()[i];
 				attributes.put(def, resource_json.getString(def.name));
+
 			}
 			
 			Relationships relationships = new Relationships();

@@ -8,23 +8,18 @@ import net.microscraper.client.Interfaces.Regexp;
 import net.microscraper.database.Database.DatabaseException;
 import net.microscraper.database.Database;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Reference;
+import net.microscraper.database.Resource;
 
 public class Client {
-	private Log _log = new Log();
-	/*private Regexp _regexp;
-	private JSON _json;
-	private Browser _browser = null;
-	private Publisher _publisher;
-	private Database _db = new Database();
-	*/
 	private static Client instance = new Client();
-	public static  Log log = instance._log;
-	public static  Regexp regexp;
-	public static  JSON json;
-	public static  Browser browser;
-	public static  Publisher publisher;
-	public static  Database db = new Database();
+	public static Log log = new Log();
+	public static Regexp regexp;
+	public static JSON json;
+	public static Browser browser;
+	public static Publisher publisher;
+	public static Database db = new Database();
 	
 	private Client() { }
 	public static Client get(Browser browser, Interfaces.Regexp regexp,
@@ -61,7 +56,13 @@ public class Client {
 		try {
 			root.addVariables(extraVariables);
 			db.inflate(json.getTokener(raw_obj).nextValue());
-			db.get(ref).execute(root);
+			Resource resource = db.get(ref);
+			
+			// Loop while we're in progress.
+			Status curStatus = Status.IN_PROGRESS;
+			while(curStatus == Status.IN_PROGRESS) {
+				curStatus = resource.execute(root);
+			}
 			return root;
 		}  catch(JSONInterfaceException e) {
 			log.e(e);

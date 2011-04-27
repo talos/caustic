@@ -6,7 +6,7 @@ public class Attribute {
 	public static class Attributes {
 		private final Hashtable attributes = new Hashtable();
 		public void put(AttributeDefinition def, String value) {
-			put(def, value);
+			attributes.put(def, value);
 		}
 		public String get(AttributeDefinition def) {
 			return (String) attributes.get(def);

@@ -22,6 +22,8 @@ public class Relationship {
 		}
 		
 		public Resource[] get(RelationshipDefinition def) throws ResourceNotFoundException {
+			if(!relationships.containsKey(def))
+				return new Resource[] {};
 			Vector references = (Vector) relationships.get(def);
 			Resource[] resources = new Resource[references.size()];
 			for(int i = 0; i < references.size() ; i ++) {
@@ -41,6 +43,16 @@ public class Relationship {
 		public RelationshipDefinition(String key, Class klass) {
 			this.key = key;
 			this.target_model = Model.get(klass);
+		}
+		public int hashCode() {
+			return key.hashCode();
+		}
+		public boolean equals(Object obj) {
+			if(obj == this)
+				return true;
+			if(! (obj instanceof RelationshipDefinition))
+				return false;
+			return obj.hashCode() == hashCode();
 		}
 	}
 }
