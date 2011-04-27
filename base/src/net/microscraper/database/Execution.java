@@ -2,6 +2,7 @@ package net.microscraper.database;
 
 import java.util.Vector;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Variables;
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
@@ -10,29 +11,38 @@ import net.microscraper.client.Mustache.MissingVariable;
 public abstract class Execution {
 	
 	private static int count = 0;
-	//private final ExecutionMatrix matrix = new ExecutionMatrix();
 	private final Vector calledExecutions = new Vector();
 	public final int id;
 		
-	private final Execution source;
+	//private final Execution source;
+	private final Execution caller;
 	protected Execution(Execution caller) {
 		id = count++;
-		if(isOneToMany()) {
+		this.caller = caller;
+		/*if(isOneToMany()) {
 			this.source = this;
 		} else {
 			this.source = caller;
 		}
-		this.source.addCalledExecution(this);
+		this.source.addCalledExecution(this);*/
+		if(caller != null) {
+			this.caller.addCalledExecution(this);
+		}
 	}
 	
 	protected abstract boolean isOneToMany();
-
+	
 	protected final Execution getSourceExecution() {
-		return source;
+		if(isOneToMany() || caller == null) {
+			return this;
+		} else {
+			return caller.getSourceExecution();
+		}
 	}
 	
 	private final void addCalledExecution(Execution called) {
-		calledExecutions.addElement(called);
+		Client.log.i("adding called");
+		getSourceExecution().calledExecutions.addElement(called);
 	}
 	
 	protected final Variables getVariables() {

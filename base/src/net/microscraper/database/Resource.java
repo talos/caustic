@@ -28,7 +28,7 @@ public abstract class Resource {
 		return ref;
 	}
 	
-	protected String getAttributeValueRaw(AttributeDefinition def) {
+	public String getAttributeValueRaw(AttributeDefinition def) {
 		return attributes.get(def);
 	}
 	protected Resource[] getRelatedResources(RelationshipDefinition def) throws ResourceNotFoundException {
@@ -41,14 +41,16 @@ public abstract class Resource {
 	public abstract ModelDefinition definition();
 	public abstract Status execute(Execution caller) throws ResourceNotFoundException;
 	
-	protected abstract class ResourceExecution extends Execution {
-		protected ResourceExecution(Execution caller) {
+	protected static abstract class ResourceExecution extends Execution {
+		private final Resource resource;
+		protected ResourceExecution(Resource resource, Execution caller) {
 			super(caller);
+			this.resource = resource;
 		}
 
 		protected final String getAttributeValue(AttributeDefinition def)
 					throws TemplateException, MissingVariable {
-			return (String) Mustache.compile(getAttributeValueRaw(def), getVariables());
+			return (String) Mustache.compile(resource.getAttributeValueRaw(def), getVariables());
 		}
 	}
 }

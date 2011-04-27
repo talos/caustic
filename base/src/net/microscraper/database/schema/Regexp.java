@@ -21,13 +21,7 @@ public class Regexp extends Resource {
 	private static final AttributeDefinition REGEXP = new AttributeDefinition("regexp");
 	private static final AttributeDefinition MATCH_NUMBER = new AttributeDefinition("match_number");
 	private final Hashtable executions = new Hashtable();
-	
-	private final boolean isRegexpOneToMany() {
-		if(getAttributeValueRaw(MATCH_NUMBER) == null)
-			return true;
-		return false;
-	}
-	
+		
 	public ModelDefinition definition() {
 		return new ModelDefinition() {	
 			public AttributeDefinition[] attributes() {
@@ -42,7 +36,7 @@ public class Regexp extends Resource {
 	public RegexpExecution getExecution(Execution caller)
 			throws ResourceNotFoundException {
 		if(!executions.containsKey(caller)) {
-			executions.put(caller, new RegexpExecution(caller));
+			executions.put(caller, new RegexpExecution(this, caller));
 		}
 		return (RegexpExecution) executions.get(caller);
 	}
@@ -58,12 +52,12 @@ public class Regexp extends Resource {
 		}
 	}
 	
-	public final class RegexpExecution extends ResourceExecution {
+	public static final class RegexpExecution extends ResourceExecution {
 		private Pattern pattern;
 		private final Integer matchNumber;
-		protected RegexpExecution(Execution caller) throws ResourceNotFoundException {
-			super(caller);
-			String matchNumberString = getAttributeValueRaw(MATCH_NUMBER);
+		protected RegexpExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
+			super(resource, caller);
+			String matchNumberString = resource.getAttributeValueRaw(MATCH_NUMBER);
 			if(matchNumberString == null) {
 				matchNumber = null;
 			} else {
@@ -72,7 +66,9 @@ public class Regexp extends Resource {
 		}
 		
 		protected boolean isOneToMany() {
-			return isRegexpOneToMany();
+			if(matchNumber == null)
+				return true;
+			return false;
 		}
 		
 		protected Variables getLocalVariables() {

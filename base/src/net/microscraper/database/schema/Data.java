@@ -34,7 +34,7 @@ public class Data extends Resource {
 
 	public DataExecution getExecution(Execution caller) throws ResourceNotFoundException {
 		if(!executions.containsKey(caller)) {
-			executions.put(caller, new DataExecution(caller));
+			executions.put(caller, new DataExecution(this, caller));
 		}
 		return (DataExecution) executions.get(caller);
 	}
@@ -53,8 +53,8 @@ public class Data extends Resource {
 	public class DataExecution extends ResourceExecution {
 		private final DefaultExecution[] defaults;
 		private final Resource[] scrapers;
-		public DataExecution(Execution caller) throws ResourceNotFoundException {
-			super(caller);
+		public DataExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
+			super(resource, caller);
 			Resource[] defaultResources = getRelatedResources(DEFAULTS);
 			defaults = new DefaultExecution[defaultResources.length];
 			for(int i = 0 ; i < defaultResources.length ; i ++) {

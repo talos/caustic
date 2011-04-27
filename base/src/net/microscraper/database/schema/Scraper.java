@@ -4,6 +4,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Variables;
@@ -19,7 +20,7 @@ import net.microscraper.database.schema.Regexp.RegexpExecution;
 import net.microscraper.database.schema.WebPage.WebPageExecution;
 
 public class Scraper extends Resource {
-	private final Hashtable executions = new Hashtable();
+	protected final Hashtable executions = new Hashtable();
 	
 	private static final RelationshipDefinition WEB_PAGES =
 		new RelationshipDefinition( "web_pages", WebPage.class );
@@ -47,16 +48,16 @@ public class Scraper extends Resource {
 		substituteValue = value;
 	}
 	
-	private boolean isScraperOneToMany() {
-		if((getNumberOfRelatedResources(WEB_PAGES) + getNumberOfRelatedResources(REGEXPS)) > 1 ||
-				getNumberOfRelatedResources(SOURCE_SCRAPERS) > 1) // one-to-many if pulling from multiple sources, or multiple regexps.
+	public boolean isOneToMany() {		
+		if((getNumberOfRelatedResources(WEB_PAGES) + getNumberOfRelatedResources(SOURCE_SCRAPERS)) > 1 ||
+				getNumberOfRelatedResources(REGEXPS) > 1) // one-to-many if pulling from multiple sources, or multiple regexps.
 			return true;
 		return false;
 	}
 	
 	public ScraperExecution[] getExecutions(Execution caller) throws ResourceNotFoundException {
 		if(substituteValue != null) {
-			return new ScraperExecution[] {new ScraperExecution(caller, substituteValue) };
+			return new ScraperExecution[] {new ScraperExecution(this, caller, substituteValue) };
 		}
 		
 		if(!executions.containsKey(caller)) {
@@ -65,10 +66,10 @@ public class Scraper extends Resource {
 			Resource[] webPages = getRelatedResources(WEB_PAGES);
 			for(int i = 0 ; i < regexps.length ; i ++ ) {
 				for(int j = 0 ; j < scrapers.length ; j ++) {
-					new ScraperExecutionFromScraper(caller, (Regexp) regexps[i], (Scraper) scrapers[j]);
+					new ScraperExecutionFromScraper(this, caller, (Regexp) regexps[i], (Scraper) scrapers[j]);
 				}
 				for(int j = 0 ; j < webPages.length ; j ++) {
-					new ScraperExecutionFromWebPage(caller, (Regexp) regexps[i], (WebPage) webPages[j]);
+					new ScraperExecutionFromWebPage(this, caller, (Regexp) regexps[i], (WebPage) webPages[j]);
 				}
 			}
 		}
@@ -97,30 +98,33 @@ public class Scraper extends Resource {
 		return status;
 	}
 	
-	public class ScraperExecution extends ResourceExecution {
+	public static class ScraperExecution extends ResourceExecution {
 		private RegexpExecution regexpExecution;
 		//private final Hashtable matches = new Hashtable();
 		private String match;
-		private ScraperExecution(Execution caller, Regexp regexp) throws ResourceNotFoundException {
-			super(caller);
+		private final Scraper scraper;
+		private ScraperExecution(Scraper scraper, Execution caller, Regexp regexp) throws ResourceNotFoundException {
+			super(scraper, caller);
+			this.scraper = scraper;
 			regexpExecution = regexp.getExecution(getSourceExecution());
-			if(!executions.containsKey(caller)) {
-				executions.put(caller, new Vector());
+			if(!scraper.executions.containsKey(caller)) {
+				scraper.executions.put(caller, new Vector());
 			}
-			Vector executionsForCaller = (Vector) executions.get(caller);
+			Vector executionsForCaller = (Vector) scraper.executions.get(caller);
 			executionsForCaller.addElement(this);
 		}
-		private ScraperExecution(Execution caller, String match) {
-			super(caller);
+		private ScraperExecution(Scraper scraper, Execution caller, String match) {
+			super(scraper, caller);
 			this.match = match;
+			this.scraper = scraper;
 		}
 		protected boolean isOneToMany() {
-			return isScraperOneToMany();
+			return scraper.isOneToMany();
 		}
 		protected Variables getLocalVariables() {
 			if(match != null) {
 				Variables variables = new Variables();
-				variables.put(ref().title, match);
+				variables.put(scraper.ref().title, match);
 				return variables;
 			} else {
 				return null;
@@ -131,7 +135,7 @@ public class Scraper extends Resource {
 			String[] matches = regexpExecution.allMatches(source);
 			match = matches[0];
 			for(int i = 1 ; i < matches.length ; i ++) {
-				new ScraperExecution(getSourceExecution(), matches[i]);
+				new ScraperExecution(scraper, getSourceExecution(), matches[i]);
 			}
 		}
 		public String match() {
@@ -141,11 +145,12 @@ public class Scraper extends Resource {
 		}
 	}
 	
-	private class ScraperExecutionFromWebPage extends ScraperExecution {
+	private static class ScraperExecutionFromWebPage extends ScraperExecution {
 		private final WebPageExecution sourceWebPageExecution;
-		private ScraperExecutionFromWebPage(Execution caller, Regexp regexp, WebPage webPage)
+		private ScraperExecutionFromWebPage(Scraper scraper, Execution caller, Regexp regexp, WebPage webPage)
 				throws ResourceNotFoundException {
-			super(caller, regexp);
+			super(scraper, caller, regexp);
+
 			sourceWebPageExecution = webPage.getExecution(getSourceExecution());
 		}
 		protected void execute() throws NoMatches, BrowserException, FatalExecutionException, MissingVariable {
@@ -154,13 +159,13 @@ public class Scraper extends Resource {
 		}
 	}
 	
-	private class ScraperExecutionFromScraper extends ScraperExecution {
+	private static class ScraperExecutionFromScraper extends ScraperExecution {
 		//private final ScraperExecution[] sourceScraperExecutions;
 		private final Scraper sourceScraper;
-		private ScraperExecutionFromScraper(Execution caller, Regexp regexp, Scraper scraper)
+		private ScraperExecutionFromScraper(Scraper scraper, Execution caller, Regexp regexp, Scraper sourceScraper)
 				throws ResourceNotFoundException {
-			super(caller, regexp);
-			sourceScraper = scraper;
+			super(scraper, caller, regexp);
+			this.sourceScraper = sourceScraper;
 		}
 		protected void execute() throws FatalExecutionException, NoMatches {
 			try {

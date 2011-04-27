@@ -33,7 +33,7 @@ public class Default extends Resource {
 	protected DefaultExecution getExecution(Execution caller)
 			throws ResourceNotFoundException {
 		if(!executions.containsKey(caller)) {
-			executions.put(caller, new DefaultExecution(caller));
+			executions.put(caller, new DefaultExecution(this, caller));
 		}
 		return (DefaultExecution) executions.get(caller);
 	}
@@ -52,8 +52,8 @@ public class Default extends Resource {
 	public class DefaultExecution extends ResourceExecution {
 		private Resource[] substitutedScrapers;
 		private String value;
-		protected DefaultExecution(Execution caller) throws ResourceNotFoundException {
-			super(caller);
+		protected DefaultExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
+			super(resource, caller);
 			substitutedScrapers = getRelatedResources(SUBSTITUTED_SCRAPERS);
 		}
 		

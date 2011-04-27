@@ -49,7 +49,7 @@ public class WebPage extends Resource {
 
 	protected WebPageExecution getExecution(Execution caller) throws ResourceNotFoundException {
 		if(!executions.containsKey(caller)) {
-			executions.put(caller, new WebPageExecution(caller));
+			executions.put(caller, new WebPageExecution(this, caller));
 		}
 		return (WebPageExecution) executions.get(caller);
 	}
@@ -69,9 +69,9 @@ public class WebPage extends Resource {
 	
 	public class WebPageExecution extends ResourceExecution {
 		String webPageString;
-		protected WebPageExecution(Execution caller)
+		protected WebPageExecution(Resource resource, Execution caller)
 				throws ResourceNotFoundException {
-			super(caller);
+			super(resource, caller);
 		}
 		
 		protected String load() throws TemplateException,

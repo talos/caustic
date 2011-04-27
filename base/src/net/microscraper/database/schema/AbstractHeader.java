@@ -25,7 +25,7 @@ public class AbstractHeader extends Resource {
 
 	public AbstractHeaderExecution getExecution(Execution caller)
 			throws ResourceNotFoundException {
-		return new AbstractHeaderExecution(caller);
+		return new AbstractHeaderExecution(this, caller);
 	}
 
 	public Status execute(Execution caller) throws ResourceNotFoundException {
@@ -39,11 +39,11 @@ public class AbstractHeader extends Resource {
 		}
 	}
 	
-	protected class AbstractHeaderExecution extends ResourceExecution {
+	protected static class AbstractHeaderExecution extends ResourceExecution {
 		private String name;
 		private String value;
-		public AbstractHeaderExecution(Execution caller) throws ResourceNotFoundException {
-			super(caller);
+		public AbstractHeaderExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
+			super(resource, caller);
 		}
 		
 		public boolean isOneToMany() {
