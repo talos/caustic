@@ -41,6 +41,10 @@ public class Scraper extends Resource {
 	
 	private String substituteValue = null;
 	
+	public void substitute(String value) {
+		substituteValue = value;
+	}
+	
 	private boolean isScraperOneToMany() {
 		if((getNumberOfRelatedResources(WEB_PAGES) + getNumberOfRelatedResources(REGEXPS)) > 1 ||
 				getNumberOfRelatedResources(SOURCE_SCRAPERS) > 1) // one-to-many if pulling from multiple sources, or multiple regexps.
@@ -48,33 +52,33 @@ public class Scraper extends Resource {
 		return false;
 	}
 	
-	public ScraperExecution[] getExecutions(Execution caller) {
-		Resource[] regexps =  getRelatedResources(REGEXPS);
-		Resource[] scrapers = getRelatedResources(SOURCE_SCRAPERS); 
-		Resource[] webPages = getRelatedResources(WEB_PAGES);
-		ScraperExecution[] executions = new ScraperExecution[regexps.length * (scrapers.length + webPages.length)];
-		for(int i = 0 ; i < regexps.length ; i ++ ) {
-			for(int j = 0 ; j < scrapers.length ; j ++) {
-				executions[(i * j) + j] =
-					new ScraperExecutionFromScraper(caller, (Regexp) regexps[i], (Scraper) scrapers[j]);
+	public ScraperExecution[] getExecutions(Execution caller) throws ResourceNotFoundException {
+		if(substituteValue != null) {
+			return new ScraperExecution[] {new ScraperExecution(caller, substituteValue) };
+		} else {
+			Resource[] regexps =  getRelatedResources(REGEXPS);
+			Resource[] scrapers = getRelatedResources(SOURCE_SCRAPERS); 
+			Resource[] webPages = getRelatedResources(WEB_PAGES);
+			ScraperExecution[] executions = new ScraperExecution[regexps.length * (scrapers.length + webPages.length)];
+			for(int i = 0 ; i < regexps.length ; i ++ ) {
+				for(int j = 0 ; j < scrapers.length ; j ++) {
+					executions[(i * j) + j] =
+						new ScraperExecutionFromScraper(caller, (Regexp) regexps[i], (Scraper) scrapers[j]);
+				}
+				for(int j = 0 ; j < webPages.length ; j ++) {
+					executions[(i * (j + scrapers.length) ) + j] =
+						new ScraperExecutionFromWebPage(caller, (Regexp) regexps[i], (WebPage) webPages[j]);
+				}
 			}
-			for(int j = 0 ; j < webPages.length ; j ++) {
-				executions[(i * (j + scrapers.length) ) + j] =
-					new ScraperExecutionFromWebPage(caller, (Regexp) regexps[i], (WebPage) webPages[j]);
-			}
+			return executions;
 		}
-		return executions;
 	}
 	
-	public Status execute(Execution caller) throws ResourceNotFoundException {
+	public Status execute(Execution caller) {
 		ScraperExecution[] scrapers = getExecutions(caller);
 		for(int i = 0 ; i < scrapers.length ; i++) {
 			scrapers[i].execute();
 		}
-	}
-	
-	public void substitute(String value) {
-		substituteValue = value;
 	}
 	
 	public class ScraperExecution extends ResourceExecution {
@@ -112,26 +116,42 @@ public class Scraper extends Resource {
 		public String match() {
 			return match;
 		}
-		protected void execute() {
+		protected void execute() throws NoMatches, BrowserException, FatalExecutionException, MissingVariable {
 		}
 	}
 	
 	private class ScraperExecutionFromWebPage extends ScraperExecution {
 		private final WebPageExecution sourceWebPageExecution;
-		private ScraperExecutionFromWebPage(Execution caller, Regexp regexp, WebPage webPage) {
+		private ScraperExecutionFromWebPage(Execution caller, Regexp regexp, WebPage webPage)
+				throws ResourceNotFoundException {
 			super(caller, regexp);
 			sourceWebPageExecution = webPage.getExecution(getSourceExecution());
 		}
-		protected void execute() throws MissingVariable, BrowserException,
-				FatalExecutionException, NoMatches {
+		protected void execute() throws NoMatches, BrowserException, FatalExecutionException, MissingVariable {
 			sourceWebPageExecution.execute();
+			execute(sourceWebPageExecution.webPageString);
 		}
 	}
 	
 	private class ScraperExecutionFromScraper extends ScraperExecution {
+		//private final ScraperExecution[] sourceScraperExecutions;
 		private final Scraper sourceScraper;
-		private ScraperExecutionFromScraper(Execution caller, Regexp regexp, Scraper scraper) {
+		private ScraperExecutionFromScraper(Execution caller, Regexp regexp, Scraper scraper)
+				throws ResourceNotFoundException {
 			super(caller, regexp);
+			sourceScraper = scraper;
+		}
+		protected void execute() throws FatalExecutionException, NoMatches {
+			if(sourceScraper.execute(getSourceExecution()) == Status.SUCCESSFUL) {
+				try {
+					ScraperExecution[] sourceScraperExecutions = sourceScraper.getExecutions(getSourceExecution());
+					for(int i = 0 ; i < sourceScraperExecutions.length ; i ++) {
+						execute(sourceScraperExecutions[i].match());
+					}
+				} catch(ResourceNotFoundException e) {
+					throw new FatalExecutionException(e);
+				}
+			}
 		}
 	}
 }
