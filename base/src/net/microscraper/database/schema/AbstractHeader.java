@@ -28,17 +28,10 @@ public class AbstractHeader extends Resource {
 		return new AbstractHeaderExecution(this, caller);
 	}
 
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
-		try {
-			AbstractHeaderExecution exc = getExecution(null);
-			exc.addVariables(extraVariables);
-			exc.execute();	
-			return Status.SUCCESSFUL;
-		} catch(MissingVariable e) {
-			return Status.IN_PROGRESS;
-		} catch(FatalExecutionException e) {
-			return Status.FAILURE;
-		}
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException, FatalExecutionException {
+		AbstractHeaderExecution exc = getExecution(null);
+		exc.addVariables(extraVariables);
+		return exc.execute();
 	}
 	
 	protected static class AbstractHeaderExecution extends ResourceExecution {
@@ -57,17 +50,19 @@ public class AbstractHeader extends Resource {
 			return new Variables();
 		}
 		
-		protected void execute() throws MissingVariable, FatalExecutionException {
+		protected Status execute() throws FatalExecutionException {
 			if(status == Status.IN_PROGRESS) {
 				try {
 					name = getAttributeValue(NAME);
 					value = getAttributeValue(VALUE);
 					status = Status.SUCCESSFUL;
+				} catch(MissingVariable e) {
+					status = Status.IN_PROGRESS;
 				} catch(TemplateException e) {
 					status = Status.FAILURE;
-					throw new FatalExecutionException(e);
 				}
 			}
+			return status;
 		}
 		public String getName() {
 			return name;

@@ -8,6 +8,7 @@ import net.microscraper.client.Interfaces.Regexp;
 import net.microscraper.database.Database.DatabaseException;
 import net.microscraper.database.Database;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.FatalExecutionException;
 import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Reference;
 import net.microscraper.database.Resource;
@@ -66,6 +67,9 @@ public class Client {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		} catch(DatabaseException e) {
+			log.e(e);
+			throw new MicroScraperClientException(e);
+		} catch(FatalExecutionException e) {
 			log.e(e);
 			throw new MicroScraperClientException(e);
 		}

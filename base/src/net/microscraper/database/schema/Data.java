@@ -70,15 +70,13 @@ public class Data extends Resource {
 		protected Status execute() throws FatalExecutionException {
 			status = Status.SUCCESSFUL;
 			for(int i = 0 ; i < defaults.length ; i ++ ) {
-				try {
-					defaults[i].execute();
-				} catch(MissingVariable e) {
-					status = Status.IN_PROGRESS;
-				}
+				Status defaultStatus = defaults[i].execute();
+				status = status == Status.FAILURE ? status : defaultStatus;
 			}
 			for(int i = 0 ; i < scrapers.length ; i ++ ) {
 				try {
-					((Scraper) scrapers[i]).execute(getSourceExecution());
+					Status scraperStatus = ((Scraper) scrapers[i]).execute(getSourceExecution());
+					status = status == Status.FAILURE ? status : scraperStatus;
 				} catch(ResourceNotFoundException e) {
 					throw new FatalExecutionException(e);
 				}
