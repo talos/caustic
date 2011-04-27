@@ -1,5 +1,6 @@
 package net.microscraper.client.impl;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.database.Execution;
@@ -10,7 +11,7 @@ public class SQLPublisher implements Publisher {
 		
 	public static final String CALLER_ID = "caller_id";
 	public static final String ID = "id";
-	public static final String REF = "ref";
+	//public static final String REF = "ref";
 	public static final String KEY = "key";
 	public static final String VALUE = "value";
 	
@@ -22,7 +23,7 @@ public class SQLPublisher implements Publisher {
 			String create_table_sql = "CREATE TABLE " + inter.quoteField(TABLE_NAME) + " (" +
 				inter.quoteField(CALLER_ID) + " " + inter.intColumnType() + ", " +
 				inter.quoteField(ID) + " " + inter.idColumnType() + " " + inter.keyColumnDefinition() + ", " +
-				inter.quoteField(REF) + " " + inter.dataColumnType() + ", " + 
+			//	inter.quoteField(REF) + " " + inter.dataColumnType() + ", " + 
 				inter.quoteField(KEY) + " " + inter.dataColumnType() + ", " + 
 				inter.quoteField(VALUE) + " " + inter.dataColumnType() + " )";
 			inter.execute(create_table_sql);
@@ -31,7 +32,7 @@ public class SQLPublisher implements Publisher {
 			try {
 				inter.query("SELECT " + inter.quoteField(CALLER_ID) +
 					inter.quoteField(ID) +
-					inter.quoteField(REF) +
+			//		inter.quoteField(REF) +
 					inter.quoteField(KEY) +
 					inter.quoteField(VALUE) +
 					" FROM " + inter.quoteField(TABLE_NAME));
@@ -44,16 +45,16 @@ public class SQLPublisher implements Publisher {
 	}
 	
 	public void publish(Execution execution) throws PublisherException {
-	/*	try {
+		try {
 			if(execution.successful) {
 				String insert_sql = "INSERT INTO " + inter.quoteField(TABLE_NAME) + " (" +
 					inter.quoteField(CALLER_ID) + ", " +
 					inter.quoteField(ID) + ", " + 
-					inter.quoteField(REF) + ", " +
+			//		inter.quoteField(REF) + ", " +
 					inter.quoteField(KEY) + ", " +
 					inter.quoteField(VALUE) +
 					") VALUES (" + 
-					inter.quoteValue(Integer.toString(execution.caller.id)) + ", " +
+					inter.quoteValue(Integer.toString(execution.getSourceExecution().id)) + ", " +
 					inter.quoteValue(Integer.toString(execution.id)) + ", " +
 					inter.quoteValue(execution.ref.toString()) + ", " +
 					inter.quoteValue(execution.key) + ", " +
@@ -63,7 +64,7 @@ public class SQLPublisher implements Publisher {
 		} catch(SQLInterfaceException e) {
 			Client.log.e(e);
 			throw new PublisherException();
-		}*/
+		}
 	}
 
 	public boolean live() {

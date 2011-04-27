@@ -25,7 +25,7 @@ public abstract class Execution {
 	
 	protected abstract boolean isOneToMany();
 	
-	protected final Execution getSourceExecution() {
+	public final Execution getSourceExecution() {
 		if(isOneToMany() || caller == null) {
 			return this;
 		} else {
@@ -105,48 +105,6 @@ public abstract class Execution {
 		public static Status FAILURE = new Status();
 	}
 	
-	/*
-	private final class StatusMatrix {
-		private static final int SUCCESSFUL = 0;
-		private static final int IN_PROGRESS = 1;
-		private static final int FAILURE = 2;
-		protected Status summarize() {
-			Execution[] executions = getCalledExecutions();
-			for(int i = 0 ; i < executions.length ; i ++) {
-				if(executions[i].getStatus() == Status.IN_PROGRESS)
-					return Status.IN_PROGRESS;
-				if(executions[i].getStatus() == Status.FAILURE)
-					return Status.FAILURE;
-			}
-			return Status.SUCCESSFUL;
-		}
-		protected boolean hasBeenProgressSince(StatusMatrix comparison) {
-			int[] status = status();
-			int[] comparisonStatus = comparison.status();
-			if(status[SUCCESSFUL] > comparisonStatus[SUCCESSFUL])
-				return true;
-			if(status[FAILURE] > comparisonStatus[FAILURE])
-				return true;
-			return false;
-		}
-		private int[] status() {
-			Execution[] executions = getCalledExecutions();
-			int[] status = new int[3];
-			status[SUCCESSFUL] = 0;
-			status[IN_PROGRESS] = 0;
-			status[FAILURE] = 0;
-			for(int i = 0 ; i < executions.length ; i ++) {
-				if(executions[i].getStatus() == Status.SUCCESSFUL)
-					status[SUCCESSFUL]++;
-				if(executions[i].getStatus() == Status.IN_PROGRESS)
-					status[IN_PROGRESS]++;
-				if(executions[i].getStatus() == Status.FAILURE)
-					status[FAILURE]++;
-			}
-			return status;
-		}
-	}
-*/
 	public static final class FatalExecutionException extends Exception {
 
 		/**
