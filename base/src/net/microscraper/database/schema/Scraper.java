@@ -1,16 +1,13 @@
 package net.microscraper.database.schema;
 
-import java.util.Hashtable;
-import java.util.Vector;
-
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Utils;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.FatalExecutionException;
 import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
@@ -74,11 +71,23 @@ public class Scraper extends Resource {
 		}
 	}
 	
-	public Status execute(Execution caller) {
+	public Status execute(Execution caller) throws ResourceNotFoundException {
 		ScraperExecution[] scrapers = getExecutions(caller);
+		Status status = Status.SUCCESSFUL;
 		for(int i = 0 ; i < scrapers.length ; i++) {
-			scrapers[i].execute();
+			try {
+				scrapers[i].execute();
+			} catch(MissingVariable e) {
+				status = Status.IN_PROGRESS;
+			} catch(BrowserException e) {
+				return Status.FAILURE;
+			} catch(FatalExecutionException e) {
+				return Status.FAILURE;
+			} catch(NoMatches e) {
+				return Status.FAILURE;
+			}
 		}
+		return status;
 	}
 	
 	public class ScraperExecution extends ResourceExecution {
@@ -142,15 +151,15 @@ public class Scraper extends Resource {
 			sourceScraper = scraper;
 		}
 		protected void execute() throws FatalExecutionException, NoMatches {
-			if(sourceScraper.execute(getSourceExecution()) == Status.SUCCESSFUL) {
-				try {
+			try {
+				if(sourceScraper.execute(getSourceExecution()) == Status.SUCCESSFUL) {
 					ScraperExecution[] sourceScraperExecutions = sourceScraper.getExecutions(getSourceExecution());
 					for(int i = 0 ; i < sourceScraperExecutions.length ; i ++) {
 						execute(sourceScraperExecutions[i].match());
 					}
-				} catch(ResourceNotFoundException e) {
-					throw new FatalExecutionException(e);
 				}
+			} catch(ResourceNotFoundException e) {
+				throw new FatalExecutionException(e); 
 			}
 		}
 	}

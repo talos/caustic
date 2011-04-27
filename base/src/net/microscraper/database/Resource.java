@@ -39,8 +39,7 @@ public abstract class Resource {
 	}
 	
 	public abstract ModelDefinition definition();
-	public abstract Status execute(Execution caller);
-	//protected abstract ResourceExecution getExecution(Execution caller) throws ResourceNotFoundException;
+	public abstract Status execute(Execution caller) throws ResourceNotFoundException;
 	
 	protected abstract class ResourceExecution extends Execution {
 		protected ResourceExecution(Execution caller) {
