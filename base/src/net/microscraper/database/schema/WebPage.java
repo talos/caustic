@@ -70,16 +70,17 @@ public class WebPage extends Resource {
 	}
 	
 	public class WebPageExecution extends ResourceExecution {
-		String webPageString;
+		private String webPageString = null;
 		protected WebPageExecution(Resource resource, Execution caller)
 				throws ResourceNotFoundException {
 			super(resource, caller);
 		}
 		
-		protected String load() throws TemplateException,
-				ResourceNotFoundException, InterruptedException, MissingVariable,
-				FatalExecutionException {
-			return webPageString;
+		protected String load() throws FatalExecutionException {
+			if(webPageString == null) {
+				execute();
+				return webPageString;
+			}
 		}
 
 		private final Hashtable resourcesToHashtable(Resource[] resources)
@@ -101,8 +102,7 @@ public class WebPage extends Resource {
 			return null;
 		}
 
-		protected void execute() throws MissingVariable, BrowserException,
-				FatalExecutionException {
+		protected Status execute() throws FatalExecutionException {
 			try {
 				Resource[] loginWebPages = getRelatedResources(LOGIN_WEB_PAGES);
 				for(int i = 0 ; i < loginWebPages.length ; i ++) {

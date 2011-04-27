@@ -38,22 +38,16 @@ public class Default extends Resource {
 		return (DefaultExecution) executions.get(caller);
 	}
 
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
-		try {
-			DefaultExecution exc = getExecution(null);
-			exc.addVariables(extraVariables);
-			exc.execute();
-			return Status.SUCCESSFUL;
-		} catch(MissingVariable e) {
-			return Status.IN_PROGRESS;
-		} catch(FatalExecutionException e) {
-			return Status.FAILURE;
-		}
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException, FatalExecutionException {
+		DefaultExecution exc = getExecution(null);
+		exc.addVariables(extraVariables);
+		return exc.execute();
 	}
 	
 	public class DefaultExecution extends ResourceExecution {
 		private Resource[] substitutedScrapers;
 		private String value;
+		private Status status = Status.IN_PROGRESS;
 		protected DefaultExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
 			super(resource, caller);
 			substitutedScrapers = getRelatedResources(SUBSTITUTED_SCRAPERS);
@@ -67,15 +61,24 @@ public class Default extends Resource {
 			return null;
 		}
 		
-		protected void execute() throws MissingVariable, FatalExecutionException {
+		protected Status execute() throws FatalExecutionException {
+			status = Status.SUCCESSFUL;
 			try {
-				value = getAttributeValue(VALUE);
+				try {
+					value = getAttributeValue(VALUE);
+				} catch(MissingVariable e) {
+					status = Status.IN_PROGRESS;
+				}
 				for(int i = 0 ; i < substitutedScrapers.length ; i++) {
 					((Scraper) substitutedScrapers[i]).substitute(value);
 				}
 			} catch(TemplateException e) {
 				throw new FatalExecutionException(e);
 			}
+			return status;
+		}
+		public Status getStatus() {
+			return status;
 		}
 	}
 }

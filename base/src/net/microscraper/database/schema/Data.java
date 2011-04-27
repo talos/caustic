@@ -39,22 +39,16 @@ public class Data extends Resource {
 		return (DataExecution) executions.get(caller);
 	}
 
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
-		try { 
-			DataExecution exc = getExecution(null);
-			exc.addVariables(extraVariables);
-			exc.execute();
-			return Status.SUCCESSFUL;
-		} catch(MissingVariable e) {
-			return Status.IN_PROGRESS;
-		} catch(FatalExecutionException e) {
-			return Status.FAILURE;
-		}
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException, FatalExecutionException {
+		DataExecution exc = getExecution(null);
+		exc.addVariables(extraVariables);
+		return exc.execute();
 	}
 	
 	public class DataExecution extends ResourceExecution {
 		private final DefaultExecution[] defaults;
 		private final Resource[] scrapers;
+		private Status status = Status.IN_PROGRESS;
 		public DataExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
 			super(resource, caller);
 			Resource[] defaultResources = getRelatedResources(DEFAULTS);
@@ -73,9 +67,14 @@ public class Data extends Resource {
 			return null;
 		}
 		
-		protected void execute() throws MissingVariable, FatalExecutionException {
+		protected Status execute() throws FatalExecutionException {
+			status = Status.SUCCESSFUL;
 			for(int i = 0 ; i < defaults.length ; i ++ ) {
-				defaults[i].execute();
+				try {
+					defaults[i].execute();
+				} catch(MissingVariable e) {
+					status = Status.IN_PROGRESS;
+				}
 			}
 			for(int i = 0 ; i < scrapers.length ; i ++ ) {
 				try {
@@ -84,6 +83,10 @@ public class Data extends Resource {
 					throw new FatalExecutionException(e);
 				}
 			}
+			return status;
+		}
+		public Status getStatus() {
+			return status;
 		}
 	}
 }

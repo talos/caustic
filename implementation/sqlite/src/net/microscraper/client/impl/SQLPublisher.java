@@ -4,6 +4,7 @@ import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.Status;
 
 public class SQLPublisher implements Publisher {
 	
@@ -46,7 +47,7 @@ public class SQLPublisher implements Publisher {
 	
 	public void publish(Execution execution) throws PublisherException {
 		try {
-			if(execution.successful) {
+			if(execution.getStatus() == Status.SUCCESSFUL) {
 				String insert_sql = "INSERT INTO " + inter.quoteField(TABLE_NAME) + " (" +
 					inter.quoteField(CALLER_ID) + ", " +
 					inter.quoteField(ID) + ", " + 

@@ -3,9 +3,6 @@ package net.microscraper.database;
 import java.util.Vector;
 
 import net.microscraper.client.Variables;
-import net.microscraper.client.Browser.BrowserException;
-import net.microscraper.client.Interfaces.Regexp.NoMatches;
-import net.microscraper.client.Mustache.MissingVariable;
 
 public abstract class Execution {
 	
@@ -23,8 +20,6 @@ public abstract class Execution {
 			this.caller.addCalledExecution(this);
 		}
 	}
-	
-	protected abstract boolean isOneToMany();
 	
 	public final Execution getSourceExecution() {
 		if(isOneToMany() || caller == null) {
@@ -58,14 +53,10 @@ public abstract class Execution {
 		this.extraVariables.merge(extraVariables);
 	}
 	
+	protected abstract boolean isOneToMany();
 	protected abstract Variables getLocalVariables();
-	
-	public String toJSON() {
-		return "";
-	}
-	
-	protected abstract void execute()
-			throws MissingVariable, BrowserException, FatalExecutionException, NoMatches;
+	public abstract Status getStatus();
+	protected abstract Status execute() throws FatalExecutionException;
 
 	public final boolean equals(Object obj) {
 		if(this == obj)

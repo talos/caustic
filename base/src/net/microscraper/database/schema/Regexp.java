@@ -41,22 +41,16 @@ public class Regexp extends Resource {
 		return (RegexpExecution) executions.get(caller);
 	}
 	
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
-		try {
-			RegexpExecution exc = getExecution(null);
-			exc.addVariables(extraVariables);
-			exc.execute();
-			return Status.SUCCESSFUL;
-		} catch(MissingVariable e) {
-			return Status.IN_PROGRESS;
-		} catch(FatalExecutionException e) {
-			return Status.FAILURE;
-		}
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException, FatalExecutionException {
+		RegexpExecution exc = getExecution(null);
+		exc.addVariables(extraVariables);
+		return exc.execute();
 	}
 	
 	public static final class RegexpExecution extends ResourceExecution {
 		private Pattern pattern;
 		private final Integer matchNumber;
+		private Status status = Status.IN_PROGRESS;
 		protected RegexpExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
 			super(resource, caller);
 			String matchNumberString = resource.getAttributeValueRaw(MATCH_NUMBER);
@@ -77,13 +71,19 @@ public class Regexp extends Resource {
 			return new Variables();
 		}
 		
-		protected void execute() throws MissingVariable,
-				FatalExecutionException {
+		protected Status execute() throws FatalExecutionException {
 			try {
 				pattern = Client.regexp.compile(getAttributeValue(REGEXP));
+				status = Status.SUCCESSFUL;
+			} catch (MissingVariable e) {
+				status = Status.IN_PROGRESS;
 			} catch (TemplateException e) {
-				throw new FatalExecutionException(e);
+				status = Status.FAILURE;
 			}
+			return status;
+		}
+		public Status getStatus() {
+			return status;
 		}
 		
 		public boolean matches(String input) throws MissingVariable, FatalExecutionException {
