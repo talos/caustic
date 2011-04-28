@@ -3,7 +3,6 @@ package net.microscraper.database.schema;
 import java.util.Vector;
 
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
-import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
@@ -129,12 +128,20 @@ public class Scraper extends Resource {
 			}
 		}
 		// Replicate once we have a source.
-		protected void execute(String source) throws NoMatches, MissingVariable {
-			String[] matches = regexpExecution.allMatches(source);
-			match = matches[0];
-			for(int i = 1 ; i < matches.length ; i ++) {
-				new ScraperExecution(scraper, getSourceExecution(), matches[i]);
+		protected Status execute(String source) throws ResourceNotFoundException, InterruptedException {
+			Status regexpStatus = regexpExecution.execute();
+			if(regexpStatus == Status.SUCCESSFUL) {
+				try {
+					String[] matches = regexpExecution.allMatches(source);
+					match = matches[0];
+					for(int i = 1 ; i < matches.length ; i ++) {
+						new ScraperExecution(scraper, getSourceExecution(), matches[i]);
+					}
+				} catch(NoMatches e) {
+					return Status.FAILURE;
+				}
 			}
+			return regexpStatus;
 		}
 		public String match() {
 			return match;
@@ -157,17 +164,9 @@ public class Scraper extends Resource {
 		}
 		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
 			Status status = Status.SUCCESSFUL;
-			try {
-				if(sourceWebPageExecution.execute() == Status.SUCCESSFUL) {
-					try {
-						this.execute(sourceWebPageExecution.load());
-					} catch(NoMatches e) {
-						status.join(Status.FAILURE);
-					}
-				} else {
-					status.join(Status.IN_PROGRESS);
-				}
-			} catch (MissingVariable e) {
+			if(sourceWebPageExecution.execute() == Status.SUCCESSFUL) {
+				status.join(this.execute(sourceWebPageExecution.load()));
+			} else {
 				status.join(Status.IN_PROGRESS);
 			}
 			return status;
@@ -186,13 +185,7 @@ public class Scraper extends Resource {
 			if(sourceScraper.execute(getSourceExecution()) == Status.SUCCESSFUL) {
 				ScraperExecution[] sourceScraperExecutions = sourceScraper.getExecutions(getSourceExecution());
 				for(int i = 0 ; i < sourceScraperExecutions.length ; i ++) {
-					try {
-						this.execute(sourceScraperExecutions[i].match());
-					} catch(MissingVariable e) {
-						status.join(Status.IN_PROGRESS);
-					} catch(NoMatches e) {
-						status.join(Status.FAILURE);
-					}
+					status.join(this.execute(sourceScraperExecutions[i].match()));
 				}
 			}
 

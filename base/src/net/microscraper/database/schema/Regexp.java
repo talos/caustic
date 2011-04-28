@@ -79,7 +79,7 @@ public class Regexp extends Resource {
 			}
 		}
 		
-		public boolean matches(String input) throws MissingVariable {
+		public boolean matches(String input) {
 			if(matchNumber != null) {
 				try {
 					pattern.match(input, matchNumber.intValue());
@@ -92,7 +92,7 @@ public class Regexp extends Resource {
 			}
 		}
 		
-		public String[] allMatches(String input) throws NoMatches, MissingVariable {
+		public String[] allMatches(String input) throws NoMatches {
 			if(matchNumber != null) {
 				return new String[] { pattern.match(input, matchNumber.intValue()) };
 			} else {
