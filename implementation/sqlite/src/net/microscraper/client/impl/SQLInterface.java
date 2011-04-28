@@ -10,16 +10,17 @@ public interface SQLInterface {
 		public abstract void close() throws SQLInterfaceException;
 	}
 	
-	/*
 	public static interface Statement {
-		public abstract void bindString(int index, String value) throws Exception;
+		public abstract void bindString(int index, String value) throws SQLInterfaceException;
 		
-		public abstract Cursor execute() throws Exception;
+		public abstract boolean execute() throws SQLInterfaceException;
+		public abstract Cursor executeQuery() throws SQLInterfaceException;
 	}
-	*/
 	
 	public abstract Cursor query(String sql) throws SQLInterfaceException;
 	public abstract boolean execute(String sql) throws SQLInterfaceException;
+	public abstract Cursor query(String sql, String[] substitutions) throws SQLInterfaceException;
+	public abstract boolean execute(String sql, String[] substitutions) throws SQLInterfaceException;
 	
 	/**
 	 * For example, "INTEGER".
@@ -34,14 +35,6 @@ public interface SQLInterface {
 	public abstract String keyColumnDefinition();
 	public abstract String dataColumnType();
 	public abstract String intColumnType();
-	/**
-	 * Quote a field.
-	 * @param field
-	 * @return
-	 * @throws SQLInterfaceException If the supplied field is null.
-	 */
-	public abstract String quoteField(String field) throws SQLInterfaceException;
-	public abstract String quoteValue(String value);
 	public abstract String nullValue();
 	
 	public static final class SQLInterfaceException extends Throwable {

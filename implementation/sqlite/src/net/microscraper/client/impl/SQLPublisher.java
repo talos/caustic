@@ -21,22 +21,19 @@ public class SQLPublisher implements Publisher {
 		inter = sql_interface;
 		
 		try {
-			String create_table_sql = "CREATE TABLE " + inter.quoteField(TABLE_NAME) + " (" +
-				inter.quoteField(SOURCE_ID) + " " + inter.intColumnType() + ", " +
-				inter.quoteField(ID) + " " + inter.idColumnType() + " " + inter.keyColumnDefinition() + ", " +
-				inter.quoteField(STATUS_CODE) + " " + inter.intColumnType() + ", " +
-				inter.quoteField(NAME) + " " + inter.dataColumnType() + ", " + 
-				inter.quoteField(VALUE) + " " + inter.dataColumnType() + " )";
-			inter.execute(create_table_sql);
+			inter.execute(
+				"CREATE TABLE `?` (" +
+					"`?` " + inter.intColumnType() + ", " +
+					"`?` " + inter.idColumnType() + " " + inter.keyColumnDefinition() + ", " +
+					"`?` " + inter.intColumnType() + ", " +
+					"`?` " + inter.dataColumnType() + ", " + 
+					"`?` " + inter.dataColumnType() + " )",
+				new String[] { TABLE_NAME, SOURCE_ID, ID, STATUS_CODE, NAME, VALUE });
 		} catch(SQLInterfaceException e) {
 			// The table might already exist.
 			try {
-				inter.query("SELECT " + inter.quoteField(SOURCE_ID) +
-					inter.quoteField(ID) +
-					inter.quoteField(STATUS_CODE) + 
-					inter.quoteField(NAME) +
-					inter.quoteField(VALUE) +
-					" FROM " + inter.quoteField(TABLE_NAME));
+				inter.query("SELECT `?`, `?`, `?`, `?`, `?` FROM `?`", 
+					new String[] { SOURCE_ID, ID, STATUS_CODE, NAME, VALUE, TABLE_NAME });
 			} catch (SQLInterfaceException e2) {
 				// Something is weird -- wrong schema in the specified SQL file?  Abort.
 				throw new SQLInterfaceException("Error creating or using results table from the" +
@@ -48,28 +45,26 @@ public class SQLPublisher implements Publisher {
 	public void publish(Execution execution) throws PublisherException {
 		try {
 			// delete existing entry
-			String delete_sql = "DELETE FROM " + inter.quoteField(TABLE_NAME) + " WHERE " +
-				inter.quoteField(SOURCE_ID) + " = "
-						+ inter.quoteValue(Integer.toString(execution.getSourceExecution().id)) +
-				inter.quoteField(ID) + " = " + inter.quoteValue(Integer.toString(execution.id));
-			inter.execute(delete_sql);
+			inter.execute("DELETE FROM `?` WHERE `?` = '?' AND `?` = '?'",
+				new String[] { TABLE_NAME,
+					SOURCE_ID, Integer.toString(execution.getSourceExecution().id),
+					ID, Integer.toString(execution.id)
+				});
 			
 			Status status = execution.getStatus();
-			String insert_sql = "INSERT INTO " + inter.quoteField(TABLE_NAME) + " (" +
-				inter.quoteField(SOURCE_ID) + ", " +
-				inter.quoteField(ID) + ", " + 
-				inter.quoteField(STATUS_CODE) + ", " +
-				inter.quoteField(NAME) + ", " +
-				inter.quoteField(VALUE) +
-				") VALUES (" + 
-				inter.quoteValue(Integer.toString(execution.getSourceExecution().id)) + ", " +
-				inter.quoteValue(Integer.toString(execution.id)) + ", " +
-				inter.quoteValue(Integer.toString(execution.getStatus().code)) + ", " +
-				// insert NULL for name if incomplete.
-				(status == Status.SUCCESSFUL ? inter.quoteValue(execution.getPublishName()) : inter.nullValue() ) + ", " +
-				// insert NULL for value if incomplete.
-				(status == Status.SUCCESSFUL ? inter.quoteValue(execution.getPublishValue()): inter.nullValue() ) + " )";
-			inter.execute(insert_sql);
+			String name = null;
+			String value = null;
+			if(status == Status.SUCCESSFUL) {
+				name = execution.getPublishName();
+				value = execution.getPublishValue();
+			}
+			inter.execute("INSERT INTO `?` (`?`, `?`, `?`, `?`, `?`) " +
+					"VALUES ('?', '?', '?', '?', '?')",
+					new String[] { TABLE_NAME, SOURCE_ID, ID, STATUS_CODE, NAME, VALUE,
+						Integer.toString(execution.getSourceExecution().id),
+						Integer.toString(execution.id),
+						Integer.toString(status.code),
+						name, value });
 		} catch(SQLInterfaceException e) {
 			Client.log.e(e);
 			throw new PublisherException();

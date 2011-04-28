@@ -2,9 +2,9 @@ package net.microscraper.client.impl;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import net.microscraper.client.Interfaces;
 
@@ -26,44 +26,75 @@ public class JDBCSQLite implements SQLInterface {
 	
 	@Override
 	public SQLInterface.Cursor query(String sql) throws SQLInterfaceException {
-		//return new JDBCSqliteStatement(connection, sql);
-		try {
-			log.i("Querying: " + sql);
-			Statement statement = connection.createStatement();
-			return new JDBCSQLiteCursor(statement.executeQuery(sql));
-		} catch (SQLException e) {
-			throw new SQLInterfaceException(e);
-		}
+		log.i("Querying: " + sql);
+		return new JDBCSqliteStatement(connection, sql).executeQuery();
 	}
 	
 	@Override
 	public boolean execute(String sql) throws SQLInterfaceException {
-		try {
-			log.i("Executing: " + sql);
-			Statement statement = connection.createStatement();
-			return statement.execute(sql);
-		} catch(SQLException e) {
-			throw new SQLInterfaceException(e);
-		}
+		log.i("Executing: " + sql);
+		return new JDBCSqliteStatement(connection, sql).execute();
 	}
-	/*
+	
+	@Override
+	public Cursor query(String sql, String[] substitutions) throws SQLInterfaceException {
+		log.i("Querying: " + sql);
+		JDBCSqliteStatement statement = new JDBCSqliteStatement(connection, sql);
+		statement.bindArrayOfStrings(substitutions);
+		return statement.executeQuery();
+	}
+
+	@Override
+	public boolean execute(String sql, String[] substitutions) throws SQLInterfaceException {
+		log.i("Executing: " + sql);
+		JDBCSqliteStatement statement = new JDBCSqliteStatement(connection, sql);
+		statement.bindArrayOfStrings(substitutions);
+		return statement.execute();
+	}
+	
 	private static class JDBCSqliteStatement implements Statement {
 		private final PreparedStatement statement;
-		public JDBCSqliteStatement(Connection connection, String sql) throws Exception {
-			statement = connection.prepareStatement(sql);
+		public JDBCSqliteStatement(Connection connection, String sql) throws SQLInterfaceException {
+			try {
+				statement = connection.prepareStatement(sql);
+			} catch(SQLException e) {
+				throw new SQLInterfaceException(e);
+			}
 		}
 		
 		@Override
-		public void bindString(int index, String value) throws Exception {
-			statement.setString(index, value);
+		public void bindString(int index, String value) throws SQLInterfaceException {
+			try {
+				statement.setString(index, value);
+			} catch(SQLException e) {
+				throw new SQLInterfaceException(e);
+			}
 		}
-
+		
+		public void bindArrayOfStrings(String[] strings) throws SQLInterfaceException {
+			for(int i = 0 ; i < strings.length ; i ++) {
+				bindString(i, strings[i]);
+			}
+		}
+		
 		@Override
-		public CursorInterface execute() throws Exception {
-			return new JDBCSqliteCursor(statement.executeQuery());
+		public SQLInterface.Cursor executeQuery() throws SQLInterfaceException {
+			try {
+				return new JDBCSQLiteCursor(statement.executeQuery());
+			} catch(SQLException e) {
+				throw new SQLInterfaceException(e);
+			}
+		}	
+		@Override
+		public boolean execute() throws SQLInterfaceException {
+			try {
+				return statement.execute();
+			} catch(SQLException e) {
+				throw new SQLInterfaceException(e);
+			}
 		}	
 	}
-	*/
+	
 	private static class JDBCSQLiteCursor implements SQLInterface.Cursor {
 		private final ResultSet resultSet;
 		
@@ -132,21 +163,5 @@ public class JDBCSQLite implements SQLInterface {
 	@Override
 	public String nullValue() {
 		return "NULL";
-	}
-	
-	// TODO stronger protection against injection!
-	@Override
-	public String quoteField(String field) throws SQLInterfaceException {
-		if(field == null)
-			throw new SQLInterfaceException("Supplied field cannot be null.");
-		return "`" + field + "`";
-	}
-	
-	@Override
-	public String quoteValue(String value) {
-		if(value == null)
-			return nullValue();
-		else
-			return "'" + value.replace("'", "\'") + "'";
 	}
 }

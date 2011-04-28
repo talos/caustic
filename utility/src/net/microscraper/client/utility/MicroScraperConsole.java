@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import net.microscraper.client.Client;
-import net.microscraper.client.Client.MicroScraperClientException;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Variables;
 import net.microscraper.client.impl.JDBCSQLite;
@@ -48,8 +47,6 @@ public class MicroScraperConsole {
 				}
 				client.scrape(url, resource_ref, variables);
 				Client.log.i("Finished execution.");
-			} catch (MicroScraperClientException e) {
-				log.e(e);
 			} catch (SQLInterfaceException e) {
 				log.e(e);
 			}
