@@ -71,6 +71,7 @@ public abstract class Execution {
 		} catch(PublisherException e) {
 			Client.log.e(e);
 		}
+		Client.log.i("Executing " + getPublishName() + " resulted in " + status.toString());
 		return status;
 	}
 	protected abstract Status privateExecute() throws ResourceNotFoundException, InterruptedException;
@@ -91,12 +92,17 @@ public abstract class Execution {
 	
 	public final static class Status {
 		public final int code;
-		private Status(int code) {
+		private final String string;
+		private Status(int code, String string) {
 			this.code = code;
+			this.string = string;
 		}
-		public static Status SUCCESSFUL = new Status(0);
-		public static Status IN_PROGRESS = new Status(1);
-		public static Status FAILURE = new Status(2);
+		public String toString() {
+			return string;
+		}
+		public static Status SUCCESSFUL = new Status(0, "successful");
+		public static Status IN_PROGRESS = new Status(1, "in progress");
+		public static Status FAILURE = new Status(2, "failure");
 		public Status join(Status other) {
 			if(this == Status.FAILURE || other == Status.FAILURE)
 				return Status.FAILURE;

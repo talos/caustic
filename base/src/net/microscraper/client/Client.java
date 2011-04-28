@@ -49,6 +49,7 @@ public class Client {
 			Status curStatus = Status.IN_PROGRESS;
 			while(curStatus == Status.IN_PROGRESS) {
 				curStatus = resource.execute(extraVariables);
+				log.i(curStatus.toString());
 			}
 		}  catch(JSONInterfaceException e) {
 			log.e(e);

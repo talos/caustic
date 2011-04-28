@@ -58,7 +58,7 @@ public class Mustache {
 		private static final long serialVersionUID = 8720790457856091375L;
 		public final String missing_tag;
 		public MissingVariable(String missing_tag, Variables variables) {
-			Client.log.i("Variable " + missing_tag + " is missing from variables " + variables.toString() + ", cannot compile template.");
+			//Client.log.i("Variable " + missing_tag + " is missing from variables " + variables.toString() + ", cannot compile template.");
 			this.missing_tag = missing_tag;
 		}
 	}

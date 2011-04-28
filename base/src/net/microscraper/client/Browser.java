@@ -5,7 +5,7 @@ import java.util.Hashtable;
 import net.microscraper.database.schema.Regexp.RegexpExecution;
 
 public interface Browser {
-	public static final int TIMEOUT = 5000;
+	public static final int TIMEOUT = 10000;
 	public static final int MAX_REDIRECTS = 50;
 	public static final int SUCCESS_CODE = 200;
 	

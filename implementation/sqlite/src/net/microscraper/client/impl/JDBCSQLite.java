@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
+import net.microscraper.client.Utils;
 
 public class JDBCSQLite implements SQLInterface {
 	private final Connection connection;
@@ -39,17 +40,17 @@ public class JDBCSQLite implements SQLInterface {
 	
 	@Override
 	public Cursor query(String sql, String[] substitutions) throws SQLInterfaceException {
+		log.i("Querying: " + sql + " substituting " + Utils.join(substitutions, ", "));
 		JDBCSqliteStatement statement = new JDBCSqliteStatement(connection, sql);
 		statement.bindArrayOfStrings(substitutions);
-		log.i("Querying: " + statement.toString());
 		return statement.executeQuery();
 	}
 
 	@Override
 	public boolean execute(String sql, String[] substitutions) throws SQLInterfaceException {
+		log.i("Executing: " + sql + " substituting " + Utils.join(substitutions, ", "));
 		JDBCSqliteStatement statement = new JDBCSqliteStatement(connection, sql);
 		statement.bindArrayOfStrings(substitutions);
-		log.i("Executing: " + statement.toString());
 		return statement.execute();
 	}
 	
@@ -76,13 +77,13 @@ public class JDBCSQLite implements SQLInterface {
 		
 		public void bindArrayOfStrings(String[] strings) throws SQLInterfaceException {
 			for(int i = 0 ; i < strings.length ; i ++) {
-				Client.log.i(strings[i]);
 				bindString(i + 1, strings[i]);
 			}
 		}
 		public String toString() {
 			return statement.toString();
 		}
+		
 		@Override
 		public SQLInterface.Cursor executeQuery() throws SQLInterfaceException {
 			try {

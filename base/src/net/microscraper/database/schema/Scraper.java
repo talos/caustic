@@ -77,7 +77,7 @@ public class Scraper extends Resource {
 	
 	private Status execute(Execution caller, Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
 		ScraperExecution[] scrapers = getExecutions(caller);
-		Status compoundStatus = Status.IN_PROGRESS;
+		Status compoundStatus = Status.SUCCESSFUL;
 		for(int i = 0 ; i < scrapers.length ; i++) {
 			if(extraVariables != null) {
 				scrapers[i].addVariables(extraVariables);
