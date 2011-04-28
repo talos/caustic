@@ -9,12 +9,12 @@ import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
 
-public class ThreadSafeLogger implements Logger {
+public class ThreadSafeJSONLogger implements Logger {
 	private final List<String> log_list = Collections.synchronizedList(new ArrayList<String>());
 	private final Interfaces.JSON json;
 	private static final int STACK_TRACE_DEPTH = 10;
 	
-	public ThreadSafeLogger(Interfaces.JSON _json) {
+	public ThreadSafeJSONLogger(Interfaces.JSON _json) {
 		json = _json;
 	}
 	

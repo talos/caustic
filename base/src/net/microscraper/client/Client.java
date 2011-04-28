@@ -7,13 +7,13 @@ import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Interfaces.Regexp;
 import net.microscraper.database.Database.DatabaseException;
 import net.microscraper.database.Database;
-import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Reference;
 import net.microscraper.database.Resource;
+import net.microscraper.database.Status;
 
 public class Client {
 	private static Client instance = new Client();
-	public static Log log = new Log();
+	public static Log log;
 	public static Regexp regexp;
 	public static JSON json;
 	public static Browser browser;
@@ -27,6 +27,7 @@ public class Client {
 		Client.regexp = regexp;
 		Client.json = json;
 		Client.publisher = publisher;
+		Client.log = new Log();
 		for(int i = 0; i < loggers.length ; i ++) {
 			log.register(loggers[i]);
 		}
@@ -46,8 +47,8 @@ public class Client {
 			Resource resource = db.get(ref);
 			
 			// Loop while we're in progress.
-			Status curStatus = Status.IN_PROGRESS;
-			while(curStatus == Status.IN_PROGRESS) {
+			Status curStatus = new Status.InProgress();
+			while(curStatus.isInProgress()) {
 				curStatus = resource.execute(extraVariables);
 				log.i(curStatus.toString());
 			}

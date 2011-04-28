@@ -7,7 +7,6 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Attribute.Attributes;
 import net.microscraper.database.Database.ResourceNotFoundException;
-import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Relationship.Relationships;

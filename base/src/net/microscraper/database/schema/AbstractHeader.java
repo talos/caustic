@@ -6,10 +6,10 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
+import net.microscraper.database.Status;
 
 public class AbstractHeader extends Resource {
 	public static final AttributeDefinition NAME = new AttributeDefinition("name");
@@ -52,11 +52,11 @@ public class AbstractHeader extends Resource {
 			try {
 				name = getAttributeValue(NAME);
 				value = getAttributeValue(VALUE);
-				return Status.SUCCESSFUL;
+				return new Status.Successful(getPublishValue());
 			} catch(MissingVariable e) {
-				return Status.IN_PROGRESS;
+				return new Status.InProgress(e);
 			} catch(TemplateException e) {
-				return Status.FAILURE;
+				return new Status.Failure(e);
 			}
 		}
 		public String getName() {

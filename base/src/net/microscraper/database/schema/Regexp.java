@@ -10,10 +10,10 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
+import net.microscraper.database.Status;
 
 public class Regexp extends Resource {
 	private static final AttributeDefinition REGEXP = new AttributeDefinition("regexp");
@@ -71,11 +71,11 @@ public class Regexp extends Resource {
 		protected Status privateExecute() {
 			try {
 				pattern = Client.regexp.compile(getAttributeValue(REGEXP));
-				return Status.SUCCESSFUL;
+				return new Status.Successful(getPublishValue());
 			} catch (MissingVariable e) {
-				return Status.IN_PROGRESS;
+				return new Status.InProgress(e);
 			} catch (TemplateException e) {
-				return Status.FAILURE;
+				return new Status.Failure(e);
 			}
 		}
 		

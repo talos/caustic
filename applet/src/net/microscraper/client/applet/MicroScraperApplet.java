@@ -21,19 +21,13 @@ import net.microscraper.client.impl.ThreadSafeJSONPublisher;
 public class MicroScraperApplet extends Applet {
 	private static final long serialVersionUID = 2768937336583253219L;
 	
-	private static final ThreadSafeJSONPublisher publisher = new ThreadSafeJSONPublisher();
 	private static final JSON json = new JSONME();
-	private static final ThreadSafeLogger log = new ThreadSafeLogger(json);
 	
 	public static final String encoding = "UTF-8";
 	private Thread current_thread;
-	private final Client client = Client.get(
-			new JavaNetBrowser(),
-			new JavaUtilRegexInterface(), json,
-			new Interfaces.Logger[] { log },
-			publisher
-		);
-		
+	private ThreadSafeJSONPublisher publisher;
+	private ThreadSafeJSONLogger log;
+	
 	// thx http://stackoverflow.com/questions/1272648/need-to-read-own-jars-manifest-and-not-root-classloaders-manifest
 	public String manifest(String key) {
 		try {
@@ -59,6 +53,15 @@ public class MicroScraperApplet extends Applet {
 	public void start(String url, String model, String full_name, String params_string) {
 		try {
 			if(!isAlive()) {
+				// Reset the log and publisher with each execution.
+				log = new ThreadSafeJSONLogger(json);
+				publisher = new ThreadSafeJSONPublisher(); 
+				Client client = Client.get(
+						new JavaNetBrowser(),
+						new JavaUtilRegexInterface(), json,
+						new Interfaces.Logger[] { new ThreadSafeJSONLogger(json) },
+						publisher
+					);
 				Thread thread = new Thread(new ScrapeRunnable(url, model, full_name, params_string, client));
 				thread.start();
 				current_thread = thread;

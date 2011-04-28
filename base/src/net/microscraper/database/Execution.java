@@ -13,7 +13,7 @@ public abstract class Execution {
 	private final Vector calledExecutions = new Vector();
 	private final Variables extraVariables = new Variables();
 	private final Execution caller;	
-	private Status status = Status.IN_PROGRESS;
+	private Status status = new Status.InProgress();
 	public final int id;
 	protected Execution(Execution caller) {
 		id = count++;
@@ -63,8 +63,8 @@ public abstract class Execution {
 		return status;
 	}
 	public final Status execute() throws ResourceNotFoundException, InterruptedException {
-		if(status == Status.IN_PROGRESS) {
-			status = privateExecute();
+		if(status.isInProgress()) {
+			status.merge(privateExecute());
 		}
 		try {
 			Client.publisher.publish(this);
@@ -88,27 +88,5 @@ public abstract class Execution {
 	
 	public final int hashCode() {
 		return id;
-	}
-	
-	public final static class Status {
-		public final int code;
-		private final String string;
-		private Status(int code, String string) {
-			this.code = code;
-			this.string = string;
-		}
-		public String toString() {
-			return string;
-		}
-		public static Status SUCCESSFUL = new Status(0, "successful");
-		public static Status IN_PROGRESS = new Status(1, "in progress");
-		public static Status FAILURE = new Status(2, "failure");
-		public Status join(Status other) {
-			if(this == Status.FAILURE || other == Status.FAILURE)
-				return Status.FAILURE;
-			if(this == Status.IN_PROGRESS || other == Status.IN_PROGRESS)
-				return Status.IN_PROGRESS;
-			return Status.SUCCESSFUL;
-		}
 	}
 }

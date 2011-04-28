@@ -8,10 +8,10 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
+import net.microscraper.database.Status;
 import net.microscraper.database.schema.Regexp.RegexpExecution;
 import net.microscraper.database.schema.WebPage.WebPageExecution;
 
@@ -77,12 +77,12 @@ public class Scraper extends Resource {
 	
 	private Status execute(Execution caller, Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
 		ScraperExecution[] scrapers = getExecutions(caller);
-		Status compoundStatus = Status.SUCCESSFUL;
+		Status compoundStatus = new Status.InProgress();
 		for(int i = 0 ; i < scrapers.length ; i++) {
 			if(extraVariables != null) {
 				scrapers[i].addVariables(extraVariables);
 			}
-			compoundStatus.join(scrapers[i].execute());
+			compoundStatus.merge(scrapers[i].execute());
 		}
 		return compoundStatus;
 	}
@@ -130,7 +130,7 @@ public class Scraper extends Resource {
 		// Replicate once we have a source.
 		protected Status execute(String source) throws ResourceNotFoundException, InterruptedException {
 			Status regexpStatus = regexpExecution.execute();
-			if(regexpStatus == Status.SUCCESSFUL) {
+			if(regexpStatus.isSuccessful()) {
 				try {
 					String[] matches = regexpExecution.allMatches(source);
 					match = matches[0];
@@ -138,7 +138,7 @@ public class Scraper extends Resource {
 						new ScraperExecution(scraper, getSourceExecution(), matches[i]);
 					}
 				} catch(NoMatches e) {
-					return Status.FAILURE;
+					return new Status.Failure(e);
 				}
 			}
 			return regexpStatus;
@@ -147,7 +147,7 @@ public class Scraper extends Resource {
 			return match;
 		}
 		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
-			return Status.SUCCESSFUL;
+			return new Status.Successful(getPublishValue());
 		}
 		public String getPublishValue() {
 			return match;
@@ -163,11 +163,9 @@ public class Scraper extends Resource {
 			sourceWebPageExecution = webPage.getExecution(getSourceExecution());
 		}
 		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
-			Status status = Status.SUCCESSFUL;
-			if(sourceWebPageExecution.execute() == Status.SUCCESSFUL) {
-				status.join(this.execute(sourceWebPageExecution.load()));
-			} else {
-				status.join(Status.IN_PROGRESS);
+			Status status = new Status.InProgress();
+			if(status.merge(sourceWebPageExecution.execute()).isSuccessful()) {
+				status.merge(this.execute(sourceWebPageExecution.load()));
 			}
 			return status;
 		}
@@ -181,14 +179,13 @@ public class Scraper extends Resource {
 			this.sourceScraper = sourceScraper;
 		}
 		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
-			Status status = Status.SUCCESSFUL;
-			if(sourceScraper.execute(getSourceExecution()) == Status.SUCCESSFUL) {
+			Status status = new Status.InProgress();
+			if(sourceScraper.execute(getSourceExecution()).isSuccessful()) {
 				ScraperExecution[] sourceScraperExecutions = sourceScraper.getExecutions(getSourceExecution());
 				for(int i = 0 ; i < sourceScraperExecutions.length ; i ++) {
-					status.join(this.execute(sourceScraperExecutions[i].match()));
+					status.merge(this.execute(sourceScraperExecutions[i].match()));
 				}
 			}
-
 			return status;
 		}
 	}

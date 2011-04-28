@@ -5,9 +5,10 @@ import java.util.Vector;
 
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Publisher;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.Status;
+import net.microscraper.database.Status;
 
 public class ThreadSafeJSONPublisher implements Publisher {
 	Vector executions = new Vector();
@@ -34,8 +35,17 @@ public class ThreadSafeJSONPublisher implements Publisher {
 		Status status = exc.getStatus();
 		hash.put("status_code", Integer.toString(status.code));
 		hash.put("name", exc.getPublishName());
-		if(status == Status.SUCCESSFUL) {
-			hash.put("value", exc.getPublishValue());
+		if(status.isSuccessful()) {
+			hash.put("value", ((Status.Successful) status).getResult());
+		} else if (status.isInProgress()) {
+			Status.InProgress inProgress = (Status.InProgress) status;
+			if(inProgress.isMissingVariables()) {
+				MissingVariable[] missingVariables = inProgress.getMissingVariables();
+				hash.put("missing", missingVariables[0].missing_tag);
+			}
+		} else if (status.isFailure()) {
+			Throwable[] throwables = ((Status.Failure) status).getThrowables();
+			hash.put("error", throwables[0].getMessage());
 		}
 		try {
 			return Client.json.toJSON(hash);

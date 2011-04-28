@@ -11,10 +11,10 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
+import net.microscraper.database.Status;
 import net.microscraper.database.schema.AbstractHeader.AbstractHeaderExecution;
 import net.microscraper.database.schema.Regexp.RegexpExecution;
 
@@ -105,13 +105,13 @@ public class WebPage extends Resource {
 					terminates[i] = ((Regexp) terminatesResources[i]).getExecution(getSourceExecution());
 				}
 				webPageString = Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
-				return Status.SUCCESSFUL;
+				return new Status.Successful(getPublishValue());
 			} catch(MissingVariable e) {
-				return Status.IN_PROGRESS;
+				return new Status.InProgress(e);
 			} catch(BrowserException e) {
-				return Status.FAILURE;
+				return new Status.Failure(e);
 			} catch(TemplateException e) {
-				return Status.FAILURE;
+				return new Status.Failure(e);
 			}
 		}
 

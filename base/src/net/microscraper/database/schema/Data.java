@@ -5,10 +5,10 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
+import net.microscraper.database.Status;
 import net.microscraper.database.schema.Default.DefaultExecution;
 
 public class Data extends Resource {
@@ -63,12 +63,12 @@ public class Data extends Resource {
 		}
 		
 		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
-			Status status = Status.SUCCESSFUL;
+			Status status = new Status.Successful(getPublishValue());
 			for(int i = 0 ; i < defaults.length ; i ++ ) {
-				status.join(defaults[i].execute());
+				status.merge(defaults[i].execute());
 			}
 			for(int i = 0 ; i < scrapers.length ; i ++ ) {
-				status.join(((Scraper) scrapers[i]).execute(getSourceExecution()));
+				status.merge(((Scraper) scrapers[i]).execute(getSourceExecution()));
 			}
 			return status;
 		}
