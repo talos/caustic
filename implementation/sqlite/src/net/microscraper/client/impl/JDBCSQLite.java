@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
 
 public class JDBCSQLite implements SQLInterface {
@@ -38,17 +39,17 @@ public class JDBCSQLite implements SQLInterface {
 	
 	@Override
 	public Cursor query(String sql, String[] substitutions) throws SQLInterfaceException {
-		log.i("Querying: " + sql);
 		JDBCSqliteStatement statement = new JDBCSqliteStatement(connection, sql);
 		statement.bindArrayOfStrings(substitutions);
+		log.i("Querying: " + statement.toString());
 		return statement.executeQuery();
 	}
 
 	@Override
 	public boolean execute(String sql, String[] substitutions) throws SQLInterfaceException {
-		log.i("Executing: " + sql);
 		JDBCSqliteStatement statement = new JDBCSqliteStatement(connection, sql);
 		statement.bindArrayOfStrings(substitutions);
+		log.i("Executing: " + statement.toString());
 		return statement.execute();
 	}
 	
@@ -58,6 +59,7 @@ public class JDBCSQLite implements SQLInterface {
 			try {
 				statement = connection.prepareStatement(sql);
 			} catch(SQLException e) {
+				e.printStackTrace();
 				throw new SQLInterfaceException(e);
 			}
 		}
@@ -67,16 +69,20 @@ public class JDBCSQLite implements SQLInterface {
 			try {
 				statement.setString(index, value);
 			} catch(SQLException e) {
+				e.printStackTrace();
 				throw new SQLInterfaceException(e);
 			}
 		}
 		
 		public void bindArrayOfStrings(String[] strings) throws SQLInterfaceException {
 			for(int i = 0 ; i < strings.length ; i ++) {
-				bindString(i, strings[i]);
+				Client.log.i(strings[i]);
+				bindString(i + 1, strings[i]);
 			}
 		}
-		
+		public String toString() {
+			return statement.toString();
+		}
 		@Override
 		public SQLInterface.Cursor executeQuery() throws SQLInterfaceException {
 			try {
