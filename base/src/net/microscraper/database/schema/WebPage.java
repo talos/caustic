@@ -54,7 +54,7 @@ public class WebPage extends Resource {
 		return (WebPageExecution) executions.get(caller);
 	}
 
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
 		WebPageExecution exc = getExecution(null);
 		exc.addVariables(extraVariables);
 		return exc.execute();

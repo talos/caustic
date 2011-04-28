@@ -88,11 +88,11 @@ public class Scraper extends Resource {
 		return compoundStatus;
 	}
 	
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
 		return execute(null, extraVariables);
 	}
 	
-	public Status execute(Execution caller) throws ResourceNotFoundException {
+	public Status execute(Execution caller) throws ResourceNotFoundException, InterruptedException {
 		return execute(caller, null);
 	}
 	
@@ -139,7 +139,7 @@ public class Scraper extends Resource {
 		public String match() {
 			return match;
 		}
-		protected Status privateExecute() throws ResourceNotFoundException {
+		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
 			return Status.SUCCESSFUL;
 		}
 		public String getPublishValue() {
@@ -155,20 +155,20 @@ public class Scraper extends Resource {
 
 			sourceWebPageExecution = webPage.getExecution(getSourceExecution());
 		}
-		protected Status privateExecute() {
+		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
 			Status status = Status.SUCCESSFUL;
 			try {
 				if(sourceWebPageExecution.execute() == Status.SUCCESSFUL) {
 					try {
-						execute(sourceWebPageExecution.load());
+						this.execute(sourceWebPageExecution.load());
 					} catch(NoMatches e) {
-						status = Status.FAILURE;
+						status.join(Status.FAILURE);
 					}
 				} else {
-					status = Status.IN_PROGRESS;
+					status.join(Status.IN_PROGRESS);
 				}
 			} catch (MissingVariable e) {
-				status = Status.IN_PROGRESS;
+				status.join(Status.IN_PROGRESS);
 			}
 			return status;
 		}
@@ -181,18 +181,17 @@ public class Scraper extends Resource {
 			super(scraper, caller, regexp);
 			this.sourceScraper = sourceScraper;
 		}
-		protected Status privateExecute() throws ResourceNotFoundException {
+		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
 			Status status = Status.SUCCESSFUL;
 			if(sourceScraper.execute(getSourceExecution()) == Status.SUCCESSFUL) {
 				ScraperExecution[] sourceScraperExecutions = sourceScraper.getExecutions(getSourceExecution());
 				for(int i = 0 ; i < sourceScraperExecutions.length ; i ++) {
 					try {
-						execute(sourceScraperExecutions[i].match());
+						this.execute(sourceScraperExecutions[i].match());
 					} catch(MissingVariable e) {
-						// FAILURE TRUMPS PROGRESS
-						status = status == Status.FAILURE ? status : Status.IN_PROGRESS;
+						status.join(Status.IN_PROGRESS);
 					} catch(NoMatches e) {
-						status = Status.FAILURE;
+						status.join(Status.FAILURE);
 					}
 				}
 			}

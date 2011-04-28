@@ -34,8 +34,7 @@ public class Client {
 		return instance;
 	}
 	
-	public void scrape(String json_url, Reference ref, Variables extraVariables)
-					throws MicroScraperClientException {
+	public void scrape(String json_url, Reference ref, Variables extraVariables) {
 		//ResultRoot root = new ResultRoot();
 		String raw_obj;
 		try {
@@ -43,16 +42,6 @@ public class Client {
 			
 			raw_obj = browser.load(json_url);
 			log.i("Raw scraping JSON: " + raw_obj);
-		} catch(BrowserException e) {
-			log.e(e);
-			throw new MicroScraperClientException(e);
-		} catch(InterruptedException e) {
-			log.e(e);
-			throw new MicroScraperClientException(e);
-		}
-		
-		try {
-			//root.addVariables(extraVariables);
 			db.inflate(json.getTokener(raw_obj).nextValue());
 			Resource resource = db.get(ref);
 			
@@ -63,10 +52,12 @@ public class Client {
 			}
 		}  catch(JSONInterfaceException e) {
 			log.e(e);
-			throw new MicroScraperClientException(e);
 		} catch(DatabaseException e) {
 			log.e(e);
-			throw new MicroScraperClientException(e);
+		} catch (InterruptedException e) {
+			log.e(e);
+		} catch (BrowserException e) {
+			log.e(e);
 		}
 	}
 	
