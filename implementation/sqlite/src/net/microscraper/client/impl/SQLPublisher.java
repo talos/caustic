@@ -1,6 +1,5 @@
 package net.microscraper.client.impl;
 
-import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.database.Execution;
@@ -66,8 +65,7 @@ public class SQLPublisher implements Publisher {
 						Integer.toString(status.code),
 						name, value });
 		} catch(SQLInterfaceException e) {
-			Client.log.e(e);
-			throw new PublisherException();
+			throw new PublisherException(e);
 		}
 	}
 

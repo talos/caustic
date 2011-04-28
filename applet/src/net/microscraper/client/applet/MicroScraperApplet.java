@@ -94,7 +94,7 @@ public class MicroScraperApplet extends Applet {
 	
 	public String nextExecution() {
 		try {
-			return publisher.next().getPublishName();
+			return publisher.next();
 		} catch(Throwable e) {
 			Client.log.e(e);
 		}

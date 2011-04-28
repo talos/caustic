@@ -1,10 +1,13 @@
 package net.microscraper.client.impl;
 
+import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.client.Client;
+import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Publisher;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.Status;
 
 public class ThreadSafeJSONPublisher implements Publisher {
 	Vector executions = new Vector();
@@ -23,11 +26,25 @@ public class ThreadSafeJSONPublisher implements Publisher {
 		return executions.size();
 	}
 	
-	public Execution get(int executionNumber) {
-		return (Execution) executions.elementAt(executionNumber);
+	public String get(int executionNumber) throws PublisherException {
+		Execution exc = (Execution) executions.elementAt(executionNumber);
+		Hashtable hash = new Hashtable();
+		hash.put("id", Integer.toString(exc.id));
+		hash.put("source_id", Integer.toString(exc.getSourceExecution().id));
+		Status status = exc.getStatus();
+		hash.put("status_code", Integer.toString(status.code));
+		hash.put("name", exc.getPublishName());
+		if(status == Status.SUCCESSFUL) {
+			hash.put("value", exc.getPublishValue());
+		}
+		try {
+			return Client.json.toJSON(hash);
+		} catch(JSONInterfaceException e) {
+			throw new PublisherException(e);
+		}
 	}
 	
-	public Execution next() {
+	public String next() throws PublisherException {
 		if(size() > loc) {
 			loc++;
 			return get(loc - 1);

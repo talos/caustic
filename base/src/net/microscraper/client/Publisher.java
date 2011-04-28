@@ -7,6 +7,10 @@ public interface Publisher {
 
 	public class PublisherException extends Exception {
 
+		public PublisherException(Throwable e) {
+			super(e);
+		}
+
 		/**
 		 * 
 		 */
