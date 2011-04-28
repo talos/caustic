@@ -28,7 +28,7 @@ public class Client {
 		Client.json = json;
 		Client.publisher = publisher;
 		for(int i = 0; i < loggers.length ; i ++) {
-			Client.log.register(loggers[i]);
+			log.register(loggers[i]);
 		}
 		
 		return instance;
@@ -38,7 +38,7 @@ public class Client {
 		//ResultRoot root = new ResultRoot();
 		String raw_obj;
 		try {
-			Client.log.i("Scraping '" + ref.toString() + "' from JSON loaded from " + json_url);
+			log.i("Scraping '" + ref.toString() + "' from JSON loaded from " + json_url);
 			
 			raw_obj = browser.load(json_url);
 			log.i("Raw scraping JSON: " + raw_obj);

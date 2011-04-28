@@ -9,7 +9,6 @@ import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
-import net.microscraper.database.Database.DatabaseException;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Execution.Status;

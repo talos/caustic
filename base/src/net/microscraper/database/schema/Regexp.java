@@ -48,7 +48,6 @@ public class Regexp extends Resource {
 	public static final class RegexpExecution extends ResourceExecution {
 		private Pattern pattern;
 		private final Integer matchNumber;
-		private Status status = Status.IN_PROGRESS;
 		protected RegexpExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
 			super(resource, caller);
 			String matchNumberString = resource.getAttributeValueRaw(MATCH_NUMBER);

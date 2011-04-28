@@ -1,7 +1,5 @@
 package net.microscraper.database.schema;
 
-import java.util.Hashtable;
-
 import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
