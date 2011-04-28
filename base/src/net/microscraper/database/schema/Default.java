@@ -1,14 +1,12 @@
 package net.microscraper.database.schema;
 
-import java.util.Hashtable;
-
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.FatalExecutionException;
 import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
@@ -19,7 +17,7 @@ public class Default extends Resource {
 	private static final RelationshipDefinition SUBSTITUTED_SCRAPERS =
 		new RelationshipDefinition( "scrapers", Scraper.class );
 	
-	private final Hashtable executions = new Hashtable();
+	private final HashtableWithNulls executions = new HashtableWithNulls();
 	
 	public ModelDefinition definition() {
 		return new ModelDefinition() {
@@ -38,7 +36,7 @@ public class Default extends Resource {
 		return (DefaultExecution) executions.get(caller);
 	}
 
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException, FatalExecutionException {
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
 		DefaultExecution exc = getExecution(null);
 		exc.addVariables(extraVariables);
 		return exc.execute();
@@ -47,7 +45,6 @@ public class Default extends Resource {
 	public class DefaultExecution extends ResourceExecution {
 		private Resource[] substitutedScrapers;
 		private String value;
-		private Status status = Status.IN_PROGRESS;
 		protected DefaultExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
 			super(resource, caller);
 			substitutedScrapers = getRelatedResources(SUBSTITUTED_SCRAPERS);
@@ -61,24 +58,18 @@ public class Default extends Resource {
 			return null;
 		}
 		
-		protected Status execute() throws FatalExecutionException {
-			status = Status.SUCCESSFUL;
+		protected Status privateExecute() throws ResourceNotFoundException {
 			try {
-				try {
-					value = getAttributeValue(VALUE);
-				} catch(MissingVariable e) {
-					status = Status.IN_PROGRESS;
-				}
-				for(int i = 0 ; i < substitutedScrapers.length ; i++) {
-					((Scraper) substitutedScrapers[i]).substitute(value);
-				}
+				value = getAttributeValue(VALUE);
+			} catch(MissingVariable e) {
+				return Status.IN_PROGRESS;
 			} catch(TemplateException e) {
-				throw new FatalExecutionException(e);
+				return Status.FAILURE;
 			}
-			return status;
-		}
-		public Status getStatus() {
-			return status;
+			for(int i = 0 ; i < substitutedScrapers.length ; i++) {
+				((Scraper) substitutedScrapers[i]).substitute(value);
+			}
+			return Status.SUCCESSFUL;
 		}
 
 		public String getPublishValue() {

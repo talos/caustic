@@ -1,11 +1,10 @@
 package net.microscraper.database.schema;
 
-import java.util.Hashtable;
 import java.util.Vector;
 
-import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache.MissingVariable;
+import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
@@ -19,7 +18,7 @@ import net.microscraper.database.schema.Regexp.RegexpExecution;
 import net.microscraper.database.schema.WebPage.WebPageExecution;
 
 public class Scraper extends Resource {
-	protected final Hashtable executions = new Hashtable();
+	protected final HashtableWithNulls executions = new HashtableWithNulls();
 	
 	private static final RelationshipDefinition WEB_PAGES =
 		new RelationshipDefinition( "web_pages", WebPage.class );

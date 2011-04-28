@@ -26,7 +26,6 @@ public class MicroScraperConsole {
 		new MicroScraperConsole(args);
 	}
 	public MicroScraperConsole(String[] args) {
-		
 		if(args.length < 3) {
 			log.i("Proper use: microscraperconsole <url> <model> <resource> <defaults>");
 		} else {

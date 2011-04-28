@@ -8,11 +8,11 @@ import net.microscraper.database.Execution.Status;
 
 public class SQLPublisher implements Publisher {
 	
-	public static final String TABLE_NAME = "results";
+	public static final String TABLE_NAME = "executions";
 		
-	public static final String CALLER_ID = "caller_id";
+	public static final String SOURCE_ID = "source_id";
 	public static final String ID = "id";
-	//public static final String REF = "ref";
+	public static final String STATUS_CODE = "status_code";
 	public static final String NAME = "name";
 	public static final String VALUE = "value";
 	
@@ -22,18 +22,18 @@ public class SQLPublisher implements Publisher {
 		
 		try {
 			String create_table_sql = "CREATE TABLE " + inter.quoteField(TABLE_NAME) + " (" +
-				inter.quoteField(CALLER_ID) + " " + inter.intColumnType() + ", " +
+				inter.quoteField(SOURCE_ID) + " " + inter.intColumnType() + ", " +
 				inter.quoteField(ID) + " " + inter.idColumnType() + " " + inter.keyColumnDefinition() + ", " +
-			//	inter.quoteField(REF) + " " + inter.dataColumnType() + ", " + 
+				inter.quoteField(STATUS_CODE) + " " + inter.intColumnType() + ", " +
 				inter.quoteField(NAME) + " " + inter.dataColumnType() + ", " + 
 				inter.quoteField(VALUE) + " " + inter.dataColumnType() + " )";
 			inter.execute(create_table_sql);
 		} catch(SQLInterfaceException e) {
 			// The table might already exist.
 			try {
-				inter.query("SELECT " + inter.quoteField(CALLER_ID) +
+				inter.query("SELECT " + inter.quoteField(SOURCE_ID) +
 					inter.quoteField(ID) +
-			//		inter.quoteField(REF) +
+					inter.quoteField(STATUS_CODE) + 
 					inter.quoteField(NAME) +
 					inter.quoteField(VALUE) +
 					" FROM " + inter.quoteField(TABLE_NAME));
@@ -47,21 +47,29 @@ public class SQLPublisher implements Publisher {
 	
 	public void publish(Execution execution) throws PublisherException {
 		try {
-			if(execution.getStatus() == Status.SUCCESSFUL) {
-				String insert_sql = "INSERT INTO " + inter.quoteField(TABLE_NAME) + " (" +
-					inter.quoteField(CALLER_ID) + ", " +
-					inter.quoteField(ID) + ", " + 
-			//		inter.quoteField(REF) + ", " +
-					inter.quoteField(NAME) + ", " +
-					inter.quoteField(VALUE) +
-					") VALUES (" + 
-					inter.quoteValue(Integer.toString(execution.getSourceExecution().id)) + ", " +
-					inter.quoteValue(Integer.toString(execution.id)) + ", " +
-			//		inter.quoteValue(execution.ref.toString()) + ", " +
-					inter.quoteValue(execution.getPublishName()) + ", " +
-					inter.quoteValue(execution.getPublishValue()) + " )";
-				inter.execute(insert_sql);
-			}
+			// delete existing entry
+			String delete_sql = "DELETE FROM " + inter.quoteField(TABLE_NAME) + " WHERE " +
+				inter.quoteField(SOURCE_ID) + " = "
+						+ inter.quoteValue(Integer.toString(execution.getSourceExecution().id)) +
+				inter.quoteField(ID) + " = " + inter.quoteValue(Integer.toString(execution.id));
+			inter.execute(delete_sql);
+			
+			Status status = execution.getStatus();
+			String insert_sql = "INSERT INTO " + inter.quoteField(TABLE_NAME) + " (" +
+				inter.quoteField(SOURCE_ID) + ", " +
+				inter.quoteField(ID) + ", " + 
+				inter.quoteField(STATUS_CODE) + ", " +
+				inter.quoteField(NAME) + ", " +
+				inter.quoteField(VALUE) +
+				") VALUES (" + 
+				inter.quoteValue(Integer.toString(execution.getSourceExecution().id)) + ", " +
+				inter.quoteValue(Integer.toString(execution.id)) + ", " +
+				inter.quoteValue(Integer.toString(execution.getStatus().code)) + ", " +
+				// insert NULL for name if incomplete.
+				(status == Status.SUCCESSFUL ? inter.quoteValue(execution.getPublishName()) : inter.nullValue() ) + ", " +
+				// insert NULL for value if incomplete.
+				(status == Status.SUCCESSFUL ? inter.quoteValue(execution.getPublishValue()): inter.nullValue() ) + " )";
+			inter.execute(insert_sql);
 		} catch(SQLInterfaceException e) {
 			Client.log.e(e);
 			throw new PublisherException();

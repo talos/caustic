@@ -132,51 +132,29 @@ public class Utils {
 		}
 	}
 	
-	/**
-	 * Copy all values from a Hashtable into an array.
-	 * @param hashtable
-	 * @param keys
-	 * @param array 
-	 * @return
-	 *//*
-	public static void hashtableValues(Hashtable hashtable, Object[] array) {
-		Enumeration keys = hashtable.keys();
-		int i = 0;
-		while(keys.hasMoreElements()) {
-			Object key = keys.nextElement();
-			array[i] = hashtable.get(key);
-			i++;
+	public static class HashtableWithNulls {
+		private final Hashtable hashtable = new Hashtable();
+		private boolean objectAtNullAssigned = false;
+		private Object objectAtNull = null;
+		public boolean containsKey(Object key) {
+			if(key == null)
+				return objectAtNullAssigned;
+			else
+				return hashtable.containsKey(key);
 		}
-	}*/
-
-	/**
-	 * Copy all keys from a Hashtable into an array.
-	 * @param hashtable
-	 * @param keys
-	 * @param array 
-	 * @return
-	 */
-	/*
-	public static void hashtableKeys(Hashtable hashtable, Object[] array) {
-		Enumeration keys = hashtable.keys();
-		int i = 0;
-		while(keys.hasMoreElements()) {
-			i++;
-			array[i] = keys.nextElement();
+		public void put(Object key, Object value) {
+			if(key == null) {
+				objectAtNull = value;
+				objectAtNullAssigned = true;
+			} else {
+				hashtable.put(key, value);
+			}
 		}
-	}*/
-	
-	/**
-	 * Copy a selection of keys from a Hashtable into another array.
-	 * @param hashtable
-	 * @param keys
-	 * @param array 
-	 * @return
-	 */
-	/*
-	public static void selectHashtableValuesIntoArray(Hashtable hashtable, Object[] keys, Object[] array) {
-		for(int i = 0; i < keys.length; i++) {
-			array[i] = hashtable.get(keys[i]);
+		public Object get(Object key) {
+			if(key == null)
+				return objectAtNull;
+			else
+				return hashtable.get(key);
 		}
-	}*/
+	}
 }

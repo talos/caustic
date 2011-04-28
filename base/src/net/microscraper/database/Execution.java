@@ -2,17 +2,19 @@ package net.microscraper.database;
 
 import java.util.Vector;
 
+import net.microscraper.client.Client;
+import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.client.Variables;
+import net.microscraper.database.Database.ResourceNotFoundException;
 
 public abstract class Execution {
-	
 	private static int count = 0;
+
 	private final Vector calledExecutions = new Vector();
-	public final int id;
 	private final Variables extraVariables = new Variables();
-		
-	//private final Execution source;
-	private final Execution caller;
+	private final Execution caller;	
+	private Status status = Status.IN_PROGRESS;
+	public final int id;
 	protected Execution(Execution caller) {
 		id = count++;
 		this.caller = caller;
@@ -55,11 +57,24 @@ public abstract class Execution {
 	
 	protected abstract boolean isOneToMany();
 	protected abstract Variables getLocalVariables();
-	public abstract Status getStatus();
 	public abstract String getPublishName();
 	public abstract String getPublishValue();
-	protected abstract Status execute() throws FatalExecutionException;
-
+	public final Status getStatus() {
+		return status;
+	}
+	public final Status execute() throws ResourceNotFoundException {
+		if(status == Status.IN_PROGRESS) {
+			status = privateExecute();
+		}
+		try {
+			Client.publisher.publish(this);
+		} catch(PublisherException e) {
+			Client.log.e(e);
+		}
+		return status;
+	}
+	protected abstract Status privateExecute() throws ResourceNotFoundException;
+	
 	public final boolean equals(Object obj) {
 		if(this == obj)
 			return true;
@@ -69,21 +84,25 @@ public abstract class Execution {
 			return true;
 		return false;
 	}
+	
 	public final int hashCode() {
 		return id;
 	}
-	public final static class Status {
-		public static Status SUCCESSFUL = new Status();
-		public static Status IN_PROGRESS = new Status();
-		public static Status FAILURE = new Status();
-	}
 	
-	public static final class FatalExecutionException extends Exception {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -567465590016762238L;
-		public FatalExecutionException(Throwable e) { super(e); }
+	public final static class Status {
+		public final int code;
+		private Status(int code) {
+			this.code = code;
+		}
+		public static Status SUCCESSFUL = new Status(0);
+		public static Status IN_PROGRESS = new Status(1);
+		public static Status FAILURE = new Status(2);
+		public Status join(Status other) {
+			if(this == Status.FAILURE || other == Status.FAILURE)
+				return Status.FAILURE;
+			if(this == Status.IN_PROGRESS || other == Status.IN_PROGRESS)
+				return Status.IN_PROGRESS;
+			return Status.SUCCESSFUL;
+		}
 	}
 }

@@ -6,6 +6,7 @@ import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.DatabaseException;
@@ -20,7 +21,7 @@ import net.microscraper.database.schema.AbstractHeader.AbstractHeaderExecution;
 import net.microscraper.database.schema.Regexp.RegexpExecution;
 
 public class WebPage extends Resource {
-	private final Hashtable executions = new Hashtable();
+	private final HashtableWithNulls executions = new HashtableWithNulls();
 	
 	private static final AttributeDefinition URL = new AttributeDefinition("url");
 	
@@ -46,7 +47,7 @@ public class WebPage extends Resource {
 			}
 		};
 	}
-
+	
 	protected WebPageExecution getExecution(Execution caller) throws ResourceNotFoundException {
 		if(!executions.containsKey(caller)) {
 			executions.put(caller, new WebPageExecution(this, caller));

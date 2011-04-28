@@ -1,17 +1,15 @@
 package net.microscraper.database.schema;
 
-import java.util.Hashtable;
-
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.FatalExecutionException;
 import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
@@ -20,7 +18,7 @@ import net.microscraper.database.Resource;
 public class Regexp extends Resource {
 	private static final AttributeDefinition REGEXP = new AttributeDefinition("regexp");
 	private static final AttributeDefinition MATCH_NUMBER = new AttributeDefinition("match_number");
-	private final Hashtable executions = new Hashtable();
+	private final HashtableWithNulls executions = new HashtableWithNulls();
 		
 	public ModelDefinition definition() {
 		return new ModelDefinition() {	
@@ -41,7 +39,7 @@ public class Regexp extends Resource {
 		return (RegexpExecution) executions.get(caller);
 	}
 	
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException, FatalExecutionException {
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
 		RegexpExecution exc = getExecution(null);
 		exc.addVariables(extraVariables);
 		return exc.execute();
@@ -71,24 +69,18 @@ public class Regexp extends Resource {
 			return new Variables();
 		}
 		
-		protected Status execute() throws FatalExecutionException {
+		protected Status privateExecute() {
 			try {
 				pattern = Client.regexp.compile(getAttributeValue(REGEXP));
-				status = Status.SUCCESSFUL;
+				return Status.SUCCESSFUL;
 			} catch (MissingVariable e) {
-				status = Status.IN_PROGRESS;
+				return Status.IN_PROGRESS;
 			} catch (TemplateException e) {
-				status = Status.FAILURE;
+				return Status.FAILURE;
 			}
-			return status;
-		}
-		public Status getStatus() {
-			return status;
 		}
 		
-		public boolean matches(String input) throws MissingVariable, FatalExecutionException {
-			if(pattern == null)
-				execute();
+		public boolean matches(String input) throws MissingVariable {
 			if(matchNumber != null) {
 				try {
 					pattern.match(input, matchNumber.intValue());
@@ -101,9 +93,7 @@ public class Regexp extends Resource {
 			}
 		}
 		
-		public String[] allMatches(String input) throws NoMatches, MissingVariable, FatalExecutionException {
-			if(pattern == null)
-				execute();
+		public String[] allMatches(String input) throws NoMatches, MissingVariable {
 			if(matchNumber != null) {
 				return new String[] { pattern.match(input, matchNumber.intValue()) };
 			} else {
