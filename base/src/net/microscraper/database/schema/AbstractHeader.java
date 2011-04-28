@@ -27,7 +27,7 @@ public class AbstractHeader extends Resource {
 		return new AbstractHeaderExecution(this, caller);
 	}
 
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
 		AbstractHeaderExecution exc = getExecution(null);
 		exc.addVariables(extraVariables);
 		return exc.execute();

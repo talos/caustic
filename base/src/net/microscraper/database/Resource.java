@@ -40,7 +40,7 @@ public abstract class Resource {
 	}
 	
 	public abstract ModelDefinition definition();
-	public abstract Status execute(Variables extraVariables) throws ResourceNotFoundException;
+	public abstract Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException;
 	
 	protected static abstract class ResourceExecution extends Execution {
 		private final Resource resource;

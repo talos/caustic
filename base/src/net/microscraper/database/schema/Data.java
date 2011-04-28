@@ -37,7 +37,7 @@ public class Data extends Resource {
 		return (DataExecution) executions.get(caller);
 	}
 
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
 		DataExecution exc = getExecution(null);
 		exc.addVariables(extraVariables);
 		return exc.execute();
@@ -64,7 +64,7 @@ public class Data extends Resource {
 			return null;
 		}
 		
-		protected Status privateExecute() throws ResourceNotFoundException {
+		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
 			Status status = Status.SUCCESSFUL;
 			for(int i = 0 ; i < defaults.length ; i ++ ) {
 				status.join(defaults[i].execute());

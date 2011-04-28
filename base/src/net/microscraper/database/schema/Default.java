@@ -36,7 +36,7 @@ public class Default extends Resource {
 		return (DefaultExecution) executions.get(caller);
 	}
 
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
 		DefaultExecution exc = getExecution(null);
 		exc.addVariables(extraVariables);
 		return exc.execute();

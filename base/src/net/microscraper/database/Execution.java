@@ -62,7 +62,7 @@ public abstract class Execution {
 	public final Status getStatus() {
 		return status;
 	}
-	public final Status execute() throws ResourceNotFoundException {
+	public final Status execute() throws ResourceNotFoundException, InterruptedException {
 		if(status == Status.IN_PROGRESS) {
 			status = privateExecute();
 		}
@@ -73,7 +73,7 @@ public abstract class Execution {
 		}
 		return status;
 	}
-	protected abstract Status privateExecute() throws ResourceNotFoundException;
+	protected abstract Status privateExecute() throws ResourceNotFoundException, InterruptedException;
 	
 	public final boolean equals(Object obj) {
 		if(this == obj)

@@ -9,7 +9,6 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.FatalExecutionException;
 import net.microscraper.database.Execution.Status;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
@@ -77,24 +76,23 @@ public class Scraper extends Resource {
 		return executionsAry;
 	}
 	
-	private Status execute(Execution caller, Variables extraVariables) throws ResourceNotFoundException, FatalExecutionException {
+	private Status execute(Execution caller, Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
 		ScraperExecution[] scrapers = getExecutions(caller);
 		Status compoundStatus = Status.IN_PROGRESS;
 		for(int i = 0 ; i < scrapers.length ; i++) {
-			if(extraVariables != null)
+			if(extraVariables != null) {
 				scrapers[i].addVariables(extraVariables);
-			if(compoundStatus != Status.FAILURE) {
-				compoundStatus = scrapers[i].execute();
 			}
+			compoundStatus.join(scrapers[i].execute());
 		}
 		return compoundStatus;
 	}
 	
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException, FatalExecutionException {
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
 		return execute(null, extraVariables);
 	}
 	
-	public Status execute(Execution caller) throws ResourceNotFoundException, FatalExecutionException {
+	public Status execute(Execution caller) throws ResourceNotFoundException {
 		return execute(caller, null);
 	}
 	
@@ -103,7 +101,6 @@ public class Scraper extends Resource {
 		//private final Hashtable matches = new Hashtable();
 		private String match;
 		private final Scraper scraper;
-		private Status status = Status.IN_PROGRESS;
 		private ScraperExecution(Scraper scraper, Execution caller, Regexp regexp) throws ResourceNotFoundException {
 			super(scraper, caller);
 			this.scraper = scraper;
@@ -116,7 +113,6 @@ public class Scraper extends Resource {
 		}
 		private ScraperExecution(Scraper scraper, Execution caller, String match) {
 			super(scraper, caller);
-			this.status = Status.SUCCESSFUL;
 			this.match = match;
 			this.scraper = scraper;
 		}
@@ -133,9 +129,8 @@ public class Scraper extends Resource {
 			}
 		}
 		// Replicate once we have a source.
-		protected void execute(String source) throws NoMatches, MissingVariable, FatalExecutionException {
+		protected void execute(String source) throws NoMatches, MissingVariable {
 			String[] matches = regexpExecution.allMatches(source);
-			status = Status.SUCCESSFUL;
 			match = matches[0];
 			for(int i = 1 ; i < matches.length ; i ++) {
 				new ScraperExecution(scraper, getSourceExecution(), matches[i]);
@@ -144,11 +139,8 @@ public class Scraper extends Resource {
 		public String match() {
 			return match;
 		}
-		protected Status execute() throws FatalExecutionException {
-			return status;
-		}
-		public Status getStatus() {
-			return status;
+		protected Status privateExecute() throws ResourceNotFoundException {
+			return Status.SUCCESSFUL;
 		}
 		public String getPublishValue() {
 			return match;
@@ -157,15 +149,14 @@ public class Scraper extends Resource {
 	
 	private static class ScraperExecutionFromWebPage extends ScraperExecution {
 		private final WebPageExecution sourceWebPageExecution;
-		private Status status = Status.IN_PROGRESS;
 		private ScraperExecutionFromWebPage(Scraper scraper, Execution caller, Regexp regexp, WebPage webPage)
 				throws ResourceNotFoundException {
 			super(scraper, caller, regexp);
 
 			sourceWebPageExecution = webPage.getExecution(getSourceExecution());
 		}
-		protected Status execute() throws FatalExecutionException {
-			status = Status.SUCCESSFUL;
+		protected Status privateExecute() {
+			Status status = Status.SUCCESSFUL;
 			try {
 				if(sourceWebPageExecution.execute() == Status.SUCCESSFUL) {
 					try {
@@ -184,32 +175,28 @@ public class Scraper extends Resource {
 	}
 	
 	private static class ScraperExecutionFromScraper extends ScraperExecution {
-		private Status status = Status.IN_PROGRESS;
 		private final Scraper sourceScraper;
 		private ScraperExecutionFromScraper(Scraper scraper, Execution caller, Regexp regexp, Scraper sourceScraper)
 				throws ResourceNotFoundException {
 			super(scraper, caller, regexp);
 			this.sourceScraper = sourceScraper;
 		}
-		protected Status execute() throws FatalExecutionException {
-			status = Status.SUCCESSFUL;
-			try {
-				if(sourceScraper.execute(getSourceExecution()) == Status.SUCCESSFUL) {
-					ScraperExecution[] sourceScraperExecutions = sourceScraper.getExecutions(getSourceExecution());
-					for(int i = 0 ; i < sourceScraperExecutions.length ; i ++) {
-						try {
-							execute(sourceScraperExecutions[i].match());
-						} catch(MissingVariable e) {
-							// FAILURE TRUMPS PROGRESS
-							status = status == Status.FAILURE ? status : Status.IN_PROGRESS;
-						} catch(NoMatches e) {
-							status = Status.FAILURE;
-						}
+		protected Status privateExecute() throws ResourceNotFoundException {
+			Status status = Status.SUCCESSFUL;
+			if(sourceScraper.execute(getSourceExecution()) == Status.SUCCESSFUL) {
+				ScraperExecution[] sourceScraperExecutions = sourceScraper.getExecutions(getSourceExecution());
+				for(int i = 0 ; i < sourceScraperExecutions.length ; i ++) {
+					try {
+						execute(sourceScraperExecutions[i].match());
+					} catch(MissingVariable e) {
+						// FAILURE TRUMPS PROGRESS
+						status = status == Status.FAILURE ? status : Status.IN_PROGRESS;
+					} catch(NoMatches e) {
+						status = Status.FAILURE;
 					}
 				}
-			} catch(ResourceNotFoundException e) {
-				throw new FatalExecutionException(e); 
 			}
+
 			return status;
 		}
 	}

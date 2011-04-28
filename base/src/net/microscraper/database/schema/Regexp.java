@@ -39,7 +39,7 @@ public class Regexp extends Resource {
 		return (RegexpExecution) executions.get(caller);
 	}
 	
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException {
+	public Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
 		RegexpExecution exc = getExecution(null);
 		exc.addVariables(extraVariables);
 		return exc.execute();
