@@ -1,5 +1,8 @@
 package net.microscraper.client;
 
+import net.microscraper.database.Execution;
+import net.microscraper.database.Status.DelayExecution;
+
 /**
  * Mustache-like substitutions from Variables.
  * This does not currently support any commenting.
@@ -18,7 +21,7 @@ public class Mustache {
 	 * @throws TemplateException The template was invalid.
 	 * @throws MissingVariable The Variables instance was missing a variable.
 	 */
-	public static String compile(String template, Variables variables)
+	public static String compile(Execution caller, String template, Variables variables)
 				throws TemplateException, MissingVariable {
 		int close_tag_pos = 0;
 		int open_tag_pos;
@@ -39,7 +42,7 @@ public class Mustache {
 			if(variables.containsKey(tag))
 				result += variables.get(tag);
 			else
-				throw new MissingVariable(tag, variables);
+				throw new MissingVariable(caller, tag, variables);
 		}
 		return result + template.substring(close_tag_pos);
 	}
@@ -54,18 +57,32 @@ public class Mustache {
 		public TemplateException(String msg) { super(msg); }
 	}
 	
-	public static class MissingVariable extends Exception {
+	public static class MissingVariable extends Exception implements DelayExecution {
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 8720790457856091375L;
-		public final String missing_tag;
-		public MissingVariable(String missing_tag, Variables variables) {
-			//Client.log.i("Variable " + missing_tag + " is missing from variables " + variables.toString() + ", cannot compile template.");
-			this.missing_tag = missing_tag;
+		public final String missingVariable;
+		private final Execution caller;
+		public MissingVariable(Execution caller, String missingVariable, Variables variables) {
+			this.missingVariable = missingVariable;
+			this.caller = caller;
 		}
-		public String toString() {
-			return missing_tag;
+		public Execution callerExecution() {
+			return caller;
+		}
+		public String reason() {
+			return "Missing variable " + missingVariable;
+		}
+		public boolean equals(Object obj) {
+			if(obj == this)
+				return true;
+			if(!(obj instanceof MissingVariable))
+				return false;
+			MissingVariable other = (MissingVariable) obj;
+			if(this.caller.equals(other.caller) && this.missingVariable.equals(other.missingVariable))
+				return true;
+			return false;
 		}
 	}
 }

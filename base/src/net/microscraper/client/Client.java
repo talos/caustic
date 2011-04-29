@@ -11,6 +11,7 @@ import net.microscraper.database.Database;
 import net.microscraper.database.Reference;
 import net.microscraper.database.Resource;
 import net.microscraper.database.Status;
+import net.microscraper.database.Status.DelayExecution;
 import net.microscraper.database.Status.InProgress;
 
 public class Client {
@@ -55,8 +56,8 @@ public class Client {
 				lastStatus = curStatus;
 				curStatus = resource.execute(extraVariables);
 				if(lastStatus.isInProgress() && curStatus.isInProgress()) {
-					MissingVariable[] lastMissingVariables = ((Status.InProgress) lastStatus).getMissingVariables();
-					MissingVariable[] curMissingVariables = ((Status.InProgress) curStatus).getMissingVariables();
+					DelayExecution[] lastMissingVariables = ((Status.InProgress) lastStatus).getDelays();
+					DelayExecution[] curMissingVariables = ((Status.InProgress) curStatus).getDelays();
 					if(Utils.arraysEqual(lastMissingVariables, curMissingVariables))
 						break;
 				}

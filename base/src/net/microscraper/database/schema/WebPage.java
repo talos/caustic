@@ -88,9 +88,16 @@ public class WebPage extends Resource {
 		}
 
 		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException, TemplateException, MissingVariable, BrowserException {
+			// terminate prematurely if we can't do all login web pages.
 			Resource[] loginWebPages = getRelatedResources(LOGIN_WEB_PAGES);
 			for(int i = 0 ; i < loginWebPages.length ; i ++) {
-				((WebPage) loginWebPages[i]).getExecution(getSourceExecution()).execute();
+				Status priorPageStatus = ((WebPage) loginWebPages[i]).getExecution(getSourceExecution()).execute();
+				
+				// wait if prior page is in progress, fail if it failed.
+				if(priorPageStatus.isInProgress())
+					return waitingFor(loginWebPages[i]);
+				if(priorPageStatus.isFailure())
+					return priorPageStatus;
 			}
 			
 			Hashtable posts = resourcesToHashtable(getRelatedResources(POSTS));
@@ -101,9 +108,13 @@ public class WebPage extends Resource {
 			Pattern[] terminates = new Pattern[terminatesResources.length];
 			for(int i = 0 ; i < terminatesResources.length; i ++) {
 				RegexpExecution exc = ((Regexp) terminatesResources[i]).getExecution(getSourceExecution());
-				terminates[i] = Client.regexp.compile(
-						((Status.Successful) exc.privateExecute()).getResult());
-				//terminatesResource = terminatesResources[i].(getSourceExecution()).privateExecute();
+				Status regexpStatus = exc.execute();
+				
+				if(regexpStatus.isInProgress())
+					return waitingFor(terminatesResources[i]);
+				if(regexpStatus.isFailure())
+					return regexpStatus;
+				terminates[i] = Client.regexp.compile(regexpStatus.getResult());
 			}
 			webPageString = Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
 			return new Status.Successful(webPageString);

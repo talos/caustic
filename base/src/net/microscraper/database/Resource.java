@@ -57,7 +57,11 @@ public abstract class Resource {
 
 		protected final String getAttributeValue(AttributeDefinition def)
 					throws TemplateException, MissingVariable {
-			return (String) Mustache.compile(resource.getStringAttribute(def), getVariables());
+			return (String) Mustache.compile(this, resource.getStringAttribute(def), getVariables());
+		}
+		// Generate a WaitingForPrerequisite status for this resource.
+		protected Status waitingFor(Resource resource) {
+			return new Status.InProgress(new Status.WaitingForPrerequisite(this, resource));
 		}
 	}
 }

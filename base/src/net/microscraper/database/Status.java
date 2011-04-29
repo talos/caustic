@@ -2,7 +2,6 @@ package net.microscraper.database;
 
 import java.util.Vector;
 
-import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Utils;
 
 public abstract class Status {
@@ -60,42 +59,42 @@ public abstract class Status {
 		}
 	}
 	public static final class InProgress extends Status {
-		Vector missingVariables = new Vector();
+		Vector delays = new Vector();
 		public InProgress() {
 			super(IN_PROGRESS_CODE, IN_PROGRESS_STRING);
 		}
-		public InProgress(MissingVariable e) {
+		public InProgress(DelayExecution e) {
 			super(IN_PROGRESS_CODE, IN_PROGRESS_STRING);
-			missingVariables.addElement(e);
+			delays.addElement(e);
 		}
 		public Status merge(Status other) {
 			if(other.code == FAILURE_CODE) // Failure trumps all.
 				return other;
 			if(other.code == IN_PROGRESS_CODE) {
-				Utils.arrayIntoVector(((InProgress) other).getMissingVariables(), this.missingVariables);
+				Utils.arrayIntoVector(((InProgress) other).getDelays(), this.delays);
 			}
-			if(other.code == SUCCESSFUL_CODE && !isMissingVariables() )
+			if(other.code == SUCCESSFUL_CODE && !isDelayed() )
 				return other;
 			return this;
 		}
-		public MissingVariable[] getMissingVariables() {
-			MissingVariable[] missingVariables = new MissingVariable[this.missingVariables.size()];
-			this.missingVariables.copyInto(missingVariables);
-			return missingVariables;
+		public DelayExecution[] getDelays() {
+			DelayExecution[] delays = new DelayExecution[numDelays()];
+			this.delays.copyInto(delays);
+			return delays;
 		}
-		public int numMissingVariables() {
-			return missingVariables.size();
+		public int numDelays() {
+			return delays.size();
 		}
-		public boolean isMissingVariables() {
-			if(numMissingVariables() > 0 ) {
+		public boolean isDelayed() {
+			if(numDelays() > 0 ) {
 				return true;
 			}
 			return false;
 		}
 		public String getResult() {
 			String string = "";
-			if(isMissingVariables()) {
-				string += "Missing: " + Utils.join(getMissingVariables(), ",");
+			if(isDelayed()) {
+				string += "Delayed: " + Utils.join(getDelays(), ",");
 			}
 			return string;
 		}
@@ -120,6 +119,35 @@ public abstract class Status {
 		public String getResult() {
 			String string = super.toString() + ", error: " + Utils.join(getThrowables(), ",");
 			return string;
+		}
+	}
+	public static interface DelayExecution {
+		public Execution callerExecution();
+		public String reason();
+		public boolean equals(Object obj);
+	}
+	public static class WaitingForPrerequisite implements DelayExecution {
+		private final Resource prerequisite;
+		private final Execution caller;
+		public WaitingForPrerequisite(Execution caller, Resource prerequisite) {
+			this.prerequisite = prerequisite;
+			this.caller = caller;
+		}
+		public Execution callerExecution() {
+			return caller;
+		}
+		public String reason() {
+			return "Waiting for " + prerequisite.ref().toString();
+		}
+		public boolean equals(Object obj) {
+			if(obj == this)
+				return true;
+			if(!(obj instanceof WaitingForPrerequisite))
+				return false;
+			WaitingForPrerequisite other = (WaitingForPrerequisite) obj;
+			if(this.caller.equals(other.caller) && this.prerequisite.ref().equals(other.prerequisite.ref()))
+				return true;
+			return false;
 		}
 	}
 }
