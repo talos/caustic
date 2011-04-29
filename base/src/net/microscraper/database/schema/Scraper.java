@@ -2,7 +2,10 @@ package net.microscraper.database.schema;
 
 import java.util.Vector;
 
+import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
+import net.microscraper.client.Mustache.MissingVariable;
+import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
@@ -146,7 +149,7 @@ public class Scraper extends Resource {
 		public String match() {
 			return match;
 		}
-		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
+		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException, TemplateException, MissingVariable, BrowserException {
 			return new Status.Successful(getPublishValue());
 		}
 		public String getPublishValue() {
@@ -162,12 +165,8 @@ public class Scraper extends Resource {
 
 			sourceWebPageExecution = webPage.getExecution(getSourceExecution());
 		}
-		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
-			Status status = new Status.InProgress();
-			if(status.merge(sourceWebPageExecution.execute()).isSuccessful()) {
-				status.merge(this.execute(sourceWebPageExecution.load()));
-			}
-			return status;
+		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException, TemplateException, MissingVariable, BrowserException {
+			return this.execute(sourceWebPageExecution.privateExecute().getResult());
 		}
 	}
 	

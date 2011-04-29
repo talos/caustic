@@ -6,14 +6,7 @@ import net.microscraper.database.Execution;
 import net.microscraper.database.Status;
 
 public class SQLPublisher implements Publisher {
-	
 	public static final String TABLE_NAME = "executions";
-		
-	public static final String SOURCE_ID = "source_id";
-	public static final String ID = "id";
-	public static final String STATUS_CODE = "status_code";
-	public static final String NAME = "name";
-	public static final String VALUE = "value";
 	
 	private final SQLInterface inter;
 	public SQLPublisher(SQLInterface sql_interface) throws SQLInterfaceException {
@@ -24,13 +17,13 @@ public class SQLPublisher implements Publisher {
 				"CREATE TABLE `"+ TABLE_NAME +"` (" +
 					"`" + SOURCE_ID + "` " + inter.intColumnType() + ", " +
 					"`" + ID + "` " + inter.idColumnType() + " " + inter.keyColumnDefinition() + ", " +
-					"`" + STATUS_CODE + "` " + inter.intColumnType() + ", " +
+					"`" + STATUS_STRING + "` " + inter.dataColumnType() + ", " +
 					"`" + NAME + "` " + inter.dataColumnType() + ", " + 
 					"`" + VALUE + "` " + inter.dataColumnType() + " )");
 		} catch(SQLInterfaceException e) {
 			// The table might already exist.
 			try {
-				inter.query("SELECT `"+ SOURCE_ID +"`, `"+ ID +"`, `"+ STATUS_CODE +"`, `"
+				inter.query("SELECT `"+ SOURCE_ID +"`, `"+ ID +"`, `"+ STATUS_STRING +"`, `"
 						+ NAME +"`, `"+ VALUE +"` FROM " + TABLE_NAME);
 			} catch (SQLInterfaceException e2) {
 				// Something is weird -- wrong schema in the specified SQL file?  Abort.
@@ -50,19 +43,15 @@ public class SQLPublisher implements Publisher {
 				});
 			
 			Status status = execution.getStatus();
-			String name = execution.getPublishName();
-			String value = null;
-			if(status.isSuccessful()) {
-				value = ((Status.Successful) status).getResult();
-			}
 			inter.execute("INSERT INTO `" + TABLE_NAME +
-					"` (`" + SOURCE_ID + "`,`" + ID + "`,`" + STATUS_CODE + "`,`" + NAME + "`,`" + VALUE + "`) " +
+					"` (`" + SOURCE_ID + "`,`" + ID + "`,`" + STATUS_STRING + "`,`" + NAME + "`,`" + VALUE + "`) " +
 					"VALUES (?, ?, ?, ?, ?)",
 					new String[] {
 						Integer.toString(execution.getSourceExecution().id),
 						Integer.toString(execution.id),
-						Integer.toString(status.code),
-						name, value });
+						status.toString(),
+						execution.getPublishName(),
+						status.getResult() });
 		} catch(SQLInterfaceException e) {
 			throw new PublisherException(e);
 		}

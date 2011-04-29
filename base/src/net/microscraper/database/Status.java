@@ -2,7 +2,6 @@ package net.microscraper.database;
 
 import java.util.Vector;
 
-import net.microscraper.client.Client;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Utils;
 
@@ -17,6 +16,7 @@ public abstract class Status {
 		return string;
 	}
 	public abstract Status merge(Status other);
+	public abstract String getResult();
 	public final boolean isSuccessful() {
 		return code == SUCCESSFUL_CODE;
 	}
@@ -30,9 +30,9 @@ public abstract class Status {
 	private static int IN_PROGRESS_CODE = 1;
 	private static int FAILURE_CODE = 2;
 	
-	private static String SUCCESSFUL_STRING = "successful";
-	private static String IN_PROGRESS_STRING = "in progress";
-	private static String FAILURE_STRING = "failure";
+	private static String SUCCESSFUL_STRING = "Successful";
+	private static String IN_PROGRESS_STRING = "InProgress";
+	private static String FAILURE_STRING = "Failure";
 	
 	public static final class Successful extends Status {
 		private final String result;
@@ -83,17 +83,19 @@ public abstract class Status {
 			this.missingVariables.copyInto(missingVariables);
 			return missingVariables;
 		}
+		public int numMissingVariables() {
+			return missingVariables.size();
+		}
 		public boolean isMissingVariables() {
-			if(missingVariables.size() > 0 ) {
+			if(numMissingVariables() > 0 ) {
 				return true;
 			}
-			Client.log.i("false");
 			return false;
 		}
-		public String toString() {
-			String string = super.toString();
+		public String getResult() {
+			String string = "";
 			if(isMissingVariables()) {
-				string += ", missing: " + Utils.join(getMissingVariables(), ",");
+				string += "Missing: " + Utils.join(getMissingVariables(), ",");
 			}
 			return string;
 		}
@@ -115,7 +117,7 @@ public abstract class Status {
 			this.throwables.copyInto(throwables);
 			return throwables;
 		}
-		public String toString() {
+		public String getResult() {
 			String string = super.toString() + ", error: " + Utils.join(getThrowables(), ",");
 			return string;
 		}

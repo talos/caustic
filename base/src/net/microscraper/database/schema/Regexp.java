@@ -63,15 +63,9 @@ public class Regexp extends Resource {
 			return new Variables();
 		}
 		
-		protected Status privateExecute() {
-			try {
-				pattern = Client.regexp.compile(getAttributeValue(REGEXP));
-				return new Status.Successful(getPublishValue());
-			} catch (MissingVariable e) {
-				return new Status.InProgress(e);
-			} catch (TemplateException e) {
-				return new Status.Failure(e);
-			}
+		protected Status privateExecute() throws TemplateException, MissingVariable {
+			pattern = Client.regexp.compile(getAttributeValue(REGEXP));
+			return new Status.Successful(getPublishValue());
 		}
 		
 		public boolean matches(String input) {

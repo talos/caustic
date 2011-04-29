@@ -15,8 +15,8 @@ import java.util.Vector;
 
 import net.microscraper.client.Browser;
 import net.microscraper.client.Client;
+import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Utils;
-import net.microscraper.database.schema.Regexp.RegexpExecution;
 
 /**
  * This is a very, very lightweight browser.  It will add headers & posts, and do -very- primitive cookie handling.  It only
@@ -27,13 +27,13 @@ import net.microscraper.database.schema.Regexp.RegexpExecution;
 public class JavaNetBrowser implements Browser {
 	public String load(String url)
 			throws InterruptedException, BrowserException {
-		return load(url, new Hashtable(), new Hashtable(), new Hashtable(), new RegexpExecution[] {});
+		return load(url, new Hashtable(), new Hashtable(), new Hashtable(), new Pattern[] {});
 	}
 	private final Hashtable cookie_store = new Hashtable();
 
 	public String load(String url_string, Hashtable posts,
 			Hashtable headers, Hashtable cookies,
-			RegexpExecution[] terminates)
+			Pattern[] terminates)
 			throws BrowserException, InterruptedException {
 		
 		OutputStreamWriter writer = null;

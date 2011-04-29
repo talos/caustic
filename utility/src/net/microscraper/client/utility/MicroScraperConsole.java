@@ -30,7 +30,7 @@ public class MicroScraperConsole {
 		} else {
 			try {
 				Client client = Client.get(
-						new JavaNetBrowser(/*ApacheBrowser.DO_NOT_USE_CACHE*/),
+						new JavaNetBrowser(),
 						new JavaUtilRegexInterface(),
 						new JSONME(),
 						new Interfaces.Logger[] { log },

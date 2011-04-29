@@ -4,6 +4,7 @@ import java.util.Hashtable;
 
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
+import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils.HashtableWithNulls;
@@ -65,11 +66,6 @@ public class WebPage extends Resource {
 				throws ResourceNotFoundException {
 			super(resource, caller);
 		}
-		
-		protected String load() {
-			return webPageString;
-		}
-
 		private final Hashtable resourcesToHashtable(Resource[] resources)
 				throws ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException {
 			Hashtable hash = new Hashtable();
@@ -102,17 +98,15 @@ public class WebPage extends Resource {
 			Hashtable cookies = resourcesToHashtable(getRelatedResources(COOKIES));
 			
 			Resource[] terminatesResources = getRelatedResources(TERMINATES);
-			RegexpExecution[] terminates = new RegexpExecution[terminatesResources.length];
+			Pattern[] terminates = new Pattern[terminatesResources.length];
 			for(int i = 0 ; i < terminatesResources.length; i ++) {
-				terminates[i] = ((Regexp) terminatesResources[i]).getExecution(getSourceExecution());
+				RegexpExecution exc = ((Regexp) terminatesResources[i]).getExecution(getSourceExecution());
+				terminates[i] = Client.regexp.compile(
+						((Status.Successful) exc.privateExecute()).getResult());
+				//terminatesResource = terminatesResources[i].(getSourceExecution()).privateExecute();
 			}
 			webPageString = Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
-			return new Status.Successful(getPublishValue());
-
-		}
-
-		public String getPublishValue() {
-			return webPageString;
+			return new Status.Successful(webPageString);
 		}
 	}
 }
