@@ -26,17 +26,27 @@ public class Interfaces {
 			public abstract String getString(int index) throws JSONInterfaceException;
 			public abstract String[] toArray() throws JSONInterfaceException; 
 			public abstract int length();
-		}/*
-		public static interface Null {
-			public abstract boolean equals(Object obj);
-			public abstract String toString();
-		}*/
+		}
 		public static interface Tokener {
 			public abstract Object nextValue() throws JSONInterfaceException;
 		}
 		public static interface Iterator {
 			public abstract boolean hasNext();
 			public abstract java.lang.Object next();
+		}
+		public static interface Writer {
+		    public Writer array() throws JSONInterfaceException;
+		    public Writer endArray() throws JSONInterfaceException;
+		    public Writer endObject() throws JSONInterfaceException;
+		    public Writer key(String s) throws JSONInterfaceException;
+		    public Writer object() throws JSONInterfaceException;
+		    public Writer value(String s) throws JSONInterfaceException;
+		    public Writer value(boolean b) throws JSONInterfaceException;
+		    public Writer value(double d) throws JSONInterfaceException;
+		    public Writer value(long l) throws JSONInterfaceException;
+		}
+		public static interface Stringer extends Writer {
+		    public String toString();
 		}
 		public static final class EnumerationIterator implements Iterator {
 			private final Enumeration enumeration;
@@ -52,17 +62,15 @@ public class Interfaces {
 				return enumeration.nextElement();
 			}
 		}
-		
 		public static class JSONInterfaceException extends Exception {
 			private static final long serialVersionUID = 1L;
 			public JSONInterfaceException(String message ) {super(message); }
 			public JSONInterfaceException(Throwable e ) {super(e); }
 		};
-
 		
 		public abstract Tokener getTokener(String jsonString) throws JSONInterfaceException;
+		public abstract Stringer getStringer() throws JSONInterfaceException;
 		public abstract String toJSON(Hashtable hashtable) throws JSONInterfaceException;
-		//public abstract Null getNull();
 	}
 
 

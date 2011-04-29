@@ -11,7 +11,6 @@ import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaNetBrowser;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
-import net.microscraper.client.impl.ThreadSafeJSONPublisher;
 
 /**
  * Provides interface between browser and scraper applet through public methods.

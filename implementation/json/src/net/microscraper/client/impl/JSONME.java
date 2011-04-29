@@ -8,6 +8,7 @@ import net.microscraper.client.Interfaces;
 import org.json.me.JSONArray;
 import org.json.me.JSONException;
 import org.json.me.JSONObject;
+import org.json.me.JSONStringer;
 import org.json.me.JSONTokener;
 
 public class JSONME implements Interfaces.JSON {
@@ -180,6 +181,97 @@ public class JSONME implements Interfaces.JSON {
 			}
 		}
 		
+	}
+	
+	private static class JSONMEStringer implements Interfaces.JSON.Stringer {
+		private final JSONStringer stringer = new JSONStringer();
+		public Writer array() throws JSONInterfaceException {
+			try {
+				stringer.array();
+			} catch (JSONException e) {
+				throw new JSONInterfaceException(e);
+			}
+			return this;
+		}
+
+		public Writer endArray() throws JSONInterfaceException {
+			try {
+				stringer.endArray();
+			} catch (JSONException e) {
+				throw new JSONInterfaceException(e);
+			}
+			return this;
+		}
+
+		public Writer endObject() throws JSONInterfaceException {
+			try {
+				stringer.endObject();
+			} catch (JSONException e) {
+				throw new JSONInterfaceException(e);
+			}
+			return this;
+		}
+
+		public Writer key(String s) throws JSONInterfaceException {
+			try {
+				stringer.key(s);
+			} catch (JSONException e) {
+				throw new JSONInterfaceException(e);
+			}
+			return this;
+		}
+
+		public Writer object() throws JSONInterfaceException {
+			try {
+				stringer.object();
+			} catch (JSONException e) {
+				throw new JSONInterfaceException(e);
+			}
+			return this;
+		}
+
+		public Writer value(boolean b) throws JSONInterfaceException {
+			try {
+				stringer.value(b);
+			} catch (JSONException e) {
+				throw new JSONInterfaceException(e);
+			}
+			return this;
+		}
+
+		public Writer value(double d) throws JSONInterfaceException {
+			try {
+				stringer.value(d);
+			} catch (JSONException e) {
+				throw new JSONInterfaceException(e);
+			}
+			return this;
+		}
+
+		public Writer value(long l) throws JSONInterfaceException {
+			try {
+				stringer.value(l);
+			} catch (JSONException e) {
+				throw new JSONInterfaceException(e);
+			}
+			return this;
+		}
+
+		public Writer value(String s) throws JSONInterfaceException {
+			try {
+				stringer.value(s);
+			} catch (JSONException e) {
+				throw new JSONInterfaceException(e);
+			}
+			return this;
+		}
+		public String toString() {
+			return stringer.toString();
+		}
+	}
+	
+	public Stringer getStringer() throws JSONInterfaceException {
+		return new JSONMEStringer();
 	}
 
 }
