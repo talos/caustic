@@ -2,7 +2,10 @@ package net.microscraper.database;
 
 import java.util.Vector;
 
+import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
+import net.microscraper.client.Mustache.MissingVariable;
+import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Database.ResourceNotFoundException;
@@ -13,7 +16,7 @@ public abstract class Execution {
 	private final Vector calledExecutions = new Vector();
 	private final Variables extraVariables = new Variables();
 	private final Execution caller;	
-	private Status status = new Status.InProgress();
+	private Status lastStatus = new Status.InProgress();
 	public final int id;
 	protected Execution(Execution caller) {
 		id = count++;
@@ -58,23 +61,32 @@ public abstract class Execution {
 	protected abstract boolean isOneToMany();
 	protected abstract Variables getLocalVariables();
 	public abstract String getPublishName();
-	public abstract String getPublishValue();
 	public final Status getStatus() {
-		return status;
+		return lastStatus;
 	}
 	public final Status execute() throws ResourceNotFoundException, InterruptedException {
-		if(status.isInProgress()) {
-			status.merge(privateExecute());
+		if(lastStatus.isInProgress()) {
+			Status status;
+			try {
+				status = privateExecute();
+			} catch(MissingVariable e) {
+				status = new Status.InProgress(e);
+			} catch(TemplateException e) {
+				status = new Status.Failure(e);
+			} catch(BrowserException e) {
+				status = new Status.Failure(e);
+			}
+			try {
+				Client.publisher.publish(this);
+			} catch(PublisherException e) {
+				Client.log.e(e);
+			}
+			Client.log.i("Executing " + getPublishName() + " resulted in " + status.toString());
+			lastStatus = status;
 		}
-		try {
-			Client.publisher.publish(this);
-		} catch(PublisherException e) {
-			Client.log.e(e);
-		}
-		Client.log.i("Executing " + getPublishName() + " resulted in " + status.toString());
-		return status;
+		return lastStatus;
 	}
-	protected abstract Status privateExecute() throws ResourceNotFoundException, InterruptedException;
+	protected abstract Status privateExecute() throws ResourceNotFoundException, InterruptedException, TemplateException, MissingVariable, BrowserException;
 	
 	public final boolean equals(Object obj) {
 		if(this == obj)

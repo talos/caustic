@@ -50,16 +50,11 @@ public class Regexp extends Resource {
 		private final Integer matchNumber;
 		protected RegexpExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
 			super(resource, caller);
-			String matchNumberString = resource.getAttributeValueRaw(MATCH_NUMBER);
-			if(matchNumberString == null) {
-				matchNumber = null;
-			} else {
-				matchNumber = new Integer(matchNumberString);
-			}
+			matchNumber = resource.getIntegerAttribute(MATCH_NUMBER);
 		}
 		
 		protected boolean isOneToMany() {
-			if(matchNumber == null)
+			if(matchNumber.equals(null))
 				return true;
 			return false;
 		}
@@ -80,7 +75,7 @@ public class Regexp extends Resource {
 		}
 		
 		public boolean matches(String input) {
-			if(matchNumber != null) {
+			if(!matchNumber.equals(null)) {
 				try {
 					pattern.match(input, matchNumber.intValue());
 					return true;
@@ -93,7 +88,7 @@ public class Regexp extends Resource {
 		}
 		
 		public String[] allMatches(String input) throws NoMatches {
-			if(matchNumber != null) {
+			if(!matchNumber.equals(null)) {
 				return new String[] { pattern.match(input, matchNumber.intValue()) };
 			} else {
 				return pattern.allMatches(input);

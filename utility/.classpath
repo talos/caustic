@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="src" path="/MicroScraper Base"/>
-	<classpathentry exported="true" kind="src" path="/MicroScraper Regexp Implementation"/>
-	<classpathentry exported="true" kind="src" path="/MicroScraper JSON Implementation"/>
-	<classpathentry exported="true" kind="src" path="/MicroScraper SQLite Implementation"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="/MicroScraper Base"/>
+	<classpathentry kind="src" path="/MicroScraper JSON Implementation"/>
+	<classpathentry kind="src" path="/MicroScraper SQLite Implementation"/>
+	<classpathentry kind="src" path="/MicroScraper Regexp Implementation"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -48,25 +48,16 @@ public class AbstractHeader extends Resource {
 			return new Variables();
 		}
 		
-		protected Status privateExecute() {
-			try {
-				name = getAttributeValue(NAME);
-				value = getAttributeValue(VALUE);
-				return new Status.Successful(getPublishValue());
-			} catch(MissingVariable e) {
-				return new Status.InProgress(e);
-			} catch(TemplateException e) {
-				return new Status.Failure(e);
-			}
+		protected Status privateExecute() throws TemplateException, MissingVariable {
+			name = getAttributeValue(NAME);
+			value = getAttributeValue(VALUE);
+			return new Status.Successful(getName() + '=' + getValue());
 		}
 		public String getName() {
 			return name;
 		}
 		public String getValue() {
 			return value;
-		}
-		public String getPublishValue() {
-			return getName() + '=' + getValue();
 		}
 	}
 }

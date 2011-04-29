@@ -28,6 +28,16 @@ public class Utils {
 		}
 		return joined;
 	}
+	
+	public static String join(Object[] objects, String joinString) {
+		String joined = "";
+		for(int i = 0; i < objects.length; i++) {
+			joined += objects[i].toString();
+			if(i < objects.length -1)
+				joined += joinString;
+		}
+		return joined;
+	}
 
 	/**
 	 * Split a string into words based off of spaces without using regex or .split().
@@ -136,20 +146,27 @@ public class Utils {
 		private final Hashtable hashtable = new Hashtable();
 		private boolean objectAtNullAssigned = false;
 		private Object objectAtNull = null;
+		private Vector keysWithNullValues = new Vector();
 		public boolean containsKey(Object key) {
 			if(key == null)
 				return objectAtNullAssigned;
-			else
-				return hashtable.containsKey(key);
+			if(!hashtable.containsKey(key) && !keysWithNullValues.contains(key))
+				return false;
+			return true;
 		}
 		public void put(Object key, Object value) {
 			if(key == null) {
 				objectAtNull = value;
 				objectAtNullAssigned = true;
+			} else if(value == null) {
+				if(!keysWithNullValues.contains(key)) {
+					keysWithNullValues.addElement(key);
+				}
 			} else {
 				hashtable.put(key, value);
 			}
 		}
+		// since we return null by default for unmapped keys, this is fine.
 		public Object get(Object key) {
 			if(key == null)
 				return objectAtNull;

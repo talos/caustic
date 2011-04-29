@@ -10,6 +10,8 @@ import org.json.me.JSONException;
 import org.json.me.JSONObject;
 import org.json.me.JSONStringer;
 import org.json.me.JSONTokener;
+import org.json.me.JSONWriter;
+import org.json.me.StringWriter;
 
 public class JSONME implements Interfaces.JSON {
 
@@ -184,10 +186,15 @@ public class JSONME implements Interfaces.JSON {
 	}
 	
 	private static class JSONMEStringer implements Interfaces.JSON.Stringer {
-		private final JSONStringer stringer = new JSONStringer();
+		//private final JSONStringer stringer = new JSONStringer();
+		private final StringWriter sWriter = new StringWriter();
+		private final JSONWriter writer = new JSONWriter(sWriter);
+		/*public JSONMEStringer() {
+			
+		}*/
 		public Writer array() throws JSONInterfaceException {
 			try {
-				stringer.array();
+				writer.array();
 			} catch (JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -196,7 +203,7 @@ public class JSONME implements Interfaces.JSON {
 
 		public Writer endArray() throws JSONInterfaceException {
 			try {
-				stringer.endArray();
+				writer.endArray();
 			} catch (JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -205,7 +212,7 @@ public class JSONME implements Interfaces.JSON {
 
 		public Writer endObject() throws JSONInterfaceException {
 			try {
-				stringer.endObject();
+				writer.endObject();
 			} catch (JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -214,7 +221,7 @@ public class JSONME implements Interfaces.JSON {
 
 		public Writer key(String s) throws JSONInterfaceException {
 			try {
-				stringer.key(s);
+				writer.key(s);
 			} catch (JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -223,7 +230,7 @@ public class JSONME implements Interfaces.JSON {
 
 		public Writer object() throws JSONInterfaceException {
 			try {
-				stringer.object();
+				writer.object();
 			} catch (JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -232,7 +239,7 @@ public class JSONME implements Interfaces.JSON {
 
 		public Writer value(boolean b) throws JSONInterfaceException {
 			try {
-				stringer.value(b);
+				writer.value(b);
 			} catch (JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -241,7 +248,7 @@ public class JSONME implements Interfaces.JSON {
 
 		public Writer value(double d) throws JSONInterfaceException {
 			try {
-				stringer.value(d);
+				writer.value(d);
 			} catch (JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -250,7 +257,7 @@ public class JSONME implements Interfaces.JSON {
 
 		public Writer value(long l) throws JSONInterfaceException {
 			try {
-				stringer.value(l);
+				writer.value(l);
 			} catch (JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -259,19 +266,18 @@ public class JSONME implements Interfaces.JSON {
 
 		public Writer value(String s) throws JSONInterfaceException {
 			try {
-				stringer.value(s);
+				writer.value(s);
 			} catch (JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
 			return this;
 		}
 		public String toString() {
-			return stringer.toString();
+			return ((Writer) sWriter).toString();
 		}
 	}
 	
 	public Stringer getStringer() throws JSONInterfaceException {
 		return new JSONMEStringer();
 	}
-
 }

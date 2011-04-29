@@ -27,9 +27,11 @@ public abstract class Resource {
 	public Reference ref() {
 		return ref;
 	}
-	
-	public String getAttributeValueRaw(AttributeDefinition def) {
-		return attributes.get(def);
+	public String getStringAttribute(AttributeDefinition def) {
+		return attributes.getString(def);
+	}
+	public Integer getIntegerAttribute(AttributeDefinition def) {
+		return attributes.getInteger(def);
 	}
 	protected Resource[] getRelatedResources(RelationshipDefinition def) throws ResourceNotFoundException {
 		return relationships.get(def);
@@ -55,7 +57,7 @@ public abstract class Resource {
 
 		protected final String getAttributeValue(AttributeDefinition def)
 					throws TemplateException, MissingVariable {
-			return (String) Mustache.compile(resource.getAttributeValueRaw(def), getVariables());
+			return (String) Mustache.compile(resource.getStringAttribute(def), getVariables());
 		}
 	}
 }

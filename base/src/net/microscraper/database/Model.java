@@ -45,7 +45,7 @@ public class Model {
 				if(rawValue.equals(null)) {
 					attributes.put(def, null);
 				} else {
-					attributes.put(def, (String) rawValue);
+					attributes.put(def, rawValue);
 				}
 			}
 			

@@ -1,17 +1,20 @@
 package net.microscraper.database;
 
-import java.util.Hashtable;
+import net.microscraper.client.Utils.HashtableWithNulls;
 
 public class Attribute {
 	public static class Attributes {
-		private final Hashtable attributes = new Hashtable();
-		public void put(AttributeDefinition def, String value) {
+		private final HashtableWithNulls attributes = new HashtableWithNulls();
+		public void put(AttributeDefinition def, Object value) {
 			if(value != null) {
 				attributes.put(def, value);
 			}
 		}
-		public String get(AttributeDefinition def) {
+		public String getString(AttributeDefinition def) {
 			return (String) attributes.get(def);
+		}
+		public Integer getInteger(AttributeDefinition def) {
+			return (Integer) attributes.get(def);
 		}
 	}
 	public static class AttributeDefinition {

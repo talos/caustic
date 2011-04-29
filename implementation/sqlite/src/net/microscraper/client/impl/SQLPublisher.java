@@ -3,7 +3,7 @@ package net.microscraper.client.impl;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.Status;
+import net.microscraper.database.Status;
 
 public class SQLPublisher implements Publisher {
 	
@@ -50,11 +50,10 @@ public class SQLPublisher implements Publisher {
 				});
 			
 			Status status = execution.getStatus();
-			String name = null;
+			String name = execution.getPublishName();
 			String value = null;
-			if(status == Status.SUCCESSFUL) {
-				name = execution.getPublishName();
-				value = execution.getPublishValue();
+			if(status.isSuccessful()) {
+				value = ((Status.Successful) status).getResult();
 			}
 			inter.execute("INSERT INTO `" + TABLE_NAME +
 					"` (`" + SOURCE_ID + "`,`" + ID + "`,`" + STATUS_CODE + "`,`" + NAME + "`,`" + VALUE + "`) " +

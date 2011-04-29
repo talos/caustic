@@ -71,11 +71,14 @@ public class WebPage extends Resource {
 		}
 
 		private final Hashtable resourcesToHashtable(Resource[] resources)
-				throws ResourceNotFoundException, TemplateException, MissingVariable {
+				throws ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException {
 			Hashtable hash = new Hashtable();
 			for(int i = 0 ; i < resources.length ; i ++) {
 				AbstractHeaderExecution exc = ((AbstractHeader) resources[i]).getExecution(getSourceExecution());
+
+				exc.privateExecute(); // throws exception if missing variable etc.
 				hash.put(exc.getName(), exc.getValue());
+
 			}
 			return hash;
 		}
@@ -88,31 +91,24 @@ public class WebPage extends Resource {
 			return null;
 		}
 
-		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
+		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException, TemplateException, MissingVariable, BrowserException {
 			Resource[] loginWebPages = getRelatedResources(LOGIN_WEB_PAGES);
 			for(int i = 0 ; i < loginWebPages.length ; i ++) {
 				((WebPage) loginWebPages[i]).getExecution(getSourceExecution()).execute();
 			}
 			
-			try {
-				Hashtable posts = resourcesToHashtable(getRelatedResources(POSTS));
-				Hashtable headers = resourcesToHashtable(getRelatedResources(HEADERS));
-				Hashtable cookies = resourcesToHashtable(getRelatedResources(COOKIES));
-				
-				Resource[] terminatesResources = getRelatedResources(TERMINATES);
-				RegexpExecution[] terminates = new RegexpExecution[terminatesResources.length];
-				for(int i = 0 ; i < terminatesResources.length; i ++) {
-					terminates[i] = ((Regexp) terminatesResources[i]).getExecution(getSourceExecution());
-				}
-				webPageString = Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
-				return new Status.Successful(getPublishValue());
-			} catch(MissingVariable e) {
-				return new Status.InProgress(e);
-			} catch(BrowserException e) {
-				return new Status.Failure(e);
-			} catch(TemplateException e) {
-				return new Status.Failure(e);
+			Hashtable posts = resourcesToHashtable(getRelatedResources(POSTS));
+			Hashtable headers = resourcesToHashtable(getRelatedResources(HEADERS));
+			Hashtable cookies = resourcesToHashtable(getRelatedResources(COOKIES));
+			
+			Resource[] terminatesResources = getRelatedResources(TERMINATES);
+			RegexpExecution[] terminates = new RegexpExecution[terminatesResources.length];
+			for(int i = 0 ; i < terminatesResources.length; i ++) {
+				terminates[i] = ((Regexp) terminatesResources[i]).getExecution(getSourceExecution());
 			}
+			webPageString = Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
+			return new Status.Successful(getPublishValue());
+
 		}
 
 		public String getPublishValue() {

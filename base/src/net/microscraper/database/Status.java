@@ -2,6 +2,7 @@ package net.microscraper.database;
 
 import java.util.Vector;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Utils;
 
@@ -54,6 +55,9 @@ public abstract class Status {
 				return new Successful(((Successful) other).merges + this.merges);
 			return other.merge(this); // Successful is weak.
 		};
+		public String toString() {
+			return super.toString() + ": " + result;
+		}
 	}
 	public static final class InProgress extends Status {
 		Vector missingVariables = new Vector();
@@ -83,7 +87,15 @@ public abstract class Status {
 			if(missingVariables.size() > 0 ) {
 				return true;
 			}
+			Client.log.i("false");
 			return false;
+		}
+		public String toString() {
+			String string = super.toString();
+			if(isMissingVariables()) {
+				string += ", missing: " + Utils.join(getMissingVariables(), ",");
+			}
+			return string;
 		}
 	}
 	public static final class Failure extends Status {
@@ -99,9 +111,13 @@ public abstract class Status {
 			return this;
 		}
 		public Throwable[] getThrowables() {
-			MissingVariable[] throwables = new MissingVariable[this.throwables.size()];
+			Throwable[] throwables = new Throwable[this.throwables.size()];
 			this.throwables.copyInto(throwables);
 			return throwables;
+		}
+		public String toString() {
+			String string = super.toString() + ", error: " + Utils.join(getThrowables(), ",");
+			return string;
 		}
 	}
 }

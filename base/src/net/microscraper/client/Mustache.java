@@ -23,6 +23,9 @@ public class Mustache {
 		int close_tag_pos = 0;
 		int open_tag_pos;
 		String result = "";
+		if(template == null) {
+			throw new TemplateException("Cannot compile null string in mustache.");
+		}
 		while((open_tag_pos = template.indexOf(open_tag, close_tag_pos)) != -1) {
 			result += template.substring(open_tag_pos, close_tag_pos);
 			
@@ -60,6 +63,9 @@ public class Mustache {
 		public MissingVariable(String missing_tag, Variables variables) {
 			//Client.log.i("Variable " + missing_tag + " is missing from variables " + variables.toString() + ", cannot compile template.");
 			this.missing_tag = missing_tag;
+		}
+		public String toString() {
+			return missing_tag;
 		}
 	}
 }
