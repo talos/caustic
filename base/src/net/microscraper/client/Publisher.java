@@ -1,6 +1,8 @@
 package net.microscraper.client;
 
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.ExecutionDelay;
+import net.microscraper.database.Execution.ExecutionFailure;
 
 public interface Publisher {
 	public static final String ID = "id";
@@ -9,10 +11,14 @@ public interface Publisher {
 	public static final String STATUS_CODE = "status_code";
 	public static final String NAME = "name";
 	public static final String VALUE = "value";
-	public static final String MISSING_VARIABLES = "missing_variables";
-	public static final String ERRORS = "errors";
 	
-	public void publish(Execution execution) throws PublisherException;
+	public static final String SUCCESSFUL = "successful";
+	public static final String DELAY = "delay";
+	public static final String FAILURE = "failure";
+	
+	public void publish(Execution execution, String result) throws PublisherException;
+	public void publish(Execution execution, ExecutionDelay delay) throws PublisherException;
+	public void publish(Execution execution, ExecutionFailure failure) throws PublisherException;
 
 	public class PublisherException extends Exception {
 

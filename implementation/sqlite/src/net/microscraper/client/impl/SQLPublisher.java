@@ -3,7 +3,8 @@ package net.microscraper.client.impl;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Status;
+import net.microscraper.database.Execution.ExecutionDelay;
+import net.microscraper.database.Execution.ExecutionFailure;
 
 public class SQLPublisher implements Publisher {
 	public static final String TABLE_NAME = "executions";
@@ -33,7 +34,9 @@ public class SQLPublisher implements Publisher {
 		}
 	}
 	
-	public void publish(Execution execution) throws PublisherException {
+	
+	
+	private void publish(Execution execution, String status, String value) throws PublisherException {
 		try {
 			// delete existing entry
 			inter.execute("DELETE FROM `" + TABLE_NAME +"` WHERE `" + SOURCE_ID + "` = ? AND `" + ID + "` = ?",
@@ -42,19 +45,37 @@ public class SQLPublisher implements Publisher {
 					Integer.toString(execution.id)
 				});
 			
-			Status status = execution.getStatus();
 			inter.execute("INSERT INTO `" + TABLE_NAME +
 					"` (`" + SOURCE_ID + "`,`" + ID + "`,`" + STATUS_STRING + "`,`" + NAME + "`,`" + VALUE + "`) " +
 					"VALUES (?, ?, ?, ?, ?)",
 					new String[] {
 						Integer.toString(execution.getSourceExecution().id),
 						Integer.toString(execution.id),
-						status.toString(),
+						status,
 						execution.getPublishName(),
-						status.getResult() });
+						value });
+			
 		} catch(SQLInterfaceException e) {
 			throw new PublisherException(e);
 		}
+	}
+
+	@Override
+	public void publish(Execution execution, String result)
+			throws PublisherException {
+		publish(execution, SUCCESSFUL, result);
+	}
+	
+	@Override
+	public void publish(Execution execution, ExecutionDelay delay)
+			throws PublisherException {
+		publish(execution, DELAY, delay.reason());
+	}
+
+	@Override
+	public void publish(Execution execution, ExecutionFailure failure)
+			throws PublisherException {
+		publish(execution, FAILURE, failure.reason());		
 	}
 
 	public boolean live() {
