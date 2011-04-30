@@ -2,6 +2,7 @@ package net.microscraper.database.schema;
 
 import java.util.Hashtable;
 
+import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Variables;
@@ -87,7 +88,9 @@ public class WebPage extends OneToOneResource {
 			try {
 				return Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
 			} catch(InterruptedException e) {
-				throw new ExecutionFatality(e, getSourceExecution());
+				throw new ExecutionFatality(getSourceExecution(), e);
+			} catch(BrowserException e) {
+				throw new ExecutionFatality(getSourceExecution(), e);
 			}
 		}
 	}

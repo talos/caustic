@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
+import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
@@ -191,6 +192,10 @@ public abstract class Execution {
 	}
 	
 	public static class ExecutionFailure extends DefaultExecutionProblem {
+		public ExecutionFailure(Execution caller, Throwable e) {
+			super(caller);
+		}
+
 		/**
 		 * 
 		 */
@@ -198,7 +203,10 @@ public abstract class Execution {
 	}
 	
 	public static class ExecutionFatality extends DefaultExecutionProblem {
-		public ExecutionFatality(Throwable e, Execution caller) {
+		public ExecutionFatality(Execution caller, Throwable e) {
+			super(caller);
+		}
+		public ExecutionFatality(Execution caller, String message) {
 			super(caller);
 		}
 

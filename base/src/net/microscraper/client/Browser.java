@@ -28,7 +28,7 @@ public interface Browser {
 	public String load(String url, Hashtable posts, Hashtable headers,
 			Hashtable cookies, Pattern[] terminates) throws BrowserException, InterruptedException;
 	
-	public static class BrowserException extends ExecutionFatality {
+	public static class BrowserException extends Exception {
 		public BrowserException(String url, Throwable e) {
 			super("Loading " + url, e);
 		}

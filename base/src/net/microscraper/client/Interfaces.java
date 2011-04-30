@@ -115,7 +115,7 @@ public class Interfaces {
 			public abstract String[] allMatches(String input) throws NoMatches;
 		}
 		
-		public static class NoMatches extends ExecutionFailure {
+		public static class NoMatches extends Exception {
 			
 			public NoMatches(Pattern pattern, String string) {
 				super(pattern.toString() + " did not match against " + string);

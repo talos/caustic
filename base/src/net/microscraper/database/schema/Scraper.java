@@ -144,7 +144,12 @@ public class Scraper extends Resource {
 		}
 		protected String matchAgainst(Execution execution) throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
 			regexpExecution.unsafeExecute();
-			String[] matches = regexpExecution.allMatches(execution.unsafeExecute());
+			String[] matches;
+			try {
+				matches = regexpExecution.allMatches(execution.unsafeExecute());
+			} catch (NoMatches e) {
+				throw new ExecutionFailure(getSourceExecution(), e);
+			}
 			for(int i = 1 ; i < matches.length ; i ++) {
 				new SolvedScraperExecution(this, matches[i]);
 			}
