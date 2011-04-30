@@ -1,66 +1,48 @@
 package net.microscraper.client.applet;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.JSON.Stringer;
-import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Publisher;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.ExecutionDelay;
+import net.microscraper.database.Execution.ExecutionFailure;
 import net.microscraper.database.Status;
 
 public class ThreadSafeJSONPublisher implements Publisher {
-	private int loc = 0;
-	private final List<Execution> executions = Collections.synchronizedList(new ArrayList<Execution>());
+	private final Map<Execution, String> executions = Collections.synchronizedMap(new HashMap<Execution, String>());
+	private Iterator<Execution> iter = null;
 
 	public boolean live() {
 		return true;
 	}
-	public void publish(Execution execution) throws PublisherException {
-		Client.log.i("publishing");
-		//results.add(result.ref, result);
-		executions.add(execution);
-	}
-	
 	public int size() {
 		return executions.size();
 	}
 	
-	public String get(int executionNumber) throws PublisherException {
+	public String get(Execution exc) throws PublisherException {
 		try {
-			Execution exc = (Execution) executions.get(executionNumber);
+			String value = executions.get(exc);
 			Status status = exc.getStatus();
+			String statusString = SUCCESSFUL;
+			if(status.hasDelay()) {
+				statusString = DELAY;
+			} else if(status.hasFailure()) {
+				statusString = FAILURE;
+			}
+			//Status status = exc.getStatus();
 			Stringer stringer = Client.json.getStringer();
 			stringer.object()
 				.key(ID).value(exc.id)
 				.key(SOURCE_ID).value(exc.getSourceExecution().id)
-				.key(STATUS_STRING).value(status.toString());
+				.key(STATUS_STRING).value(statusString)
+				.key(VALUE).value(value);
 			
-			if(status.isSuccessful()) {
-				Status.Successful successful = (Status.Successful) status;
-				stringer.key(VALUE).value(successful.getResult());
-			} else if (status.isInProgress()) {
-				Status.InProgress inProgress = (Status.InProgress) status;
-				if(inProgress.isMissingVariables()) {
-					stringer.key(MISSING_VARIABLES).array();
-					MissingVariable[] missingVariables = inProgress.getMissingVariables();
-					for(int i = 0 ; i < missingVariables.length ; i ++) {
-						stringer.value(missingVariables[i].missing_tag);
-					}
-					stringer.endArray();
-				}
-			} else if (status.isFailure()) {
-				Status.Failure failure = (Status.Failure) status;
-				stringer.key(ERRORS).array();
-				Throwable[] throwables = failure.getThrowables();
-				for(int i = 0 ; i < throwables.length ; i ++) {
-					stringer.value(throwables[i].getMessage());
-				}
-				stringer.endArray();
-			}
 			stringer.endObject();
 			return stringer.toString();
 		} catch(JSONInterfaceException e) {
@@ -69,12 +51,29 @@ public class ThreadSafeJSONPublisher implements Publisher {
 	}
 	
 	public String next() throws PublisherException {
-		if(size() > loc) {
-			loc++;
-			return get(loc - 1);
+		if(iter == null)
+			iter = executions.keySet().iterator();
+		
+		if(iter.hasNext()) {
+			return get(iter.next());
 		} else {
-			loc = 0;
+			iter = null;
 			return null;
 		}
+	}
+	@Override
+	public void publish(Execution execution, String result)
+			throws PublisherException {
+		executions.put(execution, result);		
+	}
+	@Override
+	public void publish(Execution execution, ExecutionDelay delay)
+			throws PublisherException {
+		executions.put(execution, delay.reason());		
+	}
+	@Override
+	public void publish(Execution execution, ExecutionFailure failure)
+			throws PublisherException {
+		executions.put(execution, failure.reason());		
 	}
 }

@@ -46,7 +46,7 @@ public class WebPage extends OneToOneResource {
 		protected WebPageExecution(Resource resource, Execution caller) {
 			super(resource, caller);
 		}
-		private final Hashtable resourcesToHashtable(Resource[] resources) throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+		private final Hashtable resourcesToHashtable(Resource[] resources) throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
 			Hashtable hash = new Hashtable();
 			for(int i = 0 ; i < resources.length ; i ++) {
 				AbstractHeaderExecution exc = (AbstractHeaderExecution) callResource((AbstractHeader) resources[i]);
@@ -55,7 +55,7 @@ public class WebPage extends OneToOneResource {
 			}
 			return hash;
 		}
-		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
 			// terminate prematurely if we can't do all login web pages.
 			Resource[] loginWebPages = getRelatedResources(LOGIN_WEB_PAGES);
 			for(int i = 0 ; i < loginWebPages.length ; i ++) {

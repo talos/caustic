@@ -35,7 +35,7 @@ public class Data extends OneToOneResource {
 			defaults = getRelatedResources(DEFAULTS);
 			scrapers = getRelatedResources(SCRAPERS);
 		}
-		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
 			Status status = new Status();
 			for(int i = 0 ; i < defaults.length ; i ++ ) {
 				Execution exc = callResource((Default) defaults[i]);
@@ -44,6 +44,11 @@ public class Data extends OneToOneResource {
 			for(int i = 0 ; i < scrapers.length ; i ++ ) {
 				status.merge(((Scraper) scrapers[i]).execute(getSourceExecution()));
 			}
+			if(status.hasDelay() || status.hasFailure()) {
+				throw new StatusException(status);
+			}
+			// TODO what would be meaningful here?
+			return "";
 		}
 	}
 }

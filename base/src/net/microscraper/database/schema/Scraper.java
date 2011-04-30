@@ -138,7 +138,7 @@ public class Scraper extends Resource {
 			super(scraper, caller);
 			this.regexpExecution = (RegexpExecution) callResource(regexp);
 		}
-		protected String matchAgainst(Execution execution) throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+		protected String matchAgainst(Execution execution) throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
 			regexpExecution.unsafeExecute();
 			String[] matches;
 			try {
@@ -160,7 +160,7 @@ public class Scraper extends Resource {
 			super(scraper, caller, regexp);
 			this.webPage = webPage;
 		}
-		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
 			return matchAgainst(callResource(webPage));
 		}
 	}
@@ -172,7 +172,7 @@ public class Scraper extends Resource {
 			super(scraper, caller, regexp);
 			this.sourceScraper = sourceScraper;
 		}
-		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
 			ScraperExecution[] scraperExecutions = sourceScraper.executionsFromExecution(getSourceExecution());
 			String[] matches = new String[scraperExecutions.length];
 			for(int i = 0 ; i < scraperExecutions.length ; i ++ ) {

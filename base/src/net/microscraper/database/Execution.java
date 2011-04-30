@@ -108,18 +108,19 @@ public abstract class Execution {
 		if(lastStatus.shouldRetry()) {
 			Status status = new Status();
 			try {
-				//status.addSuccess(this, privateExecute());
 				result = privateExecute();
 			} catch(ExecutionDelay e) {
 				status.addDelay(e);
 			} catch(ExecutionFailure e) {
 				status.addFailure(e);
+			} catch(StatusException e) {
+				status.merge(e.getStatus());
 			}
 			lastStatus = status;
 		}
 		return lastStatus;
 	}
-	public final String unsafeExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+	public final String unsafeExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
 		if(result == null) {
 			String result = privateExecute();
 			lastStatus = new Status();
@@ -129,7 +130,8 @@ public abstract class Execution {
 		}
 	}
 	
-	protected abstract String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality;
+	protected abstract String privateExecute()
+		throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException;
 	
 	public final boolean equals(Object obj) {
 		if(this == obj)
@@ -213,15 +215,24 @@ public abstract class Execution {
 		public String reason() {
 			return throwable.getMessage();
 		}
-		/*
-		public ExecutionFatality(Execution caller, String message) {
-			super(caller);
-			this.message = message;
-		}
-	*/
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = -5646674827768905150L;
+	}
+	
+	// A way of tossing status through exceptions.
+	public static class StatusException extends Exception {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -3155033955368165156L;
+		private final Status status;
+		public StatusException(Status status) {
+			this.status = status;
+		}
+		public Status getStatus() {
+			return status;
+		}
 	}
 }
