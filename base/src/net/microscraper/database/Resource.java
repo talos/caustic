@@ -1,10 +1,5 @@
 package net.microscraper.database;
 
-import java.util.Vector;
-
-import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.client.Mustache;
 import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
@@ -14,7 +9,6 @@ import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Relationship.Relationships;
-import net.microscraper.database.schema.Data.DataExecution;
 
 public abstract class Resource {
 	protected Reference ref = Reference.blank(this);
@@ -49,8 +43,8 @@ public abstract class Resource {
 	
 	public abstract static class OneToOneResource extends Resource {
 		private final HashtableWithNulls executions = new HashtableWithNulls();
-		public ResourceExecution executionFromExecution(Execution caller) throws ExecutionFatality {
-			ResourceExecution exc = (ResourceExecution) executions.get(caller);
+		public Execution executionFromExecution(Execution caller) throws ExecutionFatality {
+			Execution exc = (Execution) executions.get(caller);
 			if(exc == null) {
 				exc = generateExecution(caller);
 				executions.put(caller, exc);
@@ -62,7 +56,7 @@ public abstract class Resource {
 			exc.addVariables(extraVariables);
 			return exc;
 		}
-		protected abstract ResourceExecution generateExecution(Execution caller) throws ExecutionFatality;
+		protected abstract Execution generateExecution(Execution caller) throws ExecutionFatality;
 		public final boolean isOneToMany() {
 			return false;
 		}

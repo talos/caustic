@@ -1,8 +1,5 @@
 package net.microscraper.database.schema;
 
-import java.util.Vector;
-
-import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
@@ -12,10 +9,9 @@ import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
 import net.microscraper.database.Resource.OneToOneResource;
+import net.microscraper.database.Status;
 
-public class Data extends OneToOneResource {
-	private HashtableWithNulls executions = new HashtableWithNulls();
-	
+public class Data extends OneToOneResource {	
 	private static final RelationshipDefinition DEFAULTS =
 		new RelationshipDefinition( "defaults", Default.class);
 	private static final RelationshipDefinition SCRAPERS =
@@ -29,7 +25,9 @@ public class Data extends OneToOneResource {
 			}
 		};
 	}
-
+	protected Execution generateExecution(Execution caller) throws ExecutionFatality {
+		return new DataExecution(this, caller);
+	}
 	
 	public class DataExecution extends Execution {
 		private final Resource[] defaults;
@@ -55,20 +53,16 @@ public class Data extends OneToOneResource {
 		
 		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
 			//Status status = new Status.Successful(getPublishValue());
-			//Status status = new Status();
-			Vector statuses = new Vector();
+			Status status = new Status();
 			for(int i = 0 ; i < defaults.length ; i ++ ) {
 				//status.merge(defaults[i].execute());
 				Execution exc = callResource(defaults[i]);
-				statuses.addElement(exc.safeExecute());
+				status.merge(exc.safeExecute());
 			}
 			for(int i = 0 ; i < scrapers.length ; i ++ ) {
 				//status.merge(((Scraper) scrapers[i]).execute(getSourceExecution()));
 				Execution exc = callResource(scrapers[i]);
-				statuses.addElement(exc.safeExecute());
-			}
-			for(int i = 0 ; i < statuses.size() ; i ++ ) {
-				
+				status.merge(exc.safeExecute());
 			}
 		}
 	}

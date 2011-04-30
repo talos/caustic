@@ -5,7 +5,6 @@ import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Execution;
@@ -13,11 +12,11 @@ import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
+import net.microscraper.database.Resource.OneToOneResource;
 
-public class Regexp extends Resource {
+public class Regexp extends OneToOneResource {
 	private static final AttributeDefinition REGEXP = new AttributeDefinition("regexp");
 	private static final AttributeDefinition MATCH_NUMBER = new AttributeDefinition("match_number");
-	private final HashtableWithNulls executions = new HashtableWithNulls();
 		
 	public ModelDefinition definition() {
 		return new ModelDefinition() {	
@@ -29,22 +28,9 @@ public class Regexp extends Resource {
 			}
 		};
 	}
-	
-	public Execution executionFromExecution(Execution caller) throws ExecutionFatality {
-		RegexpExecution exc;
-		if(!executions.containsKey(caller)) {
-			exc = new RegexpExecution(this, caller);
-			executions.put(caller, exc);
-		} else {
-			exc = (RegexpExecution) executions.get(caller);
-		}
-		return exc;
-	}
-	
-	public Execution executionFromVariables(Variables extraVariables) throws ExecutionFatality {
-		RegexpExecution exc = (RegexpExecution) executionFromExecution(null);
-		exc.addVariables(extraVariables);
-		return exc;
+
+	protected Execution generateExecution(Execution caller) throws ExecutionFatality {
+		return new RegexpExecution(this, caller);
 	}
 	
 	public static final class RegexpExecution extends Execution {
@@ -91,4 +77,5 @@ public class Regexp extends Resource {
 			}
 		}
 	}
+
 }

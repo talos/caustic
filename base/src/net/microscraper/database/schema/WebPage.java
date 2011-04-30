@@ -4,7 +4,6 @@ import java.util.Hashtable;
 
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
@@ -13,11 +12,10 @@ import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
+import net.microscraper.database.Resource.OneToOneResource;
 import net.microscraper.database.schema.AbstractHeader.AbstractHeaderExecution;
 
-public class WebPage extends Resource {
-	private final HashtableWithNulls executions = new HashtableWithNulls();
-	
+public class WebPage extends OneToOneResource {	
 	private static final AttributeDefinition URL = new AttributeDefinition("url");
 	
 	private static final RelationshipDefinition TERMINATES =
@@ -42,20 +40,9 @@ public class WebPage extends Resource {
 			}
 		};
 	}
-	
-	public Execution executionFromExecution(Execution caller) throws ExecutionFatality {
-		if(!executions.containsKey(caller)) {
-			executions.put(caller, new WebPageExecution(this, caller));
-		}
-		return (WebPageExecution) executions.get(caller);
+	protected Execution generateExecution(Execution caller) throws ExecutionFatality {
+		return new WebPageExecution(this, caller);
 	}
-
-	public Execution executionFromVariables(Variables extraVariables) throws ExecutionFatality {
-		WebPageExecution exc = (WebPageExecution) executionFromExecution(null);
-		exc.addVariables(extraVariables);
-		return exc;
-	}
-	
 	public class WebPageExecution extends Execution {
 		protected WebPageExecution(Resource resource, Execution caller)
 				throws ResourceNotFoundException {

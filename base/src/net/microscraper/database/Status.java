@@ -1,50 +1,35 @@
 package net.microscraper.database;
 
+import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.client.Utils;
 import net.microscraper.database.Execution.ExecutionDelay;
 import net.microscraper.database.Execution.ExecutionFailure;
 
-public abstract class Status {
-	private Vector successes = new Vector();
+public class Status {
+	private Hashtable successes = new Hashtable();
 	private Vector delays = new Vector();
 	private Vector failures = new Vector();
 	
-	public String toString() {
-		return getClass().getName();
+	public void addSuccess(Execution exc, String result) {
+		successes.put(exc, result);
 	}
-	public abstract String getResult();
-	/*
-	public static final class NotYetStarted extends Status {
-		public String getResult() {
-			return null;
-		}
+	public void addDelay(ExecutionDelay e) {
+		delays.addElement(e);
 	}
-	public static final class Successful extends Status {
-		private final String result;
-		public Successful(String result) {
-			this.result = result;
-		}
-		public String getResult() {
-			return result;
-		}
+	public void addFailure(ExecutionFailure e) {
+		failures.addElement(e);
 	}
-	public static final class Delayed extends Status {
-		Vector delays = new Vector();
-		public Delayed(ExecutionDelay e) {
-			delays.addElement(e);
-		}
-		public String getResult() {
-		}
+	public void merge(Status other) {
+		Utils.hashtableIntoHashtable(other.successes, this.successes);
+		Utils.vectorIntoVector(other.delays, this.delays);
+		Utils.vectorIntoVector(other.failures, this.failures);
 	}
-	public static final class Failed extends Status {
-		Vector throwables = new Vector();
-		public Failed(ExecutionFailure e) {
-			throwables.addElement(e);
-		}
-		public String getResult() {
-			return null;
-		}
-	}*/
+	public boolean hasDelay() {
+		return delays.size() > 0;
+	}
+	public boolean hasFailure() {
+		return failures.size() > 0;
+	}
 }
