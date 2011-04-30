@@ -36,16 +36,12 @@ public class Data extends OneToOneResource {
 			scrapers = getRelatedResources(SCRAPERS);
 		}
 		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
-			//Status status = new Status.Successful(getPublishValue());
 			Status status = new Status();
 			for(int i = 0 ; i < defaults.length ; i ++ ) {
-				//status.merge(defaults[i].execute());
 				Execution exc = callResource((Default) defaults[i]);
 				status.merge(exc.safeExecute());
 			}
 			for(int i = 0 ; i < scrapers.length ; i ++ ) {
-				//status.merge(((Scraper) scrapers[i]).execute(getSourceExecution()));
-				//Execution[] executions = callResource((Scraper) scrapers[i]);
 				status.merge(((Scraper) scrapers[i]).execute(getSourceExecution()));
 			}
 		}

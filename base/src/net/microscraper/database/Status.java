@@ -32,8 +32,14 @@ public class Status {
 		}
 		return false;
 	}
+	
+	// If any previous delay is no longer in our status, we have made progress.
 	public boolean progressSince(Status lastStatus) {
-		// TODO Auto-generated method stub
-		return false;
+		for(int i = 0 ; i < lastStatus.delays.size() ; i ++ ) {
+			ExecutionDelay previousDelay = (ExecutionDelay) lastStatus.delays.elementAt(i);
+			if(!this.delays.contains(previousDelay))
+				return false;
+		}
+		return true;
 	}
 }
