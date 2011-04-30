@@ -40,6 +40,7 @@ public abstract class Resource {
 	}
 	
 	public abstract ModelDefinition definition();
+	public abstract Status execute(Variables extraVariables) throws ExecutionFatality;
 	
 	public abstract static class OneToOneResource extends Resource {
 		private final HashtableWithNulls executions = new HashtableWithNulls();
@@ -55,6 +56,9 @@ public abstract class Resource {
 			Execution exc = executionFromExecution(null);
 			exc.addVariables(extraVariables);
 			return exc;
+		}
+		public Status execute(Variables extraVariables) throws ExecutionFatality {
+			return executionFromVariables(extraVariables).safeExecute();
 		}
 		protected abstract Execution generateExecution(Execution caller) throws ExecutionFatality;
 		public final boolean isOneToMany() {

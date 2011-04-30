@@ -51,7 +51,7 @@ public class WebPage extends OneToOneResource {
 		private final Hashtable resourcesToHashtable(Resource[] resources) throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
 			Hashtable hash = new Hashtable();
 			for(int i = 0 ; i < resources.length ; i ++) {
-				AbstractHeaderExecution exc = (AbstractHeaderExecution) callResource(resources[i]);
+				AbstractHeaderExecution exc = (AbstractHeaderExecution) callResource((AbstractHeader) resources[i]);
 				exc.unsafeExecute();
 				hash.put(exc.getName(), exc.getValue());
 			}
@@ -70,7 +70,7 @@ public class WebPage extends OneToOneResource {
 			// terminate prematurely if we can't do all login web pages.
 			Resource[] loginWebPages = getRelatedResources(LOGIN_WEB_PAGES);
 			for(int i = 0 ; i < loginWebPages.length ; i ++) {
-				Execution exc = callResource(loginWebPages[i]);
+				Execution exc = callResource((WebPage) loginWebPages[i]);
 				exc.unsafeExecute();
 			}
 			
@@ -81,7 +81,7 @@ public class WebPage extends OneToOneResource {
 			Resource[] terminatesResources = getRelatedResources(TERMINATES);
 			Pattern[] terminates = new Pattern[terminatesResources.length];
 			for(int i = 0 ; i < terminatesResources.length; i ++) {
-				Execution exc = callResource(terminatesResources[i]);
+				Execution exc = callResource((Regexp) terminatesResources[i]);
 				terminates[i] = Client.regexp.compile(exc.unsafeExecute());
 			}
 			try {

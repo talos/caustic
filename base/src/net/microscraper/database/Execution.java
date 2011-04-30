@@ -11,6 +11,7 @@ import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
+import net.microscraper.database.Resource.OneToOneResource;
 
 public abstract class Execution {
 	private static int count = 0;
@@ -19,14 +20,14 @@ public abstract class Execution {
 	private final Variables extraVariables = new Variables();
 	private final Execution caller;	
 	private final Resource resource;
-	private final String publishName;
 
-	private Status lastStatus = new Status.NotYetStarted();
+	private Status lastStatus = new Status();
+	private String result = null;
 	public final int id;
 	
-
 	protected Execution(Resource resource, Execution caller) {
 		id = count++;
+		this.resource = resource;
 		this.caller = caller;
 		if(caller != null) {
 			this.caller.addCalledExecution(this);
@@ -70,7 +71,7 @@ public abstract class Execution {
 		return null;
 	}
 	
-	protected final Execution callResource(Resource resource) throws ExecutionFatality {
+	protected final Execution callResource(OneToOneResource resource) throws ExecutionFatality {
 		return resource.executionFromExecution(getSourceExecution());
 	}
 	public final Status getStatus() {
@@ -116,10 +117,28 @@ public abstract class Execution {
 		return lastStatus;
 	}*/
 	public final Status safeExecute() throws ExecutionFatality {
-		
+		if(lastStatus.shouldRetry()) {
+			Status status = new Status();
+			try {
+				//status.addSuccess(this, privateExecute());
+				result = privateExecute();
+			} catch(ExecutionDelay e) {
+				status.addDelay(e);
+			} catch(ExecutionFailure e) {
+				status.addFailure(e);
+			}
+			lastStatus = status;
+		}
+		return lastStatus;
 	}
 	public final String unsafeExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
-		
+		if(result == null) {
+			String result = privateExecute();
+			lastStatus = new Status();
+			return result;
+		} else {
+			return result;
+		}
 	}
 	
 	protected abstract String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality;

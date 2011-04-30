@@ -56,12 +56,12 @@ public class Data extends OneToOneResource {
 			Status status = new Status();
 			for(int i = 0 ; i < defaults.length ; i ++ ) {
 				//status.merge(defaults[i].execute());
-				Execution exc = callResource(defaults[i]);
+				Execution exc = callResource((Default) defaults[i]);
 				status.merge(exc.safeExecute());
 			}
 			for(int i = 0 ; i < scrapers.length ; i ++ ) {
 				//status.merge(((Scraper) scrapers[i]).execute(getSourceExecution()));
-				Execution exc = callResource(scrapers[i]);
+				Execution exc = callResource((Scraper) scrapers[i]);
 				status.merge(exc.safeExecute());
 			}
 		}
