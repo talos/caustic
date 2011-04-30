@@ -26,12 +26,6 @@ public class Status {
 	public boolean hasFailure() {
 		return failures.size() > 0;
 	}
-	public boolean shouldRetry() {
-		if(hasDelay() && !hasFailure()) {
-			return true;
-		}
-		return false;
-	}
 	
 	// If any previous delay is no longer in our status, we have made progress.
 	public boolean progressSince(Status lastStatus) {

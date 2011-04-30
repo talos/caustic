@@ -45,7 +45,7 @@ public class Regexp extends OneToOneResource {
 		}
 		
 		public boolean matches(String input) {
-			if(!matchNumber.equals(null)) {
+			if(matchNumber != null) {
 				try {
 					pattern.match(input, matchNumber.intValue());
 					return true;
@@ -57,7 +57,7 @@ public class Regexp extends OneToOneResource {
 			}
 		}
 		public String[] allMatches(String input) throws NoMatches {
-			if(!matchNumber.equals(null)) {
+			if(matchNumber != null) {
 				return new String[] { pattern.match(input, matchNumber.intValue()) };
 			} else {
 				return pattern.allMatches(input);

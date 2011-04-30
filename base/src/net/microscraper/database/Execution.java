@@ -2,9 +2,11 @@ package net.microscraper.database;
 
 import java.util.Vector;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
@@ -105,25 +107,41 @@ public abstract class Execution {
 	}
 	
 	public final Status safeExecute() throws ExecutionFatality {
-		if(lastStatus.shouldRetry()) {
+		Client.log.i("Safely executing " + resource.ref().toString() + ":" + Integer.toString(id));
+		if(!lastStatus.hasFailure()) {
 			Status status = new Status();
 			try {
-				result = privateExecute();
-			} catch(ExecutionDelay e) {
-				status.addDelay(e);
-			} catch(ExecutionFailure e) {
-				status.addFailure(e);
-			} catch(StatusException e) {
-				status.merge(e.getStatus());
+				try {
+					result = privateExecute();
+					Client.publisher.publish(this, result);
+				} catch(ExecutionDelay e) {
+					status.addDelay(e);
+					Client.publisher.publish(this, e);
+				} catch(ExecutionFailure e) {
+					status.addFailure(e);
+					Client.publisher.publish(this, e);
+				} catch(StatusException e) {
+					status.merge(e.getStatus());
+				}
+			} catch(PublisherException e) {
+				throw new ExecutionFatality(this, e);
 			}
 			lastStatus = status;
 		}
 		return lastStatus;
 	}
 	public final String unsafeExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
+		Client.log.i("Unsafely executing " + resource.ref().toString() + ":" + Integer.toString(id));
+		if(lastStatus.hasFailure())
+			throw new StatusException(lastStatus);
 		if(result == null) {
 			String result = privateExecute();
 			lastStatus = new Status();
+			try {
+				Client.publisher.publish(this, result);
+			} catch(PublisherException e) {
+				throw new ExecutionFatality(this, e);
+			}
 			return result;
 		} else {
 			return result;
