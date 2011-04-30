@@ -1,7 +1,6 @@
 package net.microscraper.database.schema;
 
 import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Execution.ExecutionFatality;
@@ -35,15 +34,6 @@ public class Default extends OneToOneResource {
 			super(resource, caller);
 			substitutedScrapers = getRelatedResources(SUBSTITUTED_SCRAPERS);
 		}
-		
-		protected boolean isOneToMany() {
-			return false;
-		}
-
-		protected Variables getLocalVariables() {
-			return null;
-		}
-		
 		protected String privateExecute() throws MissingVariable, ExecutionFatality {
 			value = getAttributeValue(VALUE);
 			for(int i = 0 ; i < substitutedScrapers.length ; i++) {

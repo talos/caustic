@@ -3,7 +3,6 @@ package net.microscraper.client;
 import java.util.Hashtable;
 
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.database.Execution.ExecutionFatality;
 
 public interface Browser {
 	public static final int TIMEOUT = 10000;

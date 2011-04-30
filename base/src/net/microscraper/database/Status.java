@@ -32,4 +32,8 @@ public class Status {
 		}
 		return false;
 	}
+	public boolean progressSince(Status lastStatus) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

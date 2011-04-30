@@ -29,11 +29,6 @@ public class AbstractHeader extends OneToOneResource {
 		public AbstractHeaderExecution(Resource resource, Execution caller) {
 			super(resource, caller);
 		}
-		
-		public boolean isOneToMany() {
-			return false;
-		}
-		
 		protected String privateExecute() throws ExecutionDelay, ExecutionFatality {
 			name = getAttributeValue(NAME);
 			value = getAttributeValue(VALUE);

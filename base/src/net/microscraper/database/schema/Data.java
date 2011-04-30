@@ -35,9 +35,6 @@ public class Data extends OneToOneResource {
 			defaults = getRelatedResources(DEFAULTS);
 			scrapers = getRelatedResources(SCRAPERS);
 		}
-		protected boolean isOneToMany() {
-			return false;
-		}
 		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
 			//Status status = new Status.Successful(getPublishValue());
 			Status status = new Status();

@@ -5,7 +5,6 @@ import java.util.Hashtable;
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Execution.ExecutionFatality;
@@ -56,15 +55,6 @@ public class WebPage extends OneToOneResource {
 			}
 			return hash;
 		}
-		
-		protected boolean isOneToMany() {
-			return false;
-		}
-
-		protected Variables getLocalVariables() {
-			return null;
-		}
-
 		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
 			// terminate prematurely if we can't do all login web pages.
 			Resource[] loginWebPages = getRelatedResources(LOGIN_WEB_PAGES);

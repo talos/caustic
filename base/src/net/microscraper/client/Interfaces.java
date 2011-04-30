@@ -3,8 +3,6 @@ package net.microscraper.client;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import net.microscraper.database.Execution.ExecutionFailure;
-
 public class Interfaces {
 	public static interface JSON {
 		

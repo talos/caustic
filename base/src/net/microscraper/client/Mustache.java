@@ -2,7 +2,6 @@ package net.microscraper.client;
 
 import net.microscraper.database.Execution;
 import net.microscraper.database.Execution.ExecutionDelay;
-import net.microscraper.database.Execution.ExecutionFatality;
 
 /**
  * Mustache-like substitutions from Variables.

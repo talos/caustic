@@ -5,14 +5,12 @@ import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Interfaces.Regexp;
-import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.database.Database.DatabaseException;
 import net.microscraper.database.Database;
+import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Reference;
 import net.microscraper.database.Resource;
 import net.microscraper.database.Status;
-import net.microscraper.database.Status.DelayExecution;
-import net.microscraper.database.Status.InProgress;
 
 public class Client {
 	private static Client instance = new Client();
@@ -50,18 +48,12 @@ public class Client {
 			Resource resource = db.get(ref);
 			
 			// Loop while we're in progress, provided the number of missing variables is changing.
-			Status curStatus = new Status.InProgress();
-			Status lastStatus = new Status.InProgress();
+			Status curStatus = new Status();
+			Status lastStatus;
 			do {
 				lastStatus = curStatus;
 				curStatus = resource.execute(extraVariables);
-				if(lastStatus.isInProgress() && curStatus.isInProgress()) {
-					DelayExecution[] lastMissingVariables = ((Status.InProgress) lastStatus).getDelays();
-					DelayExecution[] curMissingVariables = ((Status.InProgress) curStatus).getDelays();
-					if(Utils.arraysEqual(lastMissingVariables, curMissingVariables))
-						break;
-				}
-			} while(curStatus.isInProgress());
+			} while(curStatus.progressSince(lastStatus));
 		}  catch(JSONInterfaceException e) {
 			log.e(e);
 		} catch(DatabaseException e) {
@@ -69,6 +61,8 @@ public class Client {
 		} catch (InterruptedException e) {
 			log.e(e);
 		} catch (BrowserException e) {
+			log.e(e);
+		} catch (ExecutionFatality e) {
 			log.e(e);
 		}
 	}

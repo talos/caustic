@@ -69,10 +69,14 @@ public abstract class Resource {
 	public abstract static class OneToManyResource extends Resource {
 		public abstract Execution[] executionsFromVariables(Variables extraVariables) throws ExecutionFatality;
 		public abstract Execution[] executionsFromExecution(Execution caller) throws ExecutionFatality;
+		public final boolean isOneToMany() {
+			return false;
+		}
 	}
 	
 	// only true for scraper
 	public boolean isPublishedToVariables() {
 		return false;
 	}
+	public abstract boolean isOneToMany();
 }

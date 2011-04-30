@@ -64,7 +64,9 @@ public abstract class Execution {
 		this.extraVariables.merge(extraVariables);
 	}
 	
-	protected abstract boolean isOneToMany();
+	protected final boolean isOneToMany() {
+		return resource.isOneToMany();
+	}
 	
 	protected final Execution callResource(OneToOneResource resource) throws ExecutionFatality {
 		return resource.executionFromExecution(getSourceExecution());
@@ -93,7 +95,7 @@ public abstract class Execution {
 		}
 	}
 	
-	protected Variables getLocalVariables() {
+	protected final Variables getLocalVariables() {
 		if(result != null && resource.isPublishedToVariables()) {
 			Variables variables = new Variables();
 			variables.put(resource.ref().title, result);

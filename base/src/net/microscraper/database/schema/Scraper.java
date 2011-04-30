@@ -115,9 +115,6 @@ public class Scraper extends Resource {
 			Vector executionsForCaller = (Vector) scraper.executions.get(caller);
 			executionsForCaller.addElement(this);
 		}
-		protected boolean isOneToMany() {
-			return scraper.isOneToMany();
-		}
 	}
 
 	private static class SolvedScraperExecution extends ScraperExecution {

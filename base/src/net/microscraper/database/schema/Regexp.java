@@ -4,7 +4,6 @@ import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Execution.ExecutionFatality;
@@ -39,17 +38,6 @@ public class Regexp extends OneToOneResource {
 			super(resource, caller);
 			matchNumber = resource.getIntegerAttribute(MATCH_NUMBER);
 		}
-		
-		protected boolean isOneToMany() {
-			if(matchNumber.equals(null))
-				return true;
-			return false;
-		}
-		
-		protected Variables getLocalVariables() {
-			return new Variables();
-		}
-		
 		protected String privateExecute() throws MissingVariable, ExecutionFatality {
 			String patternString = getAttributeValue(REGEXP);
 			pattern = Client.regexp.compile(patternString);
