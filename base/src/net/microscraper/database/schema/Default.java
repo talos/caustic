@@ -42,7 +42,7 @@ public class Default extends Resource {
 		return exc;
 	}
 	
-	public class DefaultExecution extends ResourceExecution {
+	public class DefaultExecution extends Execution {
 		private Resource[] substitutedScrapers;
 		private String value;
 		protected DefaultExecution(Resource resource, Execution caller) throws ResourceNotFoundException {

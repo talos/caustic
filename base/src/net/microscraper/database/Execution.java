@@ -144,10 +144,13 @@ public abstract class Execution {
 		public boolean equals(Object obj);
 	}
 	
-	public static abstract class DefaultExecutionProblem implements ExecutionProblem {
+	public static abstract class DefaultExecutionProblem extends Exception implements ExecutionProblem {
 		private Execution caller;
 		public DefaultExecutionProblem(Execution caller) {
 			this.caller = caller;
+		}
+		public Execution callerExecution() {
+			return caller;
 		}
 		public final boolean equals(Object obj) {
 			if(this == obj)
@@ -161,21 +164,25 @@ public abstract class Execution {
 		}
 	}
 	
-	public static class ExecutionDelay extends Exception implements ExecutionProblem {
+	public static class ExecutionDelay extends DefaultExecutionProblem {
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 1887704359270171496L;
 	}
 	
-	public static class ExecutionFailure extends Exception implements ExecutionProblem {
+	public static class ExecutionFailure extends DefaultExecutionProblem {
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = -5646674827768905150L;
 	}
 	
-	public static class ExecutionFatality extends Exception implements ExecutionProblem {
+	public static class ExecutionFatality extends DefaultExecutionProblem {
+		public ExecutionFatality(Throwable e, Execution caller) {
+			super(caller);
+		}
+
 		/**
 		 * 
 		 */

@@ -47,7 +47,7 @@ public class Regexp extends Resource {
 		return exc;
 	}
 	
-	public static final class RegexpExecution extends ResourceExecution {
+	public static final class RegexpExecution extends Execution {
 		private Pattern pattern;
 		private final Integer matchNumber;
 		protected RegexpExecution(Resource resource, Execution caller) {

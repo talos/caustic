@@ -103,7 +103,7 @@ public class Scraper extends Resource {
 		return getExecution(caller, null);
 	}
 	*/
-	public static abstract class ScraperExecution extends ResourceExecution {
+	public static abstract class ScraperExecution extends Execution {
 		//private final Hashtable matches = new Hashtable();
 		//private String match;
 		private final Scraper scraper;

@@ -30,20 +30,8 @@ public class Data extends OneToOneResource {
 		};
 	}
 
-	public Execution executionFromExecution(Execution caller) throws ExecutionFatality {
-		if(!executions.containsKey(caller)) {
-			executions.put(caller, new DataExecution(this, caller));
-		}
-		return (DataExecution) executions.get(caller);
-	}
 	
-	public Execution executionFromVariables(Variables extraVariables) throws ExecutionFatality {
-		DataExecution exc = (DataExecution) executionFromExecution(null);
-		exc.addVariables(extraVariables);
-		return exc;
-	}
-	
-	public class DataExecution extends ResourceExecution {
+	public class DataExecution extends Execution {
 		private final Resource[] defaults;
 		private final Resource[] scrapers;
 		public DataExecution(Resource resource, Execution caller) throws ResourceNotFoundException {

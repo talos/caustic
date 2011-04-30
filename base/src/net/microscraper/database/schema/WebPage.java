@@ -2,11 +2,8 @@ package net.microscraper.database.schema;
 
 import java.util.Hashtable;
 
-import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
@@ -16,9 +13,7 @@ import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
-import net.microscraper.database.Status;
 import net.microscraper.database.schema.AbstractHeader.AbstractHeaderExecution;
-import net.microscraper.database.schema.Regexp.RegexpExecution;
 
 public class WebPage extends Resource {
 	private final HashtableWithNulls executions = new HashtableWithNulls();
@@ -61,7 +56,7 @@ public class WebPage extends Resource {
 		return exc;
 	}
 	
-	public class WebPageExecution extends ResourceExecution {
+	public class WebPageExecution extends Execution {
 		protected WebPageExecution(Resource resource, Execution caller)
 				throws ResourceNotFoundException {
 			super(resource, caller);
@@ -88,13 +83,6 @@ public class WebPage extends Resource {
 			// terminate prematurely if we can't do all login web pages.
 			Resource[] loginWebPages = getRelatedResources(LOGIN_WEB_PAGES);
 			for(int i = 0 ; i < loginWebPages.length ; i ++) {
-				/*Status priorPageStatus = ((WebPage) loginWebPages[i]).getExecution(getSourceExecution()).execute();
-				
-				// wait if prior page is in progress, fail if it failed.
-				if(priorPageStatus.isInProgress())
-					return waitingFor(loginWebPages[i]);
-				if(priorPageStatus.isFailure())
-					return priorPageStatus;*/
 				Execution exc = callResource(loginWebPages[i]);
 				exc.unsafeExecute();
 			}
@@ -106,21 +94,13 @@ public class WebPage extends Resource {
 			Resource[] terminatesResources = getRelatedResources(TERMINATES);
 			Pattern[] terminates = new Pattern[terminatesResources.length];
 			for(int i = 0 ; i < terminatesResources.length; i ++) {
-				//RegexpExecution exc = ((Regexp) terminatesResources[i]).getExecution(getSourceExecution());
-				//Status regexpStatus = exc.execute();
-				
-				/*if(regexpStatus.isInProgress())
-					return waitingFor(terminatesResources[i]);
-				if(regexpStatus.isFailure())
-					return regexpStatus;
-				terminates[i] = Client.regexp.compile(regexpStatus.getResult());*/
 				Execution exc = callResource(terminatesResources[i]);
 				terminates[i] = Client.regexp.compile(exc.unsafeExecute());
 			}
 			try {
 				return Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
 			} catch(InterruptedException e) {
-				throw new ExecutionFatality(e);
+				throw new ExecutionFatality(e, getSourceExecution());
 			}
 		}
 	}
