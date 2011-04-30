@@ -7,6 +7,7 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
@@ -28,18 +29,17 @@ public class Default extends Resource {
 		};
 	}
 	
-	protected DefaultExecution getExecution(Execution caller)
-			throws ResourceNotFoundException {
+	public Execution executionFromExecution(Execution caller) throws ExecutionFatality {
 		if(!executions.containsKey(caller)) {
 			executions.put(caller, new DefaultExecution(this, caller));
 		}
 		return (DefaultExecution) executions.get(caller);
 	}
 
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
-		DefaultExecution exc = getExecution(null);
+	public Execution executionFromVariables(Variables extraVariables) throws ExecutionFatality {
+		DefaultExecution exc = (DefaultExecution) executionFromExecution(null);
 		exc.addVariables(extraVariables);
-		return exc.execute();
+		return exc;
 	}
 	
 	public class DefaultExecution extends ResourceExecution {
@@ -58,21 +58,11 @@ public class Default extends Resource {
 			return null;
 		}
 		
-		protected Status privateExecute() throws ResourceNotFoundException {
-			try {
-				value = getAttributeValue(VALUE);
-			} catch(MissingVariable e) {
-				return new Status.InProgress(e);
-			} catch(TemplateException e) {
-				return new Status.Failure(e);
-			}
+		protected String privateExecute() throws TemplateException, MissingVariable {
+			value = getAttributeValue(VALUE);
 			for(int i = 0 ; i < substitutedScrapers.length ; i++) {
 				((Scraper) substitutedScrapers[i]).substitute(value);
 			}
-			return new Status.Successful(getPublishValue());
-		}
-
-		public String getPublishValue() {
 			return value;
 		}
 	}

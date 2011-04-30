@@ -6,6 +6,7 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
@@ -21,16 +22,15 @@ public class AbstractHeader extends Resource {
 			public RelationshipDefinition[] relationships() { return new RelationshipDefinition[] {}; }
 		};
 	}
-
-	public AbstractHeaderExecution getExecution(Execution caller)
-			throws ResourceNotFoundException {
+	
+	public Execution executionFromExecution(Execution caller) throws ExecutionFatality {
 		return new AbstractHeaderExecution(this, caller);
 	}
-
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
-		AbstractHeaderExecution exc = getExecution(null);
+	
+	public Execution executionFromVariables(Variables extraVariables) throws ExecutionFatality {
+		AbstractHeaderExecution exc = (AbstractHeaderExecution) executionFromExecution(null);
 		exc.addVariables(extraVariables);
-		return exc.execute();
+		return exc; //.execute();
 	}
 	
 	protected static class AbstractHeaderExecution extends ResourceExecution {
@@ -45,13 +45,12 @@ public class AbstractHeader extends Resource {
 		}
 		
 		protected Variables getLocalVariables() {
-			return new Variables();
+			return null;
 		}
-		
-		protected Status privateExecute() throws TemplateException, MissingVariable {
+		protected String privateExecute() throws ExecutionDelay, ExecutionFatality {
 			name = getAttributeValue(NAME);
 			value = getAttributeValue(VALUE);
-			return new Status.Successful(getName() + '=' + getValue());
+			return getName() + '=' + getValue();
 		}
 		public String getName() {
 			return name;

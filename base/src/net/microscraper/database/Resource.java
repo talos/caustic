@@ -7,6 +7,7 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Attribute.Attributes;
 import net.microscraper.database.Database.ResourceNotFoundException;
+import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Relationship.Relationships;
@@ -41,7 +42,8 @@ public abstract class Resource {
 	}
 	
 	public abstract ModelDefinition definition();
-	public abstract Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException;
+	public abstract Execution executionFromVariables(Variables extraVariables) throws ExecutionFatality;
+	//public abstract Execution executionFromExecution(Execution caller) throws ExecutionFatality;
 	
 	protected static abstract class ResourceExecution extends Execution {
 		private final Resource resource;
@@ -54,14 +56,15 @@ public abstract class Resource {
 		public String getPublishName() {
 			return publishName;
 		}
-
 		protected final String getAttributeValue(AttributeDefinition def)
 					throws TemplateException, MissingVariable {
 			return (String) Mustache.compile(this, resource.getStringAttribute(def), getVariables());
 		}
-		// Generate a WaitingForPrerequisite status for this resource.
-		protected Status waitingFor(Resource resource) {
-			return new Status.InProgress(new Status.WaitingForPrerequisite(this, resource));
-		}
+		// TODO if we're publishing, and we're successful, add to local variables list.
+		/*protected Variables getLocalVariables() {
+			Variables variables = new Variables();
+			variables.put(scraper.ref().title, match);
+			return variables;
+		}*/
 	}
 }

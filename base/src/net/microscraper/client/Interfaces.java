@@ -3,6 +3,8 @@ package net.microscraper.client;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import net.microscraper.database.Execution.ExecutionFailure;
+
 public class Interfaces {
 	public static interface JSON {
 		
@@ -113,7 +115,7 @@ public class Interfaces {
 			public abstract String[] allMatches(String input) throws NoMatches;
 		}
 		
-		public static class NoMatches extends Exception {
+		public static class NoMatches extends ExecutionFailure {
 			
 			public NoMatches(Pattern pattern, String string) {
 				super(pattern.toString() + " did not match against " + string);

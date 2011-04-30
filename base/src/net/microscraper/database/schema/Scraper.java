@@ -3,7 +3,9 @@ package net.microscraper.database.schema;
 import java.util.Vector;
 
 import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
+import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils.HashtableWithNulls;
@@ -11,6 +13,7 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
@@ -54,9 +57,9 @@ public class Scraper extends Resource {
 		return false;
 	}
 	
-	public ScraperExecution[] getExecutions(Execution caller) throws ResourceNotFoundException {
+	private ScraperExecution[] executionsFromExecution(Execution caller) throws ExecutionFatality {
 		if(substituteValue != null) {
-			return new ScraperExecution[] {new ScraperExecution(this, caller, substituteValue) };
+			return new ScraperExecution[] { new SolvedScraperExecution(this, caller, substituteValue) };
 		}
 		
 		if(!executions.containsKey(caller)) {
@@ -72,120 +75,113 @@ public class Scraper extends Resource {
 				}
 			}
 		}
+		
 		Vector executionsForCaller = (Vector) executions.get(caller);
 		ScraperExecution[] executionsAry = new ScraperExecution[executionsForCaller.size()];
 		executionsForCaller.copyInto(executionsAry);
 		return executionsAry;
 	}
 	
-	private Status execute(Execution caller, Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
+	private ScraperExecution getExecution(Execution caller, Variables extraVariables) throws ExecutionFatality {
 		ScraperExecution[] scrapers = getExecutions(caller);
-		Status compoundStatus = new Status.InProgress();
+		//Status compoundStatus = new Status.InProgress();
 		for(int i = 0 ; i < scrapers.length ; i++) {
 			if(extraVariables != null) {
 				scrapers[i].addVariables(extraVariables);
 			}
-			compoundStatus.merge(scrapers[i].execute());
+			//compoundStatus.merge(scrapers[i].execute());
 		}
-		return compoundStatus;
+		//return compoundStatus;
 	}
 	
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
-		return execute(null, extraVariables);
+	public Execution executionFromVariables(Variables extraVariables) throws ExecutionFatality {
+		return getExecution(null, extraVariables);
 	}
 	
-	public Status execute(Execution caller) throws ResourceNotFoundException, InterruptedException {
-		return execute(caller, null);
+	/*
+	public Execution executionFromExecution(Execution caller) throws ExecutionFatality {
+		return getExecution(caller, null);
 	}
-	
-	public static class ScraperExecution extends ResourceExecution {
-		private RegexpExecution regexpExecution;
+	*/
+	public static abstract class ScraperExecution extends ResourceExecution {
 		//private final Hashtable matches = new Hashtable();
-		private String match;
+		//private String match;
 		private final Scraper scraper;
-		private ScraperExecution(Scraper scraper, Execution caller, Regexp regexp) throws ResourceNotFoundException {
+		private ScraperExecution(Scraper scraper, Execution caller) {
 			super(scraper, caller);
 			this.scraper = scraper;
-			regexpExecution = regexp.getExecution(getSourceExecution());
 			if(!scraper.executions.containsKey(caller)) {
 				scraper.executions.put(caller, new Vector());
 			}
 			Vector executionsForCaller = (Vector) scraper.executions.get(caller);
 			executionsForCaller.addElement(this);
 		}
-		private ScraperExecution(Scraper scraper, Execution caller, String match) {
-			super(scraper, caller);
-			this.match = match;
-			this.scraper = scraper;
-		}
 		protected boolean isOneToMany() {
 			return scraper.isOneToMany();
 		}
-		protected Variables getLocalVariables() {
-			if(match != null) {
-				Variables variables = new Variables();
-				variables.put(scraper.ref().title, match);
-				return variables;
-			} else {
-				return null;
-			}
-		}
-		// Replicate once we have a source.
-		protected Status execute(String source) throws ResourceNotFoundException, InterruptedException {
-			Status regexpStatus = regexpExecution.execute();
-			if(regexpStatus.isSuccessful()) {
-				try {
-					String[] matches = regexpExecution.allMatches(source);
-					match = matches[0];
-					for(int i = 1 ; i < matches.length ; i ++) {
-						new ScraperExecution(scraper, getSourceExecution(), matches[i]);
-					}
-				} catch(NoMatches e) {
-					return new Status.Failure(e);
-				}
-			}
-			return regexpStatus;
-		}
-		public String match() {
-			return match;
-		}
-		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException, TemplateException, MissingVariable, BrowserException {
-			return new Status.Successful(getPublishValue());
-		}
-		public String getPublishValue() {
-			return match;
-		}
 	}
-	
-	private static class ScraperExecutionFromWebPage extends ScraperExecution {
-		private final WebPageExecution sourceWebPageExecution;
-		private ScraperExecutionFromWebPage(Scraper scraper, Execution caller, Regexp regexp, WebPage webPage)
-				throws ResourceNotFoundException {
-			super(scraper, caller, regexp);
 
-			sourceWebPageExecution = webPage.getExecution(getSourceExecution());
+	private static class SolvedScraperExecution extends ScraperExecution {
+		private final String match;
+		public SolvedScraperExecution(ScraperExecution executionToDuplicate, String match) {
+			super(executionToDuplicate.scraper, executionToDuplicate.getSourceExecution());
+			this.match = match;
 		}
-		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException, TemplateException, MissingVariable, BrowserException {
-			return this.execute(sourceWebPageExecution.privateExecute().getResult());
+		public SolvedScraperExecution(Scraper scraper, Execution caller, String match) {
+			super(scraper, caller);
+			this.match = match;
+		}
+		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+			return match;
+		}
+	}
+
+	private static abstract class UnsolvedScraperExecution extends ScraperExecution {
+		private final RegexpExecution regexpExecution;
+		protected UnsolvedScraperExecution(Scraper scraper, Execution caller, Regexp regexp) throws ExecutionFatality {
+			super(scraper, caller);
+			this.regexpExecution = (RegexpExecution) callResource(regexp);
+		}
+		protected String matchAgainst(Execution execution) throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+			regexpExecution.unsafeExecute();
+			String[] matches = regexpExecution.allMatches(execution.unsafeExecute());
+			for(int i = 1 ; i < matches.length ; i ++) {
+				new SolvedScraperExecution(this, matches[i]);
+			}
+			return matches[0];
 		}
 	}
 	
-	private static class ScraperExecutionFromScraper extends ScraperExecution {
+	private static class ScraperExecutionFromWebPage extends UnsolvedScraperExecution {
+		private final WebPage webPage;
+		private ScraperExecutionFromWebPage(Scraper scraper, Execution caller, Regexp regexp, WebPage webPage) throws ExecutionFatality {
+			super(scraper, caller, regexp);
+			this.webPage = webPage;
+		}
+		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+			return matchAgainst(callResource(webPage));
+		}
+	}
+	
+	private static class ScraperExecutionFromScraper extends UnsolvedScraperExecution {
 		private final Scraper sourceScraper;
 		private ScraperExecutionFromScraper(Scraper scraper, Execution caller, Regexp regexp, Scraper sourceScraper)
-				throws ResourceNotFoundException {
+				throws ExecutionFatality {
 			super(scraper, caller, regexp);
 			this.sourceScraper = sourceScraper;
 		}
-		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException {
-			Status status = new Status.InProgress();
-			if(sourceScraper.execute(getSourceExecution()).isSuccessful()) {
-				ScraperExecution[] sourceScraperExecutions = sourceScraper.getExecutions(getSourceExecution());
-				for(int i = 0 ; i < sourceScraperExecutions.length ; i ++) {
-					status.merge(this.execute(sourceScraperExecutions[i].match()));
-				}
+		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+			ScraperExecution[] scraperExecutions = sourceScraper.executionsFromExecution(getSourceExecution());
+			String[] matches = new String[scraperExecutions.length];
+			for(int i = 0 ; i < scraperExecutions.length ; i ++ ) {
+				matches[i] = matchAgainst(scraperExecutions[i]);
 			}
-			return status;
+			// create fakes for the extra matches
+			for(int i = 1 ; i < matches.length ; i++) {
+				new SolvedScraperExecution(this, matches[i]);
+			}
+			return matches[0];
 		}
 	}
+	
 }

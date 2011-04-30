@@ -8,12 +8,11 @@ import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
-import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
-import net.microscraper.database.Status;
 
 public class Regexp extends Resource {
 	private static final AttributeDefinition REGEXP = new AttributeDefinition("regexp");
@@ -31,24 +30,27 @@ public class Regexp extends Resource {
 		};
 	}
 	
-	public RegexpExecution getExecution(Execution caller)
-			throws ResourceNotFoundException {
+	public Execution executionFromExecution(Execution caller) throws ExecutionFatality {
+		RegexpExecution exc;
 		if(!executions.containsKey(caller)) {
-			executions.put(caller, new RegexpExecution(this, caller));
+			exc = new RegexpExecution(this, caller);
+			executions.put(caller, exc);
+		} else {
+			exc = (RegexpExecution) executions.get(caller);
 		}
-		return (RegexpExecution) executions.get(caller);
+		return exc;
 	}
 	
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
-		RegexpExecution exc = getExecution(null);
+	public Execution executionFromVariables(Variables extraVariables) throws ExecutionFatality {
+		RegexpExecution exc = (RegexpExecution) executionFromExecution(null);
 		exc.addVariables(extraVariables);
-		return exc.execute();
+		return exc;
 	}
 	
 	public static final class RegexpExecution extends ResourceExecution {
 		private Pattern pattern;
 		private final Integer matchNumber;
-		protected RegexpExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
+		protected RegexpExecution(Resource resource, Execution caller) {
 			super(resource, caller);
 			matchNumber = resource.getIntegerAttribute(MATCH_NUMBER);
 		}
@@ -63,9 +65,10 @@ public class Regexp extends Resource {
 			return new Variables();
 		}
 		
-		protected Status privateExecute() throws TemplateException, MissingVariable {
-			pattern = Client.regexp.compile(getAttributeValue(REGEXP));
-			return new Status.Successful(getPublishValue());
+		protected String privateExecute() throws TemplateException, MissingVariable {
+			String patternString = getAttributeValue(REGEXP);
+			pattern = Client.regexp.compile(patternString);
+			return patternString;
 		}
 		
 		public boolean matches(String input) {
@@ -80,17 +83,12 @@ public class Regexp extends Resource {
 				return pattern.matches(input);
 			}
 		}
-		
 		public String[] allMatches(String input) throws NoMatches {
 			if(!matchNumber.equals(null)) {
 				return new String[] { pattern.match(input, matchNumber.intValue()) };
 			} else {
 				return pattern.allMatches(input);
 			}
-		}
-
-		public String getPublishValue() {
-			return pattern.toString();
 		}
 	}
 }

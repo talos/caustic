@@ -1,7 +1,8 @@
 package net.microscraper.client;
 
 import net.microscraper.database.Execution;
-import net.microscraper.database.Status.DelayExecution;
+import net.microscraper.database.Execution.ExecutionDelay;
+import net.microscraper.database.Execution.ExecutionFatality;
 
 /**
  * Mustache-like substitutions from Variables.
@@ -47,7 +48,7 @@ public class Mustache {
 		return result + template.substring(close_tag_pos);
 	}
 	
-	public static class TemplateException extends Exception {
+	public static class TemplateException extends ExecutionFatality {
 		
 		/**
 		 * 
@@ -57,7 +58,7 @@ public class Mustache {
 		public TemplateException(String msg) { super(msg); }
 	}
 	
-	public static class MissingVariable extends Exception implements DelayExecution {
+	public static class MissingVariable extends ExecutionDelay {
 		/**
 		 * 
 		 */

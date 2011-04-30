@@ -16,7 +16,7 @@ public abstract class Execution {
 	private final Vector calledExecutions = new Vector();
 	private final Variables extraVariables = new Variables();
 	private final Execution caller;	
-	private Status lastStatus = new Status.InProgress();
+	private Status lastStatus = new Status.NotYetStarted();
 	public final int id;
 	protected Execution(Execution caller) {
 		id = count++;
@@ -59,16 +59,25 @@ public abstract class Execution {
 	}
 	
 	protected abstract boolean isOneToMany();
-	protected abstract Variables getLocalVariables();
+	protected Variables getLocalVariables() {
+		return null;
+	}
+	
+	protected final Execution callResource(Resource resource) throws ExecutionFatality {
+		return resource.executionFromExecution(getSourceExecution());
+	}
 	public abstract String getPublishName();
 	public final Status getStatus() {
 		return lastStatus;
 	}
-	public final Status execute() throws ResourceNotFoundException, InterruptedException {
+	
+	/*private final Status execute() throws ResourceNotFoundException, InterruptedException {
 		if(lastStatus.isInProgress()) {
 			Status status;
 			try {
 				status = privateExecute();
+			} catch(WaitingForExecution e) {
+				status = new Status.InProgress(e);
 			} catch(MissingVariable e) {
 				status = new Status.InProgress(e);
 			} catch(TemplateException e) {
@@ -85,8 +94,15 @@ public abstract class Execution {
 			lastStatus = status;
 		}
 		return lastStatus;
+	}*/
+	public final Status safeExecute() throws ExecutionFatality {
+		
 	}
-	protected abstract Status privateExecute() throws ResourceNotFoundException, InterruptedException, TemplateException, MissingVariable, BrowserException;
+	public final String unsafeExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+		
+	}
+	
+	protected abstract String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality;
 	
 	public final boolean equals(Object obj) {
 		if(this == obj)
@@ -100,5 +116,49 @@ public abstract class Execution {
 	
 	public final int hashCode() {
 		return id;
+	}
+	
+	public static interface ExecutionProblem {
+		public Execution callerExecution();
+		public String reason();
+		public boolean equals(Object obj);
+	}
+	
+	public static abstract class DefaultExecutionProblem implements ExecutionProblem {
+		private Execution caller;
+		public DefaultExecutionProblem(Execution caller) {
+			this.caller = caller;
+		}
+		public final boolean equals(Object obj) {
+			if(this == obj)
+				return true;
+			if(!(obj instanceof ExecutionProblem))
+				return false;
+			ExecutionProblem that = (ExecutionProblem) obj;
+			if(this.callerExecution().equals(that.callerExecution()) && this.reason().equals(that.reason()))
+				return true;
+			return false;
+		}
+	}
+	
+	public static class ExecutionDelay extends Exception implements ExecutionProblem {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1887704359270171496L;
+	}
+	
+	public static class ExecutionFailure extends Exception implements ExecutionProblem {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5646674827768905150L;
+	}
+	
+	public static class ExecutionFatality extends Exception implements ExecutionProblem {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5646674827768905150L;
 	}
 }

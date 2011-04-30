@@ -3,6 +3,7 @@ package net.microscraper.client;
 import java.util.Hashtable;
 
 import net.microscraper.client.Interfaces.Regexp.Pattern;
+import net.microscraper.database.Execution.ExecutionFatality;
 
 public interface Browser {
 	public static final int TIMEOUT = 10000;
@@ -23,13 +24,11 @@ public interface Browser {
 	
 	public static final String ENCODING = "UTF-8";
 	
-	public String load(String url)
-			throws BrowserException, InterruptedException;
+	public String load(String url) throws  BrowserException, InterruptedException;
 	public String load(String url, Hashtable posts, Hashtable headers,
-			Hashtable cookies, Pattern[] terminates)
-			throws BrowserException, InterruptedException;
+			Hashtable cookies, Pattern[] terminates) throws BrowserException, InterruptedException;
 	
-	public static class BrowserException extends Exception {
+	public static class BrowserException extends ExecutionFatality {
 		public BrowserException(String url, Throwable e) {
 			super("Loading " + url, e);
 		}

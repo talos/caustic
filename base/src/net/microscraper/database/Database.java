@@ -5,6 +5,7 @@ import java.util.Hashtable;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.Iterator;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.database.Execution.ExecutionFatality;
 
 public class Database {
 
@@ -46,7 +47,7 @@ public class Database {
 			throw new ResourceNotFoundException(reference);
 	}
 	
-	public static class DatabaseException extends Exception {
+	public static class DatabaseException extends ExecutionFatality {
 		/**
 		 * 
 		 */

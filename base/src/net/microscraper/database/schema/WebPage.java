@@ -12,6 +12,7 @@ import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
@@ -47,34 +48,30 @@ public class WebPage extends Resource {
 		};
 	}
 	
-	protected WebPageExecution getExecution(Execution caller) throws ResourceNotFoundException {
+	public Execution executionFromExecution(Execution caller) throws ExecutionFatality {
 		if(!executions.containsKey(caller)) {
 			executions.put(caller, new WebPageExecution(this, caller));
 		}
 		return (WebPageExecution) executions.get(caller);
 	}
 
-	public Status execute(Variables extraVariables) throws ResourceNotFoundException, InterruptedException {
-		WebPageExecution exc = getExecution(null);
+	public Execution executionFromVariables(Variables extraVariables) throws ExecutionFatality {
+		WebPageExecution exc = (WebPageExecution) executionFromExecution(null);
 		exc.addVariables(extraVariables);
-		return exc.execute();
+		return exc;
 	}
 	
 	public class WebPageExecution extends ResourceExecution {
-		private String webPageString = null;
 		protected WebPageExecution(Resource resource, Execution caller)
 				throws ResourceNotFoundException {
 			super(resource, caller);
 		}
-		private final Hashtable resourcesToHashtable(Resource[] resources)
-				throws ResourceNotFoundException, TemplateException, MissingVariable, InterruptedException {
+		private final Hashtable resourcesToHashtable(Resource[] resources) throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
 			Hashtable hash = new Hashtable();
 			for(int i = 0 ; i < resources.length ; i ++) {
-				AbstractHeaderExecution exc = ((AbstractHeader) resources[i]).getExecution(getSourceExecution());
-
-				exc.privateExecute(); // throws exception if missing variable etc.
+				AbstractHeaderExecution exc = (AbstractHeaderExecution) callResource(resources[i]);
+				exc.unsafeExecute();
 				hash.put(exc.getName(), exc.getValue());
-
 			}
 			return hash;
 		}
@@ -87,17 +84,19 @@ public class WebPage extends Resource {
 			return null;
 		}
 
-		protected Status privateExecute() throws ResourceNotFoundException, InterruptedException, TemplateException, MissingVariable, BrowserException {
+		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
 			// terminate prematurely if we can't do all login web pages.
 			Resource[] loginWebPages = getRelatedResources(LOGIN_WEB_PAGES);
 			for(int i = 0 ; i < loginWebPages.length ; i ++) {
-				Status priorPageStatus = ((WebPage) loginWebPages[i]).getExecution(getSourceExecution()).execute();
+				/*Status priorPageStatus = ((WebPage) loginWebPages[i]).getExecution(getSourceExecution()).execute();
 				
 				// wait if prior page is in progress, fail if it failed.
 				if(priorPageStatus.isInProgress())
 					return waitingFor(loginWebPages[i]);
 				if(priorPageStatus.isFailure())
-					return priorPageStatus;
+					return priorPageStatus;*/
+				Execution exc = callResource(loginWebPages[i]);
+				exc.unsafeExecute();
 			}
 			
 			Hashtable posts = resourcesToHashtable(getRelatedResources(POSTS));
@@ -107,17 +106,22 @@ public class WebPage extends Resource {
 			Resource[] terminatesResources = getRelatedResources(TERMINATES);
 			Pattern[] terminates = new Pattern[terminatesResources.length];
 			for(int i = 0 ; i < terminatesResources.length; i ++) {
-				RegexpExecution exc = ((Regexp) terminatesResources[i]).getExecution(getSourceExecution());
-				Status regexpStatus = exc.execute();
+				//RegexpExecution exc = ((Regexp) terminatesResources[i]).getExecution(getSourceExecution());
+				//Status regexpStatus = exc.execute();
 				
-				if(regexpStatus.isInProgress())
+				/*if(regexpStatus.isInProgress())
 					return waitingFor(terminatesResources[i]);
 				if(regexpStatus.isFailure())
 					return regexpStatus;
-				terminates[i] = Client.regexp.compile(regexpStatus.getResult());
+				terminates[i] = Client.regexp.compile(regexpStatus.getResult());*/
+				Execution exc = callResource(terminatesResources[i]);
+				terminates[i] = Client.regexp.compile(exc.unsafeExecute());
 			}
-			webPageString = Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
-			return new Status.Successful(webPageString);
+			try {
+				return Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
+			} catch(InterruptedException e) {
+				throw new ExecutionFatality(e);
+			}
 		}
 	}
 }
