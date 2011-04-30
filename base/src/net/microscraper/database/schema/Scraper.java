@@ -2,12 +2,7 @@ package net.microscraper.database.schema;
 
 import java.util.Vector;
 
-import net.microscraper.client.Browser.BrowserException;
-import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
-import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
@@ -19,7 +14,6 @@ import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
 import net.microscraper.database.Status;
 import net.microscraper.database.schema.Regexp.RegexpExecution;
-import net.microscraper.database.schema.WebPage.WebPageExecution;
 
 public class Scraper extends Resource {
 	protected final HashtableWithNulls executions = new HashtableWithNulls();
@@ -57,22 +51,50 @@ public class Scraper extends Resource {
 		return false;
 	}
 	
+	public boolean isPublishedToVariables() {
+		return true;
+	}
+	
+	private Status execute(Execution caller, Variables extraVariables) throws ExecutionFatality {
+		Execution[] executions = executionsFromExecution(null);
+		Status status = new Status();
+		for(int i = 0 ; i < executions.length ; i ++) {
+			if(extraVariables != null) {
+				executions[i].addVariables(extraVariables);
+			}
+			status.merge(executions[i].safeExecute());
+		}
+		return status;
+	}
+	
+	public Status execute(Execution caller) throws ExecutionFatality {
+		return execute(caller, null);
+	}
+	
+	public Status execute(Variables extraVariables) throws ExecutionFatality {
+		return execute(null, extraVariables);
+	}
+	
 	private ScraperExecution[] executionsFromExecution(Execution caller) throws ExecutionFatality {
 		if(substituteValue != null) {
 			return new ScraperExecution[] { new SolvedScraperExecution(this, caller, substituteValue) };
 		}
 		
 		if(!executions.containsKey(caller)) {
-			Resource[] regexps =  getRelatedResources(REGEXPS);
-			Resource[] scrapers = getRelatedResources(SOURCE_SCRAPERS); 
-			Resource[] webPages = getRelatedResources(WEB_PAGES);
-			for(int i = 0 ; i < regexps.length ; i ++ ) {
-				for(int j = 0 ; j < scrapers.length ; j ++) {
-					new ScraperExecutionFromScraper(this, caller, (Regexp) regexps[i], (Scraper) scrapers[j]);
+			try {
+				Resource[] regexps =  getRelatedResources(REGEXPS);
+				Resource[] scrapers = getRelatedResources(SOURCE_SCRAPERS); 
+				Resource[] webPages = getRelatedResources(WEB_PAGES);
+				for(int i = 0 ; i < regexps.length ; i ++ ) {
+					for(int j = 0 ; j < scrapers.length ; j ++) {
+						new ScraperExecutionFromScraper(this, caller, (Regexp) regexps[i], (Scraper) scrapers[j]);
+					}
+					for(int j = 0 ; j < webPages.length ; j ++) {
+						new ScraperExecutionFromWebPage(this, caller, (Regexp) regexps[i], (WebPage) webPages[j]);
+					}
 				}
-				for(int j = 0 ; j < webPages.length ; j ++) {
-					new ScraperExecutionFromWebPage(this, caller, (Regexp) regexps[i], (WebPage) webPages[j]);
-				}
+			} catch(ResourceNotFoundException e) {
+				throw new ExecutionFatality(caller, e);
 			}
 		}
 		
@@ -82,30 +104,7 @@ public class Scraper extends Resource {
 		return executionsAry;
 	}
 	
-	private ScraperExecution getExecution(Execution caller, Variables extraVariables) throws ExecutionFatality {
-		ScraperExecution[] scrapers = getExecutions(caller);
-		//Status compoundStatus = new Status.InProgress();
-		for(int i = 0 ; i < scrapers.length ; i++) {
-			if(extraVariables != null) {
-				scrapers[i].addVariables(extraVariables);
-			}
-			//compoundStatus.merge(scrapers[i].execute());
-		}
-		//return compoundStatus;
-	}
-	
-	public Execution executionFromVariables(Variables extraVariables) throws ExecutionFatality {
-		return getExecution(null, extraVariables);
-	}
-	
-	/*
-	public Execution executionFromExecution(Execution caller) throws ExecutionFatality {
-		return getExecution(caller, null);
-	}
-	*/
 	public static abstract class ScraperExecution extends Execution {
-		//private final Hashtable matches = new Hashtable();
-		//private String match;
 		private final Scraper scraper;
 		private ScraperExecution(Scraper scraper, Execution caller) {
 			super(scraper, caller);
@@ -150,6 +149,7 @@ public class Scraper extends Resource {
 			} catch (NoMatches e) {
 				throw new ExecutionFailure(getSourceExecution(), e);
 			}
+			// create fakes from extra matches.
 			for(int i = 1 ; i < matches.length ; i ++) {
 				new SolvedScraperExecution(this, matches[i]);
 			}

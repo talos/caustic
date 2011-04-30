@@ -1,8 +1,6 @@
 package net.microscraper.database.schema;
 
-import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
-import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
@@ -28,7 +26,7 @@ public class AbstractHeader extends OneToOneResource {
 	protected static class AbstractHeaderExecution extends Execution {
 		private String name = null;
 		private String value = null;
-		public AbstractHeaderExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
+		public AbstractHeaderExecution(Resource resource, Execution caller) {
 			super(resource, caller);
 		}
 		
@@ -36,9 +34,6 @@ public class AbstractHeader extends OneToOneResource {
 			return false;
 		}
 		
-		protected Variables getLocalVariables() {
-			return null;
-		}
 		protected String privateExecute() throws ExecutionDelay, ExecutionFatality {
 			name = getAttributeValue(NAME);
 			value = getAttributeValue(VALUE);

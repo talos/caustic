@@ -1,8 +1,6 @@
 package net.microscraper.database.schema;
 
-import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
-import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
@@ -32,25 +30,14 @@ public class Data extends OneToOneResource {
 	public class DataExecution extends Execution {
 		private final Resource[] defaults;
 		private final Resource[] scrapers;
-		public DataExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
+		public DataExecution(Resource resource, Execution caller) throws ExecutionFatality {
 			super(resource, caller);
 			defaults = getRelatedResources(DEFAULTS);
-			//defaults = new DefaultExecution[defaultResources.length];
-			/*for(int i = 0 ; i < defaultResources.length ; i ++) {
-				//defaults[i] = ((Default) defaultResources[i]).getExecution(getSourceExecution());
-				
-			}*/
 			scrapers = getRelatedResources(SCRAPERS);
 		}
-
 		protected boolean isOneToMany() {
 			return false;
 		}
-		
-		protected Variables getLocalVariables() {
-			return null;
-		}
-		
 		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
 			//Status status = new Status.Successful(getPublishValue());
 			Status status = new Status();
@@ -61,8 +48,8 @@ public class Data extends OneToOneResource {
 			}
 			for(int i = 0 ; i < scrapers.length ; i ++ ) {
 				//status.merge(((Scraper) scrapers[i]).execute(getSourceExecution()));
-				Execution exc = callResource((Scraper) scrapers[i]);
-				status.merge(exc.safeExecute());
+				//Execution[] executions = callResource((Scraper) scrapers[i]);
+				status.merge(((Scraper) scrapers[i]).execute(getSourceExecution()));
 			}
 		}
 	}

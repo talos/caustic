@@ -28,14 +28,14 @@ public class Mustache {
 		int open_tag_pos;
 		String result = "";
 		if(template == null) {
-			throw new TemplateException(caller, "Cannot compile null string in mustache.");
+			throw new TemplateException("Cannot compile null string in mustache.");
 		}
 		while((open_tag_pos = template.indexOf(open_tag, close_tag_pos)) != -1) {
 			result += template.substring(open_tag_pos, close_tag_pos);
 			
 			close_tag_pos = template.indexOf(close_tag, open_tag_pos);
 			if(close_tag_pos == -1)
-				throw new TemplateException(caller, "No close tag for opening tag at position " + open_tag_pos + " in Mustache template " + template);
+				throw new TemplateException("No close tag for opening tag at position " + open_tag_pos + " in Mustache template " + template);
 			
 			String tag = template.substring(open_tag_pos + open_tag.length(), close_tag_pos);
 			
@@ -48,14 +48,14 @@ public class Mustache {
 		return result + template.substring(close_tag_pos);
 	}
 	
-	public static class TemplateException extends ExecutionFatality {
+	public static class TemplateException extends Exception {
 		
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 5637439870858686438L;
-
-		public TemplateException(Execution caller, String msg) { super(caller, msg); }
+		public TemplateException(String msg) { super(msg); }
+		//public TemplateException(Execution caller, String msg) { super(caller, msg); }
 	}
 	
 	public static class MissingVariable extends ExecutionDelay {
@@ -64,13 +64,9 @@ public class Mustache {
 		 */
 		private static final long serialVersionUID = 8720790457856091375L;
 		public final String missingVariable;
-		private final Execution caller;
 		public MissingVariable(Execution caller, String missingVariable, Variables variables) {
+			super(caller);
 			this.missingVariable = missingVariable;
-			this.caller = caller;
-		}
-		public Execution callerExecution() {
-			return caller;
 		}
 		public String reason() {
 			return "Missing variable " + missingVariable;

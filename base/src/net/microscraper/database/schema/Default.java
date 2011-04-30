@@ -1,10 +1,8 @@
 package net.microscraper.database.schema;
 
 import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
-import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
@@ -33,7 +31,7 @@ public class Default extends OneToOneResource {
 	public class DefaultExecution extends Execution {
 		private Resource[] substitutedScrapers;
 		private String value;
-		protected DefaultExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
+		protected DefaultExecution(Resource resource, Execution caller) throws ExecutionFatality {
 			super(resource, caller);
 			substitutedScrapers = getRelatedResources(SUBSTITUTED_SCRAPERS);
 		}
@@ -46,7 +44,7 @@ public class Default extends OneToOneResource {
 			return null;
 		}
 		
-		protected String privateExecute() throws TemplateException, MissingVariable {
+		protected String privateExecute() throws MissingVariable, ExecutionFatality {
 			value = getAttributeValue(VALUE);
 			for(int i = 0 ; i < substitutedScrapers.length ; i++) {
 				((Scraper) substitutedScrapers[i]).substitute(value);

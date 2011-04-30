@@ -2,16 +2,13 @@ package net.microscraper.database;
 
 import java.util.Vector;
 
-import net.microscraper.client.Browser.BrowserException;
-import net.microscraper.client.Client;
-import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
+import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource.OneToOneResource;
 
 public abstract class Execution {
@@ -68,9 +65,6 @@ public abstract class Execution {
 	}
 	
 	protected abstract boolean isOneToMany();
-	protected Variables getLocalVariables() {
-		return null;
-	}
 	
 	protected final Execution callResource(OneToOneResource resource) throws ExecutionFatality {
 		return resource.executionFromExecution(getSourceExecution());
@@ -82,41 +76,32 @@ public abstract class Execution {
 	public String getPublishName() {
 		return resource.ref().toString();
 	}
-	protected final String getAttributeValue(AttributeDefinition def)
-				throws TemplateException, MissingVariable {
-		return (String) Mustache.compile(this, resource.getStringAttribute(def), getVariables());
-	}
-	// TODO if we're publishing, and we're successful, add to local variables list.
-	/*protected Variables getLocalVariables() {
-		Variables variables = new Variables();
-		variables.put(scraper.ref().title, match);
-		return variables;
-	}*/
 	
-	/*private final Status execute() throws ResourceNotFoundException, InterruptedException {
-		if(lastStatus.isInProgress()) {
-			Status status;
-			try {
-				status = privateExecute();
-			} catch(WaitingForExecution e) {
-				status = new Status.InProgress(e);
-			} catch(MissingVariable e) {
-				status = new Status.InProgress(e);
-			} catch(TemplateException e) {
-				status = new Status.Failure(e);
-			} catch(BrowserException e) {
-				status = new Status.Failure(e);
-			}
-			try {
-				Client.publisher.publish(this);
-			} catch(PublisherException e) {
-				Client.log.e(e);
-			}
-			Client.log.i("Executing " + getPublishName() + " resulted in " + status.toString());
-			lastStatus = status;
+	protected final String getAttributeValue(AttributeDefinition def)
+				throws ExecutionFatality, MissingVariable {
+		try {
+			return (String) Mustache.compile(this, resource.getStringAttribute(def), getVariables());
+		} catch(TemplateException e) {
+			throw new ExecutionFatality(this, e);
 		}
-		return lastStatus;
-	}*/
+	}
+	protected Resource[] getRelatedResources(RelationshipDefinition def) throws ExecutionFatality {
+		try {
+			return resource.getRelatedResources(def);
+		} catch(ResourceNotFoundException e) {
+			throw new ExecutionFatality(this, e);
+		}
+	}
+	
+	protected Variables getLocalVariables() {
+		if(result != null && resource.isPublishedToVariables()) {
+			Variables variables = new Variables();
+			variables.put(resource.ref().title, result);
+			return variables;
+		}
+		return null;
+	}
+	
 	public final Status safeExecute() throws ExecutionFatality {
 		if(lastStatus.shouldRetry()) {
 			Status status = new Status();
@@ -165,6 +150,10 @@ public abstract class Execution {
 	}
 	
 	public static abstract class DefaultExecutionProblem extends Exception implements ExecutionProblem {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -1875711681202830444L;
 		private Execution caller;
 		public DefaultExecutionProblem(Execution caller) {
 			this.caller = caller;
@@ -184,7 +173,11 @@ public abstract class Execution {
 		}
 	}
 	
-	public static class ExecutionDelay extends DefaultExecutionProblem {
+	public static abstract class ExecutionDelay extends DefaultExecutionProblem {
+		public ExecutionDelay(Execution caller) {
+			super(caller);
+		}
+
 		/**
 		 * 
 		 */
@@ -192,24 +185,38 @@ public abstract class Execution {
 	}
 	
 	public static class ExecutionFailure extends DefaultExecutionProblem {
+		private final Throwable throwable;
 		public ExecutionFailure(Execution caller, Throwable e) {
 			super(caller);
+			this.throwable = e;
 		}
 
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = -5646674827768905150L;
+
+		public String reason() {
+			return throwable.getMessage();
+		}
 	}
 	
 	public static class ExecutionFatality extends DefaultExecutionProblem {
+		private final Throwable throwable;
 		public ExecutionFatality(Execution caller, Throwable e) {
 			super(caller);
+			this.throwable = e;
 		}
+		
+		public String reason() {
+			return throwable.getMessage();
+		}
+		/*
 		public ExecutionFatality(Execution caller, String message) {
 			super(caller);
+			this.message = message;
 		}
-
+	*/
 		/**
 		 * 
 		 */

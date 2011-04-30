@@ -7,7 +7,6 @@ import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
-import net.microscraper.database.Database.ResourceNotFoundException;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
@@ -45,8 +44,7 @@ public class WebPage extends OneToOneResource {
 		return new WebPageExecution(this, caller);
 	}
 	public class WebPageExecution extends Execution {
-		protected WebPageExecution(Resource resource, Execution caller)
-				throws ResourceNotFoundException {
+		protected WebPageExecution(Resource resource, Execution caller) {
 			super(resource, caller);
 		}
 		private final Hashtable resourcesToHashtable(Resource[] resources) throws ExecutionDelay, ExecutionFailure, ExecutionFatality {

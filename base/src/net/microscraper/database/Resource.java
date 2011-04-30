@@ -70,4 +70,9 @@ public abstract class Resource {
 		public abstract Execution[] executionsFromVariables(Variables extraVariables) throws ExecutionFatality;
 		public abstract Execution[] executionsFromExecution(Execution caller) throws ExecutionFatality;
 	}
+	
+	// only true for scraper
+	public boolean isPublishedToVariables() {
+		return false;
+	}
 }

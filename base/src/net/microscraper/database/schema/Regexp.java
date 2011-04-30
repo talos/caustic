@@ -4,7 +4,6 @@ import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Execution;
@@ -51,7 +50,7 @@ public class Regexp extends OneToOneResource {
 			return new Variables();
 		}
 		
-		protected String privateExecute() throws TemplateException, MissingVariable {
+		protected String privateExecute() throws MissingVariable, ExecutionFatality {
 			String patternString = getAttributeValue(REGEXP);
 			pattern = Client.regexp.compile(patternString);
 			return patternString;
