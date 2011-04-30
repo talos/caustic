@@ -1,7 +1,5 @@
 package net.microscraper.database.schema;
 
-import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
@@ -10,9 +8,9 @@ import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
-import net.microscraper.database.Status;
+import net.microscraper.database.Resource.OneToOneResource;
 
-public class AbstractHeader extends Resource {
+public class AbstractHeader extends OneToOneResource {
 	public static final AttributeDefinition NAME = new AttributeDefinition("name");
 	public static final AttributeDefinition VALUE = new AttributeDefinition("value");
 
@@ -23,17 +21,11 @@ public class AbstractHeader extends Resource {
 		};
 	}
 	
-	public Execution executionFromExecution(Execution caller) throws ExecutionFatality {
+	protected Execution generateExecution(Execution caller) throws ExecutionFatality {
 		return new AbstractHeaderExecution(this, caller);
 	}
 	
-	public Execution executionFromVariables(Variables extraVariables) throws ExecutionFatality {
-		AbstractHeaderExecution exc = (AbstractHeaderExecution) executionFromExecution(null);
-		exc.addVariables(extraVariables);
-		return exc; //.execute();
-	}
-	
-	protected static class AbstractHeaderExecution extends ResourceExecution {
+	protected static class AbstractHeaderExecution extends Execution {
 		private String name = null;
 		private String value = null;
 		public AbstractHeaderExecution(Resource resource, Execution caller) throws ResourceNotFoundException {
@@ -59,4 +51,5 @@ public class AbstractHeader extends Resource {
 			return value;
 		}
 	}
+
 }

@@ -11,10 +11,9 @@ import net.microscraper.database.Execution.ExecutionFatality;
 import net.microscraper.database.Model.ModelDefinition;
 import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
-import net.microscraper.database.Status;
-import net.microscraper.database.schema.Default.DefaultExecution;
+import net.microscraper.database.Resource.OneToOneResource;
 
-public class Data extends Resource {
+public class Data extends OneToOneResource {
 	private HashtableWithNulls executions = new HashtableWithNulls();
 	
 	private static final RelationshipDefinition DEFAULTS =

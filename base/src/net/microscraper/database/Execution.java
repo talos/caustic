@@ -4,10 +4,12 @@ import java.util.Vector;
 
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
+import net.microscraper.client.Mustache;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.client.Variables;
+import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Database.ResourceNotFoundException;
 
 public abstract class Execution {
@@ -16,9 +18,14 @@ public abstract class Execution {
 	private final Vector calledExecutions = new Vector();
 	private final Variables extraVariables = new Variables();
 	private final Execution caller;	
+	private final Resource resource;
+	private final String publishName;
+
 	private Status lastStatus = new Status.NotYetStarted();
 	public final int id;
-	protected Execution(Execution caller) {
+	
+
+	protected Execution(Resource resource, Execution caller) {
 		id = count++;
 		this.caller = caller;
 		if(caller != null) {
@@ -66,10 +73,23 @@ public abstract class Execution {
 	protected final Execution callResource(Resource resource) throws ExecutionFatality {
 		return resource.executionFromExecution(getSourceExecution());
 	}
-	public abstract String getPublishName();
 	public final Status getStatus() {
 		return lastStatus;
 	}
+	
+	public String getPublishName() {
+		return resource.ref().toString();
+	}
+	protected final String getAttributeValue(AttributeDefinition def)
+				throws TemplateException, MissingVariable {
+		return (String) Mustache.compile(this, resource.getStringAttribute(def), getVariables());
+	}
+	// TODO if we're publishing, and we're successful, add to local variables list.
+	/*protected Variables getLocalVariables() {
+		Variables variables = new Variables();
+		variables.put(scraper.ref().title, match);
+		return variables;
+	}*/
 	
 	/*private final Status execute() throws ResourceNotFoundException, InterruptedException {
 		if(lastStatus.isInProgress()) {
