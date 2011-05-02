@@ -23,7 +23,9 @@ public class Regexp extends OneToOneResource {
 	public ModelDefinition definition() {
 		return new ModelDefinition() {	
 			public AttributeDefinition[] attributes() {
-				return new AttributeDefinition[] { REGEXP, MATCH_NUMBER };
+				return new AttributeDefinition[] {
+						REGEXP, MATCH_NUMBER, SUBSTITUTION,
+						CASE_INSENSITIVE, MULTILINE, DOT_MATCHES_NEWLINE };
 			}
 			public RelationshipDefinition[] relationships() {
 				return new RelationshipDefinition[] { };

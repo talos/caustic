@@ -3,8 +3,6 @@ package net.microscraper.client;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import net.microscraper.client.Interfaces.Regexp.Pattern;
-
 public class Interfaces {
 	public static interface JSON {
 		public static interface Object {

@@ -2,6 +2,7 @@ package net.microscraper.database.schema;
 
 import java.util.Vector;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.MissingGroup;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Utils.HashtableWithNulls;
@@ -120,15 +121,17 @@ public class Scraper extends Resource {
 
 	private static class SolvedScraperExecution extends ScraperExecution {
 		private final String match;
-		public SolvedScraperExecution(ScraperExecution executionToDuplicate, String match) {
+		public SolvedScraperExecution(ScraperExecution executionToDuplicate, String match) throws ExecutionFatality {
 			super(executionToDuplicate.scraper, executionToDuplicate.getSourceExecution());
 			this.match = match;
+			this.safeExecute();
 		}
-		public SolvedScraperExecution(Scraper scraper, Execution caller, String match) {
+		public SolvedScraperExecution(Scraper scraper, Execution caller, String match) throws ExecutionFatality {
 			super(scraper, caller);
 			this.match = match;
+			this.safeExecute();
 		}
-		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
+		protected String privateExecute() {
 			return match;
 		}
 	}
