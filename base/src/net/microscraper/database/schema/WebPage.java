@@ -3,6 +3,7 @@ package net.microscraper.database.schema;
 import java.util.Hashtable;
 
 import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Browser.WaitToDownload;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.database.Attribute.AttributeDefinition;
@@ -13,6 +14,7 @@ import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
 import net.microscraper.database.Resource.OneToOneResource;
 import net.microscraper.database.schema.AbstractHeader.AbstractHeaderExecution;
+import net.microscraper.database.schema.Regexp.RegexpExecution;
 
 public class WebPage extends OneToOneResource {	
 	private static final AttributeDefinition URL = new AttributeDefinition("url");
@@ -71,10 +73,14 @@ public class WebPage extends OneToOneResource {
 			Pattern[] terminates = new Pattern[terminatesResources.length];
 			for(int i = 0 ; i < terminatesResources.length; i ++) {
 				Execution exc = callResource((Regexp) terminatesResources[i]);
-				terminates[i] = Client.regexp.compile(exc.unsafeExecute());
+				exc.unsafeExecute();
+				//terminates[i] = Client.regexp.compile(exc.unsafeExecute());
+				terminates[i] = ((RegexpExecution) exc).getPattern();
 			}
 			try {
 				return Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
+			} catch(WaitToDownload e) {
+				throw new ExecutionDelay(getSourceExecution(), e);
 			} catch(InterruptedException e) {
 				throw new ExecutionFatality(getSourceExecution(), e);
 			} catch(BrowserException e) {

@@ -16,6 +16,9 @@ public class Attribute {
 		public Integer getInteger(AttributeDefinition def) {
 			return (Integer) attributes.get(def);
 		}
+		public boolean getBoolean(AttributeDefinition def) {
+			return ((Boolean) attributes.get(def)).equals(Boolean.TRUE);
+		}
 	}
 	public static class AttributeDefinition {
 		public final String name;

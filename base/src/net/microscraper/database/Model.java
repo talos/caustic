@@ -3,6 +3,7 @@ package net.microscraper.database;
 import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.Iterator;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.Utils;
 import net.microscraper.database.Attribute.AttributeDefinition;
 import net.microscraper.database.Attribute.Attributes;
 import net.microscraper.database.Relationship.RelationshipDefinition;
@@ -79,8 +80,14 @@ public class Model {
 			throw new IllegalArgumentException("Unable to instantiate model '" + model_class.toString() + "'", e);
 		}
 	}
+	
+	/**
+	 * Returns the model's simple class name -- for example, "Cookie", or "Scraper".
+	 */
 	public String toString() {
-		return klass.getName();
+		String rawName = klass.getName();
+		String[] splitRawName = Utils.split(rawName, ".");
+		return splitRawName[splitRawName.length - 1];
 	}
 	
 	public interface ModelDefinition {

@@ -3,10 +3,10 @@ package net.microscraper.client;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import net.microscraper.client.Interfaces.Regexp.Pattern;
+
 public class Interfaces {
 	public static interface JSON {
-		
-		
 		public static interface Object {
 			public abstract JSON.Array getJSONArray(String name) throws JSONInterfaceException;
 			public abstract JSON.Object getJSONObject(String name) throws JSONInterfaceException;
@@ -81,11 +81,16 @@ public class Interfaces {
 	 */
 	public static interface Regexp {
 		/**
-		 * Equivalent to java.util.regex.Compile.
-		 * @param patternString A pattern string to compile.
-		 * @return A GeograpePattern.
+		 * Equivalent to java.util.regex.Compile
+		 * @param attributeValue
+		 * @param isCaseInsensitive
+		 * @param isMultiline
+		 * @param doesDotMatchNewline
+		 * @return
 		 */
-		public abstract Pattern compile(String patternString);
+		public abstract Pattern compile(String attributeValue,
+				boolean isCaseInsensitive, boolean isMultiline,
+				boolean doesDotMatchNewline);
 		
 		public static interface Pattern {
 			/**
@@ -94,23 +99,10 @@ public class Interfaces {
 			 * @return Whether a match was found.
 			 */
 			public abstract boolean matches(String input);
+			public abstract boolean matches(String input, int matchNumber);
 			
-			/**
-			 * Return the match in the first set of parentheses, after a certain number of previous matches; if there are not parentheses,
-			 * return the whole pattern.  Returns null if no match, or if there is no match at that matchNumber index.
-			 * @param input
-			 * @param matchNumber The number of matches to skip.
-			 * @return The first grouped match, the entire match, or null.
-			 */
-			public abstract String match(String input, int matchNumber) throws NoMatches;
-			
-			/**
-			 * Iterate through the input, and repeatedly provide the match from the first set
-			 * of parentheses; if there are not parentheses, this becomes an alias for split(String input).
-			 * @param input
-			 * @return An array of all the first group matchings, or an array of all the matches.
-			 */
-			public abstract String[] allMatches(String input) throws NoMatches;
+			public abstract String match(String input, String substitution, int matchNumber) throws NoMatches, MissingGroup;
+			public abstract String[] allMatches(String input, String substitution) throws NoMatches, MissingGroup;
 		}
 		
 		public static class NoMatches extends Exception {
@@ -124,9 +116,23 @@ public class Interfaces {
 			private static final long serialVersionUID = -1808377327875482874L;
 			
 		}
+		public static class MissingGroup extends Exception {
+			
+			public MissingGroup(Pattern pattern, int group) {
+				super(pattern.toString() + " did not contain a group " + Integer.toString(group));
+			}
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -1808377327875482874L;
+			
+		}
+		
 	}
 	
 	public static interface Logger {
+		public static final int MAX_ENTRY_LENGTH = 512;
+		
 		/**
 		 * Provide the ability to log throwables as errors.
 		 */
@@ -141,5 +147,6 @@ public class Interfaces {
 		 * Provide the ability to log information.
 		 */
 		public abstract void i(String infoText);
+		
 	}
 }

@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 
 import net.microscraper.client.Interfaces;
+import net.microscraper.client.Utils;
 
 public class FileLogInterface implements Interfaces.Logger {
 	
@@ -30,19 +31,19 @@ public class FileLogInterface implements Interfaces.Logger {
 		Date now = new Date();
 		
 		e.printStackTrace(logWriter);
-		logWriter.print(now + " Error: " + e.getMessage());
+		logWriter.print(now + " Error: " + Utils.truncate(e.getMessage(), MAX_ENTRY_LENGTH));
 		logWriter.println();
 	}
 
 	public void i(String infoText) {
 		Date now = new Date();
-		logWriter.print(now + " Info: " + infoText);
+		logWriter.print(now + " Info: " + Utils.truncate(infoText, MAX_ENTRY_LENGTH));
 		logWriter.println();
 	}
 
 	public void w(Throwable w) {
 		Date now = new Date();
-		logWriter.print(now + " Warning: " + w.getMessage());
+		logWriter.print(now + " Warning: " + Utils.truncate(w.getMessage(), MAX_ENTRY_LENGTH));
 		logWriter.println();
 	}
 }

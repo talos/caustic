@@ -30,6 +30,8 @@ public class JavaNetBrowser implements Browser {
 		return load(url, new Hashtable(), new Hashtable(), new Hashtable(), new Pattern[] {});
 	}
 	private final Hashtable cookie_store = new Hashtable();
+	private final Hashtable host_name_starts = new Hashtable();
+	private final Hashtable host_name_amount_downloaded = new Hashtable();
 
 	public String load(String url_string, Hashtable posts,
 			Hashtable headers, Hashtable cookies,

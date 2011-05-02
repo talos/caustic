@@ -38,6 +38,14 @@ public class Utils {
 		}
 		return joined;
 	}
+	
+	public static String truncate(String string, int length) {
+		if(string.length() < length) {
+			return string;
+		} else {
+			return string.substring(0, length - 1);
+		}
+	}
 
 	/**
 	 * Split a string into words based off of spaces without using regex or .split().

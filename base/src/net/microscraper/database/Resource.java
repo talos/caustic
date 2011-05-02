@@ -32,6 +32,9 @@ public abstract class Resource {
 	public Integer getIntegerAttribute(AttributeDefinition def) {
 		return attributes.getInteger(def);
 	}
+	public boolean getBooleanAttribute(AttributeDefinition def) {
+		return attributes.getBoolean(def);
+	}
 	protected Resource[] getRelatedResources(RelationshipDefinition def) throws ResourceNotFoundException {
 		return relationships.get(def);
 	}

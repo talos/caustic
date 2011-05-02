@@ -2,6 +2,7 @@ package net.microscraper.database.schema;
 
 import java.util.Vector;
 
+import net.microscraper.client.Interfaces.Regexp.MissingGroup;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
@@ -144,7 +145,9 @@ public class Scraper extends Resource {
 			try {
 				matches = regexpExecution.allMatches(execution.unsafeExecute());
 			} catch (NoMatches e) {
-				throw new ExecutionFailure(getSourceExecution(), e);
+				throw new ExecutionFailure(this, e);
+			} catch (MissingGroup e) {
+				throw new ExecutionFatality(this, e);
 			}
 			// create fakes from extra matches.
 			for(int i = 1 ; i < matches.length ; i ++) {

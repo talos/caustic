@@ -1,13 +1,18 @@
 package net.microscraper.client;
 
+import java.util.Date;
 import java.util.Hashtable;
 
 import net.microscraper.client.Interfaces.Regexp.Pattern;
+import net.microscraper.database.Execution;
+import net.microscraper.database.Execution.DefaultExecutionProblem;
+import net.microscraper.database.Execution.ExecutionProblem;
 
 public interface Browser {
 	public static final int TIMEOUT = 10000;
 	public static final int MAX_REDIRECTS = 50;
 	public static final int SUCCESS_CODE = 200;
+	public static final int MAX_KBPS_FROM_HOST = 5;
 	
 	public static final String LOCATION_HEADER_NAME = "location";
 	public static final String REFERER_HEADER_NAME = "Referer";
@@ -23,9 +28,9 @@ public interface Browser {
 	
 	public static final String ENCODING = "UTF-8";
 	
-	public String load(String url) throws  BrowserException, InterruptedException;
+	public String load(String url) throws  InterruptedException, BrowserException;
 	public String load(String url, Hashtable posts, Hashtable headers,
-			Hashtable cookies, Pattern[] terminates) throws BrowserException, InterruptedException;
+			Hashtable cookies, Pattern[] terminates) throws WaitToDownload, BrowserException, InterruptedException;
 	
 	public static class BrowserException extends Exception {
 		public BrowserException(String url, Throwable e) {
@@ -36,5 +41,21 @@ public interface Browser {
 		 */
 		private static final long serialVersionUID = -849994574375042801L;
 		
+	}
+	
+	public static class WaitToDownload extends Exception {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 8357347717343426486L;
+		public final String host;
+		public final Date start;
+		public final int amountDownloaded;
+		
+		public WaitToDownload(String host, Date start, int amountDownloaded) {
+			this.host = host;
+			this.start = start;
+			this.amountDownloaded = amountDownloaded;
+		}
 	}
 }

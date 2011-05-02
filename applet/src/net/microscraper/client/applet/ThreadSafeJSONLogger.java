@@ -5,9 +5,12 @@ import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
+import com.sun.image.codec.jpeg.TruncatedFileException;
+
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
+import net.microscraper.client.Utils;
 
 public class ThreadSafeJSONLogger implements Logger {
 	private final List<String> log_list = Collections.synchronizedList(new ArrayList<String>());
@@ -21,21 +24,21 @@ public class ThreadSafeJSONLogger implements Logger {
 	@Override
 	public void e(Throwable e) {
 		List<String> list = stackTraceList(e);
-		list.add(buildJSON("error", e.toString()));
+		list.add(buildJSON("error", Utils.truncate(e.toString(), MAX_ENTRY_LENGTH)));
 		log_list.addAll(list);
 	}
 	
 	@Override
 	public void w(Throwable w) {
 		List<String> list = stackTraceList(w);
-		list.add(buildJSON("warning", w.toString()));
+		list.add(buildJSON("warning", Utils.truncate(w.toString(), MAX_ENTRY_LENGTH)));
 		log_list.addAll(list);
 	}
 
 	@Override
 	public void i(String infoText) {
 		List<String> list = new ArrayList<String>();
-		list.add(buildJSON("info", infoText));
+		list.add(buildJSON("info", Utils.truncate(infoText, MAX_ENTRY_LENGTH)));
 		log_list.addAll(list);
 	}
 	

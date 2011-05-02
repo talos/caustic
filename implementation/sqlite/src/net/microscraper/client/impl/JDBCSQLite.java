@@ -157,8 +157,13 @@ public class JDBCSQLite implements SQLInterface {
 	}
 	
 	@Override
-	public String dataColumnType() {
+	public String varcharColumnType() {
 		return "VARCHAR";
+	}
+
+	@Override
+	public String textColumnType() {
+		return "TEXT";
 	}
 	
 	@Override

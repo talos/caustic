@@ -28,12 +28,12 @@ public class Status {
 	}
 	
 	// If any previous delay is no longer in our status, we have made progress.
-	public boolean progressSince(Status lastStatus) {
+	public boolean hasProgressedSince(Status lastStatus) {
 		for(int i = 0 ; i < lastStatus.delays.size() ; i ++ ) {
 			ExecutionDelay previousDelay = (ExecutionDelay) lastStatus.delays.elementAt(i);
 			if(!this.delays.contains(previousDelay))
-				return false;
+				return true;
 		}
-		return true;
+		return false;
 	}
 }

@@ -33,7 +33,8 @@ public interface SQLInterface {
 	 * @return
 	 */
 	public abstract String keyColumnDefinition();
-	public abstract String dataColumnType();
+	public abstract String varcharColumnType();
+	public abstract String textColumnType();
 	public abstract String intColumnType();
 	public abstract String nullValue();
 	
@@ -43,4 +44,5 @@ public interface SQLInterface {
 		public SQLInterfaceException(Throwable e) { super(e); }
 		public SQLInterfaceException(String message, Throwable e) { super(message, e); }
 	}
+
 }

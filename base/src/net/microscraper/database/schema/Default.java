@@ -34,7 +34,7 @@ public class Default extends OneToOneResource {
 			super(resource, caller);
 			substitutedScrapers = getRelatedResources(SUBSTITUTED_SCRAPERS);
 		}
-		protected String privateExecute() throws MissingVariable, ExecutionFatality {
+		protected String privateExecute() throws ExecutionDelay, ExecutionFatality {
 			value = getAttributeValue(VALUE);
 			for(int i = 0 ; i < substitutedScrapers.length ; i++) {
 				((Scraper) substitutedScrapers[i]).substitute(value);

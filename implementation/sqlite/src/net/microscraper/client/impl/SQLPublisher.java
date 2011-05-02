@@ -18,9 +18,9 @@ public class SQLPublisher implements Publisher {
 				"CREATE TABLE `"+ TABLE_NAME +"` (" +
 					"`" + SOURCE_ID + "` " + inter.intColumnType() + ", " +
 					"`" + ID + "` " + inter.idColumnType() + " " + inter.keyColumnDefinition() + ", " +
-					"`" + STATUS_STRING + "` " + inter.dataColumnType() + ", " +
-					"`" + NAME + "` " + inter.dataColumnType() + ", " + 
-					"`" + VALUE + "` " + inter.dataColumnType() + " )");
+					"`" + STATUS_STRING + "` " + inter.varcharColumnType() + ", " +
+					"`" + NAME + "` " + inter.varcharColumnType() + ", " + 
+					"`" + VALUE + "` " + inter.textColumnType() + " )");
 		} catch(SQLInterfaceException e) {
 			// The table might already exist.
 			try {

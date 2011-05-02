@@ -53,7 +53,7 @@ public class Client {
 			do {
 				lastStatus = curStatus;
 				curStatus = resource.execute(extraVariables);
-			} while(curStatus.progressSince(lastStatus));
+			} while(curStatus.hasProgressedSince(lastStatus));
 		}  catch(JSONInterfaceException e) {
 			log.e(e);
 		} catch(DatabaseException e) {

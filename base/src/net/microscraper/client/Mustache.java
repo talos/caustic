@@ -1,8 +1,5 @@
 package net.microscraper.client;
 
-import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.ExecutionDelay;
-
 /**
  * Mustache-like substitutions from Variables.
  * This does not currently support any commenting.
@@ -21,7 +18,7 @@ public class Mustache {
 	 * @throws TemplateException The template was invalid.
 	 * @throws MissingVariable The Variables instance was missing a variable.
 	 */
-	public static String compile(Execution caller, String template, Variables variables)
+	public static String compile(String template, Variables variables)
 				throws TemplateException, MissingVariable {
 		int close_tag_pos = 0;
 		int open_tag_pos;
@@ -42,7 +39,7 @@ public class Mustache {
 			if(variables.containsKey(tag))
 				result += variables.get(tag);
 			else
-				throw new MissingVariable(caller, tag, variables);
+				throw new MissingVariable(tag, variables);
 		}
 		return result + template.substring(close_tag_pos);
 	}
@@ -57,18 +54,16 @@ public class Mustache {
 		//public TemplateException(Execution caller, String msg) { super(caller, msg); }
 	}
 	
-	public static class MissingVariable extends ExecutionDelay {
+	public static class MissingVariable extends Exception {
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 8720790457856091375L;
 		public final String missingVariable;
-		public MissingVariable(Execution caller, String missingVariable, Variables variables) {
-			super(caller);
+		public MissingVariable(String missingVariable, Variables variables) {
+			//super(caller);
+			super("Missing variable " + missingVariable);
 			this.missingVariable = missingVariable;
-		}
-		public String reason() {
-			return "Missing variable " + missingVariable;
 		}
 	}
 }

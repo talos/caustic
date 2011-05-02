@@ -82,13 +82,19 @@ public abstract class Execution {
 	}
 	
 	protected final String getAttributeValue(AttributeDefinition def)
-				throws ExecutionFatality, MissingVariable {
+				throws ExecutionDelay, ExecutionFatality {
 		try {
-			return (String) Mustache.compile(this, resource.getStringAttribute(def), getVariables());
+			return (String) Mustache.compile(resource.getStringAttribute(def), getVariables());
+		} catch(MissingVariable e) {
+			throw new ExecutionDelay(this, e);
 		} catch(TemplateException e) {
 			throw new ExecutionFatality(this, e);
 		}
 	}
+	protected final boolean getBooleanAttribute(AttributeDefinition def) {
+		return resource.getBooleanAttribute(def);	
+	}
+	
 	protected Resource[] getRelatedResources(RelationshipDefinition def) throws ExecutionFatality {
 		try {
 			return resource.getRelatedResources(def);
@@ -195,15 +201,21 @@ public abstract class Execution {
 		}
 	}
 	
-	public static abstract class ExecutionDelay extends DefaultExecutionProblem {
-		public ExecutionDelay(Execution caller) {
+	public static class ExecutionDelay extends DefaultExecutionProblem {
+		private final Throwable throwable;
+		public ExecutionDelay(Execution caller, Throwable e) {
 			super(caller);
+			this.throwable = e;
 		}
 
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 1887704359270171496L;
+
+		public String reason() {
+			return throwable.getMessage();
+		}
 	}
 	
 	public static class ExecutionFailure extends DefaultExecutionProblem {
