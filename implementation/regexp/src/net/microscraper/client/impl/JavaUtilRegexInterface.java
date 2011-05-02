@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp;
 
 public class JavaUtilRegexInterface implements Regexp {

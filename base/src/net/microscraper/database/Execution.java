@@ -195,6 +195,10 @@ public abstract class Execution {
 			if(!(obj instanceof ExecutionProblem))
 				return false;
 			ExecutionProblem that = (ExecutionProblem) obj;
+			if(this.callerExecution() == null && that.callerExecution() == null && this.reason().equals(that.reason()))
+				return true;
+			if(this.callerExecution() == null || that.callerExecution() == null)
+				return false;
 			if(this.callerExecution().equals(that.callerExecution()) && this.reason().equals(that.reason()))
 				return true;
 			return false;
