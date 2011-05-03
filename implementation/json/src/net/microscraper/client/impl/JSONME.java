@@ -273,7 +273,7 @@ public class JSONME implements Interfaces.JSON {
 			return this;
 		}
 		public String toString() {
-			return ((Writer) sWriter).toString();
+			return sWriter.toString();
 		}
 	}
 	

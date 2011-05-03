@@ -5,8 +5,6 @@ import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
-import com.sun.image.codec.jpeg.TruncatedFileException;
-
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;

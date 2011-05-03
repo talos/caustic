@@ -8,7 +8,6 @@ public interface Publisher {
 	public static final String ID = "id";
 	public static final String SOURCE_ID = "source_id";
 	public static final String STATUS_STRING = "status";
-	public static final String STATUS_CODE = "status_code";
 	public static final String NAME = "name";
 	public static final String VALUE = "value";
 	

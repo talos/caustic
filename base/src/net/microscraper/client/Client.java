@@ -13,7 +13,7 @@ import net.microscraper.database.Resource;
 import net.microscraper.database.Status;
 
 public class Client {
-	private static Client instance = new Client();
+	//private static Client instance = new Client();
 	public static Log log;
 	public static Regexp regexp;
 	public static JSON json;
@@ -21,8 +21,10 @@ public class Client {
 	public static Publisher publisher;
 	public static Database db = new Database();
 	
+	private static boolean initialized = false;
+	
 	private Client() { }
-	public static Client get(Browser browser, Interfaces.Regexp regexp,
+	public static void initialize(Browser browser, Interfaces.Regexp regexp,
 			Interfaces.JSON json, Logger[] loggers, Publisher publisher) {
 		Client.browser = browser;
 		Client.regexp = regexp;
@@ -32,11 +34,17 @@ public class Client {
 		for(int i = 0; i < loggers.length ; i ++) {
 			log.register(loggers[i]);
 		}
-		
-		return instance;
+		initialized = true;
 	}
 	
-	public void scrape(String json_url, Reference ref, Variables extraVariables) {
+	public static void reset() {
+		initialized = false;
+	}
+	
+	public static void scrape(String json_url, Reference ref, Variables extraVariables) {
+		if(!initialized)
+			throw new IllegalStateException("Scraper not initialized.");
+		
 		//ResultRoot root = new ResultRoot();
 		String raw_obj;
 		try {

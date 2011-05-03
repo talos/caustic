@@ -55,29 +55,30 @@ public class MicroScraperApplet extends Applet {
 				// Reset the log and publisher with each execution.
 				log = new ThreadSafeJSONLogger(json);
 				publisher = new ThreadSafeJSONPublisher(); 
-				Client client = Client.get(
+				Client.initialize(
 						new JavaNetBrowser(),
 						new JavaUtilRegexInterface(), json,
-						new Interfaces.Logger[] { new ThreadSafeJSONLogger(json) },
+						new Interfaces.Logger[] { log },
 						publisher
 					);
-				Thread thread = new Thread(new ScrapeRunnable(url, model, full_name, params_string, client));
+				Thread thread = new Thread(new ScrapeRunnable(url, model, full_name, params_string));
 				thread.start();
 				current_thread = thread;
 			} else {
-				Client.log.i("Not starting test, another test has yet to complete.  Stop it manually to test this now.");
+				log.i("Not starting test, another test has yet to complete.  Stop it manually to test this now.");
 			}
 		} catch(Throwable e) {
-			Client.log.e(e);
+			log.e(e);
 		}
 	}
 	
 	public void stop() {
 		try {
 			current_thread.interrupt();
-			Client.log.i("Killed test.");
+			Client.reset();
+			log.i("Killed test.");
 		} catch(Throwable e) {
-			Client.log.e(e);
+			log.e(e);
 		}
 	}
 	
@@ -89,7 +90,7 @@ public class MicroScraperApplet extends Applet {
 				return current_thread.isAlive();
 			}
 		} catch(Throwable e) {
-			Client.log.e(e);
+			log.e(e);
 		}
 		return false;
 	}
@@ -98,7 +99,7 @@ public class MicroScraperApplet extends Applet {
 		try {
 			return publisher.next();
 		} catch(Throwable e) {
-			Client.log.e(e);
+			log.e(e);
 		}
 		return null;
 	}

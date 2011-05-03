@@ -40,6 +40,7 @@ public class ThreadSafeJSONPublisher implements Publisher {
 			stringer.object()
 				.key(ID).value(exc.id)
 				.key(SOURCE_ID).value(exc.getSourceExecution().id)
+				.key(NAME).value(exc.getPublishName())
 				.key(STATUS_STRING).value(statusString)
 				.key(VALUE).value(value);
 			

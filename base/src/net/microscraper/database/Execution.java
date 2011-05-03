@@ -141,17 +141,15 @@ public abstract class Execution {
 		if(lastStatus.hasFailure())
 			throw new StatusException(lastStatus);
 		if(result == null) {
-			String result = privateExecute();
+			result = privateExecute();
 			lastStatus = new Status();
 			try {
 				Client.publisher.publish(this, result);
 			} catch(PublisherException e) {
 				throw new ExecutionFatality(this, e);
 			}
-			return result;
-		} else {
-			return result;
 		}
+		return result;
 	}
 	
 	protected abstract String privateExecute()
@@ -188,6 +186,11 @@ public abstract class Execution {
 		}
 		public Execution callerExecution() {
 			return caller;
+		}
+		public String getMessage() {
+			if(caller != null)
+				return caller.toString() + " caused " + reason();
+			return reason();
 		}
 		public final boolean equals(Object obj) {
 			if(this == obj)

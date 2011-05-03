@@ -29,7 +29,7 @@ public class MicroScraperConsole {
 			log.i("Proper use: microscraperconsole <url> <model> <resource> <defaults>");
 		} else {
 			try {
-				Client client = Client.get(
+				 Client.initialize(
 						new JavaNetBrowser(),
 						new JavaUtilRegexInterface(),
 						new JSONME(),
@@ -45,7 +45,7 @@ public class MicroScraperConsole {
 				} else {
 					variables = new Variables();
 				}
-				client.scrape(url, resource_ref, variables);
+				Client.scrape(url, resource_ref, variables);
 				Client.log.i("Finished execution.");
 			} catch (SQLInterfaceException e) {
 				log.e(e);

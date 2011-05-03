@@ -41,4 +41,9 @@ public class StringWriter extends Writer {
 
     public void close() throws IOException {
     }
+    
+    /* Added JK 5/3/2011 */
+    public String toString() {
+    	return buf.toString();
+    }
 }

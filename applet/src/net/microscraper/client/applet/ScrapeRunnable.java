@@ -12,14 +12,11 @@ public class ScrapeRunnable implements Runnable {
 	private final String url;
 	private final Reference resource_ref;
 	private final Variables variables;
-	
-	private final Client client;
-	
+		
 	public ScrapeRunnable(String url, String model, String full_name,
-			String params_string, Client client) {
+			String params_string) {
 		this.url = url;
 		this.resource_ref = new Reference(Model.get(model), full_name);
-		this.client = client;
 		this.variables = Variables.fromFormParams(params_string, MicroScraperApplet.encoding);
 	}
 	
@@ -35,7 +32,7 @@ public class ScrapeRunnable implements Runnable {
 	private class ScrapeAction implements PrivilegedAction<Void> {
 		public Void run() {
 			try {
-				client.scrape(url, resource_ref, variables);
+				Client.scrape(url, resource_ref, variables);
 			} catch(Throwable e) {
 				Client.log.e(e);
 			}

@@ -2,8 +2,6 @@ package net.microscraper.database.schema;
 
 import java.util.Vector;
 
-import javax.management.RuntimeErrorException;
-
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.MissingGroup;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
@@ -89,17 +87,14 @@ public class Scraper extends Resource {
 				Resource[] regexps =  getRelatedResources(REGEXPS);
 				Resource[] scrapers = getRelatedResources(SOURCE_SCRAPERS); 
 				Resource[] webPages = getRelatedResources(WEB_PAGES);
-				if(regexps == null)
-					Client.log.i("regexps is null");
-				if(regexps != null)
-					Client.log.i(Integer.toString(regexps.length));
+
 				if(regexps.length < 1) {
-					Client.log.i("zero length");
 					throw new ExecutionFatality(caller, new RuntimeException("Scraper needs at least one regexp."));
 				}
 				if(scrapers.length + webPages.length < 1)
 					throw new ExecutionFatality(caller, new RuntimeException("Scraper needs at least one web page or source scraper."));
-
+				
+				// creating new scraperExecutions adds them to the executions vector.
 				for(int i = 0 ; i < regexps.length ; i ++ ) {
 					for(int j = 0 ; j < scrapers.length ; j ++) {
 						new ScraperExecutionFromScraper(this, caller, (Regexp) regexps[i], (Scraper) scrapers[j]);
@@ -124,7 +119,6 @@ public class Scraper extends Resource {
 		private ScraperExecution(Scraper scraper, Execution caller) {
 			super(scraper, caller);
 			this.scraper = scraper;
-			Client.log.i("adding");
 			if(!scraper.executions.containsKey(caller)) {
 				scraper.executions.put(caller, new Vector());
 			}
@@ -193,7 +187,13 @@ public class Scraper extends Resource {
 			this.sourceScraper = sourceScraper;
 		}
 		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
-			ScraperExecution[] scraperExecutions = sourceScraper.executionsFromExecution(getSourceExecution());
+			ScraperExecution[] scraperExecutions;
+			scraperExecutions = sourceScraper.executionsFromExecution(getSourceExecution());
+			// Run scraper executions beforehand, as they may multiply themselves.
+			for(int i = 0 ; i < scraperExecutions.length ; i ++ ) {
+				scraperExecutions[i].unsafeExecute();
+			}
+			scraperExecutions = sourceScraper.executionsFromExecution(getSourceExecution());
 			String[] matches = new String[scraperExecutions.length];
 			for(int i = 0 ; i < scraperExecutions.length ; i ++ ) {
 				matches[i] = matchAgainst(scraperExecutions[i]);
