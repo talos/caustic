@@ -3,10 +3,9 @@ package net.microscraper.client;
 import java.util.Date;
 import java.util.Hashtable;
 
+import net.microscraper.client.Interfaces.JSON;
+import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.DefaultExecutionProblem;
-import net.microscraper.database.Execution.ExecutionProblem;
 
 public interface Browser {
 	public static final int TIMEOUT = 10000;
@@ -25,10 +24,11 @@ public interface Browser {
 	
 	public static final String ACCEPT_HEADER_NAME = "Accept";
 	public static final String ACCEPT_HEADER_DEFAULT_VALUE = "application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+	public static final String ACCEPT_HEADER_JSON_VALUE = "application/json,text/json";
 	
 	public static final String ENCODING = "UTF-8";
 	
-	public String load(String url) throws  InterruptedException, BrowserException;
+	public JSON.Object loadJSON(String url, Interfaces.JSON jsonInterface) throws InterruptedException, BrowserException, JSONInterfaceException;
 	public String load(String url, Hashtable posts, Hashtable headers,
 			Hashtable cookies, Pattern[] terminates) throws WaitToDownload, BrowserException, InterruptedException;
 	

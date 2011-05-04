@@ -40,6 +40,8 @@ public class Utils {
 	}
 	
 	public static String truncate(String string, int length) {
+		if(string == null)
+			return "";
 		if(string.length() < length) {
 			return string;
 		} else {

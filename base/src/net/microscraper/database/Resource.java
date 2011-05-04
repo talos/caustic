@@ -11,8 +11,7 @@ import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Relationship.Relationships;
 
 public abstract class Resource {
-	protected Reference ref = Reference.blank(this);
-	
+	private Reference ref;
 	private Attributes attributes = new Attributes();
 	private Relationships relationships = new Relationships();
 	//private Hashtable executionsByCaller = new Hashtable();

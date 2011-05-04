@@ -73,10 +73,6 @@ public abstract class Execution {
 	protected final Execution callResource(OneToOneResource resource) throws ExecutionFatality {
 		return resource.executionFromExecution(getSourceExecution());
 	}
-	public final Status getStatus() {
-		return lastStatus;
-	}
-	
 	public String getPublishName() {
 		return resource.ref().toString();
 	}
@@ -114,25 +110,24 @@ public abstract class Execution {
 	
 	public final Status safeExecute() throws ExecutionFatality {
 		Client.log.i("Safely executing " + resource.ref().toString() + ":" + Integer.toString(id));
-		if(!lastStatus.hasFailure()) {
+		if(lastStatus.hasFailure()) {
 			Status status = new Status();
 			try {
 				try {
 					result = privateExecute();
-					Client.publisher.publish(this, result);
+					status.addSuccess(result);
 				} catch(ExecutionDelay e) {
 					status.addDelay(e);
-					Client.publisher.publish(this, e);
 				} catch(ExecutionFailure e) {
 					status.addFailure(e);
-					Client.publisher.publish(this, e);
 				} catch(StatusException e) {
 					status.merge(e.getStatus());
 				}
+				lastStatus = status;
+				Client.publisher.publish(this, lastStatus);
 			} catch(PublisherException e) {
 				throw new ExecutionFatality(this, e);
 			}
-			lastStatus = status;
 		}
 		return lastStatus;
 	}
@@ -143,8 +138,9 @@ public abstract class Execution {
 		if(result == null) {
 			result = privateExecute();
 			lastStatus = new Status();
+			lastStatus.addSuccess(result);
 			try {
-				Client.publisher.publish(this, result);
+				Client.publisher.publish(this, lastStatus);
 			} catch(PublisherException e) {
 				throw new ExecutionFatality(this, e);
 			}
@@ -171,6 +167,7 @@ public abstract class Execution {
 	
 	public static interface ExecutionProblem {
 		public Execution callerExecution();
+		public Class problemClass();
 		public String reason();
 		public boolean equals(Object obj);
 	}
@@ -181,16 +178,24 @@ public abstract class Execution {
 		 */
 		private static final long serialVersionUID = -1875711681202830444L;
 		private Execution caller;
-		public DefaultExecutionProblem(Execution caller) {
+		private Throwable throwable;
+		public DefaultExecutionProblem(Execution caller, Throwable e) {
 			this.caller = caller;
+			this.throwable = e;
 		}
 		public Execution callerExecution() {
 			return caller;
 		}
+		public Class problemClass() {
+			return throwable.getClass();
+		}
+		public String reason() {
+			return throwable.getMessage();
+		}
 		public String getMessage() {
 			if(caller != null)
-				return caller.toString() + " caused " + reason();
-			return reason();
+				return caller.toString() + " caused " + problemClass().toString() + " because " + reason();
+			return problemClass().toString() + " because " + reason();
 		}
 		public final boolean equals(Object obj) {
 			if(this == obj)
@@ -209,52 +214,23 @@ public abstract class Execution {
 	}
 	
 	public static class ExecutionDelay extends DefaultExecutionProblem {
-		private final Throwable throwable;
 		public ExecutionDelay(Execution caller, Throwable e) {
-			super(caller);
-			this.throwable = e;
+			super(caller, e);
 		}
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 1887704359270171496L;
-
-		public String reason() {
-			return throwable.getMessage();
-		}
 	}
 	
 	public static class ExecutionFailure extends DefaultExecutionProblem {
-		private final Throwable throwable;
 		public ExecutionFailure(Execution caller, Throwable e) {
-			super(caller);
-			this.throwable = e;
+			super(caller, e);
 		}
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -5646674827768905150L;
-
-		public String reason() {
-			return throwable.getMessage();
-		}
 	}
 	
 	public static class ExecutionFatality extends DefaultExecutionProblem {
-		private final Throwable throwable;
 		public ExecutionFatality(Execution caller, Throwable e) {
-			super(caller);
-			this.throwable = e;
+			super(caller, e);
 		}
-		
-		public String reason() {
-			return throwable.getMessage();
-		}
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -5646674827768905150L;
 	}
 	

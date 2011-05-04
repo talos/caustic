@@ -14,7 +14,7 @@ import net.microscraper.database.Resource.OneToOneResource;
 
 public class Regexp extends OneToOneResource {
 	private static final AttributeDefinition REGEXP = new AttributeDefinition("regexp");
-	private static final AttributeDefinition SUBSTITUTION = new AttributeDefinition("substitution");
+	private static final AttributeDefinition REPLACEMENT = new AttributeDefinition("replacement");
 	private static final AttributeDefinition MATCH_NUMBER = new AttributeDefinition("match_number");
 	private static final AttributeDefinition CASE_INSENSITIVE = new AttributeDefinition("case_insensitive");
 	private static final AttributeDefinition MULTILINE = new AttributeDefinition("multiline");
@@ -24,7 +24,7 @@ public class Regexp extends OneToOneResource {
 		return new ModelDefinition() {	
 			public AttributeDefinition[] attributes() {
 				return new AttributeDefinition[] {
-						REGEXP, MATCH_NUMBER, SUBSTITUTION,
+						REGEXP, MATCH_NUMBER, REPLACEMENT,
 						CASE_INSENSITIVE, MULTILINE, DOT_MATCHES_NEWLINE };
 			}
 			public RelationshipDefinition[] relationships() {
@@ -56,8 +56,8 @@ public class Regexp extends OneToOneResource {
 					getBooleanAttribute(MULTILINE),
 					getBooleanAttribute(DOT_MATCHES_NEWLINE));
 		}
-		private String getSubstitution() throws ExecutionDelay, ExecutionFatality {
-			return getAttributeValue(SUBSTITUTION);
+		private String getReplacement() throws ExecutionDelay, ExecutionFatality {
+			return getAttributeValue(REPLACEMENT);
 		}
 		public boolean matches(String input) throws ExecutionDelay, ExecutionFatality {
 			Pattern pattern = getPattern();
@@ -69,11 +69,11 @@ public class Regexp extends OneToOneResource {
 		}
 		public String[] allMatches(String input) throws NoMatches, ExecutionDelay, ExecutionFatality, MissingGroup {
 			Pattern pattern = getPattern();
-			String substitution = getSubstitution();
+			String replacement = getReplacement();
 			if(matchNumber != null) {
-				return new String[] { pattern.match(input, substitution, matchNumber.intValue()) };
+				return new String[] { pattern.match(input, replacement, matchNumber.intValue()) };
 			} else {
-				return pattern.allMatches(input, substitution);
+				return pattern.allMatches(input, replacement);
 			}
 		}
 	}

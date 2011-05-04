@@ -1,5 +1,7 @@
 package net.microscraper.database;
 
+import net.microscraper.client.Utils;
+
 public class Reference {
 	public static final String SEPARATOR = "/";
 	
@@ -7,19 +9,24 @@ public class Reference {
 	public final String creator;
 	public final String title;
 	
-	public Reference(Model model, String full_name) throws IllegalArgumentException {
+	public Reference(String threePartReference) {
+		String[] split = Utils.split(threePartReference, SEPARATOR);
+		this.model = Model.get(split[0]);
+		this.creator = split[1];
+		this.title = split[2];
+	}
+	
+	public Reference(Model model, String fullName) throws IllegalArgumentException {
 		this.model = model;
-		int sep_index = full_name.indexOf(SEPARATOR);
-		if(sep_index == -1) {
-			creator = null;
-			title = full_name;
-		} else {
-			creator = full_name.substring(0, sep_index);
-			title = full_name.substring(sep_index + 1);
-		}
-		if(title == null) {
-			throw new IllegalArgumentException("Title of reference cannot be null.");
-		}
+		int sep_index = fullName.indexOf(SEPARATOR);
+		this.creator = fullName.substring(0, sep_index);
+		this.title = fullName.substring(sep_index + 1);
+	}
+	
+	public Reference(Model model, String creator, String title) {
+		this.model = model;
+		this.creator = creator;
+		this.title = title;
 	}
 	
 	public String toString() {
@@ -45,8 +52,5 @@ public class Reference {
 			references[i] = new Reference(Model.get(model_name), strings[i]);
 		}
 		return references;
-	}
-	public static Reference blank(Resource resource) {
-		return new Reference(Model.get(resource.getClass()), "");
 	}
 }

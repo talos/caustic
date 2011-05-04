@@ -15,6 +15,8 @@ import java.util.Vector;
 
 import net.microscraper.client.Browser;
 import net.microscraper.client.Client;
+import net.microscraper.client.Interfaces;
+import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Utils;
 
@@ -25,9 +27,13 @@ import net.microscraper.client.Utils;
  *
  */
 public class JavaNetBrowser implements Browser {
-	public String load(String url)
-			throws InterruptedException, BrowserException {
-		return load(url, new Hashtable(), new Hashtable(), new Hashtable(), new Pattern[] {});
+	public Interfaces.JSON.Object loadJSON(String url, Interfaces.JSON jsonInterface)
+			throws InterruptedException, BrowserException, JSONInterfaceException {
+		Hashtable jsonHeaders = new Hashtable();
+		jsonHeaders.put(ACCEPT_HEADER_NAME, ACCEPT_HEADER_JSON_VALUE);
+		String jsonString = load(url, new Hashtable(), jsonHeaders, new Hashtable(), new Pattern[] {});
+		Client.log.i(jsonString);
+		return jsonInterface.getTokener(jsonString).nextValue();
 	}
 	private final Hashtable cookie_store = new Hashtable();
 	private final Hashtable host_name_starts = new Hashtable();

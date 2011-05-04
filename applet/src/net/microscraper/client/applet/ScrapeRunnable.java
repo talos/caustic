@@ -32,7 +32,7 @@ public class ScrapeRunnable implements Runnable {
 	private class ScrapeAction implements PrivilegedAction<Void> {
 		public Void run() {
 			try {
-				Client.scrape(url, resource_ref, variables);
+				Client.scrape(Client.browser.loadJSON(url, Client.json), resource_ref, variables);
 			} catch(Throwable e) {
 				Client.log.e(e);
 			}

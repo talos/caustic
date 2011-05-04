@@ -9,9 +9,9 @@ import net.microscraper.database.Resource;
 import net.microscraper.database.Resource.OneToOneResource;
 import net.microscraper.database.Status;
 
-public class Data extends OneToOneResource {	
-	private static final RelationshipDefinition DEFAULTS =
-		new RelationshipDefinition( "defaults", Default.class);
+public class Bundle extends OneToOneResource {	
+	private static final RelationshipDefinition SUBSTITUTIONS =
+		new RelationshipDefinition( "substitutions", Substitution.class);
 	private static final RelationshipDefinition SCRAPERS =
 		new RelationshipDefinition( "scrapers", Scraper.class);
 	
@@ -19,7 +19,7 @@ public class Data extends OneToOneResource {
 		return new ModelDefinition() {
 			public AttributeDefinition[] attributes() { return new AttributeDefinition[] { }; }
 			public RelationshipDefinition[] relationships() {
-				return new RelationshipDefinition[] { DEFAULTS, SCRAPERS };
+				return new RelationshipDefinition[] { SUBSTITUTIONS, SCRAPERS };
 			}
 		};
 	}
@@ -32,13 +32,13 @@ public class Data extends OneToOneResource {
 		private final Resource[] scrapers;
 		public DataExecution(Resource resource, Execution caller) throws ExecutionFatality {
 			super(resource, caller);
-			defaults = getRelatedResources(DEFAULTS);
+			defaults = getRelatedResources(SUBSTITUTIONS);
 			scrapers = getRelatedResources(SCRAPERS);
 		}
 		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
 			Status status = new Status();
 			for(int i = 0 ; i < defaults.length ; i ++ ) {
-				Execution exc = callResource((Default) defaults[i]);
+				Execution exc = callResource((Substitution) defaults[i]);
 				status.merge(exc.safeExecute());
 			}
 			for(int i = 0 ; i < scrapers.length ; i ++ ) {

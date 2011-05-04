@@ -1,6 +1,5 @@
 package net.microscraper.client;
 
-import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
@@ -41,18 +40,12 @@ public class Client {
 		initialized = false;
 	}
 	
-	public static void scrape(String json_url, Reference ref, Variables extraVariables) {
+	public static void scrape(JSON.Object json, Reference ref, Variables extraVariables) {
 		if(!initialized)
 			throw new IllegalStateException("Scraper not initialized.");
 		
-		//ResultRoot root = new ResultRoot();
-		String raw_obj;
 		try {
-			log.i("Scraping '" + ref.toString() + "' from JSON loaded from " + json_url);
-			
-			raw_obj = browser.load(json_url);
-			log.i("Raw scraping JSON: " + raw_obj);
-			db.inflate(json.getTokener(raw_obj).nextValue());
+			db.inflate(json);
 			Resource resource = db.get(ref);
 			
 			// Loop while we're in progress, provided the number of missing variables is changing.
@@ -62,13 +55,7 @@ public class Client {
 				lastStatus = curStatus;
 				curStatus = resource.execute(extraVariables);
 			} while(curStatus.hasProgressedSince(lastStatus));
-		}  catch(JSONInterfaceException e) {
-			log.e(e);
 		} catch(DatabaseException e) {
-			log.e(e);
-		} catch (InterruptedException e) {
-			log.e(e);
-		} catch (BrowserException e) {
 			log.e(e);
 		} catch (ExecutionFatality e) {
 			log.e(e);

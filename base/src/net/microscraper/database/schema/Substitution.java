@@ -9,7 +9,7 @@ import net.microscraper.database.Relationship.RelationshipDefinition;
 import net.microscraper.database.Resource;
 import net.microscraper.database.Resource.OneToOneResource;
 
-public class Default extends OneToOneResource {		
+public class Substitution extends OneToOneResource {		
 	private static final AttributeDefinition VALUE = new AttributeDefinition("value");
 	private static final RelationshipDefinition SUBSTITUTED_SCRAPERS =
 		new RelationshipDefinition( "scrapers", Scraper.class );

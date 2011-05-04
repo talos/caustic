@@ -8,14 +8,14 @@ import java.util.Map;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.JSON.Stringer;
+import net.microscraper.client.Interfaces.JSON.Writer;
 import net.microscraper.client.Publisher;
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.ExecutionDelay;
-import net.microscraper.database.Execution.ExecutionFailure;
+import net.microscraper.database.Execution.ExecutionProblem;
 import net.microscraper.database.Status;
 
 public class ThreadSafeJSONPublisher implements Publisher {
-	private final Map<Execution, String> executions = Collections.synchronizedMap(new HashMap<Execution, String>());
+	private final Map<Execution, Status> executions = Collections.synchronizedMap(new HashMap<Execution, Status>());
 	private Iterator<Execution> iter = null;
 
 	public boolean live() {
@@ -25,24 +25,46 @@ public class ThreadSafeJSONPublisher implements Publisher {
 		return executions.size();
 	}
 	
+	private static void appendProblemToJSON(ExecutionProblem problem, Writer writer) throws JSONInterfaceException {
+		writer.object()
+			.key(SOURCE_ID)
+			.value(problem.callerExecution().id)
+			.key(TYPE)
+			.value(problem.problemClass().getSimpleName())
+			.key(VALUE)
+			.value(problem.reason())
+			.endObject();
+	}
 	public String get(Execution exc) throws PublisherException {
 		try {
-			String value = executions.get(exc);
-			Status status = exc.getStatus();
-			String statusString = SUCCESSFUL;
-			if(status.hasDelay()) {
-				statusString = DELAY;
-			} else if(status.hasFailure()) {
-				statusString = FAILURE;
-			}
-			//Status status = exc.getStatus();
+			Status status = executions.get(exc);
+			
 			Stringer stringer = Client.json.getStringer();
 			stringer.object()
 				.key(ID).value(exc.id)
 				.key(SOURCE_ID).value(exc.getSourceExecution().id)
-				.key(NAME).value(exc.getPublishName())
-				.key(STATUS_STRING).value(statusString)
-				.key(VALUE).value(value);
+				.key(NAME).value(exc.getPublishName());
+			
+			String[] successes = status.successes();
+			stringer.key(SUCCESS).array();
+			for(int i = 0 ; i < successes.length ; i ++) {
+				stringer.value(successes[i]);
+			}
+			stringer.endArray();
+			
+			ExecutionProblem[] delays = status.delays();
+			stringer.key(DELAY).array();
+			for(int i = 0 ; i < delays.length ; i ++) {
+				appendProblemToJSON(delays[i], stringer);
+			}
+			stringer.endArray();
+			
+			ExecutionProblem[] failures = status.failures();
+			stringer.key(FAILURE).array();
+			for(int i = 0 ; i < failures.length ; i ++) {
+				appendProblemToJSON(failures[i], stringer);
+			}
+			stringer.endArray();
 			
 			stringer.endObject();
 			return stringer.toString();
@@ -63,18 +85,7 @@ public class ThreadSafeJSONPublisher implements Publisher {
 		}
 	}
 	@Override
-	public void publish(Execution execution, String result)
-			throws PublisherException {
-		executions.put(execution, result);		
-	}
-	@Override
-	public void publish(Execution execution, ExecutionDelay delay)
-			throws PublisherException {
-		executions.put(execution, delay.reason());		
-	}
-	@Override
-	public void publish(Execution execution, ExecutionFailure failure)
-			throws PublisherException {
-		executions.put(execution, failure.reason());		
+	public void publish(Execution execution, Status status) throws PublisherException {
+		executions.put(execution, status);
 	}
 }

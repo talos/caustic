@@ -3,8 +3,11 @@ package net.microscraper.client.utility;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import net.microscraper.client.Browser;
+import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
+import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Variables;
 import net.microscraper.client.impl.JDBCSQLite;
 import net.microscraper.client.impl.JSONME;
@@ -25,29 +28,44 @@ public class MicroScraperConsole {
 		new MicroScraperConsole(args);
 	}
 	public MicroScraperConsole(String[] args) {
-		if(args.length < 3) {
-			log.i("Proper use: microscraperconsole <url> <model> <resource> <defaults>");
+		if(args.length > 2 || args.length < 1) {
+			log.i("Proper use: microscraperconsole <url> [<defaults>]");
 		} else {
 			try {
-				 Client.initialize(
-						new JavaNetBrowser(),
+				Browser browser = new JavaNetBrowser();
+				Interfaces.JSON jsonInterface = new JSONME();
+				Client.initialize(
+						browser,
 						new JavaUtilRegexInterface(),
-						new JSONME(),
+						jsonInterface,
 						new Interfaces.Logger[] { log },
 						new SQLPublisher(
 								new JDBCSQLite("./" + DATETIME_FORMAT.format(new Date()) + ".sqlite", log))
 				);
 				String url = args[0];
-				Reference resource_ref = new Reference(Model.get(args[1]), args[2]);
+				
+				String[] urlSplit = url.split("/");
+				Reference resource_ref = new Reference(
+						Model.get(urlSplit[urlSplit.length - 3]),
+						urlSplit[urlSplit.length - 2],
+						urlSplit[urlSplit.length - 1]);
+				
 				Variables variables;
-				if(args.length > 3) {
-					variables = Variables.fromFormParams(args[3], ENCODING);
+				if(args.length > 1) {
+					variables = Variables.fromFormParams(args[1], ENCODING);
 				} else {
 					variables = new Variables();
 				}
-				Client.scrape(url, resource_ref, variables);
+				Interfaces.JSON.Object jsonObject = browser.loadJSON(url, jsonInterface);
+				Client.scrape(jsonObject, resource_ref, variables);
 				Client.log.i("Finished execution.");
 			} catch (SQLInterfaceException e) {
+				log.e(e);
+			} catch (InterruptedException e) {
+				log.e(e);
+			} catch (BrowserException e) {
+				log.e(e);
+			} catch (JSONInterfaceException e) {
 				log.e(e);
 			}
 		}
