@@ -84,7 +84,7 @@ public class WebPage extends OneToOneResource {
 			} catch(InterruptedException e) {
 				throw new ExecutionFatality(getSourceExecution(), e);
 			} catch(BrowserException e) {
-				throw new ExecutionFatality(getSourceExecution(), e);
+				throw new ExecutionFatality(getSourceExecution(), e.getCause());
 			}
 		}
 	}

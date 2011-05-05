@@ -38,22 +38,22 @@ public class Status {
 		return successes;
 	}
 	// convenience method
-	private static ExecutionProblem[] vectorToExecutionDelayArray(Vector vector) {
-		ExecutionProblem[] delays = new ExecutionDelay[vector.size()];
-		vector.copyInto(delays);
-		return delays;
+	private static ExecutionProblem[] vectorToExecutionProblemArray(Vector vector) {
+		ExecutionProblem[] problems = new ExecutionProblem[vector.size()];
+		vector.copyInto(problems);
+		return problems;
 	}
 	public ExecutionProblem[] delays() {
-		return vectorToExecutionDelayArray(delays);
+		return vectorToExecutionProblemArray(delays);
 	}
 	public ExecutionProblem[] failures() {
-		return vectorToExecutionDelayArray(failures);
+		return vectorToExecutionProblemArray(failures);
 	}
 	
 	// If any previous delay is no longer in our status, we have made progress.
 	public boolean hasProgressedSince(Status lastStatus) {
 		for(int i = 0 ; i < lastStatus.delays.size() ; i ++ ) {
-			ExecutionDelay previousDelay = (ExecutionDelay) lastStatus.delays.elementAt(i);
+			ExecutionProblem previousDelay = (ExecutionProblem) lastStatus.delays.elementAt(i);
 			if(!this.delays.contains(previousDelay))
 				return true;
 		}

@@ -1,5 +1,6 @@
 package net.microscraper.database;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
 import net.microscraper.database.Attribute.AttributeDefinition;
@@ -12,8 +13,8 @@ import net.microscraper.database.Relationship.Relationships;
 
 public abstract class Resource {
 	private Reference ref;
-	private Attributes attributes = new Attributes();
-	private Relationships relationships = new Relationships();
+	private Attributes attributes; // = new Attributes();
+	private Relationships relationships; // = new Relationships();
 	//private Hashtable executionsByCaller = new Hashtable();
 	
 	public Resource initialize(String key, Attributes attributes, Relationships relationships) {

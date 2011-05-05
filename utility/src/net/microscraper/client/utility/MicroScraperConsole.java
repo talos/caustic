@@ -64,7 +64,7 @@ public class MicroScraperConsole {
 			} catch (InterruptedException e) {
 				log.e(e);
 			} catch (BrowserException e) {
-				log.e(e);
+				log.e(e.getCause());
 			} catch (JSONInterfaceException e) {
 				log.e(e);
 			}

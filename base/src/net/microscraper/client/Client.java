@@ -1,7 +1,6 @@
 package net.microscraper.client;
 
 import net.microscraper.client.Interfaces.JSON;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Interfaces.Regexp;
 import net.microscraper.database.Database.DatabaseException;
@@ -18,7 +17,7 @@ public class Client {
 	public static JSON json;
 	public static Browser browser;
 	public static Publisher publisher;
-	public static Database db = new Database();
+	//public static Database db = new Database();
 	
 	private static boolean initialized = false;
 	
@@ -45,6 +44,7 @@ public class Client {
 			throw new IllegalStateException("Scraper not initialized.");
 		
 		try {
+			Database db = new Database();
 			db.inflate(json);
 			Resource resource = db.get(ref);
 			

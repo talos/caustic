@@ -50,7 +50,7 @@ public class Model {
 				}
 			}
 			
-			Relationships relationships = new Relationships();
+			Relationships relationships = new Relationships(db);
 			RelationshipDefinition[] relationship_definitions = definition.relationships();
 			for(int i = 0; i < relationship_definitions.length; i ++) {
 				RelationshipDefinition def = relationship_definitions[i];

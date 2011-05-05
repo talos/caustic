@@ -33,8 +33,18 @@ public interface Browser {
 			Hashtable cookies, Pattern[] terminates) throws WaitToDownload, BrowserException, InterruptedException;
 	
 	public static class BrowserException extends Exception {
+		private final String url;
+		private final Throwable cause;
 		public BrowserException(String url, Throwable e) {
-			super("Loading " + url, e);
+			super("Could not load " + url, e);
+			this.url = url;
+			this.cause = e;
+		}
+		public Throwable getCause() {
+			return this.cause;
+		}
+		public String getURL() {
+			return this.url;
 		}
 		/**
 		 * 

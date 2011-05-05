@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.JSON.Stringer;
@@ -15,7 +16,7 @@ import net.microscraper.database.Status;
 
 public class ThreadSafeJSONPublisher implements Publisher {
 	private final List<Stringer> executions = Collections.synchronizedList(new ArrayList<Stringer>());
-	private Integer pos = 0;
+	private Integer pos = -1;
 	private final Interfaces.JSON json;
 	public ThreadSafeJSONPublisher(Interfaces.JSON json) {
 		this.json = json;
@@ -33,7 +34,7 @@ public class ThreadSafeJSONPublisher implements Publisher {
 	
 	@Override
 	public void publish(Execution execution, Status status) throws PublisherException {
-		try {			
+		try {
 			Stringer stringer = json.getStringer();
 			stringer.object()
 				.key(ID).value(execution.id)
@@ -71,7 +72,7 @@ public class ThreadSafeJSONPublisher implements Publisher {
 	}
 	public void resetIterator() {
 		synchronized(pos) {
-			pos = 0;
+			pos = -1;
 		}
 	}
 	public boolean hasNext() {

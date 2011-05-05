@@ -52,16 +52,16 @@ public class JavaNetBrowser implements Browser {
 		} catch(MalformedURLException e) {
 			throw new BrowserException(url_string, e);
 		}
-		 
+		HttpURLConnection conn;
 		try {
 			Client.log.i("Browser loading URL '" + url.toString() + "'");
 			
 			HttpURLConnection.setFollowRedirects(true);
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();			
+			conn = (HttpURLConnection) url.openConnection();			
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
 			conn.setReadTimeout(TIMEOUT);
-
+			
 			// Add cookies passed directly into cookie store. Very primitive.
 			Utils.hashtableIntoHashtable(cookies, cookie_store);
 			
@@ -104,11 +104,15 @@ public class JavaNetBrowser implements Browser {
 			} else {
 				conn.setRequestMethod("GET");
 			}
-			
-			Client.log.i("Waiting for " + conn.getRequestMethod()
-					+ " response from " + url.toString() + "...");
+		} catch(IOException e) {
+			throw new BrowserException(url_string, e);
+		}
+		try {
 			connectHandlingRedirectCookies(conn);
-			
+		} catch(IOException e) {
+			throw new BrowserException(url_string, e);
+		}
+		try {
 			Client.log.i("Loading " + url.toString() + "...");
 			// Pull response.
 			ByteArrayOutputStream content = new ByteArrayOutputStream();

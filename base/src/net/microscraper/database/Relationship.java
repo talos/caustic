@@ -9,6 +9,10 @@ import net.microscraper.database.Database.ResourceNotFoundException;
 public class Relationship {
 	public static class Relationships {
 		private final Hashtable relationships = new Hashtable();
+		private final Database db;
+		public Relationships(Database db) {
+			this.db = db;
+		}
 
 		public void put(RelationshipDefinition def, Reference reference) {
 			Vector references;
@@ -34,7 +38,7 @@ public class Relationship {
 			} else {
 				Resource[] resources = new Resource[references.size()];
 				for(int i = 0; i < references.size() ; i ++) {
-					resources[i] = Client.db.get((Reference) references.elementAt(i));
+					resources[i] = db.get((Reference) references.elementAt(i));
 				}
 				return resources;
 			}

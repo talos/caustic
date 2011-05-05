@@ -2,7 +2,6 @@ package net.microscraper.database.schema;
 
 import java.util.Vector;
 
-import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.MissingGroup;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Utils.HashtableWithNulls;
@@ -24,8 +23,10 @@ public class Scraper extends Resource {
 		new RelationshipDefinition( "web_pages", WebPage.class );
 	private static final RelationshipDefinition SOURCE_SCRAPERS =
 		new RelationshipDefinition( "source_scrapers", Scraper.class);
-	private static final RelationshipDefinition REGEXPS =
-		new RelationshipDefinition( "regexps", Regexp.class);
+	private static final RelationshipDefinition SEARCHES_WITH =
+		new RelationshipDefinition( "searches_with", Regexp.class);
+	private static final RelationshipDefinition TESTED_BY =
+		new RelationshipDefinition( "tested_by", Regexp.class);
 	
 	public ModelDefinition definition() {
 		return new ModelDefinition() {
@@ -34,7 +35,7 @@ public class Scraper extends Resource {
 			}
 			public RelationshipDefinition[] relationships() {
 				return new RelationshipDefinition[] {
-					WEB_PAGES, SOURCE_SCRAPERS, REGEXPS
+					WEB_PAGES, SOURCE_SCRAPERS, SEARCHES_WITH, TESTED_BY
 				};
 			}
 		};
@@ -48,7 +49,7 @@ public class Scraper extends Resource {
 	
 	public boolean isOneToMany() {		
 		if((getNumberOfRelatedResources(WEB_PAGES) + getNumberOfRelatedResources(SOURCE_SCRAPERS)) > 1 ||
-				getNumberOfRelatedResources(REGEXPS) > 1) // one-to-many if pulling from multiple sources, or multiple regexps.
+				getNumberOfRelatedResources(SEARCHES_WITH) > 1) // one-to-many if pulling from multiple sources, or multiple regexps.
 			return true;
 		return false;
 	}
@@ -84,23 +85,24 @@ public class Scraper extends Resource {
 		
 		if(!executions.containsKey(caller)) {
 			try {
-				Resource[] regexps =  getRelatedResources(REGEXPS);
+				Resource[] searchesWith =  getRelatedResources(SEARCHES_WITH);
+				Resource[] testedBy =  getRelatedResources(TESTED_BY);
 				Resource[] scrapers = getRelatedResources(SOURCE_SCRAPERS); 
 				Resource[] webPages = getRelatedResources(WEB_PAGES);
 
-				if(regexps.length < 1) {
+				if(searchesWith.length < 1) {
 					throw new ExecutionFatality(caller, new RuntimeException("Scraper needs at least one regexp."));
 				}
 				if(scrapers.length + webPages.length < 1)
 					throw new ExecutionFatality(caller, new RuntimeException("Scraper needs at least one web page or source scraper."));
 				
 				// creating new scraperExecutions adds them to the executions vector.
-				for(int i = 0 ; i < regexps.length ; i ++ ) {
+				for(int i = 0 ; i < searchesWith.length ; i ++ ) {
 					for(int j = 0 ; j < scrapers.length ; j ++) {
-						new ScraperExecutionFromScraper(this, caller, (Regexp) regexps[i], (Scraper) scrapers[j]);
+						new ScraperExecutionFromScraper(this, caller, (Regexp) searchesWith[i], (Scraper) scrapers[j]);
 					}
 					for(int j = 0 ; j < webPages.length ; j ++) {
-						new ScraperExecutionFromWebPage(this, caller, (Regexp) regexps[i], (WebPage) webPages[j]);
+						new ScraperExecutionFromWebPage(this, caller, (Regexp) searchesWith[i], (WebPage) webPages[j]);
 					}
 				}
 			} catch(ResourceNotFoundException e) {

@@ -1,6 +1,8 @@
 package net.microscraper.client.impl;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
+import net.microscraper.client.Utils;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.database.Execution;
 import net.microscraper.database.Execution.ExecutionProblem;
@@ -36,17 +38,16 @@ public class SQLPublisher implements Publisher {
 	}
 	
 	private void addEntry(Execution execution, String status, Class<?> klass, String value) throws SQLInterfaceException {
+		String[] substitutions = new String[] {
+			Integer.toString(execution.getSourceExecution().id),
+			Integer.toString(execution.id),
+			status,
+			execution.getPublishName(),
+			klass.getSimpleName(),
+			value };
 		inter.execute("INSERT INTO `" + TABLE_NAME +
 				"` (`" + SOURCE_ID + "`,`" + ID + "`,`" + STATUS + "`,`" + NAME + "`,`" + TYPE + "`,`" + VALUE + "`) " +
-				"VALUES (?, ?, ?, ?, ?)",
-				new String[] {
-					Integer.toString(execution.getSourceExecution().id),
-					Integer.toString(execution.id),
-					status,
-					execution.getPublishName(),
-					klass.getSimpleName(),
-					value });
-
+				"VALUES (?, ?, ?, ?, ?, ?)", substitutions);
 	}
 	
 	public void publish(Execution execution, Status status) throws PublisherException {

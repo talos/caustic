@@ -110,7 +110,7 @@ public abstract class Execution {
 	
 	public final Status safeExecute() throws ExecutionFatality {
 		Client.log.i("Safely executing " + resource.ref().toString() + ":" + Integer.toString(id));
-		if(lastStatus.hasFailure()) {
+		if(!lastStatus.hasFailure()) {
 			Status status = new Status();
 			try {
 				try {
