@@ -20,28 +20,30 @@ public class Mustache {
 	 */
 	public static String compile(String template, Variables variables)
 				throws TemplateException, MissingVariable {
-		int close_tag_pos = 0;
-		int open_tag_pos;
+		int close_tag_end_pos = 0;
+		int open_tag_start_pos;
 		String result = "";
 		if(template == null) {
 			throw new TemplateException("Cannot compile null string in mustache.");
 		}
-		while((open_tag_pos = template.indexOf(open_tag, close_tag_pos)) != -1) {
-			result += template.substring(open_tag_pos, close_tag_pos);
+		while((open_tag_start_pos = template.indexOf(open_tag, close_tag_end_pos)) != -1) {
 			
-			close_tag_pos = template.indexOf(close_tag, open_tag_pos);
-			if(close_tag_pos == -1)
-				throw new TemplateException("No close tag for opening tag at position " + open_tag_pos + " in Mustache template " + template);
+			// Pass unmodified text from the end of the last closed tag to the start of the current open tag.
+			result += template.substring(close_tag_end_pos, open_tag_start_pos);
 			
-			String tag = template.substring(open_tag_pos + open_tag.length(), close_tag_pos);
+			int close_tag_start_pos = template.indexOf(close_tag, open_tag_start_pos);
+			if(close_tag_start_pos == -1)
+				throw new TemplateException("No close tag for opening tag at position " + open_tag_start_pos + " in Mustache template " + template);
 			
-			close_tag_pos += close_tag.length();
+			String tag = template.substring(open_tag_start_pos + open_tag.length(), close_tag_start_pos);
+			
+			close_tag_end_pos = close_tag_start_pos + close_tag.length();
 			if(variables.containsKey(tag))
 				result += variables.get(tag);
 			else
 				throw new MissingVariable(tag, variables);
 		}
-		return result + template.substring(close_tag_pos);
+		return result + template.substring(close_tag_end_pos);
 	}
 	
 	public static class TemplateException extends Exception {
