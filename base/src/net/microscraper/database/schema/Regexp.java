@@ -38,16 +38,13 @@ public class Regexp extends OneToOneResource {
 	}
 	
 	public static final class RegexpExecution extends Execution {
-		//private Pattern pattern;
 		private final Integer matchNumber;
 		protected RegexpExecution(Resource resource, Execution caller) {
 			super(resource, caller);
 			matchNumber = resource.getIntegerAttribute(MATCH_NUMBER);
 		}
 		protected String privateExecute() throws ExecutionDelay, ExecutionFatality {
-			String patternString = getAttributeValue(REGEXP);
-			//pattern = Client.regexp.compile(patternString);
-			return patternString;
+			return getAttributeValue(REGEXP);
 		}
 		public Pattern getPattern() throws ExecutionDelay, ExecutionFatality {
 			return Client.regexp.compile(

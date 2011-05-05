@@ -54,7 +54,7 @@ public class JavaUtilRegexInterface implements Regexp {
 			int i = 0;
 			while(matcher.find()) {
 				if(i == matchNumber) {
-					return replace(input, substitution);
+					return replace(matcher.group(), substitution);
 				} else if(i > matchNumber) { break; }
 				i++;
 			}
