@@ -1,8 +1,6 @@
 package net.microscraper.client;
 
 import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.ExecutionDelay;
-import net.microscraper.database.Execution.ExecutionFailure;
 import net.microscraper.database.Status;
 
 public interface Publisher {

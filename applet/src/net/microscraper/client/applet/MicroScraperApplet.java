@@ -23,9 +23,12 @@ public class MicroScraperApplet extends Applet {
 	private static final JSON json = new JSONME();
 	
 	public static final String encoding = "UTF-8";
-	private Thread current_thread;
+	
 	private ThreadSafeJSONPublisher publisher;
-	private ThreadSafeJSONLogger log;
+	private ThreadSafeJSONLogger logger = new ThreadSafeJSONLogger(json);
+	private Thread current_thread;
+	//private Iterator<Stringer> publisherIterator;
+	//private Iterator<Stringer> logIterator;
 	
 	// thx http://stackoverflow.com/questions/1272648/need-to-read-own-jars-manifest-and-not-root-classloaders-manifest
 	public String manifest(String key) {
@@ -40,6 +43,7 @@ public class MicroScraperApplet extends Applet {
 			
 			return (String) attr.getValue(key);
 		} catch (Throwable e) {
+			e.printStackTrace();
 			return "Error obtaining " + key + " from manifest: " + e.toString();
 		}
 	}
@@ -53,22 +57,24 @@ public class MicroScraperApplet extends Applet {
 		try {
 			if(!isAlive()) {
 				// Reset the log and publisher with each execution.
-				log = new ThreadSafeJSONLogger(json);
-				publisher = new ThreadSafeJSONPublisher(); 
+				publisher = new ThreadSafeJSONPublisher(json);
+				logger = new ThreadSafeJSONLogger(json);
+				//logIterator = logger.getIterator();
+				//publisherIterator = publisher.getIterator();
 				Client.initialize(
 						new JavaNetBrowser(),
 						new JavaUtilRegexInterface(), json,
-						new Interfaces.Logger[] { log },
+						new Interfaces.Logger[] { logger },
 						publisher
 					);
 				Thread thread = new Thread(new ScrapeRunnable(url, model, full_name, params_string));
 				thread.start();
 				current_thread = thread;
 			} else {
-				log.i("Not starting test, another test has yet to complete.  Stop it manually to test this now.");
+				logger.i("Not starting test, another test has yet to complete.  Stop it manually to test this now.");
 			}
 		} catch(Throwable e) {
-			log.e(e);
+			e.printStackTrace();
 		}
 	}
 	
@@ -76,9 +82,9 @@ public class MicroScraperApplet extends Applet {
 		try {
 			current_thread.interrupt();
 			Client.reset();
-			log.i("Killed test.");
+			logger.i("Killed test.");
 		} catch(Throwable e) {
-			log.e(e);
+			e.printStackTrace();
 		}
 	}
 	
@@ -90,25 +96,52 @@ public class MicroScraperApplet extends Applet {
 				return current_thread.isAlive();
 			}
 		} catch(Throwable e) {
-			log.e(e);
+			e.printStackTrace();
 		}
 		return false;
 	}
 	
-	public String nextExecution() {
+	public void resetExecutionsIterator() {
 		try {
-			return publisher.next();
+			publisher.resetIterator();
 		} catch(Throwable e) {
-			log.e(e);
+			e.printStackTrace();
+		}
+	}
+	
+	public boolean hasMoreExecutions() {
+		try {
+			return publisher.hasNext();
+		} catch(Throwable e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	public String getNextExecution() {
+		try {
+			return publisher.next().toString();
+		} catch(Throwable e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
 	
-	public String log() {
+	public boolean hasMoreLogEntries() {
 		try {
-			return log.shift();
+			return logger.hasNext();
 		} catch(Throwable e) {
-			return "Error pulling from log: " + e.toString();
+			e.printStackTrace();
 		}
+		return false;
+	}
+	
+	public String getNextLogEntry() {
+		try {
+			return logger.next().toString();
+		} catch(Throwable e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

@@ -1,11 +1,10 @@
 package net.microscraper.client.applet;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 
-import net.microscraper.client.Client;
+import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.JSON.Stringer;
 import net.microscraper.client.Interfaces.JSON.Writer;
@@ -15,16 +14,12 @@ import net.microscraper.database.Execution.ExecutionProblem;
 import net.microscraper.database.Status;
 
 public class ThreadSafeJSONPublisher implements Publisher {
-	private final Map<Execution, Status> executions = Collections.synchronizedMap(new HashMap<Execution, Status>());
-	private Iterator<Execution> iter = null;
-
-	public boolean live() {
-		return true;
+	private final List<Stringer> executions = Collections.synchronizedList(new ArrayList<Stringer>());
+	private Integer pos = 0;
+	private final Interfaces.JSON json;
+	public ThreadSafeJSONPublisher(Interfaces.JSON json) {
+		this.json = json;
 	}
-	public int size() {
-		return executions.size();
-	}
-	
 	private static void appendProblemToJSON(ExecutionProblem problem, Writer writer) throws JSONInterfaceException {
 		writer.object()
 			.key(SOURCE_ID)
@@ -35,15 +30,15 @@ public class ThreadSafeJSONPublisher implements Publisher {
 			.value(problem.reason())
 			.endObject();
 	}
-	public String get(Execution exc) throws PublisherException {
-		try {
-			Status status = executions.get(exc);
-			
-			Stringer stringer = Client.json.getStringer();
+	
+	@Override
+	public void publish(Execution execution, Status status) throws PublisherException {
+		try {			
+			Stringer stringer = json.getStringer();
 			stringer.object()
-				.key(ID).value(exc.id)
-				.key(SOURCE_ID).value(exc.getSourceExecution().id)
-				.key(NAME).value(exc.getPublishName());
+				.key(ID).value(execution.id)
+				.key(SOURCE_ID).value(execution.getSourceExecution().id)
+				.key(NAME).value(execution.getPublishName());
 			
 			String[] successes = status.successes();
 			stringer.key(SUCCESS).array();
@@ -67,25 +62,31 @@ public class ThreadSafeJSONPublisher implements Publisher {
 			stringer.endArray();
 			
 			stringer.endObject();
-			return stringer.toString();
+			synchronized(executions) {
+				executions.add(stringer);
+			}
 		} catch(JSONInterfaceException e) {
 			throw new PublisherException(e);
 		}
 	}
-	
-	public String next() throws PublisherException {
-		if(iter == null)
-			iter = executions.keySet().iterator();
-		
-		if(iter.hasNext()) {
-			return get(iter.next());
-		} else {
-			iter = null;
-			return null;
+	public void resetIterator() {
+		synchronized(pos) {
+			pos = 0;
 		}
 	}
-	@Override
-	public void publish(Execution execution, Status status) throws PublisherException {
-		executions.put(execution, status);
+	public boolean hasNext() {
+		synchronized(executions) {
+			synchronized(pos) {
+				return executions.size() > pos + 1;
+			}
+		}
+	}
+	public Stringer next() {
+		synchronized(executions) {
+			synchronized(pos) {
+				pos++;
+				return executions.get(pos);
+			}
+		}
 	}
 }

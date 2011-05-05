@@ -1,7 +1,6 @@
 package net.microscraper.client;
 
 import java.util.Enumeration;
-import java.util.Hashtable;
 
 public class Interfaces {
 	public static interface JSON {
@@ -68,7 +67,6 @@ public class Interfaces {
 		
 		public abstract Tokener getTokener(String jsonString) throws JSONInterfaceException;
 		public abstract Stringer getStringer() throws JSONInterfaceException;
-		public abstract String toJSON(Hashtable hashtable) throws JSONInterfaceException;
 	}
 
 
