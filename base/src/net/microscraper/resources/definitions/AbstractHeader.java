@@ -17,14 +17,8 @@ public class AbstractHeader extends OneToOneResourceDefinition {
 	public AttributeDefinition[] getAttributeDefinitions() { return new AttributeDefinition[] { NAME, VALUE }; }
 	public RelationshipDefinition[] getRelationshipDefinitions() { return new RelationshipDefinition[] {}; }
 	
-	protected Execution generateExecution(Client client, Resource resource, Execution caller) throws ExecutionFatality {
+	public Execution generateExecution(Client client, Resource resource, Execution caller) throws ExecutionFatality {
 		return new AbstractHeaderExecution(client, resource, caller);
-	}
-	
-	protected Execution generateExecution(Execution caller)
-			throws ExecutionFatality {
-		// TODO Auto-generated method stub
-		return null;
 	}
 	
 	protected static class AbstractHeaderExecution extends Execution {
@@ -36,7 +30,7 @@ public class AbstractHeader extends OneToOneResourceDefinition {
 		}
 	}
 	
-	public static class AbstractHeaderResult extends Result {
+	public static class AbstractHeaderResult implements Result {
 		public final String name;
 		public final String value;
 		public AbstractHeaderResult(String name, String value) {

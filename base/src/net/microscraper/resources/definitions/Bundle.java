@@ -1,12 +1,19 @@
 package net.microscraper.resources.definitions;
 
+import net.microscraper.client.Client;
 import net.microscraper.resources.AttributeDefinition;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionDelay;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionFailure;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionFatality;
+import net.microscraper.resources.DefaultExecutionProblem.StatusException;
 import net.microscraper.resources.Execution;
+import net.microscraper.resources.OneToOneResourceDefinition;
 import net.microscraper.resources.RelationshipDefinition;
 import net.microscraper.resources.Resource;
+import net.microscraper.resources.Result;
 import net.microscraper.resources.Status;
 
-public class Bundle extends OneToOneResource {	
+public class Bundle extends OneToOneResourceDefinition {	
 	private static final RelationshipDefinition SUBSTITUTIONS =
 		new RelationshipDefinition( "substitutions", Substitution.class);
 	private static final RelationshipDefinition SCRAPERS =
@@ -16,20 +23,20 @@ public class Bundle extends OneToOneResource {
 	public RelationshipDefinition[] getRelationshipDefinitions() {
 		return new RelationshipDefinition[] { SUBSTITUTIONS, SCRAPERS };
 	}
-			
-	protected Execution generateExecution(Execution caller) throws ExecutionFatality {
-		return new DataExecution(this, caller);
+	
+	public Execution generateExecution(Client client, Resource resource, Execution caller) throws ExecutionFatality {
+		return new BundleExecution(client, resource, caller);
 	}
 	
-	public class DataExecution extends Execution {
+	public static class BundleExecution extends Execution {
 		private final Resource[] defaults;
 		private final Resource[] scrapers;
-		public DataExecution(Resource resource, Execution caller) throws ExecutionFatality {
-			super(resource, caller);
+		public BundleExecution(Client client, Resource resource, Execution caller) throws ExecutionFatality {
+			super(client, resource, caller);
 			defaults = getRelatedResources(SUBSTITUTIONS);
 			scrapers = getRelatedResources(SCRAPERS);
 		}
-		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
+		protected Result privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
 			Status status = new Status();
 			for(int i = 0 ; i < defaults.length ; i ++ ) {
 				Execution exc = callResource((Substitution) defaults[i]);
@@ -41,8 +48,12 @@ public class Bundle extends OneToOneResource {
 			if(status.hasDelay() || status.hasFailure()) {
 				throw new StatusException(status);
 			}
-			// TODO what would be meaningful here?
-			return "";
+
+			return new BundleResult();
 		}
+	}
+	
+	public static class BundleResult implements Result {
+		
 	}
 }

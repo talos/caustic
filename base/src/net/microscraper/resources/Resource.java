@@ -1,5 +1,6 @@
 package net.microscraper.resources;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Reference;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
@@ -7,7 +8,7 @@ import net.microscraper.client.Resources;
 import net.microscraper.client.Resources.ResourceException;
 import net.microscraper.resources.DefaultExecutionProblem.ExecutionFatality;
 
-public final class Resource {
+public class Resource {
 	private final Resources resources;
 	private final ResourceDefinition definition;
 	private final Reference ref;
@@ -54,10 +55,7 @@ public final class Resource {
 	public boolean isOneToMany() {
 		return definition.isOneToMany();
 	}
-	public boolean isPublishedToVariables() {
-		return definition.isPublishedToVariables();
-	}
-	public Execution[] getExecutions(Execution caller) throws ExecutionFatality {
-		return definition.getExecutions(caller);
+	public Execution[] getExecutions(Client client, Execution caller) throws ExecutionFatality {
+		return definition.generateExecutions(client, this, caller);
 	}
 }

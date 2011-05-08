@@ -1,17 +1,19 @@
 package net.microscraper.resources.definitions;
 
+import net.microscraper.client.Client;
+import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.Regexp.MissingGroup;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
-import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.resources.AttributeDefinition;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionDelay;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionFatality;
 import net.microscraper.resources.Execution;
+import net.microscraper.resources.OneToOneResourceDefinition;
 import net.microscraper.resources.RelationshipDefinition;
 import net.microscraper.resources.Resource;
-import net.microscraper.resources.Execution.ExecutionDelay;
-import net.microscraper.resources.Execution.ExecutionFatality;
-import net.microscraper.resources.Resource.OneToOneResource;
+import net.microscraper.resources.Result;
 
-public class Regexp extends OneToOneResource {
+public class Regexp extends OneToOneResourceDefinition {
 	private static final AttributeDefinition REGEXP = new AttributeDefinition("regexp");
 	private static final AttributeDefinition REPLACEMENT = new AttributeDefinition("replacement");
 	private static final AttributeDefinition MATCH_NUMBER = new AttributeDefinition("match_number");
@@ -28,31 +30,40 @@ public class Regexp extends OneToOneResource {
 		return new RelationshipDefinition[] { };
 	}
 
-	protected Execution generateExecution(Execution caller) throws ExecutionFatality {
-		return new RegexpExecution(this, caller);
+	public Execution generateExecution(Client client, Resource resource, Execution caller) throws ExecutionFatality {
+		return new RegexpExecution(client, resource, caller);
 	}
 	
 	public static final class RegexpExecution extends Execution {
 		private final Integer matchNumber;
-		protected RegexpExecution(Resource resource, Execution caller) {
-			super(resource, caller);
+		private final boolean caseInsensitive;
+		private final boolean multiline;
+		private final boolean dotMatchesNewline;
+		private final Client client;
+		public RegexpExecution(Client client, Resource resource, Execution caller) {
+			super(client, resource, caller);
+			this.client = client;
 			matchNumber = resource.getIntegerAttribute(MATCH_NUMBER);
+			caseInsensitive = resource.getBooleanAttribute(CASE_INSENSITIVE);
+			multiline = resource.getBooleanAttribute(MULTILINE);
+			dotMatchesNewline = resource.getBooleanAttribute(DOT_MATCHES_NEWLINE);
 		}
-		protected String privateExecute() throws ExecutionDelay, ExecutionFatality {
-			return getAttributeValue(REGEXP);
+		protected Result privateExecute() throws ExecutionDelay, ExecutionFatality {
+			return new RegexpResult(
+				client.regexp.compile(getStringAttributeValue(REGEXP), caseInsensitive, multiline, dotMatchesNewline),
+				getStringAttributeValue(REPLACEMENT), matchNumber);
 		}
-		public Pattern getPattern() throws ExecutionDelay, ExecutionFatality {
-			return client.regexp.compile(
-					getAttributeValue(REGEXP),
-					getBooleanAttribute(CASE_INSENSITIVE),
-					getBooleanAttribute(MULTILINE),
-					getBooleanAttribute(DOT_MATCHES_NEWLINE));
-		}
-		private String getReplacement() throws ExecutionDelay, ExecutionFatality {
-			return getAttributeValue(REPLACEMENT);
+	}
+	public static class RegexpResult implements Result {
+		private final Interfaces.Regexp.Pattern pattern;
+		private final String replacement;
+		private final Integer matchNumber;
+		public RegexpResult(Interfaces.Regexp.Pattern pattern, String replacement, Integer matchNumber) {
+			this.pattern = pattern;
+			this.replacement = replacement;
+			this.matchNumber = matchNumber;
 		}
 		public boolean matches(String input) throws ExecutionDelay, ExecutionFatality {
-			Pattern pattern = getPattern();
 			if(matchNumber != null) {
 				return pattern.matches(input, matchNumber.intValue());
 			} else {
@@ -60,8 +71,6 @@ public class Regexp extends OneToOneResource {
 			}
 		}
 		public String[] allMatches(String input) throws NoMatches, ExecutionDelay, ExecutionFatality, MissingGroup {
-			Pattern pattern = getPattern();
-			String replacement = getReplacement();
 			if(matchNumber != null) {
 				return new String[] { pattern.match(input, replacement, matchNumber.intValue()) };
 			} else {
@@ -69,5 +78,4 @@ public class Regexp extends OneToOneResource {
 			}
 		}
 	}
-
 }
