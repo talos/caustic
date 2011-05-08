@@ -4,6 +4,7 @@ import net.microscraper.client.Resources.ResourceException;
 import net.microscraper.resources.DefaultExecutionProblem.ExecutionFatality;
 import net.microscraper.resources.Resource;
 import net.microscraper.resources.Status;
+import net.microscraper.resources.definitions.Scraper.ScraperResult;
 
 /**
  * A microscraper Client allows for scraping from microscraper json.

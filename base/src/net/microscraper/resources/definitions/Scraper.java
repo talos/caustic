@@ -2,20 +2,21 @@ package net.microscraper.resources.definitions;
 
 import java.util.Vector;
 
+import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.MissingGroup;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Resources.ResourceException;
 import net.microscraper.client.Utils.HashtableWithNulls;
-import net.microscraper.client.Variables;
 import net.microscraper.resources.AttributeDefinition;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionFatality;
 import net.microscraper.resources.Execution;
-import net.microscraper.resources.OneToManyResourceDefinition;
 import net.microscraper.resources.RelationshipDefinition;
 import net.microscraper.resources.Resource;
+import net.microscraper.resources.ResourceDefinition;
 import net.microscraper.resources.Status;
 import net.microscraper.resources.definitions.Regexp.RegexpExecution;
 
-public class Scraper extends OneToManyResourceDefinition {
+public class Scraper implements ResourceDefinition {
 	
 	private static final RelationshipDefinition WEB_PAGES =
 		new RelationshipDefinition( "web_pages", WebPage.class );
@@ -41,6 +42,12 @@ public class Scraper extends OneToManyResourceDefinition {
 		substituteValue = value;
 	}
 	
+	public Execution[] generateExecutions(Client client, Resource resource,
+			Execution caller) throws ExecutionFatality {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	public boolean isOneToMany() {		
 		if((getNumberOfRelatedResources(WEB_PAGES) + getNumberOfRelatedResources(SOURCE_SCRAPERS)) > 1 ||
 				getNumberOfRelatedResources(SEARCHES_WITH) > 1) // one-to-many if pulling from multiple sources, or multiple regexps.
@@ -48,7 +55,7 @@ public class Scraper extends OneToManyResourceDefinition {
 		return false;
 	}
 	
-	private Status execute(Execution caller, Variables extraVariables) throws ExecutionFatality {
+	private Status execute(Execution caller) throws ExecutionFatality {
 		Execution[] executions = executionsFromExecution(null);
 		Status status = new Status();
 		for(int i = 0 ; i < executions.length ; i ++) {
