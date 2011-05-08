@@ -1,13 +1,10 @@
-package net.microscraper.database.schema;
+package net.microscraper.resources.definitions;
 
-import net.microscraper.database.Attribute.AttributeDefinition;
-import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.ExecutionFatality;
-import net.microscraper.database.Model.ModelDefinition;
-import net.microscraper.database.Relationship.RelationshipDefinition;
-import net.microscraper.database.Resource;
-import net.microscraper.database.Resource.OneToOneResource;
-import net.microscraper.database.Status;
+import net.microscraper.resources.AttributeDefinition;
+import net.microscraper.resources.Execution;
+import net.microscraper.resources.RelationshipDefinition;
+import net.microscraper.resources.Resource;
+import net.microscraper.resources.Status;
 
 public class Bundle extends OneToOneResource {	
 	private static final RelationshipDefinition SUBSTITUTIONS =
@@ -15,14 +12,11 @@ public class Bundle extends OneToOneResource {
 	private static final RelationshipDefinition SCRAPERS =
 		new RelationshipDefinition( "scrapers", Scraper.class);
 	
-	public ModelDefinition definition() {
-		return new ModelDefinition() {
-			public AttributeDefinition[] attributes() { return new AttributeDefinition[] { }; }
-			public RelationshipDefinition[] relationships() {
-				return new RelationshipDefinition[] { SUBSTITUTIONS, SCRAPERS };
-			}
-		};
+	public AttributeDefinition[] getAttributeDefinitions() { return new AttributeDefinition[] { }; }
+	public RelationshipDefinition[] getRelationshipDefinitions() {
+		return new RelationshipDefinition[] { SUBSTITUTIONS, SCRAPERS };
 	}
+			
 	protected Execution generateExecution(Execution caller) throws ExecutionFatality {
 		return new DataExecution(this, caller);
 	}

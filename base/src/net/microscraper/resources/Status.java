@@ -1,18 +1,17 @@
-package net.microscraper.database;
+package net.microscraper.resources;
 
 import java.util.Vector;
 
 import net.microscraper.client.Utils;
-import net.microscraper.database.Execution.ExecutionDelay;
-import net.microscraper.database.Execution.ExecutionFailure;
-import net.microscraper.database.Execution.ExecutionProblem;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionDelay;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionFailure;
 
 public class Status {
 	private Vector successes = new Vector();
 	private Vector delays = new Vector();
 	private Vector failures = new Vector();
 	
-	public void addSuccess(String success ){
+	public void addSuccess(Result success){
 		successes.addElement(success);
 	}
 	public void addDelay(ExecutionDelay e) {

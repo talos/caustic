@@ -1,23 +1,21 @@
-package net.microscraper.database.schema;
+package net.microscraper.resources.definitions;
 
 import java.util.Vector;
 
 import net.microscraper.client.Interfaces.Regexp.MissingGroup;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
+import net.microscraper.client.Resources.ResourceException;
 import net.microscraper.client.Utils.HashtableWithNulls;
 import net.microscraper.client.Variables;
-import net.microscraper.database.Attribute.AttributeDefinition;
-import net.microscraper.database.Database.ResourceNotFoundException;
-import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.ExecutionFatality;
-import net.microscraper.database.Model.ModelDefinition;
-import net.microscraper.database.Relationship.RelationshipDefinition;
-import net.microscraper.database.Resource;
-import net.microscraper.database.Status;
-import net.microscraper.database.schema.Regexp.RegexpExecution;
+import net.microscraper.resources.AttributeDefinition;
+import net.microscraper.resources.Execution;
+import net.microscraper.resources.OneToManyResourceDefinition;
+import net.microscraper.resources.RelationshipDefinition;
+import net.microscraper.resources.Resource;
+import net.microscraper.resources.Status;
+import net.microscraper.resources.definitions.Regexp.RegexpExecution;
 
-public class Scraper extends Resource {
-	protected final HashtableWithNulls executions = new HashtableWithNulls();
+public class Scraper extends OneToManyResourceDefinition {
 	
 	private static final RelationshipDefinition WEB_PAGES =
 		new RelationshipDefinition( "web_pages", WebPage.class );
@@ -28,16 +26,12 @@ public class Scraper extends Resource {
 	private static final RelationshipDefinition TESTED_BY =
 		new RelationshipDefinition( "tested_by", Regexp.class);
 	
-	public ModelDefinition definition() {
-		return new ModelDefinition() {
-			public AttributeDefinition[] attributes() {
-				return new AttributeDefinition[] { };
-			}
-			public RelationshipDefinition[] relationships() {
-				return new RelationshipDefinition[] {
-					WEB_PAGES, SOURCE_SCRAPERS, SEARCHES_WITH, TESTED_BY
-				};
-			}
+	public AttributeDefinition[] getAttributeDefinitions() {
+		return new AttributeDefinition[] { };
+	}
+	public RelationshipDefinition[] getRelationshipDefinitions() {
+		return new RelationshipDefinition[] {
+			WEB_PAGES, SOURCE_SCRAPERS, SEARCHES_WITH, TESTED_BY
 		};
 	}
 	
@@ -52,10 +46,6 @@ public class Scraper extends Resource {
 				getNumberOfRelatedResources(SEARCHES_WITH) > 1) // one-to-many if pulling from multiple sources, or multiple regexps.
 			return true;
 		return false;
-	}
-	
-	public boolean isPublishedToVariables() {
-		return true;
 	}
 	
 	private Status execute(Execution caller, Variables extraVariables) throws ExecutionFatality {
@@ -78,18 +68,18 @@ public class Scraper extends Resource {
 		return execute(null, extraVariables);
 	}
 	
-	private ScraperExecution[] executionsFromExecution(Execution caller) throws ExecutionFatality {
+	public Execution[] createExecutions(Execution caller) {
 		if(substituteValue != null) {
 			return new ScraperExecution[] { new SolvedScraperExecution(this, caller, substituteValue) };
-		}
-		
-		if(!executions.containsKey(caller)) {
+		} else {
 			try {
+				Vector executions = new Vector();
+				
 				Resource[] searchesWith =  getRelatedResources(SEARCHES_WITH);
 				Resource[] testedBy =  getRelatedResources(TESTED_BY);
 				Resource[] scrapers = getRelatedResources(SOURCE_SCRAPERS); 
 				Resource[] webPages = getRelatedResources(WEB_PAGES);
-
+	
 				if(searchesWith.length < 1) {
 					throw new ExecutionFatality(caller, new RuntimeException("Scraper needs at least one regexp."));
 				}
@@ -99,21 +89,19 @@ public class Scraper extends Resource {
 				// creating new scraperExecutions adds them to the executions vector.
 				for(int i = 0 ; i < searchesWith.length ; i ++ ) {
 					for(int j = 0 ; j < scrapers.length ; j ++) {
-						new ScraperExecutionFromScraper(this, caller, (Regexp) searchesWith[i], (Scraper) scrapers[j]);
+						executions.add(new ScraperExecutionFromScraper(this, caller, (Regexp) searchesWith[i], (Scraper) scrapers[j]));
 					}
 					for(int j = 0 ; j < webPages.length ; j ++) {
-						new ScraperExecutionFromWebPage(this, caller, (Regexp) searchesWith[i], (WebPage) webPages[j]);
+						executions.add(new ScraperExecutionFromWebPage(this, caller, (Regexp) searchesWith[i], (WebPage) webPages[j]));
 					}
 				}
-			} catch(ResourceNotFoundException e) {
+				Execution[] executionsAry = new Execution[executions.size()];
+				executions.copyInto(executionsAry);
+				return executionsAry;
+			} catch(ResourceException e) {
 				throw new ExecutionFatality(caller, e);
 			}
 		}
-		
-		Vector executionsForCaller = (Vector) executions.get(caller);
-		ScraperExecution[] executionsAry = new ScraperExecution[executionsForCaller.size()];
-		executionsForCaller.copyInto(executionsAry);
-		return executionsAry;
 	}
 	
 	public static abstract class ScraperExecution extends Execution {
@@ -208,4 +196,7 @@ public class Scraper extends Resource {
 		}
 	}
 	
+	public static class ScraperResult {
+		
+	}
 }

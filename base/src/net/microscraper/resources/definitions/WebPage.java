@@ -1,22 +1,25 @@
-package net.microscraper.database.schema;
+package net.microscraper.resources.definitions;
 
 import java.util.Hashtable;
 
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Browser.WaitToDownload;
-import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.database.Attribute.AttributeDefinition;
-import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.ExecutionFatality;
-import net.microscraper.database.Model.ModelDefinition;
-import net.microscraper.database.Relationship.RelationshipDefinition;
-import net.microscraper.database.Resource;
-import net.microscraper.database.Resource.OneToOneResource;
-import net.microscraper.database.schema.AbstractHeader.AbstractHeaderExecution;
-import net.microscraper.database.schema.Regexp.RegexpExecution;
+import net.microscraper.client.Variables;
+import net.microscraper.resources.AttributeDefinition;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionDelay;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionFailure;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionFatality;
+import net.microscraper.resources.DefaultExecutionProblem.StatusException;
+import net.microscraper.resources.Execution;
+import net.microscraper.resources.OneToOneResourceDefinition;
+import net.microscraper.resources.RelationshipDefinition;
+import net.microscraper.resources.Resource;
+import net.microscraper.resources.Result;
+import net.microscraper.resources.definitions.AbstractHeader.AbstractHeaderExecution;
+import net.microscraper.resources.definitions.Regexp.RegexpExecution;
 
-public class WebPage extends OneToOneResource {	
+public class WebPage extends OneToOneResourceDefinition {	
 	private static final AttributeDefinition URL = new AttributeDefinition("url");
 	
 	private static final RelationshipDefinition TERMINATES =
@@ -30,17 +33,14 @@ public class WebPage extends OneToOneResource {
 	
 	private static final RelationshipDefinition LOGIN_WEB_PAGES =
 		new RelationshipDefinition( "login_web_pages", WebPage.class );
-	
-	public ModelDefinition definition() {
-		return new ModelDefinition() {
-			public AttributeDefinition[] attributes() { return new AttributeDefinition[] { URL }; }
-			public RelationshipDefinition[] relationships() {
-				return new RelationshipDefinition[] {
-					TERMINATES, POSTS, HEADERS, COOKIES, LOGIN_WEB_PAGES
-				};
-			}
+
+	public AttributeDefinition[] getAttributeDefinitions() { return new AttributeDefinition[] { URL }; }
+	public RelationshipDefinition[] getRelationshipDefinitions() {
+		return new RelationshipDefinition[] {
+			TERMINATES, POSTS, HEADERS, COOKIES, LOGIN_WEB_PAGES
 		};
 	}
+	
 	protected Execution generateExecution(Execution caller) throws ExecutionFatality {
 		return new WebPageExecution(this, caller);
 	}
@@ -57,7 +57,7 @@ public class WebPage extends OneToOneResource {
 			}
 			return hash;
 		}
-		protected String privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
+		protected Result privateExecute() throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
 			// terminate prematurely if we can't do all login web pages.
 			Resource[] loginWebPages = getRelatedResources(LOGIN_WEB_PAGES);
 			for(int i = 0 ; i < loginWebPages.length ; i ++) {
@@ -78,7 +78,7 @@ public class WebPage extends OneToOneResource {
 				terminates[i] = ((RegexpExecution) exc).getPattern();
 			}
 			try {
-				return Client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
+				return client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
 			} catch(WaitToDownload e) {
 				throw new ExecutionDelay(getSourceExecution(), e);
 			} catch(InterruptedException e) {
@@ -86,6 +86,9 @@ public class WebPage extends OneToOneResource {
 			} catch(BrowserException e) {
 				throw new ExecutionFatality(getSourceExecution(), e.getCause());
 			}
+		}
+		protected Variables getLocalVariables() {
+			return null;
 		}
 	}
 }

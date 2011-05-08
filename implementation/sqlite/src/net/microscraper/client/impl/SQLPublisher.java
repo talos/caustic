@@ -4,9 +4,9 @@ import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.Utils;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
-import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.ExecutionProblem;
-import net.microscraper.database.Status;
+import net.microscraper.resources.Execution;
+import net.microscraper.resources.Status;
+import net.microscraper.resources.Execution.ExecutionProblem;
 
 public class SQLPublisher implements Publisher {
 	public static final String TABLE_NAME = "executions";

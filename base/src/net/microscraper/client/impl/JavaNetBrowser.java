@@ -17,7 +17,9 @@ import net.microscraper.client.Browser;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
+import net.microscraper.client.Log;
 import net.microscraper.client.Utils;
 
 /**
@@ -27,12 +29,17 @@ import net.microscraper.client.Utils;
  *
  */
 public class JavaNetBrowser implements Browser {
+	private final Log log = new Log();
+	public void addLogger(Logger logger) {
+		log.register(logger);
+	}
+	
 	public Interfaces.JSON.Object loadJSON(String url, Interfaces.JSON jsonInterface)
 			throws InterruptedException, BrowserException, JSONInterfaceException {
 		Hashtable jsonHeaders = new Hashtable();
 		jsonHeaders.put(ACCEPT_HEADER_NAME, ACCEPT_HEADER_JSON_VALUE);
 		String jsonString = load(url, new Hashtable(), jsonHeaders, new Hashtable(), new Pattern[] {});
-		Client.log.i(jsonString);
+		log.i(jsonString);
 		return jsonInterface.getTokener(jsonString).nextValue();
 	}
 	private final Hashtable cookie_store = new Hashtable();
@@ -54,7 +61,7 @@ public class JavaNetBrowser implements Browser {
 		}
 		HttpURLConnection conn;
 		try {
-			Client.log.i("Browser loading URL '" + url.toString() + "'");
+			log.i("Browser loading URL '" + url.toString() + "'");
 			
 			HttpURLConnection.setFollowRedirects(true);
 			conn = (HttpURLConnection) url.openConnection();			
@@ -82,7 +89,7 @@ public class JavaNetBrowser implements Browser {
 					String key = (String) e.nextElement();
 					cookie_string += URLEncoder.encode(key, ENCODING) + '=' + URLEncoder.encode((String) cookies.get(key), ENCODING) + "; ";
 				}
-				Client.log.i("Using cookies: " + cookie_string);
+				log.i("Using cookies: " + cookie_string);
 				conn.setRequestProperty("Cookie", cookie_string);
 			}
 			
@@ -113,7 +120,7 @@ public class JavaNetBrowser implements Browser {
 			throw new BrowserException(url_string, e);
 		}
 		try {
-			Client.log.i("Loading " + url.toString() + "...");
+			log.i("Loading " + url.toString() + "...");
 			// Pull response.
 			ByteArrayOutputStream content = new ByteArrayOutputStream();
 			//reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -130,7 +137,7 @@ public class JavaNetBrowser implements Browser {
 				content_string = new String(content.toByteArray());
 				for(int i = 0 ; i < terminates.length ; i++) {
 					if(terminates[i].matches(content_string)){
-						Client.log.i("Terminating " + url.toString() + " due to pattern " + terminates[i].toString());
+						log.i("Terminating " + url.toString() + " due to pattern " + terminates[i].toString());
 						stream.close();
 						break loading;
 					}
@@ -174,7 +181,7 @@ public class JavaNetBrowser implements Browser {
 					redirects_followed.addElement(redirect_string);
 				}
 				
-				Client.log.i("Following redirect #"
+				log.i("Following redirect #"
 					+ Integer.toString(redirects_followed.size()) + " from " + conn.getURL().toString()
 					+ " to " + redirect_string);
 				
@@ -213,7 +220,7 @@ public class JavaNetBrowser implements Browser {
 				if(equals_loc != -1) {
 					String name = header_value.substring(0, equals_loc);
 					String value = header_value.substring(equals_loc + 1);
-					Client.log.i("Storing cookie '" + name + "' with value '" + value + "'");
+					log.i("Storing cookie '" + name + "' with value '" + value + "'");
 					cookie_store.put(name, value);
 				}
 			}

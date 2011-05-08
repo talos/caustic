@@ -1,7 +1,8 @@
 package net.microscraper.client;
 
-import net.microscraper.database.Execution;
-import net.microscraper.database.Status;
+import net.microscraper.resources.Execution;
+import net.microscraper.resources.Status;
+
 
 public interface Publisher {
 	public static final String ID = "id";

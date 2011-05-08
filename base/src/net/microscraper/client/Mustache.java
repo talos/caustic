@@ -1,5 +1,7 @@
 package net.microscraper.client;
 
+import net.microscraper.resources.definitions.Scraper.ScraperResult;
+
 /**
  * Mustache-like substitutions from Variables.
  * This does not currently support any commenting.
@@ -18,7 +20,7 @@ public class Mustache {
 	 * @throws TemplateException The template was invalid.
 	 * @throws MissingVariable The Variables instance was missing a variable.
 	 */
-	public static String compile(String template, Variables variables)
+	public static String compile(String template, ScraperResult[] variables)
 				throws TemplateException, MissingVariable {
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;

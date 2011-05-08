@@ -1,5 +1,5 @@
 package net.microscraper.client;
-
+/*
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Enumeration;
@@ -31,11 +31,6 @@ public class Variables {
 		}
 		return keys;
 	}
-	/**
-	 * This alters the subject Variables.  If passed 'null', nothing is changed.
-	 * @param other
-	 * @return
-	 */
 	public Variables merge(Variables other) {
 		if(other != null) {
 			Utils.hashtableIntoHashtable(other.variables, this.variables);
@@ -43,14 +38,6 @@ public class Variables {
 		return this;
 	}
 	
-
-	/**
-	 * Simulate Variables from a form-style parameter string, like
-	 * key1=val1&key2=val2 ...
-	 * @param params_string
-	 * @param encoding
-	 * @return
-	 */
 	public static Variables fromFormParams(String params_string, String encoding) {
 		Variables variables = new Variables();
 		String[] params = Utils.split(params_string, "&");
@@ -69,3 +56,4 @@ public class Variables {
 		}
 	}
 }
+*/

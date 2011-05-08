@@ -7,6 +7,8 @@ import net.microscraper.client.Browser;
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
+import net.microscraper.client.Model;
+import net.microscraper.client.Reference;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Variables;
 import net.microscraper.client.impl.JDBCSQLite;
@@ -16,8 +18,6 @@ import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.client.impl.SQLPublisher;
 import net.microscraper.client.impl.SystemLogInterface;
-import net.microscraper.database.Model;
-import net.microscraper.database.Reference;
 
 public class MicroScraperConsole {
 	private static final SimpleDateFormat DATETIME_FORMAT =
@@ -34,13 +34,13 @@ public class MicroScraperConsole {
 			try {
 				Browser browser = new JavaNetBrowser();
 				Interfaces.JSON jsonInterface = new JSONME();
-				Client.initialize(
-						browser,
-						new JavaUtilRegexInterface(),
-						jsonInterface,
-						new Interfaces.Logger[] { log },
-						new SQLPublisher(
-								new JDBCSQLite("./" + DATETIME_FORMAT.format(new Date()) + ".sqlite", log))
+				Client client = new Client(
+					browser,
+					new JavaUtilRegexInterface(),
+					jsonInterface,
+					new Interfaces.Logger[] { log },
+					new SQLPublisher(
+						new JDBCSQLite("./" + DATETIME_FORMAT.format(new Date()) + ".sqlite", log))
 				);
 				String url = args[0];
 				
@@ -57,8 +57,8 @@ public class MicroScraperConsole {
 					variables = new Variables();
 				}
 				Interfaces.JSON.Object jsonObject = browser.loadJSON(url, jsonInterface);
-				Client.scrape(jsonObject, resource_ref, variables);
-				Client.log.i("Finished execution.");
+				client.scrape(jsonObject, resource_ref, variables);
+				log.i("Finished execution.");
 			} catch (SQLInterfaceException e) {
 				log.e(e);
 			} catch (InterruptedException e) {

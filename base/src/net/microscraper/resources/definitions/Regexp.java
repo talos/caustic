@@ -1,16 +1,15 @@
-package net.microscraper.database.schema;
+package net.microscraper.resources.definitions;
 
-import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.MissingGroup;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.database.Attribute.AttributeDefinition;
-import net.microscraper.database.Execution;
-import net.microscraper.database.Execution.ExecutionFatality;
-import net.microscraper.database.Model.ModelDefinition;
-import net.microscraper.database.Relationship.RelationshipDefinition;
-import net.microscraper.database.Resource;
-import net.microscraper.database.Resource.OneToOneResource;
+import net.microscraper.resources.AttributeDefinition;
+import net.microscraper.resources.Execution;
+import net.microscraper.resources.RelationshipDefinition;
+import net.microscraper.resources.Resource;
+import net.microscraper.resources.Execution.ExecutionDelay;
+import net.microscraper.resources.Execution.ExecutionFatality;
+import net.microscraper.resources.Resource.OneToOneResource;
 
 public class Regexp extends OneToOneResource {
 	private static final AttributeDefinition REGEXP = new AttributeDefinition("regexp");
@@ -20,17 +19,13 @@ public class Regexp extends OneToOneResource {
 	private static final AttributeDefinition MULTILINE = new AttributeDefinition("multiline");
 	private static final AttributeDefinition DOT_MATCHES_NEWLINE = new AttributeDefinition("dot_matches_newline");
 	
-	public ModelDefinition definition() {
-		return new ModelDefinition() {	
-			public AttributeDefinition[] attributes() {
-				return new AttributeDefinition[] {
-						REGEXP, MATCH_NUMBER, REPLACEMENT,
-						CASE_INSENSITIVE, MULTILINE, DOT_MATCHES_NEWLINE };
-			}
-			public RelationshipDefinition[] relationships() {
-				return new RelationshipDefinition[] { };
-			}
-		};
+	public AttributeDefinition[] getAttributeDefinitions() {
+		return new AttributeDefinition[] {
+				REGEXP, MATCH_NUMBER, REPLACEMENT,
+				CASE_INSENSITIVE, MULTILINE, DOT_MATCHES_NEWLINE };
+	}
+	public RelationshipDefinition[] getRelationshipDefinitions() {
+		return new RelationshipDefinition[] { };
 	}
 
 	protected Execution generateExecution(Execution caller) throws ExecutionFatality {
@@ -47,7 +42,7 @@ public class Regexp extends OneToOneResource {
 			return getAttributeValue(REGEXP);
 		}
 		public Pattern getPattern() throws ExecutionDelay, ExecutionFatality {
-			return Client.regexp.compile(
+			return client.regexp.compile(
 					getAttributeValue(REGEXP),
 					getBooleanAttribute(CASE_INSENSITIVE),
 					getBooleanAttribute(MULTILINE),

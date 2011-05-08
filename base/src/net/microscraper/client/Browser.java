@@ -7,6 +7,10 @@ import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 
+/**
+ * Implementations of the Browser interface can be used by a microscraper Client
+ * to load pages.
+ */
 public interface Browser {
 	public static final int TIMEOUT = 10000;
 	public static final int MAX_REDIRECTS = 50;
