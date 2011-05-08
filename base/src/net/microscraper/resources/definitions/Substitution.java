@@ -1,14 +1,16 @@
 package net.microscraper.resources.definitions;
 
+import net.microscraper.client.Client;
 import net.microscraper.resources.AttributeDefinition;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionDelay;
+import net.microscraper.resources.DefaultExecutionProblem.ExecutionFatality;
 import net.microscraper.resources.Execution;
+import net.microscraper.resources.OneToOneResourceDefinition;
 import net.microscraper.resources.RelationshipDefinition;
 import net.microscraper.resources.Resource;
-import net.microscraper.resources.Execution.ExecutionDelay;
-import net.microscraper.resources.Execution.ExecutionFatality;
-import net.microscraper.resources.Resource.OneToOneResource;
+import net.microscraper.resources.Result;
 
-public class Substitution extends OneToOneResource {		
+public class Substitution extends OneToOneResourceDefinition {		
 	private static final AttributeDefinition VALUE = new AttributeDefinition("value");
 	private static final RelationshipDefinition SUBSTITUTED_SCRAPERS =
 		new RelationshipDefinition( "scrapers", Scraper.class );
@@ -18,23 +20,28 @@ public class Substitution extends OneToOneResource {
 		return new RelationshipDefinition[] { SUBSTITUTED_SCRAPERS };
 	}
 	
-	protected Execution generateExecution(Execution caller) throws ExecutionFatality {
-		return new DefaultExecution(this, caller);
+	public Execution generateExecution(Client client, Resource resource,
+			Execution caller) throws ExecutionFatality {
+		return new DefaultExecution(client, resource, caller);
 	}
 	
-	public class DefaultExecution extends Execution {
+	public static class DefaultExecution extends Execution {
 		private Resource[] substitutedScrapers;
 		private String value;
-		protected DefaultExecution(Resource resource, Execution caller) throws ExecutionFatality {
-			super(resource, caller);
+		protected DefaultExecution(Client client, Resource resource, Execution caller) throws ExecutionFatality {
+			super(client, resource, caller);
 			substitutedScrapers = getRelatedResources(SUBSTITUTED_SCRAPERS);
 		}
-		protected String privateExecute() throws ExecutionDelay, ExecutionFatality {
-			value = getAttributeValue(VALUE);
+		protected Result privateExecute() throws ExecutionDelay, ExecutionFatality {
+			value = getStringAttributeValue(VALUE);
 			for(int i = 0 ; i < substitutedScrapers.length ; i++) {
-				((Scraper) substitutedScrapers[i]).substitute(value);
+				((ScraperDefinition) substitutedScrapers[i]).substitute(value);
 			}
-			return value;
+			return new DefaultResult();
 		}
+	}
+	
+	public static class DefaultResult implements Result {
+		
 	}
 }

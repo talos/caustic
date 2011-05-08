@@ -2,10 +2,11 @@ package net.microscraper.resources.definitions;
 
 import java.util.Hashtable;
 
+import net.microscraper.client.Browser;
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Browser.WaitToDownload;
+import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.client.Variables;
 import net.microscraper.resources.AttributeDefinition;
 import net.microscraper.resources.DefaultExecutionProblem.ExecutionDelay;
 import net.microscraper.resources.DefaultExecutionProblem.ExecutionFailure;
@@ -40,13 +41,15 @@ public class WebPage extends OneToOneResourceDefinition {
 			TERMINATES, POSTS, HEADERS, COOKIES, LOGIN_WEB_PAGES
 		};
 	}
-	
-	protected Execution generateExecution(Execution caller) throws ExecutionFatality {
-		return new WebPageExecution(this, caller);
+	public Execution generateExecution(Client client, Resource resource,
+			Execution caller) throws ExecutionFatality {
+		return new WebPageExecution(client, resource, caller);
 	}
 	public class WebPageExecution extends Execution {
-		protected WebPageExecution(Resource resource, Execution caller) {
-			super(resource, caller);
+		private final Browser browser;
+		protected WebPageExecution(Client client, Resource resource, Execution caller) {
+			super(client, resource, caller);
+			browser = client.browser;
 		}
 		private final Hashtable resourcesToHashtable(Resource[] resources) throws ExecutionDelay, ExecutionFailure, ExecutionFatality, StatusException {
 			Hashtable hash = new Hashtable();
@@ -78,7 +81,7 @@ public class WebPage extends OneToOneResourceDefinition {
 				terminates[i] = ((RegexpExecution) exc).getPattern();
 			}
 			try {
-				return client.browser.load(getAttributeValue(URL), posts, headers, cookies, terminates);
+				return new BrowserResult(browser.load(getStringAttributeValue(URL), posts, headers, cookies, terminates));
 			} catch(WaitToDownload e) {
 				throw new ExecutionDelay(getSourceExecution(), e);
 			} catch(InterruptedException e) {
@@ -87,8 +90,11 @@ public class WebPage extends OneToOneResourceDefinition {
 				throw new ExecutionFatality(getSourceExecution(), e.getCause());
 			}
 		}
-		protected Variables getLocalVariables() {
-			return null;
+	}
+	
+	public static class BrowserResult implements Result {
+		public BrowserResult(String loaded) {
+			// TODO
 		}
 	}
 }
