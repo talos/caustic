@@ -52,39 +52,6 @@ public abstract class Execution {
 		return null;
 	}
 	
-	/*
-	public final Variables getVariables() {
-		Variables variables = new Variables().merge(extraVariables);
-		for(int i = 0 ; i < calledExecutions.size() ; i ++) {
-			Execution calledExecution = (Execution) calledExecutions.elementAt(i);
-			if(!calledExecution.isOneToMany()) {
-				variables.merge(calledExecution.getLocalVariables());
-			}
-		}
-		// Ascend up the source tree.
-		if(getSourceExecution() == this) {
-			return variables;
-		} else {
-			return variables.merge(getSourceExecution().getVariables());
-		}
-	}
-	*/
-	/*
-	public void addVariables(Variables extraVariables) {
-		this.extraVariables.merge(extraVariables);
-	}
-	*/
-	protected final boolean isOneToMany() {
-		return resource.isOneToMany();
-	}
-	/*
-	protected final Execution callResource(Resource resource) throws ExecutionFatality {
-		return resource.executionFromExecution(getSourceExecution());
-	}
-	*/
-	public String getPublishName() {
-		return resource.ref().toString();
-	}
 	protected String getStringAttributeValue(AttributeDefinition def) throws ExecutionDelay, ExecutionFatality {
 		try {
 			return (String) Mustache.compile(resource.getRawStringAttribute(def), caller.getScraperResults());
@@ -102,16 +69,6 @@ public abstract class Execution {
 			throw new ExecutionFatality(this, e);
 		}
 	}
-	/*
-	protected final Variables getLocalVariables() {
-		if(result != null && resource.isPublishedToVariables()) {
-			Variables variables = new Variables();
-			variables.put(resource.ref().title, result);
-			return variables;
-		}
-		return null;
-	}
-	*/
 	public final Status safeExecute() throws ExecutionFatality {
 		client.log.i("Safely executing " + resource.ref().toString() + ":" + Integer.toString(id));
 		if(!lastStatus.hasFailure()) {

@@ -1,4 +1,8 @@
 package net.microscraper.resources.definitions;
 
 
-public class Cookie extends AbstractHeader {}
+public final class Cookie extends AbstractHeader {
+	public Cookie(MustacheableString name, MustacheableString value) {
+		super(name, value);
+	}
+}

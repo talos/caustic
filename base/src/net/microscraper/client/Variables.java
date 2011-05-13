@@ -1,28 +1,51 @@
 package net.microscraper.client;
-/*
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.Enumeration;
+
 import java.util.Hashtable;
 
-public class Variables {
+/**
+ * A &lt;String, String&gt; Hashtable for JME.
+ * @author realest
+ *
+ */
+public final class Variables {
 	private final Hashtable variables;
 	public Variables() {
 		variables = new Hashtable();
 	}
-	public Variables put(String key, String value) throws NullPointerException {
+	/**
+	 * @see Hashtable#put
+	 * @param key A string key.
+	 * @param value A string value.
+	 * @throws NullPointerException if the key or value is null
+	 */
+	public void put(String key, String value) {
 		variables.put(key, value);
-		return this;
 	}
+	/**
+	 * @see Hashtable#containsKey
+	 * @param key A string key.
+	 * @return <code>true</code> if and only if the specified object is a key in this hashtable, as determined by the equals method; false otherwise. 
+	 * @throws NullPointerException if the key is null
+	 */
 	public boolean containsKey(String key) {
 		return variables.containsKey(key);
 	}
+	/**
+	 * @see Hashtable#get
+	 * @param key A string key to retrieve.
+	 * @return the value to which the specified key is mapped, or null if this map contains no mapping for the key 
+	 * @throws NullPointerException if the specified key is null
+	 */
 	public String get(String key) {
 		return (String) variables.get(key);
 	}
+	/**
+	 * @see Hashtable#toString
+	 */
 	public String toString() {
 		return variables.toString();
 	}
+	/*
 	public String[] keys() {
 		String[] keys = new String[variables.size()];
 		Enumeration e = variables.keys();
@@ -54,6 +77,5 @@ public class Variables {
 		} catch(UnsupportedEncodingException e) {
 			throw new IllegalArgumentException("Encoding " + encoding + " not supported: " + e.getMessage());
 		}
-	}
+	}*/
 }
-*/
