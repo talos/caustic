@@ -2,7 +2,7 @@ package net.microscraper.resources;
 
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
-import net.microscraper.client.Variables;
+import net.microscraper.resources.definitions.Executable;
 
 /**
  * A throwable to indicate that an execution has failed.  It should not be retried, but
@@ -13,7 +13,6 @@ import net.microscraper.client.Variables;
 public class ExecutionFailure extends Throwable implements ExecutionProblem {
 	private final Throwable throwable;
 	private final Executable executable;
-	private final Variables variables;
 	
 	/**
 	 * Throw an ExecutionFailure because there were no matches.
@@ -21,10 +20,9 @@ public class ExecutionFailure extends Throwable implements ExecutionProblem {
 	 * @param executable The running executable.
 	 * @param variables A copy of the available variables.
 	 */
-	public ExecutionFailure(NoMatches throwable, Executable executable, Variables variables) {
+	public ExecutionFailure(NoMatches throwable, Executable executable) {
 		this.throwable = throwable;
 		this.executable = executable;
-		this.variables = variables;
 	}
 
 	/**
@@ -33,10 +31,9 @@ public class ExecutionFailure extends Throwable implements ExecutionProblem {
 	 * @param executable The running executable.
 	 * @param variables A copy of the available variables.
 	 */
-	public ExecutionFailure(BrowserException throwable, Executable executable, Variables variables) {
+	public ExecutionFailure(BrowserException throwable, Executable executable) {
 		this.throwable = throwable;
 		this.executable = executable;
-		this.variables = variables;
 	}
 	
 	public Executable getExecutable() {
@@ -44,9 +41,5 @@ public class ExecutionFailure extends Throwable implements ExecutionProblem {
 	}
 	public Throwable getThrowable() {
 		return throwable;
-	}
-
-	public Variables getVariables() {
-		return variables;
 	}
 }

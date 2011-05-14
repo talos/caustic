@@ -17,7 +17,7 @@ import net.microscraper.resources.ExecutionFatality;
  * @author realest
  *
  */
-public abstract class WebPage {
+public abstract class WebPage implements Executable {
 	private final URL url;
 	private final GenericHeader[] headers;
 	private final Cookie[] cookies;
@@ -31,32 +31,38 @@ public abstract class WebPage {
 		this.priorWebPages = priorWebPages;
 	}
 
-	protected java.net.URL generateURL(ExecutionContext context) throws MalformedURLException, ExecutionDelay, ExecutionFailure, ExecutionFatality {
+	protected java.net.URL generateURL(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
 		return url.getURL(context);
 	}
 	
-	protected UnencodedNameValuePair[] generateHeaders(ExecutionContext context) {
+	protected UnencodedNameValuePair[] generateHeaders(ExecutionContext context)
+				throws ExecutionDelay, ExecutionFatality {
 		UnencodedNameValuePair[] headersAry = new UnencodedNameValuePair[this.headers.length];
 		for(int i = 0 ; i < this.headers.length ; i ++) {
-			
+			headersAry[i] = headers[i].getNameValuePair(context);
 		}
 		return headersAry;
 	}
 	
-	protected static EncodedNameValuePair[] generateEncodedNameValuePairs(
-			ExecutionContext context, EncodedHeader[] encodedHeaders) throws UnsupportedEncodingException, ExecutionDelay, ExecutionFailure, ExecutionFatality {
-		EncodedNameValuePair[] nameValuePairs = new EncodedNameValuePair[encodedHeaders.length];
-		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
-			nameValuePairs[i] = encodedHeaders[i].getNameValuePair(context);
+	protected EncodedNameValuePair[] generateEncodedNameValuePairs(
+				ExecutionContext context, EncodedHeader[] encodedHeaders)
+				throws ExecutionDelay, ExecutionFatality {
+		try {
+			EncodedNameValuePair[] nameValuePairs = new EncodedNameValuePair[encodedHeaders.length];
+			for(int i = 0 ; i < nameValuePairs.length ; i ++) {
+				nameValuePairs[i] = encodedHeaders[i].getNameValuePair(context);
+			}
+			return nameValuePairs;
+		} catch (UnsupportedEncodingException e) {
+			throw new ExecutionFatality(e, this);
 		}
-		return nameValuePairs;
 	}
 	
-	protected EncodedNameValuePair[] generateCookies(ExecutionContext context) throws UnsupportedEncodingException, ExecutionDelay, ExecutionFailure, ExecutionFatality {
+	protected EncodedNameValuePair[] generateCookies(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
 		return generateEncodedNameValuePairs(context, cookies);
 	}
 	
-	protected void headPriorWebPages(ExecutionContext context) throws MalformedURLException, UnsupportedEncodingException, DelayRequest, BrowserException, ExecutionDelay, ExecutionFailure, ExecutionFatality {
+	protected void headPriorWebPages(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
 		for(int i = 0 ; i < priorWebPages.length ; i ++) {
 			priorWebPages[i].headUsing(context);
 		}
@@ -73,12 +79,19 @@ public abstract class WebPage {
 	 * @throws MalformedURLException 
 	 * @throws UnsupportedEncodingException 
 	 */
-	public void headUsing(ExecutionContext context) throws MalformedURLException, DelayRequest, BrowserException, ExecutionDelay, ExecutionFailure, ExecutionFatality, UnsupportedEncodingException {
-		UnencodedNameValuePair[] headers = generateHeaders(context);
-		EncodedNameValuePair[] cookies = generateCookies(context);
-		
-		headPriorWebPages(context);
-		
-		context.browser.head(generateURL(context), headers, cookies);
+	public void headUsing(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
+		try {
+			UnencodedNameValuePair[] headers = generateHeaders(context);
+			EncodedNameValuePair[] cookies;
+			cookies = generateCookies(context);
+			
+			headPriorWebPages(context);
+			
+			context.getBrowser().head(generateURL(context), headers, cookies);
+		} catch (DelayRequest e) {
+			throw new ExecutionDelay(e, this);
+		} catch (BrowserException e) {
+			throw new ExecutionFatality(e, this);
+		}
 	}
 }

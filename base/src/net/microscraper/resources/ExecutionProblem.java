@@ -1,6 +1,6 @@
 package net.microscraper.resources;
 
-import net.microscraper.client.Variables;
+import net.microscraper.resources.definitions.Executable;
 
 /**
  * Interface to pass exception information from executable executions.
@@ -19,10 +19,4 @@ public interface ExecutionProblem {
 	 * @return The Throwable that made the executable issue the ExecutionProblem.
 	 */
 	public abstract Throwable getThrowable();
-	
-	/**
-	 * 
-	 * @return The Variables in use when the executable issued the ExecutionProblem.
-	 */
-	public abstract Variables getVariables();
 }

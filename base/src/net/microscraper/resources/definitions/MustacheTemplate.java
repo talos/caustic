@@ -1,12 +1,10 @@
 package net.microscraper.resources.definitions;
 
-import net.microscraper.client.MissingVariable;
+import net.microscraper.client.MissingReference;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.MustacheTemplateException;
-import net.microscraper.client.Variables;
 import net.microscraper.resources.ExecutionContext;
 import net.microscraper.resources.ExecutionDelay;
-import net.microscraper.resources.ExecutionFailure;
 import net.microscraper.resources.ExecutionFatality;
 
 /**
@@ -14,25 +12,23 @@ import net.microscraper.resources.ExecutionFatality;
  * @author john
  *
  */
-public final class MustacheableString implements Parsable {
+public final class MustacheTemplate implements Stringable, Executable {
 	private final String string;
 	
 	/**
 	 * 
 	 * @param string The String from which Mustache tags will substituted by Variables.
 	 */
-	public MustacheableString(String string) {
+	public MustacheTemplate(String string) {
 		this.string = string;
 	}
-	public String parse(ExecutionContext context) throws ExecutionDelay,
-			ExecutionFailure, ExecutionFatality {
-		Variables variables = context.getVariables();
+	public String getString(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
 		try {
-			return Mustache.compile(string, variables);
-		} catch(MissingVariable e) {
-			throw new ExecutionDelay(e, this, variables);
+			return Mustache.compile(string, context);
+		} catch(MissingReference e) {
+			throw new ExecutionDelay(e, this);
 		} catch(MustacheTemplateException e) { // Kill all executions if the template is no good.
-			throw new ExecutionFatality(e, this, variables);
+			throw new ExecutionFatality(e, this);
 		}
 	}
 }

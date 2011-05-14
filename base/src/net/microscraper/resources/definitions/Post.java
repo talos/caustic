@@ -2,7 +2,7 @@ package net.microscraper.resources.definitions;
 
 
 public class Post extends EncodedHeader {
-	public Post(MustacheableString name, MustacheableString value) {
+	public Post(MustacheTemplate name, MustacheTemplate value) {
 		super(name, value);
 	}
 }

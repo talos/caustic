@@ -1,15 +1,10 @@
 package net.microscraper.resources.definitions;
 
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Browser.DelayRequest;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.client.Variables;
 import net.microscraper.resources.ExecutionContext;
 import net.microscraper.resources.ExecutionDelay;
-import net.microscraper.resources.ExecutionFailure;
 import net.microscraper.resources.ExecutionFatality;
 
 /**
@@ -17,12 +12,18 @@ import net.microscraper.resources.ExecutionFatality;
  * @author realest
  *
  */
-public abstract class WebPageBody extends WebPage implements Parsable {
+public abstract class WebPageBody extends WebPage implements Stringable, Executable, Variable {
 	private final Regexp[] terminates;
-	protected WebPageBody(URL url, GenericHeader[] headers, Cookie[] cookies,
+	private final Reference ref;
+	protected WebPageBody(Reference ref, URL url, GenericHeader[] headers, Cookie[] cookies,
 			WebPageHead[] priorWebPages, Regexp[] terminates) {
 		super(url, headers, cookies, priorWebPages);
+		this.ref = ref;
 		this.terminates = terminates;
+	}
+	
+	public Reference getRef() {
+		return ref;
 	}
 	
 	/**
@@ -30,33 +31,26 @@ public abstract class WebPageBody extends WebPage implements Parsable {
 	 * matches the body.
 	 * @return The loaded body.
 	 * @throws ExecutionFatality 
-	 * @throws ExecutionFailure 
 	 * @throws ExecutionDelay 
 	 */
-	public final String parse(ExecutionContext context) throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
-		Variables variables = context.getVariables();
+	public final String getString(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
+		headPriorWebPages(context);
 		try {
-			headPriorWebPages(context);
 			return getResponse(context);
-		} catch(DelayRequest e) {
-			throw new ExecutionDelay(e, this, variables);
-		} catch(BrowserException e) {
-			throw new ExecutionFailure(e, this, variables);
-		} catch (MalformedURLException e) {
-			throw new ExecutionFatality(e, this, variables);
-		} catch (UnsupportedEncodingException e) {
-			throw new ExecutionFatality(e, this, variables);
+		} catch (DelayRequest e) {
+			throw new ExecutionDelay(e, this);
+		} catch (BrowserException e) {
+			throw new ExecutionFatality(e, this);
 		}
 	}
 	
 	protected abstract String getResponse(ExecutionContext context)
-			throws ExecutionDelay, ExecutionFailure, ExecutionFatality,
-			DelayRequest, BrowserException, MalformedURLException, UnsupportedEncodingException;
+			throws ExecutionDelay, DelayRequest, BrowserException, ExecutionFatality;
 	
-	protected Pattern[] generateTerminates(ExecutionContext context) {
+	protected Pattern[] generateTerminates(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
 		Pattern[] patterns = new Pattern[terminates.length];
 		for(int i = 0 ; i < terminates.length; i ++) {
-			
+			patterns[i] = terminates[i].getPattern(context);
 		}
 		return patterns;
 	}

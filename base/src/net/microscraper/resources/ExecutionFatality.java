@@ -1,6 +1,6 @@
 package net.microscraper.resources;
 
-import net.microscraper.client.Variables;
+import net.microscraper.resources.definitions.Executable;
 
 /**
  * An ExceptionProblem interface to indicate that an execution cannot be completed, and that
@@ -11,11 +11,9 @@ import net.microscraper.client.Variables;
 public class ExecutionFatality extends Throwable implements ExecutionProblem {
 	private final Throwable throwable;
 	private final Executable executable;
-	private final Variables variables;
-	public ExecutionFatality(Throwable throwable, Executable executable, Variables variables) {
+	public ExecutionFatality(Throwable throwable, Executable executable) {
 		this.throwable = throwable;
 		this.executable = executable;
-		this.variables = variables;
 	}
 	
 	public Executable getExecutable() {
@@ -24,9 +22,5 @@ public class ExecutionFatality extends Throwable implements ExecutionProblem {
 
 	public Throwable getThrowable() {
 		return throwable;
-	}
-	
-	public Variables getVariables() {
-		return variables;
 	}
 }

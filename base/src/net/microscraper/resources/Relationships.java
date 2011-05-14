@@ -4,9 +4,9 @@ import java.util.Hashtable;
 
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
-import net.microscraper.client.Reference;
 import net.microscraper.client.Resources;
 import net.microscraper.client.Resources.ResourceException;
+import net.microscraper.resources.definitions.Reference;
 
 public class Relationships {
 	private final Hashtable relationships = new Hashtable();

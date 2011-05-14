@@ -4,6 +4,7 @@ import net.microscraper.client.Resources.ResourceException;
 import net.microscraper.resources.DefaultExecutionProblem.ExecutionFatality;
 import net.microscraper.resources.Resource;
 import net.microscraper.resources.Status;
+import net.microscraper.resources.definitions.Reference;
 import net.microscraper.resources.definitions.Scraper.ScraperResult;
 
 /**

@@ -6,6 +6,7 @@ import net.microscraper.client.Interfaces.JSON.Iterator;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.resources.Resource;
 import net.microscraper.resources.ResourceDefinition;
+import net.microscraper.resources.definitions.Reference;
 
 public class Resources {
 	private final Client client;

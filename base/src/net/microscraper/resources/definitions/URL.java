@@ -4,7 +4,6 @@ import java.net.MalformedURLException;
 
 import net.microscraper.resources.ExecutionContext;
 import net.microscraper.resources.ExecutionDelay;
-import net.microscraper.resources.ExecutionFailure;
 import net.microscraper.resources.ExecutionFatality;
 
 /**
@@ -12,22 +11,25 @@ import net.microscraper.resources.ExecutionFatality;
  * @author john
  *
  */
-public class URL {
-	private final MustacheableString urlString;
-	public URL(MustacheableString url) {
-		urlString = url;
+public class URL implements Executable {
+	private final MustacheTemplate urlTemplate;
+	public URL(MustacheTemplate urlTemplate) {
+		this.urlTemplate = urlTemplate;
 	}
 	
 	/**
 	 * Get the {@link java.net.URL} from the URL resource for a specific context.  The URL String is mustached.
 	 * @param context Provides the variables used in mustacheing.
 	 * @return a {@link java.net.URL}
-	 * @throws MalformedURLException 
-	 * @throws ExecutionDelay
-	 * @throws ExecutionFailure
-	 * @throws ExecutionFatality
+	 * @throws ExecutionDelay if the Mustache template for the url can't be compiled.
+	 * @throws ExecutionFatality 
 	 */
-	public java.net.URL getURL(ExecutionContext context) throws MalformedURLException, ExecutionDelay, ExecutionFailure, ExecutionFatality {
-		return new java.net.URL(urlString.parse(context));
+	public java.net.URL getURL(ExecutionContext context)
+				throws ExecutionDelay, ExecutionFatality {
+		try {
+			return new java.net.URL(urlTemplate.getString(context));
+		} catch(MalformedURLException e) {
+			throw new ExecutionFatality(e, this);
+		}
 	}
 }

@@ -12,7 +12,7 @@ import net.microscraper.resources.ExecutionFatality;
  *
  */
 public final class GenericHeader extends AbstractHeader {
-	public GenericHeader(MustacheableString name, MustacheableString value) {
+	public GenericHeader(MustacheTemplate name, MustacheTemplate value) {
 		super(name, value);
 	}
 	
@@ -25,7 +25,7 @@ public final class GenericHeader extends AbstractHeader {
 	 * @throws ExecutionFatality
 	 */
 	public UnencodedNameValuePair getNameValuePair(ExecutionContext context)
-			throws ExecutionDelay, ExecutionFailure, ExecutionFatality {
-		return new UnencodedNameValuePair(name.parse(context), value.parse(context));
+			throws ExecutionDelay, ExecutionFatality {
+		return new UnencodedNameValuePair(name.getString(context), value.getString(context));
 	}
 }

@@ -1,29 +1,24 @@
 package net.microscraper.resources;
 
+import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.client.Utils;
-import net.microscraper.resources.DefaultExecutionProblem.ExecutionDelay;
-import net.microscraper.resources.DefaultExecutionProblem.ExecutionFailure;
+import net.microscraper.resources.definitions.Reference;
 
 public class Status {
-	private Vector successes = new Vector();
-	private Vector delays = new Vector();
-	private Vector failures = new Vector();
+	private Hashtable successes = new Hashtable();
+	private Hashtable delays = new Hashtable();
+	private Hashtable failures = new Hashtable();
 	
-	public void addSuccess(Result success){
-		successes.addElement(success);
+	public void addSuccess(Reference ref, String success){
+		successes.put(ref, success);
 	}
-	public void addDelay(ExecutionDelay e) {
-		delays.addElement(e);
+	public void addDelay(Reference ref, ExecutionDelay e) {
+		delays.put(ref, e);
 	}
-	public void addFailure(ExecutionFailure e) {
-		failures.addElement(e);
-	}
-	public void merge(Status other) {
-		Utils.vectorIntoVector(other.successes, this.successes);
-		Utils.vectorIntoVector(other.delays, this.delays);
-		Utils.vectorIntoVector(other.failures, this.failures);
+	public void addFailure(Reference ref, ExecutionFailure e) {
+		failures.put(ref, e);
 	}
 	public boolean hasDelay() {
 		return delays.size() > 0;

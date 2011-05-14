@@ -8,7 +8,6 @@ import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Model;
-import net.microscraper.client.Reference;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Variables;
 import net.microscraper.client.impl.JDBCSQLite;
@@ -18,6 +17,7 @@ import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.client.impl.SQLPublisher;
 import net.microscraper.client.impl.SystemLogInterface;
+import net.microscraper.resources.definitions.Reference;
 
 public class MicroScraperConsole {
 	private static final SimpleDateFormat DATETIME_FORMAT =
