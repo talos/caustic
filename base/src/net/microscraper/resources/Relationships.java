@@ -11,7 +11,7 @@ import net.microscraper.client.Resources.ResourceException;
 public class Relationships {
 	private final Hashtable relationships = new Hashtable();
 	
-	public Relationships(RelationshipDefinition[] definitions, Interfaces.JSON.Object jsonObj) throws JSONInterfaceException {
+	public Relationships(AttributeDefinition[] definitions, Interfaces.JSON.Object jsonObj) throws JSONInterfaceException {
 		for(int i = 0 ; i < definitions.length ; i++) {
 			String relationshipName = definitions[i].name;
 			Class targetClass = definitions[i].targetClass;
@@ -24,11 +24,11 @@ public class Relationships {
 		}
 	}
 	
-	private Reference[] getReferences(RelationshipDefinition def) {
+	private Reference[] getReferences(AttributeDefinition def) {
 		return (Reference[]) relationships.get(def.name);
 	}
 	
-	public Resource[] get(Resources resources, RelationshipDefinition def) throws ResourceException {
+	public Resource[] get(Resources resources, AttributeDefinition def) throws ResourceException {
 		Reference[] references = getReferences(def);
 		Resource[] relatedResources = new Resource[references.length];
 		
@@ -38,7 +38,7 @@ public class Relationships {
 		return relatedResources;
 	}
 	
-	public int getSize(RelationshipDefinition def) {
+	public int getSize(AttributeDefinition def) {
 		return getReferences(def).length;
 	}
 }

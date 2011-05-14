@@ -1,4 +1,5 @@
 package net.microscraper.resources.definitions;
 
+public final class MustacheableString {
 
-public class Header extends AbstractHeader { }
+}
