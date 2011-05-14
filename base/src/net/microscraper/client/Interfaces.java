@@ -90,18 +90,48 @@ public class Interfaces {
 		
 		public static interface Pattern {
 			/**
-			 * True/false based on whether we find a match.
-			 * @param input
-			 * @return Whether a match was found.
+			 * Returns True/false based on whether we find a match at any point in the input.
+			 * @param input String input
+			 * @return {@link boolean} Whether a match was found.
 			 */
 			public abstract boolean matches(String input);
+			
+			/**
+			 * Returns True/false based on whether we find a match at the specified matchNumber.
+			 * @param input String input
+			 * @param matchNumber
+			 * @return {@link boolean} Whether a match was found.
+			 */
 			public abstract boolean matches(String input, int matchNumber);
 			
+			/**
+			 * Returns a String of the substitution at matchNumber.
+			 * @param input String input
+			 * @param substitution The substitution to use, for example "\0"
+			 * @param matchNumber Which match to use in the substitution.
+			 * @return {@link String} A string of the substitution at matchNumber.
+			 * @throws NoMatches There was no match at the match number for this pattern.
+			 * @throws MissingGroup The substitution referred to a backreference group not in the pattern.
+			 */
 			public abstract String match(String input, String substitution, int matchNumber) throws NoMatches, MissingGroup;
+			
+			/**
+			 * Returns an array of Strings of the substitution, one for each match.
+			 * @param input String input
+			 * @param substitution The substitution to use, for example "\0"
+			 * @return {@link String[]} An array of strings, each using the substitution for the pattern.
+			 * @throws NoMatches There was no match at the match number for this pattern.
+			 * @throws MissingGroup The substitution referred to a backreference group not in the pattern.
+			 */
 			public abstract String[] allMatches(String input, String substitution) throws NoMatches, MissingGroup;
 		}
 		
-		public static class NoMatches extends Exception {
+		/**
+		 * Throwable to indicate that the pattern did not match against its input string.
+		 * @author john
+		 *
+		 */
+		public static class NoMatches extends Throwable {
 			
 			public NoMatches(Pattern pattern, String string) {
 				super(pattern.toString() + " did not match against " + string);
@@ -112,6 +142,13 @@ public class Interfaces {
 			private static final long serialVersionUID = -1808377327875482874L;
 			
 		}
+		
+
+		/**
+		 * Throwable to indicate that the pattern did not have the backreference group it was expected to have.
+		 * @author john
+		 *
+		 */
 		public static class MissingGroup extends Exception {
 			
 			public MissingGroup(Pattern pattern, int group) {

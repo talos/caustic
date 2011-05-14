@@ -1,7 +1,14 @@
 package net.microscraper.resources.definitions;
 
-import net.microscraper.client.Browser;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+
+import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Browser.DelayRequest;
 import net.microscraper.resources.ExecutionContext;
+import net.microscraper.resources.ExecutionDelay;
+import net.microscraper.resources.ExecutionFailure;
+import net.microscraper.resources.ExecutionFatality;
 
 /**
  * Class to make an HTTP GET request.
@@ -18,16 +25,15 @@ public final class WebPageGet extends WebPageBody {
 	 * @param terminates An array of regular expression resources that terminate loading.
 	 */
 	public WebPageGet(URL url, GenericHeader[] headers, Cookie[] cookies,
-			WebPage[] priorWebPages, Regexp[] terminates) {
+			WebPageHead[] priorWebPages, Regexp[] terminates) {
 		super(url, headers, cookies, priorWebPages, terminates);
 	}
-	
-	public String loadUsing(Browser browser) {
-		return null;
+
+	protected String getResponse(ExecutionContext context)
+			throws ExecutionDelay, ExecutionFailure, ExecutionFatality,
+			DelayRequest, BrowserException, MalformedURLException,
+			UnsupportedEncodingException {
+		return context.browser.get(generateURL(context), generateHeaders(context), generateCookies(context), generateTerminates(context));
 	}
 	
-	public Object execute(ExecutionContext context) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

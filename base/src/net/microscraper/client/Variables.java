@@ -53,14 +53,14 @@ public final class Variables {
 			keys[i] = (String) e.nextElement();
 		}
 		return keys;
-	}
-	public Variables merge(Variables other) {
+	}*/
+	public Variables extend(Variables other) {
 		if(other != null) {
 			Utils.hashtableIntoHashtable(other.variables, this.variables);
 		}
 		return this;
 	}
-	
+	/*
 	public static Variables fromFormParams(String params_string, String encoding) {
 		Variables variables = new Variables();
 		String[] params = Utils.split(params_string, "&");

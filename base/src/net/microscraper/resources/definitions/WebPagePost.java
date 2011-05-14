@@ -1,7 +1,15 @@
 package net.microscraper.resources.definitions;
 
-import net.microscraper.client.Browser;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+
+import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Browser.DelayRequest;
+import net.microscraper.client.EncodedNameValuePair;
 import net.microscraper.resources.ExecutionContext;
+import net.microscraper.resources.ExecutionDelay;
+import net.microscraper.resources.ExecutionFailure;
+import net.microscraper.resources.ExecutionFatality;
 
 /**
  * Class to make an HTTP POST request.
@@ -22,17 +30,16 @@ public class WebPagePost extends WebPageBody {
 	 * @param posts An array of posts to add to include in the request.
 	 */
 	public WebPagePost(URL url, GenericHeader[] headers, Cookie[] cookies,
-			WebPage[] webPages, Regexp[] terminates, Post[] posts) {
+			WebPageHead[] webPages, Regexp[] terminates, Post[] posts) {
 		super(url, headers, cookies, webPages, terminates);
 		this.posts = posts;
 	}
 	
-	public String loadUsing(Browser browser) {
-		return null;
-	}
-	
-	public Object execute(ExecutionContext context) {
-		// TODO Auto-generated method stub
-		return null;
+	protected String getResponse(ExecutionContext context)
+				throws UnsupportedEncodingException, ExecutionDelay,
+				ExecutionFailure, ExecutionFatality, MalformedURLException,
+				DelayRequest, BrowserException {
+		EncodedNameValuePair[] posts = generateEncodedNameValuePairs(context, this.posts);
+		return context.browser.post(generateURL(context), generateHeaders(context), generateCookies(context), generateTerminates(context), posts);
 	}
 }

@@ -1,10 +1,7 @@
 package net.microscraper.client;
 
+import java.net.URL;
 import java.util.Date;
-import java.util.Hashtable;
-
-import net.microscraper.client.Interfaces.JSON;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 
 /**
@@ -30,24 +27,71 @@ public interface Browser {
 	public static final String ACCEPT_HEADER_DEFAULT_VALUE = "application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
 	public static final String ACCEPT_HEADER_JSON_VALUE = "application/json,text/json";
 	
-	public static final String ENCODING = "UTF-8";
+	public static final String UTF_8 = "UTF-8";
 	
-	public JSON.Object loadJSON(String url, Interfaces.JSON jsonInterface) throws InterruptedException, BrowserException, JSONInterfaceException;
-	public String load(String url, Hashtable posts, Hashtable headers,
-			Hashtable cookies, Pattern[] terminates) throws WaitToDownload, BrowserException, InterruptedException;
+	/*
+	public JSON.Object loadJSON(String url, Interfaces.JSON jsonInterface)
+			throws InterruptedException, BrowserException, JSONInterfaceException;
+	*/
 	
-	public static class BrowserException extends Exception {
-		private final String url;
-		private final Throwable cause;
-		public BrowserException(String url, Throwable e) {
+	/**
+	 * @return the encoding used by this browser.
+	 */
+	/*
+	public abstract String getEncoding();
+	*/
+	/**
+	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies
+	 * from Set-Cookie to the Browser's cookie store.
+	 * @param url the URL to HTTP Head.
+	 * @param headers Array of NameValuePair extra headers.
+	 * @param cookies Array of NameValuePair extra cookies.  These should also be added to the browser's cookie store.
+	 * @throws DelayRequest if the request should be made again later to avoid overburdening the host.
+	 * @throws BrowserException if there is an exception requesting the page.
+	 */
+	public abstract void head(URL url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies)
+			throws DelayRequest, BrowserException;
+	
+	/**
+	 * Make an HTTP Get request.  This returns the body of the response, and adds cookies to the cookie jar.
+	 * @param url the URL to HTTP Get.
+	 * @param headers Array of NameValuePair extra headers.
+	 * @param cookies Array of NameValuePair extra cookies.  These should also be added to the browser's cookie store.
+	 * @param terminates Array of Patterns that prematurely terminate the load and return the body.
+	 * @return the body of the response.
+	 * @throws DelayRequest if the request should be made again later to avoid overburdening the host.
+	 * @throws BrowserException if there is an exception requesting the page.
+	 */
+	public abstract String get(URL url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies,
+			Pattern[] terminates) throws DelayRequest, BrowserException;
+	
+	/**
+	 * Make an HTTP Post request.  This returns the body of the response, and adds cookies to the cookie jar.
+	 * @param url the URL to HTTP Get.
+	 * @param headers Array of NameValuePair extra headers.
+	 * @param cookies Array of NameValuePair extra cookies.  These should also be added to the browser's cookie store.
+	 * @param terminates Array of Patterns that prematurely terminate the load and return the body.
+	 * @param posts Array of NameValuePair post data.
+	 * @return
+	 * @throws DelayRequest if the request should be made again later to avoid overburdening the host.
+	 * @throws BrowserException if there is an exception requesting the page.
+	 */
+	public abstract String post(URL url, UnencodedNameValuePair[] headers,
+			EncodedNameValuePair[] cookies, Pattern[] terminates, EncodedNameValuePair[] posts)
+			throws DelayRequest, BrowserException;
+	
+	/**
+	 * This is thrown when the Browser experiences an unrecoverable exception.
+	 * @author john
+	 *
+	 */
+	public static class BrowserException extends Throwable {
+		private final URL url;
+		public BrowserException(URL url, Throwable e) {
 			super("Could not load " + url, e);
 			this.url = url;
-			this.cause = e;
 		}
-		public Throwable getCause() {
-			return this.cause;
-		}
-		public String getURL() {
+		public URL getURL() {
 			return this.url;
 		}
 		/**
@@ -57,7 +101,12 @@ public interface Browser {
 		
 	}
 	
-	public static class WaitToDownload extends Exception {
+	/**
+	 * This is thrown when the Browser should wait to request this WebPage in order to limit traffic.
+	 * @author john
+	 *
+	 */
+	public static class DelayRequest extends Exception {
 		/**
 		 * 
 		 */
@@ -66,7 +115,7 @@ public interface Browser {
 		public final Date start;
 		public final int amountDownloaded;
 		
-		public WaitToDownload(String host, Date start, int amountDownloaded) {
+		public DelayRequest(String host, Date start, int amountDownloaded) {
 			this.host = host;
 			this.start = start;
 			this.amountDownloaded = amountDownloaded;

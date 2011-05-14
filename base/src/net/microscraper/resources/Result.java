@@ -1,5 +1,8 @@
 package net.microscraper.resources;
 
-public interface Result {
-
+public class Result {
+	public final String output;
+	public Result(String output) {
+		this.output = output;
+	}
 }
