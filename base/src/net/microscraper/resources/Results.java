@@ -6,7 +6,7 @@ import java.util.Vector;
 import net.microscraper.client.Utils;
 import net.microscraper.resources.definitions.Reference;
 
-public class Status {
+public class Results {
 	private Hashtable successes = new Hashtable();
 	private Hashtable delays = new Hashtable();
 	private Hashtable failures = new Hashtable();
@@ -14,10 +14,10 @@ public class Status {
 	public void addSuccess(Reference ref, String success){
 		successes.put(ref, success);
 	}
-	public void addDelay(Reference ref, ExecutionDelay e) {
+	public void addDelay(Reference ref, ScrapingDelay e) {
 		delays.put(ref, e);
 	}
-	public void addFailure(Reference ref, ExecutionFailure e) {
+	public void addFailure(Reference ref, ScrapingFailure e) {
 		failures.put(ref, e);
 	}
 	public boolean hasDelay() {
@@ -32,22 +32,22 @@ public class Status {
 		return successes;
 	}
 	// convenience method
-	private static ExecutionProblem[] vectorToExecutionProblemArray(Vector vector) {
-		ExecutionProblem[] problems = new ExecutionProblem[vector.size()];
+	/*private static ScrapingProblem[] vectorToExecutionProblemArray(Vector vector) {
+		ScrapingProblem[] problems = new ScrapingProblem[vector.size()];
 		vector.copyInto(problems);
 		return problems;
-	}
-	public ExecutionProblem[] delays() {
+	}*/
+	public ScrapingProblem[] delays() {
 		return vectorToExecutionProblemArray(delays);
 	}
-	public ExecutionProblem[] failures() {
+	public ScrapingProblem[] failures() {
 		return vectorToExecutionProblemArray(failures);
 	}
 	
 	// If any previous delay is no longer in our status, we have made progress.
 	public boolean hasProgressedSince(Status lastStatus) {
 		for(int i = 0 ; i < lastStatus.delays.size() ; i ++ ) {
-			ExecutionProblem previousDelay = (ExecutionProblem) lastStatus.delays.elementAt(i);
+			ScrapingProblem previousDelay = (ScrapingProblem) lastStatus.delays.elementAt(i);
 			if(!this.delays.contains(previousDelay))
 				return true;
 		}

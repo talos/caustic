@@ -1,10 +1,10 @@
 package net.microscraper.resources.definitions;
 
 import net.microscraper.client.UnencodedNameValuePair;
-import net.microscraper.resources.ExecutionContext;
-import net.microscraper.resources.ExecutionDelay;
-import net.microscraper.resources.ExecutionFailure;
-import net.microscraper.resources.ExecutionFatality;
+import net.microscraper.resources.Scraper;
+import net.microscraper.resources.ScrapingDelay;
+import net.microscraper.resources.ScrapingFailure;
+import net.microscraper.resources.ScrapingFatality;
 
 /**
  * A generic header to add to a WebPage request.
@@ -20,12 +20,12 @@ public final class GenericHeader extends AbstractHeader {
 	 * Generate an {@link UnencodedNameValuePair}.
 	 * @param context
 	 * @return an {@link UnencodedNameValuePair}.
-	 * @throws ExecutionDelay
-	 * @throws ExecutionFailure
-	 * @throws ExecutionFatality
+	 * @throws ScrapingDelay
+	 * @throws ScrapingFailure
+	 * @throws ScrapingFatality
 	 */
-	public UnencodedNameValuePair getNameValuePair(ExecutionContext context)
-			throws ExecutionDelay, ExecutionFatality {
+	public UnencodedNameValuePair getNameValuePair(Scraper context)
+			throws ScrapingDelay, ScrapingFatality {
 		return new UnencodedNameValuePair(name.getString(context), value.getString(context));
 	}
 }

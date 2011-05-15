@@ -4,9 +4,9 @@ import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
 import net.microscraper.client.Utils;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
-import net.microscraper.resources.Execution;
+import net.microscraper.resources.Scraper;
 import net.microscraper.resources.Status;
-import net.microscraper.resources.Execution.ExecutionProblem;
+import net.microscraper.resources.Scraper.ExecutionProblem;
 
 public class SQLPublisher implements Publisher {
 	public static final String TABLE_NAME = "executions";
@@ -37,7 +37,7 @@ public class SQLPublisher implements Publisher {
 		}
 	}
 	
-	private void addEntry(Execution execution, String status, Class<?> klass, String value) throws SQLInterfaceException {
+	private void addEntry(Scraper execution, String status, Class<?> klass, String value) throws SQLInterfaceException {
 		String[] substitutions = new String[] {
 			Integer.toString(execution.getSourceExecution().id),
 			Integer.toString(execution.id),
@@ -50,7 +50,7 @@ public class SQLPublisher implements Publisher {
 				"VALUES (?, ?, ?, ?, ?, ?)", substitutions);
 	}
 	
-	public void publish(Execution execution, Status status) throws PublisherException {
+	public void publish(Scraper execution, Status status) throws PublisherException {
 		try {
 			// delete existing entries
 			inter.execute("DELETE FROM `" + TABLE_NAME +"` WHERE `" + SOURCE_ID + "` = ? AND `" + ID + "` = ?",

@@ -7,17 +7,17 @@ import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Browser.DelayRequest;
 import net.microscraper.client.EncodedNameValuePair;
 import net.microscraper.client.UnencodedNameValuePair;
-import net.microscraper.resources.ExecutionContext;
-import net.microscraper.resources.ExecutionDelay;
-import net.microscraper.resources.ExecutionFailure;
-import net.microscraper.resources.ExecutionFatality;
+import net.microscraper.resources.Scraper;
+import net.microscraper.resources.ScrapingDelay;
+import net.microscraper.resources.ScrapingFailure;
+import net.microscraper.resources.ScrapingFatality;
 
 /**
  * Abstract class to request a web page using a browser.
  * @author realest
  *
  */
-public abstract class WebPage implements Executable {
+public abstract class WebPage implements Problematic {
 	private final URL url;
 	private final GenericHeader[] headers;
 	private final Cookie[] cookies;
@@ -31,12 +31,12 @@ public abstract class WebPage implements Executable {
 		this.priorWebPages = priorWebPages;
 	}
 
-	protected java.net.URL generateURL(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
+	protected java.net.URL generateURL(Scraper context) throws ScrapingDelay, ScrapingFatality {
 		return url.getURL(context);
 	}
 	
-	protected UnencodedNameValuePair[] generateHeaders(ExecutionContext context)
-				throws ExecutionDelay, ExecutionFatality {
+	protected UnencodedNameValuePair[] generateHeaders(Scraper context)
+				throws ScrapingDelay, ScrapingFatality {
 		UnencodedNameValuePair[] headersAry = new UnencodedNameValuePair[this.headers.length];
 		for(int i = 0 ; i < this.headers.length ; i ++) {
 			headersAry[i] = headers[i].getNameValuePair(context);
@@ -45,8 +45,8 @@ public abstract class WebPage implements Executable {
 	}
 	
 	protected EncodedNameValuePair[] generateEncodedNameValuePairs(
-				ExecutionContext context, EncodedHeader[] encodedHeaders)
-				throws ExecutionDelay, ExecutionFatality {
+				Scraper context, EncodedHeader[] encodedHeaders)
+				throws ScrapingDelay, ScrapingFatality {
 		try {
 			EncodedNameValuePair[] nameValuePairs = new EncodedNameValuePair[encodedHeaders.length];
 			for(int i = 0 ; i < nameValuePairs.length ; i ++) {
@@ -54,15 +54,15 @@ public abstract class WebPage implements Executable {
 			}
 			return nameValuePairs;
 		} catch (UnsupportedEncodingException e) {
-			throw new ExecutionFatality(e, this);
+			throw new ScrapingFatality(e, this);
 		}
 	}
 	
-	protected EncodedNameValuePair[] generateCookies(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
+	protected EncodedNameValuePair[] generateCookies(Scraper context) throws ScrapingDelay, ScrapingFatality {
 		return generateEncodedNameValuePairs(context, cookies);
 	}
 	
-	protected void headPriorWebPages(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
+	protected void headPriorWebPages(Scraper context) throws ScrapingDelay, ScrapingFatality {
 		for(int i = 0 ; i < priorWebPages.length ; i ++) {
 			priorWebPages[i].headUsing(context);
 		}
@@ -71,15 +71,15 @@ public abstract class WebPage implements Executable {
 	/**
 	 * Send an HTTP Head for the web page.  This will add cookies to the browser.
 	 * @param browser the browser to use.
-	 * @throws ExecutionFatality 
-	 * @throws ExecutionFailure 
-	 * @throws ExecutionDelay 
+	 * @throws ScrapingFatality 
+	 * @throws ScrapingFailure 
+	 * @throws ScrapingDelay 
 	 * @throws BrowserException 
 	 * @throws DelayRequest 
 	 * @throws MalformedURLException 
 	 * @throws UnsupportedEncodingException 
 	 */
-	public void headUsing(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
+	public void headUsing(Scraper context) throws ScrapingDelay, ScrapingFatality {
 		try {
 			UnencodedNameValuePair[] headers = generateHeaders(context);
 			EncodedNameValuePair[] cookies;
@@ -89,9 +89,13 @@ public abstract class WebPage implements Executable {
 			
 			context.getBrowser().head(generateURL(context), headers, cookies);
 		} catch (DelayRequest e) {
-			throw new ExecutionDelay(e, this);
+			throw new ScrapingDelay(e, this);
 		} catch (BrowserException e) {
-			throw new ExecutionFatality(e, this);
+			throw new ScrapingFatality(e, this);
 		}
+	}
+	
+	public String getName() {
+		return url.getName();
 	}
 }

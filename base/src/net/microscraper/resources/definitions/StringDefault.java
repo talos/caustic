@@ -1,10 +1,10 @@
 package net.microscraper.resources.definitions;
 
-import net.microscraper.resources.ExecutionContext;
-import net.microscraper.resources.ExecutionDelay;
-import net.microscraper.resources.ExecutionFatality;
+import net.microscraper.resources.Scraper;
+import net.microscraper.resources.ScrapingDelay;
+import net.microscraper.resources.ScrapingFatality;
 
-public class StringDefault implements Variable, Stringable, Executable {
+public class StringDefault implements Variable, Stringable, Problematic {
 	private final Reference ref;
 	private final MustacheTemplate template;
 
@@ -19,7 +19,10 @@ public class StringDefault implements Variable, Stringable, Executable {
 	public Reference getRef() {
 		return ref;
 	}
-	public String getString(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
+	public String getString(Scraper context) throws ScrapingDelay, ScrapingFatality {
 		return template.getString(context);
+	}
+	public String getName() {
+		return ref.toString();
 	}
 }

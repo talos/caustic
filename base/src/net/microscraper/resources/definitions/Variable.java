@@ -2,7 +2,7 @@ package net.microscraper.resources.definitions;
 
 /**
  * Variable resources can be used as the start point of a Link, and are stored under
- * their reference in an ExecutionContext.
+ * their reference in an Scraper.
  * @author realest
  *
  */

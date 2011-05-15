@@ -3,9 +3,9 @@ package net.microscraper.resources.definitions;
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Browser.DelayRequest;
 import net.microscraper.client.EncodedNameValuePair;
-import net.microscraper.resources.ExecutionContext;
-import net.microscraper.resources.ExecutionDelay;
-import net.microscraper.resources.ExecutionFatality;
+import net.microscraper.resources.Scraper;
+import net.microscraper.resources.ScrapingDelay;
+import net.microscraper.resources.ScrapingFatality;
 
 /**
  * Class to make an HTTP POST request.
@@ -32,8 +32,8 @@ public class WebPagePost extends WebPageBody {
 		this.posts = posts;
 	}
 	
-	protected String getResponse(ExecutionContext context)
-				throws ExecutionDelay, ExecutionFatality,
+	protected String getResponse(Scraper context)
+				throws ScrapingDelay, ScrapingFatality,
 				DelayRequest, BrowserException {
 		EncodedNameValuePair[] posts = generateEncodedNameValuePairs(context, this.posts);
 		return context.getBrowser().post(generateURL(context), generateHeaders(context), generateCookies(context), generateTerminates(context), posts);

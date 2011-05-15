@@ -4,6 +4,7 @@ import net.microscraper.client.Browser;
 import net.microscraper.client.Interfaces.Regexp;
 import net.microscraper.client.Log;
 import net.microscraper.client.MissingReference;
+import net.microscraper.resources.definitions.LinkToOne;
 import net.microscraper.resources.definitions.ParserOneToMany;
 import net.microscraper.resources.definitions.Reference;
 
@@ -14,49 +15,49 @@ import net.microscraper.resources.definitions.Reference;
  * @author realest
  *
  */
-public abstract class ExecutionContext {
+public abstract class Scraper {
 	private final Browser browser;
 	private final Log log;
 	private final String encoding;
 	private final Regexp regexp;
 	
 	/**
-	 * The Browser this ExecutionContext is set to use.
+	 * @return {@link Browser} The Browser this Scraper is set to use.
 	 */
 	public Browser getBrowser() {
 		return browser;
 	}
 	
 	/**
-	 * The Log this ExecutionContext is set to use.
+	 * @return {@link Log} The Log this Scraper is set to use.
 	 */
 	public Log getLog() {
 		return log;
 	}
 	
 	/**
-	 * The encoding to use when encoding post data and cookies.
+	 * @return The encoding to use when encoding post data and cookies.
 	 */
 	public String getEncoding() {
 		return encoding;
 	}
 	
 	/**
-	 * The Regexp interface to use when compiling regexps.
+	 * @return {@link Regexp} The Regexp interface to use when compiling regexps.
 	 */
 	public Regexp getRegexp() {
 		return regexp;
 	}
-
+	
 	/**
-	 * Put value of ref within this ExecutionContext.
+	 * Put value of ref within this Scraper.
 	 * @param {@link Reference} ref to get value for.
 	 * @param String value for reference.
 	 */
 	public abstract void put(Reference ref, String result);
 	
 	/**
-	 * Get value of ref within this ExecutionContext.
+	 * Get value of ref within this Scraper.
 	 * @param {@link Reference} ref to get value for.
 	 * @return String value of ref.
 	 */
@@ -66,22 +67,29 @@ public abstract class ExecutionContext {
 	 * Branch this execution into others based off of a LinkToMany.
 	 * @param branchingParser
 	 * @param result
-	 * @return
 	 */
-	public ExecutionChild[] branch(ParserOneToMany branchingParser, String[] results) {
-		ExecutionChild[] children = new ExecutionChild[results.length];
+	public void scrapeBranch(ParserOneToMany branchingParser,
+			String[] results) {
+		ScraperChild[] children = new ScraperChild[results.length];
 		for(int i = 0 ; i < children.length ; i ++) {
-			children[i] = new ExecutionChild(getBrowser(), getLog(), getEncoding(),
+			children[i] = new ScraperChild(getBrowser(), getLog(), getEncoding(),
 					getRegexp(), this);
 			children[i].put(branchingParser.getRef(), results[i]);
 		}
-		return children;
 	}
 	
-	protected ExecutionContext(Browser browser, Log log, String encoding, Regexp regexp) {
+	protected Scraper(Browser browser, Log log, String encoding, Regexp regexp) {
 		this.browser = browser;
 		this.log = log;
 		this.encoding = encoding;
 		this.regexp = regexp;
+	}
+	
+	public Results scrape(LinkToOne[] links) throws ScrapingFatality {
+		Results results = new Results();
+		for(int i = 0 ; i < links.length ; i ++) {
+			
+		}
+		return results;
 	}
 }

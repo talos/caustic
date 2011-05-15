@@ -1,6 +1,6 @@
 package net.microscraper.client;
 
-import net.microscraper.resources.ExecutionContext;
+import net.microscraper.resources.Scraper;
 import net.microscraper.resources.definitions.Reference;
 
 /**
@@ -14,14 +14,14 @@ public class Mustache {
 	public static final String close_tag = "}}";
 	
 	/**
-	 * Attempt to compile a template within an ExecutionContext.
+	 * Attempt to compile a template within an Scraper.
 	 * @param template
 	 * @param context
 	 * @return
 	 * @throws TemplateException The template was invalid.
 	 * @throws MissingVariable The Variables instance was missing a variable.
 	 */
-	public static String compile(String template, ExecutionContext context)
+	public static String compile(String template, Scraper context)
 				throws MustacheTemplateException, MissingReference {
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;

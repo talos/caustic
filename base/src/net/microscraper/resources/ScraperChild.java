@@ -6,14 +6,15 @@ import net.microscraper.client.Browser;
 import net.microscraper.client.Interfaces.Regexp;
 import net.microscraper.client.Log;
 import net.microscraper.client.MissingReference;
+import net.microscraper.resources.definitions.LinkToOne;
 import net.microscraper.resources.definitions.Reference;
 
-public class ExecutionChild extends ExecutionContext  {
-	private final ExecutionContext parentContext;
+public class ScraperChild extends Scraper  {
+	private final Scraper parentContext;
 	private final Hashtable variables = new Hashtable();
-	protected ExecutionChild(Browser browser, Log log, String encoding,
-			Regexp regexp, ExecutionContext parentContext) {
-		super(browser, log, encoding, regexp);
+	protected ScraperChild(Browser browser, Log log, String encoding,
+			Regexp regexp, Scraper parentContext, LinkToOne[] links) {
+		super(browser, log, encoding, regexp, links);
 		this.parentContext = parentContext;
 	}
 

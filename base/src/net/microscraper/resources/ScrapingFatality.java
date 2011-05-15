@@ -1,6 +1,6 @@
 package net.microscraper.resources;
 
-import net.microscraper.resources.definitions.Executable;
+import net.microscraper.resources.definitions.Problematic;
 
 /**
  * An ExceptionProblem interface to indicate that an execution cannot be completed, and that
@@ -8,15 +8,15 @@ import net.microscraper.resources.definitions.Executable;
  * @author realest
  *
  */
-public class ExecutionFatality extends Throwable implements ExecutionProblem {
+public class ScrapingFatality extends Throwable implements ScrapingProblem {
 	private final Throwable throwable;
-	private final Executable executable;
-	public ExecutionFatality(Throwable throwable, Executable executable) {
+	private final Problematic executable;
+	public ScrapingFatality(Throwable throwable, Problematic executable) {
 		this.throwable = throwable;
 		this.executable = executable;
 	}
 	
-	public Executable getExecutable() {
+	public Problematic getExecutable() {
 		return executable;
 	}
 

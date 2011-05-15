@@ -46,7 +46,7 @@ public class Client {
 			} while(curStatus.hasProgressedSince(lastStatus));
 		} catch(ResourceException e) {
 			log.e(e);
-		} catch (ExecutionFatality e) {
+		} catch (ScrapingFatality e) {
 			log.e(e);
 		}
 	}

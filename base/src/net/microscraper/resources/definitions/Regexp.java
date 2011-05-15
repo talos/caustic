@@ -1,10 +1,9 @@
 package net.microscraper.resources.definitions;
 
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.resources.ExecutionContext;
-import net.microscraper.resources.ExecutionDelay;
-import net.microscraper.resources.ExecutionFailure;
-import net.microscraper.resources.ExecutionFatality;
+import net.microscraper.resources.Scraper;
+import net.microscraper.resources.ScrapingDelay;
+import net.microscraper.resources.ScrapingFatality;
 
 public final class Regexp {
 	private final MustacheTemplate pattern;
@@ -19,7 +18,7 @@ public final class Regexp {
 		this.isMultiline = isMultiline;
 		this.doesDotMatchNewline = doesDotMatchNewline;
 	}
-	public Pattern getPattern(ExecutionContext context) throws ExecutionDelay, ExecutionFatality {
+	public Pattern getPattern(Scraper context) throws ScrapingDelay, ScrapingFatality {
 		String pattern = this.pattern.getString(context);
 		return context.getRegexp().compile(pattern, isCaseInsensitive, isMultiline, doesDotMatchNewline);
 	}
