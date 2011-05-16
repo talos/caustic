@@ -50,7 +50,7 @@ public class ApacheBrowser implements Browser {
 	private final BasicCookieStore cookie_store = new BasicCookieStore();
 	private final HttpParams http_params = new BasicHttpParams();
 	
-	//private final HashMap<WebPage, String> cache = new HashMap<WebPage, String>();
+	//private final HashMap<Page, String> cache = new HashMap<Page, String>();
 	//private final boolean use_cache;
 	
 	public ApacheBrowser(/*boolean _use_cache*/) {

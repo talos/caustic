@@ -2,28 +2,33 @@ package net.microscraper.resources.definitions;
 
 import net.microscraper.client.Interfaces;
 
-public final class Cookie {
+/**
+ * A generic header to add to a Page request.
+ * @author john
+ *
+ */
+public final class Header {
 	public final MustacheTemplate name;
 	public final MustacheTemplate value;
-	public Cookie(MustacheNameValuePair nameValuePair) {
+	public Header(MustacheNameValuePair nameValuePair) {
 		name = nameValuePair.name;
 		value = nameValuePair.value;
 	}
 	
 	/**
-	 * Deserialize an array of {@link Cookie} from a hash in {@link Interfaces.JSON.Object}.
+	 * Deserialize an array of {@link Header} from a hash in {@link Interfaces.JSON.Object}.
 	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
-	 * @return An array of {@link Cookie}.
-	 * @throws DeserializationException If this is not a valid JSON Hash of cookies.
+	 * @return An array of {@link Header}.
+	 * @throws DeserializationException If this is not a valid JSON Hash of headers.
 	 */
-	public static Cookie[] deserializeHash(Interfaces.JSON jsonInterface,
+	public static Header[] deserializeHash(Interfaces.JSON jsonInterface,
 			Interfaces.JSON.Object jsonObject) throws DeserializationException {
 		MustacheNameValuePair[] nameValuePairs = MustacheNameValuePair.deserializeHash(jsonInterface, jsonObject);
-		Cookie[] cookies = new Cookie[nameValuePairs.length];
+		Header[] headers = new Header[nameValuePairs.length];
 		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
-			cookies[i] = new Cookie(nameValuePairs[i]);
+			headers[i] = new Header(nameValuePairs[i]);
 		}
-		return cookies;
+		return headers;
 	}
 }

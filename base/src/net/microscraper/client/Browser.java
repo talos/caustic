@@ -102,7 +102,7 @@ public interface Browser {
 	}
 	
 	/**
-	 * This is thrown when the Browser should wait to request this WebPage in order to limit traffic.
+	 * This is thrown when the Browser should wait to request this Page in order to limit traffic.
 	 * @author john
 	 *
 	 */
