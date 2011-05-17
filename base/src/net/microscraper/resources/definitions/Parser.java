@@ -1,34 +1,45 @@
 package net.microscraper.resources.definitions;
 
-import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.resources.Scraper;
-import net.microscraper.resources.ScrapingDelay;
-import net.microscraper.resources.ScrapingFailure;
-import net.microscraper.resources.ScrapingFatality;
+import java.net.URI;
 
-public abstract class Parser implements Problematic, Variable {
-	private final Reference ref;
-	private final Regexp search;
-	private final MustacheTemplate replacement;
-	protected Parser(Reference ref, Regexp search, MustacheTemplate replacement) {
-		this.ref = ref;
-		this.search = search;
+import net.microscraper.client.Interfaces;
+import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+
+public final class Parser extends Resource {
+	public final Pattern pattern;
+	public final MustacheTemplate replacement;
+	public final Pattern[] tests;
+	public Parser(URI location, Pattern pattern,
+			MustacheTemplate replacement, Pattern[] tests) {
+		super(location);
 		this.replacement = replacement;
-	}
-	public final Reference getRef() {
-		return ref;
-	}
-	protected final Pattern generatePattern(Scraper context)
-				throws ScrapingDelay, ScrapingFailure, ScrapingFatality {
-		return search.getPattern(context);
+		this.pattern = pattern;
+		this.tests = tests;
 	}
 	
-	protected final String generateReplacement(Scraper context)
-				throws ScrapingDelay, ScrapingFailure, ScrapingFatality {
-		return replacement.getString(context);
-	}
-
-	public String getName() {
-		return ref.toString();
+	private static final String REPLACEMENT = "replacement";
+	private static final String TESTS = "tests";
+	
+	/**
+	 * Deserialize a {@link Parser} from a {@link Interfaces.JSON.Object}.
+	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
+	 * @param location {@link URI} from which the resource was loaded.
+	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+	 * @return A {@link Parser} instance.
+	 * @throws DeserializationException If this is not a valid JSON serialization of a Parser.
+	 */
+	public static Parser deserialize(Interfaces.JSON jsonInterface,
+				URI location, Interfaces.JSON.Object jsonObject)
+				throws DeserializationException {
+		try {
+			Pattern pattern = Pattern.deserialize(jsonInterface, jsonObject);
+			MustacheTemplate replacement = new MustacheTemplate(jsonObject.getString(REPLACEMENT));
+			Pattern[] tests = jsonObject.has(TESTS) ? Pattern.deserializeArray(jsonInterface, jsonObject.getJSONArray(TESTS)) : new Pattern[0];
+			
+			return new Parser(location, pattern, replacement,
+					tests);
+		} catch(JSONInterfaceException e) {
+			throw new DeserializationException(e, jsonObject);
+		}
 	}
 }

@@ -10,6 +10,7 @@ public class Interfaces {
 			public abstract java.lang.Object get(String name) throws JSONInterfaceException;
 			public abstract String getString(String name) throws JSONInterfaceException;
 			public abstract int getInt(String name) throws JSONInterfaceException;
+			public abstract boolean getBoolean(String name) throws JSONInterfaceException;
 			public abstract boolean has(String name);
 			public abstract boolean isNull(String name);
 			public abstract Iterator keys();
@@ -21,6 +22,8 @@ public class Interfaces {
 			public abstract JSON.Object getJSONObject(int index) throws JSONInterfaceException;
 			public abstract java.lang.Object get(int index) throws JSONInterfaceException;
 			public abstract String getString(int index) throws JSONInterfaceException;
+			public abstract int getInt(int index) throws JSONInterfaceException;
+			public abstract boolean getBoolean(int index) throws JSONInterfaceException;
 			public abstract String[] toArray() throws JSONInterfaceException; 
 			public abstract int length();
 		}

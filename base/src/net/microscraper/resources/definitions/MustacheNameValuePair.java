@@ -30,7 +30,8 @@ public class MustacheNameValuePair {
 			try {
 				value = jsonObject.getString(name);
 			} catch (JSONInterfaceException e) {
-				throw new DeserializationException("Invalid element in MustacheNameValuePair hash at '" + name + "'");
+				//throw new DeserializationException("Invalid element in MustacheNameValuePair hash at '" + name + "'");
+				throw new DeserializationException(e, jsonObject);
 			}
 			array[i] = new MustacheNameValuePair(
 						new MustacheTemplate(name),

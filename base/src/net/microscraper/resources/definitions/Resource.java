@@ -2,11 +2,14 @@ package net.microscraper.resources.definitions;
 
 import java.net.URI;
 
-public interface Resource {
+public abstract class Resource {
 	/**
 	 * 
-	 * @return {@link java.net.URI} The resource's location.
+	 * The resource's absolute {@link java.net.URI} location.
 	 */
-	public abstract URI getLocation();
+	public final URI location;
 	
+	protected Resource(URI location) {
+		this.location = location;
+	}
 }

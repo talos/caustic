@@ -12,7 +12,7 @@ public class Post {
 	}
 	
 	/**
-	 * Deserialize an array of {@link Post} from a hash in {@link Interfaces.JSON.Object}.
+	 * Deserialize an array of {@link Post}s from a hash in {@link Interfaces.JSON.Object}.
 	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
 	 * @return An array of {@link Post}.

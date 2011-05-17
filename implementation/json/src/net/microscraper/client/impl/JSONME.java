@@ -83,6 +83,14 @@ public class JSONME implements Interfaces.JSON {
 			}
 		}
 
+		public boolean getBoolean(String name) throws JSONInterfaceException {
+			try {
+				return object.getBoolean(name);
+			} catch(JSONException e) {
+				throw new JSONInterfaceException(e);
+			}
+		}
+		
 		public boolean has(String name) {
 			return object.has(name);
 		}
@@ -137,6 +145,22 @@ public class JSONME implements Interfaces.JSON {
 		public String getString(int index) throws JSONInterfaceException {
 			try {
 				return array.getString(index);
+			} catch(JSONException e) {
+				throw new JSONInterfaceException(e);
+			}
+		}
+
+		public int getInt(int index) throws JSONInterfaceException {
+			try {
+				return array.getInt(index);
+			} catch(JSONException e) {
+				throw new JSONInterfaceException(e);
+			}
+		}
+		
+		public boolean getBoolean(int index) throws JSONInterfaceException {
+			try {
+				return array.getBoolean(index);
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
 			}

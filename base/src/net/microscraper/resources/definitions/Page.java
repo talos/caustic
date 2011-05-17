@@ -4,6 +4,7 @@ import java.net.URI;
 
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.resources.definitions.Page.Method.UnknownHTTPMethodException;
 
 
 /**
@@ -11,7 +12,7 @@ import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
  * @author realest
  *
  */
-public final class Page implements Resource {
+public final class Page extends Resource {
 	
 	/**
 	 * Static class defining HTTP methods.
@@ -39,11 +40,11 @@ public final class Page implements Resource {
 		 * @param method A lower-case string specifying the HTTP
 		 * method.  Either "get", "post", or "head".
 		 * @return The static method instance.
-		 * @throws DeserializationException if some other string is
+		 * @throws IllegalArgumentException if some other string is
 		 * passed.
 		 */
 		public static final Method fromString(String method)
-				throws DeserializationException {
+				throws UnknownHTTPMethodException {
 			if(method.equals("get")) {
 				return GET;
 			} else if (method.equals("post")) {
@@ -51,7 +52,7 @@ public final class Page implements Resource {
 			} else if (method.equals("head")) {
 				return HEAD;
 			} else {
-				throw new DeserializationException("Method '" + method + "' is not recognized, should use 'post', 'cookie', or 'header'.");
+				throw new UnknownHTTPMethodException(method);
 			}
 		}
 		
@@ -59,15 +60,20 @@ public final class Page implements Resource {
 		 * Use only the static Method declarations.
 		 */
 		private Method() {}
+		
+		public static class UnknownHTTPMethodException extends Exception {
+			public UnknownHTTPMethodException(String method) {
+				super("Method '" + method + "' is not recognized, should use 'post', 'cookie', or 'header'.");
+			}
+		}
 	}
 	
-	private final URI location;
 	public final Method method;
 	public final URL url;
 	public final Cookie[] cookies;
 	public final Header[] headers;
-	public final Links loadBefore;
-	public final Links terminate;
+	public final Link[] loadBefore;
+	public final Pattern[] terminates;
 	public final Post[] posts;
 	
 	/**
@@ -75,20 +81,20 @@ public final class Page implements Resource {
 	 * @param url A {@link URL} to use requesting the page. 
 	 * @param cookies An array of {@link Cookie}s to add to the browser before requesting this web page.
 	 * @param headers An array of {@link Header}s to add when requesting this web page.
-	 * @param loadBefore {@link Links} to Pages that should be loaded before loading this page.
-	 * @param terminate {@link Links} to Parsers that terminate the loading of this page.
+	 * @param loadBefore An array of {@link Link}s to Pages that should be loaded before loading this page.
+	 * @param terminates An array of {@link Pattern}s that terminate the loading of this page.
 	 * @param posts An array of {@link Post}s to add to include in the request.
 	 */
 	public Page(URI location, Method method, URL url, Cookie[] cookies,
-			Header[] headers, Links loadBefore, Links terminate,
+			Header[] headers, Link[] loadBefore, Pattern[] terminates,
 			Post[] posts) {
-		this.location = location;
+		super(location);
 		this.method = method;
 		this.url = url;
 		this.cookies = cookies;
 		this.headers = headers;
 		this.loadBefore = loadBefore;
-		this.terminate = terminate;
+		this.terminates = terminates;
 		this.posts = posts;
 	}
 	
@@ -101,7 +107,7 @@ public final class Page implements Resource {
 	private static final String COOKIES = "cookies";
 	private static final String HEADERS = "headers";
 	private static final String LOAD_BEFORE = "loadBefore";
-	private static final String TERMINATE = "terminate";
+	private static final String TERMINATES = "terminates";
 	private static final String POSTS = "posts";
 	
 	/**
@@ -121,14 +127,16 @@ public final class Page implements Resource {
 			
 			Cookie[] cookies = jsonObject.has(COOKIES) ? Cookie.deserializeHash(jsonInterface, jsonObject.getJSONObject(COOKIES)) : new Cookie[0];
 			Header[] headers = jsonObject.has(HEADERS) ? Header.deserializeHash(jsonInterface, jsonObject.getJSONObject(HEADERS)) : new Header[0];
-			Links loadBefore = jsonObject.has(LOAD_BEFORE) ? Links.deserializeArray(jsonInterface, (jsonObject.getJSONArray(LOAD_BEFORE))) : Links.blank();
-			Links terminate  = jsonObject.has(TERMINATE) ? Links.deserializeArray(jsonInterface, (jsonObject.getJSONArray(TERMINATE))) : Links.blank();
+			Link[] loadBefore = jsonObject.has(LOAD_BEFORE) ? Link.deserializeArray(jsonInterface, location, (jsonObject.getJSONArray(LOAD_BEFORE))) : new Link[0];
+			Pattern[] terminates  = jsonObject.has(TERMINATES) ? Pattern.deserializeArray(jsonInterface, (jsonObject.getJSONArray(TERMINATES))) : new Pattern[0];
 			Post[] posts = jsonObject.has(POSTS) ? Post.deserializeHash(jsonInterface, jsonObject.getJSONObject(POSTS)) : new Post[0];
 			
 			return new Page(location, method, url, cookies,
-					headers, loadBefore, terminate, posts);
+					headers, loadBefore, terminates, posts);
 		} catch(JSONInterfaceException e) {
-			throw new DeserializationException(e);
+			throw new DeserializationException(e, jsonObject);
+		} catch(UnknownHTTPMethodException e) {
+			throw new DeserializationException(e.getMessage(), jsonObject);
 		}
 	}
 	
