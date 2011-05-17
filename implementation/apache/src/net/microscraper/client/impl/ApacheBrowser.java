@@ -16,11 +16,11 @@ import net.microscraper.client.Client;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
-import net.microscraper.resources.AbstractResource;
-import net.microscraper.resources.AbstractResult;
-import net.microscraper.resources.Result;
-import net.microscraper.resources.DatabaseException.ResourceNotFoundException;
-import net.microscraper.resources.definitions.AbstractHeader;
+import net.microscraper.execution.AbstractResource;
+import net.microscraper.execution.AbstractResult;
+import net.microscraper.execution.Result;
+import net.microscraper.execution.DatabaseException.ResourceNotFoundException;
+import net.microscraper.model.AbstractHeader;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

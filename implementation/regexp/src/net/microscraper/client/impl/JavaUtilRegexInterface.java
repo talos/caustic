@@ -43,13 +43,13 @@ public class JavaUtilRegexInterface implements Regexp {
 			return match;
 		}
 		
-		private String replace(String input, String substitution) throws MissingGroup {
+		private String replace(String input, String substitution) throws MissingGroupException {
 			Matcher matcher = pattern.matcher(input);
 			return matcher.replaceFirst(substitution);
 		}
 		
 		@Override
-		public String match(String input, String substitution, int matchNumber) throws NoMatches, MissingGroup {			
+		public String match(String input, String substitution, int matchNumber) throws NoMatchesException, MissingGroupException {			
 			Matcher matcher = pattern.matcher(input);
 			int i = 0;
 			while(matcher.find()) {
@@ -58,21 +58,41 @@ public class JavaUtilRegexInterface implements Regexp {
 				} else if(i > matchNumber) { break; }
 				i++;
 			}
-			throw new NoMatches(this, input);
+			throw new NoMatchesException(this, input);
 		}
 		
 		@Override
-		public String[] allMatches(String input, String substitution) throws NoMatches, MissingGroup {
+		public String[] allMatches(String input, String substitution, int minMatch, int maxMatch)
+					throws InvalidRangeException, NoMatchesException, MissingGroupException {
+			if((maxMatch >= 0 && minMatch >= 0 && maxMatch < minMatch) ||
+					(maxMatch < 0 && minMatch < 0 && maxMatch < minMatch))
+				throw new InvalidRangeException(this, minMatch, maxMatch);
+			
 			Matcher matcher = pattern.matcher(input);
 			
+			// Find the complete matchesList.
 			List<String> matchesList = new ArrayList<String>();
 			while(matcher.find()) {
 				matchesList.add(replace(matcher.group(), substitution));
 			}
-			if(matchesList.size() == 0)
-				throw new NoMatches(this, input);
 			
-			String[] matches = matchesList.toArray(new String[0]);
+			// No matches at all.
+			if(matchesList.size() == 0)
+				throw new NoMatchesException(this, input);
+			
+			// Determine the first and last indices relative to our list.
+			int firstIndex = minMatch >= 0 ? minMatch : matchesList.size() + minMatch;
+			int lastIndex  = maxMatch >= 0 ? maxMatch : matchesList.size() + maxMatch;
+			
+			// Range excludes 
+			if(lastIndex > firstIndex)
+				throw new NoMatchesException(this, input);
+			
+			String[] matches = new String[1 + lastIndex - firstIndex];
+			for(int i = firstIndex ; i < lastIndex ; i++) {
+				matches[i - firstIndex] = matchesList.get(i);
+			}
+			
 			return matches;
 		}
 

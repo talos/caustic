@@ -1,4 +1,4 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 import java.net.URI;
 
@@ -25,24 +25,24 @@ public class Scraper extends Resource implements HasVariables, HasLeaves,
 		return hasPipes.getPipes();
 	}
 
-	public Leaf[] getLeaves() {
+	public ExecutionLeaf[] getLeaves() {
 		return hasLeaves.getLeaves();
 	}
 
-	public Variable[] getVariables() {
+	public ExecutionVariable[] getVariables() {
 		return hasVariables.getVariables();
 	}
 	
 	public static final String SOURCE = "source";
 	
 	/**
-	 * Deserialize a {@link Scraper} from a {@link Interfaces.JSON.Object}.
+	 * Deserialize a {@link ContextRoot} from a {@link Interfaces.JSON.Object}.
 	 * @param location The scraper's {@link URI} location.
 	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
-	 * @return An {@link Variable} instance.
+	 * @return An {@link ExecutionVariable} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of
-	 * a Scraper.
+	 * a ContextRoot.
 	 */
 	public static Scraper deserialize(Interfaces.JSON jsonInterface,
 					URI location, Interfaces.JSON.Object jsonObject)
@@ -59,6 +59,8 @@ public class Scraper extends Resource implements HasVariables, HasLeaves,
 			}
 			return new Scraper(location, scraperSource, hasVariables, hasLeaves, hasPipes);
 		} catch(JSONInterfaceException e) {
+			throw new DeserializationException(e, jsonObject);
+		} catch(URIMustBeAbsoluteException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}

@@ -1,13 +1,19 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 import net.microscraper.client.Interfaces;
 
-public final class Cookie {
-	public final MustacheTemplate name;
-	public final MustacheTemplate value;
+public final class Cookie implements MustacheNameValuePair {
+	private final MustacheNameValuePair nameValuePair;
 	public Cookie(MustacheNameValuePair nameValuePair) {
-		name = nameValuePair.name;
-		value = nameValuePair.value;
+		this.nameValuePair = nameValuePair;
+	}
+
+	public MustacheTemplate getName() {
+		return nameValuePair.getName();
+	}
+
+	public MustacheTemplate getValue() {
+		return nameValuePair.getValue();
 	}
 	
 	/**
@@ -19,7 +25,7 @@ public final class Cookie {
 	 */
 	public static Cookie[] deserializeHash(Interfaces.JSON jsonInterface,
 			Interfaces.JSON.Object jsonObject) throws DeserializationException {
-		MustacheNameValuePair[] nameValuePairs = MustacheNameValuePair.deserializeHash(jsonInterface, jsonObject);
+		MustacheNameValuePair[] nameValuePairs = MustacheNameValuePair.Deserializer.deserializeHash(jsonInterface, jsonObject);
 		Cookie[] cookies = new Cookie[nameValuePairs.length];
 		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
 			cookies[i] = new Cookie(nameValuePairs[i]);

@@ -1,12 +1,12 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 import java.net.MalformedURLException;
 import java.net.URI;
 
 import net.microscraper.client.Interfaces;
-import net.microscraper.resources.Scraper;
-import net.microscraper.resources.ScrapingDelay;
-import net.microscraper.resources.ScrapingFatality;
+import net.microscraper.execution.ContextRoot;
+import net.microscraper.execution.ScrapingDelay;
+import net.microscraper.execution.ScrapingFatality;
 
 /**
  * The URL resource holds a string that can be mustached and used as a URL.
@@ -36,7 +36,7 @@ public class URL {
 	 * @throws ScrapingFatality 
 	 */
 	/*
-	public java.net.URL getURL(Scraper context)
+	public java.net.URL getURL(ContextRoot context)
 				throws ScrapingDelay, ScrapingFatality {
 		try {
 			return new java.net.URL(urlTemplate.getString(context));

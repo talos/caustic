@@ -1,6 +1,6 @@
-package net.microscraper.resources;
+package net.microscraper.execution;
 
-import net.microscraper.resources.definitions.Problematic;
+import net.microscraper.model.Problematic;
 
 /**
  * An ExceptionProblem interface to indicate that an execution cannot be completed, and that

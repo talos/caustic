@@ -1,8 +1,8 @@
-package net.microscraper.resources;
+package net.microscraper.execution;
 
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Interfaces.Regexp.NoMatches;
-import net.microscraper.resources.definitions.Problematic;
+import net.microscraper.model.Problematic;
 
 /**
  * A throwable to indicate that an execution has failed.  It should not be retried, but

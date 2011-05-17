@@ -10,9 +10,9 @@ import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.JSON.Stringer;
 import net.microscraper.client.Interfaces.JSON.Writer;
 import net.microscraper.client.Publisher;
-import net.microscraper.resources.Scraper;
-import net.microscraper.resources.Status;
-import net.microscraper.resources.Scraper.ExecutionProblem;
+import net.microscraper.execution.ContextRoot;
+import net.microscraper.execution.Status;
+import net.microscraper.execution.ContextRoot.ExecutionProblem;
 
 public class ThreadSafeJSONPublisher implements Publisher {
 	private final List<Stringer> executions = Collections.synchronizedList(new ArrayList<Stringer>());
@@ -33,7 +33,7 @@ public class ThreadSafeJSONPublisher implements Publisher {
 	}
 	
 	@Override
-	public void publish(Scraper execution, Status status) throws PublisherException {
+	public void publish(ContextRoot execution, Status status) throws PublisherException {
 		try {
 			Stringer stringer = json.getStringer();
 			stringer.object()

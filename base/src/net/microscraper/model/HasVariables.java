@@ -1,4 +1,4 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 import java.net.URI;
 
@@ -6,7 +6,7 @@ import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 
 /**
- * Allows connections to an {@link Variable} executable.
+ * Allows connections to an {@link ExecutionVariable} executable.
  * @author john
  *
  */
@@ -14,16 +14,16 @@ public interface HasVariables {
 	
 	/**
 	 * 
-	 * @return An array of associated {@link Variable} executables.
+	 * @return An array of associated {@link ExecutionVariable} executables.
 	 */
-	public abstract Variable[] getVariables();
+	public abstract ExecutionVariable[] getVariables();
 	
 	/**
 	 * A helper class to deserialize 
 	 * interfaces of {@link HasVariables} using an inner constructor.
-	 * Should only be instantiated inside {@link Variable} or {@link Scraper}.
-	 * @see Variable
-	 * @see Scraper
+	 * Should only be instantiated inside {@link ExecutionVariable} or {@link ContextRoot}.
+	 * @see ExecutionVariable
+	 * @see ContextRoot
 	 * @author john
 	 *
 	 */
@@ -31,7 +31,7 @@ public interface HasVariables {
 		private static final String VARIABLES = "variables";
 		
 		/**
-		 * Protected, should be called only by {@link Variable} or {@link Scraper}.
+		 * Protected, should be called only by {@link ExecutionVariable} or {@link ContextRoot}.
 		 * Deserialize an {@link HasVariables} from a {@link Interfaces.JSON.Object}.
 		 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 		 * @param location A {@link URI} that identifies the root of these variables.
@@ -44,9 +44,9 @@ public interface HasVariables {
 						URI location, Interfaces.JSON.Object jsonObject)
 					throws DeserializationException {
 			try {
-				final Variable[] variables = Variable.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(VARIABLES));				
+				final ExecutionVariable[] variables = ExecutionVariable.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(VARIABLES));				
 				return new HasVariables() {
-					public Variable[] getVariables() {
+					public ExecutionVariable[] getVariables() {
 						return variables;
 					}
 				};

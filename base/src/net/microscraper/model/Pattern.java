@@ -1,4 +1,4 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;

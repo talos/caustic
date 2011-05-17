@@ -1,6 +1,6 @@
-package net.microscraper.resources;
+package net.microscraper.execution;
 
-import net.microscraper.resources.definitions.Problematic;
+import net.microscraper.model.Problematic;
 
 /**
  * Interface to pass exception information from executable executions.

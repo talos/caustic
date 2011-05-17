@@ -111,32 +111,35 @@ public class Interfaces {
 			 * Returns a String of the substitution at matchNumber.
 			 * @param input String input
 			 * @param substitution The substitution to use, for example "\0"
-			 * @param matchNumber Which match to use in the substitution.
+			 * @param matchNumber Which match to use in the substitution. 0-indexed.
 			 * @return {@link String} A string of the substitution at matchNumber.
-			 * @throws NoMatches There was no match at the match number for this pattern.
-			 * @throws MissingGroup The substitution referred to a backreference group not in the pattern.
+			 * @throws NoMatchesException There was no match at the match number for this pattern.
+			 * @throws MissingGroupException The substitution referred to a backreference group not in the pattern.
 			 */
-			public abstract String match(String input, String substitution, int matchNumber) throws NoMatches, MissingGroup;
+			public abstract String match(String input, String substitution, int matchNumber) throws NoMatchesException, MissingGroupException;
 			
 			/**
 			 * Returns an array of Strings of the substitution, one for each match.
 			 * @param input String input
 			 * @param substitution The substitution to use, for example "\0"
+			 * @param minMatch Which match should be the first to be included in the return.  0-indexed, with negative numbers counting backwards from end (-1 is last).
+			 * @param maxMatch Which match should be the last to be included in the return.  0-indexed, with negative numbers counting backwards from end (-1 is last.
 			 * @return {@link String[]} An array of strings, each using the substitution for the pattern.
-			 * @throws NoMatches There was no match at the match number for this pattern.
-			 * @throws MissingGroup The substitution referred to a backreference group not in the pattern.
+			 * @throws NoMatchesException There was no match at the match number for this pattern.
+			 * @throws MissingGroupException The substitution referred to a backreference group not in the pattern.
+			 * @throws InvalidRangeException The range referred to a positive maximum less than a positive minimum, or a negative maximum less than a negative minimum.
 			 */
-			public abstract String[] allMatches(String input, String substitution) throws NoMatches, MissingGroup;
+			public abstract String[] allMatches(String input, String substitution, int minMatch, int maxMatch) throws NoMatchesException, MissingGroupException, InvalidRangeException;
 		}
 		
 		/**
-		 * Throwable to indicate that the pattern did not match against its input string.
+		 * Exception to indicate that the pattern did not match against its input string.
 		 * @author john
 		 *
 		 */
-		public static class NoMatches extends Throwable {
+		public static class NoMatchesException extends Exception {
 			
-			public NoMatches(Pattern pattern, String string) {
+			public NoMatchesException(Pattern pattern, String string) {
 				super(pattern.toString() + " did not match against " + string);
 			}
 			/**
@@ -148,13 +151,13 @@ public class Interfaces {
 		
 
 		/**
-		 * Throwable to indicate that the pattern did not have the backreference group it was expected to have.
+		 * Exception to indicate that the pattern did not have the backreference group it was expected to have.
 		 * @author john
 		 *
 		 */
-		public static class MissingGroup extends Exception {
+		public static class MissingGroupException extends Exception {
 			
-			public MissingGroup(Pattern pattern, int group) {
+			public MissingGroupException(Pattern pattern, int group) {
 				super(pattern.toString() + " did not contain a group " + Integer.toString(group));
 			}
 			/**
@@ -162,6 +165,18 @@ public class Interfaces {
 			 */
 			private static final long serialVersionUID = -1808377327875482874L;
 			
+		}
+		
+		/**
+		 * Exception to indicate that a range is invalid.
+		 * @author realest
+		 *
+		 */
+		public static class InvalidRangeException extends Exception {
+			
+			public InvalidRangeException(Interfaces.Regexp.Pattern pattern, int minMatch, int maxMatch) {
+				
+			}
 		}
 		
 	}

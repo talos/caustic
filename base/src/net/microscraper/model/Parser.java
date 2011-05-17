@@ -1,4 +1,4 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 import java.net.URI;
 
@@ -36,9 +36,10 @@ public final class Parser extends Resource {
 			MustacheTemplate replacement = new MustacheTemplate(jsonObject.getString(REPLACEMENT));
 			Pattern[] tests = jsonObject.has(TESTS) ? Pattern.deserializeArray(jsonInterface, jsonObject.getJSONArray(TESTS)) : new Pattern[0];
 			
-			return new Parser(location, pattern, replacement,
-					tests);
+			return new Parser(location, pattern, replacement, tests);
 		} catch(JSONInterfaceException e) {
+			throw new DeserializationException(e, jsonObject);
+		} catch(URIMustBeAbsoluteException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}

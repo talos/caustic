@@ -1,4 +1,4 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 /**
  * A string where Mustache-style demarcation denotes where Variables are taken out.

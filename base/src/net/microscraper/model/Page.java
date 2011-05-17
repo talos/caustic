@@ -1,10 +1,10 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 import java.net.URI;
 
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
-import net.microscraper.resources.definitions.Page.Method.UnknownHTTPMethodException;
+import net.microscraper.model.Page.Method.UnknownHTTPMethodException;
 
 
 /**
@@ -124,7 +124,7 @@ public final class Page extends Resource {
 				throws DeserializationException {
 		try {
 			Method method = Method.fromString(jsonObject.getString(METHOD));
-			URL url = net.microscraper.resources.definitions.URL.fromString(jsonObject.getString(URL));
+			URL url = net.microscraper.model.URL.fromString(jsonObject.getString(URL));
 			
 			Cookie[] cookies = jsonObject.has(COOKIES) ? Cookie.deserializeHash(jsonInterface, jsonObject.getJSONObject(COOKIES)) : new Cookie[0];
 			Header[] headers = jsonObject.has(HEADERS) ? Header.deserializeHash(jsonInterface, jsonObject.getJSONObject(HEADERS)) : new Header[0];
@@ -138,15 +138,17 @@ public final class Page extends Resource {
 			throw new DeserializationException(e, jsonObject);
 		} catch(UnknownHTTPMethodException e) {
 			throw new DeserializationException(e.getMessage(), jsonObject);
+		} catch(URIMustBeAbsoluteException e) {
+			throw new DeserializationException(e, jsonObject);
 		}
 	}
 	
 	/*
-	protected java.net.URL generateURL(Scraper context) throws ScrapingDelay, ScrapingFatality {
+	protected java.net.URL generateURL(ContextRoot context) throws ScrapingDelay, ScrapingFatality {
 		return url.getURL(context);
 	}
 	
-	protected UnencodedNameValuePair[] generateHeaders(Scraper context)
+	protected UnencodedNameValuePair[] generateHeaders(ContextRoot context)
 				throws ScrapingDelay, ScrapingFatality {
 		UnencodedNameValuePair[] headersAry = new UnencodedNameValuePair[this.headers.length];
 		for(int i = 0 ; i < this.headers.length ; i ++) {
@@ -156,7 +158,7 @@ public final class Page extends Resource {
 	}
 	
 	protected EncodedNameValuePair[] generateEncodedNameValuePairs(
-				Scraper context, EncodedHeader[] encodedHeaders)
+				ContextRoot context, EncodedHeader[] encodedHeaders)
 				throws ScrapingDelay, ScrapingFatality {
 		try {
 			EncodedNameValuePair[] nameValuePairs = new EncodedNameValuePair[encodedHeaders.length];
@@ -169,11 +171,11 @@ public final class Page extends Resource {
 		}
 	}
 	
-	protected EncodedNameValuePair[] generateCookies(Scraper context) throws ScrapingDelay, ScrapingFatality {
+	protected EncodedNameValuePair[] generateCookies(ContextRoot context) throws ScrapingDelay, ScrapingFatality {
 		return generateEncodedNameValuePairs(context, cookies);
 	}
 	
-	protected void headPriorWebPages(Scraper context) throws ScrapingDelay, ScrapingFatality {
+	protected void headPriorWebPages(ContextRoot context) throws ScrapingDelay, ScrapingFatality {
 		for(int i = 0 ; i < priorWebPages.length ; i ++) {
 			priorWebPages[i].headUsing(context);
 		}
@@ -191,7 +193,7 @@ public final class Page extends Resource {
 	 * @throws UnsupportedEncodingException 
 	 */
 	/*
-	public void headUsing(Scraper context) throws ScrapingDelay, ScrapingFatality {
+	public void headUsing(ContextRoot context) throws ScrapingDelay, ScrapingFatality {
 		try {
 			UnencodedNameValuePair[] headers = generateHeaders(context);
 			EncodedNameValuePair[] cookies;

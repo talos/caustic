@@ -1,4 +1,4 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 import java.net.URI;
 
@@ -11,7 +11,7 @@ import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
  * @author john
  *
  */
-public class Leaf implements Executable, HasPipes {
+public class ExecutionLeaf implements Executable, HasPipes {
 	private final Executable executable;
 	private final HasPipes hasPipes;
 	
@@ -19,7 +19,7 @@ public class Leaf implements Executable, HasPipes {
 	 * The first of the parser's matches to export.
 	 * This is 0-indexed, so <code>0</code> is the first match.
 	 * @see #maxMatch
-	 * @see Variable#match
+	 * @see ExecutionVariable#match
 	 */
 	public final int minMatch;
 	
@@ -27,11 +27,11 @@ public class Leaf implements Executable, HasPipes {
 	 * The last of the parser's matches to export.
 	 * Negative numbers count backwards, so <code>-1</code> is the last match.
 	 * @see #minMatch
-	 * @see Variable#match
+	 * @see ExecutionVariable#match
 	 */
 	public final int maxMatch;
 	
-	public Leaf(Executable executable, HasPipes hasPipes, int minMatch, int maxMatch) {
+	public ExecutionLeaf(Executable executable, HasPipes hasPipes, int minMatch, int maxMatch) {
 		this.executable = executable;
 		this.hasPipes = hasPipes;
 		this.minMatch = minMatch;
@@ -58,15 +58,15 @@ public class Leaf implements Executable, HasPipes {
 	private static final String MAX_MATCH = "max";
 	
 	/**
-	 * Deserialize an {@link Leaf} from a {@link Interfaces.JSON.Object}.
+	 * Deserialize an {@link ExecutionLeaf} from a {@link Interfaces.JSON.Object}.
 	 * @param location A {@link URI} that identifies the root of this leaf's links.
 	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
-	 * @return An {@link Leaf} instance.
+	 * @return An {@link ExecutionLeaf} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of
-	 * an Leaf.
+	 * an ExecutionLeaf.
 	 */
-	protected static Leaf deserialize(Interfaces.JSON jsonInterface,
+	protected static ExecutionLeaf deserialize(Interfaces.JSON jsonInterface,
 					URI location, Interfaces.JSON.Object jsonObject)
 				throws DeserializationException {
 		try {
@@ -75,7 +75,7 @@ public class Leaf implements Executable, HasPipes {
 			int minMatch = jsonObject.getInt(MIN_MATCH);
 			int maxMatch = jsonObject.getInt(MAX_MATCH);
 			
-			return new Leaf(executable, hasPipes, minMatch, maxMatch);
+			return new ExecutionLeaf(executable, hasPipes, minMatch, maxMatch);
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
@@ -83,21 +83,21 @@ public class Leaf implements Executable, HasPipes {
 	
 
 	/**
-	 * Deserialize an array of {@link Leaf}s from a {@link Interfaces.JSON.Array}.
+	 * Deserialize an array of {@link ExecutionLeaf}s from a {@link Interfaces.JSON.Array}.
 	 * @param location A {@link URI} that identifies the root of this leaf's links.
 	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 	 * @param jsonArray Input {@link Interfaces.JSON.Array} array.
-	 * @return An array of {@link Leaf} instances.
+	 * @return An array of {@link ExecutionLeaf} instances.
 	 * @throws DeserializationException If the array contains an invalid JSON serialization of
-	 * a Leaf, or if the array is invalid.
+	 * a ExecutionLeaf, or if the array is invalid.
 	 */
-	protected static Leaf[] deserializeArray(Interfaces.JSON jsonInterface,
+	protected static ExecutionLeaf[] deserializeArray(Interfaces.JSON jsonInterface,
 					URI location, Interfaces.JSON.Array jsonArray)
 				throws DeserializationException {
-		Leaf[] leaves = new Leaf[jsonArray.length()];
+		ExecutionLeaf[] leaves = new ExecutionLeaf[jsonArray.length()];
 		for(int i = 0 ; i < jsonArray.length() ; i++ ) {
 			try {
-				leaves[i] = Leaf.deserialize(jsonInterface, location, jsonArray.getJSONObject(i));
+				leaves[i] = ExecutionLeaf.deserialize(jsonInterface, location, jsonArray.getJSONObject(i));
 			} catch(JSONInterfaceException e) {
 				throw new DeserializationException(e, jsonArray, i);
 			}

@@ -1,11 +1,21 @@
 package net.microscraper.client;
 
 /**
- * Interface to hold and retrieve unencoded name value pairs.
+ * Class to hold and retrieve unencoded name value pairs.
  * @author john
  *
  */
-public interface UnencodedNameValuePair {
-	public abstract String getName();
-	public abstract String getValue();
+public final class UnencodedNameValuePair {
+	private final String name;
+	private final String value;
+	public UnencodedNameValuePair(String name, String value) {
+		this.name = name;
+		this.value = value;
+	}
+	public String getName() {
+		return name;
+	}
+	public String getValue() {
+		return value;
+	}
 }

@@ -1,4 +1,4 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 import java.net.URI;
 
@@ -6,7 +6,7 @@ import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 
 /**
- * Permits connections to a {@link Leaf} executables.
+ * Permits connections to a {@link ExecutionLeaf} executables.
  * @author john
  *
  */
@@ -14,16 +14,16 @@ public interface HasLeaves {
 	
 	/**
 	 * 
-	 * @return An array of associated {@link Leaf} executables.
+	 * @return An array of associated {@link ExecutionLeaf} executables.
 	 */
-	public abstract Leaf[] getLeaves();
+	public abstract ExecutionLeaf[] getLeaves();
 	
 	/**
 	 * A helper class to deserialize 
 	 * interfaces of {@link HasLeaves} using an inner constructor.
-	 * Should only be instantiated inside {@link Variable} or {@link Scraper}.
-	 * @see Variable
-	 * @see Scraper
+	 * Should only be instantiated inside {@link ExecutionVariable} or {@link ContextRoot}.
+	 * @see ExecutionVariable
+	 * @see ContextRoot
 	 * @author john
 	 *
 	 */
@@ -31,7 +31,7 @@ public interface HasLeaves {
 		private static final String LEAVES = "leaves";
 		
 		/**
-		 * Protected, should be called only by {@link Variable} or {@link Scraper}.
+		 * Protected, should be called only by {@link ExecutionVariable} or {@link ContextRoot}.
 		 * Deserialize an {@link HasLeaves} from a {@link Interfaces.JSON.Object}.
 		 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 		 * @param location A {@link URI} that identifies the root of these leaves' links.
@@ -44,9 +44,9 @@ public interface HasLeaves {
 						URI location, Interfaces.JSON.Object jsonObject)
 					throws DeserializationException {
 			try {
-				final Leaf[] leaves = Leaf.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(LEAVES));				
+				final ExecutionLeaf[] leaves = ExecutionLeaf.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(LEAVES));				
 				return new HasLeaves() {
-					public Leaf[] getLeaves() {
+					public ExecutionLeaf[] getLeaves() {
 						return leaves;
 					}
 				};

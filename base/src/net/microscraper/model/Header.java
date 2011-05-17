@@ -1,4 +1,4 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 import net.microscraper.client.Interfaces;
 
@@ -7,12 +7,18 @@ import net.microscraper.client.Interfaces;
  * @author john
  *
  */
-public final class Header {
-	public final MustacheTemplate name;
-	public final MustacheTemplate value;
+public final class Header implements MustacheNameValuePair {
+	private final MustacheNameValuePair nameValuePair;
 	public Header(MustacheNameValuePair nameValuePair) {
-		name = nameValuePair.name;
-		value = nameValuePair.value;
+		this.nameValuePair = nameValuePair;
+	}
+
+	public MustacheTemplate getName() {
+		return nameValuePair.getName();
+	}
+
+	public MustacheTemplate getValue() {
+		return nameValuePair.getValue();
 	}
 	
 	/**
@@ -24,7 +30,7 @@ public final class Header {
 	 */
 	public static Header[] deserializeHash(Interfaces.JSON jsonInterface,
 			Interfaces.JSON.Object jsonObject) throws DeserializationException {
-		MustacheNameValuePair[] nameValuePairs = MustacheNameValuePair.deserializeHash(jsonInterface, jsonObject);
+		MustacheNameValuePair[] nameValuePairs = MustacheNameValuePair.Deserializer.deserializeHash(jsonInterface, jsonObject);
 		Header[] headers = new Header[nameValuePairs.length];
 		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
 			headers[i] = new Header(nameValuePairs[i]);

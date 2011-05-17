@@ -1,4 +1,4 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 import java.net.URI;
 
@@ -37,9 +37,9 @@ public interface Executable {
 	/**
 	 * A helper class to deserialize 
 	 * interfaces of {@link Executable} using an inner constructor.
-	 * Should only be instantiated inside {@link Variable} or {@link Leaf}.
-	 * @see Variable
-	 * @see Leaf
+	 * Should only be instantiated inside {@link ExecutionVariable} or {@link ExecutionLeaf}.
+	 * @see ExecutionVariable
+	 * @see ExecutionLeaf
 	 * @author john
 	 *
 	 */
@@ -49,7 +49,7 @@ public interface Executable {
 		private static final String NAME_DEFAULT = null;
 		
 		/**
-		 * Protected, should be called only by {@link Variable} or {@link Leaf}.
+		 * Protected, should be called only by {@link ExecutionVariable} or {@link ExecutionLeaf}.
 		 * Deserialize an {@link Executable} from a {@link Interfaces.JSON.Object}.
 		 * @param location A {@link URI} that identifies the root of this execution's links.
 		 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
@@ -57,8 +57,8 @@ public interface Executable {
 		 * @return An {@link Executable} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
 		 * an Execution.
-		 * @see Variable#deserialize
-		 * @see Leaf#deserialize
+		 * @see ExecutionVariable#deserialize
+		 * @see ExecutionLeaf#deserialize
 		 */
 		protected static Executable deserialize(Interfaces.JSON jsonInterface,
 						URI location, Interfaces.JSON.Object jsonObject)

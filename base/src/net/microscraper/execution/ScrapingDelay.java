@@ -1,8 +1,8 @@
-package net.microscraper.resources;
+package net.microscraper.execution;
 
 import net.microscraper.client.Browser.DelayRequest;
 import net.microscraper.client.MissingReference;
-import net.microscraper.resources.definitions.Problematic;
+import net.microscraper.model.Problematic;
 
 /**
  * A throwable to indicate that while execution has failed, it should be retried later.
@@ -14,7 +14,7 @@ public class ScrapingDelay extends Throwable implements ScrapingProblem {
 	private final Problematic executable;
 	
 	/**
-	 * Generate an execution delay because of a Missing Variable in a Mustache template.
+	 * Generate an execution delay because of a Missing ExecutionVariable in a Mustache template.
 	 * @param missingVariable {@link MissingReference} The MissingReference throwable.
 	 * @param executable The executable that was missing a variable.
 	 */

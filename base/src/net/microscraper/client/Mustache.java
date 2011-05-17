@@ -1,8 +1,5 @@
 package net.microscraper.client;
 
-import net.microscraper.resources.Scraper;
-import net.microscraper.resources.definitions.Reference;
-
 /**
  * Mustache-like substitutions from Variables.
  * This does not currently support any commenting.
@@ -14,15 +11,15 @@ public class Mustache {
 	public static final String close_tag = "}}";
 	
 	/**
-	 * Attempt to compile a template within an Scraper.
-	 * @param template
-	 * @param context
-	 * @return
+	 * Attempt to compile a template within an ContextRoot.
+	 * @param template A string containing the template to compile.
+	 * @param variables A {@link Variables} instance.
+	 * @return The string, with tags substituted using the variables.
 	 * @throws TemplateException The template was invalid.
-	 * @throws MissingVariable The Variables instance was missing a variable.
+	 * @throws MissingVariableException The Variables instance was was missing one of the tags.
 	 */
-	public static String compile(String template, Scraper context)
-				throws MustacheTemplateException, MissingReference {
+	public static String compile(String template, Variables variables)
+				throws MustacheTemplateException, MissingVariableException {
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
 		String result = "";
@@ -39,10 +36,13 @@ public class Mustache {
 				throw new MustacheTemplateException("No close tag for opening tag at position " + open_tag_start_pos + " in Mustache template " + template);
 			
 			String tag = template.substring(open_tag_start_pos + open_tag.length(), close_tag_start_pos);
-			Reference ref = new Reference(tag);
 			
 			close_tag_end_pos = close_tag_start_pos + close_tag.length();
-			result += context.get(ref);
+			if(variables.containsKey(tag)) {
+				result += variables.get(tag);
+			} else {
+				
+			}
 		}
 		return result + template.substring(close_tag_end_pos);
 	}

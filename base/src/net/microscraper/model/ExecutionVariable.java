@@ -1,4 +1,4 @@
-package net.microscraper.resources.definitions;
+package net.microscraper.model;
 
 import java.net.URI;
 
@@ -12,7 +12,7 @@ import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
  * @author john
  *
  */
-public class Variable implements Executable, HasLeaves, HasVariables {
+public class ExecutionVariable implements Executable, HasLeaves, HasVariables {
 	private final Executable executable;
 	private final HasLeaves hasLeaves;
 	private final HasVariables hasVariables;
@@ -20,12 +20,12 @@ public class Variable implements Executable, HasLeaves, HasVariables {
 	/**
 	 * A variable can be pulled from only a single scraper match.
 	 * 0-indexed, and negative numbers count backwards (-1 is last match.)
-	 * @see Leaf#minMatch
-	 * @see Leaf#maxMatch
+	 * @see ExecutionLeaf#minMatch
+	 * @see ExecutionLeaf#maxMatch
 	 */
 	public final int match;
 	
-	public Variable(Executable execution, HasLeaves hasLeaves,
+	public ExecutionVariable(Executable execution, HasLeaves hasLeaves,
 			HasVariables hasVariables,  int match) {
 		this.executable = execution;
 		this.match = match;
@@ -45,26 +45,26 @@ public class Variable implements Executable, HasLeaves, HasVariables {
 		return executable.hasName();
 	}
 
-	public Variable[] getVariables() {
+	public ExecutionVariable[] getVariables() {
 		return hasVariables.getVariables();
 	}
 
-	public Leaf[] getLeaves() {
+	public ExecutionLeaf[] getLeaves() {
 		return hasLeaves.getLeaves();
 	}
 	
 	private static final String MATCH = "match";
 	
 	/**
-	 * Deserialize a {@link Variable} from a {@link Interfaces.JSON.Object}.
+	 * Deserialize a {@link ExecutionVariable} from a {@link Interfaces.JSON.Object}.
 	 * @param location A {@link URI} that identifies the root of this variable's leaves.
 	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
-	 * @return An {@link Variable} instance.
+	 * @return An {@link ExecutionVariable} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of
-	 * a Variable.
+	 * a ExecutionVariable.
 	 */
-	protected static Variable deserialize(Interfaces.JSON jsonInterface,
+	protected static ExecutionVariable deserialize(Interfaces.JSON jsonInterface,
 					URI location, Interfaces.JSON.Object jsonObject)
 				throws DeserializationException {
 		try {
@@ -73,28 +73,28 @@ public class Variable implements Executable, HasLeaves, HasVariables {
 			HasVariables hasVariables = HasVariables.Deserializer.deserialize(jsonInterface, location, jsonObject);
 			int match = jsonObject.getInt(MATCH);
 			
-			return new Variable(executable, hasLeaves, hasVariables, match);
+			return new ExecutionVariable(executable, hasLeaves, hasVariables, match);
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
 	
 	/**
-	 * Deserialize an array of {@link Variable}s from a {@link Interfaces.JSON.Array}.
+	 * Deserialize an array of {@link ExecutionVariable}s from a {@link Interfaces.JSON.Array}.
 	 * @param location A {@link URI} that identifies the root of this variables' leaves.
 	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 	 * @param jsonArray Input {@link Interfaces.JSON.Array} array.
-	 * @return An array of {@link Variable} instances.
+	 * @return An array of {@link ExecutionVariable} instances.
 	 * @throws DeserializationException If the array contains an invalid JSON serialization of
-	 * a Variable, or if the array is invalid.
+	 * a ExecutionVariable, or if the array is invalid.
 	 */
-	protected static Variable[] deserializeArray(Interfaces.JSON jsonInterface,
+	protected static ExecutionVariable[] deserializeArray(Interfaces.JSON jsonInterface,
 					URI location, Interfaces.JSON.Array jsonArray)
 				throws DeserializationException {
-		Variable[] variables = new Variable[jsonArray.length()];
+		ExecutionVariable[] variables = new ExecutionVariable[jsonArray.length()];
 		for(int i = 0 ; i < jsonArray.length() ; i++ ) {
 			try {
-				variables[i] = Variable.deserialize(jsonInterface, location, jsonArray.getJSONObject(i));
+				variables[i] = ExecutionVariable.deserialize(jsonInterface, location, jsonArray.getJSONObject(i));
 			} catch(JSONInterfaceException e) {
 				throw new DeserializationException(e, jsonArray, i);
 			}

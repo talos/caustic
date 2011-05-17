@@ -1,11 +1,11 @@
 package net.microscraper.client;
 
 import net.microscraper.client.Resources.ResourceException;
-import net.microscraper.resources.DefaultExecutionProblem.ExecutionFatality;
-import net.microscraper.resources.Resource;
-import net.microscraper.resources.Status;
-import net.microscraper.resources.definitions.Reference;
-import net.microscraper.resources.definitions.Scraper.ScraperResult;
+import net.microscraper.execution.Resource;
+import net.microscraper.execution.Status;
+import net.microscraper.execution.DefaultExecutionProblem.ExecutionFatality;
+import net.microscraper.model.Reference;
+import net.microscraper.model.Scraper.ScraperResult;
 
 /**
  * A microscraper Client allows for scraping from microscraper json.

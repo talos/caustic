@@ -26,8 +26,10 @@ import net.microscraper.client.UnencodedNameValuePair;
 public class JavaNetBrowser implements Browser {
 	private final Log log;
 	private final Hashtable cookieStore = new Hashtable();
-	public JavaNetBrowser(Log log) {
+	private final String encoding;
+	public JavaNetBrowser(Log log, String encoding) {
 		this.log = log;
+		this.encoding = encoding;
 	}
 	/*
 	public Interfaces.JSON.Object loadJSON(String url, Interfaces.JSON jsonInterface)
@@ -76,7 +78,7 @@ public class JavaNetBrowser implements Browser {
 			
 			String post_data = "";
 			for(int i = 0 ; i < posts.length ; i ++) {
-				post_data += posts[i].getName() + '=' + posts[i].getValue() + '&';
+				post_data += posts[i].getName(encoding) + '=' + posts[i].getValue(encoding) + '&';
 			}
 			post_data = post_data.substring(0, post_data.length() -1); // trim trailing ampersand
 	
@@ -155,7 +157,7 @@ public class JavaNetBrowser implements Browser {
 		
 		// Add cookies passed directly into cookie store. Very primitive.
 		for(int i = 0; i < cookies.length ; i++) {
-			cookieStore.put(cookies[i].getName(), cookies[i].getValue());
+			cookieStore.put(cookies[i].getName(encoding), cookies[i].getValue(encoding));
 		}
 		
 		// Add generic Headers.
