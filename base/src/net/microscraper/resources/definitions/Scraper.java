@@ -13,7 +13,7 @@ public class Scraper extends Resource implements HasVariables, HasLeaves,
 	
 	public final ScraperSource scraperSource;
 	public Scraper(URI location, ScraperSource scraperSource, HasVariables hasVariables, HasLeaves hasLeaves,
-			HasPipes hasPipes) {
+			HasPipes hasPipes) throws URIMustBeAbsoluteException {
 		super(location);
 		this.scraperSource = scraperSource;
 		this.hasPipes = hasPipes;

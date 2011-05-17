@@ -10,7 +10,7 @@ public final class Parser extends Resource {
 	public final MustacheTemplate replacement;
 	public final Pattern[] tests;
 	public Parser(URI location, Pattern pattern,
-			MustacheTemplate replacement, Pattern[] tests) {
+			MustacheTemplate replacement, Pattern[] tests) throws URIMustBeAbsoluteException {
 		super(location);
 		this.replacement = replacement;
 		this.pattern = pattern;

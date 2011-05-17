@@ -9,7 +9,11 @@ public abstract class Resource {
 	 */
 	public final URI location;
 	
-	protected Resource(URI location) {
-		this.location = location;
+	protected Resource(URI location) throws URIMustBeAbsoluteException {
+		if(location.isAbsolute()) {
+			this.location = location;
+		} else {
+			throw new URIMustBeAbsoluteException(location);
+		}
 	}
 }

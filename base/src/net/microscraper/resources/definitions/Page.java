@@ -84,10 +84,11 @@ public final class Page extends Resource {
 	 * @param loadBefore An array of {@link Link}s to Pages that should be loaded before loading this page.
 	 * @param terminates An array of {@link Pattern}s that terminate the loading of this page.
 	 * @param posts An array of {@link Post}s to add to include in the request.
+	 * @throws URIMustBeAbsoluteException If the provided location is not absolute.
 	 */
 	public Page(URI location, Method method, URL url, Cookie[] cookies,
 			Header[] headers, Link[] loadBefore, Pattern[] terminates,
-			Post[] posts) {
+			Post[] posts) throws URIMustBeAbsoluteException {
 		super(location);
 		this.method = method;
 		this.url = url;
