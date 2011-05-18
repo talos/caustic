@@ -23,8 +23,8 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Variables;
 import net.microscraper.model.DeserializationException;
-import net.microscraper.model.ExecutionLeaf;
-import net.microscraper.model.ExecutionVariable;
+import net.microscraper.model.ExecutableLeaf;
+import net.microscraper.model.ExecutableVariable;
 import net.microscraper.model.Link;
 import net.microscraper.model.MustacheNameValuePair;
 import net.microscraper.model.MustacheTemplate;
@@ -90,8 +90,8 @@ public class ContextRoot implements Variables {
 	 * Run the ContextRoot using its Scraper.
 	 */
 	public void run() {
-		ExecutionVariable[] executionVariables = scraper.getVariables();
-		ExecutionLeaf[] executionLeaves = scraper.getLeaves();
+		ExecutableVariable[] executionVariables = scraper.getVariables();
+		ExecutableLeaf[] executionLeaves = scraper.getLeaves();
 		
 		// General piping, these Contexts are passed all this Context's variables once it
 		// stops advancing, but nothing special.
@@ -153,7 +153,7 @@ public class ContextRoot implements Variables {
 		}
 	}
 	
-	private void run(ExecutionVariable variable, String stringToParse)// throws NoMatchesException, MissingGroupException, IOException, DeserializationException, MissingVariableException, MustacheTemplateException, InvalidRangeException {
+	private void run(ExecutableVariable variable, String stringToParse)// throws NoMatchesException, MissingGroupException, IOException, DeserializationException, MissingVariableException, MustacheTemplateException, InvalidRangeException {
 	{
 		Parser parser = resourceLoader.loadParser(variable.getParserLink());
 		Interfaces.Regexp.Pattern pattern = compile(parser.pattern);
@@ -166,12 +166,12 @@ public class ContextRoot implements Variables {
 			variables.put(variable.getName(), output);
 		}
 		
-		ExecutionVariable[] childVariables = variable.getVariables();
+		ExecutableVariable[] childVariables = variable.getVariables();
 		for(int i = 0 ; i < childVariables.length ; i ++) {
 			run(childVariables[i], output);
 		}
 		
-		ExecutionLeaf[] childLeaves = variable.getLeaves();
+		ExecutableLeaf[] childLeaves = variable.getLeaves();
 		for(int i = 0 ; i < childLeaves.length ; i ++) {
 			try {
 				run(childLeaves[i], output);
@@ -180,7 +180,7 @@ public class ContextRoot implements Variables {
 			} catch (DeserializationException e) {
 				log.e(e);
 			} catch (MissingVariableException e) {
-
+				
 				// TODO RETRY
 			} catch (NoMatchesException e) {
 				log.e(e);
@@ -194,7 +194,7 @@ public class ContextRoot implements Variables {
 		}
 	}
 	
-	private void run(ExecutionLeaf leaf, String stringToParse) throws IOException, DeserializationException, MissingVariableException, MustacheTemplateException, NoMatchesException, MissingGroupException, InvalidRangeException {
+	private void run(ExecutableLeaf leaf, String stringToParse) throws IOException, DeserializationException, MissingVariableException, MustacheTemplateException, NoMatchesException, MissingGroupException, InvalidRangeException {
 		Parser parser = resourceLoader.loadParser(leaf.getParserLink());
 		Interfaces.Regexp.Pattern pattern = compile(parser.pattern);
 		String replacement = compile(parser.replacement);

@@ -14,7 +14,7 @@ public class ScrapingDelay extends Throwable implements ScrapingProblem {
 	private final Problematic executable;
 	
 	/**
-	 * Generate an execution delay because of a Missing ExecutionVariable in a Mustache template.
+	 * Generate an execution delay because of a Missing ExecutableVariable in a Mustache template.
 	 * @param missingVariable {@link MissingReference} The MissingReference throwable.
 	 * @param executable The executable that was missing a variable.
 	 */
