@@ -13,8 +13,10 @@ import net.microscraper.client.EncodedNameValuePair;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Interfaces.Regexp;
 
-public final class Context implements ResourceLoader, net.microscraper.client.Interfaces.Regexp, 
-	net.microscraper.client.Interfaces.JSON, Browser, net.microscraper.client.Interfaces.Logger {
+public final class Context implements ResourceLoader,
+	net.microscraper.client.Interfaces.Regexp, 
+	net.microscraper.client.Interfaces.JSON, Browser,
+	net.microscraper.client.Interfaces.Logger {
 	
 	private final ResourceLoader resourceLoader;
 	private final net.microscraper.client.Interfaces.Regexp regexp;

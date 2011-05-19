@@ -1,5 +1,10 @@
 package net.microscraper.execution;
 
-public interface HasScraperExecutions {
+/**
+ * 
+ * @author realest
+ *
+ */
+public interface HasScraperExecutions extends Execution {
 	public ScraperExecution[] getScraperExecutions();
 }
