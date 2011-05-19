@@ -1,13 +1,8 @@
 package net.microscraper.execution;
 
-import net.microscraper.model.Executable;
-
-public abstract class Execution {
-	private final Executable executable;
-	public Execution(Executable executable) {
-		this.executable = executable;
-	}
-	
-	public abstract boolean isComplete();
+public interface Execution extends Runnable {
 	public abstract boolean isStuck();
+	public abstract boolean hasFailed();
+	public abstract boolean isComplete();
+	//public abstract Execution[] children();
 }

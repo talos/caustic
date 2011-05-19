@@ -1,6 +1,6 @@
 package net.microscraper.client;
 
-public class MustacheTemplateException extends Throwable {
+public class MustacheTemplateException extends Exception {
 
 	/**
 	 * 

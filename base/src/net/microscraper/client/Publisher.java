@@ -1,6 +1,6 @@
 package net.microscraper.client;
 
-import net.microscraper.execution.ContextRoot;
+import net.microscraper.execution.ScraperExecution;
 import net.microscraper.execution.Status;
 
 
@@ -16,7 +16,7 @@ public interface Publisher {
 	public static final String DELAY = "delay";
 	public static final String FAILURE = "failure";
 	
-	public void publish(ContextRoot execution, Status status) throws PublisherException;
+	public void publish(ScraperExecution execution, Status status) throws PublisherException;
 	
 	public class PublisherException extends Exception {
 

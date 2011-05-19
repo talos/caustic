@@ -85,7 +85,7 @@ public interface Browser {
 	 * @author john
 	 *
 	 */
-	public static class BrowserException extends Throwable {
+	public static class BrowserException extends Exception {
 		private final URL url;
 		public BrowserException(URL url, Throwable e) {
 			super("Could not load " + url, e);

@@ -14,7 +14,7 @@ public interface HasPipes {
 	
 	/**
 	 * 
-	 * @return An array of {@link Link}s to connected {@link ContextRoot}s.
+	 * @return An array of {@link Link}s to connected {@link ScraperExecution}s.
 	 */
 	public abstract Link[] getPipes();
 	
@@ -22,9 +22,9 @@ public interface HasPipes {
 	/**
 	 * A helper class to deserialize 
 	 * interfaces of {@link HasPipes} using an inner constructor.
-	 * Should only be instantiated inside {@link ExecutableLeaf} or {@link ContextRoot}.
-	 * @see ExecutableLeaf
-	 * @see ContextRoot
+	 * Should only be instantiated inside {@link Leaf} or {@link ScraperExecution}.
+	 * @see Leaf
+	 * @see ScraperExecution
 	 * @author john
 	 *
 	 */
@@ -32,7 +32,7 @@ public interface HasPipes {
 		private static final String PIPES = "pipes";
 		
 		/**
-		 * Protected, should be called only by {@link ExecutableLeaf} or {@link ContextRoot}.
+		 * Protected, should be called only by {@link Leaf} or {@link ScraperExecution}.
 		 * Deserialize an {@link HasPipes} from a {@link Interfaces.JSON.Object}.
 		 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 		 * @param location A {@link URI} that identifies the root of these pipe references.

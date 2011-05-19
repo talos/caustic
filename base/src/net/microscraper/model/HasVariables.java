@@ -6,7 +6,7 @@ import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 
 /**
- * Allows connections to an {@link ExecutableVariable} executable.
+ * Allows connections to an {@link Variable} executable.
  * @author john
  *
  */
@@ -14,16 +14,16 @@ public interface HasVariables {
 	
 	/**
 	 * 
-	 * @return An array of associated {@link ExecutableVariable} executables.
+	 * @return An array of associated {@link Variable} executables.
 	 */
-	public abstract ExecutableVariable[] getVariables();
+	public abstract Variable[] getVariables();
 	
 	/**
 	 * A helper class to deserialize 
 	 * interfaces of {@link HasVariables} using an inner constructor.
-	 * Should only be instantiated inside {@link ExecutableVariable} or {@link ContextRoot}.
-	 * @see ExecutableVariable
-	 * @see ContextRoot
+	 * Should only be instantiated inside {@link Variable} or {@link ScraperExecution}.
+	 * @see Variable
+	 * @see ScraperExecution
 	 * @author john
 	 *
 	 */
@@ -31,7 +31,7 @@ public interface HasVariables {
 		private static final String VARIABLES = "variables";
 		
 		/**
-		 * Protected, should be called only by {@link ExecutableVariable} or {@link ContextRoot}.
+		 * Protected, should be called only by {@link Variable} or {@link ScraperExecution}.
 		 * Deserialize an {@link HasVariables} from a {@link Interfaces.JSON.Object}.
 		 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 		 * @param location A {@link URI} that identifies the root of these variables.
@@ -44,9 +44,9 @@ public interface HasVariables {
 						URI location, Interfaces.JSON.Object jsonObject)
 					throws DeserializationException {
 			try {
-				final ExecutableVariable[] variables = ExecutableVariable.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(VARIABLES));				
+				final Variable[] variables = Variable.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(VARIABLES));				
 				return new HasVariables() {
-					public ExecutableVariable[] getVariables() {
+					public Variable[] getVariables() {
 						return variables;
 					}
 				};

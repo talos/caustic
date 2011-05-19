@@ -25,22 +25,22 @@ public class Scraper extends Resource implements HasVariables, HasLeaves,
 		return hasPipes.getPipes();
 	}
 
-	public ExecutableLeaf[] getLeaves() {
+	public Leaf[] getLeaves() {
 		return hasLeaves.getLeaves();
 	}
 
-	public ExecutableVariable[] getVariables() {
+	public Variable[] getVariables() {
 		return hasVariables.getVariables();
 	}
 	
 	public static final String SOURCE = "source";
 	
 	/**
-	 * Deserialize a {@link ContextRoot} from a {@link Interfaces.JSON.Object}.
+	 * Deserialize a {@link ScraperExecution} from a {@link Interfaces.JSON.Object}.
 	 * @param location The scraper's {@link URI} location.
 	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
-	 * @return An {@link ExecutableVariable} instance.
+	 * @return An {@link Variable} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of
 	 * a ContextRoot.
 	 */

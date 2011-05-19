@@ -6,15 +6,15 @@ import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 
 /**
- * An {@link Executable} can be used to connect a {@link Parser} to a String source.
+ * An {@link Parsable} can be used to connect a {@link Parser} to a String source.
  * @author john
  *
  */
-public interface Executable {
+public interface Parsable {
 	
 	/**
 	 * 
-	 * @return A {@link Link} to the Parser this {@link Executable} uses.
+	 * @return A {@link Link} to the Parser this {@link Parsable} uses.
 	 */
 	public Link getParserLink();
 	
@@ -36,10 +36,10 @@ public interface Executable {
 	
 	/**
 	 * A helper class to deserialize 
-	 * interfaces of {@link Executable} using an inner constructor.
-	 * Should only be instantiated inside {@link ExecutableVariable} or {@link ExecutableLeaf}.
-	 * @see ExecutableVariable
-	 * @see ExecutableLeaf
+	 * interfaces of {@link Parsable} using an inner constructor.
+	 * Should only be instantiated inside {@link Variable} or {@link Leaf}.
+	 * @see Variable
+	 * @see Leaf
 	 * @author john
 	 *
 	 */
@@ -49,18 +49,18 @@ public interface Executable {
 		private static final String NAME_DEFAULT = null;
 		
 		/**
-		 * Protected, should be called only by {@link ExecutableVariable} or {@link ExecutableLeaf}.
-		 * Deserialize an {@link Executable} from a {@link Interfaces.JSON.Object}.
+		 * Protected, should be called only by {@link Variable} or {@link Leaf}.
+		 * Deserialize an {@link Parsable} from a {@link Interfaces.JSON.Object}.
 		 * @param location A {@link URI} that identifies the root of this execution's links.
 		 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 		 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
-		 * @return An {@link Executable} instance.
+		 * @return An {@link Parsable} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
 		 * an Execution.
-		 * @see ExecutableVariable#deserialize
-		 * @see ExecutableLeaf#deserialize
+		 * @see Variable#deserialize
+		 * @see Leaf#deserialize
 		 */
-		protected static Executable deserialize(Interfaces.JSON jsonInterface,
+		protected static Parsable deserialize(Interfaces.JSON jsonInterface,
 						URI location, Interfaces.JSON.Object jsonObject)
 					throws DeserializationException {
 			try {
@@ -75,7 +75,7 @@ public interface Executable {
 					name = NAME_DEFAULT;
 				}
 				
-				return new Executable() {
+				return new Parsable() {
 					public Link getParserLink() {
 						return parserLink;
 					}

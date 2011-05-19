@@ -3,7 +3,7 @@ package net.microscraper.client;
 import java.util.Hashtable;
 
 /**
- * A read-only Hashtable<String, String> wrapper for Hashtable.  Supports only 
+ * A read-only equivalent to Hashtable<String, String>, implemented by trees.
  * {@link #get} and {@link #containsKey}.  Raises a 
  * {@link MissingVariableException} on missing keys.
  * @author realest
@@ -22,7 +22,7 @@ public interface Variables {
 	public String get(String key) throws MissingVariableException;
 	
 	/**
-	 * Tests if the specified object is a key in this hashtable. 
+	 * Tests if the specified object is a key in this {@link Variables}. 
 	 * @param key possible key 
 	 * @return <code>true</code> if and only if the specified String is a key
 	 * in this {@link Variables}, as determined by the equals method; false otherwise. 

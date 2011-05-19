@@ -4,7 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 
 import net.microscraper.client.Interfaces;
-import net.microscraper.execution.ContextRoot;
+import net.microscraper.execution.ScraperExecution;
 import net.microscraper.execution.ScrapingDelay;
 import net.microscraper.execution.ScrapingFatality;
 
