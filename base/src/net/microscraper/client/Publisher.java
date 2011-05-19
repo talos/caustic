@@ -1,8 +1,6 @@
 package net.microscraper.client;
 
-import net.microscraper.execution.ScraperExecution;
-import net.microscraper.execution.Status;
-
+import net.microscraper.execution.Execution;
 
 public interface Publisher {
 	public static final String ID = "id";
@@ -16,7 +14,7 @@ public interface Publisher {
 	public static final String DELAY = "delay";
 	public static final String FAILURE = "failure";
 	
-	public void publish(ScraperExecution execution, Status status) throws PublisherException;
+	public void publish(Execution execution) throws PublisherException;
 	
 	public class PublisherException extends Exception {
 

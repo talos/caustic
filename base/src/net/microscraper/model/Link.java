@@ -17,6 +17,12 @@ public class Link {
 			throw new URIMustBeAbsoluteException(this.location);
 		}
 	}
+	public Link (URI absoluteURI) throws URIMustBeAbsoluteException {
+		this.location = absoluteURI;
+		if(this.location.isAbsolute() == false) {
+			throw new URIMustBeAbsoluteException(this.location);
+		}
+	}
 	
 	private static final String REF = "$REF";
 	
