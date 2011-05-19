@@ -1,12 +1,8 @@
 package net.microscraper.client.impl;
 
-import net.microscraper.client.Client;
 import net.microscraper.client.Publisher;
-import net.microscraper.client.Utils;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
-import net.microscraper.execution.ScraperExecution;
-import net.microscraper.execution.Status;
-import net.microscraper.execution.ScraperExecution.ExecutionProblem;
+import net.microscraper.execution.Execution;
 
 public class SQLPublisher implements Publisher {
 	public static final String TABLE_NAME = "executions";
@@ -18,16 +14,20 @@ public class SQLPublisher implements Publisher {
 		try {
 			inter.execute(
 				"CREATE TABLE `"+ TABLE_NAME +"` (" +
+					"`" + RESOURCE_LOCATION + "` " + inter.varcharColumnType() + ", " +
 					"`" + SOURCE_ID + "` " + inter.intColumnType() + ", " +
 					"`" + ID + "` " + inter.idColumnType() + " " + inter.keyColumnDefinition() + ", " +
-					"`" + STATUS + "` " + inter.varcharColumnType() + ", " +
+					"`" + COMPLETE + "` " + inter.intColumnType() + ", " +
+					"`" + STUCK + "` " + inter.intColumnType() + ", " +
+					"`" + FAILURE + "` " + inter.intColumnType() + ", " +
 					"`" + NAME + "` " + inter.varcharColumnType() + ", " + 
 					"`" + TYPE + "` " + inter.varcharColumnType() + ", " + 
 					"`" + VALUE + "` " + inter.textColumnType() + " )");
 		} catch(SQLInterfaceException e) {
 			// The table might already exist.
 			try {
-				inter.query("SELECT `"+ SOURCE_ID +"`, `"+ ID +"`, `"+ STATUS +"`, `"
+				inter.query("SELECT `"+ RESOURCE_LOCATION + "`, `" + SOURCE_ID +"`, `"+ ID +"`, `"+ COMPLETE +"`, `" + 
+						"`, `" + STUCK + "`, `"+ FAILURE 
 						+ NAME + "`, `"+ TYPE +"`, `"+ VALUE +"` FROM " + TABLE_NAME);
 			} catch (SQLInterfaceException e2) {
 				// Something is weird -- wrong schema in the specified SQL file?  Abort.
@@ -37,46 +37,45 @@ public class SQLPublisher implements Publisher {
 		}
 	}
 	
-	private void addEntry(ScraperExecution execution, String status, Class<?> klass, String value) throws SQLInterfaceException {
+	private void addEntry(Execution execution) throws SQLInterfaceException {
 		String[] substitutions = new String[] {
-			Integer.toString(execution.getSourceExecution().id),
-			Integer.toString(execution.id),
-			status,
-			execution.getPublishName(),
-			klass.getSimpleName(),
-			value };
+				getResourceLocationString(execution),
+				Integer.toString(execution.getCaller().getId()),
+				Integer.toString(execution.getId()),
+				execution.isComplete() ? "1" : "0",
+				execution.isStuck()    ? "1" : "0",
+				execution.hasFailed()  ? "1" : "0",
+				execution.hasPublishName() ? execution.getPublishName() : inter.nullValue(),
+				execution.getResource().getClass().getSimpleName(),
+				execution.hasPublishValue() ? execution.getPublishValue() : inter.nullValue() };
 		inter.execute("INSERT INTO `" + TABLE_NAME +
-				"` (`" + SOURCE_ID + "`,`" + ID + "`,`" + STATUS + "`,`" + NAME + "`,`" + TYPE + "`,`" + VALUE + "`) " +
-				"VALUES (?, ?, ?, ?, ?, ?)", substitutions);
+				"` (`" + RESOURCE_LOCATION + "`,`" + SOURCE_ID + "`,`" + ID + "`,`" + COMPLETE + "`,`"
+				+ STUCK + "`,`" + FAILURE + "`,`" + NAME + "`,`"
+				+ TYPE + "`,`" + VALUE + "`) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", substitutions);
 	}
-	
-	public void publish(ScraperExecution execution, Status status) throws PublisherException {
+
+	@Override
+	public void publish(Execution execution) throws PublisherException {
 		try {
 			// delete existing entries
-			inter.execute("DELETE FROM `" + TABLE_NAME +"` WHERE `" + SOURCE_ID + "` = ? AND `" + ID + "` = ?",
+			inter.execute("DELETE FROM `" + TABLE_NAME +"` WHERE `"
+					+ RESOURCE_LOCATION + "` = ? AND `"
+					+ SOURCE_ID + "` = ? AND `" + ID + "` = ?",
 				new String[] {
-					Integer.toString(execution.getSourceExecution().id),
-					Integer.toString(execution.id)
+					getResourceLocationString(execution), 
+					Integer.toString(execution.getCaller().getId()),
+					Integer.toString(execution.getId())
 				});
-			String[] successes = status.successes();
-			for(int i = 0 ; i < successes.length ; i ++ ) {
-				addEntry(execution, SUCCESS, successes[i].getClass(), successes[i].toString());
-			}
-			ExecutionProblem[] delays = status.delays();
-			for(int i = 0 ; i < delays.length ; i ++ ) {
-				addEntry(execution, DELAY, delays[i].problemClass(), delays[i].reason());
-			}
-			ExecutionProblem[] failures = status.failures();
-			for(int i = 0 ; i < failures.length ; i ++ ) {
-				addEntry(execution, FAILURE, failures[i].problemClass(), failures[i].reason());
-			}
+			// Add new entry
+			addEntry(execution);
 			
 		} catch(SQLInterfaceException e) {
 			throw new PublisherException(e);
 		}
 	}
-
-	public boolean live() {
-		return true;
+	
+	private static String getResourceLocationString(Execution execution) {
+		return execution.getResource().location.toString();
 	}
 }

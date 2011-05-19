@@ -12,14 +12,21 @@ import net.microscraper.model.Link;
  */
 public final class ScraperExecutionChild extends ScraperExecution {
 	private final HasVariableExecutions parent;
+	private final String extraName;
+	private final String extraValue;
+	
 	public ScraperExecutionChild(Link pipe, Context context, HasVariableExecutions parent) {
 		super(pipe, context, new UnencodedNameValuePair[] { } );
 		this.parent = parent;
+		this.extraName = null;
+		this.extraValue = null;
 	}
 	public ScraperExecutionChild(Link pipe, Context context, HasVariableExecutions parent,
 			String extraName, String extraValue) {
 		super(pipe, context, new UnencodedNameValuePair[] { new UnencodedNameValuePair(extraName, extraValue) });
 		this.parent = parent;
+		this.extraName = extraName;
+		this.extraValue = extraValue;
 	}
 	
 	public String get(String key) throws MissingVariableException {
@@ -35,5 +42,36 @@ public final class ScraperExecutionChild extends ScraperExecution {
 			return parent.containsKey(key);
 		}
 		return true;
+	}
+
+	public Execution getCaller() {
+		return parent;
+	}
+	public boolean hasCaller() {
+		return true;
+	}
+	
+	public boolean hasPublishName() {
+		if(extraName != null)
+			return true;
+		return false;
+	}
+
+	public String getPublishName() {
+		if(hasPublishName())
+			return extraName;
+		return null;
+	}
+
+	public boolean hasPublishValue() {
+		if(extraValue != null)
+			return true;
+		return false;
+	}
+
+	public String getPublishValue() {
+		if(hasPublishValue())
+			return extraName;
+		return null;
 	}
 }

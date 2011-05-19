@@ -9,10 +9,11 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Browser.DelayRequest;
 import net.microscraper.model.Page;
+import net.microscraper.model.Resource;
 
 public class PageExecution implements Execution {
 	private final Page page;
-	private final MustacheCompiler mustache;
+	private final ScraperExecution enclosingScraper;
 	private final Browser browser;
 	
 	private String body = null;
@@ -23,35 +24,43 @@ public class PageExecution implements Execution {
 	private String missingVariable = null;
 	private Exception failure = null;
 	
-	public PageExecution(Browser browser, MustacheCompiler mustache, Page page) {
-		this.mustache = mustache;
+	private final int id;
+	private static int count = 0;
+	
+	public PageExecution(Browser browser, ScraperExecution enclosingScraper, Page page) {
+		this.id = count;
+		count++;
+		this.enclosingScraper = enclosingScraper;
 		this.browser = browser;
 		this.page = page;
 	}
 	
 	private void head() throws UnsupportedEncodingException, DelayRequest, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException {
-		browser.head(mustache.compile(page.url),
-				mustache.compileUnencoded(page.headers),
-				mustache.compileEncoded(page.cookies));
+		browser.head(enclosingScraper.compile(page.url),
+				enclosingScraper.compileUnencoded(page.headers),
+				enclosingScraper.compileEncoded(page.cookies));
 	}
 	
 	private String get() throws UnsupportedEncodingException, DelayRequest, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException, InvalidBodyMethodException {
-		return browser.get(mustache.compile(page.url),
-				mustache.compileUnencoded(page.headers),
-				mustache.compileEncoded(page.cookies),
-				mustache.compile(page.terminates));
+		return browser.get(enclosingScraper.compile(page.url),
+				enclosingScraper.compileUnencoded(page.headers),
+				enclosingScraper.compileEncoded(page.cookies),
+				enclosingScraper.compile(page.terminates));
 	}
 	
 	private String post() throws UnsupportedEncodingException, DelayRequest, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException, InvalidBodyMethodException {	
-		return browser.post(mustache.compile(page.url),
-				mustache.compileUnencoded(page.headers),
-				mustache.compileEncoded(page.cookies),
-				mustache.compile(page.terminates),
-				mustache.compileEncoded(page.posts));
+		return browser.post(enclosingScraper.compile(page.url),
+				enclosingScraper.compileUnencoded(page.headers),
+				enclosingScraper.compileEncoded(page.cookies),
+				enclosingScraper.compile(page.terminates),
+				enclosingScraper.compileEncoded(page.posts));
 	}
 
 	public void run() {
 		if(runSuccessfully == false && !hasFailed()) {
+			/*for(int i = 0 ; i < page.loadBefore.length ; i ++) {
+				page.loadBefore[i].run();
+			}*/
 			try {
 				delayRequest = null;
 				if(page.method.equals(Page.Method.GET)) {
@@ -113,5 +122,40 @@ public class PageExecution implements Execution {
 
 	public Execution[] children() {
 		return new Execution[0];
+	}
+
+	public Execution[] getChildren() {
+		return new Execution[0];
+	}
+
+	public Resource getResource() {
+		return page;
+	}
+
+	public Execution getCaller() {
+		return enclosingScraper;
+	}
+	public boolean hasCaller() {
+		return true;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public boolean hasPublishName() {
+		return false;
+	}
+
+	public String getPublishName() {
+		return null;
+	}
+
+	public boolean hasPublishValue() {
+		return false;
+	}
+
+	public String getPublishValue() {
+		return null;
 	}
 }

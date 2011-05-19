@@ -6,6 +6,7 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
 import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
 import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
+import net.microscraper.client.Utils;
 import net.microscraper.model.Leaf;
 import net.microscraper.model.Link;
 
@@ -16,7 +17,7 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 	private final MustacheCompiler mustache;
 	private final String stringToParse;
 	private final Link[] pipes;
-	private final HasVariableExecutions variables;
+	private final HasVariableExecutions callerVariables;
 	private final Context context;
 	private ScraperExecution[] scraperExecutions = new ScraperExecution[0];
 	
@@ -24,7 +25,7 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 	private String lastMissingVariable;
 	private Exception failure;
 	
-	public LeafExecution(Context context, MustacheCompiler mustache, HasVariableExecutions variables, Leaf leaf, String stringToParse) {
+	public LeafExecution(Context context, MustacheCompiler mustache, HasVariableExecutions callerVariables, Leaf leaf, String stringToParse) {
 		super(context, leaf);
 		this.context = context;
 		this.mustache = mustache;
@@ -32,7 +33,7 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 		this.maxMatch = leaf.maxMatch;
 		this.minMatch = leaf.minMatch;
 		this.pipes = leaf.getPipes();
-		this.variables = variables;
+		this.callerVariables = callerVariables;
 	}
 
 	public void run() {
@@ -47,9 +48,9 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 				for(int i = 0 ; i < pipes.length ; i ++) {
 					for(int j = 0 ; j < output.length ; j ++ ) {
 						if(hasName()) {
-							scraperExecutions[(i * j) + i] = new ScraperExecutionChild(pipes[i], context, variables, getName(), output[j]);
+							scraperExecutions[(i * j) + i] = new ScraperExecutionChild(pipes[i], context, callerVariables, getName(), output[j]);
 						} else {
-							scraperExecutions[(i * j) + i] = new ScraperExecutionChild(pipes[i], context, variables);
+							scraperExecutions[(i * j) + i] = new ScraperExecutionChild(pipes[i], context, callerVariables);
 						}
 					}
 				}
@@ -88,8 +89,25 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 			return true;
 		return false;
 	}
-
+	
 	public ScraperExecution[] getScraperExecutions() {
 		return scraperExecutions;
+	}
+	
+	public Execution[] getChildren() {
+		return getScraperExecutions();
+	}
+
+	public Execution getCaller() {
+		return callerVariables;
+	}
+	public boolean hasCaller() {
+		return true;
+	}
+	public boolean hasPublishValue() {
+		return true;
+	}
+	public String getPublishValue() {
+		return Utils.join(results, ", ");
 	}
 }

@@ -13,6 +13,7 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Leaf;
+import net.microscraper.model.Resource;
 import net.microscraper.model.Variable;
 import net.microscraper.model.Link;
 import net.microscraper.model.MustacheNameValuePair;
@@ -50,12 +51,17 @@ public class ScraperExecution implements Execution, HasVariableExecutions, Musta
 	private String lastMissingVariable = null;
 	private Exception failure = null;
 	
+	private final int id;
+	private static int count = 0;
+	
 	/**
 	 * @param scraper The {@link Scraper} that this {@link ScraperExecution} corresponds to.
 	 * @param context
 	 * @param extraVariables An array of {@link UnencodedNameValuePair}s to use as extra variables.
 	 */
 	public ScraperExecution(Link pipe, Context context, UnencodedNameValuePair[] extraVariables) {
+		this.id = count;
+		count++;
 		this.pipe = pipe;
 		this.context = context;
 		this.extraVariables = extraVariables;
@@ -116,7 +122,7 @@ public class ScraperExecution implements Execution, HasVariableExecutions, Musta
 				if(source != null) {
 					variableExecutions = new VariableExecution[variables.length];
 					for(int i = 0 ; i < variables.length ; i ++) {
-						variableExecutions[i] = new VariableExecution(context, this, variables[i], source);
+						variableExecutions[i] = new VariableExecution(context, this, this, variables[i], source);
 					}
 					leafExecutions = new LeafExecution[leaves.length];
 					for(int i = 0 ; i < leaves.length ; i ++) {
@@ -208,6 +214,20 @@ public class ScraperExecution implements Execution, HasVariableExecutions, Musta
 		return false;
 	}
 	
+	public Execution[] getChildren() {
+		Execution[] children = new Execution[getVariableExecutions().length + getLeafExecutions().length + getScraperExecutions().length];
+		for(int i = 0 ; i < getVariableExecutions().length ; i++) {
+			children[i] = getVariableExecutions()[i];
+		}
+		for(int i = 0 ; i < getLeafExecutions().length ; i ++) {
+			children[i + getVariableExecutions().length] = getLeafExecutions()[i];
+		}
+		for(int i = 0 ; i < getScraperExecutions().length ; i ++) {
+			children[i + getVariableExecutions().length + getLeafExecutions().length] = getScraperExecutions()[i];
+		}
+		return children;
+	}
+	
 	public VariableExecution[] getVariableExecutions() {
 		return variableExecutions;
 	}
@@ -218,5 +238,37 @@ public class ScraperExecution implements Execution, HasVariableExecutions, Musta
 
 	public ScraperExecution[] getScraperExecutions() {
 		return scraperExecutions;
+	}
+
+	public Resource getResource() {
+		return scraper;
+	}
+	
+	public Execution getCaller() {
+		return null;
+	}
+
+	public boolean hasCaller() {
+		return false;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public boolean hasPublishName() {
+		return false;
+	}
+
+	public String getPublishName() {
+		return null;
+	}
+
+	public boolean hasPublishValue() {
+		return false;
+	}
+
+	public String getPublishValue() {
+		return null;
 	}
 }

@@ -1,9 +1,11 @@
 package net.microscraper.model;
 
+import java.io.IOException;
 import java.net.URI;
 
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.execution.ResourceLoader;
 import net.microscraper.model.Page.Method.UnknownHTTPMethodException;
 
 
@@ -72,7 +74,7 @@ public final class Page extends Resource {
 	public final URL url;
 	public final Cookie[] cookies;
 	public final Header[] headers;
-	public final Link[] loadBefore;
+	public final Page[] loadBefore;
 	public final Pattern[] terminates;
 	public final Post[] posts;
 	
@@ -87,7 +89,7 @@ public final class Page extends Resource {
 	 * @throws URIMustBeAbsoluteException If the provided location is not absolute.
 	 */
 	public Page(URI location, Method method, URL url, Cookie[] cookies,
-			Header[] headers, Link[] loadBefore, Pattern[] terminates,
+			Header[] headers, Page[] loadBefore, Pattern[] terminates,
 			Post[] posts) throws URIMustBeAbsoluteException {
 		super(location);
 		this.method = method;
@@ -113,24 +115,32 @@ public final class Page extends Resource {
 	
 	/**
 	 * Deserialize a {@link Page} from a {@link Interfaces.JSON.Object}.
+	 * @param resourceLoader {@link ResourceLoader} to immediately load the prior web pages.
 	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 	 * @param location {@link URI} from which the resource was loaded.
 	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
 	 * @return A {@link Page} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of a Page.
+	 * @throws IOException If one of the prior pages could not be loaded.
 	 */
-	public static Page deserialize(Interfaces.JSON jsonInterface,
+	public static Page deserialize(ResourceLoader resourceLoader,
+				Interfaces.JSON jsonInterface,
 				URI location, Interfaces.JSON.Object jsonObject)
-				throws DeserializationException {
+				throws DeserializationException, IOException {
 		try {
 			Method method = Method.fromString(jsonObject.getString(METHOD));
 			URL url = net.microscraper.model.URL.fromString(jsonObject.getString(URL));
 			
 			Cookie[] cookies = jsonObject.has(COOKIES) ? Cookie.deserializeHash(jsonInterface, jsonObject.getJSONObject(COOKIES)) : new Cookie[0];
 			Header[] headers = jsonObject.has(HEADERS) ? Header.deserializeHash(jsonInterface, jsonObject.getJSONObject(HEADERS)) : new Header[0];
-			Link[] loadBefore = jsonObject.has(LOAD_BEFORE) ? Link.deserializeArray(jsonInterface, location, (jsonObject.getJSONArray(LOAD_BEFORE))) : new Link[0];
+			Link[] loadBeforeLinks = jsonObject.has(LOAD_BEFORE) ? Link.deserializeArray(jsonInterface, location, (jsonObject.getJSONArray(LOAD_BEFORE))) : new Link[0];
 			Pattern[] terminates  = jsonObject.has(TERMINATES) ? Pattern.deserializeArray(jsonInterface, (jsonObject.getJSONArray(TERMINATES))) : new Pattern[0];
 			Post[] posts = jsonObject.has(POSTS) ? Post.deserializeHash(jsonInterface, jsonObject.getJSONObject(POSTS)) : new Post[0];
+			
+			Page[] loadBefore = new Page[loadBeforeLinks.length];
+			for(int i = 0 ; i < loadBeforeLinks.length ; i++) {
+				loadBefore[i] = resourceLoader.loadPage(loadBeforeLinks[i]);
+			}
 			
 			return new Page(location, method, url, cookies,
 					headers, loadBefore, terminates, posts);

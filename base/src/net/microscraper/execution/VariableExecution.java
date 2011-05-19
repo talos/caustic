@@ -6,6 +6,7 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
 import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
 import net.microscraper.model.Leaf;
+import net.microscraper.model.Resource;
 import net.microscraper.model.Variable;
 
 public class VariableExecution extends ParsableExecution implements HasVariableExecutions, HasLeafExecutions {
@@ -13,6 +14,7 @@ public class VariableExecution extends ParsableExecution implements HasVariableE
 	private final MustacheCompiler mustache;
 	private final Context context;
 	private final String stringToParse;
+	private final Execution caller;
 	
 	private final Variable[] variables;
 	private VariableExecution[] variableExecutions = new VariableExecution[0];
@@ -27,12 +29,13 @@ public class VariableExecution extends ParsableExecution implements HasVariableE
 	
 	private Exception failure = null;
 	
-	public VariableExecution(Context context, MustacheCompiler mustache, Variable variable, String stringToParse) {
+	public VariableExecution(Context context, Execution caller, MustacheCompiler mustache, Variable variable, String stringToParse) {
 		super(context, variable);
 		this.matchNumber = variable.match;
 		this.mustache = mustache;
 		this.context = context;
 		this.stringToParse = stringToParse;
+		this.caller = caller;
 		
 		variables = variable.getVariables();
 		
@@ -62,7 +65,7 @@ public class VariableExecution extends ParsableExecution implements HasVariableE
 			if(result != null) {
 				variableExecutions = new VariableExecution[variables.length];
 				for(int i = 0 ; i < variables.length ; i ++) {
-					variableExecutions[i] = new VariableExecution(context, mustache, variables[i], result);
+					variableExecutions[i] = new VariableExecution(context, this, mustache, variables[i], result);
 				}
 				
 				leafExecutions = new LeafExecution[leaves.length];
@@ -130,11 +133,37 @@ public class VariableExecution extends ParsableExecution implements HasVariableE
 		return false;
 	}
 	
-	public VariableExecution[] getVariableExecutions() {
-		return variableExecutions;
+	public Execution[] getChildren() {
+		Execution[] children = new Execution[variableExecutions.length + leafExecutions.length];
+		for(int i = 0 ; i < variableExecutions.length ; i++) {
+			children[i] = variableExecutions[i];
+		}
+		for(int i = 0 ; i < leafExecutions.length ; i ++) {
+			children[i + variableExecutions.length] = leafExecutions[i];
+		}
+		return children;
 	}
 
 	public LeafExecution[] getLeafExecutions() {
 		return leafExecutions;
+	}
+
+	public VariableExecution[] getVariableExecutions() {
+		return variableExecutions;
+	}
+
+	public Execution getCaller() {
+		return caller;
+	}
+	public boolean hasCaller() {
+		return true;
+	}
+
+	public boolean hasPublishValue() {
+		return true;
+	}
+
+	public String getPublishValue() {
+		return result;
 	}
 }

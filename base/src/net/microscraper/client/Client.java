@@ -2,7 +2,9 @@ package net.microscraper.client;
 
 import java.net.URI;
 
+import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.execution.Context;
+import net.microscraper.execution.Execution;
 import net.microscraper.execution.LeafExecution;
 import net.microscraper.execution.PageExecution;
 import net.microscraper.execution.ScraperExecution;
@@ -18,65 +20,29 @@ import net.microscraper.model.URIMustBeAbsoluteException;
  */
 public class Client {
 	private final Context context;
+	private final Publisher publisher;
 	
-	public Client(Context context) {
+	public Client(Context context, Publisher publisher) {
 		this.context = context;
+		this.publisher = publisher;
 	}
 	
 	public void scrape(URI scraperLocation, UnencodedNameValuePair[] extraVariables) throws URIMustBeAbsoluteException {
-		ScraperExecution scraperExecution = new ScraperExecution(new Link(scraperLocation), context, extraVariables);
-		while(retryScraper(scraperExecution) != false) { }
-
+		execute(new ScraperExecution(new Link(scraperLocation), context, extraVariables));
 	}
-	
-	private boolean retryScraper(ScraperExecution exc) {
+	private void execute(Execution exc) {
 		exc.run();
-		if(exc.isComplete() || exc.isStuck() || exc.hasFailed()) {
-			return false;
-		} else {
-			VariableExecution[] variableExecutions = exc.getVariableExecutions();
-			for(int i = 0 ; i < variableExecutions.length ; i ++) {
-				retryVariable(variableExecutions[i]);
-			}
-			LeafExecution[] leafExecutions = exc.getLeafExecutions();
-			for(int i = 0 ; i < variableExecutions.length ; i ++) {
-				retryLeaf(leafExecutions[i]);
-			}
-			ScraperExecution[] scraperExecutions = exc.getScraperExecutions();
-			for(int i = 0 ; i < variableExecutions.length ; i ++) {
-				retryScraper(scraperExecutions[i]);
-			}
-			return true;
+		try {
+			publisher.publish(exc);
+		} catch(PublisherException e) {
+			context.e(e);
 		}
-	}
-	
-	private boolean retryVariable(VariableExecution exc) {
-		exc.run();
-		if(exc.isComplete() || exc.isStuck() || exc.hasFailed()) {
-			return false;
-		} else {
-			VariableExecution[] variableExecutions = exc.getVariableExecutions();
-			for(int i = 0 ; i < variableExecutions.length ; i ++) {
-				retryVariable(variableExecutions[i]);
-			}
-			LeafExecution[] leafExecutions = exc.getLeafExecutions();
-			for(int i = 0 ; i < variableExecutions.length ; i ++) {
-				retryLeaf(leafExecutions[i]);
-			}
-			return true;
+		Execution[] children = exc.getChildren();
+		for(int i = 0 ; i < children.length ; i ++) {
+			execute(children[i]);
 		}
-	}
-
-	private boolean retryLeaf(LeafExecution exc) {
-		exc.run();
-		if(exc.isComplete() || exc.isStuck() || exc.hasFailed()) {
-			return false;
-		} else {
-			ScraperExecution[] scraperExecutions = exc.getScraperExecutions();
-			for(int i = 0 ; i < scraperExecutions.length ; i ++) {
-				retryScraper(scraperExecutions[i]);
-			}
-			return true;
+		if(!exc.isComplete() && !exc.isStuck() && !exc.hasFailed()) {
+			execute(exc);
 		}
 	}
 	/*
