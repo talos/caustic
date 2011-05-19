@@ -4,20 +4,20 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import net.microscraper.client.Client;
-import net.microscraper.client.Variables;
+import net.microscraper.execution.HasVariableExecutions;
 import net.microscraper.model.Reference;
 
 public class ScrapeRunnable implements Runnable {
 	private final Client client;
 	private final String url;
 	private final Reference resource_ref;
-	private final Variables variables;
+	private final HasVariableExecutions variables;
 		
 	public ScrapeRunnable(Client client, String url, String model, String full_name,
 			String params_string) {
 		this.url = url;
 		this.resource_ref = new Reference(Model.get(model), full_name);
-		this.variables = Variables.fromFormParams(params_string, MicroScraperApplet.encoding);
+		this.variables = HasVariableExecutions.fromFormParams(params_string, MicroScraperApplet.encoding);
 	}
 	
 	@Override

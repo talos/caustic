@@ -2,7 +2,6 @@ package net.microscraper.execution;
 
 import java.io.IOException;
 
-import net.microscraper.client.Variables;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Parsable;
 import net.microscraper.model.Parser;

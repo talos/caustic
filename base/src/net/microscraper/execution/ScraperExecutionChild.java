@@ -2,7 +2,6 @@ package net.microscraper.execution;
 
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.UnencodedNameValuePair;
-import net.microscraper.client.Variables;
 import net.microscraper.model.Link;
 
 /**
@@ -12,12 +11,12 @@ import net.microscraper.model.Link;
  *
  */
 public final class ScraperExecutionChild extends ScraperExecution {
-	private final Variables parent;
-	public ScraperExecutionChild(Link pipe, Context context, Variables parent) {
+	private final HasVariableExecutions parent;
+	public ScraperExecutionChild(Link pipe, Context context, HasVariableExecutions parent) {
 		super(pipe, context, new UnencodedNameValuePair[] { } );
 		this.parent = parent;
 	}
-	public ScraperExecutionChild(Link pipe, Context context, Variables parent,
+	public ScraperExecutionChild(Link pipe, Context context, HasVariableExecutions parent,
 			String extraName, String extraValue) {
 		super(pipe, context, new UnencodedNameValuePair[] { new UnencodedNameValuePair(extraName, extraValue) });
 		this.parent = parent;

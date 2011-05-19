@@ -5,11 +5,10 @@ import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
 import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
-import net.microscraper.client.Variables;
 import net.microscraper.model.Leaf;
 import net.microscraper.model.Variable;
 
-public class VariableExecution extends ParsableExecution implements Variables, HasLeafExecutions, HasVariableExecutions {
+public class VariableExecution extends ParsableExecution implements HasVariableExecutions, HasLeafExecutions {
 	private final int matchNumber;
 	private final MustacheCompiler mustache;
 	private final Context context;

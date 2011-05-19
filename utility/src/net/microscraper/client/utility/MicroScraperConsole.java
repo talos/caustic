@@ -15,7 +15,6 @@ import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Log;
 import net.microscraper.client.UnencodedNameValuePair;
-import net.microscraper.client.Variables;
 import net.microscraper.client.impl.JDBCSQLite;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaNetBrowser;
@@ -24,6 +23,7 @@ import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.client.impl.SQLPublisher;
 import net.microscraper.client.impl.SystemLogInterface;
 import net.microscraper.execution.Context;
+import net.microscraper.execution.HasVariableExecutions;
 import net.microscraper.model.URIMustBeAbsoluteException;
 
 public class MicroScraperConsole {

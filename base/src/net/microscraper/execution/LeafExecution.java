@@ -3,7 +3,6 @@ package net.microscraper.execution;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
-import net.microscraper.client.Variables;
 import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
 import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
 import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
@@ -17,7 +16,7 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 	private final MustacheCompiler mustache;
 	private final String stringToParse;
 	private final Link[] pipes;
-	private final Variables variables;
+	private final HasVariableExecutions variables;
 	private final Context context;
 	private ScraperExecution[] scraperExecutions = new ScraperExecution[0];
 	
@@ -25,7 +24,7 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 	private String lastMissingVariable;
 	private Exception failure;
 	
-	public LeafExecution(Context context, MustacheCompiler mustache, Variables variables, Leaf leaf, String stringToParse) {
+	public LeafExecution(Context context, MustacheCompiler mustache, HasVariableExecutions variables, Leaf leaf, String stringToParse) {
 		super(context, leaf);
 		this.context = context;
 		this.mustache = mustache;

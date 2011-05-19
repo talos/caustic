@@ -19,6 +19,7 @@ public class PageExecution implements Execution {
 	private boolean runSuccessfully = false;
 	private DelayRequest delayRequest;
 	
+	private String lastMissingVariable = null;
 	private String missingVariable = null;
 	private Exception failure = null;
 	
@@ -66,6 +67,7 @@ public class PageExecution implements Execution {
 					failure = new InvalidBodyMethodException(page);
 				}
 			} catch(MissingVariableException e) {
+				lastMissingVariable = missingVariable;
 				missingVariable = e.name;
 			} catch(BrowserException e) {
 				failure = e;
@@ -84,6 +86,12 @@ public class PageExecution implements Execution {
 	}
 
 	public boolean isStuck() {
+		if(runSuccessfully == false) {
+			if(lastMissingVariable != null && missingVariable != null) {
+				if(lastMissingVariable.equals(missingVariable))
+					return true;
+			}
+		}
 		return false;
 	}
 
