@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 
+import net.microscraper.client.BrowserException;
+import net.microscraper.client.BrowserDelayException;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
-import net.microscraper.client.Browser.BrowserException;
-import net.microscraper.client.Browser.DelayRequest;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Link;
 import net.microscraper.model.Page;
@@ -26,20 +26,20 @@ public class PageExecution extends BasicExecution {
 		this.pageLink = pageLink;
 	}
 	
-	private void head(Page page) throws UnsupportedEncodingException, DelayRequest, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException {
+	private void head(Page page) throws UnsupportedEncodingException, BrowserDelayException, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException {
 		context.head(enclosingScraper.compile(page.url),
 				enclosingScraper.compileUnencoded(page.headers),
 				enclosingScraper.compileEncoded(page.cookies));
 	}
 	
-	private String get(Page page) throws UnsupportedEncodingException, DelayRequest, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException, InvalidBodyMethodException {
+	private String get(Page page) throws UnsupportedEncodingException, BrowserDelayException, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException, InvalidBodyMethodException {
 		return context.get(enclosingScraper.compile(page.url),
 				enclosingScraper.compileUnencoded(page.headers),
 				enclosingScraper.compileEncoded(page.cookies),
 				enclosingScraper.compile(page.terminates));
 	}
 	
-	private String post(Page page) throws UnsupportedEncodingException, DelayRequest, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException, InvalidBodyMethodException {	
+	private String post(Page page) throws UnsupportedEncodingException, BrowserDelayException, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException, InvalidBodyMethodException {	
 		return context.post(enclosingScraper.compile(page.url),
 				enclosingScraper.compileUnencoded(page.headers),
 				enclosingScraper.compileEncoded(page.cookies),
@@ -47,7 +47,7 @@ public class PageExecution extends BasicExecution {
 				enclosingScraper.compileEncoded(page.posts));
 	}
 
-	protected boolean protectedRun() throws DelayRequest, MissingVariableException,
+	protected boolean protectedRun() throws BrowserDelayException, MissingVariableException,
 				BrowserException, MustacheTemplateException, InvalidBodyMethodException,
 				IOException, DeserializationException {
 		Page page = context.loadPage(pageLink);

@@ -3,8 +3,8 @@ package net.microscraper.execution;
 import java.io.IOException;
 import java.net.URI;
 
-import net.microscraper.client.Browser.BrowserException;
-import net.microscraper.client.Browser.DelayRequest;
+import net.microscraper.client.BrowserException;
+import net.microscraper.client.BrowserDelayException;
 import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
 import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
 import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
@@ -18,6 +18,8 @@ public abstract class BasicExecution implements Execution {
 	private final int id;
 	private final Execution caller;
 	private final Context context;
+	
+	private final static int SLEEP_TIME = 1000;
 	
 	private Exception failure = null;
 	private String lastMissingVariable = null;
@@ -63,8 +65,8 @@ public abstract class BasicExecution implements Execution {
 			handleFailure(e);
 		} catch (DeserializationException e) {
 			handleFailure(e);
-		} catch (DelayRequest e) {
-			
+		} catch (BrowserDelayException e) {
+			handleDelay(e);
 		} catch (BrowserException e) {
 			handleFailure(e);
 		} catch (InvalidBodyMethodException e) {
@@ -75,6 +77,17 @@ public abstract class BasicExecution implements Execution {
 		if(isComplete) {
 			handleComplete();
 		}
+	}
+	
+	private void handleDelay(BrowserDelayException e) {
+		try {
+			Thread.sleep(SLEEP_TIME);
+		} catch(InterruptedException interrupt) {
+			context.e(interrupt);
+		}
+		context.i("Delaying load of " + Utils.quote(e.url.toString()) +
+				", current KBPS " +
+				Utils.quote(Float.toString(e.kbpsSinceLastLoad)));
 	}
 	
 	private void handleFailure(Exception e) {
@@ -108,7 +121,7 @@ public abstract class BasicExecution implements Execution {
 	 */
 	protected abstract boolean protectedRun() throws NoMatchesException, MissingGroupException,
 			InvalidRangeException, MustacheTemplateException, MissingVariableException, IOException,
-			DeserializationException, DelayRequest, BrowserException, InvalidBodyMethodException, ScraperSourceException;
+			DeserializationException, BrowserDelayException, BrowserException, InvalidBodyMethodException, ScraperSourceException;
 
 	public final int getId() {
 		return id;

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.microscraper.client.Browser;
+import net.microscraper.client.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;

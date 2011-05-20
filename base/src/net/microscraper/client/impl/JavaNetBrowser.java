@@ -13,10 +13,13 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.client.Browser;
+import net.microscraper.client.BrowserException;
+import net.microscraper.client.BrowserDelayException;
 import net.microscraper.client.EncodedNameValuePair;
 import net.microscraper.client.Interfaces.Regexp.Pattern;
 import net.microscraper.client.Log;
 import net.microscraper.client.UnencodedNameValuePair;
+import net.microscraper.client.Utils;
 
 /**
  * This is a very, very lightweight browser.  It will add headers & posts, and do -very- primitive cookie handling.  It only
@@ -48,7 +51,7 @@ public class JavaNetBrowser implements Browser {
 	//private final Hashtable host_name_amount_downloaded = new Hashtable();
 	
 	public void head(URL url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies)
-			throws DelayRequest, BrowserException {
+			throws BrowserDelayException, BrowserException {
 		log.i("Retrieving Head from  " + url.toString() + "...");
 		try {
 			HttpURLConnection conn = generateConnection(url, headers, cookies);
@@ -60,7 +63,7 @@ public class JavaNetBrowser implements Browser {
 	}
 
 	public String get(URL url, UnencodedNameValuePair[] headers,
-			EncodedNameValuePair[] cookies, Pattern[] terminates) throws DelayRequest,
+			EncodedNameValuePair[] cookies, Pattern[] terminates) throws BrowserDelayException,
 			BrowserException {
 		log.i("Getting  " + url.toString() + "...");
 		try {
@@ -75,7 +78,7 @@ public class JavaNetBrowser implements Browser {
 
 	public String post(URL url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies,
 			Pattern[] terminates, EncodedNameValuePair[] posts)
-				throws DelayRequest, BrowserException {
+				throws BrowserDelayException, BrowserException {
 		log.i("Posting to  " + url.toString() + "...");
 		try {
 			HttpURLConnection conn = generateConnection(url, headers, cookies);
@@ -109,17 +112,13 @@ public class JavaNetBrowser implements Browser {
 	 * @param terminates array of patterns to interrupt the load.
 	 * @return the response body.
 	 * @throws BrowserException if there was an exception loading, including user interrupt.
-	 * @throws DelayRequest if we have loaded too much too fast from a host.
+	 * @throws BrowserDelayException if we have loaded too much too fast from a host.
 	 */
 	private String pullResponse(HttpURLConnection conn, Pattern[] terminates)
-			throws BrowserException, DelayRequest {
+			throws BrowserException {
 
 		URL url = conn.getURL();
-		float kbpsSinceLastLoad = hostMemory.kbpsSinceLastLoadFor(url);
-		log.i("Load speed from " + url.toString() + " : " + Float.toString(kbpsSinceLastLoad));
-		if(kbpsSinceLastLoad > maxKBPS) {
-			throw new DelayRequest(url, kbpsSinceLastLoad);
-		}
+		
 		try {
 			// Pull response.
 			ByteArrayOutputStream content = new ByteArrayOutputStream();
@@ -157,42 +156,51 @@ public class JavaNetBrowser implements Browser {
 	}
 	
 	private HttpURLConnection generateConnection(URL url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies)
-				throws IOException {
-		log.i("Browser loading URL '" + url.toString() + "'");
-		
-		HttpURLConnection.setFollowRedirects(true);
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();			
-		conn.setDoOutput(true);
-		conn.setDoInput(true);
-		conn.setReadTimeout(TIMEOUT);
-		
-		// Add cookies passed directly into cookie store. Very primitive.
-		for(int i = 0; i < cookies.length ; i++) {
-			cookieStore.put(cookies[i].getName(), cookies[i].getValue());
-		}
-		
-		// Add generic Headers.
-		addHeaderToConnection(conn, new UnencodedNameValuePair(ACCEPT_HEADER_NAME, ACCEPT_HEADER_DEFAULT_VALUE));
-		addHeaderToConnection(conn, new UnencodedNameValuePair(ACCEPT_LANGUAGE_HEADER_NAME, ACCEPT_LANGUAGE_HEADER_DEFAULT_VALUE));
-		addHeaderToConnection(conn, new UnencodedNameValuePair(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER_DEFAULT_VALUE));
-		addHeaderToConnection(conn, new UnencodedNameValuePair(REFERER_HEADER_NAME, url.toString()));
-		for(int i = 0 ; i < headers.length ; i++) {
-			addHeaderToConnection(conn, headers[i]);
-		}
-		
-		// Add cookie headers.
-		if(cookieStore.size() > 0) {
-			String cookie_string = "";
-			Enumeration e = cookieStore.keys();
-			while(e.hasMoreElements()) {
-				String name = (String) e.nextElement();
-				cookie_string += name + '=' + (String) cookieStore.get(name) + "; ";
+				throws IOException, BrowserDelayException {
+		float kbpsSinceLastLoad = hostMemory.kbpsSinceLastLoadFor(url);
+		//log.i("Load speed from " + url.toString() + " : " + Float.toString(kbpsSinceLastLoad));
+		if(kbpsSinceLastLoad > maxKBPS) {
+			throw new BrowserDelayException(url, kbpsSinceLastLoad);
+		} else {
+			log.i("Browser loading URL '" + url.toString() + "'");
+			
+			HttpURLConnection.setFollowRedirects(true);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();			
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			conn.setReadTimeout(TIMEOUT);
+			
+			// Add cookies passed directly into cookie store. Very primitive.
+			for(int i = 0; i < cookies.length ; i++) {
+				cookieStore.put(cookies[i].getName(), cookies[i].getValue());
 			}
-			log.i("Using cookies: " + cookie_string);
-			conn.setRequestProperty("Cookie", cookie_string);
+			
+			// Add generic Headers.
+			addHeaderToConnection(conn, new UnencodedNameValuePair(ACCEPT_HEADER_NAME, ACCEPT_HEADER_DEFAULT_VALUE));
+			addHeaderToConnection(conn, new UnencodedNameValuePair(ACCEPT_LANGUAGE_HEADER_NAME, ACCEPT_LANGUAGE_HEADER_DEFAULT_VALUE));
+			addHeaderToConnection(conn, new UnencodedNameValuePair(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER_DEFAULT_VALUE));
+			//addHeaderToConnection(conn, new UnencodedNameValuePair(REFERER_HEADER_NAME, url.toString()));
+			for(int i = 0 ; i < headers.length ; i++) {
+				addHeaderToConnection(conn, headers[i]);
+			}
+			
+			// Add cookie headers.
+			if(cookieStore.size() > 0) {
+				//String cookie_string = "";
+				String[] cookieAry = new String[cookieStore.size()];
+				Enumeration e = cookieStore.keys();
+				int i = 0;
+				while(e.hasMoreElements()) {
+					String name = (String) e.nextElement();
+					cookieAry[i] = name + '=' + (String) cookieStore.get(name);// + "; ";
+				}
+				String cookieString = Utils.join(cookieAry, "; ");
+				log.i("Using cookies: " + cookieString);
+				conn.setRequestProperty("Cookie", cookieString);
+			}
+			
+			return conn;
 		}
-		
-		return conn;
 	}
 	
 	// Indebted to jcookie (http://jcookie.sourceforge.net/doc.html)
@@ -256,7 +264,9 @@ public class JavaNetBrowser implements Browser {
 				int equals_loc = header_value.indexOf('=');
 				if(equals_loc != -1) {
 					String name = header_value.substring(0, equals_loc);
-					String value = header_value.substring(equals_loc + 1);
+					String payload[] = Utils.split(header_value.substring(equals_loc + 1), "; ");
+					String value = payload[0];
+					
 					log.i("Storing cookie '" + name + "' with value '" + value + "'");
 					cookieStore.put(name, value);
 				}

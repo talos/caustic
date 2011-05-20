@@ -27,7 +27,7 @@ public class SQLPublisher implements Publisher {
 						"CREATE TABLE `" + TABLE_NAME + "` (" +
 					"`" + RESOURCE_LOCATION + "` " + sql.varcharColumnType() + ", " +
 					"`" + SOURCE_ID + "` " + sql.intColumnType() + ", " +
-					"`" + ID + "` " + sql.idColumnType() + " " + sql.keyColumnDefinition() + ", " +
+					"`" + ID + "` " + sql.idColumnType() +", " + //+ " " + sql.keyColumnDefinition() + ", " +
 					"`" + STUCK_ON + "` " + sql.varcharColumnType() + ", " +
 					"`" + FAILURE_BECAUSE + "` " + sql.varcharColumnType() + ", " +
 					"`" + NAME + "` " + sql.varcharColumnType() + ", " + 
@@ -111,6 +111,7 @@ public class SQLPublisher implements Publisher {
 	
 	public void forceCommit() throws SQLInterfaceException {
 		deleteExecution.executeBatch();
+		sql.commit();
 		insertExecution.executeBatch();
 		sql.commit();
 		executionsSinceLastCommit = 0;

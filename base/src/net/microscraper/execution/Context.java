@@ -9,6 +9,8 @@ import net.microscraper.model.Page;
 import net.microscraper.model.Parser;
 import net.microscraper.model.Scraper;
 import net.microscraper.client.Browser;
+import net.microscraper.client.BrowserException;
+import net.microscraper.client.BrowserDelayException;
 import net.microscraper.client.EncodedNameValuePair;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Interfaces.Regexp;
@@ -22,24 +24,24 @@ public final class Context implements ResourceLoader,
 	private final net.microscraper.client.Interfaces.Regexp regexp;
 	private final net.microscraper.client.Interfaces.JSON json;
 	private final Browser browser;
-	private final net.microscraper.client.Interfaces.Logger logger;
+	private final net.microscraper.client.Log log;
 	private final String encoding;
 	
 	/**
 	 * @param resourceLoader The {@link ResourceLoader} this {@link ScraperExecution} is set to use.
 	 * @param browser The {@link Browser} this {@link ScraperExecution} is set to use.
-	 * @param logger The {@link Logger} this {@link ScraperExecution} is set to use.
+	 * @param log The {@link Log} this {@link ScraperExecution} is set to use.
 	 * @param encoding The encoding to use when encoding post data and cookies. "UTF-8" is recommended.
 	 * @param regexp The {@link Regexp} interface to use when compiling regexps.
 	 */
 	public Context(ResourceLoader resourceLoader, net.microscraper.client.Interfaces.Regexp regexp,
 			net.microscraper.client.Interfaces.JSON json, Browser browser,
-			net.microscraper.client.Interfaces.Logger logger, String encoding) {
+			net.microscraper.client.Log log, String encoding) {
 		this.resourceLoader = resourceLoader;
 		this.regexp = regexp;
 		this.json = json;
 		this.browser = browser;
-		this.logger = logger;
+		this.log = log;
 		this.encoding = encoding;
 	}
 	
@@ -59,33 +61,33 @@ public final class Context implements ResourceLoader,
 	}
 
 	public void head(URL url, UnencodedNameValuePair[] headers,
-			EncodedNameValuePair[] cookies) throws DelayRequest,
+			EncodedNameValuePair[] cookies) throws BrowserDelayException,
 			BrowserException {
 		browser.head(url, headers, cookies);
 	}
 
 	public String get(URL url, UnencodedNameValuePair[] headers,
 			EncodedNameValuePair[] cookies, Pattern[] terminates)
-			throws DelayRequest, BrowserException {
+			throws BrowserDelayException, BrowserException {
 		return browser.get(url, headers, cookies, terminates);
 	}
 
 	public String post(URL url, UnencodedNameValuePair[] headers,
 			EncodedNameValuePair[] cookies, Pattern[] terminates,
-			EncodedNameValuePair[] posts) throws DelayRequest, BrowserException {
+			EncodedNameValuePair[] posts) throws BrowserDelayException, BrowserException {
 		return browser.post(url, headers, cookies, terminates, posts);
 	}
 
 	public void e(Throwable e) {
-		logger.e(e);
+		log.e(e);
 	}
 
 	public void w(Throwable w) {
-		logger.w(w);
+		log.w(w);
 	}
 
 	public void i(String infoText) {
-		logger.i(infoText);
+		log.i(infoText);
 	}
 
 	public Tokener getTokener(String jsonString) throws JSONInterfaceException {

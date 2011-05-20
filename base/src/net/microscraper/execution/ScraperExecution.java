@@ -7,8 +7,8 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Vector;
 
-import net.microscraper.client.Browser.BrowserException;
-import net.microscraper.client.Browser.DelayRequest;
+import net.microscraper.client.BrowserException;
+import net.microscraper.client.BrowserDelayException;
 import net.microscraper.client.EncodedNameValuePair;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.MissingVariableException;
@@ -104,7 +104,7 @@ public class ScraperExecution extends BasicExecution implements HasVariableExecu
 		return false;
 	}
 	
-	protected boolean protectedRun() throws IOException, DeserializationException, MissingVariableException, MustacheTemplateException, DelayRequest, BrowserException, InvalidBodyMethodException, ScraperSourceException {
+	protected boolean protectedRun() throws IOException, DeserializationException, MissingVariableException, MustacheTemplateException, BrowserDelayException, BrowserException, InvalidBodyMethodException, ScraperSourceException {
 		if(scraper == null) {
 			scraper = context.loadScraper(pipe);
 			

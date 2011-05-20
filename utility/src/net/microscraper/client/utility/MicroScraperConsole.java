@@ -1,9 +1,9 @@
 package net.microscraper.client.utility;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -14,6 +14,7 @@ import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Log;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Utils;
+import net.microscraper.client.impl.FileLogInterface;
 import net.microscraper.client.impl.JDBCSQLite;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaNetBrowser;
@@ -42,22 +43,29 @@ public class MicroScraperConsole {
 		if(args.length > 2 || args.length < 1) {
 			log.i("Proper use: microscraperconsole <url> [<defaults>]");
 		} else {
-			Logger logger = new SystemLogInterface();
-			log.register(logger);
+			String fileTimestamp = DATETIME_FORMAT.format(new Date());
+			
+			Logger sysLogger = new SystemLogInterface();
+			FileLogInterface fileLogger = new FileLogInterface("./" + fileTimestamp + ".log");
+			log.register(sysLogger);
+			log.register(fileLogger);
 			
 			try {
+				fileLogger.open();
 				publisher = new SQLPublisher(
-						new JDBCSQLite("./" + DATETIME_FORMAT.format(new Date()) + ".sqlite",
-								logger), sqlBatchSize);
+						new JDBCSQLite("./" + fileTimestamp + ".sqlite",
+								log), sqlBatchSize);
 				client = new Client(
-						new Context(
-							new LocalJSONResourceLoader(jsonInterface),
-							new JavaUtilRegexInterface(),
-							jsonInterface, new JavaNetBrowser(log, Browser.MAX_KBPS_FROM_HOST),
-							logger,
-							ENCODING),
-							publisher
-				);
+							new Context(
+								new LocalJSONResourceLoader(jsonInterface),
+								new JavaUtilRegexInterface(),
+								jsonInterface,
+								new JavaNetBrowser(log, Browser.MAX_KBPS_FROM_HOST),
+								log,
+								ENCODING
+							),
+						publisher
+					);
 				
 				URI uri = new URI(args[0]);
 				UnencodedNameValuePair[] extraVariables;
@@ -69,6 +77,7 @@ public class MicroScraperConsole {
 				client.scrape(uri, extraVariables);
 				
 				publisher.forceCommit();
+				
 			} catch (URIMustBeAbsoluteException e) {
 				log.e(e);
 			} catch (URISyntaxException e) {
@@ -76,6 +85,13 @@ public class MicroScraperConsole {
 			} catch (UnsupportedEncodingException e) {
 				log.e(e);
 			} catch (SQLInterfaceException e ) {
+				log.e(e);
+			} catch (IOException e) {
+				log.e(e);
+			}
+			try {
+				fileLogger.close();
+			} catch (IOException e) {
 				log.e(e);
 			}
 		}

@@ -7,13 +7,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import net.microscraper.client.Interfaces;
+import net.microscraper.client.Log;
 import net.microscraper.client.Utils;
 
 public class JDBCSQLite implements SQLInterface {
 	private final Connection connection;
-	private final Interfaces.Logger log;
+	private final Log log;
 	
-	public JDBCSQLite(String pathToDB, Interfaces.Logger log) throws SQLInterfaceException {
+	public JDBCSQLite(String pathToDB, Log log) throws SQLInterfaceException {
 		this.log = log;
 		try {
 			Class.forName("org.sqlite.JDBC"); // Make sure we have this class.
