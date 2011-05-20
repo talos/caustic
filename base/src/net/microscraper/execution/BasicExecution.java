@@ -66,6 +66,8 @@ public abstract class BasicExecution implements Execution {
 			handleFailure(e);
 		} catch (InvalidBodyMethodException e) {
 			handleFailure(e);
+		} catch (ScraperSourceException e) {
+			handleFailure(e);
 		}
 	}
 	
@@ -75,9 +77,10 @@ public abstract class BasicExecution implements Execution {
 	}
 	
 	private void handleMissingVariable(MissingVariableException e) {
-		lastMissingVariable = missingVariable;
+		if(missingVariable != null) {
+			lastMissingVariable = new String(missingVariable);
+		}
 		missingVariable = e.name;
-		context.i("Missing " + missingVariable);
 	}
 	
 	/*
@@ -85,7 +88,7 @@ public abstract class BasicExecution implements Execution {
 	 */
 	protected abstract boolean protectedRun() throws NoMatchesException, MissingGroupException,
 			InvalidRangeException, MustacheTemplateException, MissingVariableException, IOException,
-			DeserializationException, DelayRequest, BrowserException, InvalidBodyMethodException;
+			DeserializationException, DelayRequest, BrowserException, InvalidBodyMethodException, ScraperSourceException;
 
 	public final int getId() {
 		return id;
@@ -109,16 +112,29 @@ public abstract class BasicExecution implements Execution {
 	
 	public final boolean isStuck() {
 		if(!isComplete() && lastMissingVariable != null && missingVariable != null) {
-			if(lastMissingVariable.equals(missingVariable))
+			if(lastMissingVariable.equals(missingVariable)) {
 				return true;
+			}
 		}
 		return false;
+	}
+	
+	public final String stuckOn() {
+		if(isStuck())
+			return missingVariable;
+		throw new NullPointerException();
 	}
 
 	public final boolean hasFailed() {
 		if(failure != null)
 			return true;
 		return false;
+	}
+	
+	public final Exception failedBecause() {
+		if(failure != null)
+			return failure;
+		throw new NullPointerException();
 	}
 
 	public final boolean isComplete() {

@@ -4,6 +4,8 @@
  */
 package net.microscraper.client;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -152,36 +154,15 @@ public class Utils {
 		}
 	}
 	
-	public static class HashtableWithNulls {
-		private final Hashtable hashtable = new Hashtable();
-		private boolean objectAtNullAssigned = false;
-		private Object objectAtNull = null;
-		private Vector keysWithNullValues = new Vector();
-		public boolean containsKey(Object key) {
-			if(key == null)
-				return objectAtNullAssigned;
-			if(!hashtable.containsKey(key) && !keysWithNullValues.contains(key))
-				return false;
-			return true;
+	public static UnencodedNameValuePair[] formEncodedDataToNameValuePairs(String formEncodedData, String encoding) throws UnsupportedEncodingException {
+		String[] split = Utils.split(formEncodedData, "&");
+		UnencodedNameValuePair[] pairs = new UnencodedNameValuePair[split.length];
+		for(int i = 0 ; i < split.length; i++) {
+			String[] pair = Utils.split(formEncodedData, "=");
+			pairs[i] = new UnencodedNameValuePair(
+					URLDecoder.decode(pair[0], encoding),
+					URLDecoder.decode(pair[1], encoding));
 		}
-		public void put(Object key, Object value) {
-			if(key == null) {
-				objectAtNull = value;
-				objectAtNullAssigned = true;
-			} else if(value == null) {
-				if(!keysWithNullValues.contains(key)) {
-					keysWithNullValues.addElement(key);
-				}
-			} else {
-				hashtable.put(key, value);
-			}
-		}
-		// since we return null by default for unmapped keys, this is fine.
-		public Object get(Object key) {
-			if(key == null)
-				return objectAtNull;
-			else
-				return hashtable.get(key);
-		}
+		return pairs;
 	}
 }

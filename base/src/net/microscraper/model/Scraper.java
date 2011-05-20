@@ -53,9 +53,9 @@ public class Scraper extends Resource implements HasVariables, HasLeaves,
 			HasPipes hasPipes = HasPipes.Deserializer.deserialize(jsonInterface, location, jsonObject);
 			ScraperSource scraperSource;
 			try {
-				scraperSource = ScraperSource.fromString(jsonObject.getString(SOURCE));
-			} catch(JSONInterfaceException e) {
 				scraperSource = ScraperSource.deserialize(jsonInterface, location, jsonObject.getJSONObject(SOURCE));
+			} catch(JSONInterfaceException e) {
+				scraperSource = ScraperSource.fromString(jsonObject.getString(SOURCE));
 			}
 			return new Scraper(location, scraperSource, hasVariables, hasLeaves, hasPipes);
 		} catch(JSONInterfaceException e) {

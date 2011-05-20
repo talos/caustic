@@ -182,7 +182,7 @@ public class Interfaces {
 	}
 	
 	public static interface Logger {
-		public static final int MAX_ENTRY_LENGTH = 512;
+		public static final int MAX_ENTRY_LENGTH = 51200;
 		
 		/**
 		 * Provide the ability to log throwables as errors.

@@ -12,9 +12,10 @@ public interface Execution extends Runnable {
 	public abstract Execution getCaller();
 	public abstract Execution[] getChildren();
 	
-	
 	public abstract boolean isStuck();
+	public abstract String stuckOn();
 	public abstract boolean hasFailed();
+	public abstract Exception failedBecause();
 	public abstract boolean isComplete();
 	
 	public abstract boolean hasPublishName();

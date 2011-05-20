@@ -43,7 +43,7 @@ public class Mustache {
 			if(variables.containsKey(tag)) {
 				result += variables.get(tag);
 			} else {
-				
+				throw new MissingVariableException(variables, tag);
 			}
 		}
 		return result + template.substring(close_tag_end_pos);

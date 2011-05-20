@@ -12,6 +12,7 @@ import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Log;
 import net.microscraper.client.UnencodedNameValuePair;
+import net.microscraper.client.Utils;
 import net.microscraper.client.impl.JDBCSQLite;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaNetBrowser;
@@ -51,15 +52,11 @@ public class MicroScraperConsole {
 				URI uri = new URI(args[0]);
 				UnencodedNameValuePair[] extraVariables;
 				if(args.length == 2) {
-					extraVariables = postDataToNameValuePairs(args[1]);
+					extraVariables = Utils.formEncodedDataToNameValuePairs(args[1], ENCODING);
 				} else {
 					extraVariables = new UnencodedNameValuePair[0];
 				}
 				client.scrape(uri, extraVariables);
-				/*
-					new SQLPublisher(
-						new JDBCSQLite("./" + DATETIME_FORMAT.format(new Date()) + ".sqlite", log))
-				*/
 			} catch (URIMustBeAbsoluteException e) {
 				log.e(e);
 			} catch (URISyntaxException e) {
@@ -70,16 +67,5 @@ public class MicroScraperConsole {
 				log.e(e);
 			}
 		}
-	}
-	private static UnencodedNameValuePair[] postDataToNameValuePairs(String postData) throws UnsupportedEncodingException {
-		String[] split = postData.split("&");
-		UnencodedNameValuePair[] pairs = new UnencodedNameValuePair[split.length];
-		for(int i = 0 ; i < split.length; i++) {
-			String[] pair = postData.split("=");
-			pairs[i] = new UnencodedNameValuePair(
-					URLDecoder.decode(pair[0], ENCODING),
-					URLDecoder.decode(pair[1], ENCODING));
-		}
-		return pairs;
 	}
 }

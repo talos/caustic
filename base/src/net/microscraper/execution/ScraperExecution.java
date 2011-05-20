@@ -6,6 +6,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 
+import net.microscraper.client.Browser.BrowserException;
+import net.microscraper.client.Browser.DelayRequest;
 import net.microscraper.client.EncodedNameValuePair;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.MissingVariableException;
@@ -46,6 +48,7 @@ public class ScraperExecution extends BasicExecution implements HasVariableExecu
 	private Link[] pipes;
 	private ScraperExecution[] scraperExecutions = new ScraperExecution[0];
 	
+	private PageExecution pageSource = null;
 	private String source = null;
 	
 	/**
@@ -100,7 +103,7 @@ public class ScraperExecution extends BasicExecution implements HasVariableExecu
 		return false;
 	}
 	
-	protected boolean protectedRun() throws IOException, DeserializationException, MissingVariableException, MustacheTemplateException {
+	protected boolean protectedRun() throws IOException, DeserializationException, MissingVariableException, MustacheTemplateException, DelayRequest, BrowserException, InvalidBodyMethodException, ScraperSourceException {
 		if(scraper == null) {
 			scraper = context.loadScraper(pipe);
 			
@@ -108,32 +111,40 @@ public class ScraperExecution extends BasicExecution implements HasVariableExecu
 			leaves = scraper.getLeaves();
 			pipes = scraper.getPipes();
 		}
-		
-		ScraperSource scraperSource = scraper.scraperSource;
-		if(scraperSource.hasStringSource) {
-			source = this.compile(scraperSource.stringSource);
-		} else {
-			//PageExecution page = new PageExecution(context, this, context.loadPage(scraperSource.pageLinkSource));
-			PageExecution page = new PageExecution(context, this, scraperSource.pageLinkSource);
-			page.run();
-			if(page.isComplete()) {
-				source = page.getBody();
+		if(source == null) {
+			ScraperSource scraperSource = scraper.scraperSource;
+			if(scraperSource.hasStringSource) {
+				source = this.compile(scraperSource.stringSource);
+			} else {
+				if(pageSource == null) {
+					pageSource = new PageExecution(context, this, scraperSource.pageLinkSource);
+				}
+				pageSource.run();
+				if(pageSource.isComplete()) {
+					source = pageSource.getBody();
+				} else if(pageSource.isStuck()) {
+					throw new MissingVariableException(this, pageSource.stuckOn());
+				} else if(pageSource.hasFailed()) {
+					throw new ScraperSourceException(this, pageSource.failedBecause());
+				}
 			}
 		}
-		
-		variableExecutions = new VariableExecution[variables.length];
-		for(int i = 0 ; i < variables.length ; i ++) {
-			variableExecutions[i] = new VariableExecution(context, this, this, variables[i], source);
+		if(source != null) {
+			variableExecutions = new VariableExecution[variables.length];
+			for(int i = 0 ; i < variables.length ; i ++) {
+				variableExecutions[i] = new VariableExecution(context, this, this, variables[i], source);
+			}
+			leafExecutions = new LeafExecution[leaves.length];
+			for(int i = 0 ; i < leaves.length ; i ++) {
+				leafExecutions[i] = new LeafExecution(context, this, this, leaves[i], source);
+			}
+			scraperExecutions = new ScraperExecution[pipes.length];
+			for(int i = 0 ; i < pipes.length ; i ++) {
+				scraperExecutions[i] = new ScraperExecutionChild(pipes[i], context, this);
+			}
+			return true;
 		}
-		leafExecutions = new LeafExecution[leaves.length];
-		for(int i = 0 ; i < leaves.length ; i ++) {
-			leafExecutions[i] = new LeafExecution(context, this, this, leaves[i], source);
-		}
-		scraperExecutions = new ScraperExecution[pipes.length];
-		for(int i = 0 ; i < pipes.length ; i ++) {
-			scraperExecutions[i] = new ScraperExecutionChild(pipes[i], context, this);
-		}
-		return true;
+		return false;
 	}
 	
 	public String compile(MustacheTemplate template) throws MissingVariableException, MustacheTemplateException {
