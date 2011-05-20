@@ -138,9 +138,24 @@ public class Interfaces {
 		 *
 		 */
 		public static class NoMatchesException extends Exception {
-			
-			public NoMatchesException(Pattern pattern, String string) {
-				super(pattern.toString() + " did not match against " + string);
+			private static final String MATCH = "Match ";
+			private static final String MATCHES_BETWEEN = "Matches between ";
+			private static final String AND = " and ";
+			private static final String NOT_FOUND = " not found in the ";
+			private static final String MATCHES_OF = " matches of ";
+			private static final String AGAINST = " against ";
+			public NoMatchesException(Pattern pattern, int numFound, int match, String string) {
+				super(MATCH + Utils.quote(match) + NOT_FOUND +
+						Utils.quote(numFound) + MATCHES_OF +
+						Utils.quote(pattern.toString()) + AGAINST +
+						Utils.quote(string));
+			}
+			public NoMatchesException(Pattern pattern, int numFound, int min, int max, String string) {
+				super(MATCHES_BETWEEN + Utils.quote(min) + AND +
+						Utils.quote(max) + NOT_FOUND +
+						Utils.quote(numFound) + MATCHES_OF +
+						Utils.quote(pattern.toString()) + AGAINST +
+						Utils.quote(string));
 			}
 			/**
 			 * 
@@ -158,7 +173,8 @@ public class Interfaces {
 		public static class MissingGroupException extends Exception {
 			
 			public MissingGroupException(Pattern pattern, int group) {
-				super(pattern.toString() + " did not contain a group " + Integer.toString(group));
+				super("'" + pattern.toString() + "' did not contain a group '"
+						+ Integer.toString(group) + "'");
 			}
 			/**
 			 * 
@@ -182,7 +198,7 @@ public class Interfaces {
 	}
 	
 	public static interface Logger {
-		public static final int MAX_ENTRY_LENGTH = 51200;
+		public static final int MAX_ENTRY_LENGTH = 512;
 		
 		/**
 		 * Provide the ability to log throwables as errors.

@@ -41,6 +41,16 @@ public class Utils {
 		return joined;
 	}
 	
+	public static String join(int[] integers, String joinString) {
+		String joined = "";
+		for(int i = 0; i < integers.length; i++) {
+			joined += Integer.toString(integers[i]);
+			if(i < integers.length -1)
+				joined += joinString;
+		}
+		return joined;
+	}
+	
 	public static String truncate(String string, int length) {
 		if(string == null)
 			return "";
@@ -86,6 +96,25 @@ public class Utils {
     	splitString.copyInto(output);
     	return output;
 	}
+	
+	/**
+	 * Return the string with quotations around it. (ex.: a string => "a string")
+	 * @param stringToQuote The String to quote.
+	 * @return The string, quoted.
+	 */
+	public static String quote(String stringToQuote) {
+		return "\"" + stringToQuote + "\"";
+	}
+
+	/**
+	 * Return the int as a String with quotations around it. (ex.: 8 => "8")
+	 * @param integerToQuote The int to quote.
+	 * @return The integer, as a quoted string.
+	 */
+	public static String quote(int integerToQuote) {
+		return quote(Integer.toString(integerToQuote));
+	}
+	
 	/**
 	 * Copy one vector into another.
 	 * @param vector1
@@ -154,6 +183,13 @@ public class Utils {
 		}
 	}
 	
+	/**
+	 * Turn Form-encoded data into an array of {@link UnencodedNameValuePair}s.
+	 * @param formEncodedData A String of form data to convert.
+	 * @param encoding The encoding to use.  "UTF-8" recommended.
+	 * @return An array of {@link UnencodedNameValuePair}s
+	 * @throws UnsupportedEncodingException If the encoding is not supported.
+	 */
 	public static UnencodedNameValuePair[] formEncodedDataToNameValuePairs(String formEncodedData, String encoding) throws UnsupportedEncodingException {
 		String[] split = Utils.split(formEncodedData, "&");
 		UnencodedNameValuePair[] pairs = new UnencodedNameValuePair[split.length];

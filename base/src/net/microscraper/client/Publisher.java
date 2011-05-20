@@ -4,17 +4,16 @@ import net.microscraper.execution.Execution;
 
 public interface Publisher {
 	public static final String RESOURCE_LOCATION = "resource_location";
+	
 	public static final String ID = "id";
 	public static final String SOURCE_ID = "source_id";
-	//public static final String STATUS = "status";
+	
+	public static final String STUCK_ON = "stuck_on";
+	public static final String FAILURE_BECAUSE = "failure_because";
+	
 	public static final String NAME = "name";
-	public static final String TYPE = "type";
 	public static final String VALUE = "value";
-	
-	public static final String COMPLETE = "complete";
-	public static final String STUCK = "stuck";
-	public static final String FAILURE = "failure";
-	
+
 	public void publish(Execution execution) throws PublisherException;
 	
 	public class PublisherException extends Exception {

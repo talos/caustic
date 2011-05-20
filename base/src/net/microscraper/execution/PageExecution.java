@@ -51,6 +51,11 @@ public class PageExecution extends BasicExecution {
 				BrowserException, MustacheTemplateException, InvalidBodyMethodException,
 				IOException, DeserializationException {
 		Page page = context.loadPage(pageLink);
+		
+		// Temporary executions to do before.  Not published, executed each time.
+		for(int i = 0 ; i < page.loadBeforeLinks.length ; i ++) {
+			new PageExecution(context, enclosingScraper, page.loadBeforeLinks[i]).protectedRun();
+		}
 		if(page.method.equals(Page.Method.GET)) {
 			body = get(page);
 		} else if(page.method.equals(Page.Method.POST)) {

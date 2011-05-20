@@ -24,22 +24,22 @@ public class JDBCSQLite implements SQLInterface {
 			throw new SQLInterfaceException(e);
 		}
 	}
-	
+	/*
 	@Override
 	public SQLInterface.Cursor query(String sql) throws SQLInterfaceException {
-		log.i("Querying: " + sql);
+		//log.i("SQL Query: " + sql);
 		return new JDBCSqliteStatement(connection, sql).executeQuery();
 	}
 	
 	@Override
 	public boolean execute(String sql) throws SQLInterfaceException {
-		log.i("Executing: " + sql);
+		//log.i("SQL Execution: " + sql);
 		return new JDBCSqliteStatement(connection, sql).execute();
 	}
 	
 	@Override
 	public Cursor query(String sql, String[] substitutions) throws SQLInterfaceException {
-		log.i("Querying: " + sql + " substituting " + Utils.join(substitutions, ", "));
+		//log.i("SQL Query: " + sql + " substituting " + Utils.join(substitutions, ", "));
 		JDBCSqliteStatement statement = new JDBCSqliteStatement(connection, sql);
 		statement.bindArrayOfStrings(substitutions);
 		return statement.executeQuery();
@@ -47,14 +47,39 @@ public class JDBCSQLite implements SQLInterface {
 
 	@Override
 	public boolean execute(String sql, String[] substitutions) throws SQLInterfaceException {
-		log.i("Executing: " + sql + " substituting " + Utils.join(substitutions, ", "));
+		//log.i("SQL Execution: " + sql + " substituting " + Utils.join(substitutions, ", "));
 		JDBCSqliteStatement statement = new JDBCSqliteStatement(connection, sql);
 		statement.bindArrayOfStrings(substitutions);
 		return statement.execute();
 	}
 	
-	private static class JDBCSqliteStatement implements Statement {
-		private final PreparedStatement statement;
+	@Override
+	public Statement getStatement(String sql, String[] substitutions) throws SQLInterfaceException {
+		//log.i("SQL Statement built: " + sql + " substituting " + Utils.join(substitutions, ", "));
+		JDBCSqliteStatement statement = new JDBCSqliteStatement(connection, sql);
+		statement.bindArrayOfStrings(substitutions);
+		
+		return statement;
+	}
+	
+	@Override
+	public boolean executeBatch(Statement[] statements) throws SQLInterfaceException {
+		try {
+			connection.setAutoCommit(false);
+			java.sql.Statement batchStatement = connection.createStatement();
+			for(int i = 0 ; i < statements.length ; i ++) {
+				//batchStatement.ad
+			}
+			batchStatement.a
+			connection.setAutoCommit(true);
+			return true;
+		} catch(SQLException e) {
+			throw new SQLInterfaceException(e);
+		}
+	}
+	*/
+	private class JDBCSqliteStatement implements PreparedStatement {
+		private final java.sql.PreparedStatement statement;
 		public JDBCSqliteStatement(Connection connection, String sql) throws SQLInterfaceException {
 			try {
 				statement = connection.prepareStatement(sql);
@@ -64,21 +89,6 @@ public class JDBCSQLite implements SQLInterface {
 			}
 		}
 		
-		@Override
-		public void bindString(int index, String value) throws SQLInterfaceException {
-			try {
-				statement.setString(index, value);
-			} catch(SQLException e) {
-				e.printStackTrace();
-				throw new SQLInterfaceException(e);
-			}
-		}
-		
-		public void bindArrayOfStrings(String[] strings) throws SQLInterfaceException {
-			for(int i = 0 ; i < strings.length ; i ++) {
-				bindString(i + 1, strings[i]);
-			}
-		}
 		public String toString() {
 			return statement.toString();
 		}
@@ -90,7 +100,7 @@ public class JDBCSQLite implements SQLInterface {
 			} catch(SQLException e) {
 				throw new SQLInterfaceException(e);
 			}
-		}	
+		}
 		@Override
 		public boolean execute() throws SQLInterfaceException {
 			try {
@@ -98,10 +108,51 @@ public class JDBCSQLite implements SQLInterface {
 			} catch(SQLException e) {
 				throw new SQLInterfaceException(e);
 			}
+		}
+
+		@Override
+		public void bindStrings(String[] strings) throws SQLInterfaceException {
+			try {
+				for(int i = 0 ; i < strings.length ; i ++) {
+					statement.setString(i + 1, strings[i]);
+				}
+			} catch(SQLException e) {
+				throw new SQLInterfaceException(e);
+			}
+		}
+
+		@Override
+		public void addBatch() throws SQLInterfaceException {
+			try {
+				statement.addBatch();
+				
+			} catch (SQLException e) {
+				throw new SQLInterfaceException(e);
+			}
+		}
+
+		@Override
+		public int[] executeBatch() throws SQLInterfaceException {
+			try {
+				int[] rowCounts = statement.executeBatch();
+				log.i("SQL Batch Count: " + Utils.join(rowCounts, ", "));
+				return rowCounts;
+			}  catch (SQLException e) {
+				throw new SQLInterfaceException(e);
+			}
+		}
+		
+		@Override
+		public Cursor query() throws SQLInterfaceException {
+			try {
+				return new JDBCSQLiteCursor(statement.executeQuery());
+			}  catch (SQLException e) {
+				throw new SQLInterfaceException(e);
+			}
 		}	
 	}
 	
-	private static class JDBCSQLiteCursor implements SQLInterface.Cursor {
+	private class JDBCSQLiteCursor implements SQLInterface.Cursor {
 		private final ResultSet resultSet;
 		
 		public JDBCSQLiteCursor(ResultSet rs) {
@@ -174,5 +225,43 @@ public class JDBCSQLite implements SQLInterface {
 	@Override
 	public String nullValue() {
 		return "NULL";
+	}
+
+	@Override
+	public int defaultVarcharLength() {
+		return (int) Math.pow(10, 9);
+	}
+
+	@Override
+	public void disableAutoCommit() throws SQLInterfaceException {
+		try {
+			connection.setAutoCommit(false);
+		} catch (SQLException e) {
+			throw new SQLInterfaceException(e);
+		}
+	}
+
+	@Override
+	public void enableAutoCommit() throws SQLInterfaceException {
+		try {
+			connection.setAutoCommit(true);
+		} catch (SQLException e) {
+			throw new SQLInterfaceException(e);
+		}
+	}
+
+	@Override
+	public void commit() throws SQLInterfaceException {
+		try {
+			connection.commit();
+		} catch (SQLException e) {
+			throw new SQLInterfaceException(e);
+		}
+	}
+
+	@Override
+	public PreparedStatement prepareStatement(String sql)
+			throws SQLInterfaceException {
+		return new JDBCSqliteStatement(connection, sql);
 	}
 }

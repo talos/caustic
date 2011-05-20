@@ -58,7 +58,7 @@ public class JavaUtilRegexInterface implements Regexp {
 				} else if(i > matchNumber) { break; }
 				i++;
 			}
-			throw new NoMatchesException(this, input);
+			throw new NoMatchesException(this, i, matchNumber, input);
 		}
 		
 		@Override
@@ -78,15 +78,15 @@ public class JavaUtilRegexInterface implements Regexp {
 			
 			// No matches at all.
 			if(matchesList.size() == 0)
-				throw new NoMatchesException(this, input);
+				throw new NoMatchesException(this, matchesList.size(), minMatch, maxMatch, input);
 			
 			// Determine the first and last indices relative to our list.
 			int firstIndex = minMatch >= 0 ? minMatch : matchesList.size() + minMatch;
 			int lastIndex  = maxMatch >= 0 ? maxMatch : matchesList.size() + maxMatch;
 			
 			// Range excludes 
-			if(lastIndex > firstIndex)
-				throw new NoMatchesException(this, input);
+			if(lastIndex < firstIndex)
+				throw new NoMatchesException(this, matchesList.size(), firstIndex, lastIndex, input);
 			
 			String[] matches = new String[1 + lastIndex - firstIndex];
 			for(int i = firstIndex ; i < lastIndex ; i++) {

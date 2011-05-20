@@ -1,6 +1,7 @@
 package net.microscraper.execution;
 
 import java.io.IOException;
+import java.util.Vector;
 
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.MissingVariableException;
@@ -42,18 +43,24 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 		Interfaces.Regexp.Pattern pattern = mustache.compile(getParser().pattern);
 		String replacement = mustache.compile(getParser().replacement);
 		String[] output;
-			output = pattern.allMatches(stringToParse, replacement, minMatch, maxMatch);
-
-		scraperExecutions = new ScraperExecution[output.length * pipes.length];
+		output = pattern.allMatches(stringToParse, replacement, minMatch, maxMatch);
+		
+		Vector scraperExecutions = new Vector();
 		for(int i = 0 ; i < pipes.length ; i ++) {
 			for(int j = 0 ; j < output.length ; j ++ ) {
 				if(hasName()) {
-					scraperExecutions[(i * j) + i] = new ScraperExecutionChild(pipes[i], context, callerVariables, getName(), output[j]);
+					// If the Leaf has a Name, send a single match to spawn the scraper.
+					scraperExecutions.add(
+							new ScraperExecutionChild(pipes[i], context, callerVariables, getName(), output[j]));
 				} else {
-					scraperExecutions[(i * j) + i] = new ScraperExecutionChild(pipes[i], context, callerVariables);
+					// If the Leaf does not, spawn the scraper with the standard variables.
+					scraperExecutions.add(
+							new ScraperExecutionChild(pipes[i], context, callerVariables));
 				}
 			}
 		}
+		this.scraperExecutions = new ScraperExecution[scraperExecutions.size()];
+		scraperExecutions.copyInto(this.scraperExecutions);
 		return true;
 	}
 	

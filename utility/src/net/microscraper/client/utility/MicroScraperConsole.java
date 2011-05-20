@@ -7,6 +7,7 @@ import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import net.microscraper.client.Browser;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.Logger;
@@ -27,8 +28,13 @@ public class MicroScraperConsole {
 	private static final SimpleDateFormat DATETIME_FORMAT =
 		new SimpleDateFormat("yyyyMMddkkmmss");
 	private static final String ENCODING = "UTF-8";
+	private static final int sqlBatchSize = 100;
+	
 	private final Log log = new Log();
 	private final Interfaces.JSON jsonInterface = new JSONME();
+	private SQLPublisher publisher;
+	private Client client;
+	
 	public static void main (String[] args) {
 		new MicroScraperConsole(args);
 	}
@@ -38,15 +44,19 @@ public class MicroScraperConsole {
 		} else {
 			Logger logger = new SystemLogInterface();
 			log.register(logger);
+			
 			try {
-				Client client = new Client(
+				publisher = new SQLPublisher(
+						new JDBCSQLite("./" + DATETIME_FORMAT.format(new Date()) + ".sqlite",
+								logger), sqlBatchSize);
+				client = new Client(
 						new Context(
 							new LocalJSONResourceLoader(jsonInterface),
 							new JavaUtilRegexInterface(),
-							jsonInterface, new JavaNetBrowser(log),
+							jsonInterface, new JavaNetBrowser(log, Browser.MAX_KBPS_FROM_HOST),
 							logger,
 							ENCODING),
-						new SQLPublisher(new JDBCSQLite("./" + DATETIME_FORMAT.format(new Date()) + ".sqlite", logger))
+							publisher
 				);
 				
 				URI uri = new URI(args[0]);
@@ -57,6 +67,8 @@ public class MicroScraperConsole {
 					extraVariables = new UnencodedNameValuePair[0];
 				}
 				client.scrape(uri, extraVariables);
+				
+				publisher.forceCommit();
 			} catch (URIMustBeAbsoluteException e) {
 				log.e(e);
 			} catch (URISyntaxException e) {

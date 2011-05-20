@@ -1,6 +1,7 @@
 package net.microscraper.execution;
 
 import java.io.IOException;
+import java.util.Vector;
 
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.MissingVariableException;
@@ -43,15 +44,22 @@ public class VariableExecution extends ParsableExecution implements HasVariableE
 		pattern = mustache.compile(getParser().pattern);
 		String replacement = mustache.compile(getParser().replacement);
 		result = pattern.match(stringToParse, replacement, matchNumber);
-		variableExecutions = new VariableExecution[variables.length];
-		for(int i = 0 ; i < variables.length ; i ++) {
-			variableExecutions[i] = new VariableExecution(context, this, mustache, variables[i], result);
-		}
 		
-		leafExecutions = new LeafExecution[leaves.length];
-		for(int i = 0 ; i < leaves.length ; i ++) {
-			leafExecutions[i] = new LeafExecution(context, mustache, this, leaves[i], result);
+		Vector variableExecutions = new Vector();
+		Vector leafExecutions = new Vector();
+		for(int i = 0 ; i < variables.length ; i ++) {
+			variableExecutions.add(
+					new VariableExecution(context, this, mustache, variables[i], result));
 		}
+		for(int i = 0 ; i < leaves.length ; i ++) {
+			leafExecutions.add(
+					new LeafExecution(context, mustache, this, leaves[i], result));
+		}
+		this.variableExecutions = new VariableExecution[variableExecutions.size()];
+		this.leafExecutions = new LeafExecution[leafExecutions.size()];
+		variableExecutions.copyInto(this.variableExecutions);
+		leafExecutions.copyInto(this.leafExecutions);
+		
 		return true;
 	}
 	

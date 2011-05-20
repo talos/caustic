@@ -7,6 +7,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -26,9 +27,12 @@ import net.microscraper.client.UnencodedNameValuePair;
 public class JavaNetBrowser implements Browser {
 	private final Log log;
 	private final Hashtable cookieStore = new Hashtable();
+	private final HostMemory hostMemory = new HostMemory();
+	private final int maxKBPS;
 	//private final String encoding;
-	public JavaNetBrowser(Log log) {
+	public JavaNetBrowser(Log log, int maxKBPS) {
 		this.log = log;
+		this.maxKBPS = maxKBPS;
 		//this.encoding = encoding;
 	}
 	/*
@@ -105,11 +109,17 @@ public class JavaNetBrowser implements Browser {
 	 * @param terminates array of patterns to interrupt the load.
 	 * @return the response body.
 	 * @throws BrowserException if there was an exception loading, including user interrupt.
+	 * @throws DelayRequest if we have loaded too much too fast from a host.
 	 */
 	private String pullResponse(HttpURLConnection conn, Pattern[] terminates)
-			throws BrowserException {
+			throws BrowserException, DelayRequest {
 
 		URL url = conn.getURL();
+		float kbpsSinceLastLoad = hostMemory.kbpsSinceLastLoadFor(url);
+		log.i("Load speed from " + url.toString() + " : " + Float.toString(kbpsSinceLastLoad));
+		if(kbpsSinceLastLoad > maxKBPS) {
+			throw new DelayRequest(url, kbpsSinceLastLoad);
+		}
 		try {
 			// Pull response.
 			ByteArrayOutputStream content = new ByteArrayOutputStream();
@@ -133,6 +143,7 @@ public class JavaNetBrowser implements Browser {
 				}
 			}
 			responseBody = content.toString();
+			hostMemory.add(url, responseBody.length());
 			return responseBody;
 		} catch(IOException e) {
 			throw new BrowserException(url, e);
@@ -249,6 +260,38 @@ public class JavaNetBrowser implements Browser {
 					log.i("Storing cookie '" + name + "' with value '" + value + "'");
 					cookieStore.put(name, value);
 				}
+			}
+		}
+	}
+	
+	private static class HostMemory {
+
+		private static class LoadedFromHost {
+			public final String host;
+			public final Date timestamp;
+			public final int bytesLoaded;
+			public LoadedFromHost(URL url, int bytesLoaded) {
+				this.timestamp = new Date();
+				this.host = url.getHost();
+				this.bytesLoaded = bytesLoaded;
+			}
+		}
+		
+		private final Hashtable hostMemory = new Hashtable();
+		public void add(URL url, int bytesLoaded) {
+			LoadedFromHost loadedFromHost = new LoadedFromHost(
+					url, bytesLoaded);
+			hostMemory.put(loadedFromHost.host, loadedFromHost);
+		}
+		public float kbpsSinceLastLoadFor(URL url) {
+			Date now = new Date();
+			String host = url.getHost();
+			if(hostMemory.containsKey(host)) {
+				LoadedFromHost lastLoad = (LoadedFromHost) hostMemory.get(host);
+				long millisecondsSince = now.getTime() - lastLoad.timestamp.getTime();
+				return lastLoad.bytesLoaded / millisecondsSince;
+			} else {
+				return 0;
 			}
 		}
 	}

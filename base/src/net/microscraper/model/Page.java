@@ -5,7 +5,6 @@ import java.net.URI;
 
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
-import net.microscraper.execution.ResourceLoader;
 import net.microscraper.model.Page.Method.UnknownHTTPMethodException;
 
 
@@ -74,7 +73,7 @@ public final class Page extends Resource {
 	public final URL url;
 	public final Cookie[] cookies;
 	public final Header[] headers;
-	public final Page[] loadBefore;
+	public final Link[] loadBeforeLinks;
 	public final Pattern[] terminates;
 	public final Post[] posts;
 	
@@ -83,20 +82,20 @@ public final class Page extends Resource {
 	 * @param url A {@link URL} to use requesting the page. 
 	 * @param cookies An array of {@link Cookie}s to add to the browser before requesting this web page.
 	 * @param headers An array of {@link Header}s to add when requesting this web page.
-	 * @param loadBefore An array of {@link Link}s to Pages that should be loaded before loading this page.
+	 * @param loadBeforeLinks An array of {@link Link}s to Pages that should be loaded before loading this page.
 	 * @param terminates An array of {@link Pattern}s that terminate the loading of this page.
 	 * @param posts An array of {@link Post}s to add to include in the request.
 	 * @throws URIMustBeAbsoluteException If the provided location is not absolute.
 	 */
 	public Page(URI location, Method method, URL url, Cookie[] cookies,
-			Header[] headers, Page[] loadBefore, Pattern[] terminates,
+			Header[] headers, Link[] loadBeforeLinks, Pattern[] terminates,
 			Post[] posts) throws URIMustBeAbsoluteException {
 		super(location);
 		this.method = method;
 		this.url = url;
 		this.cookies = cookies;
 		this.headers = headers;
-		this.loadBefore = loadBefore;
+		this.loadBeforeLinks = loadBeforeLinks;
 		this.terminates = terminates;
 		this.posts = posts;
 	}
@@ -115,7 +114,6 @@ public final class Page extends Resource {
 	
 	/**
 	 * Deserialize a {@link Page} from a {@link Interfaces.JSON.Object}.
-	 * @param resourceLoader {@link ResourceLoader} to immediately load the prior web pages.
 	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
 	 * @param location {@link URI} from which the resource was loaded.
 	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
@@ -123,7 +121,7 @@ public final class Page extends Resource {
 	 * @throws DeserializationException If this is not a valid JSON serialization of a Page.
 	 * @throws IOException If one of the prior pages could not be loaded.
 	 */
-	public static Page deserialize(ResourceLoader resourceLoader,
+	public static Page deserialize(
 				Interfaces.JSON jsonInterface,
 				URI location, Interfaces.JSON.Object jsonObject)
 				throws DeserializationException, IOException {
@@ -137,13 +135,8 @@ public final class Page extends Resource {
 			Pattern[] terminates  = jsonObject.has(TERMINATES) ? Pattern.deserializeArray(jsonInterface, (jsonObject.getJSONArray(TERMINATES))) : new Pattern[0];
 			Post[] posts = jsonObject.has(POSTS) ? Post.deserializeHash(jsonInterface, jsonObject.getJSONObject(POSTS)) : new Post[0];
 			
-			Page[] loadBefore = new Page[loadBeforeLinks.length];
-			for(int i = 0 ; i < loadBeforeLinks.length ; i++) {
-				loadBefore[i] = resourceLoader.loadPage(loadBeforeLinks[i]);
-			}
-			
 			return new Page(location, method, url, cookies,
-					headers, loadBefore, terminates, posts);
+					headers, loadBeforeLinks, terminates, posts);
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		} catch(UnknownHTTPMethodException e) {
@@ -152,74 +145,4 @@ public final class Page extends Resource {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
-	
-	/*
-	protected java.net.URL generateURL(ContextRoot context) throws ScrapingDelay, ScrapingFatality {
-		return url.getURL(context);
-	}
-	
-	protected UnencodedNameValuePair[] generateHeaders(ContextRoot context)
-				throws ScrapingDelay, ScrapingFatality {
-		UnencodedNameValuePair[] headersAry = new UnencodedNameValuePair[this.headers.length];
-		for(int i = 0 ; i < this.headers.length ; i ++) {
-			headersAry[i] = headers[i].getNameValuePair(context);
-		}
-		return headersAry;
-	}
-	
-	protected EncodedNameValuePair[] generateEncodedNameValuePairs(
-				ContextRoot context, EncodedHeader[] encodedHeaders)
-				throws ScrapingDelay, ScrapingFatality {
-		try {
-			EncodedNameValuePair[] nameValuePairs = new EncodedNameValuePair[encodedHeaders.length];
-			for(int i = 0 ; i < nameValuePairs.length ; i ++) {
-				nameValuePairs[i] = encodedHeaders[i].getNameValuePair(context);
-			}
-			return nameValuePairs;
-		} catch (UnsupportedEncodingException e) {
-			throw new ScrapingFatality(e, this);
-		}
-	}
-	
-	protected EncodedNameValuePair[] generateCookies(ContextRoot context) throws ScrapingDelay, ScrapingFatality {
-		return generateEncodedNameValuePairs(context, cookies);
-	}
-	
-	protected void headPriorWebPages(ContextRoot context) throws ScrapingDelay, ScrapingFatality {
-		for(int i = 0 ; i < priorWebPages.length ; i ++) {
-			priorWebPages[i].headUsing(context);
-		}
-	}
-	*/
-	/**
-	 * Send an HTTP Head for the web page.  This will add cookies to the browser.
-	 * @param browser the browser to use.
-	 * @throws ScrapingFatality 
-	 * @throws ScrapingFailure 
-	 * @throws ScrapingDelay 
-	 * @throws BrowserException 
-	 * @throws DelayRequest 
-	 * @throws MalformedURLException 
-	 * @throws UnsupportedEncodingException 
-	 */
-	/*
-	public void headUsing(ContextRoot context) throws ScrapingDelay, ScrapingFatality {
-		try {
-			UnencodedNameValuePair[] headers = generateHeaders(context);
-			EncodedNameValuePair[] cookies;
-			cookies = generateCookies(context);
-			
-			headPriorWebPages(context);
-			
-			context.getBrowser().head(generateURL(context), headers, cookies);
-		} catch (DelayRequest e) {
-			throw new ScrapingDelay(e, this);
-		} catch (BrowserException e) {
-			throw new ScrapingFatality(e, this);
-		}
-	}
-	
-	public String getName() {
-		return url.getName();
-	}*/
 }

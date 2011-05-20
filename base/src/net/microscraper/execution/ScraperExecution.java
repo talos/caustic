@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Vector;
 
 import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Browser.DelayRequest;
@@ -95,7 +96,7 @@ public class ScraperExecution extends BasicExecution implements HasVariableExecu
 				return true;
 			}
 		}
-		for(int i = 0 ; i < variables.length ; i ++) {
+		for(int i = 0 ; i < variableExecutions.length ; i ++) {
 			if(variableExecutions[i].containsKey(key)) {
 				return true;
 			}
@@ -129,19 +130,29 @@ public class ScraperExecution extends BasicExecution implements HasVariableExecu
 				}
 			}
 		}
+		
 		if(source != null) {
-			variableExecutions = new VariableExecution[variables.length];
+			// As this is liable to fail at any point in the loops, only save 
+			// executions to the instance
+			// instance variable array at the end.
+			Vector variableExecutions = new Vector();
+			Vector leafExecutions = new Vector();
+			Vector scraperExecutions = new Vector();
 			for(int i = 0 ; i < variables.length ; i ++) {
-				variableExecutions[i] = new VariableExecution(context, this, this, variables[i], source);
+				variableExecutions.add(new VariableExecution(context, this, this, variables[i], source));
 			}
-			leafExecutions = new LeafExecution[leaves.length];
 			for(int i = 0 ; i < leaves.length ; i ++) {
-				leafExecutions[i] = new LeafExecution(context, this, this, leaves[i], source);
+				leafExecutions.add(new LeafExecution(context, this, this, leaves[i], source));
 			}
-			scraperExecutions = new ScraperExecution[pipes.length];
 			for(int i = 0 ; i < pipes.length ; i ++) {
-				scraperExecutions[i] = new ScraperExecutionChild(pipes[i], context, this);
+				scraperExecutions.add(new ScraperExecutionChild(pipes[i], context, this));
 			}
+			this.variableExecutions = new VariableExecution[variableExecutions.size()];
+			this.leafExecutions     = new LeafExecution[leafExecutions.size()];
+			this.scraperExecutions  = new ScraperExecutionChild[scraperExecutions.size()];
+			variableExecutions.copyInto(this.variableExecutions);
+			leafExecutions.copyInto(this.leafExecutions);
+			scraperExecutions.copyInto(this.scraperExecutions);
 			return true;
 		}
 		return false;

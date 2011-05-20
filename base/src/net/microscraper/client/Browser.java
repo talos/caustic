@@ -111,14 +111,10 @@ public interface Browser {
 		 * 
 		 */
 		private static final long serialVersionUID = 8357347717343426486L;
-		public final String host;
-		public final Date start;
-		public final int amountDownloaded;
-		
-		public DelayRequest(String host, Date start, int amountDownloaded) {
-			this.host = host;
-			this.start = start;
-			this.amountDownloaded = amountDownloaded;
+		public DelayRequest(URL url, float kbpsSinceLastLoad) {
+			super("Delaying load of " + Utils.quote(url.toString()) +
+					", has been loaded at " +
+					Utils.quote(Float.toString(kbpsSinceLastLoad)));
 		}
 	}
 }

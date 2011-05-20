@@ -72,7 +72,7 @@ public abstract class JSONResourceLoader implements ResourceLoader {
 			return (Page) getFromCache(link.location);
 		} else {
 			try {
-				return Page.deserialize(this, jsonInterface, link.location, obtainJSON(link.location));
+				return Page.deserialize(jsonInterface, link.location, obtainJSON(link.location));
 			} catch (JSONInterfaceException e) {
 				throw new IOException(e);
 			}

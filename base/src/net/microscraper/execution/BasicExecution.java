@@ -10,6 +10,7 @@ import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
 import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
+import net.microscraper.client.Utils;
 import net.microscraper.model.DeserializationException;
 
 public abstract class BasicExecution implements Execution {
@@ -21,6 +22,7 @@ public abstract class BasicExecution implements Execution {
 	private Exception failure = null;
 	private String lastMissingVariable = null;
 	private String missingVariable = null;
+	private boolean isStuck = false;
 	private boolean isComplete = false;
 	
 	private static int count = 0;
@@ -44,6 +46,7 @@ public abstract class BasicExecution implements Execution {
 	}
 	
 	public final void run() {
+		isStuck = false;
 		try {
 			isComplete = protectedRun();
 		} catch(NoMatchesException e) {
@@ -69,18 +72,35 @@ public abstract class BasicExecution implements Execution {
 		} catch (ScraperSourceException e) {
 			handleFailure(e);
 		}
+		if(isComplete) {
+			handleComplete();
+		}
 	}
 	
 	private void handleFailure(Exception e) {
 		failure = e;
+		context.i("Failure in " + toString());
 		context.e(e);
 	}
 	
 	private void handleMissingVariable(MissingVariableException e) {
+		context.i("Missing " + Utils.quote(e.name) + " from " + toString());
 		if(missingVariable != null) {
 			lastMissingVariable = new String(missingVariable);
+			missingVariable = e.name;
+			if(lastMissingVariable.equals(missingVariable)) {
+				isStuck = true;
+				context.i("Stuck on " + Utils.quote(missingVariable) + " in " + toString());
+			}
+		} else {
+			missingVariable = e.name;
 		}
-		missingVariable = e.name;
+	}
+	
+	private void handleComplete() {
+		String publishName = hasPublishName() ? getPublishName() : "";
+		String publishValue = hasPublishValue() ? getPublishValue() : "";
+		//context.i(toString() + " completed successfully, with '" + publishName + "'='" + publishValue + "'");
 	}
 	
 	/*
@@ -111,12 +131,7 @@ public abstract class BasicExecution implements Execution {
 	}
 	
 	public final boolean isStuck() {
-		if(!isComplete() && lastMissingVariable != null && missingVariable != null) {
-			if(lastMissingVariable.equals(missingVariable)) {
-				return true;
-			}
-		}
-		return false;
+		return isStuck;
 	}
 	
 	public final String stuckOn() {
@@ -139,5 +154,9 @@ public abstract class BasicExecution implements Execution {
 
 	public final boolean isComplete() {
 		return isComplete;
+	}
+	
+	public final String toString() {
+		return "Execution " + Integer.toString(getId()) + " " + resourceLocation.toString();
 	}
 }
