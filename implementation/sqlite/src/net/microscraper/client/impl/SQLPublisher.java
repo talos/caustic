@@ -40,31 +40,30 @@ public class SQLPublisher implements Publisher {
 	private void addEntry(Execution execution) throws SQLInterfaceException {
 		String[] substitutions = new String[] {
 				getResourceLocationString(execution),
-				Integer.toString(execution.getCaller().getId()),
+				execution.hasCaller() ? Integer.toString(execution.getCaller().getId()) : inter.nullValue(),
 				Integer.toString(execution.getId()),
 				execution.isComplete() ? "1" : "0",
 				execution.isStuck()    ? "1" : "0",
 				execution.hasFailed()  ? "1" : "0",
 				execution.hasPublishName() ? execution.getPublishName() : inter.nullValue(),
-				execution.getResource().getClass().getSimpleName(),
-				execution.hasPublishValue() ? execution.getPublishValue() : inter.nullValue() };
+				//execution.getResource().getClass().getSimpleName(),
+				inter.nullValue(),
+				execution.hasPublishValue() ? execution.getPublishValue() : inter.nullValue()
+			};
 		inter.execute("INSERT INTO `" + TABLE_NAME +
 				"` (`" + RESOURCE_LOCATION + "`,`" + SOURCE_ID + "`,`" + ID + "`,`" + COMPLETE + "`,`"
 				+ STUCK + "`,`" + FAILURE + "`,`" + NAME + "`,`"
 				+ TYPE + "`,`" + VALUE + "`) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", substitutions);
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", substitutions);
 	}
 
 	@Override
 	public void publish(Execution execution) throws PublisherException {
 		try {
-			// delete existing entries
-			inter.execute("DELETE FROM `" + TABLE_NAME +"` WHERE `"
-					+ RESOURCE_LOCATION + "` = ? AND `"
-					+ SOURCE_ID + "` = ? AND `" + ID + "` = ?",
+			// delete existing entry
+			inter.execute("DELETE FROM `" + TABLE_NAME +"` WHERE `" + ID + "` = ?",
 				new String[] {
 					getResourceLocationString(execution), 
-					Integer.toString(execution.getCaller().getId()),
 					Integer.toString(execution.getId())
 				});
 			// Add new entry
@@ -76,6 +75,6 @@ public class SQLPublisher implements Publisher {
 	}
 	
 	private static String getResourceLocationString(Execution execution) {
-		return execution.getResource().location.toString();
+		return execution.getResourceLocation().toString();
 	}
 }

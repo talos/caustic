@@ -1,5 +1,7 @@
 package net.microscraper.execution;
 
+import java.io.IOException;
+
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
@@ -7,6 +9,7 @@ import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
 import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
 import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
 import net.microscraper.client.Utils;
+import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Leaf;
 import net.microscraper.model.Link;
 
@@ -21,12 +24,9 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 	private final Context context;
 	private ScraperExecution[] scraperExecutions = new ScraperExecution[0];
 	
-	private String missingVariable;
-	private String lastMissingVariable;
-	private Exception failure;
-	
-	public LeafExecution(Context context, MustacheCompiler mustache, HasVariableExecutions callerVariables, Leaf leaf, String stringToParse) {
-		super(context, leaf);
+	public LeafExecution(Context context, MustacheCompiler mustache, HasVariableExecutions callerVariables,
+			Leaf leaf, String stringToParse) {
+		super(context, leaf, callerVariables);
 		this.context = context;
 		this.mustache = mustache;
 		this.stringToParse = stringToParse;
@@ -36,59 +36,27 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 		this.callerVariables = callerVariables;
 	}
 
-	public void run() {
-		if(results == null && !hasFailed()) {
-			try {
-				Interfaces.Regexp.Pattern pattern = mustache.compile(getParser().pattern);
-				String replacement = mustache.compile(getParser().replacement);
-				String[] output;
-					output = pattern.allMatches(stringToParse, replacement, minMatch, maxMatch);
-	
-				scraperExecutions = new ScraperExecution[output.length * pipes.length];
-				for(int i = 0 ; i < pipes.length ; i ++) {
-					for(int j = 0 ; j < output.length ; j ++ ) {
-						if(hasName()) {
-							scraperExecutions[(i * j) + i] = new ScraperExecutionChild(pipes[i], context, callerVariables, getName(), output[j]);
-						} else {
-							scraperExecutions[(i * j) + i] = new ScraperExecutionChild(pipes[i], context, callerVariables);
-						}
-					}
+	protected boolean protectedRun() throws NoMatchesException, MissingGroupException,
+					InvalidRangeException, MustacheTemplateException, MissingVariableException,
+					IOException, DeserializationException {
+		Interfaces.Regexp.Pattern pattern = mustache.compile(getParser().pattern);
+		String replacement = mustache.compile(getParser().replacement);
+		String[] output;
+			output = pattern.allMatches(stringToParse, replacement, minMatch, maxMatch);
+
+		scraperExecutions = new ScraperExecution[output.length * pipes.length];
+		for(int i = 0 ; i < pipes.length ; i ++) {
+			for(int j = 0 ; j < output.length ; j ++ ) {
+				if(hasName()) {
+					scraperExecutions[(i * j) + i] = new ScraperExecutionChild(pipes[i], context, callerVariables, getName(), output[j]);
+				} else {
+					scraperExecutions[(i * j) + i] = new ScraperExecutionChild(pipes[i], context, callerVariables);
 				}
-			} catch (NoMatchesException e) {
-				failure = e;
-			} catch (MissingGroupException e) {
-				failure = e;
-			} catch (InvalidRangeException e) {
-				failure = e;
-			} catch (MustacheTemplateException e) {
-				failure = e;
-			} catch (MissingVariableException e) {
-				lastMissingVariable = missingVariable;
-				missingVariable = e.name;
 			}
 		}
+		return true;
 	}
 	
-	public boolean isStuck() {
-		if(!isComplete() && !hasFailed() && lastMissingVariable != null && missingVariable != null
-				&& lastMissingVariable.equals(missingVariable))
-			return true;
-		return false;
-	}
-
-	public boolean isComplete() {
-		if(results != null)
-			return true;
-		return false;
-	}
-	
-	public boolean hasFailed() {
-		if(super.hasFailed()) 
-			return true;
-		if(failure != null)
-			return true;
-		return false;
-	}
 	
 	public ScraperExecution[] getScraperExecutions() {
 		return scraperExecutions;
@@ -98,14 +66,10 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 		return getScraperExecutions();
 	}
 
-	public Execution getCaller() {
-		return callerVariables;
-	}
-	public boolean hasCaller() {
-		return true;
-	}
 	public boolean hasPublishValue() {
-		return true;
+		if(results != null)
+			return true;
+		return false;
 	}
 	public String getPublishValue() {
 		return Utils.join(results, ", ");

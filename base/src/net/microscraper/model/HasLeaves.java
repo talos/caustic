@@ -44,7 +44,12 @@ public interface HasLeaves {
 						URI location, Interfaces.JSON.Object jsonObject)
 					throws DeserializationException {
 			try {
-				final Leaf[] leaves = Leaf.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(LEAVES));				
+				final Leaf[] leaves;
+				if(jsonObject.has(LEAVES)) {
+					leaves = Leaf.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(LEAVES));
+				} else {
+					leaves = new Leaf[0];
+				}
 				return new HasLeaves() {
 					public Leaf[] getLeaves() {
 						return leaves;

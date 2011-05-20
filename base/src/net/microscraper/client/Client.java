@@ -5,12 +5,8 @@ import java.net.URI;
 import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.execution.Context;
 import net.microscraper.execution.Execution;
-import net.microscraper.execution.LeafExecution;
-import net.microscraper.execution.PageExecution;
 import net.microscraper.execution.ScraperExecution;
-import net.microscraper.execution.VariableExecution;
 import net.microscraper.model.Link;
-import net.microscraper.model.MustacheTemplate;
 import net.microscraper.model.URIMustBeAbsoluteException;
 
 /**

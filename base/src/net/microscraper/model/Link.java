@@ -24,7 +24,7 @@ public class Link {
 		}
 	}
 	
-	private static final String REF = "$REF";
+	private static final String REF = "$ref";
 	
 	/**
 	 * Deserialize a JSON Object into a {@link Link} instance.

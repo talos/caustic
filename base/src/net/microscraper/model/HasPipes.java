@@ -45,7 +45,12 @@ public interface HasPipes {
 						URI location, Interfaces.JSON.Object jsonObject)
 					throws DeserializationException {
 			try {
-				final Link[] pipes = Link.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(PIPES));				
+				final Link[] pipes;
+				if(jsonObject.has(PIPES)) {
+					pipes = Link.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(PIPES));				
+				} else {
+					pipes = new Link[0];
+				}
 				return new HasPipes() {
 					public Link[] getPipes() {
 						return pipes;

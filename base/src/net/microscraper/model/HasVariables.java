@@ -44,7 +44,12 @@ public interface HasVariables {
 						URI location, Interfaces.JSON.Object jsonObject)
 					throws DeserializationException {
 			try {
-				final Variable[] variables = Variable.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(VARIABLES));				
+				final Variable[] variables;
+				if(jsonObject.has(VARIABLES)) {
+					variables = Variable.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(VARIABLES));				
+				} else {
+					variables = new Variable[0];
+				}
 				return new HasVariables() {
 					public Variable[] getVariables() {
 						return variables;

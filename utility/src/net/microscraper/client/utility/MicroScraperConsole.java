@@ -7,11 +7,8 @@ import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import net.microscraper.client.Browser;
-import net.microscraper.client.Browser.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Log;
 import net.microscraper.client.UnencodedNameValuePair;
@@ -23,7 +20,6 @@ import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.client.impl.SQLPublisher;
 import net.microscraper.client.impl.SystemLogInterface;
 import net.microscraper.execution.Context;
-import net.microscraper.execution.HasVariableExecutions;
 import net.microscraper.model.URIMustBeAbsoluteException;
 
 public class MicroScraperConsole {
@@ -42,13 +38,15 @@ public class MicroScraperConsole {
 			Logger logger = new SystemLogInterface();
 			log.register(logger);
 			try {
-				Client client = new Client(new Context(
-					new LocalJSONResourceLoader(jsonInterface),
-					new JavaUtilRegexInterface(),
-					jsonInterface, new JavaNetBrowser(log),
-					logger,
-					ENCODING
-				));
+				Client client = new Client(
+						new Context(
+							new LocalJSONResourceLoader(jsonInterface),
+							new JavaUtilRegexInterface(),
+							jsonInterface, new JavaNetBrowser(log),
+							logger,
+							ENCODING),
+						new SQLPublisher(new JDBCSQLite("./" + DATETIME_FORMAT.format(new Date()) + ".sqlite", logger))
+				);
 				
 				URI uri = new URI(args[0]);
 				UnencodedNameValuePair[] extraVariables;
@@ -67,6 +65,8 @@ public class MicroScraperConsole {
 			} catch (URISyntaxException e) {
 				log.e(e);
 			} catch (UnsupportedEncodingException e) {
+				log.e(e);
+			} catch (SQLInterfaceException e ) {
 				log.e(e);
 			}
 		}

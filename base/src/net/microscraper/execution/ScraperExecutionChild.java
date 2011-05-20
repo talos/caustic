@@ -16,14 +16,14 @@ public final class ScraperExecutionChild extends ScraperExecution {
 	private final String extraValue;
 	
 	public ScraperExecutionChild(Link pipe, Context context, HasVariableExecutions parent) {
-		super(pipe, context, new UnencodedNameValuePair[] { } );
+		super(pipe, context, new UnencodedNameValuePair[] { }, parent );
 		this.parent = parent;
 		this.extraName = null;
 		this.extraValue = null;
 	}
 	public ScraperExecutionChild(Link pipe, Context context, HasVariableExecutions parent,
 			String extraName, String extraValue) {
-		super(pipe, context, new UnencodedNameValuePair[] { new UnencodedNameValuePair(extraName, extraValue) });
+		super(pipe, context, new UnencodedNameValuePair[] { new UnencodedNameValuePair(extraName, extraValue) }, parent);
 		this.parent = parent;
 		this.extraName = extraName;
 		this.extraValue = extraValue;
@@ -44,13 +44,6 @@ public final class ScraperExecutionChild extends ScraperExecution {
 		return true;
 	}
 
-	public Execution getCaller() {
-		return parent;
-	}
-	public boolean hasCaller() {
-		return true;
-	}
-	
 	public boolean hasPublishName() {
 		if(extraName != null)
 			return true;
