@@ -4,3 +4,4 @@
 *.zip
 *.sqlite
 *.class
+*.sqlite-journal
