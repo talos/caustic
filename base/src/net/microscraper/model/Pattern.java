@@ -19,13 +19,13 @@ public class Pattern {
 	
 	private static final String PATTERN = "pattern";
 	
-	private static final String IS_CASE_SENSITIVE = "pattern";
+	private static final String IS_CASE_SENSITIVE = "isCaseSensitive";
 	private static final boolean IS_CASE_SENSITIVE_DEFAULT = false;
 	
-	private static final String IS_MULTILINE = "pattern";
+	private static final String IS_MULTILINE = "isMultiline";
 	private static final boolean IS_MULTILINE_DEFAULT = false;
 
-	private static final String DOES_DOT_MATCH_ALL = "pattern";
+	private static final String DOES_DOT_MATCH_ALL = "doesDotMatchAll";
 	private static final boolean DOES_DOT_MATCH_ALL_DEFAULT = true;
 
 	/**

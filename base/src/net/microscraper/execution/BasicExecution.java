@@ -11,7 +11,6 @@ import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.model.DeserializationException;
-import net.microscraper.model.Link;
 
 public abstract class BasicExecution implements Execution {
 	private final URI resourceLocation;
@@ -107,12 +106,7 @@ public abstract class BasicExecution implements Execution {
 			return caller;
 		throw new NullPointerException();
 	}
-/*
-	public Execution[] getChildren() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-*/
+	
 	public final boolean isStuck() {
 		if(!isComplete() && lastMissingVariable != null && missingVariable != null) {
 			if(lastMissingVariable.equals(missingVariable))
@@ -130,25 +124,4 @@ public abstract class BasicExecution implements Execution {
 	public final boolean isComplete() {
 		return isComplete;
 	}
-	
-/*
-	public boolean hasPublishName() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public String getPublishName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public boolean hasPublishValue() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public String getPublishValue() {
-		// TODO Auto-generated method stub
-		return null;
-	}*/
 }

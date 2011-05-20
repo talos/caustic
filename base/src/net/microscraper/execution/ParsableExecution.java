@@ -1,10 +1,8 @@
 package net.microscraper.execution;
 
 import java.io.IOException;
-import java.net.URI;
 
 import net.microscraper.model.DeserializationException;
-import net.microscraper.model.Link;
 import net.microscraper.model.Parsable;
 import net.microscraper.model.Parser;
 

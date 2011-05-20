@@ -47,9 +47,6 @@ public class ScraperExecution extends BasicExecution implements HasVariableExecu
 	private ScraperExecution[] scraperExecutions = new ScraperExecution[0];
 	
 	private String source = null;
-	private String missingVariable = null;
-	private String lastMissingVariable = null;
-	private Exception failure = null;
 	
 	/**
 	 * @param scraper The {@link Scraper} that this {@link ScraperExecution} corresponds to.

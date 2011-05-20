@@ -62,10 +62,7 @@ public class SQLPublisher implements Publisher {
 		try {
 			// delete existing entry
 			inter.execute("DELETE FROM `" + TABLE_NAME +"` WHERE `" + ID + "` = ?",
-				new String[] {
-					getResourceLocationString(execution), 
-					Integer.toString(execution.getId())
-				});
+				new String[] { Integer.toString(execution.getId()) });
 			// Add new entry
 			addEntry(execution);
 			
