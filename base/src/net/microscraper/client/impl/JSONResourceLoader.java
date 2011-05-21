@@ -5,16 +5,16 @@ import java.net.URI;
 
 import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
 
+import net.microscraper.client.ResourceLoader;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
-import net.microscraper.execution.ResourceLoader;
-import net.microscraper.model.DeserializationException;
-import net.microscraper.model.Link;
-import net.microscraper.model.Page;
-import net.microscraper.model.Parser;
-import net.microscraper.model.Resource;
-import net.microscraper.model.Scraper;
+import net.microscraper.server.resource.DeserializationException;
+import net.microscraper.server.resource.Link;
+import net.microscraper.server.resource.Page;
+import net.microscraper.server.resource.Parser;
+import net.microscraper.server.resource.Resource;
+import net.microscraper.server.resource.Scraper;
 
 /**
  * Abstract class that implements caching and {@link ResourceLoader} interfaces.  All that must be overriden

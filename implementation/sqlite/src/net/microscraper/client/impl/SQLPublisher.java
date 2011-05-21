@@ -4,11 +4,11 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import net.microscraper.client.Utils;
+import net.microscraper.client.executable.Executable;
 import net.microscraper.client.impl.SQLInterface.PreparedStatement;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.client.interfaces.Publisher;
 import net.microscraper.client.interfaces.PublisherException;
-import net.microscraper.execution.Execution;
 
 public class SQLPublisher implements Publisher {
 	public static final String TABLE_NAME = "executions";
@@ -79,15 +79,15 @@ public class SQLPublisher implements Publisher {
 		}
 	}
 	
-	private void addEntry(Execution execution) throws SQLInterfaceException {
+	private void addEntry(Executable execution) throws SQLInterfaceException {
 		String[] parameters = new String[] {
 				getResourceLocationString(execution),
 				execution.hasParent() ? Integer.toString(execution.getParent().getId()) : sql.nullValue(),
 				Integer.toString(execution.getId()),
 				execution.isStuck()    ? truncateToVarchar(execution.stuckOn()) : sql.nullValue(),
 				execution.hasFailed()  ? truncateToVarchar(execution.failedBecause().toString()) : sql.nullValue(),
-				execution.hasPublishName() ? truncateToVarchar(execution.getPublishName()) : sql.nullValue(),
-				execution.hasPublishValue() ? execution.getPublishValue() : sql.nullValue()
+				execution.hasName() ? truncateToVarchar(execution.getName()) : sql.nullValue(),
+				execution.hasValue() ? execution.getValue() : sql.nullValue()
 			};
 		batchParameters.put(execution.getId(), parameters);
 		//insertExecution.bindStrings();
@@ -100,7 +100,7 @@ public class SQLPublisher implements Publisher {
 	}
 */
 	@Override
-	public void publish(Execution execution) throws PublisherException {
+	public void publish(Executable execution) throws PublisherException {
 		try {
 			// delete existing entry
 			//deleteEntry(execution);
@@ -142,7 +142,7 @@ public class SQLPublisher implements Publisher {
 		return Utils.truncate(stringToTruncate, sql.defaultVarcharLength());
 	}
 	
-	private static String getResourceLocationString(Execution execution) {
+	private static String getResourceLocationString(Executable execution) {
 		return execution.getResourceLocation().toString();
 	}
 }

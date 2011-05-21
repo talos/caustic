@@ -1,7 +1,3 @@
-/**
- * Geogrape
- * A project to enable public access to public building information.
- */
 package net.microscraper.client;
 
 import java.io.UnsupportedEncodingException;
@@ -11,6 +7,8 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 /**
+ * A set of utilities, several of which are meant to substitute for 
+ * methods not available in the Java ME environment.
  * @author john
  *
  */
@@ -19,7 +17,7 @@ public class Utils {
 	 * Join an array of strings with a joinString.
 	 * @param strings
 	 * @param joinString
-	 * @return
+	 * @return The strings, joined by joinString.
 	 */
 	public static String join(String[] strings, String joinString) {
 		String joined = "";
@@ -31,7 +29,7 @@ public class Utils {
 		return joined;
 	}
 	
-	public static String join(Object[] objects, String joinString) {
+	/*public static String join(Object[] objects, String joinString) {
 		String joined = "";
 		for(int i = 0; i < objects.length; i++) {
 			joined += objects[i].toString();
@@ -39,7 +37,7 @@ public class Utils {
 				joined += joinString;
 		}
 		return joined;
-	}
+	}*/
 	
 	public static String join(int[] integers, String joinString) {
 		String joined = "";
@@ -62,10 +60,12 @@ public class Utils {
 	}
 
 	/**
-	 * Split a string into words based off of spaces without using regex or .split().
-	 * @param input
-	 * @param splitter
-	 * @return
+	 * Split a string into words based off of spaces without using {@link java.util.regex.Pattern}
+	 * or {@link String#split(String)}
+	 * which are not available in Java ME.
+	 * @param input The String to split.
+	 * @param splitter The String to split with.
+	 * @return An array of Strings resulting from the split.
 	 */
 	public static String[] split(String input, String splitter) {
 		int splitLoc = 0;
@@ -116,9 +116,9 @@ public class Utils {
 	}
 	
 	/**
-	 * Copy one vector into another.
-	 * @param vector1
-	 * @param vector2
+	 * Add one vector to the end of another.
+	 * @param vector1 The vector to add.  Is not modified.
+	 * @param vector2 The vector to add to.  <b>Is</b> modified.
 	 */
 	public static final void vectorIntoVector(Vector vector1, Vector vector2) {
 		for(int i = 0; i < vector1.size(); i++) {
@@ -128,8 +128,8 @@ public class Utils {
 	
 	/**
 	 * Copy an array into a vector.
-	 * @param array
-	 * @param vector
+	 * @param array The array to add.
+	 * @param vector The vector to add the arry to.  Is modified.
 	 */
 	public static final void arrayIntoVector(Object[] array, Vector vector) {
 		for(int i = 0; i < array.length; i++) {
@@ -139,10 +139,11 @@ public class Utils {
 
 	/**
 	 * Test to see if two arrays are equal.
-	 * @param array1
-	 * @param array2
+	 * @param array1 The first array.
+	 * @param array2 The second array.
 	 * @return True if array1 has all members of array2 and vice versa, regardless of order.
 	 */
+	/*
 	public static boolean arraysEqual(Object[] array1, Object[] array2) {
 		if(array1.length != array2.length)
 			return false;
@@ -154,26 +155,27 @@ public class Utils {
 		}
 		return true;
 	}
-	
+	*/
 	/**
 	 * Generates a hashcode based off an array of objects.  Each individual object should implement
 	 * hashCode().
 	 * @param array
 	 * @return
 	 */
+	/*
 	public static int arrayHashCode(Object[] array) {
 		int hashCode = 0;
 		for (int i = 0; i < array.length ; i ++) {
 			hashCode += array[i].hashCode();
 		}
 		return hashCode;
-	}
+	}*/
 	
 	/**
 	 * Copy one Hashtable into another. Preexisting keys in hashtable2 will be overwritten.
 	 * @param hashtable1
 	 * @param hashtable2
-	 */
+	 *//*
 	public static final void hashtableIntoHashtable(Hashtable hashtable1, Hashtable hashtable2) {
 		Enumeration keys = hashtable1.keys();
 		while(keys.hasMoreElements()) {
@@ -182,7 +184,7 @@ public class Utils {
 			hashtable2.put(key, value);
 		}
 	}
-	
+	*/
 	/**
 	 * Turn Form-encoded data into an array of {@link UnencodedNameValuePair}s.
 	 * @param formEncodedData A String of form data to convert.

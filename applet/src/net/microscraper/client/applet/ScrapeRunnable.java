@@ -5,7 +5,7 @@ import java.security.PrivilegedAction;
 
 import net.microscraper.client.Client;
 import net.microscraper.client.Variables;
-import net.microscraper.model.Reference;
+import net.microscraper.server.resource.Reference;
 
 public class ScrapeRunnable implements Runnable {
 	private final Client client;

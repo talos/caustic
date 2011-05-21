@@ -3,60 +3,58 @@ package net.microscraper.client;
 import java.net.URI;
 import java.util.Vector;
 
+import net.microscraper.client.executable.Executable;
+import net.microscraper.client.executable.ScraperExecutable;
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.Publisher;
 import net.microscraper.client.interfaces.PublisherException;
 import net.microscraper.client.interfaces.RegexpInterface;
-import net.microscraper.execution.Execution;
-import net.microscraper.execution.ExecutionContext;
-import net.microscraper.execution.ResourceLoader;
-import net.microscraper.execution.ScraperExecution;
-import net.microscraper.model.Link;
-import net.microscraper.model.URIMustBeAbsoluteException;
+import net.microscraper.server.resource.Link;
+import net.microscraper.server.resource.URIMustBeAbsoluteException;
 
 /**
- * A microscraper Client allows for scraping from microscraper json.
+ * A microscraper {@link Client} can scrape a {@link Resource}.
  * @author john
  *
  */
 public final class Client {
 	private static final int LARGE_QUEUE = 1000000; // TODO: handle differently
 	//private final Context context;
-	private final Publisher publisher;
+	//private final Publisher publisher;
 	
 	private final ExecutionContext context;
-	private final Vector queue = new Vector();
 	
-
 	/**
-	 * @param resourceLoader The {@link ResourceLoader} this {@link ScraperExecution} is set to use.
-	 * @param browser The {@link Browser} this {@link ScraperExecution} is set to use.
-	 * @param log The {@link Log} this {@link ScraperExecution} is set to use.
-	 * @param encoding The encoding to use when encoding post data and cookies. "UTF-8" is recommended.
+	 * @param resourceLoader The {@link ResourceLoader} this {@link Client} should use.
+	 * @param browser The {@link Browser} this {@link Client} should use.
+	 * @param log The {@link Log} this {@link Client} should use.
+	 * @param encoding The encoding to use when encoding or decoding post data, cookies,
+	 * and JSON resources. "UTF-8" is recommended.
 	 * @param regexp The {@link RegexpInterface} interface to use when compiling regexps.
 	 */
 	public Client(ResourceLoader resourceLoader, RegexpInterface regexpInterface,
 			JSONInterface jsonInterface, Browser browser,
-			Log log, String encoding, Publisher publisher) {
+			Log log, String encoding) {
 		this.context = new ExecutionContext( log,
 				regexpInterface, browser, resourceLoader, encoding);
-		this.publisher = publisher;
+		//this.publisher = publisher;
 	}
 	
-	public void scrape(URI scraperLocation, UnencodedNameValuePair[] extraVariables) throws URIMustBeAbsoluteException {
-		queue.add(
-				new ScraperExecution(context, new Link(scraperLocation), extraVariables)
-			);
-		execute();
+	public void scrape(URI scraperLocation, UnencodedNameValuePair[] extraVariables, Publisher publisher)
+				throws URIMustBeAbsoluteException {
+		Executable rootExecution = new ScraperExecutable(context, new Link(scraperLocation), extraVariables);
+		execute(rootExecution, publisher);
 	}
 	
-	private void execute() {
+	private void execute(Executable rootExecution, Publisher publisher) {
+		Vector queue = new Vector();
+		queue.add(rootExecution);
 		while(queue.size() > 0) {
 			if(queue.size() > LARGE_QUEUE) {
 				context.log.i("Large execution queue: " + Utils.quote(queue.size()));
 			}
-			Execution exc = (Execution) queue.elementAt(0);
+			Executable exc = (Executable) queue.elementAt(0);
 			queue.removeElementAt(0);
 			exc.run();
 			try {
@@ -66,7 +64,7 @@ public final class Client {
 			}
 			// If the execution is complete, add its children to the queue.
 			if(exc.isComplete()) {
-				Execution[] children = exc.getChildren();
+				Executable[] children = exc.getChildren();
 				Utils.arrayIntoVector(children, queue);
 				
 			// If the execution is not stuck and is not failed, add it back to the queue.

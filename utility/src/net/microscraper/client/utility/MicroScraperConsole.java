@@ -22,7 +22,7 @@ import net.microscraper.client.impl.SystemLogInterface;
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.Logger;
-import net.microscraper.model.URIMustBeAbsoluteException;
+import net.microscraper.server.resource.URIMustBeAbsoluteException;
 
 public class MicroScraperConsole {
 	private static final SimpleDateFormat DATETIME_FORMAT =
@@ -62,8 +62,7 @@ public class MicroScraperConsole {
 					jsonInterface,
 					new JavaNetBrowser(log, Browser.MAX_KBPS_FROM_HOST),
 					log,
-					ENCODING,
-					publisher
+					ENCODING
 				);
 			
 			URI uri = new URI(args[0]);
@@ -73,7 +72,7 @@ public class MicroScraperConsole {
 			} else {
 				extraVariables = new UnencodedNameValuePair[0];
 			}
-			client.scrape(uri, extraVariables);
+			client.scrape(uri, extraVariables, publisher);
 			
 			publisher.forceCommit();
 			

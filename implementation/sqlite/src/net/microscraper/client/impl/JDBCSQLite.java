@@ -8,7 +8,6 @@ import java.sql.SQLException;
 
 import net.microscraper.client.Log;
 import net.microscraper.client.Utils;
-import net.microscraper.client.interfaces.Interfaces;
 
 public class JDBCSQLite implements SQLInterface {
 	private final Connection connection;
@@ -25,60 +24,6 @@ public class JDBCSQLite implements SQLInterface {
 			throw new SQLInterfaceException(e);
 		}
 	}
-	/*
-	@Override
-	public SQLInterface.Cursor query(String sql) throws SQLInterfaceException {
-		//log.i("SQL Query: " + sql);
-		return new JDBCSqliteStatement(connection, sql).executeQuery();
-	}
-	
-	@Override
-	public boolean execute(String sql) throws SQLInterfaceException {
-		//log.i("SQL Execution: " + sql);
-		return new JDBCSqliteStatement(connection, sql).execute();
-	}
-	
-	@Override
-	public Cursor query(String sql, String[] substitutions) throws SQLInterfaceException {
-		//log.i("SQL Query: " + sql + " substituting " + Utils.join(substitutions, ", "));
-		JDBCSqliteStatement statement = new JDBCSqliteStatement(connection, sql);
-		statement.bindArrayOfStrings(substitutions);
-		return statement.executeQuery();
-	}
-
-	@Override
-	public boolean execute(String sql, String[] substitutions) throws SQLInterfaceException {
-		//log.i("SQL Execution: " + sql + " substituting " + Utils.join(substitutions, ", "));
-		JDBCSqliteStatement statement = new JDBCSqliteStatement(connection, sql);
-		statement.bindArrayOfStrings(substitutions);
-		return statement.execute();
-	}
-	
-	@Override
-	public Statement getStatement(String sql, String[] substitutions) throws SQLInterfaceException {
-		//log.i("SQL Statement built: " + sql + " substituting " + Utils.join(substitutions, ", "));
-		JDBCSqliteStatement statement = new JDBCSqliteStatement(connection, sql);
-		statement.bindArrayOfStrings(substitutions);
-		
-		return statement;
-	}
-	
-	@Override
-	public boolean executeBatch(Statement[] statements) throws SQLInterfaceException {
-		try {
-			connection.setAutoCommit(false);
-			java.sql.Statement batchStatement = connection.createStatement();
-			for(int i = 0 ; i < statements.length ; i ++) {
-				//batchStatement.ad
-			}
-			batchStatement.a
-			connection.setAutoCommit(true);
-			return true;
-		} catch(SQLException e) {
-			throw new SQLInterfaceException(e);
-		}
-	}
-	*/
 	private class JDBCSqliteStatement implements PreparedStatement {
 		private final java.sql.PreparedStatement statement;
 		public JDBCSqliteStatement(Connection connection, String sql) throws SQLInterfaceException {

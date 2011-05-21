@@ -1,11 +1,11 @@
 package net.microscraper.client.interfaces;
 
-import net.microscraper.execution.Execution;
+import net.microscraper.client.executable.Executable;
 
 /**
- * Implementations of {@link Publisher} receive updates of {@link Execution}s 
+ * Implementations of {@link Publisher} receive updates of {@link Executable}s 
  * as the {@link Client} runs.
- * @see Execution
+ * @see Executable
  * @see Client
  * @author john
  *
@@ -23,12 +23,12 @@ public interface Publisher {
 	public static final String VALUE = "value";
 	
 	/**
-	 * This can be called multiple times on a single {@link Execution}.
-	 * {@link Execution}s <b>should not</b> be accessed outside of this method.
-	 * @param execution The {@link Execution} instance that may, or may not,
+	 * This can be called multiple times on a single {@link Executable}.
+	 * {@link Executable}s <b>should not</b> be accessed outside of this method.
+	 * @param execution The {@link Executable} instance that may, or may not,
 	 * have changed.
 	 * @throws PublisherException If the publisher has experienced an exception.
-	 * @see Execution
+	 * @see Executable
 	 */
-	public void publish(Execution execution) throws PublisherException;
+	public void publish(Executable execution) throws PublisherException;
 }

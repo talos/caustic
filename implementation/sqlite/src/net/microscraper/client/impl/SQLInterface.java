@@ -20,15 +20,6 @@ public interface SQLInterface {
 		public abstract void addBatch() throws SQLInterfaceException;
 		public abstract int[] executeBatch() throws SQLInterfaceException;
 	}
-	
-	//public abstract Cursor query(String sql) throws SQLInterfaceException;
-	/*public abstract boolean execute(String sql) throws SQLInterfaceException;
-	public abstract Cursor query(String sql, String[] substitutions) throws SQLInterfaceException;
-	public abstract boolean execute(String sql, String[] substitutions) throws SQLInterfaceException;
-	public abstract boolean executeBatch(Statement[] statements) throws SQLInterfaceException;
-	public abstract Statement getStatement(String sql, String[] substitutions) throws SQLInterfaceException;
-	*/
-	
 	/**
 	 * For example, "INTEGER".
 	 * @return

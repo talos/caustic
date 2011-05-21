@@ -14,13 +14,13 @@ import java.util.List;
 import net.microscraper.client.Client;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
+import net.microscraper.client.executable.AbstractResource;
+import net.microscraper.client.executable.AbstractResult;
+import net.microscraper.client.executable.Result;
+import net.microscraper.client.executable.DatabaseException.ResourceNotFoundException;
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.BrowserException;
-import net.microscraper.execution.AbstractResource;
-import net.microscraper.execution.AbstractResult;
-import net.microscraper.execution.Result;
-import net.microscraper.execution.DatabaseException.ResourceNotFoundException;
-import net.microscraper.model.AbstractHeader;
+import net.microscraper.server.resource.AbstractHeader;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
