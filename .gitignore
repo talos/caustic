@@ -5,4 +5,4 @@
 *.sqlite
 *.class
 *.sqlite-journal
-*.jar
+*microscraper.jar
