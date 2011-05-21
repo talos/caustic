@@ -7,12 +7,15 @@ import com.sun.net.httpserver.Authenticator.Failure;
 
 import net.microscraper.client.BrowserException;
 import net.microscraper.client.BrowserDelayException;
+import net.microscraper.client.Client;
 import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
 import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
 import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
+import net.microscraper.client.Log;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Utils;
+import net.microscraper.client.Variables;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Resource;
 
@@ -29,7 +32,7 @@ public abstract class BasicExecution implements Execution {
 	private final URI resourceLocation;
 	private final int id;
 	private final Execution parent;
-	private final Context context;
+	private final ExecutionContext context;
 	
 	private final static int SLEEP_TIME = 1000; //TODO this belongs elsewhere
 	
@@ -52,7 +55,7 @@ public abstract class BasicExecution implements Execution {
 	 * @param resourceLocation
 	 * @param parent
 	 */
-	public BasicExecution(Context context, URI resourceLocation, Execution parent) {
+	protected BasicExecution(ExecutionContext context, URI resourceLocation, Execution parent) {
 		id = count;
 		count++;
 		
@@ -65,9 +68,8 @@ public abstract class BasicExecution implements Execution {
 	 * Construct a BasicExecution without a parent.
 	 * @param context
 	 * @param resourceLocation
-	 * @param parent
 	 */
-	public BasicExecution(Context context, URI resourceLocation) {
+	protected BasicExecution(ExecutionContext context, URI resourceLocation) {
 		id = count;
 		count++;
 
@@ -75,7 +77,6 @@ public abstract class BasicExecution implements Execution {
 		this.resourceLocation = resourceLocation;
 		this.parent = null;
 	}
-	
 	
 	public final void run() {
 		isStuck = false; // always reset isStuck
@@ -87,7 +88,7 @@ public abstract class BasicExecution implements Execution {
 				// Only generate the resource if we don't have one.
 				if(resource == null) {
 					try {
-						resource = generateResource();
+						resource = generateResource(context);
 					} catch (IOException e) {
 						throw new ExecutionFailure(e);
 					} catch (DeserializationException e) {
@@ -98,7 +99,7 @@ public abstract class BasicExecution implements Execution {
 				// Only generate the result if we don't have one, and we have a resource.
 				if(result == null && resource != null) {
 					try {
-						result = generateResult(resource);
+						result = generateResult(context, resource);
 					} catch(MustacheTemplateException e) {
 						throw new ExecutionFailure(e);
 					} catch (BrowserDelayException e) {
@@ -112,7 +113,7 @@ public abstract class BasicExecution implements Execution {
 			}
 			
 			if(result != null) {
-				children = generateChildren(resource, result);
+				children = generateChildren(context, resource, result);
 				handleComplete();
 			}
 		}
@@ -122,21 +123,21 @@ public abstract class BasicExecution implements Execution {
 		try {
 			Thread.sleep(SLEEP_TIME);
 		} catch(InterruptedException interrupt) {
-			context.e(interrupt);
+			context.log.e(interrupt);
 		}
-		context.i("Delaying load of " + Utils.quote(e.url.toString()) +
+		context.log.i("Delaying load of " + Utils.quote(e.url.toString()) +
 				", current KBPS " +
 				Utils.quote(Float.toString(e.kbpsSinceLastLoad)));
 	}
 	
 	/**
 	 * Catch-all failures.  Sets the state of the execution to failed.
-	 * @param e
+	 * @param e The {@link ExecutionFailure}.
 	 */
 	private void handleFailure(ExecutionFailure e) {
 		failure = e.getCause();
-		context.i("Failure in " + toString());
-		context.e(e);
+		context.log.i("Failure in " + toString());
+		context.log.e(e);
 	}
 	
 	/**
@@ -145,19 +146,22 @@ public abstract class BasicExecution implements Execution {
 	 * @param e The {@link MissingVariableException}.
 	 */
 	private void handleMissingVariable(MissingVariableException e) {
-		context.i("Missing " + Utils.quote(e.name) + " from " + toString());
+		context.log.i("Missing " + Utils.quote(e.name) + " from " + toString());
 		if(missingVariable != null) {
 			lastMissingVariable = new String(missingVariable);
 			missingVariable = e.name;
 			if(lastMissingVariable.equals(missingVariable)) {
 				isStuck = true;
-				context.i("Stuck on " + Utils.quote(missingVariable) + " in " + toString());
+				context.log.i("Stuck on " + Utils.quote(missingVariable) + " in " + toString());
 			}
 		} else {
 			missingVariable = e.name;
 		}
 	}
 	
+	/**
+	 * Sets {@link isComplete} to <code>true</code>.
+	 */
 	private void handleComplete() {
 		isComplete = true;
 		//String publishName = hasPublishName() ? getPublishName() : "";
@@ -167,6 +171,7 @@ public abstract class BasicExecution implements Execution {
 	
 	/**
 	 * Must be overriden by {@link BasicExecution} subclass.
+	 * @param context A {@link Context} to use in generating the resource.
 	 * @return The {@link Resource} instance that contains instructions for this {@link Execution},
 	 * which will be passed to {@link generateResult} and {@link generateChildren}.
 	 * @throws IOException If there is an error obtaining the {@link Resource}.
@@ -174,10 +179,12 @@ public abstract class BasicExecution implements Execution {
 	 * @see #generateResult
 	 * @see #generateChildren
 	 */
-	protected abstract Resource generateResource() throws IOException, DeserializationException;
+	protected abstract Resource generateResource(ExecutionContext context)
+			throws IOException, DeserializationException;
 	
 	/**
 	 * Must be overriden by {@link BasicExecution} subclass.
+	 * @param context A {@link ExecutionContext} to use in generating the resource.
 	 * @param resource The {@link Resource} from {@link #generateResource}.  Should be cast.
 	 * @return An Object result for executing this particular {@link Execution}.  Will be passed to
 	 * {@link generateChildren}
@@ -191,12 +198,13 @@ public abstract class BasicExecution implements Execution {
 	 * @see #generateResource
 	 * @see #generateChildren
 	 */
-	protected abstract Object generateResult(Resource resource) throws
+	protected abstract Object generateResult(ExecutionContext context, Resource resource) throws
 			BrowserDelayException, MissingVariableException, MustacheTemplateException,
 			ExecutionFailure;
 	
 	/**
 	 * Must be overriden by {@link BasicExecution} subclass.
+	 * @param context A {@link ExecutionContext} to use in generating the resource.
 	 * @param resource The {@link Resource} from {@link #generateResource}.  Should be cast.
 	 * @param result The Object result from {@link #generateResult}. Should be cast.
 	 * @return An array of {@link Execution[]}s whose parent is this execution.
@@ -205,7 +213,7 @@ public abstract class BasicExecution implements Execution {
 	 * @see #generateResult
 	 * @see #getChildren
 	 */
-	protected abstract Execution[] generateChildren(Resource resource, Object result);
+	protected abstract Execution[] generateChildren(ExecutionContext context, Resource resource, Object result);
 
 	public final int getId() {
 		return id;
@@ -216,53 +224,75 @@ public abstract class BasicExecution implements Execution {
 	}
 	
 	public final boolean hasParent() {
-		if(parent != null)
+		if(parent != null) {
 			return true;
-		return false;
+		} else {
+			return false;
+		}
 	}
 
 	public final Execution getParent() throws NullPointerException {
-		if(hasParent())
+		if(hasParent()) {
 			return parent;
-		throw new NullPointerException();
+		} else {
+			throw new NullPointerException();
+		}
 	}
 	
 	/**
 	 * 
 	 * @return <code>True</code> if the {@link Execution} has escaped its {@link GenerateResource}, {@link generateResult},
 	 * or {@link generateChildren} twice because of the same variable.  <code>False</code> otherwise.
+	 * @see #stuckOn()
 	 */
 	public final boolean isStuck() {
 		return isStuck;
 	}
 	
-	public final String stuckOn() {
-		if(isStuck())
+	/**
+	 * @see #isStuck()
+	 */
+	public final String stuckOn() throws IllegalStateException {
+		if(isStuck()) {
 			return missingVariable;
-		throw new NullPointerException();
-	}
-
-	public final boolean hasFailed() {
-		if(failure != null)
-			return true;
-		return false;
+		} else {
+			throw new IllegalStateException();
+		}
 	}
 	
-	public final Throwable failedBecause() {
-		if(failure != null)
+	public final boolean hasFailed() {
+		if(failure != null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public final Throwable failedBecause() throws IllegalStateException {
+		if(hasFailed()) {
 			return failure;
-		throw new NullPointerException();
+		} else {
+			throw new IllegalStateException();
+		}
 	}
 
 	public final boolean isComplete() {
 		return isComplete;
 	}
 	
+	/**
+	 * @return A String identifying this {@link BasicExecution} in the following form:
+	 * <p><code>Execution {@link #getId()} {@link #getResourceLocation()}.toString()
+	 */
 	public final String toString() {
-		return "Execution " + Integer.toString(getId()) + " " + resourceLocation.toString();
+		return "Execution " + Integer.toString(getId()) + " " + getResourceLocation().toString();
 	}
 	
-	public final Execution[] getChildren() {
-		return children;
+	public final Execution[] getChildren() throws IllegalStateException {
+		if(isComplete()) {
+			return children;
+		} else {
+			throw new IllegalStateException();
+		}
 	}
 }

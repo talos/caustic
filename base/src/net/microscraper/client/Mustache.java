@@ -1,6 +1,5 @@
 package net.microscraper.client;
 
-import net.microscraper.execution.Variables;
 
 /**
  * Mustache-like substitutions from Variables.

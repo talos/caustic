@@ -1,8 +1,12 @@
 package net.microscraper.model;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 
+import net.microscraper.client.EncodedNameValuePair;
 import net.microscraper.client.Interfaces;
+import net.microscraper.client.MissingVariableException;
+import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Interfaces.JSON.Iterator;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
 
@@ -56,5 +60,20 @@ public interface MustacheNameValuePair {
 			}
 			return array;
 		}
+	}
+	
+	
+	public static EncodedNameValuePair[] compileEncoded(MustacheNameValuePair[] nameValuePairs,
+						Variables variables, String encoding)
+				throws MissingVariableException, UnsupportedEncodingException, MustacheTemplateException {
+		EncodedNameValuePair[] encodedNameValuePairs = 
+			new EncodedNameValuePair[nameValuePairs.length];
+		for(int i = 0; i < nameValuePairs.length ; i ++) {
+			encodedNameValuePairs[i] = new EncodedNameValuePair(
+					nameValuePairs[i].getName().compile(variables),
+					nameValuePairs[i].getValue().compile(variables),
+					encoding);
+		}
+		return encodedNameValuePairs;
 	}
 }

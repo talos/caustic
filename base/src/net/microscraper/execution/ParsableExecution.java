@@ -2,6 +2,8 @@ package net.microscraper.execution;
 
 import java.io.IOException;
 
+import net.microscraper.client.Interfaces;
+import net.microscraper.client.Log;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Parsable;
 import net.microscraper.model.Parser;
@@ -9,15 +11,14 @@ import net.microscraper.model.Resource;
 
 public abstract class ParsableExecution extends BasicExecution {
 	private final Parsable parsable;
-	private final Context context;
 	
 	private Parser parser;
 	
-	public ParsableExecution(Context context, Parsable parsable, Execution caller) {
+	public ParsableExecution(ExecutionContext context, Parsable parsable,
+			Execution caller) {
 		super(context, parsable.getParserLink().location, caller);
 		
 		this.parsable = parsable;
-		this.context = context;		
 	}
 	
 	public final boolean hasName() {
@@ -28,11 +29,12 @@ public abstract class ParsableExecution extends BasicExecution {
 		return parsable.getName();
 	}
 	
-	public final Resource generateResource() throws IOException, DeserializationException {
+	public final Resource generateResource(ExecutionContext context)
+				throws IOException, DeserializationException {
 		if(parser != null) {
 			return parser;
 		} else {
-			return context.loadParser(parsable.getParserLink());
+			return context.resourceLoader.loadParser(parsable.getParserLink());
 		}
 	}
 	

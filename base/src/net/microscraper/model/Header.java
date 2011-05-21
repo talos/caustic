@@ -7,7 +7,7 @@ import net.microscraper.client.Interfaces;
  * @author john
  *
  */
-public final class Header implements MustacheNameValuePair {
+public final class Header extends MustacheUnencodedNameValuePair {
 	private final MustacheNameValuePair nameValuePair;
 	public Header(MustacheNameValuePair nameValuePair) {
 		this.nameValuePair = nameValuePair;

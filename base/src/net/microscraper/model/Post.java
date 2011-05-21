@@ -3,7 +3,7 @@ package net.microscraper.model;
 import net.microscraper.client.Interfaces;
 
 
-public class Post implements MustacheNameValuePair {
+public class Post extends MustacheEncodedNameValuePair {
 	private final MustacheNameValuePair nameValuePair;
 	public Post(MustacheNameValuePair nameValuePair) {
 		this.nameValuePair = nameValuePair;

@@ -4,57 +4,59 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 
+import net.microscraper.client.Browser;
 import net.microscraper.client.BrowserException;
 import net.microscraper.client.BrowserDelayException;
-import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
-import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
-import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
+import net.microscraper.client.Log;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Link;
+import net.microscraper.model.MustacheEncodedNameValuePair;
+import net.microscraper.model.MustacheUnencodedNameValuePair;
 import net.microscraper.model.Page;
+import net.microscraper.model.Pattern;
 import net.microscraper.model.Resource;
 
 public class PageExecution extends BasicExecution {
 	private final Link pageLink;
 	private final ScraperExecution enclosingScraper;
-	private final Context context;
+	private final Browser browser;
 	
 	private String body = null;
 	
-	public PageExecution(Context context, ScraperExecution enclosingScraper, Link pageLink) {
+	public PageExecution(ExecutionContext context, ScraperExecution enclosingScraper, Link pageLink) {
 		super(context, pageLink.location, enclosingScraper);
 		this.enclosingScraper = enclosingScraper;
-		this.context = context;
+		this.browser = context.browser;
 		this.pageLink = pageLink;
 	}
 	
-	private void head(Page page) throws UnsupportedEncodingException, BrowserDelayException, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException {
-		context.head(enclosingScraper.compile(page.url),
-				enclosingScraper.compileUnencoded(page.headers),
-				enclosingScraper.compileEncoded(page.cookies));
+	private void head(ExecutionContext context, Page page) throws UnsupportedEncodingException, BrowserDelayException, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException {
+		browser.head(page.url.compile(enclosingScraper),
+				MustacheUnencodedNameValuePair.compile(page.headers, enclosingScraper),
+				MustacheEncodedNameValuePair.compile(page.cookies, enclosingScraper, context.encoding));
 	}
 	
-	private String get(Page page) throws UnsupportedEncodingException, BrowserDelayException, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException, InvalidBodyMethodException {
-		return context.get(enclosingScraper.compile(page.url),
-				enclosingScraper.compileUnencoded(page.headers),
-				enclosingScraper.compileEncoded(page.cookies),
-				enclosingScraper.compile(page.terminates));
+	private String get(ExecutionContext context, Page page) throws UnsupportedEncodingException, BrowserDelayException, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException, InvalidBodyMethodException {
+		return browser.get(page.url.compile(enclosingScraper),
+				MustacheUnencodedNameValuePair.compile(page.headers, enclosingScraper),
+				MustacheEncodedNameValuePair.compile(page.cookies, enclosingScraper, context.encoding),
+				Pattern.compile(page.terminates, enclosingScraper, context.regexpInterface));
 	}
 	
-	private String post(Page page) throws UnsupportedEncodingException, BrowserDelayException, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException, InvalidBodyMethodException {	
-		return context.post(enclosingScraper.compile(page.url),
-				enclosingScraper.compileUnencoded(page.headers),
-				enclosingScraper.compileEncoded(page.cookies),
-				enclosingScraper.compile(page.terminates),
-				enclosingScraper.compileEncoded(page.posts));
+	private String post(ExecutionContext context, Page page) throws UnsupportedEncodingException, BrowserDelayException, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException, InvalidBodyMethodException {	
+		return browser.post(page.url.compile(enclosingScraper),
+				MustacheUnencodedNameValuePair.compile(page.headers, enclosingScraper),
+				MustacheEncodedNameValuePair.compile(page.cookies, enclosingScraper, context.encoding),
+				Pattern.compile(page.terminates, enclosingScraper, context.regexpInterface),
+				MustacheEncodedNameValuePair.compile(page.posts, enclosingScraper, context.encoding));
 	}
 	
 	public String getBody() {
 		return body;
 	}
-
+	
 	public Execution[] children() {
 		return new Execution[0];
 	}
@@ -79,8 +81,9 @@ public class PageExecution extends BasicExecution {
 		return null;
 	}
 
-	protected Resource generateResource() throws IOException, DeserializationException {
-		return context.loadPage(pageLink);
+	protected Resource generateResource(ExecutionContext context)
+				throws IOException, DeserializationException {
+		return context.resourceLoader.loadPage(pageLink);
 	}
 	
 	/**
@@ -88,22 +91,22 @@ public class PageExecution extends BasicExecution {
 	 * {@link Page.Method.GET} or {@link Page.Method.POST}; <code>Null</code> if it is
 	 * {@link Page.Method.HEAD}.
 	 */
-	protected Object generateResult(Resource resource)
+	protected Object generateResult(ExecutionContext context, Resource resource)
 			throws MissingVariableException, BrowserDelayException, ExecutionFailure {
 		try {
 			Page page = (Page) resource;
 			// Temporary executions to do before.  Not published, executed each time.
 			for(int i = 0 ; i < page.loadBeforeLinks.length ; i ++) {
 				PageExecution pageBeforeExecution = new PageExecution(context, enclosingScraper, page.loadBeforeLinks[i]);
-				Page pageBefore = (Page) pageBeforeExecution.generateResource();
-				pageBeforeExecution.generateResult(pageBefore);
+				Page pageBefore = (Page) pageBeforeExecution.generateResource(context);
+				pageBeforeExecution.generateResult(context, pageBefore);
 			}
 			if(page.method.equals(Page.Method.GET)) {
-				return get(page);
+				return get(context, page);
 			} else if(page.method.equals(Page.Method.POST)) {
-				return post(page);
+				return post(context, page);
 			} else if(page.method.equals(Page.Method.HEAD)) {
-				head(page);
+				head(context, page);
 				return null;
 			} else {
 				throw new InvalidBodyMethodException(page);
@@ -128,7 +131,8 @@ public class PageExecution extends BasicExecution {
 	/**
 	 * An empty array, {@link PageExecution} does not have children.
 	 */
-	protected Execution[] generateChildren(Resource resource, Object result) {
+	protected Execution[] generateChildren(ExecutionContext context, 
+			Resource resource, Object result) {
 		return new Execution[0];
 	}
 }

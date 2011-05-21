@@ -2,7 +2,7 @@ package net.microscraper.model;
 
 import net.microscraper.client.Interfaces;
 
-public final class Cookie implements MustacheNameValuePair {
+public final class Cookie extends MustacheEncodedNameValuePair {
 	private final MustacheNameValuePair nameValuePair;
 	public Cookie(MustacheNameValuePair nameValuePair) {
 		this.nameValuePair = nameValuePair;

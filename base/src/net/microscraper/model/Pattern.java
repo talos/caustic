@@ -2,6 +2,9 @@ package net.microscraper.model;
 
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.MissingVariableException;
+import net.microscraper.client.MustacheTemplateException;
+import net.microscraper.client.Variables;
 
 public class Pattern {
 	public final MustacheTemplate pattern;
@@ -68,6 +71,41 @@ public class Pattern {
 			} catch(JSONInterfaceException e ) {
 					throw new DeserializationException(e, jsonArray, i);
 			}
+		}
+		return patterns;
+	}
+
+	/**
+	 * Mustache-compile this {@link Pattern}.
+	 * @param variables A {@link Variables} instance to compile with.
+	 * @return The {@link Pattern}'s compiled url as a {@link Interfaces.Regexp.Pattern}.
+	 * @throws MissingVariableException If {@link Variables} was missing a key.
+	 * @throws MustacheTemplateException If the {@link MustacheTemplate} was invalid.
+	 * @see {@link MustacheTemplate#compile(Variables)}
+	 */
+	public Interfaces.Regexp.Pattern compile(Variables variables, Interfaces.Regexp regexpInterface)
+				throws MissingVariableException, MustacheTemplateException {
+		return regexpInterface.compile(
+				pattern.compile(variables),
+				isCaseInsensitive,
+				isMultiline,
+				doesDotMatchNewline);
+	}
+
+	/**
+	 * Mustache-compile an array of {@link Pattern}s.
+	 * @param variables A {@link Variables} instance to compile with.
+	 * @return The {@link Pattern}'s compiled url as a {@link Interfaces.Regexp.Pattern}.
+	 * @throws MissingVariableException If {@link Variables} was missing a key.
+	 * @throws MustacheTemplateException If one of the {@link MustacheTemplate}s was invalid.
+	 * @see {@link Pattern#compile(Variables, net.microscraper.client.Interfaces.Regexp)}
+	 */
+	public static Interfaces.Regexp.Pattern[] compile(Pattern[] uncompiledPatterns, Variables variables,
+				Interfaces.Regexp regexpInterface)
+			throws MissingVariableException, MustacheTemplateException {
+		Interfaces.Regexp.Pattern[] patterns = new Interfaces.Regexp.Pattern[uncompiledPatterns.length];
+		for(int i = 0 ; i < uncompiledPatterns.length ; i ++) {
+			patterns[i] = uncompiledPatterns[i].compile(variables, regexpInterface);
 		}
 		return patterns;
 	}

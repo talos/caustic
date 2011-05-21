@@ -3,11 +3,14 @@ package net.microscraper.execution;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.microscraper.client.Browser;
 import net.microscraper.client.BrowserDelayException;
 import net.microscraper.client.BrowserException;
 import net.microscraper.client.Interfaces;
+import net.microscraper.client.Log;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
+import net.microscraper.client.Variables;
 import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
 import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
 import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
@@ -22,23 +25,22 @@ public class LeafExecution extends ParsableExecution {
 	private String[] results = null;
 	private final int minMatch;
 	private final int maxMatch;
-	private final MustacheCompiler mustache;
 	private final String stringToParse;
 	private final Link[] pipes;
-	private final Variables callerVariables;
-	private final Context context;
+	private final Variables variables;
+	//private final Variables callerVariables;
 	//private ScraperExecution[] scraperExecutions = new ScraperExecution[0];
 	
-	public LeafExecution(Context context, MustacheCompiler mustache, Variables callerVariables,
+	public LeafExecution(ExecutionContext context,
+			Execution parent, Variables variables,
 			Leaf leaf, String stringToParse) {
-		super(context, leaf, callerVariables);
-		this.context = context;
-		this.mustache = mustache;
+		super(context, leaf, parent);
 		this.stringToParse = stringToParse;
 		this.maxMatch = leaf.maxMatch;
 		this.minMatch = leaf.minMatch;
+		this.variables = variables;
 		this.pipes = leaf.getPipes();
-		this.callerVariables = callerVariables;
+		//this.callerVariables = callerVariables;
 	}
 	
 	public boolean hasPublishValue() {
@@ -51,16 +53,16 @@ public class LeafExecution extends ParsableExecution {
 		//return Utils.join(results, ", ");
 		return null;
 	}
-
+	
 	/**
 	 * Returns a <code>String[]</code>
 	 */
-	protected Object generateResult(Resource resource)
+	protected Object generateResult(ExecutionContext context, Resource resource)
 			throws MissingVariableException, ExecutionFailure {
 		try {
 			Parser parser = (Parser) resource;
-			Interfaces.Regexp.Pattern pattern = mustache.compile(parser.pattern);
-			String replacement = mustache.compile(parser.replacement);
+			Interfaces.Regexp.Pattern pattern = parser.pattern.compile(variables, context.regexpInterface);
+			String replacement = parser.replacement.compile(variables);
 			return pattern.allMatches(stringToParse, replacement, minMatch, maxMatch);
 		} catch(MustacheTemplateException e) {
 			throw new ExecutionFailure(e);
@@ -76,7 +78,7 @@ public class LeafExecution extends ParsableExecution {
 	/**
 	 * @return An array of {@link ScraperExecutionChild}s.
 	 */
-	protected Execution[] generateChildren(Resource resource, Object result) {
+	protected Execution[] generateChildren(ExecutionContext context, Resource resource, Object result) {
 		results = (String[]) result;
 		Vector scraperExecutions = new Vector();
 		for(int i = 0 ; i < pipes.length ; i ++) {
@@ -84,11 +86,11 @@ public class LeafExecution extends ParsableExecution {
 				if(hasName()) {
 					// If the Leaf has a Name, send a single match to spawn the scraper.
 					scraperExecutions.add(
-							new ScraperExecutionChild(pipes[i], context, callerVariables, getName(), results[j]));
+							new ScraperExecutionChild(context, pipes[i], this, variables, getName(), results[j]));
 				} else {
+					//TODO: should this spawn only one per pipe?
 					// If the Leaf does not, spawn the scraper with the standard variables.
-					scraperExecutions.add(
-							new ScraperExecutionChild(pipes[i], context, callerVariables));
+					new ScraperExecutionChild(context, pipes[i], this, variables);
 				}
 			}
 		}

@@ -1,17 +1,13 @@
 package net.microscraper.execution;
 
-import java.io.IOException;
 import java.util.Vector;
 
-import net.microscraper.client.BrowserDelayException;
-import net.microscraper.client.BrowserException;
 import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
+import net.microscraper.client.Variables;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
 import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
-import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Leaf;
 import net.microscraper.model.Parser;
 import net.microscraper.model.Resource;
@@ -19,30 +15,33 @@ import net.microscraper.model.Variable;
 
 public class VariableExecution extends ParsableExecution implements Variables {
 	private final int matchNumber;
-	private final MustacheCompiler mustache;
-	private final Context context;
 	private final String stringToParse;
 	
-	//private final Variable[] variables;
 	private final Variable variable;
 	private VariableExecution[] variableExecutions = new VariableExecution[0];
 	
-	//private final Leaf[] leaves;
-	
 	private String result = null;
 		
-	public VariableExecution(Context context, Execution caller, MustacheCompiler mustache, Variable variable, String stringToParse) {
-		super(context, variable, caller);
+	public VariableExecution(ExecutionContext context,
+			Execution parent, Variable variable, String stringToParse) {
+		super(context, variable, parent);
+		
 		this.matchNumber = variable.match;
-		this.mustache = mustache;
-		this.context = context;
 		this.stringToParse = stringToParse;
 		
-		//variables = variable.getVariables();
 		this.variable = variable;
-		//leaves = variable.getLeaves();
 	}
 	
+	/**
+	 * 
+	 * @param key A String, corresponds to {@link VariableExecution#getName}.
+	 * @return The {@link VariableExecution}'s result.
+	 * @throws NullPointerException if the specified key is null
+	 * @throws MissingVariableException if this {@link VariableExecution} and its children
+	 * contain no result for this key.
+	 * @throws MissingVariableException with a {@link VariableExecution#getName()}
+	 * corresponding to <code>key</code>. 
+	 */
 	public String get(String key) throws MissingVariableException {
 		if(result != null) {
 			if(hasName()) {
@@ -56,7 +55,15 @@ public class VariableExecution extends ParsableExecution implements Variables {
 		}
 		throw new MissingVariableException(this, key);
 	}
-	
+
+	/**
+	 * Tests if the specified object is a key in this {@link VariableExecution} or
+	 * one of its children.
+	 * @param key possible key 
+	 * @return <code>true</code> if and only if the specified String is a key
+	 * in this {@link VariableExecution} or one of its children.
+	 * @throws NullPointerException if the key is <code>null</code>
+	 */
 	public boolean containsKey(String key) {
 		if(result != null) {
 			if(hasName()) {
@@ -84,12 +91,13 @@ public class VariableExecution extends ParsableExecution implements Variables {
 	/**
 	 * A result value for the {@link VariableExecution}.
 	 */
-	protected Object generateResult(Resource resource) throws MissingVariableException,
+	protected Object generateResult(ExecutionContext context, Resource resource)
+				throws MissingVariableException,
 				MustacheTemplateException, ExecutionFailure  {
 		try {
 			Parser parser = (Parser) resource;
-			Interfaces.Regexp.Pattern pattern = mustache.compile(parser.pattern);
-			String replacement = mustache.compile(parser.replacement);
+			Interfaces.Regexp.Pattern pattern = parser.pattern.compile(this, context.regexpInterface);
+			String replacement = parser.replacement.compile(this);
 			return pattern.match(stringToParse, replacement, matchNumber);
 		} catch (NoMatchesException e) {
 			throw new ExecutionFailure(e);
@@ -101,7 +109,7 @@ public class VariableExecution extends ParsableExecution implements Variables {
 	/**
 	 * @return {@link LeafExecution}s and {@link VariableExecution}s.
 	 */
-	protected Execution[] generateChildren(Resource resource, Object result) {
+	protected Execution[] generateChildren(ExecutionContext context, Resource resource, Object result) {
 		this.result = (String) result;
 		
 		Variable[] variables = variable.getVariables();
@@ -110,11 +118,11 @@ public class VariableExecution extends ParsableExecution implements Variables {
 		Vector leafExecutions = new Vector();
 		for(int i = 0 ; i < variables.length ; i ++) {
 			variableExecutions.add(
-					new VariableExecution(context, this, mustache, variables[i], this.result));
+				new VariableExecution(context, this, variables[i], this.result));
 		}
 		for(int i = 0 ; i < leaves.length ; i ++) {
 			leafExecutions.add(
-					new LeafExecution(context, mustache, this, leaves[i], this.result));
+				new LeafExecution(context, this, this, leaves[i], this.result));
 		}
 		this.variableExecutions = new VariableExecution[variableExecutions.size()];
 		variableExecutions.copyInto(this.variableExecutions);

@@ -1,14 +1,13 @@
 package net.microscraper.client;
 
 import java.net.URI;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Set;
 import java.util.Vector;
 
+import net.microscraper.client.Interfaces.Regexp;
 import net.microscraper.client.Publisher.PublisherException;
-import net.microscraper.execution.Context;
 import net.microscraper.execution.Execution;
+import net.microscraper.execution.ExecutionContext;
+import net.microscraper.execution.ResourceLoader;
 import net.microscraper.execution.ScraperExecution;
 import net.microscraper.model.Link;
 import net.microscraper.model.URIMustBeAbsoluteException;
@@ -18,26 +17,41 @@ import net.microscraper.model.URIMustBeAbsoluteException;
  * @author john
  *
  */
-public class Client {
-	private static final int LARGE_QUEUE = 1000000;
-	private final Context context;
+public final class Client {
+	private static final int LARGE_QUEUE = 1000000; // TODO: handle differently
+	//private final Context context;
 	private final Publisher publisher;
-	private Vector queue = new Vector();
 	
-	public Client(Context context, Publisher publisher) {
-		this.context = context;
+	private final ExecutionContext context;
+	private final Vector queue = new Vector();
+	
+
+	/**
+	 * @param resourceLoader The {@link ResourceLoader} this {@link ScraperExecution} is set to use.
+	 * @param browser The {@link Browser} this {@link ScraperExecution} is set to use.
+	 * @param log The {@link Log} this {@link ScraperExecution} is set to use.
+	 * @param encoding The encoding to use when encoding post data and cookies. "UTF-8" is recommended.
+	 * @param regexp The {@link Regexp} interface to use when compiling regexps.
+	 */
+	public Client(ResourceLoader resourceLoader, Interfaces.Regexp regexpInterface,
+			Interfaces.JSON jsonInterface, Browser browser,
+			Log log, String encoding, Publisher publisher) {
+		this.context = new ExecutionContext( log,
+				regexpInterface, browser, resourceLoader, encoding);
 		this.publisher = publisher;
 	}
 	
 	public void scrape(URI scraperLocation, UnencodedNameValuePair[] extraVariables) throws URIMustBeAbsoluteException {
-		//execute(new ScraperExecution(new Link(scraperLocation), context, extraVariables));
-		queue.add(new ScraperExecution(new Link(scraperLocation), context, extraVariables));
+		queue.add(
+				new ScraperExecution(context, new Link(scraperLocation), extraVariables)
+			);
 		execute();
 	}
+	
 	private void execute() {
 		while(queue.size() > 0) {
 			if(queue.size() > LARGE_QUEUE) {
-				context.i("Large execution queue: " + Utils.quote(queue.size()));
+				context.log.i("Large execution queue: " + Utils.quote(queue.size()));
 			}
 			Execution exc = (Execution) queue.elementAt(0);
 			queue.removeElementAt(0);
@@ -45,7 +59,7 @@ public class Client {
 			try {
 				publisher.publish(exc);
 			} catch(PublisherException e) {
-				context.e(e);
+				context.log.e(e);
 			}
 			// If the execution is complete, add its children to the queue.
 			if(exc.isComplete()) {
@@ -58,32 +72,6 @@ public class Client {
 			}
 		}
 	}
-	/*private void execute(Execution exc) {
-		if(!exc.isComplete()) {
-			exc.run();
-			try {
-				publisher.publish(exc);
-			} catch(PublisherException e) {
-				context.e(e);
-			}
-		}
-		
-		if(exc.isComplete()) {
-			Execution[] children = exc.getChildren();
-			for(int i = 0 ; i < children.length ; i ++) {
-				Execution child = children[i];
-				while(!child.isComplete() && !exc.isStuck() && !exc.hasFailed()) {
-					execute(child);
-				}
-			}
-			for(int i = 0 ; i < children.length ; i ++) {
-				Execution child = children[i];
-				if(child.isStuck()) {
-					context.i(child.toString() + " stuck on " + Utils.quote(child.stuckOn()));
-				}
-			}
-		}
-	}*/
 	/*
 	public void testPage(URI pageLocation, UnencodedNameValuePair[] extraVariables) {
 		///new PageExecution(new Link(pageLocation), context, extraVariables);
@@ -99,13 +87,4 @@ public class Client {
 		//new LeafExecution(new Link(leafLocation), context, extraVariables);
 		
 	}*/
-	
-	public static class MicroScraperClientException extends Exception {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -8899853760225376402L;
-
-		public MicroScraperClientException(Throwable e) { super(e); }
-	}
 }
