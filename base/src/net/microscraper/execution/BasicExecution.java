@@ -12,6 +12,7 @@ import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Utils;
 import net.microscraper.model.DeserializationException;
+import net.microscraper.model.Resource;
 
 public abstract class BasicExecution implements Execution {
 	private final URI resourceLocation;
@@ -21,9 +22,14 @@ public abstract class BasicExecution implements Execution {
 	
 	private final static int SLEEP_TIME = 1000;
 	
+	private Resource resource = null;
+	private Object result = null;
+	private Execution[] children = null;
+	
 	private Exception failure = null;
 	private String lastMissingVariable = null;
 	private String missingVariable = null;
+	
 	private boolean isStuck = false;
 	private boolean isComplete = false;
 	
@@ -49,33 +55,41 @@ public abstract class BasicExecution implements Execution {
 	
 	public final void run() {
 		isStuck = false;
-		try {
-			isComplete = protectedRun();
-		} catch(NoMatchesException e) {
-			handleFailure(e);
-		} catch(MissingGroupException e) {
-			handleFailure(e);
-		} catch(InvalidRangeException e) {
-			handleFailure(e);
-		} catch(MustacheTemplateException e) {
-			handleFailure(e);
-		} catch(MissingVariableException e) {
-			handleMissingVariable(e);
-		} catch (IOException e) {
-			handleFailure(e);
-		} catch (DeserializationException e) {
-			handleFailure(e);
-		} catch (BrowserDelayException e) {
-			handleDelay(e);
-		} catch (BrowserException e) {
-			handleFailure(e);
-		} catch (InvalidBodyMethodException e) {
-			handleFailure(e);
-		} catch (ScraperSourceException e) {
-			handleFailure(e);
-		}
-		if(isComplete) {
-			handleComplete();
+		if(!isComplete() && !hasFailed()) {
+			try {
+				if(resource == null) {
+					resource = generateResource();
+				}
+				if(resource != null) {
+					result = generateResult(resource);
+				}
+				if(result != null) {
+					children = generateChildren(resource, result);
+					handleComplete();
+				}
+			} catch (BrowserDelayException e) {
+				handleDelay(e);
+			} catch(MissingVariableException e) {
+				handleMissingVariable(e);
+			} catch(NoMatchesException e) {
+				handleFailure(e);
+			} catch(MissingGroupException e) {
+				handleFailure(e);
+			} catch(InvalidRangeException e) {
+				handleFailure(e);
+			} catch(MustacheTemplateException e) {
+				handleFailure(e);
+			} catch (IOException e) {
+				handleFailure(e);
+			} catch (DeserializationException e) {
+				handleFailure(e);
+			} catch (BrowserException e) {
+				handleFailure(e);
+			} catch (InvalidBodyMethodException e) {
+				handleFailure(e);
+			} catch (ScraperSourceException e) {
+				handleFailure(e);
+			}
 		}
 	}
 	
@@ -111,15 +125,21 @@ public abstract class BasicExecution implements Execution {
 	}
 	
 	private void handleComplete() {
+		isComplete = true;
 		String publishName = hasPublishName() ? getPublishName() : "";
 		String publishValue = hasPublishValue() ? getPublishValue() : "";
 		//context.i(toString() + " completed successfully, with '" + publishName + "'='" + publishValue + "'");
 	}
 	
-	/*
-	 * returns whether isComplete
-	 */
-	protected abstract boolean protectedRun() throws NoMatchesException, MissingGroupException,
+	protected abstract Resource generateResource() throws NoMatchesException, MissingGroupException,
+			InvalidRangeException, MustacheTemplateException, MissingVariableException, IOException,
+			DeserializationException, BrowserDelayException, BrowserException, InvalidBodyMethodException, ScraperSourceException;
+
+	protected abstract Object generateResult(Resource resource) throws NoMatchesException, MissingGroupException,
+			InvalidRangeException, MustacheTemplateException, MissingVariableException, IOException,
+			DeserializationException, BrowserDelayException, BrowserException, InvalidBodyMethodException, ScraperSourceException;
+
+	protected abstract Execution[] generateChildren(Resource resource, Object result) throws NoMatchesException, MissingGroupException,
 			InvalidRangeException, MustacheTemplateException, MissingVariableException, IOException,
 			DeserializationException, BrowserDelayException, BrowserException, InvalidBodyMethodException, ScraperSourceException;
 
@@ -171,5 +191,9 @@ public abstract class BasicExecution implements Execution {
 	
 	public final String toString() {
 		return "Execution " + Integer.toString(getId()) + " " + resourceLocation.toString();
+	}
+	
+	public final Execution[] getChildren() {
+		return children;
 	}
 }

@@ -3,6 +3,8 @@ package net.microscraper.execution;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.microscraper.client.BrowserDelayException;
+import net.microscraper.client.BrowserException;
 import net.microscraper.client.Interfaces;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
@@ -13,19 +15,21 @@ import net.microscraper.client.Utils;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Leaf;
 import net.microscraper.model.Link;
+import net.microscraper.model.Parser;
+import net.microscraper.model.Resource;
 
-public class LeafExecution extends ParsableExecution implements HasScraperExecutions {
+public class LeafExecution extends ParsableExecution {
 	private String[] results = null;
 	private final int minMatch;
 	private final int maxMatch;
 	private final MustacheCompiler mustache;
 	private final String stringToParse;
 	private final Link[] pipes;
-	private final HasVariableExecutions callerVariables;
+	private final Variables callerVariables;
 	private final Context context;
-	private ScraperExecution[] scraperExecutions = new ScraperExecution[0];
+	//private ScraperExecution[] scraperExecutions = new ScraperExecution[0];
 	
-	public LeafExecution(Context context, MustacheCompiler mustache, HasVariableExecutions callerVariables,
+	public LeafExecution(Context context, MustacheCompiler mustache, Variables callerVariables,
 			Leaf leaf, String stringToParse) {
 		super(context, leaf, callerVariables);
 		this.context = context;
@@ -36,22 +40,45 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 		this.pipes = leaf.getPipes();
 		this.callerVariables = callerVariables;
 	}
+	
+	public boolean hasPublishValue() {
+		/*if(results != null)
+			return true;
+		return false;*/
+		return false;
+	}
+	public String getPublishValue() {
+		//return Utils.join(results, ", ");
+		return null;
+	}
 
-	protected boolean protectedRun() throws NoMatchesException, MissingGroupException,
-					InvalidRangeException, MustacheTemplateException, MissingVariableException,
-					IOException, DeserializationException {
-		Interfaces.Regexp.Pattern pattern = mustache.compile(getParser().pattern);
-		String replacement = mustache.compile(getParser().replacement);
-		String[] output;
-		output = pattern.allMatches(stringToParse, replacement, minMatch, maxMatch);
-		
+	protected Object generateResult(Resource resource)
+			throws NoMatchesException, MissingGroupException,
+			InvalidRangeException, MustacheTemplateException,
+			MissingVariableException, IOException, DeserializationException,
+			BrowserDelayException, BrowserException,
+			InvalidBodyMethodException, ScraperSourceException {
+		Parser parser = (Parser) resource;
+		Interfaces.Regexp.Pattern pattern = mustache.compile(parser.pattern);
+		String replacement = mustache.compile(parser.replacement);
+		// returns String[]
+		return pattern.allMatches(stringToParse, replacement, minMatch, maxMatch);
+	}
+
+	protected Execution[] generateChildren(Resource resource, Object result)
+			throws NoMatchesException, MissingGroupException,
+			InvalidRangeException, MustacheTemplateException,
+			MissingVariableException, IOException, DeserializationException,
+			BrowserDelayException, BrowserException,
+			InvalidBodyMethodException, ScraperSourceException {
+		results = (String[]) result;
 		Vector scraperExecutions = new Vector();
 		for(int i = 0 ; i < pipes.length ; i ++) {
-			for(int j = 0 ; j < output.length ; j ++ ) {
+			for(int j = 0 ; j < results.length ; j ++ ) {
 				if(hasName()) {
 					// If the Leaf has a Name, send a single match to spawn the scraper.
 					scraperExecutions.add(
-							new ScraperExecutionChild(pipes[i], context, callerVariables, getName(), output[j]));
+							new ScraperExecutionChild(pipes[i], context, callerVariables, getName(), results[j]));
 				} else {
 					// If the Leaf does not, spawn the scraper with the standard variables.
 					scraperExecutions.add(
@@ -59,26 +86,8 @@ public class LeafExecution extends ParsableExecution implements HasScraperExecut
 				}
 			}
 		}
-		this.scraperExecutions = new ScraperExecution[scraperExecutions.size()];
-		scraperExecutions.copyInto(this.scraperExecutions);
-		return true;
-	}
-	
-	
-	public ScraperExecution[] getScraperExecutions() {
-		return scraperExecutions;
-	}
-	
-	public Execution[] getChildren() {
-		return getScraperExecutions();
-	}
-
-	public boolean hasPublishValue() {
-		if(results != null)
-			return true;
-		return false;
-	}
-	public String getPublishValue() {
-		return Utils.join(results, ", ");
+		Execution[] children = new ScraperExecution[scraperExecutions.size()];
+		scraperExecutions.copyInto(children);
+		return children;
 	}
 }

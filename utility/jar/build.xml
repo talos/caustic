@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project MicroScraper Utility">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="/Users/john/microscraper/microscraper-client/utility/jar/microcraper.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="net.microscraper.client.utility.MicroScraperConsole"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="/Users/john/microscraper/microscraper-client/utility/bin"/>
+            <fileset dir="/Users/john/microscraper/microscraper-client/base/build/classes"/>
+            <fileset dir="/Users/john/microscraper/microscraper-client/implementation/json/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/john/microscraper/microscraper-client/implementation/sqlite/lib/sqlitejdbc-v056/lib/sqlitejdbc-v056.jar"/>
+            <fileset dir="/Users/john/microscraper/microscraper-client/implementation/sqlite/bin"/>
+            <fileset dir="/Users/john/microscraper/microscraper-client/implementation/regexp/bin"/>
+        </jar>
+    </target>
+</project>

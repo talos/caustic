@@ -1,6 +1,9 @@
 package net.microscraper.client;
 
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Set;
 
 import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.execution.Context;
@@ -27,18 +30,29 @@ public class Client {
 		execute(new ScraperExecution(new Link(scraperLocation), context, extraVariables));
 	}
 	private void execute(Execution exc) {
-		exc.run();
-		try {
-			publisher.publish(exc);
-		} catch(PublisherException e) {
-			context.e(e);
+		if(!exc.isComplete()) {
+			exc.run();
+			try {
+				publisher.publish(exc);
+			} catch(PublisherException e) {
+				context.e(e);
+			}
 		}
-		Execution[] children = exc.getChildren();
-		for(int i = 0 ; i < children.length ; i ++) {
-			execute(children[i]);
-		}
-		if(!exc.isComplete() && !exc.isStuck() && !exc.hasFailed()) {
-			execute(exc);
+		
+		if(exc.isComplete()) {
+			Execution[] children = exc.getChildren();
+			for(int i = 0 ; i < children.length ; i ++) {
+				Execution child = children[i];
+				while(!child.isComplete() && !exc.isStuck() && !exc.hasFailed()) {
+					execute(child);
+				}
+			}
+			for(int i = 0 ; i < children.length ; i ++) {
+				Execution child = children[i];
+				if(child.isStuck()) {
+					context.i(child.toString() + " stuck on " + Utils.quote(child.stuckOn()));
+				}
+			}
 		}
 	}
 	/*

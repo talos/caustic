@@ -89,8 +89,8 @@ public class JavaUtilRegexInterface implements Regexp {
 				throw new NoMatchesException(this, matchesList.size(), firstIndex, lastIndex, input);
 			
 			String[] matches = new String[1 + lastIndex - firstIndex];
-			for(int i = firstIndex ; i < lastIndex ; i++) {
-				matches[i - firstIndex] = matchesList.get(i);
+			for(int i = 0 ; i < matches.length ; i ++) {
+				matches[i] = matchesList.get(i + firstIndex);
 			}
 			
 			return matches;

@@ -1,0 +1,260 @@
+Fri May 20 22:37:36 EDT 2011 Info: Posting to  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11...
+Fri May 20 22:37:36 EDT 2011 Info: Browser loading URL 'http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11'
+Fri May 20 22:37:36 EDT 2011 Info: Storing cookie 'PHPSESSID' with value '108f96ec8e11eca9eeea59cad062aca4'
+Fri May 20 22:37:39 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2...
+Fri May 20 22:37:40 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2", current KBPS "8881.0"
+Fri May 20 22:37:40 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2...
+Fri May 20 22:37:41 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2", current KBPS "113.0"
+Fri May 20 22:37:41 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2...
+Fri May 20 22:37:42 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2", current KBPS "57.0"
+Fri May 20 22:37:42 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2...
+Fri May 20 22:37:43 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2", current KBPS "38.0"
+Fri May 20 22:37:43 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2...
+Fri May 20 22:37:43 EDT 2011 Info: Browser loading URL 'http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2'
+Fri May 20 22:37:43 EDT 2011 Info: Using cookies: PHPSESSID=108f96ec8e11eca9eeea59cad062aca4
+Fri May 20 22:37:46 EDT 2011 Info: BLEH : >
+								<td>
+								06/24/1984								
+								</td>
+								<td>OH, CALCUTTA!&nbsp;</td>
+								<td>Edison&nbsp;</td>
+								<td>0&nbsp;</td>
+								<td>9&nbsp;</td>
+								<td>
+																	$34,803&nbsp;</td>
+								<td align="right">2,609&nbsp;</td>
+								<td align="right">&nbsp;</td>
+								<td><a href="/index.php?url_identifier=nyc-grosses-11&gross=52">more</a></td>
+							, >
+								<td>
+								06/24/1984								
+								</td>
+								<td>SUNDAY IN THE PARK WITH GEORGE&nbsp;</
+Fri May 20 22:37:46 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:37:46 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:37:46 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:37:46 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:37:46 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:37:46 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:37:46 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:37:46 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:37:46 EDT 2011 Info: Failure in Execution 442 file:/Users/john/microscraper/microscraper-server/spec/resource/fixtures/parser/Cell.json
+net.microscraper.client.Interfaces$Regexp$NoMatchesException: Match "0" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+	at net.microscraper.client.impl.JavaUtilRegexInterface$JavaUtilPattern.match(JavaUtilRegexInterface.java:61)
+	at net.microscraper.execution.VariableExecution.protectedRun(VariableExecution.java:47)
+	at net.microscraper.execution.BasicExecution.run(BasicExecution.java:53)
+	at net.microscraper.client.Client.execute(Client.java:30)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.scrape(Client.java:27)
+	at net.microscraper.client.utility.MicroScraperConsole.<init>(MicroScraperConsole.java:77)
+	at net.microscraper.client.utility.MicroScraperConsole.main(MicroScraperConsole.java:40)
+Fri May 20 22:37:46 EDT 2011 Error: Match "0" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+Fri May 20 22:37:46 EDT 2011 Info: Failure in Execution 443 file:/Users/john/microscraper/microscraper-server/spec/resource/fixtures/parser/Cell.json
+net.microscraper.client.Interfaces$Regexp$NoMatchesException: Match "1" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+	at net.microscraper.client.impl.JavaUtilRegexInterface$JavaUtilPattern.match(JavaUtilRegexInterface.java:61)
+	at net.microscraper.execution.VariableExecution.protectedRun(VariableExecution.java:47)
+	at net.microscraper.execution.BasicExecution.run(BasicExecution.java:53)
+	at net.microscraper.client.Client.execute(Client.java:30)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.scrape(Client.java:27)
+	at net.microscraper.client.utility.MicroScraperConsole.<init>(MicroScraperConsole.java:77)
+	at net.microscraper.client.utility.MicroScraperConsole.main(MicroScraperConsole.java:40)
+Fri May 20 22:37:46 EDT 2011 Error: Match "1" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+Fri May 20 22:37:46 EDT 2011 Info: Failure in Execution 444 file:/Users/john/microscraper/microscraper-server/spec/resource/fixtures/parser/Cell.json
+net.microscraper.client.Interfaces$Regexp$NoMatchesException: Match "2" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+	at net.microscraper.client.impl.JavaUtilRegexInterface$JavaUtilPattern.match(JavaUtilRegexInterface.java:61)
+	at net.microscraper.execution.VariableExecution.protectedRun(VariableExecution.java:47)
+	at net.microscraper.execution.BasicExecution.run(BasicExecution.java:53)
+	at net.microscraper.client.Client.execute(Client.java:30)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.scrape(Client.java:27)
+	at net.microscraper.client.utility.MicroScraperConsole.<init>(MicroScraperConsole.java:77)
+	at net.microscraper.client.utility.MicroScraperConsole.main(MicroScraperConsole.java:40)
+Fri May 20 22:37:46 EDT 2011 Error: Match "2" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+Fri May 20 22:37:46 EDT 2011 Info: Failure in Execution 445 file:/Users/john/microscraper/microscraper-server/spec/resource/fixtures/parser/Cell.json
+net.microscraper.client.Interfaces$Regexp$NoMatchesException: Match "3" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+	at net.microscraper.client.impl.JavaUtilRegexInterface$JavaUtilPattern.match(JavaUtilRegexInterface.java:61)
+	at net.microscraper.execution.VariableExecution.protectedRun(VariableExecution.java:47)
+	at net.microscraper.execution.BasicExecution.run(BasicExecution.java:53)
+	at net.microscraper.client.Client.execute(Client.java:30)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.scrape(Client.java:27)
+	at net.microscraper.client.utility.MicroScraperConsole.<init>(MicroScraperConsole.java:77)
+	at net.microscraper.client.utility.MicroScraperConsole.main(MicroScraperConsole.java:40)
+Fri May 20 22:37:46 EDT 2011 Error: Match "3" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+Fri May 20 22:37:46 EDT 2011 Info: Failure in Execution 446 file:/Users/john/microscraper/microscraper-server/spec/resource/fixtures/parser/Cell.json
+net.microscraper.client.Interfaces$Regexp$NoMatchesException: Match "4" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+	at net.microscraper.client.impl.JavaUtilRegexInterface$JavaUtilPattern.match(JavaUtilRegexInterface.java:61)
+	at net.microscraper.execution.VariableExecution.protectedRun(VariableExecution.java:47)
+	at net.microscraper.execution.BasicExecution.run(BasicExecution.java:53)
+	at net.microscraper.client.Client.execute(Client.java:30)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.scrape(Client.java:27)
+	at net.microscraper.client.utility.MicroScraperConsole.<init>(MicroScraperConsole.java:77)
+	at net.microscraper.client.utility.MicroScraperConsole.main(MicroScraperConsole.java:40)
+Fri May 20 22:37:46 EDT 2011 Error: Match "4" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+Fri May 20 22:37:46 EDT 2011 Info: Failure in Execution 447 file:/Users/john/microscraper/microscraper-server/spec/resource/fixtures/parser/Cell.json
+net.microscraper.client.Interfaces$Regexp$NoMatchesException: Match "5" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+	at net.microscraper.client.impl.JavaUtilRegexInterface$JavaUtilPattern.match(JavaUtilRegexInterface.java:61)
+	at net.microscraper.execution.VariableExecution.protectedRun(VariableExecution.java:47)
+	at net.microscraper.execution.BasicExecution.run(BasicExecution.java:53)
+	at net.microscraper.client.Client.execute(Client.java:30)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.scrape(Client.java:27)
+	at net.microscraper.client.utility.MicroScraperConsole.<init>(MicroScraperConsole.java:77)
+	at net.microscraper.client.utility.MicroScraperConsole.main(MicroScraperConsole.java:40)
+Fri May 20 22:37:46 EDT 2011 Error: Match "5" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+Fri May 20 22:37:46 EDT 2011 Info: Failure in Execution 448 file:/Users/john/microscraper/microscraper-server/spec/resource/fixtures/parser/Cell.json
+net.microscraper.client.Interfaces$Regexp$NoMatchesException: Match "6" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+	at net.microscraper.client.impl.JavaUtilRegexInterface$JavaUtilPattern.match(JavaUtilRegexInterface.java:61)
+	at net.microscraper.execution.VariableExecution.protectedRun(VariableExecution.java:47)
+	at net.microscraper.execution.BasicExecution.run(BasicExecution.java:53)
+	at net.microscraper.client.Client.execute(Client.java:30)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.scrape(Client.java:27)
+	at net.microscraper.client.utility.MicroScraperConsole.<init>(MicroScraperConsole.java:77)
+	at net.microscraper.client.utility.MicroScraperConsole.main(MicroScraperConsole.java:40)
+Fri May 20 22:37:46 EDT 2011 Error: Match "6" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+Fri May 20 22:37:46 EDT 2011 Info: Failure in Execution 449 file:/Users/john/microscraper/microscraper-server/spec/resource/fixtures/parser/Cell.json
+net.microscraper.client.Interfaces$Regexp$NoMatchesException: Match "7" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+	at net.microscraper.client.impl.JavaUtilRegexInterface$JavaUtilPattern.match(JavaUtilRegexInterface.java:61)
+	at net.microscraper.execution.VariableExecution.protectedRun(VariableExecution.java:47)
+	at net.microscraper.execution.BasicExecution.run(BasicExecution.java:53)
+	at net.microscraper.client.Client.execute(Client.java:30)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.scrape(Client.java:27)
+	at net.microscraper.client.utility.MicroScraperConsole.<init>(MicroScraperConsole.java:77)
+	at net.microscraper.client.utility.MicroScraperConsole.main(MicroScraperConsole.java:40)
+Fri May 20 22:37:46 EDT 2011 Error: Match "7" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+Fri May 20 22:37:46 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3...
+Fri May 20 22:37:47 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3", current KBPS "506.0"
+Fri May 20 22:37:47 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3...
+Fri May 20 22:37:48 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3", current KBPS "94.0"
+Fri May 20 22:37:48 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3...
+Fri May 20 22:37:49 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3", current KBPS "51.0"
+Fri May 20 22:37:49 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3...
+Fri May 20 22:37:50 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3", current KBPS "35.0"
+Fri May 20 22:37:50 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3...
+Fri May 20 22:37:50 EDT 2011 Info: Browser loading URL 'http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3'
+Fri May 20 22:37:50 EDT 2011 Info: Using cookies: PHPSESSID=108f96ec8e11eca9eeea59cad062aca4
+Fri May 20 22:37:53 EDT 2011 Info: BLEH : >
+								<td>
+								07/15/1984								
+								</td>
+								<td>MY ONE AND ONLY&nbsp;</td>
+								<td>St. James&nbsp;</td>
+								<td>0&nbsp;</td>
+								<td>8&nbsp;</td>
+								<td>
+																	$305,378&nbsp;</td>
+								<td align="right">9,457&nbsp;</td>
+								<td align="right">&nbsp;</td>
+								<td><a href="/index.php?url_identifier=nyc-grosses-11&gross=102">more</a></td>
+							, >
+								<td>
+								07/15/1984								
+								</td>
+								<td>NOISES OFF '83&nbsp;</td>
+					
+Fri May 20 22:37:53 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:37:53 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:37:53 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:37:53 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:37:53 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:37:53 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:37:53 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:37:53 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:37:53 EDT 2011 Info: Failure in Execution 888 file:/Users/john/microscraper/microscraper-server/spec/resource/fixtures/parser/Cell.json
+net.microscraper.client.Interfaces$Regexp$NoMatchesException: Match "0" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+	at net.microscraper.client.impl.JavaUtilRegexInterface$JavaUtilPattern.match(JavaUtilRegexInterface.java:61)
+	at net.microscraper.execution.VariableExecution.protectedRun(VariableExecution.java:47)
+	at net.microscraper.execution.BasicExecution.run(BasicExecution.java:53)
+	at net.microscraper.client.Client.execute(Client.java:30)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:41)
+	at net.microscraper.client.Client.execute(Client.java:38)
+	at net.microscraper.client.Client.scrape(Client.java:27)
+	at net.microscraper.client.utility.MicroScraperConsole.<init>(MicroScraperConsole.java:77)
+	at net.microscraper.client.utility.MicroScraperConsole.main(MicroScraperConsole.java:40)
+Fri May 20 22:37:53 EDT 2011 Error: Match "0" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+Fri May 20 22:37:53 EDT 2011 Info: Failure in Execution 889 file:/Users/john/microscraper/microscraper-server/spec/resource/fixtures/parser/Cell.json
+net.microscraper.client.Interfaces$Regexp$NoMatchesException: Match "1" not found in the "0" matches of "<td[^>]*>(.*?)</td>" against "null"
+	at net.microscraper.client.impl.JavaUtilRegexInterface$JavaUtilPattern.match(JavaUtilRegexInterface.java:61)
+	at net.microscraper.execution.VariableExecution.protectedRun(VariableExecution.java:47)
+	at net.microscraper.execution.BasicExecution.run(BasicExecution.java:53)
+	at net.microscraper.client.Client.execute(Client

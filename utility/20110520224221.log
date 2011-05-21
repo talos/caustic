@@ -1,0 +1,112 @@
+Fri May 20 22:42:23 EDT 2011 Info: Posting to  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11...
+Fri May 20 22:42:23 EDT 2011 Info: Browser loading URL 'http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11'
+Fri May 20 22:42:23 EDT 2011 Info: Storing cookie 'PHPSESSID' with value '700827f53b9a750b407070a71769eac2'
+Fri May 20 22:42:25 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2...
+Fri May 20 22:42:26 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2", current KBPS "9621.0"
+Fri May 20 22:42:26 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2...
+Fri May 20 22:42:27 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2", current KBPS "113.0"
+Fri May 20 22:42:27 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2...
+Fri May 20 22:42:28 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2", current KBPS "57.0"
+Fri May 20 22:42:28 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2...
+Fri May 20 22:42:29 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2", current KBPS "38.0"
+Fri May 20 22:42:29 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2...
+Fri May 20 22:42:29 EDT 2011 Info: Browser loading URL 'http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=2'
+Fri May 20 22:42:29 EDT 2011 Info: Using cookies: PHPSESSID=700827f53b9a750b407070a71769eac2
+Fri May 20 22:42:32 EDT 2011 Info: BLEH : >
+								<td>
+								07/15/1984								
+								</td>
+								<td>GLENGARRY GLEN ROSS '84&nbsp;</td>
+								<td>John Golden&nbsp;</td>
+								<td>0&nbsp;</td>
+								<td>8&nbsp;</td>
+								<td>
+																	$117,332&nbsp;</td>
+								<td align="right">5,809&nbsp;</td>
+								<td align="right">&nbsp;</td>
+								<td><a href="/index.php?url_identifier=nyc-grosses-11&gross=100">more</a></td>
+							
+Fri May 20 22:42:32 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:32 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:32 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:32 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:32 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:32 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:32 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:32 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:32 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3...
+Fri May 20 22:42:33 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3", current KBPS "527.0"
+Fri May 20 22:42:33 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3...
+Fri May 20 22:42:34 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3", current KBPS "94.0"
+Fri May 20 22:42:34 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3...
+Fri May 20 22:42:35 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3", current KBPS "52.0"
+Fri May 20 22:42:35 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3...
+Fri May 20 22:42:36 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3", current KBPS "35.0"
+Fri May 20 22:42:36 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3...
+Fri May 20 22:42:36 EDT 2011 Info: Browser loading URL 'http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=3'
+Fri May 20 22:42:36 EDT 2011 Info: Using cookies: PHPSESSID=700827f53b9a750b407070a71769eac2
+Fri May 20 22:42:38 EDT 2011 Info: BLEH : >
+								<td>
+								08/05/1984								
+								</td>
+								<td>GLENGARRY GLEN ROSS '84&nbsp;</td>
+								<td>John Golden&nbsp;</td>
+								<td>0&nbsp;</td>
+								<td>8&nbsp;</td>
+								<td>
+																	$102,230&nbsp;</td>
+								<td align="right">5,120&nbsp;</td>
+								<td align="right">&nbsp;</td>
+								<td><a href="/index.php?url_identifier=nyc-grosses-11&gross=150">more</a></td>
+							
+Fri May 20 22:42:38 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:38 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:38 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:38 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:38 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:38 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:38 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:38 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:38 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=4...
+Fri May 20 22:42:39 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=4", current KBPS "458.0"
+Fri May 20 22:42:39 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=4...
+Fri May 20 22:42:40 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=4", current KBPS "92.0"
+Fri May 20 22:42:40 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=4...
+Fri May 20 22:42:41 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=4", current KBPS "51.0"
+Fri May 20 22:42:41 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=4...
+Fri May 20 22:42:42 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=4", current KBPS "35.0"
+Fri May 20 22:42:42 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=4...
+Fri May 20 22:42:42 EDT 2011 Info: Browser loading URL 'http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=4'
+Fri May 20 22:42:42 EDT 2011 Info: Using cookies: PHPSESSID=700827f53b9a750b407070a71769eac2
+Fri May 20 22:42:45 EDT 2011 Info: BLEH : >
+								<td>
+								08/26/1984								
+								</td>
+								<td>DREAMGIRLS '81&nbsp;</td>
+								<td>Imperial&nbsp;</td>
+								<td>0&nbsp;</td>
+								<td>8&nbsp;</td>
+								<td>
+																	$294,044&nbsp;</td>
+								<td align="right">10,039&nbsp;</td>
+								<td align="right">&nbsp;</td>
+								<td><a href="/index.php?url_identifier=nyc-grosses-11&gross=200">more</a></td>
+							
+Fri May 20 22:42:45 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:45 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:45 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:45 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:45 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:45 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:45 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:45 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:45 EDT 2011 Info: SQL Batch Count: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Fri May 20 22:42:45 EDT 2011 Info: SQL Batch Count: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+Fri May 20 22:42:45 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=5...
+Fri May 20 22:42:46 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=5", current KBPS "321.0"
+Fri May 20 22:42:46 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=5...
+Fri May 20 22:42:47 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=5", current KBPS "84.0"
+Fri May 20 22:42:47 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=5...
+Fri May 20 22:42:48 EDT 2011 Info: Delaying load of "http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=5", current KBPS "48.0"
+Fri May 20 22:42:48 EDT 2011 Info: Getting  http://www.broadwayleague.com/index.php?url_identifier=nyc-grosses-11&page-no=5...
+Fri May 20 22:42:49 EDT 2011 Info:

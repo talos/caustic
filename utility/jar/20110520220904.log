@@ -1,0 +1,6 @@
+net.microscraper.model.URIMustBeAbsoluteException: URI '/Users/john/microscraper/microscraper-server/spec/resource/fixtures/scraper/Broadway-League.json should be absolute.
+	at net.microscraper.model.Link.<init>(Link.java:23)
+	at net.microscraper.client.Client.scrape(Client.java:27)
+	at net.microscraper.client.utility.MicroScraperConsole.<init>(MicroScraperConsole.java:77)
+	at net.microscraper.client.utility.MicroScraperConsole.main(MicroScraperConsole.java:40)
+Fri May 20 22:09:04 EDT 2011 Error: URI '/Users/john/microscraper/microscraper-server/spec/resource/fixtures/scraper/Broadway-League.json should be absolute.

@@ -6,11 +6,15 @@ import java.net.MalformedURLException;
 
 import net.microscraper.client.BrowserException;
 import net.microscraper.client.BrowserDelayException;
+import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
+import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
+import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Link;
 import net.microscraper.model.Page;
+import net.microscraper.model.Resource;
 
 public class PageExecution extends BasicExecution {
 	private final Link pageLink;
@@ -46,28 +50,7 @@ public class PageExecution extends BasicExecution {
 				enclosingScraper.compile(page.terminates),
 				enclosingScraper.compileEncoded(page.posts));
 	}
-
-	protected boolean protectedRun() throws BrowserDelayException, MissingVariableException,
-				BrowserException, MustacheTemplateException, InvalidBodyMethodException,
-				IOException, DeserializationException {
-		Page page = context.loadPage(pageLink);
-		
-		// Temporary executions to do before.  Not published, executed each time.
-		for(int i = 0 ; i < page.loadBeforeLinks.length ; i ++) {
-			new PageExecution(context, enclosingScraper, page.loadBeforeLinks[i]).protectedRun();
-		}
-		if(page.method.equals(Page.Method.GET)) {
-			body = get(page);
-		} else if(page.method.equals(Page.Method.POST)) {
-			body = post(page);
-		} else if(page.method.equals(Page.Method.HEAD)) {
-			head(page);
-		} else {
-			throw new InvalidBodyMethodException(page);
-		}
-		return true;
-	}
-
+	
 	public String getBody() {
 		return body;
 	}
@@ -75,11 +58,11 @@ public class PageExecution extends BasicExecution {
 	public Execution[] children() {
 		return new Execution[0];
 	}
-
+/*
 	public Execution[] getChildren() {
 		return new Execution[0];
 	}
-
+*/
 	public boolean hasPublishName() {
 		return false;
 	}
@@ -94,5 +77,47 @@ public class PageExecution extends BasicExecution {
 
 	public String getPublishValue() {
 		return null;
+	}
+
+	protected Resource generateResource() throws NoMatchesException,
+			MissingGroupException, InvalidRangeException,
+			MustacheTemplateException, MissingVariableException, IOException,
+			DeserializationException, BrowserDelayException, BrowserException,
+			InvalidBodyMethodException, ScraperSourceException {
+		return context.loadPage(pageLink);
+	}
+
+	protected Object generateResult(Resource resource)
+			throws NoMatchesException, MissingGroupException,
+			InvalidRangeException, MustacheTemplateException,
+			MissingVariableException, IOException, DeserializationException,
+			BrowserDelayException, BrowserException,
+			InvalidBodyMethodException, ScraperSourceException {
+		Page page = (Page) resource;
+		// Temporary executions to do before.  Not published, executed each time.
+		for(int i = 0 ; i < page.loadBeforeLinks.length ; i ++) {
+			PageExecution pageBeforeExecution = new PageExecution(context, enclosingScraper, page.loadBeforeLinks[i]);
+			Page pageBefore = (Page) pageBeforeExecution.generateResource();
+			pageBeforeExecution.generateResult(pageBefore);
+		}
+		if(page.method.equals(Page.Method.GET)) {
+			return get(page);
+		} else if(page.method.equals(Page.Method.POST)) {
+			return post(page);
+		} else if(page.method.equals(Page.Method.HEAD)) {
+			head(page);
+			return null;
+		} else {
+			throw new InvalidBodyMethodException(page);
+		}
+	}
+
+	protected Execution[] generateChildren(Resource resource, Object result)
+			throws NoMatchesException, MissingGroupException,
+			InvalidRangeException, MustacheTemplateException,
+			MissingVariableException, IOException, DeserializationException,
+			BrowserDelayException, BrowserException,
+			InvalidBodyMethodException, ScraperSourceException {
+		return new Execution[0];
 	}
 }

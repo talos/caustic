@@ -11,17 +11,17 @@ import net.microscraper.model.Link;
  *
  */
 public final class ScraperExecutionChild extends ScraperExecution {
-	private final HasVariableExecutions parent;
+	private final Variables parent;
 	private final String extraName;
 	private final String extraValue;
 	
-	public ScraperExecutionChild(Link pipe, Context context, HasVariableExecutions parent) {
+	public ScraperExecutionChild(Link pipe, Context context, Variables parent) {
 		super(pipe, context, new UnencodedNameValuePair[] { }, parent );
 		this.parent = parent;
 		this.extraName = null;
 		this.extraValue = null;
 	}
-	public ScraperExecutionChild(Link pipe, Context context, HasVariableExecutions parent,
+	public ScraperExecutionChild(Link pipe, Context context, Variables parent,
 			String extraName, String extraValue) {
 		super(pipe, context, new UnencodedNameValuePair[] { new UnencodedNameValuePair(extraName, extraValue) }, parent);
 		this.parent = parent;
@@ -64,7 +64,7 @@ public final class ScraperExecutionChild extends ScraperExecution {
 
 	public String getPublishValue() {
 		if(hasPublishValue())
-			return extraName;
+			return extraValue;
 		return null;
 	}
 }

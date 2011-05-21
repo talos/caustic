@@ -136,11 +136,12 @@ public class JavaNetBrowser implements Browser {
 				for(int i = 0 ; i < terminates.length ; i++) {
 					if(terminates[i].matches(responseBody)){
 						log.i("Terminating " + conn.getURL().toString() + " due to pattern " + terminates[i].toString());
-						stream.close();
 						break loading;
 					}
 				}
 			}
+			stream.close();
+			conn.disconnect();
 			responseBody = content.toString();
 			hostMemory.add(url, responseBody.length());
 			return responseBody;

@@ -5,6 +5,7 @@ import java.io.IOException;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Parsable;
 import net.microscraper.model.Parser;
+import net.microscraper.model.Resource;
 
 public abstract class ParsableExecution extends BasicExecution {
 	private final Parsable parsable;
@@ -19,15 +20,15 @@ public abstract class ParsableExecution extends BasicExecution {
 		this.context = context;		
 	}
 	
-	public boolean hasName() {
+	public final boolean hasName() {
 		return parsable.hasName();
 	}
 	
-	public String getName() {
+	public final String getName() {
 		return parsable.getName();
 	}
 	
-	public Parser getParser() throws IOException, DeserializationException {
+	public final Resource generateResource() throws IOException, DeserializationException {
 		if(parser != null) {
 			return parser;
 		} else {
@@ -35,11 +36,11 @@ public abstract class ParsableExecution extends BasicExecution {
 		}
 	}
 	
-	public boolean hasPublishName() {
+	public final boolean hasPublishName() {
 		return hasName();
 	}
 
-	public String getPublishName() {
+	public final String getPublishName() {
 		return getName();
 	}
 }

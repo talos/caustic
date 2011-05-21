@@ -12,7 +12,7 @@ public interface Browser {
 	public static final int TIMEOUT = 30000;
 	public static final int MAX_REDIRECTS = 50;
 	public static final int SUCCESS_CODE = 200;
-	public static final int MAX_KBPS_FROM_HOST = 15;
+	public static final int MAX_KBPS_FROM_HOST = 30;
 	
 	public static final String LOCATION_HEADER_NAME = "location";
 	public static final String REFERER_HEADER_NAME = "Referer";
@@ -34,12 +34,6 @@ public interface Browser {
 			throws InterruptedException, BrowserException, JSONInterfaceException;
 	*/
 	
-	/**
-	 * @return the encoding used by this browser.
-	 */
-	/*
-	public abstract String getEncoding();
-	*/
 	/**
 	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies
 	 * from Set-Cookie to the Browser's cookie store.

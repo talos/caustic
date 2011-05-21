@@ -3,26 +3,31 @@ package net.microscraper.execution;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.microscraper.client.BrowserDelayException;
+import net.microscraper.client.BrowserException;
 import net.microscraper.client.Interfaces;
+import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
 import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Leaf;
+import net.microscraper.model.Parser;
+import net.microscraper.model.Resource;
 import net.microscraper.model.Variable;
 
-public class VariableExecution extends ParsableExecution implements HasVariableExecutions, HasLeafExecutions {
+public class VariableExecution extends ParsableExecution implements Variables {
 	private final int matchNumber;
 	private final MustacheCompiler mustache;
 	private final Context context;
 	private final String stringToParse;
 	
-	private final Variable[] variables;
+	//private final Variable[] variables;
+	private final Variable variable;
 	private VariableExecution[] variableExecutions = new VariableExecution[0];
 	
-	private final Leaf[] leaves;
-	private LeafExecution[] leafExecutions = new LeafExecution[0];
+	//private final Leaf[] leaves;
 	
 	private String result = null;
 		
@@ -33,34 +38,9 @@ public class VariableExecution extends ParsableExecution implements HasVariableE
 		this.context = context;
 		this.stringToParse = stringToParse;
 		
-		variables = variable.getVariables();
-		
-		leaves = variable.getLeaves();
-	}
-	
-	protected boolean protectedRun() throws MissingVariableException, MustacheTemplateException,
-				NoMatchesException, MissingGroupException, IOException, DeserializationException {
-		Interfaces.Regexp.Pattern pattern;
-		pattern = mustache.compile(getParser().pattern);
-		String replacement = mustache.compile(getParser().replacement);
-		result = pattern.match(stringToParse, replacement, matchNumber);
-		
-		Vector variableExecutions = new Vector();
-		Vector leafExecutions = new Vector();
-		for(int i = 0 ; i < variables.length ; i ++) {
-			variableExecutions.add(
-					new VariableExecution(context, this, mustache, variables[i], result));
-		}
-		for(int i = 0 ; i < leaves.length ; i ++) {
-			leafExecutions.add(
-					new LeafExecution(context, mustache, this, leaves[i], result));
-		}
-		this.variableExecutions = new VariableExecution[variableExecutions.size()];
-		this.leafExecutions = new LeafExecution[leafExecutions.size()];
-		variableExecutions.copyInto(this.variableExecutions);
-		leafExecutions.copyInto(this.leafExecutions);
-		
-		return true;
+		//variables = variable.getVariables();
+		this.variable = variable;
+		//leaves = variable.getLeaves();
 	}
 	
 	public String get(String key) throws MissingVariableException {
@@ -90,25 +70,6 @@ public class VariableExecution extends ParsableExecution implements HasVariableE
 		}
 		return false;
 	}
-	
-	public Execution[] getChildren() {
-		Execution[] children = new Execution[variableExecutions.length + leafExecutions.length];
-		for(int i = 0 ; i < variableExecutions.length ; i++) {
-			children[i] = variableExecutions[i];
-		}
-		for(int i = 0 ; i < leafExecutions.length ; i ++) {
-			children[i + variableExecutions.length] = leafExecutions[i];
-		}
-		return children;
-	}
-
-	public LeafExecution[] getLeafExecutions() {
-		return leafExecutions;
-	}
-
-	public VariableExecution[] getVariableExecutions() {
-		return variableExecutions;
-	}
 
 	public boolean hasPublishValue() {
 		if(result != null)
@@ -118,5 +79,50 @@ public class VariableExecution extends ParsableExecution implements HasVariableE
 
 	public String getPublishValue() {
 		return result;
+	}
+
+	protected Object generateResult(Resource resource)
+			throws NoMatchesException, MissingGroupException,
+			InvalidRangeException, MustacheTemplateException,
+			MissingVariableException, IOException, DeserializationException,
+			BrowserDelayException, BrowserException,
+			InvalidBodyMethodException, ScraperSourceException {
+		Parser parser = (Parser) resource;
+		Interfaces.Regexp.Pattern pattern = mustache.compile(parser.pattern);
+		String replacement = mustache.compile(parser.replacement);
+		return pattern.match(stringToParse, replacement, matchNumber);
+	}
+
+	protected Execution[] generateChildren(Resource resource, Object result)
+			throws NoMatchesException, MissingGroupException,
+			InvalidRangeException, MustacheTemplateException,
+			MissingVariableException, IOException, DeserializationException,
+			BrowserDelayException, BrowserException,
+			InvalidBodyMethodException, ScraperSourceException {
+		this.result = (String) result;
+		
+		Variable[] variables = variable.getVariables();
+		Leaf[] leaves = variable.getLeaves();
+		Vector variableExecutions = new Vector();
+		Vector leafExecutions = new Vector();
+		for(int i = 0 ; i < variables.length ; i ++) {
+			variableExecutions.add(
+					new VariableExecution(context, this, mustache, variables[i], this.result));
+		}
+		for(int i = 0 ; i < leaves.length ; i ++) {
+			leafExecutions.add(
+					new LeafExecution(context, mustache, this, leaves[i], this.result));
+		}
+		this.variableExecutions = new VariableExecution[variableExecutions.size()];
+		variableExecutions.copyInto(this.variableExecutions);
+		
+		Execution[] children = new Execution[this.variableExecutions.length + leafExecutions.size()];
+		for(int i = 0 ; i < this.variableExecutions.length ; i++) {
+			children[i] = this.variableExecutions[i];
+		}
+		for(int i = 0 ; i < leafExecutions.size() ; i ++) {
+			children[i + this.variableExecutions.length] = (LeafExecution) leafExecutions.elementAt(i);
+		}
+		return children;
 	}
 }

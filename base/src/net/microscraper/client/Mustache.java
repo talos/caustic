@@ -1,6 +1,6 @@
 package net.microscraper.client;
 
-import net.microscraper.execution.HasVariableExecutions;
+import net.microscraper.execution.Variables;
 
 /**
  * Mustache-like substitutions from Variables.
@@ -15,12 +15,12 @@ public class Mustache {
 	/**
 	 * Attempt to compile a template within an ContextRoot.
 	 * @param template A string containing the template to compile.
-	 * @param variables A {@link HasVariableExecutions} instance.
+	 * @param variables A {@link Variables} instance.
 	 * @return The string, with tags substituted using the variables.
 	 * @throws TemplateException The template was invalid.
 	 * @throws MissingVariableException The Variables instance was was missing one of the tags.
 	 */
-	public static String compile(String template, HasVariableExecutions variables)
+	public static String compile(String template, Variables variables)
 				throws MustacheTemplateException, MissingVariableException {
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
