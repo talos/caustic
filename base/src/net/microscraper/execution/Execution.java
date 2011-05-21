@@ -6,7 +6,7 @@ import net.microscraper.client.Variables;
 
 /**
  * Implementations of Execution can be executed by a {@link net.microscraper.client.Client},
- * and published by {@link net.microscraper.client.Publisher}.
+ * and published by {@link net.microscraper.client.interfaces.Publisher}.
  * @author john
  *
  */

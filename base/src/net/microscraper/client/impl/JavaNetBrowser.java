@@ -12,11 +12,11 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import net.microscraper.client.Browser;
-import net.microscraper.client.BrowserException;
-import net.microscraper.client.BrowserDelayException;
 import net.microscraper.client.EncodedNameValuePair;
-import net.microscraper.client.Interfaces.Regexp.Pattern;
+import net.microscraper.client.interfaces.Browser;
+import net.microscraper.client.interfaces.BrowserDelayException;
+import net.microscraper.client.interfaces.BrowserException;
+import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.client.Log;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Utils;
@@ -63,7 +63,7 @@ public class JavaNetBrowser implements Browser {
 	}
 
 	public String get(URL url, UnencodedNameValuePair[] headers,
-			EncodedNameValuePair[] cookies, Pattern[] terminates) throws BrowserDelayException,
+			EncodedNameValuePair[] cookies, PatternInterface[] terminates) throws BrowserDelayException,
 			BrowserException {
 		log.i("Getting  " + url.toString() + "...");
 		try {
@@ -77,7 +77,7 @@ public class JavaNetBrowser implements Browser {
 	}
 
 	public String post(URL url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies,
-			Pattern[] terminates, EncodedNameValuePair[] posts)
+			PatternInterface[] terminates, EncodedNameValuePair[] posts)
 				throws BrowserDelayException, BrowserException {
 		log.i("Posting to  " + url.toString() + "...");
 		try {
@@ -114,7 +114,7 @@ public class JavaNetBrowser implements Browser {
 	 * @throws BrowserException if there was an exception loading, including user interrupt.
 	 * @throws BrowserDelayException if we have loaded too much too fast from a host.
 	 */
-	private String pullResponse(HttpURLConnection conn, Pattern[] terminates)
+	private String pullResponse(HttpURLConnection conn, PatternInterface[] terminates)
 			throws BrowserException {
 
 		URL url = conn.getURL();

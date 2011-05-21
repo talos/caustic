@@ -1,6 +1,7 @@
 package net.microscraper.model;
 
-import net.microscraper.client.Interfaces;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 public final class Cookie extends MustacheEncodedNameValuePair {
 	private final MustacheNameValuePair nameValuePair;
@@ -17,14 +18,14 @@ public final class Cookie extends MustacheEncodedNameValuePair {
 	}
 	
 	/**
-	 * Deserialize an array of {@link Cookie} from a hash in {@link Interfaces.JSON.Object}.
-	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
-	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+	 * Deserialize an array of {@link Cookie} from a hash in {@link JSONInterfaceObject}.
+	 * @param jsonInterface {@link JSONInterface} used to process JSON.
+	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return An array of {@link Cookie}.
 	 * @throws DeserializationException If this is not a valid JSON Hash of cookies.
 	 */
-	public static Cookie[] deserializeHash(Interfaces.JSON jsonInterface,
-			Interfaces.JSON.Object jsonObject) throws DeserializationException {
+	public static Cookie[] deserializeHash(JSONInterface jsonInterface,
+			JSONInterfaceObject jsonObject) throws DeserializationException {
 		MustacheNameValuePair[] nameValuePairs = MustacheNameValuePair.Deserializer.deserializeHash(jsonInterface, jsonObject);
 		Cookie[] cookies = new Cookie[nameValuePairs.length];
 		for(int i = 0 ; i < nameValuePairs.length ; i ++) {

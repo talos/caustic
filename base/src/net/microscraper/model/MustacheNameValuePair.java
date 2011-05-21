@@ -1,14 +1,9 @@
 package net.microscraper.model;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-
-import net.microscraper.client.EncodedNameValuePair;
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.MissingVariableException;
-import net.microscraper.client.MustacheTemplateException;
-import net.microscraper.client.Interfaces.JSON.Iterator;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterfaceIterator;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 public interface MustacheNameValuePair {
 	public abstract MustacheTemplate getName();
@@ -28,15 +23,15 @@ public interface MustacheNameValuePair {
 	public static class Deserializer {		
 
 		/**
-		 * Deserialize an array of {@link MustacheNameValuePair} from a hash in {@link Interfaces.JSON.Object}.
-		 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
-		 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+		 * Deserialize an array of {@link MustacheNameValuePair} from a hash in {@link JSONInterfaceObject}.
+		 * @param jsonInterface {@link JSONInterface} used to process JSON.
+		 * @param jsonObject Input {@link JSONInterfaceObject} object.
 		 * @return An array of {@link MustacheNameValuePair}.
 		 * @throws DeserializationException If this is not a valid JSON Hash of MustacheableNameValuePairs.
 		 */
-		public static MustacheNameValuePair[] deserializeHash(Interfaces.JSON jsonInterface,
-				Interfaces.JSON.Object jsonObject) throws DeserializationException {
-			Iterator iterator = jsonObject.keys();
+		public static MustacheNameValuePair[] deserializeHash(JSONInterface jsonInterface,
+				JSONInterfaceObject jsonObject) throws DeserializationException {
+			JSONInterfaceIterator iterator = jsonObject.keys();
 			MustacheNameValuePair[] array = new MustacheNameValuePair[jsonObject.length()];
 			int i = 0;
 			while(iterator.hasNext()) {
@@ -60,20 +55,5 @@ public interface MustacheNameValuePair {
 			}
 			return array;
 		}
-	}
-	
-	
-	public static EncodedNameValuePair[] compileEncoded(MustacheNameValuePair[] nameValuePairs,
-						Variables variables, String encoding)
-				throws MissingVariableException, UnsupportedEncodingException, MustacheTemplateException {
-		EncodedNameValuePair[] encodedNameValuePairs = 
-			new EncodedNameValuePair[nameValuePairs.length];
-		for(int i = 0; i < nameValuePairs.length ; i ++) {
-			encodedNameValuePairs[i] = new EncodedNameValuePair(
-					nameValuePairs[i].getName().compile(variables),
-					nameValuePairs[i].getValue().compile(variables),
-					encoding);
-		}
-		return encodedNameValuePairs;
 	}
 }

@@ -1,8 +1,5 @@
 package net.microscraper.execution;
 
-import net.microscraper.client.Browser;
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Log;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Variables;

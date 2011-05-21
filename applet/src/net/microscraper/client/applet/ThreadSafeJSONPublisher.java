@@ -5,23 +5,21 @@ import java.util.Collections;
 import java.util.List;
 
 import net.microscraper.client.Client;
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
-import net.microscraper.client.Interfaces.JSON.Stringer;
-import net.microscraper.client.Interfaces.JSON.Writer;
-import net.microscraper.client.Publisher;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.Publisher;
+import net.microscraper.client.interfaces.PublisherException;
 import net.microscraper.execution.ScraperExecution;
 import net.microscraper.execution.Status;
 import net.microscraper.execution.ScraperExecution.ExecutionProblem;
 
 public class ThreadSafeJSONPublisher implements Publisher {
-	private final List<Stringer> executions = Collections.synchronizedList(new ArrayList<Stringer>());
+	private final List<JSONInterfaceStringer> executions = Collections.synchronizedList(new ArrayList<JSONInterfaceStringer>());
 	private Integer pos = -1;
-	private final Interfaces.JSON json;
-	public ThreadSafeJSONPublisher(Interfaces.JSON json) {
+	private final JSONInterface json;
+	public ThreadSafeJSONPublisher(JSONInterface json) {
 		this.json = json;
 	}
-	private static void appendProblemToJSON(ExecutionProblem problem, Writer writer) throws JSONInterfaceException {
+	private static void appendProblemToJSON(ExecutionProblem problem, JSONInterfaceWriter writer) throws JSONInterfaceException {
 		writer.object()
 			.key(SOURCE_ID)
 			.value(problem.callerExecution().id)
@@ -35,7 +33,7 @@ public class ThreadSafeJSONPublisher implements Publisher {
 	@Override
 	public void publish(ScraperExecution execution, Status status) throws PublisherException {
 		try {
-			Stringer stringer = json.getStringer();
+			JSONInterfaceStringer stringer = json.getStringer();
 			stringer.object()
 				.key(ID).value(execution.id)
 				.key(SOURCE_ID).value(execution.getSourceExecution().id)
@@ -82,7 +80,7 @@ public class ThreadSafeJSONPublisher implements Publisher {
 			}
 		}
 	}
-	public Stringer next() {
+	public JSONInterfaceStringer next() {
 		synchronized(executions) {
 			synchronized(pos) {
 				pos++;

@@ -1,22 +1,10 @@
 package net.microscraper.execution;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Vector;
 
-import net.microscraper.client.Browser;
-import net.microscraper.client.BrowserException;
-import net.microscraper.client.BrowserDelayException;
-import net.microscraper.client.EncodedNameValuePair;
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
-import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
-import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
-import net.microscraper.client.Log;
+import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.MissingVariableException;
-import net.microscraper.client.Mustache;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Variables;
@@ -26,9 +14,6 @@ import net.microscraper.model.Page;
 import net.microscraper.model.Resource;
 import net.microscraper.model.Variable;
 import net.microscraper.model.Link;
-import net.microscraper.model.MustacheNameValuePair;
-import net.microscraper.model.MustacheTemplate;
-import net.microscraper.model.Pattern;
 import net.microscraper.model.Scraper;
 import net.microscraper.model.ScraperSource;
 

@@ -2,8 +2,10 @@ package net.microscraper.model;
 
 import java.net.URI;
 
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceArray;
+import net.microscraper.client.interfaces.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 /**
  * A one-to-one executable that can link to other executables,
@@ -56,16 +58,16 @@ public class Variable implements Parsable, HasLeaves, HasVariables {
 	private static final String MATCH = "match";
 	
 	/**
-	 * Deserialize a {@link Variable} from a {@link Interfaces.JSON.Object}.
+	 * Deserialize a {@link Variable} from a {@link JSONInterfaceObject}.
 	 * @param location A {@link URI} that identifies the root of this variable's leaves.
-	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
-	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+	 * @param jsonInterface {@link JSONInterface} used to process JSON.
+	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return An {@link Variable} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of
 	 * a ExecutableVariable.
 	 */
-	protected static Variable deserialize(Interfaces.JSON jsonInterface,
-					URI location, Interfaces.JSON.Object jsonObject)
+	protected static Variable deserialize(JSONInterface jsonInterface,
+					URI location, JSONInterfaceObject jsonObject)
 				throws DeserializationException {
 		try {
 			Parsable executable = Parsable.Deserializer.deserialize(jsonInterface, location, jsonObject); 
@@ -80,16 +82,16 @@ public class Variable implements Parsable, HasLeaves, HasVariables {
 	}
 	
 	/**
-	 * Deserialize an array of {@link Variable}s from a {@link Interfaces.JSON.Array}.
+	 * Deserialize an array of {@link Variable}s from a {@link JSONInterfaceArray}.
 	 * @param location A {@link URI} that identifies the root of this variables' leaves.
-	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
-	 * @param jsonArray Input {@link Interfaces.JSON.Array} array.
+	 * @param jsonInterface {@link JSONInterface} used to process JSON.
+	 * @param jsonArray Input {@link JSONInterfaceArray} array.
 	 * @return An array of {@link Variable} instances.
 	 * @throws DeserializationException If the array contains an invalid JSON serialization of
 	 * a ExecutableVariable, or if the array is invalid.
 	 */
-	protected static Variable[] deserializeArray(Interfaces.JSON jsonInterface,
-					URI location, Interfaces.JSON.Array jsonArray)
+	protected static Variable[] deserializeArray(JSONInterface jsonInterface,
+					URI location, JSONInterfaceArray jsonArray)
 				throws DeserializationException {
 		Variable[] variables = new Variable[jsonArray.length()];
 		for(int i = 0 ; i < jsonArray.length() ; i++ ) {

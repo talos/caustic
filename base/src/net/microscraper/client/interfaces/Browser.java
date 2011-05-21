@@ -1,8 +1,10 @@
-package net.microscraper.client;
+package net.microscraper.client.interfaces;
 
 import java.net.URL;
 import java.util.Date;
-import net.microscraper.client.Interfaces.Regexp.Pattern;
+
+import net.microscraper.client.EncodedNameValuePair;
+import net.microscraper.client.UnencodedNameValuePair;
 
 /**
  * Implementations of the Browser interface can be used by a microscraper Client
@@ -57,7 +59,7 @@ public interface Browser {
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
 	public abstract String get(URL url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies,
-			Pattern[] terminates) throws BrowserDelayException, BrowserException;
+			PatternInterface[] terminates) throws BrowserDelayException, BrowserException;
 	
 	/**
 	 * Make an HTTP Post request.  This returns the body of the response, and adds cookies to the cookie jar.
@@ -71,6 +73,6 @@ public interface Browser {
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
 	public abstract String post(URL url, UnencodedNameValuePair[] headers,
-			EncodedNameValuePair[] cookies, Pattern[] terminates, EncodedNameValuePair[] posts)
+			EncodedNameValuePair[] cookies, PatternInterface[] terminates, EncodedNameValuePair[] posts)
 			throws BrowserDelayException, BrowserException;
 }

@@ -1,21 +1,14 @@
 package net.microscraper.execution;
 
-import java.io.IOException;
 import java.util.Vector;
 
-import net.microscraper.client.Browser;
-import net.microscraper.client.BrowserDelayException;
-import net.microscraper.client.BrowserException;
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Log;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Variables;
-import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
-import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
-import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
-import net.microscraper.client.Utils;
-import net.microscraper.model.DeserializationException;
+import net.microscraper.client.interfaces.InvalidRangeException;
+import net.microscraper.client.interfaces.MissingGroupException;
+import net.microscraper.client.interfaces.NoMatchesException;
+import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.model.Leaf;
 import net.microscraper.model.Link;
 import net.microscraper.model.Parser;
@@ -28,8 +21,6 @@ public class LeafExecution extends ParsableExecution {
 	private final String stringToParse;
 	private final Link[] pipes;
 	private final Variables variables;
-	//private final Variables callerVariables;
-	//private ScraperExecution[] scraperExecutions = new ScraperExecution[0];
 	
 	public LeafExecution(ExecutionContext context,
 			Execution parent, Variables variables,
@@ -40,9 +31,9 @@ public class LeafExecution extends ParsableExecution {
 		this.minMatch = leaf.minMatch;
 		this.variables = variables;
 		this.pipes = leaf.getPipes();
-		//this.callerVariables = callerVariables;
 	}
 	
+	// TODO what should leaves publish?
 	public boolean hasPublishValue() {
 		/*if(results != null)
 			return true;
@@ -55,13 +46,13 @@ public class LeafExecution extends ParsableExecution {
 	}
 	
 	/**
-	 * Returns a <code>String[]</code>
+	 * Returns a <code>String[]</code>.
 	 */
 	protected Object generateResult(ExecutionContext context, Resource resource)
 			throws MissingVariableException, ExecutionFailure {
 		try {
 			Parser parser = (Parser) resource;
-			Interfaces.Regexp.Pattern pattern = parser.pattern.compile(variables, context.regexpInterface);
+			PatternInterface pattern = parser.pattern.compile(variables, context.regexpInterface);
 			String replacement = parser.replacement.compile(variables);
 			return pattern.allMatches(stringToParse, replacement, minMatch, maxMatch);
 		} catch(MustacheTemplateException e) {

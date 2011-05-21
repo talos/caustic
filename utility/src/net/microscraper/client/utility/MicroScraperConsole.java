@@ -7,10 +7,7 @@ import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import net.microscraper.client.Browser;
 import net.microscraper.client.Client;
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.Logger;
 import net.microscraper.client.Log;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Utils;
@@ -22,7 +19,9 @@ import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.client.impl.SQLPublisher;
 import net.microscraper.client.impl.SystemLogInterface;
-import net.microscraper.execution.Context;
+import net.microscraper.client.interfaces.Browser;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.Logger;
 import net.microscraper.model.URIMustBeAbsoluteException;
 
 public class MicroScraperConsole {
@@ -32,7 +31,7 @@ public class MicroScraperConsole {
 	private static final int sqlBatchSize = 400;
 	
 	private final Log log = new Log();
-	private final Interfaces.JSON jsonInterface = new JSONME();
+	private final JSONInterface jsonInterface = new JSONME();
 	private SQLPublisher publisher;
 	private Client client;
 	
@@ -58,14 +57,12 @@ public class MicroScraperConsole {
 					new JDBCSQLite("./" + fileTimestamp + ".sqlite",
 							log), sqlBatchSize);
 			client = new Client(
-						new Context(
-							new LocalJSONResourceLoader(jsonInterface),
-							new JavaUtilRegexInterface(),
-							jsonInterface,
-							new JavaNetBrowser(log, Browser.MAX_KBPS_FROM_HOST),
-							log,
-							ENCODING
-						),
+					new LocalJSONResourceLoader(jsonInterface),
+					new JavaUtilRegexInterface(),
+					jsonInterface,
+					new JavaNetBrowser(log, Browser.MAX_KBPS_FROM_HOST),
+					log,
+					ENCODING,
 					publisher
 				);
 			

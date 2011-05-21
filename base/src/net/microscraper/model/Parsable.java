@@ -2,8 +2,9 @@ package net.microscraper.model;
 
 import java.net.URI;
 
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 /**
  * An {@link Parsable} can be used to connect a {@link Parser} to a String source.
@@ -50,18 +51,18 @@ public interface Parsable {
 		
 		/**
 		 * Protected, should be called only by {@link Variable} or {@link Leaf}.
-		 * Deserialize an {@link Parsable} from a {@link Interfaces.JSON.Object}.
+		 * Deserialize an {@link Parsable} from a {@link JSONInterfaceObject}.
 		 * @param location A {@link URI} that identifies the root of this execution's links.
-		 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
-		 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+		 * @param jsonInterface {@link JSONInterface} used to process JSON.
+		 * @param jsonObject Input {@link JSONInterfaceObject} object.
 		 * @return An {@link Parsable} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
 		 * an Execution.
 		 * @see Variable#deserialize
 		 * @see Leaf#deserialize
 		 */
-		protected static Parsable deserialize(Interfaces.JSON jsonInterface,
-						URI location, Interfaces.JSON.Object jsonObject)
+		protected static Parsable deserialize(JSONInterface jsonInterface,
+						URI location, JSONInterfaceObject jsonObject)
 					throws DeserializationException {
 			try {
 				final Link parserLink = Link.deserialize(jsonInterface, location, jsonObject.getJSONObject(PARSER_LINK));

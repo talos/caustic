@@ -2,11 +2,14 @@ package net.microscraper.model;
 
 import java.net.URI;
 
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 /**
- * Permits connections to a {@link Leaf} executables.
+ * This should be implemented by a class that produces {@link Execution}s
+ * that can have {@link LeafExecution} children.
+ * @see 
  * @author john
  *
  */
@@ -32,16 +35,16 @@ public interface HasLeaves {
 		
 		/**
 		 * Protected, should be called only by {@link Variable} or {@link ScraperExecution}.
-		 * Deserialize an {@link HasLeaves} from a {@link Interfaces.JSON.Object}.
-		 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
+		 * Deserialize an {@link HasLeaves} from a {@link JSONInterfaceObject}.
+		 * @param jsonInterface {@link JSONInterface} used to process JSON.
 		 * @param location A {@link URI} that identifies the root of these leaves' links.
-		 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+		 * @param jsonObject Input {@link JSONInterfaceObject} object.
 		 * @return An {@link HasLeaves} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
 		 * a {@link HasLeaves}.
 		 */
-		protected static HasLeaves deserialize(Interfaces.JSON jsonInterface,
-						URI location, Interfaces.JSON.Object jsonObject)
+		protected static HasLeaves deserialize(JSONInterface jsonInterface,
+						URI location, JSONInterfaceObject jsonObject)
 					throws DeserializationException {
 			try {
 				final Leaf[] leaves;

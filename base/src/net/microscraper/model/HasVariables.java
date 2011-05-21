@@ -2,8 +2,9 @@ package net.microscraper.model;
 
 import java.net.URI;
 
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 /**
  * Allows connections to an {@link Variable} executable.
@@ -32,16 +33,16 @@ public interface HasVariables {
 		
 		/**
 		 * Protected, should be called only by {@link Variable} or {@link ScraperExecution}.
-		 * Deserialize an {@link HasVariables} from a {@link Interfaces.JSON.Object}.
-		 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
+		 * Deserialize an {@link HasVariables} from a {@link JSONInterfaceObject}.
+		 * @param jsonInterface {@link JSONInterface} used to process JSON.
 		 * @param location A {@link URI} that identifies the root of these variables.
-		 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+		 * @param jsonObject Input {@link JSONInterfaceObject} object.
 		 * @return An {@link HasVariables} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
 		 * a {@link HasVariables}.
 		 */
-		protected static HasVariables deserialize(Interfaces.JSON jsonInterface,
-						URI location, Interfaces.JSON.Object jsonObject)
+		protected static HasVariables deserialize(JSONInterface jsonInterface,
+						URI location, JSONInterfaceObject jsonObject)
 					throws DeserializationException {
 			try {
 				final Variable[] variables;

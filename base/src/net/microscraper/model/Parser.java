@@ -2,8 +2,9 @@ package net.microscraper.model;
 
 import java.net.URI;
 
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 public final class Parser extends Resource {
 	public final Pattern pattern;
@@ -21,15 +22,15 @@ public final class Parser extends Resource {
 	private static final String TESTS = "tests";
 	
 	/**
-	 * Deserialize a {@link Parser} from a {@link Interfaces.JSON.Object}.
-	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
+	 * Deserialize a {@link Parser} from a {@link JSONInterfaceObject}.
+	 * @param jsonInterface {@link JSONInterface} used to process JSON.
 	 * @param location {@link URI} from which the resource was loaded.
-	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return A {@link Parser} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of a Parser.
 	 */
-	public static Parser deserialize(Interfaces.JSON jsonInterface,
-				URI location, Interfaces.JSON.Object jsonObject)
+	public static Parser deserialize(JSONInterface jsonInterface,
+				URI location, JSONInterfaceObject jsonObject)
 				throws DeserializationException {
 		try {
 			Pattern pattern = Pattern.deserialize(jsonInterface, jsonObject);

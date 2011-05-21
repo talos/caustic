@@ -1,6 +1,7 @@
 package net.microscraper.model;
 
-import net.microscraper.client.Interfaces;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 
 public class Post extends MustacheEncodedNameValuePair {
@@ -18,14 +19,14 @@ public class Post extends MustacheEncodedNameValuePair {
 	}
 	
 	/**
-	 * Deserialize an array of {@link Post}s from a hash in {@link Interfaces.JSON.Object}.
-	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
-	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+	 * Deserialize an array of {@link Post}s from a hash in {@link JSONInterfaceObject}.
+	 * @param jsonInterface {@link JSONInterface} used to process JSON.
+	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return An array of {@link Post}.
 	 * @throws DeserializationException If this is not a valid JSON Hash of Posts.
 	 */
-	public static Post[] deserializeHash(Interfaces.JSON jsonInterface,
-			Interfaces.JSON.Object jsonObject) throws DeserializationException {
+	public static Post[] deserializeHash(JSONInterface jsonInterface,
+			JSONInterfaceObject jsonObject) throws DeserializationException {
 		MustacheNameValuePair[] nameValuePairs = MustacheNameValuePair.Deserializer.deserializeHash(jsonInterface, jsonObject);
 		Post[] posts = new Post[nameValuePairs.length];
 		for(int i = 0 ; i < nameValuePairs.length ; i ++) {

@@ -5,12 +5,9 @@ import java.net.URI;
 
 import com.sun.net.httpserver.Authenticator.Failure;
 
-import net.microscraper.client.BrowserException;
-import net.microscraper.client.BrowserDelayException;
 import net.microscraper.client.Client;
-import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
-import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
-import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
+import net.microscraper.client.interfaces.BrowserDelayException;
+import net.microscraper.client.interfaces.BrowserException;
 import net.microscraper.client.Log;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;

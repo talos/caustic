@@ -11,12 +11,11 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.microscraper.client.Browser;
-import net.microscraper.client.BrowserException;
 import net.microscraper.client.Client;
 import net.microscraper.client.Mustache.MissingVariable;
 import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.client.Interfaces.Regexp.Pattern;
+import net.microscraper.client.interfaces.Browser;
+import net.microscraper.client.interfaces.BrowserException;
 import net.microscraper.execution.AbstractResource;
 import net.microscraper.execution.AbstractResult;
 import net.microscraper.execution.Result;
@@ -121,7 +120,7 @@ public class ApacheBrowser implements Browser {
 			}
 			
 			// Set up patterns
-			Pattern[] patterns = new Pattern[terminates.length];
+			PatternInterface[] patterns = new PatternInterface[terminates.length];
 			for(int i = 0; i < terminates.length; i++) {
 				patterns[i] = Client.context().regexp.compile(terminates[i].getValue(caller)[0].value);
 			}

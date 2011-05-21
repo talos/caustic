@@ -1,4 +1,4 @@
-package net.microscraper.client;
+package net.microscraper.client.interfaces;
 
 import java.net.URL;
 

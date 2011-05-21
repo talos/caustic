@@ -3,8 +3,11 @@ package net.microscraper.client;
 import java.net.URI;
 import java.util.Vector;
 
-import net.microscraper.client.Interfaces.Regexp;
-import net.microscraper.client.Publisher.PublisherException;
+import net.microscraper.client.interfaces.Browser;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.Publisher;
+import net.microscraper.client.interfaces.PublisherException;
+import net.microscraper.client.interfaces.RegexpInterface;
 import net.microscraper.execution.Execution;
 import net.microscraper.execution.ExecutionContext;
 import net.microscraper.execution.ResourceLoader;
@@ -31,10 +34,10 @@ public final class Client {
 	 * @param browser The {@link Browser} this {@link ScraperExecution} is set to use.
 	 * @param log The {@link Log} this {@link ScraperExecution} is set to use.
 	 * @param encoding The encoding to use when encoding post data and cookies. "UTF-8" is recommended.
-	 * @param regexp The {@link Regexp} interface to use when compiling regexps.
+	 * @param regexp The {@link RegexpInterface} interface to use when compiling regexps.
 	 */
-	public Client(ResourceLoader resourceLoader, Interfaces.Regexp regexpInterface,
-			Interfaces.JSON jsonInterface, Browser browser,
+	public Client(ResourceLoader resourceLoader, RegexpInterface regexpInterface,
+			JSONInterface jsonInterface, Browser browser,
 			Log log, String encoding, Publisher publisher) {
 		this.context = new ExecutionContext( log,
 				regexpInterface, browser, resourceLoader, encoding);

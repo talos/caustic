@@ -6,9 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import net.microscraper.client.Interfaces;
 import net.microscraper.client.Log;
 import net.microscraper.client.Utils;
+import net.microscraper.client.interfaces.Interfaces;
 
 public class JDBCSQLite implements SQLInterface {
 	private final Connection connection;

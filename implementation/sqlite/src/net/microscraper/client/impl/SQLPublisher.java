@@ -3,10 +3,11 @@ package net.microscraper.client.impl;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import net.microscraper.client.Publisher;
 import net.microscraper.client.Utils;
 import net.microscraper.client.impl.SQLInterface.PreparedStatement;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
+import net.microscraper.client.interfaces.Publisher;
+import net.microscraper.client.interfaces.PublisherException;
 import net.microscraper.execution.Execution;
 
 public class SQLPublisher implements Publisher {

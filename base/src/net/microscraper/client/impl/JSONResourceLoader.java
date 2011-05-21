@@ -5,8 +5,9 @@ import java.net.URI;
 
 import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
 
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.execution.ResourceLoader;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Link;
@@ -22,21 +23,21 @@ import net.microscraper.model.Scraper;
  *
  */
 public abstract class JSONResourceLoader implements ResourceLoader {
-	private final Interfaces.JSON jsonInterface;
+	private final JSONInterface jsonInterface;
 	private final Hashtable cache = new Hashtable();
 	
-	public JSONResourceLoader(Interfaces.JSON jsonInterface) {
+	public JSONResourceLoader(JSONInterface jsonInterface) {
 		this.jsonInterface = jsonInterface;
 	}
 	
 	/**
 	 * Obtain JSON from a URI.
 	 * @param location the URI where the JSON text should be located.
-	 * @return An {@link Interfaces.JSON.Object} parsed from the JSON text loaded from the location.
+	 * @return An {@link JSONInterfaceObject} parsed from the JSON text loaded from the location.
 	 * @throws IOException If the location could not be loaded.
 	 * @throws JSONInterfaceException If the JSON from the location could not be parsed.
 	 */
-	public abstract Interfaces.JSON.Object obtainJSON(URI location) throws IOException, JSONInterfaceException;
+	public abstract JSONInterfaceObject obtainJSON(URI location) throws IOException, JSONInterfaceException;
 	
 	public final Parser loadParser(Link link) throws IOException,
 			DeserializationException {

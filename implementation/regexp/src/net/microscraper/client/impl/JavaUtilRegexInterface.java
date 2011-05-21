@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import net.microscraper.client.Interfaces.Regexp;
+import net.microscraper.client.interfaces.InvalidRangeException;
+import net.microscraper.client.interfaces.MissingGroupException;
+import net.microscraper.client.interfaces.NoMatchesException;
+import net.microscraper.client.interfaces.PatternInterface;
+import net.microscraper.client.interfaces.RegexpInterface;
 
-public class JavaUtilRegexInterface implements Regexp {
+public class JavaUtilRegexInterface implements RegexpInterface {
 	@Override
-	public Pattern compile(String patternString, boolean isCaseInsensitive,
+	public PatternInterface compile(String patternString, boolean isCaseInsensitive,
 			boolean isMultiline, boolean doesDotMatchNewline) {
 		int flags = 0;
 		flags += isCaseInsensitive ? java.util.regex.Pattern.CASE_INSENSITIVE : 0;
@@ -17,7 +21,7 @@ public class JavaUtilRegexInterface implements Regexp {
 		return new JavaUtilPattern(patternString, flags);
 	}
 	
-	private final static class JavaUtilPattern implements Pattern {
+	private final static class JavaUtilPattern implements PatternInterface {
 		private java.util.regex.Pattern pattern;
 		
 		public JavaUtilPattern(String pString, int flags) {

@@ -5,10 +5,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 
-import net.microscraper.client.Interfaces;
 import net.microscraper.client.Utils;
+import net.microscraper.client.interfaces.Logger;
 
-public class FileLogInterface implements Interfaces.Logger {
+public class FileLogInterface implements Logger {
 	
 	private final String pathToLogFile;
 	private File logFile;

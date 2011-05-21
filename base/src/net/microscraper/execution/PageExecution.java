@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 
-import net.microscraper.client.Browser;
-import net.microscraper.client.BrowserException;
-import net.microscraper.client.BrowserDelayException;
 import net.microscraper.client.Log;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
+import net.microscraper.client.interfaces.Browser;
+import net.microscraper.client.interfaces.BrowserDelayException;
+import net.microscraper.client.interfaces.BrowserException;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Link;
 import net.microscraper.model.MustacheEncodedNameValuePair;

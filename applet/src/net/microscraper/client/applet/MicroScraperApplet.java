@@ -6,11 +6,11 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 import net.microscraper.client.Client;
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.JSON;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaNetBrowser;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.Logger;
 
 /**
  * Provides interface between browser and scraper applet through public methods.
@@ -20,7 +20,7 @@ import net.microscraper.client.impl.JavaUtilRegexInterface;
 public class MicroScraperApplet extends Applet {
 	private static final long serialVersionUID = 2768937336583253219L;
 	
-	private static final JSON json = new JSONME();
+	private static final JSONInterface json = new JSONME();
 	
 	public static final String encoding = "UTF-8";
 	
@@ -64,7 +64,7 @@ public class MicroScraperApplet extends Applet {
 				Client.initialize(
 						new JavaNetBrowser(),
 						new JavaUtilRegexInterface(), json,
-						new Interfaces.Logger[] { logger },
+						new Logger[] { logger },
 						publisher
 					);
 				Thread thread = new Thread(new ScrapeRunnable(url, model, full_name, params_string));

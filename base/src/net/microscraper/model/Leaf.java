@@ -2,12 +2,17 @@ package net.microscraper.model;
 
 import java.net.URI;
 
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceArray;
+import net.microscraper.client.interfaces.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 /**
- * A parsable that can connect to another scraper, and is one-to-many (even if it only has one result.)
- * It cannot link to any variable executions, because it can be one-to-many.
+ * A {@link Parsable} that can connect to other {@link Scraper} through {@link #getPipes},
+ * and is one-to-many (even if it only has one result.)
+ * Its executions do not implement {@link Variables}, because {@link Leaf} can be one-to-many.
+ * @see Parsable
+ * @see HasPipes
  * @author john
  *
  */
@@ -58,16 +63,16 @@ public class Leaf implements Parsable, HasPipes {
 	private static final String MAX_MATCH = "max";
 	
 	/**
-	 * Deserialize an {@link Leaf} from a {@link Interfaces.JSON.Object}.
+	 * Deserialize an {@link Leaf} from a {@link JSONInterfaceObject}.
 	 * @param location A {@link URI} that identifies the root of this leaf's links.
-	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
-	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+	 * @param jsonInterface {@link JSONInterface} used to process JSON.
+	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return An {@link Leaf} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of
 	 * an ExecutableLeaf.
 	 */
-	protected static Leaf deserialize(Interfaces.JSON jsonInterface,
-					URI location, Interfaces.JSON.Object jsonObject)
+	protected static Leaf deserialize(JSONInterface jsonInterface,
+					URI location, JSONInterfaceObject jsonObject)
 				throws DeserializationException {
 		try {
 			Parsable executable = Parsable.Deserializer.deserialize(jsonInterface, location, jsonObject); 
@@ -83,16 +88,16 @@ public class Leaf implements Parsable, HasPipes {
 	
 
 	/**
-	 * Deserialize an array of {@link Leaf}s from a {@link Interfaces.JSON.Array}.
+	 * Deserialize an array of {@link Leaf}s from a {@link JSONInterfaceArray}.
 	 * @param location A {@link URI} that identifies the root of this leaf's links.
-	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
-	 * @param jsonArray Input {@link Interfaces.JSON.Array} array.
+	 * @param jsonInterface {@link JSONInterface} used to process JSON.
+	 * @param jsonArray Input {@link JSONInterfaceArray} array.
 	 * @return An array of {@link Leaf} instances.
 	 * @throws DeserializationException If the array contains an invalid JSON serialization of
 	 * a ExecutableLeaf, or if the array is invalid.
 	 */
-	protected static Leaf[] deserializeArray(Interfaces.JSON jsonInterface,
-					URI location, Interfaces.JSON.Array jsonArray)
+	protected static Leaf[] deserializeArray(JSONInterface jsonInterface,
+					URI location, JSONInterfaceArray jsonArray)
 				throws DeserializationException {
 		Leaf[] leaves = new Leaf[jsonArray.length()];
 		for(int i = 0 ; i < jsonArray.length() ; i++ ) {

@@ -3,8 +3,9 @@ package net.microscraper.model;
 import java.io.IOException;
 import java.net.URI;
 
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.model.Page.Method.UnknownHTTPMethodException;
 
 
@@ -113,17 +114,17 @@ public final class Page extends Resource {
 	private static final String POSTS = "posts";
 	
 	/**
-	 * Deserialize a {@link Page} from a {@link Interfaces.JSON.Object}.
-	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
+	 * Deserialize a {@link Page} from a {@link JSONInterfaceObject}.
+	 * @param jsonInterface {@link JSONInterface} used to process JSON.
 	 * @param location {@link URI} from which the resource was loaded.
-	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return A {@link Page} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of a Page.
 	 * @throws IOException If one of the prior pages could not be loaded.
 	 */
 	public static Page deserialize(
-				Interfaces.JSON jsonInterface,
-				URI location, Interfaces.JSON.Object jsonObject)
+				JSONInterface jsonInterface,
+				URI location, JSONInterfaceObject jsonObject)
 				throws DeserializationException, IOException {
 		try {
 			Method method = Method.fromString(jsonObject.getString(METHOD));

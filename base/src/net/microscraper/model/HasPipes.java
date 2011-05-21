@@ -2,11 +2,12 @@ package net.microscraper.model;
 
 import java.net.URI;
 
-import net.microscraper.client.Interfaces;
-import net.microscraper.client.Interfaces.JSON.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceException;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 /**
- * Permits connection to another scraper through a reference.
+ * Implementations of this interface can produce {@link Execution}s that can spawn new {@link ScraperExecutionChild}s.
  * @author john
  *
  */
@@ -14,7 +15,7 @@ public interface HasPipes {
 	
 	/**
 	 * 
-	 * @return An array of {@link Link}s to connected {@link ScraperExecution}s.
+	 * @return An array of {@link Link}s to that can be used to connect to {@link ScraperExecutionChild}s.
 	 */
 	public abstract Link[] getPipes();
 	
@@ -33,16 +34,16 @@ public interface HasPipes {
 		
 		/**
 		 * Protected, should be called only by {@link Leaf} or {@link ScraperExecution}.
-		 * Deserialize an {@link HasPipes} from a {@link Interfaces.JSON.Object}.
-		 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
+		 * Deserialize an {@link HasPipes} from a {@link JSONInterfaceObject}.
+		 * @param jsonInterface {@link JSONInterface} used to process JSON.
 		 * @param location A {@link URI} that identifies the root of these pipe references.
-		 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+		 * @param jsonObject Input {@link JSONInterfaceObject} object.
 		 * @return An {@link HasPipes} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
 		 * a {@link HasPipes}.
 		 */
-		protected static HasPipes deserialize(Interfaces.JSON jsonInterface,
-						URI location, Interfaces.JSON.Object jsonObject)
+		protected static HasPipes deserialize(JSONInterface jsonInterface,
+						URI location, JSONInterfaceObject jsonObject)
 					throws DeserializationException {
 			try {
 				final Link[] pipes;

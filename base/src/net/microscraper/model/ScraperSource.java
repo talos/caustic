@@ -2,7 +2,8 @@ package net.microscraper.model;
 
 import java.net.URI;
 
-import net.microscraper.client.Interfaces;
+import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 public class ScraperSource {
 	public final MustacheTemplate stringSource;
@@ -26,16 +27,16 @@ public class ScraperSource {
 	}
 	
 	/**
-	 * Deserialize a {@link ScraperSource} from a {@link Interfaces.JSON.Object}.
+	 * Deserialize a {@link ScraperSource} from a {@link JSONInterfaceObject}.
 	 * @param location The {@link URI} location of the scraper's source.
-	 * @param jsonInterface {@link Interfaces.JSON} used to process JSON.
-	 * @param jsonObject Input {@link Interfaces.JSON.Object} object.
+	 * @param jsonInterface {@link JSONInterface} used to process JSON.
+	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return An {@link ScraperSource} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of
 	 * a {@link ScraperSource}.
 	 */
-	public static ScraperSource deserialize(Interfaces.JSON jsonInterface,
-					URI location, Interfaces.JSON.Object jsonObject)
+	public static ScraperSource deserialize(JSONInterface jsonInterface,
+					URI location, JSONInterfaceObject jsonObject)
 				throws DeserializationException {
 		return new ScraperSource(Link.deserialize(jsonInterface, location, jsonObject));
 	}

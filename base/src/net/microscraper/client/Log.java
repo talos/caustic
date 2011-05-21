@@ -2,7 +2,7 @@ package net.microscraper.client;
 
 import java.util.Vector;
 
-import net.microscraper.client.Interfaces.Logger;
+import net.microscraper.client.interfaces.Logger;
 
 public class Log {
 	private final Vector loggers = new Vector();

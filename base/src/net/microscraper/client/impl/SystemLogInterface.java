@@ -1,6 +1,6 @@
 package net.microscraper.client.impl;
 
-import net.microscraper.client.Interfaces.Logger;
+import net.microscraper.client.interfaces.Logger;
 import net.microscraper.client.Utils;
 
 public class SystemLogInterface implements Logger {

@@ -2,12 +2,12 @@ package net.microscraper.execution;
 
 import java.util.Vector;
 
-import net.microscraper.client.Interfaces;
 import net.microscraper.client.Variables;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
-import net.microscraper.client.Interfaces.Regexp.MissingGroupException;
-import net.microscraper.client.Interfaces.Regexp.NoMatchesException;
+import net.microscraper.client.interfaces.MissingGroupException;
+import net.microscraper.client.interfaces.NoMatchesException;
+import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.model.Leaf;
 import net.microscraper.model.Parser;
 import net.microscraper.model.Resource;
@@ -96,7 +96,7 @@ public class VariableExecution extends ParsableExecution implements Variables {
 				MustacheTemplateException, ExecutionFailure  {
 		try {
 			Parser parser = (Parser) resource;
-			Interfaces.Regexp.Pattern pattern = parser.pattern.compile(this, context.regexpInterface);
+			PatternInterface pattern = parser.pattern.compile(this, context.regexpInterface);
 			String replacement = parser.replacement.compile(this);
 			return pattern.match(stringToParse, replacement, matchNumber);
 		} catch (NoMatchesException e) {
