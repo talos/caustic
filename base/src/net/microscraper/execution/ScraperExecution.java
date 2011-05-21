@@ -160,38 +160,39 @@ public class ScraperExecution extends BasicExecution implements Variables, Musta
 		return null;
 	}
 
-	protected Resource generateResource() throws NoMatchesException,
-			MissingGroupException, InvalidRangeException,
-			MustacheTemplateException, MissingVariableException, IOException,
-			DeserializationException, BrowserDelayException, BrowserException,
-			InvalidBodyMethodException, ScraperSourceException {
+	protected Resource generateResource() throws IOException,
+			DeserializationException {
 		return context.loadScraper(pipe);
 	}
-
+	
+	/**
+	 * @return The source from which this {@link ScraperExecution}'s {@link ParsableExecution}'s will work.
+	 */
 	protected Object generateResult(Resource resource)
-			throws NoMatchesException, MissingGroupException,
-			InvalidRangeException, MustacheTemplateException,
-			MissingVariableException, IOException, DeserializationException,
-			BrowserDelayException, BrowserException,
-			InvalidBodyMethodException, ScraperSourceException {
-		Scraper scraper = (Scraper) resource;
-		ScraperSource scraperSource = scraper.scraperSource;
-		if(scraperSource.hasStringSource) {
-			return this.compile(scraperSource.stringSource);
-		} else {
-			PageExecution sourcePageExecution = new PageExecution(context, this, scraperSource.pageLinkSource);
-			
-			Page sourcePage = (Page) sourcePageExecution.generateResource();
-			return sourcePageExecution.generateResult(sourcePage);
+				throws MissingVariableException, BrowserDelayException,
+				ExecutionFailure, MustacheTemplateException {
+		try {
+			Scraper scraper = (Scraper) resource;
+			ScraperSource scraperSource = scraper.scraperSource;
+			if(scraperSource.hasStringSource) {
+				return this.compile(scraperSource.stringSource);
+			} else {
+				PageExecution sourcePageExecution = new PageExecution(context, this, scraperSource.pageLinkSource);
+				
+				Page sourcePage = (Page) sourcePageExecution.generateResource();
+				return sourcePageExecution.generateResult(sourcePage);
+			}
+		} catch(DeserializationException e) {
+			throw new ExecutionFailure(e);
+		} catch (IOException e) {
+			throw new ExecutionFailure(e);
 		}
 	}
 
-	protected Execution[] generateChildren(Resource resource, Object result)
-			throws NoMatchesException, MissingGroupException,
-			InvalidRangeException, MustacheTemplateException,
-			MissingVariableException, IOException, DeserializationException,
-			BrowserDelayException, BrowserException,
-			InvalidBodyMethodException, ScraperSourceException {
+	/**
+	 * @return {@link VariableExecution}s, {@link LeafExecution}s, and {@link ScraperExecutionChild}s.
+	 */
+	protected Execution[] generateChildren(Resource resource, Object result) {
 		Scraper scraper = (Scraper) resource;
 		String source = (String) result;
 		

@@ -52,25 +52,31 @@ public class LeafExecution extends ParsableExecution {
 		return null;
 	}
 
+	/**
+	 * Returns a <code>String[]</code>
+	 */
 	protected Object generateResult(Resource resource)
-			throws NoMatchesException, MissingGroupException,
-			InvalidRangeException, MustacheTemplateException,
-			MissingVariableException, IOException, DeserializationException,
-			BrowserDelayException, BrowserException,
-			InvalidBodyMethodException, ScraperSourceException {
-		Parser parser = (Parser) resource;
-		Interfaces.Regexp.Pattern pattern = mustache.compile(parser.pattern);
-		String replacement = mustache.compile(parser.replacement);
-		// returns String[]
-		return pattern.allMatches(stringToParse, replacement, minMatch, maxMatch);
+			throws MissingVariableException, ExecutionFailure {
+		try {
+			Parser parser = (Parser) resource;
+			Interfaces.Regexp.Pattern pattern = mustache.compile(parser.pattern);
+			String replacement = mustache.compile(parser.replacement);
+			return pattern.allMatches(stringToParse, replacement, minMatch, maxMatch);
+		} catch(MustacheTemplateException e) {
+			throw new ExecutionFailure(e);
+		} catch (NoMatchesException e) {
+			throw new ExecutionFailure(e);
+		} catch (MissingGroupException e) {
+			throw new ExecutionFailure(e);
+		} catch (InvalidRangeException e) {
+			throw new ExecutionFailure(e);
+		}
 	}
 
-	protected Execution[] generateChildren(Resource resource, Object result)
-			throws NoMatchesException, MissingGroupException,
-			InvalidRangeException, MustacheTemplateException,
-			MissingVariableException, IOException, DeserializationException,
-			BrowserDelayException, BrowserException,
-			InvalidBodyMethodException, ScraperSourceException {
+	/**
+	 * @return An array of {@link ScraperExecutionChild}s.
+	 */
+	protected Execution[] generateChildren(Resource resource, Object result) {
 		results = (String[]) result;
 		Vector scraperExecutions = new Vector();
 		for(int i = 0 ; i < pipes.length ; i ++) {

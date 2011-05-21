@@ -18,17 +18,10 @@ public interface Execution extends Runnable {
 	
 	/**
 	 * 
-	 * Run the {@link Execution}.  This must be done before calling any of the methods listed below.
-	 * @see #getChildren
-	 * @see #isStuck
-	 * @see #stuckOn
-	 * @see #hasFailed
-	 * @see #failedBecause
+	 * Run the {@link Execution}.
 	 * @see #isComplete
-	 * @see #hasPublishName
-	 * @see #getPublishName
-	 * @see #hasPublishValue
-	 * @see #getPublishValue
+	 * @see #isStuck
+	 * @see #hasFailed
 	 */
 	public abstract void run();
 	
@@ -54,23 +47,99 @@ public interface Execution extends Runnable {
 	 */
 	public abstract Execution getParent() throws NullPointerException;
 	
+
+	/**
+	 * 
+	 * @return <code>True</code> if the {@link Execution} has not {@link #run} successfully, and will not do so
+	 * without an update to its {@link Variables}, <code>false</code> otherwise.
+	 * @see #run
+	 * @see #stuckOn
+	 */
+	public abstract boolean isStuck();
+
+	/**
+	 * 
+	 * @return The name of the {@link MissingVariable} that is stopping this {@link Execution} 
+	 * from completing its {@link #run}, if the {@link #isStuck} is returning <code>true</code>.
+	 * @throws IllegalStateException if called when {@link #isStuck} is not <code>true</code>.
+	 * @see #isStuck
+	 */
+	public abstract String stuckOn() throws IllegalStateException;
+	
+
+	/**
+	 * 
+	 * @return <code>True</code> if the {@link Execution} has definitevely failed to {@link #run},
+	 * and cannot do so, <code>false</code> otherwise.
+	 * @see #run
+	 * @see #failedBecause
+	 */
+	public abstract boolean hasFailed();
+	
+
+	/**
+	 * 
+	 * @return <code>True</code> if the {@link Execution} has definitevely failed to {@link #run},
+	 * and cannot do so.
+	 * @see #run
+	 * @see #failedBecause
+	 */
+	public abstract Throwable failedBecause() throws IllegalStateException;
+	
+	/**
+	 * 
+	 * @return <code>True</code> if the {@link Execution} has {@link #run} successfully, and can have
+	 * {@link #getChildren} called upon it, <code>false</code> otherwise.
+	 * @see #run
+	 * @see #getChildren
+	 * @see #getPublishValue
+	 */
+	public abstract boolean isComplete();
+	
+
 	/**
 	 * 
 	 * @return An array of {@link Execution}s that this {@link Execution} has created.
 	 * @throws IllegalStateException if called before the {@link Execution} is {@link #run}.
 	 * @see #run
+	 * @see #isComplete
 	 */
 	public abstract Execution[] getChildren() throws IllegalStateException;
 	
-	public abstract boolean isStuck();
-	public abstract String stuckOn();
-	public abstract boolean hasFailed();
-	public abstract Exception failedBecause();
-	public abstract boolean isComplete();
 	
+	/**
+	 * 
+	 * @return <code>True</code> if this {@link Execution} is identified by a particular name for the
+	 * {@link Publisher}, <code>false</code> otherwise.
+	 * @see #getPublishName
+	 */
 	public abstract boolean hasPublishName();
-	public abstract String getPublishName();
+	
+	/**
+	 * 
+	 * @return A particular string for the {@link Publisher} use as a name for this {@link Execution}.
+	 * @see #hasPublishName
+	 * @throw {@link NullPointerException} if {@link #hasPublishName()} is <code>false</code>
+	 */
+	public abstract String getPublishName() throws NullPointerException;
+	
+	
+	/**
+	 * 
+	 * @return <code>True</code> if this {@link Execution} produces a value that {@link Publisher} can use,
+	 * <code>false</code> otherwise.
+	 * @see #getPublishValue
+	 */
 	public abstract boolean hasPublishValue();
-	public abstract String getPublishValue();
+	
+	/**
+	 * 
+	 * @return The value that {@link Publisher} should use for this {@link Execution}.
+	 * @throws NullPointerException If {@link #hasPublishValue} is <code>false</code>.
+	 * @throws IllegalStateException If {@link #isComplete} is <code>false</code>.
+	 * @see #hasPublishValue()
+	 * @see #isComplete()
+	 */
+	public abstract String getPublishValue() throws NullPointerException, IllegalStateException;
 	
 }

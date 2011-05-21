@@ -81,24 +81,27 @@ public class VariableExecution extends ParsableExecution implements Variables {
 		return result;
 	}
 
-	protected Object generateResult(Resource resource)
-			throws NoMatchesException, MissingGroupException,
-			InvalidRangeException, MustacheTemplateException,
-			MissingVariableException, IOException, DeserializationException,
-			BrowserDelayException, BrowserException,
-			InvalidBodyMethodException, ScraperSourceException {
-		Parser parser = (Parser) resource;
-		Interfaces.Regexp.Pattern pattern = mustache.compile(parser.pattern);
-		String replacement = mustache.compile(parser.replacement);
-		return pattern.match(stringToParse, replacement, matchNumber);
+	/**
+	 * A result value for the {@link VariableExecution}.
+	 */
+	protected Object generateResult(Resource resource) throws MissingVariableException,
+				MustacheTemplateException, ExecutionFailure  {
+		try {
+			Parser parser = (Parser) resource;
+			Interfaces.Regexp.Pattern pattern = mustache.compile(parser.pattern);
+			String replacement = mustache.compile(parser.replacement);
+			return pattern.match(stringToParse, replacement, matchNumber);
+		} catch (NoMatchesException e) {
+			throw new ExecutionFailure(e);
+		} catch (MissingGroupException e) {
+			throw new ExecutionFailure(e);
+		}
 	}
-
-	protected Execution[] generateChildren(Resource resource, Object result)
-			throws NoMatchesException, MissingGroupException,
-			InvalidRangeException, MustacheTemplateException,
-			MissingVariableException, IOException, DeserializationException,
-			BrowserDelayException, BrowserException,
-			InvalidBodyMethodException, ScraperSourceException {
+	
+	/**
+	 * @return {@link LeafExecution}s and {@link VariableExecution}s.
+	 */
+	protected Execution[] generateChildren(Resource resource, Object result) {
 		this.result = (String) result;
 		
 		Variable[] variables = variable.getVariables();

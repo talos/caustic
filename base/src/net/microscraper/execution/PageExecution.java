@@ -79,45 +79,56 @@ public class PageExecution extends BasicExecution {
 		return null;
 	}
 
-	protected Resource generateResource() throws NoMatchesException,
-			MissingGroupException, InvalidRangeException,
-			MustacheTemplateException, MissingVariableException, IOException,
-			DeserializationException, BrowserDelayException, BrowserException,
-			InvalidBodyMethodException, ScraperSourceException {
+	protected Resource generateResource() throws IOException, DeserializationException {
 		return context.loadPage(pageLink);
 	}
-
+	
+	/**
+	 * @return The body of the page, if the {@link PageExecution}'s {@link Page.method} is
+	 * {@link Page.Method.GET} or {@link Page.Method.POST}; <code>Null</code> if it is
+	 * {@link Page.Method.HEAD}.
+	 */
 	protected Object generateResult(Resource resource)
-			throws NoMatchesException, MissingGroupException,
-			InvalidRangeException, MustacheTemplateException,
-			MissingVariableException, IOException, DeserializationException,
-			BrowserDelayException, BrowserException,
-			InvalidBodyMethodException, ScraperSourceException {
-		Page page = (Page) resource;
-		// Temporary executions to do before.  Not published, executed each time.
-		for(int i = 0 ; i < page.loadBeforeLinks.length ; i ++) {
-			PageExecution pageBeforeExecution = new PageExecution(context, enclosingScraper, page.loadBeforeLinks[i]);
-			Page pageBefore = (Page) pageBeforeExecution.generateResource();
-			pageBeforeExecution.generateResult(pageBefore);
-		}
-		if(page.method.equals(Page.Method.GET)) {
-			return get(page);
-		} else if(page.method.equals(Page.Method.POST)) {
-			return post(page);
-		} else if(page.method.equals(Page.Method.HEAD)) {
-			head(page);
-			return null;
-		} else {
-			throw new InvalidBodyMethodException(page);
+			throws MissingVariableException, BrowserDelayException, ExecutionFailure {
+		try {
+			Page page = (Page) resource;
+			// Temporary executions to do before.  Not published, executed each time.
+			for(int i = 0 ; i < page.loadBeforeLinks.length ; i ++) {
+				PageExecution pageBeforeExecution = new PageExecution(context, enclosingScraper, page.loadBeforeLinks[i]);
+				Page pageBefore = (Page) pageBeforeExecution.generateResource();
+				pageBeforeExecution.generateResult(pageBefore);
+			}
+			if(page.method.equals(Page.Method.GET)) {
+				return get(page);
+			} else if(page.method.equals(Page.Method.POST)) {
+				return post(page);
+			} else if(page.method.equals(Page.Method.HEAD)) {
+				head(page);
+				return null;
+			} else {
+				throw new InvalidBodyMethodException(page);
+			}
+		} catch(DeserializationException e) {
+			throw new ExecutionFailure(e);
+		} catch (UnsupportedEncodingException e) {
+			throw new ExecutionFailure(e);
+		} catch (MalformedURLException e) {
+			throw new ExecutionFailure(e);
+		} catch (BrowserException e) {
+			throw new ExecutionFailure(e);
+		} catch (MustacheTemplateException e) {
+			throw new ExecutionFailure(e);
+		} catch (InvalidBodyMethodException e) {
+			throw new ExecutionFailure(e);
+		} catch (IOException e) {
+			throw new ExecutionFailure(e);
 		}
 	}
 
-	protected Execution[] generateChildren(Resource resource, Object result)
-			throws NoMatchesException, MissingGroupException,
-			InvalidRangeException, MustacheTemplateException,
-			MissingVariableException, IOException, DeserializationException,
-			BrowserDelayException, BrowserException,
-			InvalidBodyMethodException, ScraperSourceException {
+	/**
+	 * An empty array, {@link PageExecution} does not have children.
+	 */
+	protected Execution[] generateChildren(Resource resource, Object result) {
 		return new Execution[0];
 	}
 }

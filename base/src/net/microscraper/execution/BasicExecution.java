@@ -3,6 +3,8 @@ package net.microscraper.execution;
 import java.io.IOException;
 import java.net.URI;
 
+import com.sun.net.httpserver.Authenticator.Failure;
+
 import net.microscraper.client.BrowserException;
 import net.microscraper.client.BrowserDelayException;
 import net.microscraper.client.Interfaces.Regexp.InvalidRangeException;
@@ -29,13 +31,13 @@ public abstract class BasicExecution implements Execution {
 	private final Execution parent;
 	private final Context context;
 	
-	private final static int SLEEP_TIME = 1000;
+	private final static int SLEEP_TIME = 1000; //TODO this belongs elsewhere
 	
 	private Resource resource = null;
 	private Object result = null;
 	private Execution[] children = null;
 	
-	private Exception failure = null;
+	private Throwable failure = null; // has to be Throwable because that's what #getCause returns.
 	private String lastMissingVariable = null;
 	private String missingVariable = null;
 	
@@ -74,42 +76,44 @@ public abstract class BasicExecution implements Execution {
 		this.parent = null;
 	}
 	
+	
 	public final void run() {
-		isStuck = false;
+		isStuck = false; // always reset isStuck
+		
+		// Only allow #run if this is not yet complete or failed.
 		if(!isComplete() && !hasFailed()) {
 			try {
+				
+				// Only generate the resource if we don't have one.
 				if(resource == null) {
-					resource = generateResource();
+					try {
+						resource = generateResource();
+					} catch (IOException e) {
+						throw new ExecutionFailure(e);
+					} catch (DeserializationException e) {
+						throw new ExecutionFailure(e);
+					}
 				}
-				if(resource != null) {
-					result = generateResult(resource);
+				
+				// Only generate the result if we don't have one, and we have a resource.
+				if(result == null && resource != null) {
+					try {
+						result = generateResult(resource);
+					} catch(MustacheTemplateException e) {
+						throw new ExecutionFailure(e);
+					} catch (BrowserDelayException e) {
+						handleDelay(e);
+					} catch(MissingVariableException e) {
+						handleMissingVariable(e);
+					}
 				}
-				if(result != null) {
-					children = generateChildren(resource, result);
-					handleComplete();
-				}
-			} catch (BrowserDelayException e) {
-				handleDelay(e);
-			} catch(MissingVariableException e) {
-				handleMissingVariable(e);
-			} catch(NoMatchesException e) {
+			} catch(ExecutionFailure e) {
 				handleFailure(e);
-			} catch(MissingGroupException e) {
-				handleFailure(e);
-			} catch(InvalidRangeException e) {
-				handleFailure(e);
-			} catch(MustacheTemplateException e) {
-				handleFailure(e);
-			} catch (IOException e) {
-				handleFailure(e);
-			} catch (DeserializationException e) {
-				handleFailure(e);
-			} catch (BrowserException e) {
-				handleFailure(e);
-			} catch (InvalidBodyMethodException e) {
-				handleFailure(e);
-			} catch (ScraperSourceException e) {
-				handleFailure(e);
+			}
+			
+			if(result != null) {
+				children = generateChildren(resource, result);
+				handleComplete();
 			}
 		}
 	}
@@ -125,12 +129,21 @@ public abstract class BasicExecution implements Execution {
 				Utils.quote(Float.toString(e.kbpsSinceLastLoad)));
 	}
 	
-	private void handleFailure(Exception e) {
-		failure = e;
+	/**
+	 * Catch-all failures.  Sets the state of the execution to failed.
+	 * @param e
+	 */
+	private void handleFailure(ExecutionFailure e) {
+		failure = e.getCause();
 		context.i("Failure in " + toString());
 		context.e(e);
 	}
 	
+	/**
+	 * Catch {@link MissingVariableException}.  If it's for the same tag as the last time the handler
+	 * was called, change the state of the {@link BasicExecution} to 'stuck'.
+	 * @param e The {@link MissingVariableException}.
+	 */
 	private void handleMissingVariable(MissingVariableException e) {
 		context.i("Missing " + Utils.quote(e.name) + " from " + toString());
 		if(missingVariable != null) {
@@ -152,22 +165,52 @@ public abstract class BasicExecution implements Execution {
 		//context.i(toString() + " completed successfully, with '" + publishName + "'='" + publishValue + "'");
 	}
 	
-	protected abstract Resource generateResource() throws NoMatchesException, MissingGroupException,
-			InvalidRangeException, MustacheTemplateException, MissingVariableException, IOException,
-			DeserializationException, BrowserDelayException, BrowserException, InvalidBodyMethodException, ScraperSourceException;
-
-	protected abstract Object generateResult(Resource resource) throws NoMatchesException, MissingGroupException,
-			InvalidRangeException, MustacheTemplateException, MissingVariableException, IOException,
-			DeserializationException, BrowserDelayException, BrowserException, InvalidBodyMethodException, ScraperSourceException;
-
-	protected abstract Execution[] generateChildren(Resource resource, Object result) throws NoMatchesException, MissingGroupException,
-			InvalidRangeException, MustacheTemplateException, MissingVariableException, IOException,
-			DeserializationException, BrowserDelayException, BrowserException, InvalidBodyMethodException, ScraperSourceException;
+	/**
+	 * Must be overriden by {@link BasicExecution} subclass.
+	 * @return The {@link Resource} instance that contains instructions for this {@link Execution},
+	 * which will be passed to {@link generateResult} and {@link generateChildren}.
+	 * @throws IOException If there is an error obtaining the {@link Resource}.
+	 * @throws DeserializationException If there is an error deserializing the {@link Resource Resource}.
+	 * @see #generateResult
+	 * @see #generateChildren
+	 */
+	protected abstract Resource generateResource() throws IOException, DeserializationException;
+	
+	/**
+	 * Must be overriden by {@link BasicExecution} subclass.
+	 * @param resource The {@link Resource} from {@link #generateResource}.  Should be cast.
+	 * @return An Object result for executing this particular {@link Execution}.  Will be passed to
+	 * {@link generateChildren}
+	 * @throws BrowserDelayException If a {@link Browser} must wait before having this {@link Execution}
+	 * generate a result.
+	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
+	 * {@link Execution}'s {@link Variables}.
+	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
+	 * @throws ExecutionFailure If there is some other exception that prevents this {@link Execution} from
+	 * running successfully.  Use {@link ExecutionFailure#getCause} to determine why.
+	 * @see #generateResource
+	 * @see #generateChildren
+	 */
+	protected abstract Object generateResult(Resource resource) throws
+			BrowserDelayException, MissingVariableException, MustacheTemplateException,
+			ExecutionFailure;
+	
+	/**
+	 * Must be overriden by {@link BasicExecution} subclass.
+	 * @param resource The {@link Resource} from {@link #generateResource}.  Should be cast.
+	 * @param result The Object result from {@link #generateResult}. Should be cast.
+	 * @return An array of {@link Execution[]}s whose parent is this execution.
+	 * Later accessible through {@link #getChildren}.
+	 * @see #generateResource
+	 * @see #generateResult
+	 * @see #getChildren
+	 */
+	protected abstract Execution[] generateChildren(Resource resource, Object result);
 
 	public final int getId() {
 		return id;
 	}
-
+	
 	public final URI getResourceLocation() {
 		return resourceLocation;
 	}
@@ -178,12 +221,17 @@ public abstract class BasicExecution implements Execution {
 		return false;
 	}
 
-	public final Execution getParent() {
+	public final Execution getParent() throws NullPointerException {
 		if(hasParent())
 			return parent;
 		throw new NullPointerException();
 	}
 	
+	/**
+	 * 
+	 * @return <code>True</code> if the {@link Execution} has escaped its {@link GenerateResource}, {@link generateResult},
+	 * or {@link generateChildren} twice because of the same variable.  <code>False</code> otherwise.
+	 */
 	public final boolean isStuck() {
 		return isStuck;
 	}
@@ -200,7 +248,7 @@ public abstract class BasicExecution implements Execution {
 		return false;
 	}
 	
-	public final Exception failedBecause() {
+	public final Throwable failedBecause() {
 		if(failure != null)
 			return failure;
 		throw new NullPointerException();
