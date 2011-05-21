@@ -29,7 +29,7 @@ public class MicroScraperConsole {
 	private static final SimpleDateFormat DATETIME_FORMAT =
 		new SimpleDateFormat("yyyyMMddkkmmss");
 	private static final String ENCODING = "UTF-8";
-	private static final int sqlBatchSize = 100;
+	private static final int sqlBatchSize = 400;
 	
 	private final Log log = new Log();
 	private final Interfaces.JSON jsonInterface = new JSONME();
@@ -40,60 +40,61 @@ public class MicroScraperConsole {
 		new MicroScraperConsole(args);
 	}
 	public MicroScraperConsole(String[] args) {
-		if(args.length > 2 || args.length < 1) {
-			log.i("Proper use: microscraperconsole <url> [<defaults>]");
-		} else {
-			String fileTimestamp = DATETIME_FORMAT.format(new Date());
-			
-			Logger sysLogger = new SystemLogInterface();
-			FileLogInterface fileLogger = new FileLogInterface("./" + fileTimestamp + ".log");
-			log.register(sysLogger);
+		Logger sysLogger = new SystemLogInterface();
+		FileLogInterface fileLogger;
+		String fileTimestamp = DATETIME_FORMAT.format(new Date());
+		log.register(sysLogger);
+		try {
+			fileLogger = new FileLogInterface("./" + fileTimestamp + ".log");
 			log.register(fileLogger);
-			
-			try {
-				fileLogger.open();
-				publisher = new SQLPublisher(
-						new JDBCSQLite("./" + fileTimestamp + ".sqlite",
-								log), sqlBatchSize);
-				client = new Client(
-							new Context(
-								new LocalJSONResourceLoader(jsonInterface),
-								new JavaUtilRegexInterface(),
-								jsonInterface,
-								new JavaNetBrowser(log, Browser.MAX_KBPS_FROM_HOST),
-								log,
-								ENCODING
-							),
-						publisher
-					);
-				
-				URI uri = new URI(args[0]);
-				UnencodedNameValuePair[] extraVariables;
-				if(args.length == 2) {
-					extraVariables = Utils.formEncodedDataToNameValuePairs(args[1], ENCODING);
-				} else {
-					extraVariables = new UnencodedNameValuePair[0];
-				}
-				client.scrape(uri, extraVariables);
-				
-				publisher.forceCommit();
-				
-			} catch (URIMustBeAbsoluteException e) {
-				log.e(e);
-			} catch (URISyntaxException e) {
-				log.e(e);
-			} catch (UnsupportedEncodingException e) {
-				log.e(e);
-			} catch (SQLInterfaceException e ) {
-				log.e(e);
-			} catch (IOException e) {
-				log.e(e);
+
+			if(args.length > 2 || args.length < 1) {
+				log.i("Proper use: microscraperconsole <url> [<defaults>]");
+				return;
 			}
+			
+			fileLogger.open();
+			publisher = new SQLPublisher(
+					new JDBCSQLite("./" + fileTimestamp + ".sqlite",
+							log), sqlBatchSize);
+			client = new Client(
+						new Context(
+							new LocalJSONResourceLoader(jsonInterface),
+							new JavaUtilRegexInterface(),
+							jsonInterface,
+							new JavaNetBrowser(log, Browser.MAX_KBPS_FROM_HOST),
+							log,
+							ENCODING
+						),
+					publisher
+				);
+			
+			URI uri = new URI(args[0]);
+			UnencodedNameValuePair[] extraVariables;
+			if(args.length == 2) {
+				extraVariables = Utils.formEncodedDataToNameValuePairs(args[1], ENCODING);
+			} else {
+				extraVariables = new UnencodedNameValuePair[0];
+			}
+			client.scrape(uri, extraVariables);
+			
+			publisher.forceCommit();
+			
 			try {
 				fileLogger.close();
 			} catch (IOException e) {
-				log.e(e);
+				sysLogger.e(e);
 			}
+		} catch (URIMustBeAbsoluteException e) {
+			log.e(e);
+		} catch (URISyntaxException e) {
+			log.e(e);
+		} catch (UnsupportedEncodingException e) {
+			log.e(e);
+		} catch (SQLInterfaceException e ) {
+			log.e(e);
+		} catch (IOException e) {
+			log.e(e);
 		}
 	}
 }

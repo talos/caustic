@@ -11,7 +11,7 @@
             <fileset dir="/Users/john/microscraper/microscraper-client/utility/bin"/>
             <fileset dir="/Users/john/microscraper/microscraper-client/base/build/classes"/>
             <fileset dir="/Users/john/microscraper/microscraper-client/implementation/json/bin"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Users/john/microscraper/microscraper-client/implementation/sqlite/lib/sqlitejdbc-v056/lib/sqlitejdbc-v056.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/john/microscraper/microscraper-client/implementation/sqlite/lib/sqlitejdbc-v056/sqlitejdbc-v056.jar"/>
             <fileset dir="/Users/john/microscraper/microscraper-client/implementation/sqlite/bin"/>
             <fileset dir="/Users/john/microscraper/microscraper-client/implementation/regexp/bin"/>
         </jar>

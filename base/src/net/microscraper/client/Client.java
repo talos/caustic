@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
+import java.util.Vector;
 
 import net.microscraper.client.Publisher.PublisherException;
 import net.microscraper.execution.Context;
@@ -18,8 +19,10 @@ import net.microscraper.model.URIMustBeAbsoluteException;
  *
  */
 public class Client {
+	private static final int LARGE_QUEUE = 1000000;
 	private final Context context;
 	private final Publisher publisher;
+	private Vector queue = new Vector();
 	
 	public Client(Context context, Publisher publisher) {
 		this.context = context;
@@ -27,9 +30,35 @@ public class Client {
 	}
 	
 	public void scrape(URI scraperLocation, UnencodedNameValuePair[] extraVariables) throws URIMustBeAbsoluteException {
-		execute(new ScraperExecution(new Link(scraperLocation), context, extraVariables));
+		//execute(new ScraperExecution(new Link(scraperLocation), context, extraVariables));
+		queue.add(new ScraperExecution(new Link(scraperLocation), context, extraVariables));
+		execute();
 	}
-	private void execute(Execution exc) {
+	private void execute() {
+		while(queue.size() > 0) {
+			if(queue.size() > LARGE_QUEUE) {
+				context.i("Large execution queue: " + Utils.quote(queue.size()));
+			}
+			Execution exc = (Execution) queue.elementAt(0);
+			queue.removeElementAt(0);
+			exc.run();
+			try {
+				publisher.publish(exc);
+			} catch(PublisherException e) {
+				context.e(e);
+			}
+			// If the execution is complete, add its children to the queue.
+			if(exc.isComplete()) {
+				Execution[] children = exc.getChildren();
+				Utils.arrayIntoVector(children, queue);
+				
+			// If the execution is not stuck and is not failed, add it back to the queue.
+			} else if(!exc.hasFailed() && !exc.isStuck()) {
+				queue.addElement(exc);
+			}
+		}
+	}
+	/*private void execute(Execution exc) {
 		if(!exc.isComplete()) {
 			exc.run();
 			try {
@@ -54,7 +83,7 @@ public class Client {
 				}
 			}
 		}
-	}
+	}*/
 	/*
 	public void testPage(URI pageLocation, UnencodedNameValuePair[] extraVariables) {
 		///new PageExecution(new Link(pageLocation), context, extraVariables);

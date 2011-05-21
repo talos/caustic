@@ -14,10 +14,19 @@ import net.microscraper.client.Utils;
 import net.microscraper.model.DeserializationException;
 import net.microscraper.model.Resource;
 
+/**
+ * BasicExecution is a partial implementation of {@link Execution}.  It provides a framework
+ * for implementing all of its interfaces except {@link Execution.hasPublishName},
+ * {@link Execution.getPublishName}, {@link Execution.hasPublishValue}, and {@link Execution.getPublishValue}.
+ * <p>Subclasses must provide implementations of {@link #generateResource}, {@link #generateResult},
+ * and {@link #generateChildren}.
+ * @author john
+ *
+ */
 public abstract class BasicExecution implements Execution {
 	private final URI resourceLocation;
 	private final int id;
-	private final Execution caller;
+	private final Execution parent;
 	private final Context context;
 	
 	private final static int SLEEP_TIME = 1000;
@@ -35,22 +44,34 @@ public abstract class BasicExecution implements Execution {
 	
 	private static int count = 0;
 	
-	public BasicExecution(Context context, URI resourceLocation, Execution caller) {
+	/**
+	 * Construct a BasicExecution with a parent.
+	 * @param context
+	 * @param resourceLocation
+	 * @param parent
+	 */
+	public BasicExecution(Context context, URI resourceLocation, Execution parent) {
 		id = count;
 		count++;
 		
 		this.context = context;
 		this.resourceLocation = resourceLocation;
-		this.caller = caller;
+		this.parent = parent;
 	}
 	
+	/**
+	 * Construct a BasicExecution without a parent.
+	 * @param context
+	 * @param resourceLocation
+	 * @param parent
+	 */
 	public BasicExecution(Context context, URI resourceLocation) {
 		id = count;
 		count++;
 
 		this.context = context;
 		this.resourceLocation = resourceLocation;
-		this.caller = null;
+		this.parent = null;
 	}
 	
 	public final void run() {
@@ -126,8 +147,8 @@ public abstract class BasicExecution implements Execution {
 	
 	private void handleComplete() {
 		isComplete = true;
-		String publishName = hasPublishName() ? getPublishName() : "";
-		String publishValue = hasPublishValue() ? getPublishValue() : "";
+		//String publishName = hasPublishName() ? getPublishName() : "";
+		//String publishValue = hasPublishValue() ? getPublishValue() : "";
 		//context.i(toString() + " completed successfully, with '" + publishName + "'='" + publishValue + "'");
 	}
 	
@@ -150,16 +171,16 @@ public abstract class BasicExecution implements Execution {
 	public final URI getResourceLocation() {
 		return resourceLocation;
 	}
-
-	public final boolean hasCaller() {
-		if(caller != null)
+	
+	public final boolean hasParent() {
+		if(parent != null)
 			return true;
 		return false;
 	}
 
-	public final Execution getCaller() {
-		if(hasCaller())
-			return caller;
+	public final Execution getParent() {
+		if(hasParent())
+			return parent;
 		throw new NullPointerException();
 	}
 	

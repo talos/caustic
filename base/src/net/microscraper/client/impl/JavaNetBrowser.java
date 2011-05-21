@@ -118,12 +118,11 @@ public class JavaNetBrowser implements Browser {
 			throws BrowserException {
 
 		URL url = conn.getURL();
-		
+		String responseBody;
+		ByteArrayOutputStream content = new ByteArrayOutputStream();
 		try {
 			// Pull response.
-			ByteArrayOutputStream content = new ByteArrayOutputStream();
 			InputStream stream = conn.getInputStream();
-			String responseBody;
 			byte[] buffer = new byte[512];
 			int readBytes;
 			loading: while((readBytes = stream.read(buffer)) != -1) {
@@ -142,14 +141,14 @@ public class JavaNetBrowser implements Browser {
 			}
 			stream.close();
 			conn.disconnect();
-			responseBody = content.toString();
-			hostMemory.add(url, responseBody.length());
-			return responseBody;
 		} catch(IOException e) {
 			throw new BrowserException(url, e);
 		} catch(InterruptedException e) {
 			throw new BrowserException(url, e);
 		}
+		responseBody = content.toString();
+		hostMemory.add(url, responseBody.length());
+		return responseBody;
 	}
 	
 	private static void addHeaderToConnection(HttpURLConnection conn, UnencodedNameValuePair header) {
@@ -209,6 +208,7 @@ public class JavaNetBrowser implements Browser {
 				throws IOException {
 		return connectHandlingRedirectCookies(conn, new Vector());
 	}
+	
 	private InputStream connectHandlingRedirectCookies(HttpURLConnection conn, Vector redirects_followed)
 				throws IOException {
 		conn.setInstanceFollowRedirects(false);

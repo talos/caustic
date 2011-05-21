@@ -1,5 +1,8 @@
 package net.microscraper.client.impl;
 
+import java.util.Enumeration;
+import java.util.Hashtable;
+
 import net.microscraper.client.Publisher;
 import net.microscraper.client.Utils;
 import net.microscraper.client.impl.SQLInterface.PreparedStatement;
@@ -17,6 +20,7 @@ public class SQLPublisher implements Publisher {
 	
 	private final int batchSize;
 	private int executionsSinceLastCommit = 0;
+	private final Hashtable<Integer, String[]> batchParameters = new Hashtable<Integer, String[]>();
 	
 	public SQLPublisher(SQLInterface sql, int batchSize) throws SQLInterfaceException {
 		this.sql = sql;
@@ -27,7 +31,7 @@ public class SQLPublisher implements Publisher {
 						"CREATE TABLE `" + TABLE_NAME + "` (" +
 					"`" + RESOURCE_LOCATION + "` " + sql.varcharColumnType() + ", " +
 					"`" + SOURCE_ID + "` " + sql.intColumnType() + ", " +
-					"`" + ID + "` " + sql.idColumnType() +", " + //+ " " + sql.keyColumnDefinition() + ", " +
+					"`" + ID + "` " + sql.idColumnType() + " " + sql.keyColumnDefinition() + ", " +
 					"`" + STUCK_ON + "` " + sql.varcharColumnType() + ", " +
 					"`" + FAILURE_BECAUSE + "` " + sql.varcharColumnType() + ", " +
 					"`" + NAME + "` " + sql.varcharColumnType() + ", " + 
@@ -75,28 +79,30 @@ public class SQLPublisher implements Publisher {
 	}
 	
 	private void addEntry(Execution execution) throws SQLInterfaceException {
-		insertExecution.bindStrings(new String[] {
+		String[] parameters = new String[] {
 				getResourceLocationString(execution),
-				execution.hasCaller() ? Integer.toString(execution.getCaller().getId()) : sql.nullValue(),
+				execution.hasParent() ? Integer.toString(execution.getParent().getId()) : sql.nullValue(),
 				Integer.toString(execution.getId()),
 				execution.isStuck()    ? truncateToVarchar(execution.stuckOn()) : sql.nullValue(),
 				execution.hasFailed()  ? truncateToVarchar(execution.failedBecause().toString()) : sql.nullValue(),
 				execution.hasPublishName() ? truncateToVarchar(execution.getPublishName()) : sql.nullValue(),
 				execution.hasPublishValue() ? execution.getPublishValue() : sql.nullValue()
-			});
-		insertExecution.addBatch();
+			};
+		batchParameters.put(execution.getId(), parameters);
+		//insertExecution.bindStrings();
+		//insertExecution.addBatch();
 	}
-	
+	/*
 	private void deleteEntry(Execution execution) throws SQLInterfaceException {
 		deleteExecution.bindStrings(new String[] { Integer.toString(execution.getId()) });
 		deleteExecution.addBatch();
 	}
-
+*/
 	@Override
 	public void publish(Execution execution) throws PublisherException {
 		try {
 			// delete existing entry
-			deleteEntry(execution);
+			//deleteEntry(execution);
 			// Add new entry
 			addEntry(execution);
 			executionsSinceLastCommit++;
@@ -110,10 +116,24 @@ public class SQLPublisher implements Publisher {
 	}
 	
 	public void forceCommit() throws SQLInterfaceException {
+		// Iterate through our batch of ids, update the PreparedStatements.
+		Enumeration<Integer> ids = batchParameters.keys();
+		while(ids.hasMoreElements()) {
+			Integer id = ids.nextElement();
+			
+			deleteExecution.bindStrings(new String[] { Integer.toString(id) } );
+			deleteExecution.addBatch();
+			
+			insertExecution.bindStrings(batchParameters.get(id));
+			insertExecution.addBatch();
+		}
+		// Delete, then insert.
 		deleteExecution.executeBatch();
-		sql.commit();
 		insertExecution.executeBatch();
 		sql.commit();
+		
+		// Clear out our batch parameters
+		batchParameters.clear();
 		executionsSinceLastCommit = 0;
 	}
 	

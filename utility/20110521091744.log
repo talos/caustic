@@ -1,0 +1,7 @@
+Sat May 21 09:17:44 EDT 2011 Info: Execution queue size: "1"
+Sat May 21 09:17:44 EDT 2011 Info: Missing "start-page-no" from Execution 0 file:///Users/john/microscraper/microscraper-server/spec/resource/fixtures/scraper/Broadway-League.json
+Sat May 21 09:17:44 EDT 2011 Info: Execution queue size: "1"
+Sat May 21 09:17:44 EDT 2011 Info: Missing "start-page-no" from Execution 0 file:///Users/john/microscraper/microscraper-server/spec/resource/fixtures/scraper/Broadway-League.json
+Sat May 21 09:17:44 EDT 2011 Info: Stuck on "start-page-no" in Execution 0 file:///Users/john/microscraper/microscraper-server/spec/resource/fixtures/scraper/Broadway-League.json
+Sat May 21 09:17:44 EDT 2011 Info: SQL Batch Count: 0, 0
+Sat May 21 09:17:44 EDT 2011 Info: SQL Batch Count: 1, 1
