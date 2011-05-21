@@ -5,3 +5,4 @@
 *.sqlite
 *.class
 *.sqlite-journal
+*.log
