@@ -1,5 +1,6 @@
 # microscraper examples
 
+---
 
 #### The three types of objects:
 
@@ -26,7 +27,11 @@
       "replacement" : "$0"
     }
 
+---
+
 #### Dynamic substitution [coming soon]
+
+---
 
 #### Hidden data
 
