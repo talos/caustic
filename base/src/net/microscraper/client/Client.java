@@ -20,9 +20,6 @@ import net.microscraper.server.resource.URIMustBeAbsoluteException;
  */
 public final class Client {
 	private static final int LARGE_QUEUE = 1000000; // TODO: handle differently
-	//private final Context context;
-	//private final Publisher publisher;
-	
 	private final ExecutionContext context;
 	
 	/**
@@ -38,18 +35,30 @@ public final class Client {
 			Log log, String encoding) {
 		this.context = new ExecutionContext( log,
 				regexpInterface, browser, resourceLoader, encoding);
-		//this.publisher = publisher;
 	}
 	
+	/**
+	 * 
+	 * @param scraperLocation A {@link java.net.URI} to get the {@link Scraper} instructions from.
+	 * @param extraVariables An array of {@link UnencodedNameValuePair}s to stock the {@link ScraperExecutable}s
+	 * {@link Variable}s with.
+	 * @param publisher A {@link Publisher} to send the results of {@link Executable}s to.
+	 * @throws URIMustBeAbsoluteException If the supplied {@link java.net.uri} is not absolute.
+	 */
 	public void scrape(URI scraperLocation, UnencodedNameValuePair[] extraVariables, Publisher publisher)
 				throws URIMustBeAbsoluteException {
-		Executable rootExecution = new ScraperExecutable(context, new Link(scraperLocation), extraVariables);
-		execute(rootExecution, publisher);
+		Executable rootExecutable = new ScraperExecutable(context, new Link(scraperLocation), extraVariables);
+		execute(rootExecutable, publisher);
 	}
 	
-	private void execute(Executable rootExecution, Publisher publisher) {
+	/**
+	 * {@link #execute} runs an {@link Executable} and its children, publishing them after each run.
+	 * @param rootExecutable The {@link Executable} to start with.
+	 * @param publisher The {@link Publisher} to publish to after each execution.
+	 */
+	private void execute(Executable rootExecutable, Publisher publisher) {
 		Vector queue = new Vector();
-		queue.add(rootExecution);
+		queue.add(rootExecutable);
 		while(queue.size() > 0) {
 			if(queue.size() > LARGE_QUEUE) {
 				context.log.i("Large execution queue: " + Utils.quote(queue.size()));
