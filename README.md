@@ -27,4 +27,4 @@ If we map <i>query</i> were to "hello", the results look something like...
 
 #### Why? ####
 
-Microscraper is designed to give wider access to obscure public data.  The microscraper format makes it easy to quickly design and test a scraper that extracts a few pieces of information from behind several layers of obfuscation.  See <a href="examples.md">the examples</a>.
+Microscraper is designed to give wider access to obscure public data.  The microscraper format makes it easy to quickly design and test a scraper that extracts a few pieces of information from behind several layers of obfuscation.  See [the examples](examples.md).
