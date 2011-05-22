@@ -1,10 +1,7 @@
-# microscraper
+# microscraper examples
 
-cooperative scrapers for mobile apps
 
-#### Examples ####
-
-###### The three types of objects:
+#### The three types of objects:
 
 */scraper.json*
 
@@ -29,9 +26,9 @@ cooperative scrapers for mobile apps
       "replacement" : "$0"
     }
 
-###### Dynamic substitution [coming soon]
+#### Dynamic substitution [coming soon]
 
-###### Hidden data
+#### Hidden data
 
 */mockup_property.json*
 
