@@ -18,9 +18,9 @@ Here's a real simple one:
     }
 
 If we map <i>query</i> were to "hello", the results look something like...
-* what do we say after hello? | Kitty
-* what do we say after hello? | to
-* what do we say after hello? | World
+ *  what do we say after hello? | Kitty
+ *  what do we say after hello? | to
+ *  what do we say after hello? | World
 ...and so on.
 
 ## FAQ
