@@ -7,14 +7,15 @@ cooperative scrapers for mobile apps
 Microscrapers are ultra lightweight, logic-free JSON objects that provide a Mustache-like template insructions for scraping data.
 
 Here's a real simple one:
-   {
+
+    {
      "source"    : { "url" : "http://www.google.com?q={{query}}" },
      "findMany"  : [{
        "name"   : "what do we say after {{query}}?",
        "pattern"     : "{{query}}\\s+(\\w+)",
        "replacement" : "$1"
      }]
-   }
+    }
 
 If we map <i>query</i> were to "hello", the results look something like...
    what do we say after hello? | Kitty
