@@ -7,6 +7,8 @@ import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 public final class Parser extends Resource {
+	public static final String KEY = "parser";
+	
 	public final Pattern pattern;
 	public final MustacheTemplate replacement;
 	public final Pattern[] tests;

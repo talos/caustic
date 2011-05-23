@@ -8,45 +8,50 @@ import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 
-public class Link {
+public class Ref {
+	
+	/**
+	 * The key of a {@link Ref} when deserializing.
+	 */
+	public static final String KEY = "$ref";
+	
 	/**
 	 * The absolute location of the resource this link refers to.
 	 */
 	public final URI location;
-	public Link (URI root, URI link) throws URIMustBeAbsoluteException {
+	public Ref (URI root, URI link) throws URIMustBeAbsoluteException {
 		this.location = root.resolve(link);
 		if(this.location.isAbsolute() == false) {
 			throw new URIMustBeAbsoluteException(this.location);
 		}
 	}
-	public Link (URI absoluteURI) throws URIMustBeAbsoluteException {
+	public Ref (URI absoluteURI) throws URIMustBeAbsoluteException {
 		this.location = absoluteURI;
 		if(this.location.isAbsolute() == false) {
 			throw new URIMustBeAbsoluteException(this.location);
 		}
 	}
 	
-	private static final String REF = "$ref";
 	
 	/**
-	 * Deserialize a JSON Object into a {@link Link} instance.
+	 * Deserialize a JSON Object into a {@link Ref} instance.
 	 * @param jsonInterface The {@link JSONInterface} to use in processing JSON.
 	 * @param rootURI The root {@link URI} that this link resolves against.
 	 * @param jsonObject A {@link JSONInterfaceObject} of one link.
-	 * @return A {@link Link} instance.
+	 * @return A {@link Ref} instance.
 	 * @throws DeserializationException If there is an error in the JSON or the link is
 	 * not a valid absolute URI.
 	 */
-	public static Link deserialize(JSONInterface jsonInterface,
+	public static Ref deserialize(JSONInterface jsonInterface,
 			URI rootURI, JSONInterfaceObject jsonObject)
 		throws DeserializationException {
 		try {
 			try {
-				return new Link(rootURI, new URI(jsonObject.getString(REF)));
+				return new Ref(rootURI, new URI(jsonObject.getString(KEY)));
 			} catch(URISyntaxException e) {
-				throw new DeserializationException("Link '" + jsonObject.getString(REF) + "' is not a URI.", jsonObject);
+				throw new DeserializationException("Link '" + jsonObject.getString(KEY) + "' is not a URI.", jsonObject);
 			} catch(URIMustBeAbsoluteException e) {
-				throw new DeserializationException("Link '" + jsonObject.getString(REF) + "' is not resolving to be absolute.", jsonObject);				
+				throw new DeserializationException("Link '" + jsonObject.getString(KEY) + "' is not resolving to be absolute.", jsonObject);				
 			}
 		} catch (JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
@@ -55,7 +60,7 @@ public class Link {
 
 	
 	/**
-	 * Deserialize a JSON Array into an array of {@link Link} instances.
+	 * Deserialize a JSON Array into an array of {@link Ref} instances.
 	 * @param jsonInterface The {@link JSONInterface} to use in processing JSON.
 	 * @param rootURI The root {@link URI} that this link resolves against.
 	 * @param jsonArray A {@link JSONInterfaceArray} of links.
@@ -63,13 +68,13 @@ public class Link {
 	 * @throws DeserializationException If there is an error in the JSON, or one of the links is
 	 * not a valid absolute URI.
 	 */
-	public static Link[] deserializeArray(JSONInterface jsonInterface,
+	public static Ref[] deserializeArray(JSONInterface jsonInterface,
 			URI rootURI, JSONInterfaceArray jsonArray)
 		throws DeserializationException {
-		Link[] links = new Link[jsonArray.length()];
+		Ref[] links = new Ref[jsonArray.length()];
 		for(int i = 0 ; i < jsonArray.length(); i ++) {
 			try {
-				links[i] = Link.deserialize(jsonInterface, rootURI, jsonArray.getJSONObject(i));
+				links[i] = Ref.deserialize(jsonInterface, rootURI, jsonArray.getJSONObject(i));
 			} catch(JSONInterfaceException e) {
 				throw new DeserializationException(e, jsonArray, i);
 			}

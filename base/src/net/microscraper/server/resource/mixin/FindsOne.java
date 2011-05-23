@@ -1,29 +1,31 @@
-package net.microscraper.server.resource;
+package net.microscraper.server.resource.mixin;
 
 import java.net.URI;
 
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.resource.DeserializationException;
+import net.microscraper.server.resource.FindOne;
 
 /**
- * Allows connections to an {@link Variable} executable.
+ * Allows connections to an {@link FindOne} executable.
  * @author john
  *
  */
-public interface HasVariables {
+public interface FindsOne {
 	
 	/**
 	 * 
-	 * @return An array of associated {@link Variable} executables.
+	 * @return An array of associated {@link FindOne} executables.
 	 */
-	public abstract Variable[] getVariables();
+	public abstract FindOne[] getVariables();
 	
 	/**
 	 * A helper class to deserialize 
-	 * interfaces of {@link HasVariables} using an inner constructor.
-	 * Should only be instantiated inside {@link Variable} or {@link ScraperExecutable}.
-	 * @see Variable
+	 * interfaces of {@link FindsOne} using an inner constructor.
+	 * Should only be instantiated inside {@link FindOne} or {@link ScraperExecutable}.
+	 * @see FindOne
 	 * @see ScraperExecutable
 	 * @author john
 	 *
@@ -32,27 +34,27 @@ public interface HasVariables {
 		private static final String VARIABLES = "variables";
 		
 		/**
-		 * Protected, should be called only by {@link Variable} or {@link ScraperExecutable}.
-		 * Deserialize an {@link HasVariables} from a {@link JSONInterfaceObject}.
+		 * Protected, should be called only by {@link FindOne} or {@link ScraperExecutable}.
+		 * Deserialize an {@link FindsOne} from a {@link JSONInterfaceObject}.
 		 * @param jsonInterface {@link JSONInterface} used to process JSON.
 		 * @param location A {@link URI} that identifies the root of these variables.
 		 * @param jsonObject Input {@link JSONInterfaceObject} object.
-		 * @return An {@link HasVariables} instance.
+		 * @return An {@link FindsOne} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
-		 * a {@link HasVariables}.
+		 * a {@link FindsOne}.
 		 */
-		protected static HasVariables deserialize(JSONInterface jsonInterface,
+		public static FindsOne deserialize(JSONInterface jsonInterface,
 						URI location, JSONInterfaceObject jsonObject)
 					throws DeserializationException {
 			try {
-				final Variable[] variables;
+				final FindOne[] variables;
 				if(jsonObject.has(VARIABLES)) {
-					variables = Variable.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(VARIABLES));				
+					variables = FindOne.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(VARIABLES));				
 				} else {
-					variables = new Variable[0];
+					variables = new FindOne[0];
 				}
-				return new HasVariables() {
-					public Variable[] getVariables() {
+				return new FindsOne() {
+					public FindOne[] getVariables() {
 						return variables;
 					}
 				};

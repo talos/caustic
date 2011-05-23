@@ -4,6 +4,12 @@ import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 public final class Cookie extends MustacheEncodedNameValuePair {
+	
+	/**
+	 * The resource's identifier when deserializing.
+	 */
+	public static final String KEY = "cookie";
+	
 	private final MustacheNameValuePair nameValuePair;
 	public Cookie(MustacheNameValuePair nameValuePair) {
 		this.nameValuePair = nameValuePair;

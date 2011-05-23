@@ -9,17 +9,17 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
 import net.microscraper.client.interfaces.PatternInterface;
-import net.microscraper.server.resource.Leaf;
+import net.microscraper.server.resource.FindMany;
 import net.microscraper.server.resource.Parser;
 import net.microscraper.server.resource.Resource;
-import net.microscraper.server.resource.Variable;
+import net.microscraper.server.resource.FindOne;
 
 /**
- * {@link VariableExecutable} is the {@link Executable} spawned by a {@link Variable}.
+ * {@link VariableExecutable} is the {@link Executable} spawned by a {@link FindOne}.
  * It implements {@link Variables}, such that it passes up the values for all of its
  * executed {@link VariableExecutable} children.  It 
  * @see Variables
- * @see Variable
+ * @see FindOne
  * @author john
  *
  */
@@ -27,13 +27,13 @@ public class VariableExecutable extends ParsableExecutable implements Variables 
 	private final int matchNumber;
 	private final String stringToParse;
 	
-	private final Variable variable;
+	private final FindOne variable;
 	private VariableExecutable[] variableExecutions = new VariableExecutable[0];
 	
 	private String result = null;
 	
 	public VariableExecutable(ExecutionContext context,
-			Executable parent, Variable variable, String stringToParse) {
+			Executable parent, FindOne variable, String stringToParse) {
 		super(context, variable, parent);
 		
 		this.matchNumber = variable.match;
@@ -132,8 +132,8 @@ public class VariableExecutable extends ParsableExecutable implements Variables 
 	protected Executable[] generateChildren(ExecutionContext context, Resource resource, Object result) {
 		this.result = (String) result;
 		
-		Variable[] variables = variable.getVariables();
-		Leaf[] leaves = variable.getLeaves();
+		FindOne[] variables = variable.getVariables();
+		FindMany[] leaves = variable.getLeaves();
 		Vector variableExecutions = new Vector();
 		Vector leafExecutions = new Vector();
 		for(int i = 0 ; i < variables.length ; i ++) {

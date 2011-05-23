@@ -4,7 +4,7 @@ import net.microscraper.client.ExecutionContext;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Variables;
-import net.microscraper.server.resource.Link;
+import net.microscraper.server.resource.Ref;
 
 /**
  * {@link ScraperExecutableChild} is a {@link ScraperExecutable} subclass spawned
@@ -21,7 +21,7 @@ public final class ScraperExecutableChild extends ScraperExecutable {
 	private final Variables parentVariables;
 	
 	public ScraperExecutableChild(ExecutionContext context, 
-			Link pipe, Executable parent, Variables parentVariables) {
+			Ref pipe, Executable parent, Variables parentVariables) {
 		super(context, pipe, new UnencodedNameValuePair[] { }, parent);
 		//super(log,resourceLoader,browser, regexpInterface, pipe, , parent );
 		this.extraName = null;
@@ -29,7 +29,7 @@ public final class ScraperExecutableChild extends ScraperExecutable {
 		this.parentVariables = parentVariables;
 	}
 	public ScraperExecutableChild(ExecutionContext context, 
-			Link pipe, Executable parent, Variables parentVariables,
+			Ref pipe, Executable parent, Variables parentVariables,
 			String extraName, String extraValue) {
 		super(context, pipe,
 				new UnencodedNameValuePair[] { 

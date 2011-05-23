@@ -7,17 +7,17 @@ import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 
 /**
- * An {@link Parsable} can be used to connect a {@link Parser} to a String source.
+ * An {@link Find} can be used to connect a {@link Parser} to a String source.
  * @author john
  *
  */
-public interface Parsable {
+public interface Find {
 	
 	/**
 	 * 
-	 * @return A {@link Link} to the Parser this {@link Parsable} uses.
+	 * @return A {@link Ref} to the Parser this {@link Find} uses.
 	 */
-	public Link getParserLink();
+	public Ref getParserLink();
 	
 	/**
 	 * 
@@ -37,10 +37,10 @@ public interface Parsable {
 	
 	/**
 	 * A helper class to deserialize 
-	 * interfaces of {@link Parsable} using an inner constructor.
-	 * Should only be instantiated inside {@link Variable} or {@link Leaf}.
-	 * @see Variable
-	 * @see Leaf
+	 * interfaces of {@link Find} using an inner constructor.
+	 * Should only be instantiated inside {@link FindOne} or {@link FindMany}.
+	 * @see FindOne
+	 * @see FindMany
 	 * @author john
 	 *
 	 */
@@ -50,22 +50,22 @@ public interface Parsable {
 		private static final String NAME_DEFAULT = null;
 		
 		/**
-		 * Protected, should be called only by {@link Variable} or {@link Leaf}.
-		 * Deserialize an {@link Parsable} from a {@link JSONInterfaceObject}.
+		 * Protected, should be called only by {@link FindOne} or {@link FindMany}.
+		 * Deserialize an {@link Find} from a {@link JSONInterfaceObject}.
 		 * @param location A {@link URI} that identifies the root of this execution's links.
 		 * @param jsonInterface {@link JSONInterface} used to process JSON.
 		 * @param jsonObject Input {@link JSONInterfaceObject} object.
-		 * @return An {@link Parsable} instance.
+		 * @return An {@link Find} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
 		 * an Execution.
-		 * @see Variable#deserialize
-		 * @see Leaf#deserialize
+		 * @see FindOne#deserialize
+		 * @see FindMany#deserialize
 		 */
-		protected static Parsable deserialize(JSONInterface jsonInterface,
+		protected static Find deserialize(JSONInterface jsonInterface,
 						URI location, JSONInterfaceObject jsonObject)
 					throws DeserializationException {
 			try {
-				final Link parserLink = Link.deserialize(jsonInterface, location, jsonObject.getJSONObject(PARSER_LINK));
+				final Ref parserLink = Ref.deserialize(jsonInterface, location, jsonObject.getJSONObject(PARSER_LINK));
 				final boolean hasName;
 				final String name;
 				if(jsonObject.has(NAME)) {
@@ -76,8 +76,8 @@ public interface Parsable {
 					name = NAME_DEFAULT;
 				}
 				
-				return new Parsable() {
-					public Link getParserLink() {
+				return new Find() {
+					public Ref getParserLink() {
 						return parserLink;
 					}
 					public String getName() {

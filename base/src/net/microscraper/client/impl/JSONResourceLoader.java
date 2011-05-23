@@ -10,7 +10,7 @@ import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.resource.DeserializationException;
-import net.microscraper.server.resource.Link;
+import net.microscraper.server.resource.Ref;
 import net.microscraper.server.resource.Page;
 import net.microscraper.server.resource.Parser;
 import net.microscraper.server.resource.Resource;
@@ -39,7 +39,7 @@ public abstract class JSONResourceLoader implements ResourceLoader {
 	 */
 	public abstract JSONInterfaceObject obtainJSON(URI location) throws IOException, JSONInterfaceException;
 	
-	public final Parser loadParser(Link link) throws IOException,
+	public final Parser loadParser(Ref link) throws IOException,
 			DeserializationException {
 		if(isCached(link.location)) {
 			return (Parser) getFromCache(link.location);
@@ -54,7 +54,7 @@ public abstract class JSONResourceLoader implements ResourceLoader {
 		}
 	}
 
-	public final Scraper loadScraper(Link link) throws IOException,
+	public final Scraper loadScraper(Ref link) throws IOException,
 			DeserializationException {
 		if(isCached(link.location)) {
 			return (Scraper) getFromCache(link.location);
@@ -67,7 +67,7 @@ public abstract class JSONResourceLoader implements ResourceLoader {
 		}
 	}
 
-	public final Page loadPage(Link link) throws IOException,
+	public final Page loadPage(Ref link) throws IOException,
 			DeserializationException {
 		if(isCached(link.location)) {
 			return (Page) getFromCache(link.location);

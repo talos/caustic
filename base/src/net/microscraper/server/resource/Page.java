@@ -15,6 +15,10 @@ import net.microscraper.server.resource.Page.Method.UnknownHTTPMethodException;
  *
  */
 public final class Page extends Resource {
+	/**
+	 * The resource's identifier when deserializing.
+	 */
+	public static final String key = "page";
 	
 	/**
 	 * Static class defining HTTP methods.
@@ -74,7 +78,7 @@ public final class Page extends Resource {
 	public final URL url;
 	public final Cookie[] cookies;
 	public final Header[] headers;
-	public final Link[] loadBeforeLinks;
+	public final Ref[] loadBeforeLinks;
 	public final Pattern[] terminates;
 	public final Post[] posts;
 	
@@ -83,13 +87,13 @@ public final class Page extends Resource {
 	 * @param url A {@link URL} to use requesting the page. 
 	 * @param cookies An array of {@link Cookie}s to add to the browser before requesting this web page.
 	 * @param headers An array of {@link Header}s to add when requesting this web page.
-	 * @param loadBeforeLinks An array of {@link Link}s to Pages that should be loaded before loading this page.
+	 * @param loadBeforeLinks An array of {@link Ref}s to Pages that should be loaded before loading this page.
 	 * @param terminates An array of {@link Pattern}s that terminate the loading of this page.
 	 * @param posts An array of {@link Post}s to add to include in the request.
 	 * @throws URIMustBeAbsoluteException If the provided location is not absolute.
 	 */
 	public Page(URI location, Method method, URL url, Cookie[] cookies,
-			Header[] headers, Link[] loadBeforeLinks, Pattern[] terminates,
+			Header[] headers, Ref[] loadBeforeLinks, Pattern[] terminates,
 			Post[] posts) throws URIMustBeAbsoluteException {
 		super(location);
 		this.method = method;
@@ -128,11 +132,12 @@ public final class Page extends Resource {
 				throws DeserializationException, IOException {
 		try {
 			Method method = Method.fromString(jsonObject.getString(METHOD));
-			URL url = net.microscraper.server.resource.URL.fromString(jsonObject.getString(URL));
+			URL url = net.microscraper.server.resource.URL.deserialize(jsonObject);
+			//URL url = net.microscraper.server.resource.URL.fromString(jsonObject.getString(URL));
 			
 			Cookie[] cookies = jsonObject.has(COOKIES) ? Cookie.deserializeHash(jsonInterface, jsonObject.getJSONObject(COOKIES)) : new Cookie[0];
 			Header[] headers = jsonObject.has(HEADERS) ? Header.deserializeHash(jsonInterface, jsonObject.getJSONObject(HEADERS)) : new Header[0];
-			Link[] loadBeforeLinks = jsonObject.has(LOAD_BEFORE) ? Link.deserializeArray(jsonInterface, location, (jsonObject.getJSONArray(LOAD_BEFORE))) : new Link[0];
+			Ref[] loadBeforeLinks = jsonObject.has(LOAD_BEFORE) ? Ref.deserializeArray(jsonInterface, location, (jsonObject.getJSONArray(LOAD_BEFORE))) : new Ref[0];
 			Pattern[] terminates  = jsonObject.has(TERMINATES) ? Pattern.deserializeArray(jsonInterface, (jsonObject.getJSONArray(TERMINATES))) : new Pattern[0];
 			Post[] posts = jsonObject.has(POSTS) ? Post.deserializeHash(jsonInterface, jsonObject.getJSONObject(POSTS)) : new Post[0];
 			

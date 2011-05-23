@@ -4,12 +4,14 @@ cooperative scrapers for mobile apps
 
 #### The format ####
 
-Microscrapers are ultra lightweight, logic-free JSON objects that provide a Mustache-like template insructions for scraping data.
+Microscrapers are ultra lightweight, logic-free JSON objects that provide templated instructions for scraping data.
 
-Here's a real simple one:
+Here's a simple one:
 
     {
-     "source"    : { "url" : "http://www.google.com?q={{query}}" },
+     "source" : {
+       "url" : "http://www.google.com?q={{query}}",
+     },
      "findMany"  : [{
        "name"   : "what do we say after {{query}}?",
        "pattern"     : "{{query}}\\s+(\\w+)",
@@ -17,11 +19,13 @@ Here's a real simple one:
      }]
     }
 
-If we map <i>query</i> were to "hello", the results look something like...
+Mapping <i>query</i> to "hello", the results look something like...
 
-1. what do we say after hello? | Kitty
-2. what do we say after hello? | to
-3. what do we say after hello? | World
+<table>
+  <tr><td>what do we say after hello? <td>Kitty</tr>
+  <tr><td>what do we say after hello? <td>to   </tr>
+  <tr><td>what do we say after hello? <td>World</tr>
+</table>
 
 ...and so on.
 

@@ -11,7 +11,7 @@ import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.interfaces.BrowserException;
 import net.microscraper.server.resource.DeserializationException;
-import net.microscraper.server.resource.Link;
+import net.microscraper.server.resource.Ref;
 import net.microscraper.server.resource.MustacheEncodedNameValuePair;
 import net.microscraper.server.resource.MustacheUnencodedNameValuePair;
 import net.microscraper.server.resource.Page;
@@ -27,9 +27,9 @@ import net.microscraper.server.resource.Resource;
 public class PageExecutable extends BasicExecutable {
 	
 	/**
-	 * A {@link Link} to the {@link Page} that this {@link Executable} will load when {@link #run}.
+	 * A {@link Ref} to the {@link Page} that this {@link Executable} will load when {@link #run}.
 	 */
-	private final Link pageLink;
+	private final Ref pageLink;
 	
 	/**
 	 * The {@link ScraperExecutable} that this {@link Page} is using as its source of
@@ -44,7 +44,7 @@ public class PageExecutable extends BasicExecutable {
 	
 	private String body = null;
 	
-	public PageExecutable(ExecutionContext context, ScraperExecutable enclosingScraper, Link pageLink) {
+	public PageExecutable(ExecutionContext context, ScraperExecutable enclosingScraper, Ref pageLink) {
 		super(context, pageLink.location, enclosingScraper);
 		this.enclosingScraper = enclosingScraper;
 		this.browser = context.browser;

@@ -9,6 +9,16 @@ import net.microscraper.client.interfaces.JSONInterfaceObject;
  *
  */
 public final class Header extends MustacheUnencodedNameValuePair {
+	/**
+	 * The resource's identifier when deserializing.
+	 */
+	public static final String KEY = "header";
+	
+	/**
+	 * The resource's identifier when deserializing many from a hash.
+	 */
+	public static final String PLURAL_KEY = "header";
+	
 	private final MustacheNameValuePair nameValuePair;
 	public Header(MustacheNameValuePair nameValuePair) {
 		this.nameValuePair = nameValuePair;

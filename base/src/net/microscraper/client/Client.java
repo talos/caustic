@@ -10,7 +10,7 @@ import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.Publisher;
 import net.microscraper.client.interfaces.PublisherException;
 import net.microscraper.client.interfaces.RegexpInterface;
-import net.microscraper.server.resource.Link;
+import net.microscraper.server.resource.Ref;
 import net.microscraper.server.resource.URIMustBeAbsoluteException;
 
 /**
@@ -19,7 +19,7 @@ import net.microscraper.server.resource.URIMustBeAbsoluteException;
  *
  */
 public final class Client {
-	private static final int LARGE_QUEUE = 1000000; // TODO: handle differently
+	private static final int LARGE_QUEUE = 1000000; // TODO: handle this warning differently
 	private final ExecutionContext context;
 	
 	/**
@@ -41,13 +41,13 @@ public final class Client {
 	 * 
 	 * @param scraperLocation A {@link java.net.URI} to get the {@link Scraper} instructions from.
 	 * @param extraVariables An array of {@link UnencodedNameValuePair}s to stock the {@link ScraperExecutable}s
-	 * {@link Variable}s with.
+	 * {@link FindOne}s with.
 	 * @param publisher A {@link Publisher} to send the results of {@link Executable}s to.
 	 * @throws URIMustBeAbsoluteException If the supplied {@link java.net.uri} is not absolute.
 	 */
 	public void scrape(URI scraperLocation, UnencodedNameValuePair[] extraVariables, Publisher publisher)
 				throws URIMustBeAbsoluteException {
-		Executable rootExecutable = new ScraperExecutable(context, new Link(scraperLocation), extraVariables);
+		Executable rootExecutable = new ScraperExecutable(context, new Ref(scraperLocation), extraVariables);
 		execute(rootExecutable, publisher);
 	}
 	

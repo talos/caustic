@@ -4,12 +4,12 @@ import java.io.IOException;
 
 import net.microscraper.client.ExecutionContext;
 import net.microscraper.server.resource.DeserializationException;
-import net.microscraper.server.resource.Parsable;
+import net.microscraper.server.resource.Find;
 import net.microscraper.server.resource.Parser;
 import net.microscraper.server.resource.Resource;
 
 /**
- * {@link ParsableExecutable}s are the {@link BasicExecutable} implementation of {@link Parsable}s, and are contained inside
+ * {@link ParsableExecutable}s are the {@link BasicExecutable} implementation of {@link Find}s, and are contained inside
  * {@link Scraper}s but link to a {@link Parser} resource.  If one-to-many,
  * they are subclassed as {@link LeafExecutable}; if one-to-one, they are
  * subclassed as {@link VariableExecutable}.
@@ -22,16 +22,16 @@ import net.microscraper.server.resource.Resource;
  */
 public abstract class ParsableExecutable extends BasicExecutable {
 	/**
-	 * The {@link Parsable} resource that spawned this execution.
+	 * The {@link Find} resource that spawned this execution.
 	 */
-	private final Parsable parsable;
+	private final Find parsable;
 	
 	/**
 	 * Private parser instance, saved after {@link #generateResource}.
 	 */
 	private Parser parser;
 	
-	public ParsableExecutable(ExecutionContext context, Parsable parsable,
+	public ParsableExecutable(ExecutionContext context, Find parsable,
 			Executable caller) {
 		super(context, parsable.getParserLink().location, caller);
 		
@@ -41,7 +41,7 @@ public abstract class ParsableExecutable extends BasicExecutable {
 	/**
 	 * @return Whether the {@link #parsable} has a name, which would be used as a
 	 * key in {@link Variables}.
-	 * @see Parsable
+	 * @see Find
 	 * @see Variables
 	 */
 	public final boolean hasName() {
@@ -50,7 +50,7 @@ public abstract class ParsableExecutable extends BasicExecutable {
 
 	/**
 	 * @return The {@link #parsable}'s name, used in {@link Variables}.
-	 * @see Parsable
+	 * @see Find
 	 * @see Variables
 	 */
 	public final String getName() {

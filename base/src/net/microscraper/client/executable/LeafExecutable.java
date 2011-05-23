@@ -10,8 +10,8 @@ import net.microscraper.client.interfaces.InvalidRangeException;
 import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
 import net.microscraper.client.interfaces.PatternInterface;
-import net.microscraper.server.resource.Leaf;
-import net.microscraper.server.resource.Link;
+import net.microscraper.server.resource.FindMany;
+import net.microscraper.server.resource.Ref;
 import net.microscraper.server.resource.Parser;
 import net.microscraper.server.resource.Resource;
 
@@ -20,12 +20,12 @@ public class LeafExecutable extends ParsableExecutable {
 	private final int minMatch;
 	private final int maxMatch;
 	private final String stringToParse;
-	private final Link[] pipes;
+	private final Ref[] pipes;
 	private final Variables variables;
 	
 	public LeafExecutable(ExecutionContext context,
 			Executable parent, Variables variables,
-			Leaf leaf, String stringToParse) {
+			FindMany leaf, String stringToParse) {
 		super(context, leaf, parent);
 		this.stringToParse = stringToParse;
 		this.maxMatch = leaf.maxMatch;

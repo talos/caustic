@@ -10,13 +10,13 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Variables;
 import net.microscraper.server.resource.DeserializationException;
-import net.microscraper.server.resource.Leaf;
-import net.microscraper.server.resource.Link;
+import net.microscraper.server.resource.FindMany;
+import net.microscraper.server.resource.Ref;
 import net.microscraper.server.resource.Page;
 import net.microscraper.server.resource.Resource;
 import net.microscraper.server.resource.Scraper;
 import net.microscraper.server.resource.ScraperSource;
-import net.microscraper.server.resource.Variable;
+import net.microscraper.server.resource.FindOne;
 
 /**
  * {@link ScraperExecutable} is the {@link Executable} spawned by a {@link Scraper}.
@@ -25,7 +25,7 @@ import net.microscraper.server.resource.Variable;
  *
  */
 public class ScraperExecutable extends BasicExecutable implements Variables {
-	private final Link pipe;
+	private final Ref pipe;
 	private final UnencodedNameValuePair[] extraVariables;	
 	
 	private VariableExecutable[] variableExecutions = new VariableExecutable[0];
@@ -33,7 +33,7 @@ public class ScraperExecutable extends BasicExecutable implements Variables {
 	/**
 	 * @param extraVariables An array of {@link UnencodedNameValuePair}s to use as extra variables.
 	 */
-	public ScraperExecutable(ExecutionContext context, Link pipe,
+	public ScraperExecutable(ExecutionContext context, Ref pipe,
 				UnencodedNameValuePair[] extraVariables) {
 		super(context, pipe.location);
 		this.pipe = pipe;
@@ -43,7 +43,7 @@ public class ScraperExecutable extends BasicExecutable implements Variables {
 	/**
 	 * @param extraVariables An array of {@link UnencodedNameValuePair}s to use as extra variables.
 	 */
-	protected ScraperExecutable(ExecutionContext context, Link pipe,
+	protected ScraperExecutable(ExecutionContext context, Ref pipe,
 				UnencodedNameValuePair[] extraVariables, Executable parent) {
 		super(context, pipe.location, parent);
 		this.pipe = pipe;
@@ -114,9 +114,9 @@ public class ScraperExecutable extends BasicExecutable implements Variables {
 		Scraper scraper = (Scraper) resource;
 		String source = (String) result;
 		
-		Variable[] variables = scraper.getVariables();
-		Leaf[] leaves = scraper.getLeaves();
-		Link[] pipes = scraper.getPipes();
+		FindOne[] variables = scraper.getVariables();
+		FindMany[] leaves = scraper.getLeaves();
+		Ref[] pipes = scraper.getPipes();
 		
 		Vector children = new Vector();
 		Vector variableExecutions = new Vector();
