@@ -10,7 +10,7 @@ import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.Publisher;
 import net.microscraper.client.interfaces.PublisherException;
 import net.microscraper.client.interfaces.RegexpInterface;
-import net.microscraper.server.resource.Ref;
+import net.microscraper.server.Ref;
 import net.microscraper.server.resource.URIMustBeAbsoluteException;
 
 /**

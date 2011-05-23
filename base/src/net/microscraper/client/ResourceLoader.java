@@ -2,8 +2,8 @@ package net.microscraper.client;
 
 import java.io.IOException;
 
+import net.microscraper.server.Ref;
 import net.microscraper.server.resource.DeserializationException;
-import net.microscraper.server.resource.Ref;
 import net.microscraper.server.resource.Page;
 import net.microscraper.server.resource.Parser;
 import net.microscraper.server.resource.Scraper;

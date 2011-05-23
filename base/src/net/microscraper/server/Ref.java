@@ -1,4 +1,4 @@
-package net.microscraper.server.resource;
+package net.microscraper.server;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -7,6 +7,8 @@ import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.resource.DeserializationException;
+import net.microscraper.server.resource.URIMustBeAbsoluteException;
 
 public class Ref {
 	

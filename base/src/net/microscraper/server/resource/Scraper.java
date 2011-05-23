@@ -5,6 +5,8 @@ import java.net.URI;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.Ref;
+import net.microscraper.server.Resource;
 import net.microscraper.server.resource.mixin.FindsMany;
 import net.microscraper.server.resource.mixin.FindsOne;
 import net.microscraper.server.resource.mixin.SpawnsScrapers;
@@ -15,7 +17,7 @@ public class Scraper extends Resource implements FindsOne, FindsMany,
 	private final FindsMany hasLeaves;
 	private final SpawnsScrapers hasPipes;
 	
-	public final ScraperSource scraperSource;
+	//public final ScraperSource scraperSource;
 	public Scraper(URI location, ScraperSource scraperSource, FindsOne hasVariables, FindsMany hasLeaves,
 			SpawnsScrapers hasPipes) throws URIMustBeAbsoluteException {
 		super(location);
@@ -25,8 +27,8 @@ public class Scraper extends Resource implements FindsOne, FindsMany,
 		this.hasVariables = hasVariables;
 	}
 
-	public Ref[] getPipes() {
-		return hasPipes.getPipes();
+	public Ref[] getScrapers() {
+		return hasPipes.getScrapers();
 	}
 
 	public FindMany[] getLeaves() {
@@ -55,12 +57,12 @@ public class Scraper extends Resource implements FindsOne, FindsMany,
 			FindsMany hasLeaves = FindsMany.Deserializer.deserialize(jsonInterface, location, jsonObject);
 			FindsOne hasVariables = FindsOne.Deserializer.deserialize(jsonInterface, location, jsonObject);
 			SpawnsScrapers hasPipes = SpawnsScrapers.Deserializer.deserialize(jsonInterface, location, jsonObject);
-			ScraperSource scraperSource;
+			/*ScraperSource scraperSource;
 			try {
 				scraperSource = ScraperSource.deserialize(jsonInterface, location, jsonObject.getJSONObject(SOURCE));
 			} catch(JSONInterfaceException e) {
 				scraperSource = ScraperSource.fromString(jsonObject.getString(SOURCE));
-			}
+			}*/
 			return new Scraper(location, scraperSource, hasVariables, hasLeaves, hasPipes);
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);

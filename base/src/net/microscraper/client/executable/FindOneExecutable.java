@@ -9,30 +9,30 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
 import net.microscraper.client.interfaces.PatternInterface;
+import net.microscraper.server.Resource;
 import net.microscraper.server.resource.FindMany;
 import net.microscraper.server.resource.Parser;
-import net.microscraper.server.resource.Resource;
 import net.microscraper.server.resource.FindOne;
 
 /**
- * {@link VariableExecutable} is the {@link Executable} spawned by a {@link FindOne}.
+ * {@link FindOneExecutable} is the {@link Executable} spawned by a {@link FindOne}.
  * It implements {@link Variables}, such that it passes up the values for all of its
- * executed {@link VariableExecutable} children.  It 
+ * executed {@link FindOneExecutable} children.  It 
  * @see Variables
  * @see FindOne
  * @author john
  *
  */
-public class VariableExecutable extends ParsableExecutable implements Variables {
+public class FindOneExecutable extends FindExecutable implements Variables {
 	private final int matchNumber;
 	private final String stringToParse;
 	
 	private final FindOne variable;
-	private VariableExecutable[] variableExecutions = new VariableExecutable[0];
+	private FindOneExecutable[] variableExecutions = new FindOneExecutable[0];
 	
 	private String result = null;
 	
-	public VariableExecutable(ExecutionContext context,
+	public FindOneExecutable(ExecutionContext context,
 			Executable parent, FindOne variable, String stringToParse) {
 		super(context, variable, parent);
 		
@@ -44,12 +44,12 @@ public class VariableExecutable extends ParsableExecutable implements Variables 
 	
 	/**
 	 * 
-	 * @param key A String, corresponds to {@link VariableExecutable#getName()}.
-	 * @return The {@link VariableExecutable}'s result.
+	 * @param key A String, corresponds to {@link FindOneExecutable#getName()}.
+	 * @return The {@link FindOneExecutable}'s result.
 	 * @throws NullPointerException if the specified key is null
-	 * @throws MissingVariableException if this {@link VariableExecutable} and its children
+	 * @throws MissingVariableException if this {@link FindOneExecutable} and its children
 	 * contain no result for this key.
-	 * @throws MissingVariableException with a {@link VariableExecutable#getName()}
+	 * @throws MissingVariableException with a {@link FindOneExecutable#getName()}
 	 * corresponding to <code>key</code>. 
 	 */
 	public String get(String key) throws MissingVariableException {
@@ -67,11 +67,11 @@ public class VariableExecutable extends ParsableExecutable implements Variables 
 	}
 
 	/**
-	 * Tests if the specified object is a key in this {@link VariableExecutable} or
+	 * Tests if the specified object is a key in this {@link FindOneExecutable} or
 	 * one of its children.
 	 * @param key possible key 
 	 * @return <code>true</code> if and only if the specified String is a key
-	 * in this {@link VariableExecutable} or one of its children.
+	 * in this {@link FindOneExecutable} or one of its children.
 	 * @throws NullPointerException if the key is <code>null</code>
 	 */
 	public boolean containsKey(String key) {
@@ -89,7 +89,7 @@ public class VariableExecutable extends ParsableExecutable implements Variables 
 	}
 	
 	/**
-	 * {@link VariableExecutable} provides its result as a value if it {@link #isComplete}.
+	 * {@link FindOneExecutable} provides its result as a value if it {@link #isComplete}.
 	 */
 	public boolean hasValue() {
 		if(result != null)
@@ -109,7 +109,7 @@ public class VariableExecutable extends ParsableExecutable implements Variables 
 	}
 
 	/**
-	 * A result value for the {@link VariableExecutable}.
+	 * A result value for the {@link FindOneExecutable}.
 	 */
 	protected Object generateResult(ExecutionContext context, Resource resource)
 				throws MissingVariableException,
@@ -127,7 +127,7 @@ public class VariableExecutable extends ParsableExecutable implements Variables 
 	}
 	
 	/**
-	 * @return {@link LeafExecutable}s and {@link VariableExecutable}s.
+	 * @return {@link FindManyExecutable}s and {@link FindOneExecutable}s.
 	 */
 	protected Executable[] generateChildren(ExecutionContext context, Resource resource, Object result) {
 		this.result = (String) result;
@@ -138,13 +138,13 @@ public class VariableExecutable extends ParsableExecutable implements Variables 
 		Vector leafExecutions = new Vector();
 		for(int i = 0 ; i < variables.length ; i ++) {
 			variableExecutions.add(
-				new VariableExecutable(context, this, variables[i], this.result));
+				new FindOneExecutable(context, this, variables[i], this.result));
 		}
 		for(int i = 0 ; i < leaves.length ; i ++) {
 			leafExecutions.add(
-				new LeafExecutable(context, this, this, leaves[i], this.result));
+				new FindManyExecutable(context, this, this, leaves[i], this.result));
 		}
-		this.variableExecutions = new VariableExecutable[variableExecutions.size()];
+		this.variableExecutions = new FindOneExecutable[variableExecutions.size()];
 		variableExecutions.copyInto(this.variableExecutions);
 		
 		Executable[] children = new Executable[this.variableExecutions.length + leafExecutions.size()];
@@ -152,7 +152,7 @@ public class VariableExecutable extends ParsableExecutable implements Variables 
 			children[i] = this.variableExecutions[i];
 		}
 		for(int i = 0 ; i < leafExecutions.size() ; i ++) {
-			children[i + this.variableExecutions.length] = (LeafExecutable) leafExecutions.elementAt(i);
+			children[i + this.variableExecutions.length] = (FindManyExecutable) leafExecutions.elementAt(i);
 		}
 		return children;
 	}

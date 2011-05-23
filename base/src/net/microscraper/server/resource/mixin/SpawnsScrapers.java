@@ -5,9 +5,9 @@ import java.net.URI;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.Ref;
 import net.microscraper.server.resource.DeserializationException;
 import net.microscraper.server.resource.FindMany;
-import net.microscraper.server.resource.Ref;
 
 /**
  * Implementations of this interface can produce {@link Executable}s that can spawn new {@link ScraperExecutableChild}s.
@@ -16,13 +16,11 @@ import net.microscraper.server.resource.Ref;
  */
 public interface SpawnsScrapers {
 	
-	public static String KEY = "then";
-	
 	/**
 	 * 
 	 * @return An array of {@link Ref}s to that can be used to connect to {@link ScraperExecutableChild}s.
 	 */
-	public abstract Ref[] getPipes();
+	public abstract Ref[] getScrapers();
 	
 
 	/**
@@ -35,8 +33,8 @@ public interface SpawnsScrapers {
 	 *
 	 */
 	public static class Deserializer {
-		private static final String PIPES = "pipes";
-		
+		public static String KEY = "then";
+
 		/**
 		 * Deserialize an {@link SpawnsScrapers} from a {@link JSONInterfaceObject}.
 		 * @param jsonInterface {@link JSONInterface} used to process JSON.
@@ -51,13 +49,13 @@ public interface SpawnsScrapers {
 					throws DeserializationException {
 			try {
 				final Ref[] pipes;
-				if(jsonObject.has(PIPES)) {
-					pipes = Ref.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(PIPES));				
+				if(jsonObject.has(KEY)) {
+					pipes = Ref.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(KEY));				
 				} else {
 					pipes = new Ref[0];
 				}
 				return new SpawnsScrapers() {
-					public Ref[] getPipes() {
+					public Ref[] getScrapers() {
 						return pipes;
 					}
 				};

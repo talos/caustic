@@ -8,6 +8,8 @@ import net.microscraper.client.Mustache;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.MustacheTemplate;
+import net.microscraper.server.Resource;
 
 /**
  * The URL resource holds a string that can be mustached and used as a URL.

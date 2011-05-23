@@ -9,11 +9,11 @@ import net.microscraper.client.ResourceLoader;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.Ref;
+import net.microscraper.server.Resource;
 import net.microscraper.server.resource.DeserializationException;
-import net.microscraper.server.resource.Ref;
 import net.microscraper.server.resource.Page;
 import net.microscraper.server.resource.Parser;
-import net.microscraper.server.resource.Resource;
 import net.microscraper.server.resource.Scraper;
 
 /**

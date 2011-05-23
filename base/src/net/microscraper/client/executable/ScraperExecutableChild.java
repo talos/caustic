@@ -4,14 +4,14 @@ import net.microscraper.client.ExecutionContext;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Variables;
-import net.microscraper.server.resource.Ref;
+import net.microscraper.server.Ref;
 
 /**
  * {@link ScraperExecutableChild} is a {@link ScraperExecutable} subclass spawned
  * by a {@link ScraperExecutable} (including other {@link ScraperExecutableChild}ren
- *  or a {@link LeafExecutable}.
+ *  or a {@link FindManyExecutable}.
  * @see ScraperExecutable
- * @see LeafExecutable
+ * @see FindManyExecutable
  * @author john
  *
  */

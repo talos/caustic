@@ -6,6 +6,7 @@ import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.Ref;
 import net.microscraper.server.resource.mixin.SpawnsScrapers;
 
 /**
@@ -49,8 +50,8 @@ public class FindMany implements Find, SpawnsScrapers {
 		this.maxMatch = maxMatch;
 	}
 	
-	public Ref[] getPipes() {
-		return hasPipes.getPipes();
+	public Ref[] getScrapers() {
+		return hasPipes.getScrapers();
 	}
 
 	public Ref getParserLink() {

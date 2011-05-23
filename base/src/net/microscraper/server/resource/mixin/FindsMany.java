@@ -11,7 +11,7 @@ import net.microscraper.server.resource.FindOne;
 
 /**
  * This should be implemented by a class that produces {@link Executable}s
- * that can have {@link LeafExecutable} children.
+ * that can have {@link FindManyExecutable} children.
  * @see 
  * @author john
  *
@@ -34,7 +34,7 @@ public interface FindsMany {
 	 *
 	 */
 	public static class Deserializer {
-		private static final String LEAVES = "leaves";
+		private static final String KEY = "finds_many";
 		
 		/**
 		 * Protected, should be called only by {@link FindOne} or {@link ScraperExecutable}.
@@ -51,8 +51,8 @@ public interface FindsMany {
 					throws DeserializationException {
 			try {
 				final FindMany[] leaves;
-				if(jsonObject.has(LEAVES)) {
-					leaves = FindMany.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(LEAVES));
+				if(jsonObject.has(KEY)) {
+					leaves = FindMany.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(KEY));
 				} else {
 					leaves = new FindMany[0];
 				}

@@ -6,6 +6,8 @@ import java.net.URI;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.Ref;
+import net.microscraper.server.Resource;
 import net.microscraper.server.resource.Page.Method.UnknownHTTPMethodException;
 
 

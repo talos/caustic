@@ -3,24 +3,24 @@ package net.microscraper.client.executable;
 import java.io.IOException;
 
 import net.microscraper.client.ExecutionContext;
+import net.microscraper.server.Resource;
 import net.microscraper.server.resource.DeserializationException;
 import net.microscraper.server.resource.Find;
 import net.microscraper.server.resource.Parser;
-import net.microscraper.server.resource.Resource;
 
 /**
- * {@link ParsableExecutable}s are the {@link BasicExecutable} implementation of {@link Find}s, and are contained inside
+ * {@link FindExecutable}s are the {@link BasicExecutable} implementation of {@link Find}s, and are contained inside
  * {@link Scraper}s but link to a {@link Parser} resource.  If one-to-many,
- * they are subclassed as {@link LeafExecutable}; if one-to-one, they are
- * subclassed as {@link VariableExecutable}.
+ * they are subclassed as {@link FindManyExecutable}; if one-to-one, they are
+ * subclassed as {@link FindOneExecutable}.
  * @see LeafExectuion
- * @see VariableExecutable
+ * @see FindOneExecutable
  * @see BasicExecutable
  * @see Executable
  * @author john
  * 
  */
-public abstract class ParsableExecutable extends BasicExecutable {
+public abstract class FindExecutable extends BasicExecutable {
 	/**
 	 * The {@link Find} resource that spawned this execution.
 	 */
@@ -31,7 +31,7 @@ public abstract class ParsableExecutable extends BasicExecutable {
 	 */
 	private Parser parser;
 	
-	public ParsableExecutable(ExecutionContext context, Find parsable,
+	public FindExecutable(ExecutionContext context, Find parsable,
 			Executable caller) {
 		super(context, parsable.getParserLink().location, caller);
 		

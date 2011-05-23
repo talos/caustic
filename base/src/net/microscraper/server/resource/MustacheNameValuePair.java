@@ -4,6 +4,7 @@ import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceIterator;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.MustacheTemplate;
 
 public interface MustacheNameValuePair {
 	public abstract MustacheTemplate getName();

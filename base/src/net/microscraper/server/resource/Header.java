@@ -2,6 +2,7 @@ package net.microscraper.server.resource;
 
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.MustacheTemplate;
 
 /**
  * A generic header to add to a Page request.

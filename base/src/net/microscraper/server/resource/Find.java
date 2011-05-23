@@ -5,6 +5,7 @@ import java.net.URI;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.Ref;
 
 /**
  * An {@link Find} can be used to connect a {@link Parser} to a String source.

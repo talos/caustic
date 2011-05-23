@@ -5,6 +5,8 @@ import java.net.URI;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.MustacheTemplate;
+import net.microscraper.server.Resource;
 
 public final class Parser extends Resource {
 	public static final String KEY = "parser";

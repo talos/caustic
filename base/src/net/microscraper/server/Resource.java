@@ -1,6 +1,8 @@
-package net.microscraper.server.resource;
+package net.microscraper.server;
 
 import java.net.URI;
+
+import net.microscraper.server.resource.URIMustBeAbsoluteException;
 
 public abstract class Resource {
 	/**

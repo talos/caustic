@@ -31,7 +31,7 @@ public interface FindsOne {
 	 *
 	 */
 	public static class Deserializer {
-		private static final String VARIABLES = "variables";
+		private static final String KEY = "finds_one";
 		
 		/**
 		 * Protected, should be called only by {@link FindOne} or {@link ScraperExecutable}.
@@ -48,8 +48,8 @@ public interface FindsOne {
 					throws DeserializationException {
 			try {
 				final FindOne[] variables;
-				if(jsonObject.has(VARIABLES)) {
-					variables = FindOne.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(VARIABLES));				
+				if(jsonObject.has(KEY)) {
+					variables = FindOne.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(KEY));				
 				} else {
 					variables = new FindOne[0];
 				}

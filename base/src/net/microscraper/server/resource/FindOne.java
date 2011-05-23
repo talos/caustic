@@ -6,6 +6,7 @@ import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.Ref;
 import net.microscraper.server.resource.mixin.FindsMany;
 import net.microscraper.server.resource.mixin.FindsOne;
 

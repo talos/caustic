@@ -3,14 +3,14 @@ package net.microscraper.client;
 import java.util.Hashtable;
 
 import net.microscraper.client.executable.ScraperExecutable;
-import net.microscraper.client.executable.VariableExecutable;
+import net.microscraper.client.executable.FindOneExecutable;
 
 /**
  * A simple read-only hash-wrapper with String keys and values.
  * @author john
  * @see Hashtable
  * @see ScraperExecutable
- * @see VariableExecutable
+ * @see FindOneExecutable
  *
  */
 public interface Variables {
@@ -20,7 +20,7 @@ public interface Variables {
 	 * @return A String value.
 	 * @throws NullPointerException if the specified key is null
 	 * @throws MissingVariableException if this {@link Variables} contains no mapping.
-	 * @throws MissingVariableException with a {@link VariableExecutable#getName}
+	 * @throws MissingVariableException with a {@link FindOneExecutable#getName}
 	 * corresponding to <code>key</code>. 
 	 * @see Hashtable#get
 	 * @see #containsKey(String key)

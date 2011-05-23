@@ -10,12 +10,12 @@ import net.microscraper.client.interfaces.InvalidRangeException;
 import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
 import net.microscraper.client.interfaces.PatternInterface;
+import net.microscraper.server.Ref;
+import net.microscraper.server.Resource;
 import net.microscraper.server.resource.FindMany;
-import net.microscraper.server.resource.Ref;
 import net.microscraper.server.resource.Parser;
-import net.microscraper.server.resource.Resource;
 
-public class LeafExecutable extends ParsableExecutable {
+public class FindManyExecutable extends FindExecutable {
 	private String[] results = null;
 	private final int minMatch;
 	private final int maxMatch;
@@ -23,7 +23,7 @@ public class LeafExecutable extends ParsableExecutable {
 	private final Ref[] pipes;
 	private final Variables variables;
 	
-	public LeafExecutable(ExecutionContext context,
+	public FindManyExecutable(ExecutionContext context,
 			Executable parent, Variables variables,
 			FindMany leaf, String stringToParse) {
 		super(context, leaf, parent);
@@ -31,7 +31,7 @@ public class LeafExecutable extends ParsableExecutable {
 		this.maxMatch = leaf.maxMatch;
 		this.minMatch = leaf.minMatch;
 		this.variables = variables;
-		this.pipes = leaf.getPipes();
+		this.pipes = leaf.getScrapers();
 	}
 	
 	// TODO what should leaves publish?

@@ -9,6 +9,7 @@ import net.microscraper.client.interfaces.RegexpInterface;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Variables;
+import net.microscraper.server.MustacheTemplate;
 
 public class Pattern {
 	public final MustacheTemplate pattern;
