@@ -1,11 +1,15 @@
 package net.microscraper.client.impl;
 
+import java.io.IOException;
+
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceIterator;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceStringer;
+import net.microscraper.client.interfaces.URIInterface;
+import net.microscraper.client.interfaces.URILoader;
 
 import org.json.me.JSONArray;
 import org.json.me.JSONException;
@@ -15,50 +19,74 @@ import org.json.me.JSONWriter;
 import org.json.me.StringWriter;
 
 public class JSONME implements JSONInterface {
-	public JSONInterface.JSONInterfaceTokener getTokener(String jsonString) throws JSONInterfaceException {
+	private final URILoader uriLoader;
+	public JSONME(URILoader uriLoader) {
+		this.uriLoader = uriLoader;
+	}
+	
+	public JSONInterfaceStringer getStringer() throws JSONInterfaceException {
+		return new JSONMEStringer();
+	}
+	
+	public JSONInterfaceObject loadJSONObject(URIInterface jsonLocation)
+			throws JSONInterfaceException, IOException {
 		try {
-			return new JSONMETokener(jsonString);
-		} catch(Exception e) {
-			throw new JSONInterfaceException("URL for scraper is not in JSON format.");
+			JSONObject jsonObject = load(jsonLocation);
+			return new JSONMEObject(jsonLocation, jsonObject);
+		} catch(JSONException e) {
+			throw new JSONInterfaceException(e);
 		}
 	}
 	
-	private static class JSONMETokener implements JSONInterface.JSONInterfaceTokener {
-		private final JSONTokener tokener;
-		public JSONMETokener(String JSONString) {
-			tokener = new JSONTokener(JSONString);
+	private JSONObject load(URIInterface jsonLocation) throws IOException, JSONException {
+		String jsonString = uriLoader.load(jsonLocation);
+		return (JSONObject) new JSONTokener(jsonString).nextValue();
+	}
+	
+	private class JSONMEObject implements JSONInterfaceObject {
+		private final JSONObject object;
+		private final URIInterface location;
+		
+		// ensures references are always followed.
+		public JSONMEObject(URIInterface initialLocation, JSONObject initialJSONObject) throws JSONException, IOException {
+			JSONObject jsonObject = initialJSONObject;
+			URIInterface location = initialLocation;
+			while(jsonObject.has(REFERENCE_KEY)) {
+				location = location.resolve(jsonObject.getString(REFERENCE_KEY));
+				jsonObject = load(location);
+			}
+			this.object = jsonObject;
+			this.location = location;
 		}
-		public JSONInterfaceObject nextValue() throws JSONInterfaceException {
-			try {
-				return new JSONMEObject((JSONObject) tokener.nextValue());
-			} catch (JSONException e) {
-				throw new JSONInterfaceException(e);
-			} catch (ClassCastException e) {
-				throw new JSONInterfaceException("Cannot read this JSON.");
+		/* 
+		public JSONMEObject create(URIInterface location, JSONObject obj) {
+				
+				return loadJSONObject(linkedLocation);
+			} else {
+				return new JSONMEObject(location, obj);
 			}
 		}
-	}
-	
-	private static class JSONMEObject implements JSONInterfaceObject {
-		private final JSONObject object;
-		
-		public JSONMEObject(JSONObject obj) {
-			object = obj;
+		*/
+		/*
+		public JSONInterfaceObject load(URIInterface reference) throws IOException, JSONInterfaceException {
+			return loadJSONObject(linkedLocation);
 		}
-		
+		*/
 		public JSONInterfaceArray getJSONArray(String name)
 				throws JSONInterfaceException {
 			try {
-				return new JSONMEArray(object.getJSONArray(name));
+				return new JSONMEArray(this.location.resolveJSONFragment(name),
+						object.getJSONArray(name));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
 		}
 
 		public JSONInterfaceObject getJSONObject(String name)
-				throws JSONInterfaceException {
+				throws JSONInterfaceException, IOException {
 			try {
-				return new JSONMEObject(object.getJSONObject(name));
+				return new JSONMEObject(this.location.resolveJSONFragment(name),
+						object.getJSONObject(name));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -111,28 +139,34 @@ public class JSONME implements JSONInterface {
 		public int length() {
 			return object.length();
 		}
+
+		public URIInterface getLocation() {
+			return this.location;
+		}
 		
 	}
 	
-	private static class JSONMEArray implements JSONInterfaceArray {
+	private class JSONMEArray implements JSONInterfaceArray {
 		private final JSONArray array;
-		public JSONMEArray(JSONArray ary) {
+		private final URIInterface location;
+		public JSONMEArray(URIInterface location, JSONArray ary) {
 			array = ary;
+			this.location = location;
 		}
 		
 		public JSONInterfaceArray getJSONArray(int index)
 				throws JSONInterfaceException {
 			try {
-				return new JSONMEArray(array.getJSONArray(index));
+				return new JSONMEArray(location.resolveJSONFragment(index), array.getJSONArray(index));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
 		}
 
 		public JSONInterfaceObject getJSONObject(int index)
-				throws JSONInterfaceException {
+				throws JSONInterfaceException, IOException {
 			try {
-				return new JSONMEObject(array.getJSONObject(index));
+				return new JSONMEObject(location.resolveJSONFragment(index), array.getJSONObject(index));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -185,6 +219,10 @@ public class JSONME implements JSONInterface {
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
+		}
+
+		public URIInterface getLocation() {
+			return this.location;
 		}
 		
 	}
@@ -279,9 +317,5 @@ public class JSONME implements JSONInterface {
 		public String toString() {
 			return sWriter.toString();
 		}
-	}
-	
-	public JSONInterfaceStringer getStringer() throws JSONInterfaceException {
-		return new JSONMEStringer();
 	}
 }

@@ -1,11 +1,11 @@
 package net.microscraper.server.resource.mixin;
 
-import java.net.URI;
+import java.io.IOException;
 
-import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
-import net.microscraper.server.resource.DeserializationException;
+import net.microscraper.server.DeserializationException;
 import net.microscraper.server.resource.FindOne;
 
 /**
@@ -40,13 +40,18 @@ public interface FindsOne {
 		 * @return An {@link FindsOne} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
 		 * a {@link FindsOne}.
+		 * @throws IOException If there is an error loading one of the references.
 		 */
 		public static FindsOne deserialize(JSONInterfaceObject jsonObject)
-					throws DeserializationException {
+					throws DeserializationException, IOException {
 			try {
 				final FindOne[] findOnes;
 				if(jsonObject.has(KEY)) {
-					findOnes = (FindOne[]) FindOne.deserializeArray(jsonObject.getJSONArray(KEY));				
+					JSONInterfaceArray array = jsonObject.getJSONArray(KEY);
+					findOnes = new FindOne[array.length()];
+					for(int i = 0 ; i < findOnes.length ; i ++) {
+						findOnes[i] = new FindOne(array.getJSONObject(i));
+					}
 				} else {
 					findOnes = new FindOne[0];
 				}

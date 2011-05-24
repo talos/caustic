@@ -1,17 +1,23 @@
 package net.microscraper.client.interfaces;
 
+import java.io.IOException;
 import java.util.Enumeration;
 
 /**
- * Implementations provide a fully-featured interface for microscraper to do JSON.  The format
- * of this interface is indebted to org.json.me.
+ * Implementations provide a fully-featured interface for microscraper to
+ * handle JSON with references.  The format
+ * of this interface is indebted to org.json.me, but also should implement
+ * JSON referencing.
  * @author john
  *
  */
 public interface JSONInterface {
-	public static interface JSONInterfaceTokener {
-		public abstract JSONInterfaceObject nextValue() throws JSONInterfaceException;
-	}
+	/**
+	 * When the parser encounters this as a key in an object, it should replace
+	 * the object with the contents of the JSON loaded from the URI that is this
+	 * key's value.
+	 */
+	public static final String REFERENCE_KEY = "$ref";
 	public static interface JSONInterfaceWriter {
 	    public JSONInterface.JSONInterfaceWriter array() throws JSONInterfaceException;
 	    public JSONInterface.JSONInterfaceWriter endArray() throws JSONInterfaceException;
@@ -38,7 +44,15 @@ public interface JSONInterface {
 		}
 	}
 	
-	public abstract JSONInterface.JSONInterfaceTokener getTokener(String jsonString) throws JSONInterfaceException;
+	/**
+	 * Load a {@link JSONInterfaceObject} from a {@link URIInterface jsonLocation}
+	 * @param jsonLocation The {@link URIInterface} to load.
+	 * @return A {@link JSONInterfaceObject}.
+	 * @throws JSONInterfaceException If there is an error generating
+	 * the {@link JSONInterfaceObject}.
+	 * @throws IOException If there is an error loading the {@link URIInterface}.
+	 */
+	public abstract JSONInterfaceObject loadJSONObject(URIInterface jsonLocation)
+				throws JSONInterfaceException, IOException;
 	public abstract JSONInterfaceStringer getStringer() throws JSONInterfaceException;
-	//public abstract URIInterface resolve(URIInterface root, URIInterface path);
 }

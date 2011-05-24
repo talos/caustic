@@ -8,8 +8,8 @@ import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.client.interfaces.BrowserDelayException;
+import net.microscraper.server.DeserializationException;
 import net.microscraper.server.Resource;
-import net.microscraper.server.resource.DeserializationException;
 import net.microscraper.server.resource.Regexp;
 
 public abstract class RegexpExecutable extends BasicExecutable {

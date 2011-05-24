@@ -23,18 +23,16 @@ public final class Client {
 	private final ExecutionContext context;
 	
 	/**
-	 * @param resourceLoader The {@link ResourceLoader} this {@link Client} should use.
 	 * @param browser The {@link Browser} this {@link Client} should use.
 	 * @param log The {@link Log} this {@link Client} should use.
 	 * @param encoding The encoding to use when encoding or decoding post data, cookies,
 	 * and JSON resources. "UTF-8" is recommended.
-	 * @param regexp The {@link RegexpCompiler} interface to use when compiling regexps.
+	 * @param regexpCompiler The {@link RegexpCompiler} interface to use when compiling regexps.
 	 */
-	public Client(ResourceLoader resourceLoader, RegexpCompiler regexpInterface,
-			JSONInterface jsonInterface, Browser browser,
+	public Client(RegexpCompiler regexpCompiler, Browser browser,
 			Log log, String encoding) {
 		this.context = new ExecutionContext( log,
-				regexpInterface, browser, resourceLoader, encoding);
+				regexpCompiler, browser, encoding);
 	}
 	
 	/**

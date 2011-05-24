@@ -74,6 +74,4 @@ public interface Browser {
 	public abstract String post(URLInterface url, UnencodedNameValuePair[] headers,
 			EncodedNameValuePair[] cookies, PatternInterface[] terminates, EncodedNameValuePair[] posts)
 			throws BrowserDelayException, BrowserException;
-
-	public abstract URLInterface newURL(String compile);
 }

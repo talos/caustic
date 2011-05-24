@@ -6,6 +6,7 @@ import net.microscraper.client.EncodedNameValuePair;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Variables;
+import net.microscraper.server.MustacheNameValuePair;
 
 public abstract class MustacheEncodedNameValuePair implements MustacheNameValuePair {
 	public static EncodedNameValuePair[] compile(MustacheNameValuePair[] nameValuePairs,

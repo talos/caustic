@@ -1,11 +1,10 @@
 package net.microscraper.server.resource;
 
-import net.microscraper.client.interfaces.JSONInterface;
-import net.microscraper.client.interfaces.JSONInterfaceArray;
+import java.io.IOException;
+
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
-import net.microscraper.client.interfaces.URIInterface;
-import net.microscraper.server.Ref;
+import net.microscraper.server.DeserializationException;
 import net.microscraper.server.Resource;
 import net.microscraper.server.resource.mixin.FindsMany;
 import net.microscraper.server.resource.mixin.FindsOne;
@@ -23,22 +22,6 @@ public class Scraper extends Resource implements FindsOne, FindsMany,
 	private final FindsMany findsMany;
 	private final SpawnsScrapers spawnsScrapers;
 	
-	//public final ScraperSource scraperSource;
-	public Scraper(URIInterface location, FindsOne hasVariables, FindsMany hasLeaves,
-			SpawnsScrapers hasPipes) throws URIMustBeAbsoluteException {
-		super(location);
-		this.spawnsScrapers = hasPipes;
-		this.findsMany = hasLeaves;
-		this.findsOne = hasVariables;
-	}
-	public Scraper(URIInterface location, Page source, FindsOne hasVariables, FindsMany hasLeaves,
-			SpawnsScrapers hasPipes) throws URIMustBeAbsoluteException {
-		super(location);
-		this.spawnsScrapers = hasPipes;
-		this.findsMany = hasLeaves;
-		this.findsOne = hasVariables;
-	}
-
 	public Scraper[] getScrapers() {
 		return spawnsScrapers.getScrapers();
 	}
@@ -51,37 +34,44 @@ public class Scraper extends Resource implements FindsOne, FindsMany,
 		return findsOne.getFindOnes();
 	}
 	
-	private static final String SOURCE = "source";
+	/**
+		The optional source {@link Page} for this {@link Scraper}.
+		Is <code>null</code> if {@link #hasSource} is <code>false</code>.
+		@see #hasSource()
+	*/
+	public final Page sourcePage;
 	
+	/**
+	 * Whether or not this {@link Scraper} has a source {@link Page}.
+	 * @see #source
+	 */
+	public final boolean hasSource;
+	
+	private static final String SOURCE = "source";
+
 	/**
 	 * Deserialize a {@link Scraper} from a {@link JSONInterfaceObject}.
 	 * @param jsonObject Input {@link JSONInterfaceObject} object.
-	 * @return An {@link Scraper} instance.
-	 * @throws DeserializationException If this is not a valid JSON serialization of
-	 * a {@link Scraper}.
+	 * @return A {@link Scraper} instance.
+	 * @throws DeserializationException If this is not a valid JSON serialization of a {@link Scraper}.
+	 * @throws IOException If there is an error loading one of the references.
 	 */
-	public static Scraper deserialize(JSONInterfaceObject jsonObject)
-				throws DeserializationException {
+	public Scraper(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
+		super(jsonObject.getLocation());
 		try {
-			FindsMany hasLeaves = FindsMany.Deserializer.deserialize(jsonObject);
-			FindsOne hasVariables = FindsOne.Deserializer.deserialize(jsonObject);
-			SpawnsScrapers hasPipes = SpawnsScrapers.Deserializer.deserialize(jsonObject);
+			this.findsMany = FindsMany.Deserializer.deserialize(jsonObject);
+			this.findsOne = FindsOne.Deserializer.deserialize(jsonObject);
+			this.spawnsScrapers = SpawnsScrapers.Deserializer.deserialize(jsonObject);
 			
 			if(jsonObject.has(SOURCE)) {
-				Page page = Page.deserialize(jsonObject.getJSONObject(SOURCE));
-				return new Scraper(jsonObject.getLocation(), hasVariables, hasLeaves, hasPipes);
+				hasSource = true;
+				sourcePage = new Page(jsonObject.getJSONObject(SOURCE));
 			} else {
-				return new Scraper(jsonObject.getLocation(), hasVariables, hasLeaves, hasPipes);
+				hasSource = false;
+				sourcePage = null;
 			}
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
-		} catch(URIMustBeAbsoluteException e) {
-			throw new DeserializationException(e, jsonObject);
 		}
-	}
-
-	public static Scraper[] deserializeArray(JSONInterfaceArray jsonArray) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

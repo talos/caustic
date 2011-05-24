@@ -14,8 +14,8 @@ import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Utils;
 import net.microscraper.client.Variables;
+import net.microscraper.server.DeserializationException;
 import net.microscraper.server.Resource;
-import net.microscraper.server.resource.DeserializationException;
 
 /**
  * {@link BasicExecutable} is a partial implementation of {@link Executable}.  It provides a framework

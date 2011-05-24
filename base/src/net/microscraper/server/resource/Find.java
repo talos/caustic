@@ -1,9 +1,12 @@
 package net.microscraper.server.resource;
 
+import java.io.IOException;
+
+import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.server.DeserializationException;
 import net.microscraper.server.MustacheTemplate;
-import net.microscraper.server.Resource;
 
 /**
  * {@link Find} provides a pattern and a replacement value for matches.
@@ -11,9 +14,12 @@ import net.microscraper.server.Resource;
  *
  */
 public class Find extends Regexp {
-
+	private static final String REPLACEMENT = "replacement";
+	private static final String TESTS = "tests";
+	
 	/**
-	 * This string, which is mustached and evaluated for backreferences, is returned for each match.
+	 * This string, which is mustached and evaluated for backreferences,
+	 * is returned for each match.
 	 */
 	public final MustacheTemplate replacement;
 	
@@ -22,37 +28,29 @@ public class Find extends Regexp {
 	 */
 	public final Regexp[] tests;
 	
-	public Find(Regexp regexp, MustacheTemplate replacement, Regexp[] tests) throws URIMustBeAbsoluteException {
-		super(regexp.location, regexp.pattern, regexp.isCaseInsensitive, regexp.isMultiline, regexp.doesDotMatchNewline);
-		this.replacement = replacement;
-		this.tests = tests;
-	}
-	
-	public Find(Find find) throws URIMustBeAbsoluteException {
-		super(find.location, find.pattern, find.isCaseInsensitive, find.isMultiline, find.doesDotMatchNewline);
-		this.replacement = find.replacement;
-		this.tests = find.tests;
-	}
-
-	private static final String REPLACEMENT = "replacement";
-	private static final String TESTS = "tests";
-	
 	/**
 	 * Deserialize a {@link Find} from a {@link JSONInterfaceObject}.
+	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return A {@link Find} instance.
-	 * @throws DeserializationException If this is not a valid JSON serialization of a {@link Find}.
+	 * @throws IOException 
+	 * @throws DeserializationException If this is not a valid JSON serialization of a {@link Find},
+	 * or the location is invalid.
+	 * @throws IOException If there is an error loading one of the references.
 	 */
-	public static Resource deserialize(JSONInterfaceObject jsonObject)
-				throws DeserializationException {
+	public Find(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
+		super(jsonObject);
 		try {
-			Regexp regexp = (Regexp) Regexp.deserialize(jsonObject);
-			MustacheTemplate replacement = new MustacheTemplate(jsonObject.getString(REPLACEMENT));
-			Regexp[] tests = Regexp.deserializeArray(jsonObject.getJSONArray(TESTS));
-			
-			return new Find(regexp, replacement, tests);
+			if(jsonObject.has(TESTS)) {
+				JSONInterfaceArray tests = jsonObject.getJSONArray(TESTS);
+				this.tests = new Regexp[tests.length()];
+				for(int i = 0 ; i < this.tests.length ; i ++) {
+					this.tests[i] = new Regexp(tests.getJSONObject(i));
+				}
+			} else {
+				this.tests = new Regexp[0];
+			}
+			this.replacement = new MustacheTemplate(jsonObject.getString(REPLACEMENT));
 		} catch(JSONInterfaceException e) {
-			throw new DeserializationException(e, jsonObject);
-		} catch(URIMustBeAbsoluteException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}

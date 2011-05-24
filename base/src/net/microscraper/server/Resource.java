@@ -1,8 +1,12 @@
 package net.microscraper.server;
 
 import net.microscraper.client.interfaces.URIInterface;
-import net.microscraper.server.resource.URIMustBeAbsoluteException;
 
+/**
+ * {@link Resource}s hold instructions for {@link Executable}s.
+ * @author realest
+ *
+ */
 public class Resource {
 	/**
 	 * 
@@ -10,11 +14,17 @@ public class Resource {
 	 */
 	public final URIInterface location;
 	
-	public Resource(URIInterface location) throws URIMustBeAbsoluteException {
-		if(location.isAbsolute()) {
+	/**
+	 * {@link Resource} must be initialized with a {@link URIInterface} location.
+	 * @param location The {@link URIInterface} where this {@link Resource} can be
+	 * found.  Should be absolute.
+	 * @throws InstantiationError If {@link #location} is not absolute.
+	 */
+	public Resource(URIInterface location) {
+		if(!this.location.isAbsolute()) {
 			this.location = location;
 		} else {
-			throw new URIMustBeAbsoluteException(location);
+			throw new InstantiationError();
 		}
 	}
 }

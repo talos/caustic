@@ -10,5 +10,7 @@ public interface URIInterface {
 
 	public URIInterface resolve(String link);
 	public URIInterface resolve(URIInterface otherURI);
-
+	
+	public URIInterface resolveJSONFragment(String key);
+	public URIInterface resolveJSONFragment(int index);
 }

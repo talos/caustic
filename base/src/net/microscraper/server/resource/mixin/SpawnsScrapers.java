@@ -1,12 +1,11 @@
 package net.microscraper.server.resource.mixin;
 
-import java.net.URI;
+import java.io.IOException;
 
-import net.microscraper.client.interfaces.JSONInterface;
+import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
-import net.microscraper.server.Ref;
-import net.microscraper.server.resource.DeserializationException;
+import net.microscraper.server.DeserializationException;
 import net.microscraper.server.resource.FindMany;
 import net.microscraper.server.resource.Scraper;
 
@@ -42,13 +41,18 @@ public interface SpawnsScrapers {
 		 * @return A {@link SpawnsScrapers} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
 		 * a {@link SpawnsScrapers}.
+		 * @throws IOException If there is an error loading one of the references.
 		 */
 		public static SpawnsScrapers deserialize(JSONInterfaceObject jsonObject)
-					throws DeserializationException {
+					throws DeserializationException, IOException {
 			try {
 				final Scraper[] scrapers;
 				if(jsonObject.has(KEY)) {
-					scrapers = Scraper.deserializeArray(jsonObject.getJSONArray(KEY));				
+					JSONInterfaceArray array = jsonObject.getJSONArray(KEY);
+					scrapers = new Scraper[array.length()];
+					for(int i = 0 ; i < scrapers.length ; i ++) {
+						scrapers[i] = new Scraper(array.getJSONObject(i));
+					}
 				} else {
 					scrapers = new Scraper[0];
 				}

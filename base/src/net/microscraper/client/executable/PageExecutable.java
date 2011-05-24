@@ -10,9 +10,9 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.interfaces.BrowserException;
+import net.microscraper.server.DeserializationException;
 import net.microscraper.server.Ref;
 import net.microscraper.server.Resource;
-import net.microscraper.server.resource.DeserializationException;
 import net.microscraper.server.resource.Page;
 import net.microscraper.server.resource.Regexp;
 
