@@ -1,4 +1,4 @@
-package net.microscraper.server.resource;
+package net.microscraper.client.executable;
 
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;

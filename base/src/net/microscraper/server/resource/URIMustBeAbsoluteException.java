@@ -1,9 +1,9 @@
 package net.microscraper.server.resource;
 
-import java.net.URI;
+import net.microscraper.client.interfaces.URIInterface;
 
 public class URIMustBeAbsoluteException extends Exception {
-	public URIMustBeAbsoluteException(URI uri) {
-		super("URI '" + uri.toString() + " should be absolute.");
+	public URIMustBeAbsoluteException(URIInterface location) {
+		super("URI '" + location.toString() + " should be absolute.");
 	}
 }

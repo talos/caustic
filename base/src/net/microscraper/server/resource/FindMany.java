@@ -1,11 +1,10 @@
 package net.microscraper.server.resource;
 
-import java.net.URI;
-
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.Ref;
 import net.microscraper.server.resource.mixin.SpawnsScrapers;
 
@@ -18,13 +17,7 @@ import net.microscraper.server.resource.mixin.SpawnsScrapers;
  * @author john
  *
  */
-public class FindMany implements Find, SpawnsScrapers {
-	/**
-	 * The resource's identifier when deserializing.
-	 */
-	public static final String KEY = "findMany";
-	
-	private final Find executable;
+public class FindMany extends Find implements SpawnsScrapers {	
 	private final SpawnsScrapers hasPipes;
 	
 	/**
@@ -43,8 +36,9 @@ public class FindMany implements Find, SpawnsScrapers {
 	 */
 	public final int maxMatch;
 	
-	public FindMany(Find executable, SpawnsScrapers hasPipes, int minMatch, int maxMatch) {
-		this.executable = executable;
+	public FindMany(Find find, SpawnsScrapers hasPipes,
+			int minMatch, int maxMatch) throws URIMustBeAbsoluteException {
+		super(find);
 		this.hasPipes = hasPipes;
 		this.minMatch = minMatch;
 		this.maxMatch = maxMatch;
@@ -53,41 +47,29 @@ public class FindMany implements Find, SpawnsScrapers {
 	public Ref[] getScrapers() {
 		return hasPipes.getScrapers();
 	}
-
-	public Ref getParserLink() {
-		return executable.getParserLink();
-	}
-
-	public String getName() {
-		return executable.getName();
-	}
-
-	public boolean hasName() {
-		return executable.hasName();
-	}
 	
 	private static final String MIN_MATCH = "min";
 	private static final String MAX_MATCH = "max";
 	
 	/**
 	 * Deserialize an {@link FindMany} from a {@link JSONInterfaceObject}.
-	 * @param location A {@link URI} that identifies the root of this leaf's links.
-	 * @param jsonInterface {@link JSONInterface} used to process JSON.
+	 * @param location A {@link URIInterface} that identifies the root of this leaf's links.
 	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return An {@link FindMany} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of
-	 * an ExecutableLeaf.
+	 * an {@link FindMany}.
 	 */
-	public static FindMany deserialize(JSONInterface jsonInterface,
-					URI location, JSONInterfaceObject jsonObject)
+	public static FindMany deserialize(URIInterface location, JSONInterfaceObject jsonObject)
 				throws DeserializationException {
 		try {
-			Find executable = Find.Deserializer.deserialize(jsonInterface, location, jsonObject); 
-			SpawnsScrapers hasPipes = SpawnsScrapers.Deserializer.deserialize(jsonInterface, location, jsonObject);
+			Find find = (Find) Find.deserialize(jsonObject);
+			
+			SpawnsScrapers hasPipes = SpawnsScrapers.Deserializer.deserialize(jsonObject);
+			
 			int minMatch = jsonObject.getInt(MIN_MATCH);
 			int maxMatch = jsonObject.getInt(MAX_MATCH);
 			
-			return new FindMany(executable, hasPipes, minMatch, maxMatch);
+			return new FindMany(find, hasPipes, minMatch, maxMatch);
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
@@ -96,20 +78,20 @@ public class FindMany implements Find, SpawnsScrapers {
 
 	/**
 	 * Deserialize an array of {@link FindMany}s from a {@link JSONInterfaceArray}.
-	 * @param location A {@link URI} that identifies the root of this leaf's links.
+	 * @param location A {@link URIINterface}.
 	 * @param jsonInterface {@link JSONInterface} used to process JSON.
 	 * @param jsonArray Input {@link JSONInterfaceArray} array.
 	 * @return An array of {@link FindMany} instances.
 	 * @throws DeserializationException If the array contains an invalid JSON serialization of
-	 * a ExecutableLeaf, or if the array is invalid.
+	 * a {@link FindMany}, or if the array is invalid.
 	 */
 	public static FindMany[] deserializeArray(JSONInterface jsonInterface,
-					URI location, JSONInterfaceArray jsonArray)
+					URIInterface location, JSONInterfaceArray jsonArray)
 				throws DeserializationException {
 		FindMany[] leaves = new FindMany[jsonArray.length()];
 		for(int i = 0 ; i < jsonArray.length() ; i++ ) {
 			try {
-				leaves[i] = FindMany.deserialize(jsonInterface, location, jsonArray.getJSONObject(i));
+				leaves[i] = FindMany.deserialize(location, jsonArray.getJSONObject(i));
 			} catch(JSONInterfaceException e) {
 				throw new DeserializationException(e, jsonArray, i);
 			}

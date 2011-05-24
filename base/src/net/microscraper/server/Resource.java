@@ -1,17 +1,16 @@
 package net.microscraper.server;
 
-import java.net.URI;
-
+import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.resource.URIMustBeAbsoluteException;
 
-public abstract class Resource {
+public class Resource {
 	/**
 	 * 
-	 * The resource's absolute {@link java.net.URI} location.
+	 * The resource's absolute {@link URIInterface} location.
 	 */
-	public final URI location;
+	public final URIInterface location;
 	
-	protected Resource(URI location) throws URIMustBeAbsoluteException {
+	public Resource(URIInterface location) throws URIMustBeAbsoluteException {
 		if(location.isAbsolute()) {
 			this.location = location;
 		} else {

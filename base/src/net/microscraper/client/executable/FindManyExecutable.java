@@ -25,13 +25,13 @@ public class FindManyExecutable extends FindExecutable {
 	
 	public FindManyExecutable(ExecutionContext context,
 			Executable parent, Variables variables,
-			FindMany leaf, String stringToParse) {
-		super(context, leaf, parent);
+			FindMany findMany, String stringToParse) {
+		super(context, findMany, parent);
 		this.stringToParse = stringToParse;
-		this.maxMatch = leaf.maxMatch;
-		this.minMatch = leaf.minMatch;
+		this.maxMatch = findMany.maxMatch;
+		this.minMatch = findMany.minMatch;
 		this.variables = variables;
-		this.pipes = leaf.getScrapers();
+		this.pipes = findMany.getScrapers();
 	}
 	
 	// TODO what should leaves publish?
@@ -52,8 +52,8 @@ public class FindManyExecutable extends FindExecutable {
 	protected Object generateResult(ExecutionContext context, Resource resource)
 			throws MissingVariableException, ExecutionFailure {
 		try {
-			Parser parser = (Parser) resource;
-			PatternInterface pattern = parser.pattern.compile(variables, context.regexpInterface);
+			FindMany findMany = (FindMany) getResource();
+			PatternInterface pattern = findMany.pattern.compile(variables);
 			String replacement = parser.replacement.compile(variables);
 			return pattern.allMatches(stringToParse, replacement, minMatch, maxMatch);
 		} catch(MustacheTemplateException e) {

@@ -13,10 +13,8 @@ import net.microscraper.client.interfaces.BrowserException;
 import net.microscraper.server.Ref;
 import net.microscraper.server.Resource;
 import net.microscraper.server.resource.DeserializationException;
-import net.microscraper.server.resource.MustacheEncodedNameValuePair;
-import net.microscraper.server.resource.MustacheUnencodedNameValuePair;
 import net.microscraper.server.resource.Page;
-import net.microscraper.server.resource.Pattern;
+import net.microscraper.server.resource.Regexp;
 
 /**
  * When {@link #run}, {@link PageExecutable} makes an HTTP request according to
@@ -61,14 +59,14 @@ public class PageExecutable extends BasicExecutable {
 		return browser.get(page.url.compile(enclosingScraper),
 				MustacheUnencodedNameValuePair.compile(page.headers, enclosingScraper),
 				MustacheEncodedNameValuePair.compile(page.cookies, enclosingScraper, context.encoding),
-				Pattern.compile(page.terminates, enclosingScraper, context.regexpInterface));
+				Regexp.compile(page.stopBecause, enclosingScraper, context.regexpInterface));
 	}
 	
 	private String post(ExecutionContext context, Page page) throws UnsupportedEncodingException, BrowserDelayException, MissingVariableException, BrowserException, MalformedURLException, MustacheTemplateException, InvalidBodyMethodException {	
 		return browser.post(page.url.compile(enclosingScraper),
 				MustacheUnencodedNameValuePair.compile(page.headers, enclosingScraper),
 				MustacheEncodedNameValuePair.compile(page.cookies, enclosingScraper, context.encoding),
-				Pattern.compile(page.terminates, enclosingScraper, context.regexpInterface),
+				Regexp.compile(page.stopBecause, enclosingScraper, context.regexpInterface),
 				MustacheEncodedNameValuePair.compile(page.posts, enclosingScraper, context.encoding));
 	}
 	
@@ -95,8 +93,8 @@ public class PageExecutable extends BasicExecutable {
 		try {
 			Page page = (Page) resource;
 			// Temporary executions to do before.  Not published, executed each time.
-			for(int i = 0 ; i < page.loadBeforeLinks.length ; i ++) {
-				PageExecutable pageBeforeExecution = new PageExecutable(context, enclosingScraper, page.loadBeforeLinks[i]);
+			for(int i = 0 ; i < page.preload.length ; i ++) {
+				PageExecutable pageBeforeExecution = new PageExecutable(context, enclosingScraper, page.preload[i]);
 				Page pageBefore = (Page) pageBeforeExecution.generateResource(context);
 				pageBeforeExecution.generateResult(context, pageBefore);
 			}

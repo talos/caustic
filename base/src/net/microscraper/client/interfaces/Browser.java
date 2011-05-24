@@ -1,6 +1,5 @@
 package net.microscraper.client.interfaces;
 
-import java.net.URL;
 import java.util.Date;
 
 import net.microscraper.client.EncodedNameValuePair;
@@ -39,18 +38,18 @@ public interface Browser {
 	/**
 	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies
 	 * from Set-Cookie to the Browser's cookie store.
-	 * @param url the URL to HTTP Head.
+	 * @param url the {@link URLInterface} to HTTP Head.
 	 * @param headers Array of NameValuePair extra headers.
 	 * @param cookies Array of NameValuePair extra cookies.  These should also be added to the browser's cookie store.
 	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host.
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
-	public abstract void head(URL url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies)
+	public abstract void head(URLInterface url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies)
 			throws BrowserDelayException, BrowserException;
 	
 	/**
 	 * Make an HTTP Get request.  This returns the body of the response, and adds cookies to the cookie jar.
-	 * @param url the URL to HTTP Get.
+	 * @param url the {@link URLInterface} to HTTP Get.
 	 * @param headers Array of NameValuePair extra headers.
 	 * @param cookies Array of NameValuePair extra cookies.  These should also be added to the browser's cookie store.
 	 * @param terminates Array of Patterns that prematurely terminate the load and return the body.
@@ -58,12 +57,12 @@ public interface Browser {
 	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host.
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
-	public abstract String get(URL url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies,
+	public abstract String get(URLInterface url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies,
 			PatternInterface[] terminates) throws BrowserDelayException, BrowserException;
 	
 	/**
 	 * Make an HTTP Post request.  This returns the body of the response, and adds cookies to the cookie jar.
-	 * @param url the URL to HTTP Get.
+	 * @param url the {@link URLInterface} to HTTP Get.
 	 * @param headers Array of NameValuePair extra headers.
 	 * @param cookies Array of NameValuePair extra cookies.  These should also be added to the browser's cookie store.
 	 * @param terminates Array of Patterns that prematurely terminate the load and return the body.
@@ -72,7 +71,9 @@ public interface Browser {
 	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host.
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
-	public abstract String post(URL url, UnencodedNameValuePair[] headers,
+	public abstract String post(URLInterface url, UnencodedNameValuePair[] headers,
 			EncodedNameValuePair[] cookies, PatternInterface[] terminates, EncodedNameValuePair[] posts)
 			throws BrowserDelayException, BrowserException;
+
+	public abstract URLInterface newURL(String compile);
 }

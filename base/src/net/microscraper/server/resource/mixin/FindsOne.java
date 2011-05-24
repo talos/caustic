@@ -9,7 +9,7 @@ import net.microscraper.server.resource.DeserializationException;
 import net.microscraper.server.resource.FindOne;
 
 /**
- * Allows connections to an {@link FindOne} executable.
+ * Allows connections to a {@link FindOne} {@link Resource}.
  * @author john
  *
  */
@@ -17,9 +17,9 @@ public interface FindsOne {
 	
 	/**
 	 * 
-	 * @return An array of associated {@link FindOne} executables.
+	 * @return An array of associated {@link FindOne} {@link Resource}s.
 	 */
-	public abstract FindOne[] getVariables();
+	public abstract FindOne[] getFindOnes();
 	
 	/**
 	 * A helper class to deserialize 
@@ -36,26 +36,23 @@ public interface FindsOne {
 		/**
 		 * Protected, should be called only by {@link FindOne} or {@link ScraperExecutable}.
 		 * Deserialize an {@link FindsOne} from a {@link JSONInterfaceObject}.
-		 * @param jsonInterface {@link JSONInterface} used to process JSON.
-		 * @param location A {@link URI} that identifies the root of these variables.
 		 * @param jsonObject Input {@link JSONInterfaceObject} object.
 		 * @return An {@link FindsOne} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
 		 * a {@link FindsOne}.
 		 */
-		public static FindsOne deserialize(JSONInterface jsonInterface,
-						URI location, JSONInterfaceObject jsonObject)
+		public static FindsOne deserialize(JSONInterfaceObject jsonObject)
 					throws DeserializationException {
 			try {
-				final FindOne[] variables;
+				final FindOne[] findOnes;
 				if(jsonObject.has(KEY)) {
-					variables = FindOne.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(KEY));				
+					findOnes = (FindOne[]) FindOne.deserializeArray(jsonObject.getJSONArray(KEY));				
 				} else {
-					variables = new FindOne[0];
+					findOnes = new FindOne[0];
 				}
 				return new FindsOne() {
-					public FindOne[] getVariables() {
-						return variables;
+					public FindOne[] getFindOnes() {
+						return findOnes;
 					}
 				};
 			} catch(JSONInterfaceException e) {

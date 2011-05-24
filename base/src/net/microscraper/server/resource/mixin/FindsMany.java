@@ -10,9 +10,7 @@ import net.microscraper.server.resource.FindMany;
 import net.microscraper.server.resource.FindOne;
 
 /**
- * This should be implemented by a class that produces {@link Executable}s
- * that can have {@link FindManyExecutable} children.
- * @see 
+ * Allows connections to a {@link FindMany} {@link Resource}.
  * @author john
  *
  */
@@ -20,9 +18,9 @@ public interface FindsMany {
 	
 	/**
 	 * 
-	 * @return An array of associated {@link FindMany} executables.
+	 * @return An array of associated {@link FindMany} {@link Resource}s.
 	 */
-	public abstract FindMany[] getLeaves();
+	public abstract FindMany[] getFindManys();
 	
 	/**
 	 * A helper class to deserialize 
@@ -39,26 +37,23 @@ public interface FindsMany {
 		/**
 		 * Protected, should be called only by {@link FindOne} or {@link ScraperExecutable}.
 		 * Deserialize an {@link FindsMany} from a {@link JSONInterfaceObject}.
-		 * @param jsonInterface {@link JSONInterface} used to process JSON.
-		 * @param location A {@link URI} that identifies the root of these leaves' links.
 		 * @param jsonObject Input {@link JSONInterfaceObject} object.
 		 * @return An {@link FindsMany} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
 		 * a {@link FindsMany}.
 		 */
-		public static FindsMany deserialize(JSONInterface jsonInterface,
-						URI location, JSONInterfaceObject jsonObject)
+		public static FindsMany deserialize(JSONInterfaceObject jsonObject)
 					throws DeserializationException {
 			try {
-				final FindMany[] leaves;
+				final FindMany[] findManys;
 				if(jsonObject.has(KEY)) {
-					leaves = FindMany.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(KEY));
+					findManys = (FindMany[]) FindMany.deserializeArray(jsonObject.getJSONArray(KEY));
 				} else {
-					leaves = new FindMany[0];
+					findManys = new FindMany[0];
 				}
 				return new FindsMany() {
-					public FindMany[] getLeaves() {
-						return leaves;
+					public FindMany[] getFindManys() {
+						return findManys;
 					}
 				};
 			} catch(JSONInterfaceException e) {

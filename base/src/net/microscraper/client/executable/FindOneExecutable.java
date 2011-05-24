@@ -132,8 +132,8 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 	protected Executable[] generateChildren(ExecutionContext context, Resource resource, Object result) {
 		this.result = (String) result;
 		
-		FindOne[] variables = variable.getVariables();
-		FindMany[] leaves = variable.getLeaves();
+		FindOne[] variables = variable.getFindOnes();
+		FindMany[] leaves = variable.getFindMany();
 		Vector variableExecutions = new Vector();
 		Vector leafExecutions = new Vector();
 		for(int i = 0 ; i < variables.length ; i ++) {

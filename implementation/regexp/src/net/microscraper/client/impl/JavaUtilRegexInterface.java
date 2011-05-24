@@ -8,9 +8,9 @@ import net.microscraper.client.interfaces.InvalidRangeException;
 import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
 import net.microscraper.client.interfaces.PatternInterface;
-import net.microscraper.client.interfaces.RegexpInterface;
+import net.microscraper.client.interfaces.RegexpCompiler;
 
-public class JavaUtilRegexInterface implements RegexpInterface {
+public class JavaUtilRegexInterface implements RegexpCompiler {
 	@Override
 	public PatternInterface compile(String patternString, boolean isCaseInsensitive,
 			boolean isMultiline, boolean doesDotMatchNewline) {

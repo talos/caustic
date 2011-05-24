@@ -8,9 +8,10 @@ import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.Ref;
 import net.microscraper.server.resource.DeserializationException;
 import net.microscraper.server.resource.FindMany;
+import net.microscraper.server.resource.Scraper;
 
 /**
- * Implementations of this interface can produce {@link Executable}s that can spawn new {@link ScraperExecutableChild}s.
+ * Implementations of this interface can link to {@link Scraper} {@link Resource}s.
  * @author john
  *
  */
@@ -18,9 +19,9 @@ public interface SpawnsScrapers {
 	
 	/**
 	 * 
-	 * @return An array of {@link Ref}s to that can be used to connect to {@link ScraperExecutableChild}s.
+	 * @return An array of {@link Scraper}s.
 	 */
-	public abstract Ref[] getScrapers();
+	public abstract Scraper[] getScrapers();
 	
 
 	/**
@@ -36,27 +37,24 @@ public interface SpawnsScrapers {
 		public static String KEY = "then";
 
 		/**
-		 * Deserialize an {@link SpawnsScrapers} from a {@link JSONInterfaceObject}.
-		 * @param jsonInterface {@link JSONInterface} used to process JSON.
-		 * @param location A {@link URI} that identifies the root of these pipe references.
+		 * Deserialize a {@link SpawnsScrapers} from a {@link JSONInterfaceObject}.
 		 * @param jsonObject Input {@link JSONInterfaceObject} object.
-		 * @return An {@link SpawnsScrapers} instance.
+		 * @return A {@link SpawnsScrapers} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
 		 * a {@link SpawnsScrapers}.
 		 */
-		public static SpawnsScrapers deserialize(JSONInterface jsonInterface,
-						URI location, JSONInterfaceObject jsonObject)
+		public static SpawnsScrapers deserialize(JSONInterfaceObject jsonObject)
 					throws DeserializationException {
 			try {
-				final Ref[] pipes;
+				final Scraper[] scrapers;
 				if(jsonObject.has(KEY)) {
-					pipes = Ref.deserializeArray(jsonInterface, location, jsonObject.getJSONArray(KEY));				
+					scrapers = Scraper.deserializeArray(jsonObject.getJSONArray(KEY));				
 				} else {
-					pipes = new Ref[0];
+					scrapers = new Scraper[0];
 				}
 				return new SpawnsScrapers() {
-					public Ref[] getScrapers() {
-						return pipes;
+					public Scraper[] getScrapers() {
+						return scrapers;
 					}
 				};
 			} catch(JSONInterfaceException e) {

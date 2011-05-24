@@ -15,7 +15,6 @@ import net.microscraper.server.resource.DeserializationException;
 import net.microscraper.server.resource.FindMany;
 import net.microscraper.server.resource.Page;
 import net.microscraper.server.resource.Scraper;
-import net.microscraper.server.resource.ScraperSource;
 import net.microscraper.server.resource.FindOne;
 
 /**
@@ -78,15 +77,10 @@ public class ScraperExecutable extends BasicExecutable implements Variables {
 		return false;
 	}
 	
-	protected Resource generateResource(ExecutionContext context) throws IOException,
-			DeserializationException {
-		return context.resourceLoader.loadScraper(pipe);
-	}
-	
 	/**
 	 * @return The source from which this {@link ScraperExecutable}'s {@link FindExecutable}'s will work.
 	 */
-	protected Object generateResult(ExecutionContext context, Resource resource)
+	protected Object generateResult(ExecutionContext context)
 				throws MissingVariableException, BrowserDelayException,
 				ExecutionFailure, MustacheTemplateException {
 		try {
@@ -110,16 +104,16 @@ public class ScraperExecutable extends BasicExecutable implements Variables {
 	/**
 	 * @return {@link FindOneExecutable}s, {@link FindManyExecutable}s, and {@link ScraperExecutableChild}s.
 	 */
-	protected Executable[] generateChildren(ExecutionContext context, Resource resource, Object result) {
-		Scraper scraper = (Scraper) resource;
+	protected Executable[] generateChildren(ExecutionContext context, Object result) {
+		Scraper scraper = (Scraper) getResource();
 		String source = (String) result;
 		
-		FindOne[] variables = scraper.getVariables();
-		FindMany[] leaves = scraper.getLeaves();
-		Ref[] pipes = scraper.getScrapers();
+		FindOne[] findOnes = scraper.getFindOnes();
+		FindMany[] findManys = scraper.getFindManys();
+		Scraper[] scrapers = scraper.getScrapers();
 		
 		Vector children = new Vector();
-		Vector variableExecutions = new Vector();
+		Vector findOneExecutables = new Vector();
 		for(int i = 0 ; i < variables.length ; i ++) {
 			FindOneExecutable variableExecution = new FindOneExecutable(context, this,
 					variables[i], source);

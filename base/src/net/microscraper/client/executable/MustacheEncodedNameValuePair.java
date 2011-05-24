@@ -1,4 +1,4 @@
-package net.microscraper.server.resource;
+package net.microscraper.client.executable;
 
 import java.io.UnsupportedEncodingException;
 

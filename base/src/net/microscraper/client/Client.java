@@ -9,7 +9,7 @@ import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.Publisher;
 import net.microscraper.client.interfaces.PublisherException;
-import net.microscraper.client.interfaces.RegexpInterface;
+import net.microscraper.client.interfaces.RegexpCompiler;
 import net.microscraper.server.Ref;
 import net.microscraper.server.resource.URIMustBeAbsoluteException;
 
@@ -28,9 +28,9 @@ public final class Client {
 	 * @param log The {@link Log} this {@link Client} should use.
 	 * @param encoding The encoding to use when encoding or decoding post data, cookies,
 	 * and JSON resources. "UTF-8" is recommended.
-	 * @param regexp The {@link RegexpInterface} interface to use when compiling regexps.
+	 * @param regexp The {@link RegexpCompiler} interface to use when compiling regexps.
 	 */
-	public Client(ResourceLoader resourceLoader, RegexpInterface regexpInterface,
+	public Client(ResourceLoader resourceLoader, RegexpCompiler regexpInterface,
 			JSONInterface jsonInterface, Browser browser,
 			Log log, String encoding) {
 		this.context = new ExecutionContext( log,

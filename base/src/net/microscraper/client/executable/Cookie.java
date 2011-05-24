@@ -1,8 +1,10 @@
-package net.microscraper.server.resource;
+package net.microscraper.client.executable;
 
+import net.microscraper.client.executable.MustacheNameValuePair.Deserializer;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.MustacheTemplate;
+import net.microscraper.server.resource.DeserializationException;
 
 public final class Cookie extends MustacheEncodedNameValuePair {
 	

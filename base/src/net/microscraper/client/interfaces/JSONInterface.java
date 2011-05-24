@@ -40,4 +40,5 @@ public interface JSONInterface {
 	
 	public abstract JSONInterface.JSONInterfaceTokener getTokener(String jsonString) throws JSONInterfaceException;
 	public abstract JSONInterfaceStringer getStringer() throws JSONInterfaceException;
+	//public abstract URIInterface resolve(URIInterface root, URIInterface path);
 }

@@ -1,9 +1,9 @@
 package net.microscraper.client.interfaces;
 
 /**
- * An implementation of {@link PatternInterface} is required for {@link RegexpInterface}.
+ * An implementation of {@link PatternInterface} is required for {@link RegexpCompiler}.
  * Follows the conventions of {@link java.util.regex.Pattern}.
- * @see RegexpInterface
+ * @see RegexpCompiler
  * @author john
  *
  */

@@ -28,14 +28,15 @@ import net.microscraper.server.resource.DeserializationException;
  *
  */
 public abstract class BasicExecutable implements Executable {
-	private final URI resourceLocation;
+	private final Resource resource;
 	private final int id;
+	private final Variables variables;
 	private final Executable parent;
 	private final ExecutionContext context;
 	
 	private final static int SLEEP_TIME = 1000; //TODO this belongs elsewhere
 	
-	private Resource resource = null;
+	//private Resource resource = null;
 	private Object result = null;
 	private Executable[] children = null;
 	
@@ -51,15 +52,16 @@ public abstract class BasicExecutable implements Executable {
 	/**
 	 * Construct a BasicExecution with a parent.
 	 * @param context
-	 * @param resourceLocation
+	 * @param resource
 	 * @param parent
 	 */
-	protected BasicExecutable(ExecutionContext context, URI resourceLocation, Executable parent) {
+	protected BasicExecutable(ExecutionContext context, Resource resource, Variables variables, Executable parent) {
 		id = count;
 		count++;
 		
 		this.context = context;
-		this.resourceLocation = resourceLocation;
+		this.variables = variables;
+		this.resource = resource;
 		this.parent = parent;
 	}
 	
@@ -68,12 +70,13 @@ public abstract class BasicExecutable implements Executable {
 	 * @param context
 	 * @param resourceLocation
 	 */
-	protected BasicExecutable(ExecutionContext context, URI resourceLocation) {
+	protected BasicExecutable(ExecutionContext context, Resource resource, Variables variables) {
 		id = count;
 		count++;
 
 		this.context = context;
-		this.resourceLocation = resourceLocation;
+		this.variables = variables;
+		this.resource = resource;
 		this.parent = null;
 	}
 	
@@ -85,7 +88,7 @@ public abstract class BasicExecutable implements Executable {
 			try {
 				
 				// Only generate the resource if we don't have one.
-				if(resource == null) {
+				/*if(resource == null) {
 					try {
 						resource = generateResource(context);
 					} catch (IOException e) {
@@ -93,12 +96,12 @@ public abstract class BasicExecutable implements Executable {
 					} catch (DeserializationException e) {
 						throw new ExecutionFailure(e);
 					}
-				}
+				}*/
 				
 				// Only generate the result if we don't have one, and we have a resource.
 				if(result == null && resource != null) {
 					try {
-						result = generateResult(context, resource);
+						result = generateResult(context);
 					} catch(MustacheTemplateException e) {
 						throw new ExecutionFailure(e);
 					} catch (BrowserDelayException e) {
@@ -112,7 +115,7 @@ public abstract class BasicExecutable implements Executable {
 			}
 			
 			if(result != null) {
-				children = generateChildren(context, resource, result);
+				children = generateChildren(context, result);
 				handleComplete();
 			}
 		}
@@ -178,13 +181,12 @@ public abstract class BasicExecutable implements Executable {
 	 * @see #generateResult
 	 * @see #generateChildren
 	 */
-	protected abstract Resource generateResource(ExecutionContext context)
+	/*protected abstract Resource generateResource(ExecutionContext context)
 			throws IOException, DeserializationException;
-	
+	*/
 	/**
 	 * Must be overriden by {@link BasicExecutable} subclass.
 	 * @param context A {@link ExecutionContext} to use in generating the resource.
-	 * @param resource The {@link Resource} from {@link #generateResource}.  Should be cast.
 	 * @return An Object result for executing this particular {@link Executable}.  Will be passed to
 	 * {@link generateChildren}
 	 * @throws BrowserDelayException If a {@link Browser} must wait before having this {@link Executable}
@@ -197,14 +199,13 @@ public abstract class BasicExecutable implements Executable {
 	 * @see #generateResource
 	 * @see #generateChildren
 	 */
-	protected abstract Object generateResult(ExecutionContext context, Resource resource) throws
+	protected abstract Object generateResult(ExecutionContext context) throws
 			BrowserDelayException, MissingVariableException, MustacheTemplateException,
 			ExecutionFailure;
 	
 	/**
-	 * Must be overriden by {@link BasicExecutable} subclass.
+	 * Must be overriden by {@link BasicExecutable} subclass.  By default returns a 0-length array.
 	 * @param context A {@link ExecutionContext} to use in generating the resource.
-	 * @param resource The {@link Resource} from {@link #generateResource}.  Should be cast.
 	 * @param result The Object result from {@link #generateResult}. Should be cast.
 	 * @return An array of {@link Execution[]}s whose parent is this execution.
 	 * Later accessible through {@link #getChildren}.
@@ -212,14 +213,20 @@ public abstract class BasicExecutable implements Executable {
 	 * @see #generateResult
 	 * @see #getChildren
 	 */
-	protected abstract Executable[] generateChildren(ExecutionContext context, Resource resource, Object result);
+	protected Executable[] generateChildren(ExecutionContext context, Object result) {
+		return new Executable[0];
+	}
 
 	public final int getId() {
 		return id;
 	}
 	
-	public final URI getResourceLocation() {
-		return resourceLocation;
+	public final Resource getResource() {
+		return resource;
+	}
+	
+	public final Variables getVariables() {
+		return variables;
 	}
 	
 	public final boolean hasParent() {
@@ -320,7 +327,7 @@ public abstract class BasicExecutable implements Executable {
 	 * <p><code>Execution {@link #getId()} {@link #getResourceLocation()}.toString()
 	 */
 	public final String toString() {
-		return "Execution " + Integer.toString(getId()) + " " + getResourceLocation().toString();
+		return "Execution " + Integer.toString(getId()) + " " + getResource().location.toString();
 	}
 	
 	public final Executable[] getChildren() throws IllegalStateException {

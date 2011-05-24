@@ -1,13 +1,15 @@
 package net.microscraper.server.resource;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Variables;
+import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.MustacheTemplate;
 import net.microscraper.server.Resource;
 
@@ -16,13 +18,11 @@ import net.microscraper.server.Resource;
  * @author john
  *
  */
-public class URL extends Resource {
-	public static final String KEY = "url";
-	
-	private final MustacheTemplate urlTemplate;
-	public URL(URI location, MustacheTemplate urlTemplate) throws URIMustBeAbsoluteException {
+public class URL extends Resource {	
+	public final MustacheTemplate template;
+	public URL(URIInterface location, MustacheTemplate template) throws URIMustBeAbsoluteException {
 		super(location);
-		this.urlTemplate = urlTemplate;
+		this.template = template;
 	}
 	
 	/**
@@ -35,21 +35,25 @@ public class URL extends Resource {
 	}*/
 	
 	/**
-	 * Mustache-compile this {@link URL}.
-	 * @param variables A {@link Variables} instance to compile with.
-	 * @return The {@link URL}'s compiled url as a {@link java.net.url}.
-	 * @throws MalformedURLException If the compiled {@link java.net.URL} is invalid.
-	 * @throws MissingVariableException If {@link Variables} was missing a key.
-	 * @throws MustacheTemplateException If the {@link MustacheTemplate} was invalid.
-	 * @see MustacheTemplate#compile(Variables variables)
+	 * 
 	 */
-	public java.net.URL compile(Variables variables)
-			throws MalformedURLException, MissingVariableException, MustacheTemplateException {
-		return new java.net.URL(urlTemplate.compile(variables));
-	}
+	
+	private static final String URL = "url";
 
-	public static net.microscraper.server.resource.URL deserialize(
-			JSONInterfaceObject jsonObject) throws DeserializationException {
-		return new URL(jsonObject.getString(KEY);
+	/**
+	 * Deserialize a {@link URL} from a {@link JSONInterfaceObject}.
+	 * @param jsonObject Input {@link JSONInterfaceObject} object.
+	 * @return A {@link URL} instance.
+	 * @throws DeserializationException If this is not a valid JSON serialization of a {@link URL}.
+	 */
+	public static URL deserialize(JSONInterfaceObject jsonObject)
+				throws DeserializationException {
+		try {
+			return new URL(jsonObject.getLocation(), new MustacheTemplate(jsonObject.getString(URL)));
+		} catch (URIMustBeAbsoluteException e) {
+			throw new DeserializationException(e, jsonObject);
+		} catch (JSONInterfaceException e) {
+			throw new DeserializationException(e, jsonObject);
+		}
 	}
 }

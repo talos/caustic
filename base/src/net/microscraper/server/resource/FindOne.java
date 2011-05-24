@@ -1,11 +1,10 @@
 package net.microscraper.server.resource;
 
-import java.net.URI;
-
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.Ref;
 import net.microscraper.server.resource.mixin.FindsMany;
 import net.microscraper.server.resource.mixin.FindsOne;
@@ -17,14 +16,13 @@ import net.microscraper.server.resource.mixin.FindsOne;
  * @author john
  *
  */
-public class FindOne implements Find, FindsMany, FindsOne {
+public class FindOne extends Find implements FindsMany, FindsOne {
 	
 	/**
 	 * The resource's identifier when deserializing.
 	 */
-	public static final String KEY = "findOne";
+	public static final String KEY = "find_one";
 	
-	private final Find parsable;
 	private final FindsMany hasLeaves;
 	private final FindsOne hasVariables;
 	
@@ -36,52 +34,39 @@ public class FindOne implements Find, FindsMany, FindsOne {
 	 */
 	public final int match;
 	
-	public FindOne(Find parsable, FindsMany hasLeaves,
-			FindsOne hasVariables,  int match) {
-		this.parsable = parsable;
+	public FindOne(Find find, FindsMany hasLeaves,
+			FindsOne hasVariables,  int match) throws URIMustBeAbsoluteException {
+		super(find);
 		this.match = match;
 		this.hasLeaves = hasLeaves;
 		this.hasVariables = hasVariables;
 	}
 	
-	public Ref getParserLink() {
-		return parsable.getParserLink();
+	public FindOne[] getFindOnes() {
+		return hasVariables.getFindOnes();
 	}
 
-	public String getName() {
-		return parsable.getName();
-	}
-	
-	public boolean hasName() {
-		return parsable.hasName();
-	}
-	
-	public FindOne[] getVariables() {
-		return hasVariables.getVariables();
-	}
-
-	public FindMany[] getLeaves() {
-		return hasLeaves.getLeaves();
+	public FindMany[] getFindMany() {
+		return hasLeaves.getFindMany();
 	}
 	
 	private static final String MATCH = "match";
 	
 	/**
 	 * Deserialize a {@link FindOne} from a {@link JSONInterfaceObject}.
-	 * @param location A {@link URI} that identifies the root of this variable's leaves.
+	 * @param location A {@link URIInterface}.
 	 * @param jsonInterface {@link JSONInterface} used to process JSON.
 	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return An {@link FindOne} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of
-	 * a ExecutableVariable.
+	 * a {@link FindOne}.
 	 */
-	public static FindOne deserialize(JSONInterface jsonInterface,
-					URI location, JSONInterfaceObject jsonObject)
+	public static FindOne deserialize(URIInterface location, JSONInterfaceObject jsonObject)
 				throws DeserializationException {
 		try {
-			Find executable = Find.Deserializer.deserialize(jsonInterface, location, jsonObject); 
-			FindsMany hasLeaves = FindsMany.Deserializer.deserialize(jsonInterface, location, jsonObject);
-			FindsOne hasVariables = FindsOne.Deserializer.deserialize(jsonInterface, location, jsonObject);
+			Find executable = Find.deserialize(location, jsonObject); 
+			FindsMany hasLeaves = FindsMany.Deserializer.deserialize(location, jsonObject);
+			FindsOne hasVariables = FindsOne.Deserializer.deserialize(location, jsonObject);
 			int match = jsonObject.getInt(MATCH);
 			
 			return new FindOne(executable, hasLeaves, hasVariables, match);
@@ -92,20 +77,19 @@ public class FindOne implements Find, FindsMany, FindsOne {
 	
 	/**
 	 * Deserialize an array of {@link FindOne}s from a {@link JSONInterfaceArray}.
-	 * @param location A {@link URI} that identifies the root of this variables' leaves.
+	 * @param location A {@link URIInterface} that identifies the root of this variables' leaves.
 	 * @param jsonInterface {@link JSONInterface} used to process JSON.
 	 * @param jsonArray Input {@link JSONInterfaceArray} array.
 	 * @return An array of {@link FindOne} instances.
 	 * @throws DeserializationException If the array contains an invalid JSON serialization of
 	 * a ExecutableVariable, or if the array is invalid.
 	 */
-	public static FindOne[] deserializeArray(JSONInterface jsonInterface,
-					URI location, JSONInterfaceArray jsonArray)
+	public static FindOne[] deserializeArray(URIInterface location, JSONInterfaceArray jsonArray)
 				throws DeserializationException {
 		FindOne[] variables = new FindOne[jsonArray.length()];
 		for(int i = 0 ; i < jsonArray.length() ; i++ ) {
 			try {
-				variables[i] = FindOne.deserialize(jsonInterface, location, jsonArray.getJSONObject(i));
+				variables[i] = FindOne.deserialize(location, jsonArray.getJSONObject(i));
 			} catch(JSONInterfaceException e) {
 				throw new DeserializationException(e, jsonArray, i);
 			}

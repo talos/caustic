@@ -1,13 +1,13 @@
 package net.microscraper.client.interfaces;
 
 /**
- * An implementation of {@link RegexpInterface} is required for microscraper to parse strings.
+ * An implementation of {@link RegexpCompiler} is required for microscraper to parse strings.
  * In the spirit of {@link java.util.regex.Pattern#compile(String, int)}, but with a limited set of flags.
  * @see {@link PatternInterface}
  * @author john
  *
  */
-public interface RegexpInterface {
+public interface RegexpCompiler {
 	/**
 	 * Roughly equivalent to {@link java.util.regex.Pattern#compile}.  There are fewer flags,
 	 * and they are specified as booleans.

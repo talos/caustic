@@ -1,18 +1,20 @@
 package net.microscraper.server.resource;
 
 import java.io.IOException;
-import java.net.URI;
 
+import net.microscraper.client.executable.Cookie;
+import net.microscraper.client.executable.Header;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.Ref;
 import net.microscraper.server.Resource;
 import net.microscraper.server.resource.Page.Method.UnknownHTTPMethodException;
 
 
 /**
- * Class used to request a web page using a browser.
+ * A web page.
  * @author realest
  *
  */
@@ -76,75 +78,100 @@ public final class Page extends Resource {
 		}
 	}
 	
+	/**
+	 * The HTTP request type to use.  Either Post, Get, or Head.
+	 */
 	public final Method method;
-	public final URL url;
-	public final Cookie[] cookies;
-	public final Header[] headers;
-	public final Ref[] loadBeforeLinks;
-	public final Pattern[] terminates;
-	public final Post[] posts;
 	
 	/**
-	 * @param location A {@link URI} that identifies the resource's location.
+	 * The requested URL, which is mustached.
+	 */
+	public final URL url;
+	
+	/**
+	 * {@link NameValuePairs} pairs of cookies.
+	 */
+	public final NameValuePairs cookies;
+	
+	/**
+	 * {@link NameValuePairs} of generic headers.
+	 */
+	public final NameValuePairs headers;
+	
+	/**
+	 * {@link Page} requests to make beforehand. No data is extracted from these pages.
+	 */
+	public final Page[] preload;
+	
+	/**
+	 * {@link Regexp}s that terminate the loading of this page's body.
+	 */
+	public final Regexp[] stopBecause;
+	
+	/**
+	 * {@link NameValuePairs} of post data.
+	 */
+	public final NameValuePairs posts;
+	
+	/**
+	 * @param location A {@link URIInterface} that identifies the resource's location.
 	 * @param url A {@link URL} to use requesting the page. 
-	 * @param cookies An array of {@link Cookie}s to add to the browser before requesting this web page.
-	 * @param headers An array of {@link Header}s to add when requesting this web page.
-	 * @param loadBeforeLinks An array of {@link Ref}s to Pages that should be loaded before loading this page.
-	 * @param terminates An array of {@link Pattern}s that terminate the loading of this page.
-	 * @param posts An array of {@link Post}s to add to include in the request.
+	 * @param cookies A {@link NameValuePair} to add to the browser before requesting this web page.
+	 * @param headers A {@link NameValuePair} to add when requesting this web page.
+	 * @param preload An array of {@link Page}s that should be loaded before loading this page.
+	 * @param stopBecause An array of {@link Regexp}s that terminate the loading of this page.
+	 * @param posts A {@link NameValuePair} to add to include in the request.
 	 * @throws URIMustBeAbsoluteException If the provided location is not absolute.
 	 */
-	public Page(URI location, Method method, URL url, Cookie[] cookies,
-			Header[] headers, Ref[] loadBeforeLinks, Pattern[] terminates,
-			Post[] posts) throws URIMustBeAbsoluteException {
+	public Page(URIInterface location, Method method, URL url, NameValuePairs cookies,
+			NameValuePairs headers, Page[] preload, Regexp[] stopBecause,
+			NameValuePairs posts) throws URIMustBeAbsoluteException {
 		super(location);
 		this.method = method;
 		this.url = url;
 		this.cookies = cookies;
 		this.headers = headers;
-		this.loadBeforeLinks = loadBeforeLinks;
-		this.terminates = terminates;
+		this.preload = preload;
+		this.stopBecause = stopBecause;
 		this.posts = posts;
 	}
 	
-	public URI getLocation() {
-		return location;
-	}
-	
 	private static final String METHOD = "method";
-	private static final String URL    = "url";
 	private static final String COOKIES = "cookies";
 	private static final String HEADERS = "headers";
-	private static final String LOAD_BEFORE = "loadBefore";
-	private static final String TERMINATES = "terminates";
+	private static final String PRELOAD = "preload";
+	private static final String STOP_BECAUSE = "stop_because";
 	private static final String POSTS = "posts";
 	
 	/**
 	 * Deserialize a {@link Page} from a {@link JSONInterfaceObject}.
-	 * @param jsonInterface {@link JSONInterface} used to process JSON.
-	 * @param location {@link URI} from which the resource was loaded.
 	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return A {@link Page} instance.
-	 * @throws DeserializationException If this is not a valid JSON serialization of a Page.
-	 * @throws IOException If one of the prior pages could not be loaded.
+	 * @throws DeserializationException If this is not a valid JSON serialization of a {@link Page}.
+	 * @throws IOException If one of the {@link #preload} {@link Page}s could not be loaded.
 	 */
-	public static Page deserialize(
-				JSONInterface jsonInterface,
-				URI location, JSONInterfaceObject jsonObject)
+	public static Page deserialize(JSONInterfaceObject jsonObject)
 				throws DeserializationException, IOException {
 		try {
 			Method method = Method.fromString(jsonObject.getString(METHOD));
-			URL url = net.microscraper.server.resource.URL.deserialize(jsonObject);
+			URL url = URL.deserialize(jsonObject);
+			
+			NameValuePairs cookies = NameValuePairs.deserialize(jsonObject.getJSONObject(COOKIES));
+			NameValuePairs headers = NameValuePairs.deserialize(jsonObject.getJSONObject(HEADERS));
+			Page[] preload = Page.deserializeArray(jsonObject, jsonObject.getJSONArray(PRELOAD));
+			Regexp[] stopBecause = Regexp.deserializeArray(jsonObject.getJSONArray(STOP_BECAUSE));
+			NameValuePairs posts = NameValuePairs.deserialize(jsonObject.getJSONObject(POSTS));
+			
 			//URL url = net.microscraper.server.resource.URL.fromString(jsonObject.getString(URL));
 			
-			Cookie[] cookies = jsonObject.has(COOKIES) ? Cookie.deserializeHash(jsonInterface, jsonObject.getJSONObject(COOKIES)) : new Cookie[0];
+			/*Cookie[] cookies = jsonObject.has(COOKIES) ? Cookie.deserializeHash(jsonObject.getJSONObject(COOKIES)) : new Cookie[0];
 			Header[] headers = jsonObject.has(HEADERS) ? Header.deserializeHash(jsonInterface, jsonObject.getJSONObject(HEADERS)) : new Header[0];
 			Ref[] loadBeforeLinks = jsonObject.has(LOAD_BEFORE) ? Ref.deserializeArray(jsonInterface, location, (jsonObject.getJSONArray(LOAD_BEFORE))) : new Ref[0];
-			Pattern[] terminates  = jsonObject.has(TERMINATES) ? Pattern.deserializeArray(jsonInterface, (jsonObject.getJSONArray(TERMINATES))) : new Pattern[0];
+			Regexp[] terminates  = jsonObject.has(TERMINATES) ? Regexp.deserializeArray(jsonInterface, (jsonObject.getJSONArray(TERMINATES))) : new Regexp[0];
 			Post[] posts = jsonObject.has(POSTS) ? Post.deserializeHash(jsonInterface, jsonObject.getJSONObject(POSTS)) : new Post[0];
-			
-			return new Page(location, method, url, cookies,
-					headers, loadBeforeLinks, terminates, posts);
+			*/
+			return new Page(root.resolve(path), method, url, cookies,
+					headers, preload, stopBecause, posts);
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		} catch(UnknownHTTPMethodException e) {

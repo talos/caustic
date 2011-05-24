@@ -1,8 +1,7 @@
 package net.microscraper.client.executable;
 
-import java.net.URI;
-
 import net.microscraper.client.Variables;
+import net.microscraper.server.Resource;
 
 /**
  * Implementations of {@link Executable} can be
@@ -29,10 +28,9 @@ public interface Executable extends Runnable {
 	
 	/**
 	 * Can be called before the {@link Executable} is {@link #run}.
-	 * @return A {@link URI} identifying where the {@link Resource} with the execution's instructions
-	 * is located.
+	 * @return The {@link Resource} with the {@link Executable}'s instructions.
 	 */
-	public abstract URI getResourceLocation();
+	public abstract Resource getResource();
 	
 	/**
 	 * Can be called before the {@link Executable} is {@link #run}.
@@ -107,6 +105,13 @@ public interface Executable extends Runnable {
 	 * @see #isComplete()
 	 */
 	public abstract Executable[] getChildren() throws IllegalStateException;
+	
+
+	/**
+	 * 
+	 * @return The {@link Variables} instance accessible inside this {@Executable}.
+	 */
+	public abstract Variables getVariables() throws IllegalStateException;
 	
 	
 	/**

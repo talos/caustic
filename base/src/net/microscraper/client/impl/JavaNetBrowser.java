@@ -17,6 +17,7 @@ import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.interfaces.BrowserException;
 import net.microscraper.client.interfaces.PatternInterface;
+import net.microscraper.client.interfaces.URLInterface;
 import net.microscraper.client.Log;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Utils;
@@ -50,11 +51,11 @@ public class JavaNetBrowser implements Browser {
 	//private final Hashtable host_name_starts = new Hashtable();
 	//private final Hashtable host_name_amount_downloaded = new Hashtable();
 	
-	public void head(URL url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies)
+	public void head(URLInterface url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies)
 			throws BrowserDelayException, BrowserException {
 		log.i("Retrieving Head from  " + url.toString() + "...");
 		try {
-			HttpURLConnection conn = generateConnection(url, headers, cookies);
+			HttpURLConnection conn = generateConnection(JavaNetURL.fromInterface(url), headers, cookies);
 			conn.setRequestMethod("HEAD");
 			connectHandlingRedirectCookies(conn);
 		} catch (IOException e) {
@@ -62,12 +63,12 @@ public class JavaNetBrowser implements Browser {
 		}
 	}
 
-	public String get(URL url, UnencodedNameValuePair[] headers,
+	public String get(URLInterface url, UnencodedNameValuePair[] headers,
 			EncodedNameValuePair[] cookies, PatternInterface[] terminates) throws BrowserDelayException,
 			BrowserException {
 		log.i("Getting  " + url.toString() + "...");
 		try {
-			HttpURLConnection conn = generateConnection(url, headers, cookies);
+			HttpURLConnection conn = generateConnection(JavaNetURL.fromInterface(url), headers, cookies);
 			conn.setRequestMethod("GET");
 			connectHandlingRedirectCookies(conn);
 			return pullResponse(conn, terminates);
@@ -76,12 +77,12 @@ public class JavaNetBrowser implements Browser {
 		}
 	}
 
-	public String post(URL url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies,
+	public String post(URLInterface url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies,
 			PatternInterface[] terminates, EncodedNameValuePair[] posts)
 				throws BrowserDelayException, BrowserException {
 		log.i("Posting to  " + url.toString() + "...");
 		try {
-			HttpURLConnection conn = generateConnection(url, headers, cookies);
+			HttpURLConnection conn = generateConnection(JavaNetURL.fromInterface(url), headers, cookies);
 			
 			String post_data = "";
 			for(int i = 0 ; i < posts.length ; i ++) {
@@ -142,9 +143,9 @@ public class JavaNetBrowser implements Browser {
 			stream.close();
 			conn.disconnect();
 		} catch(IOException e) {
-			throw new BrowserException(url, e);
+			throw new BrowserException(new JavaNetURL(url), e);
 		} catch(InterruptedException e) {
-			throw new BrowserException(url, e);
+			throw new BrowserException(new JavaNetURL(url), e);
 		}
 		responseBody = content.toString();
 		hostMemory.add(url, responseBody.length());
