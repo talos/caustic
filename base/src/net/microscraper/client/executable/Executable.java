@@ -101,7 +101,7 @@ public interface Executable extends Runnable {
 	/**
 	 * 
 	 * @return An array of {@link Executable}s that this {@link Executable} has created.
-	 * @throws IllegalStateException if called before the {@link Executable} is {@link #run}.
+	 * @throws IllegalStateException if called before the {@link Executable} {@link #isComplete()}.
 	 * @see #run()
 	 * @see #isComplete()
 	 */
@@ -112,7 +112,44 @@ public interface Executable extends Runnable {
 	 * 
 	 * @return The {@link Variables} instance accessible inside this {@Executable}.
 	 */
-	public abstract Variables getVariables() throws IllegalStateException;
+	public abstract Variables getVariables();
 	
+	/**
+	 * 
+	 * @return A unique identifier for this {@link Executable}.
+	 */
+	public abstract int getId();
 	
+	/**
+	 * 
+	 * @return Whether this {@link Executable} has a special name for {@link Publisher}.
+	 * @see #getName()
+	 */
+	public abstract boolean hasName();
+	
+
+	/**
+	 * 
+	 * @return This {@link Executable}'s special name for {@link Publisher}.
+	 * @see #hasName()
+	 * @throws IllegalStateException if called before the {@link Executable} {@link #isComplete()}.
+	 */
+	public abstract String getName();
+	
+	/**
+	 * 
+	 * @return Whether this {@link Executable} has a value for {@link Publisher}.
+	 * @see #getValue()
+	 */
+	public abstract boolean hasValue();
+	
+
+	/**
+	 * 
+	 * @return Whether this {@link Executable} has a value for {@link Publisher}.
+	 * @throws NullPointerException if {@link hasValue()} is <code>false</code>
+	 * @throws IllegalStateException if called before the {@link Executable} {@link #isComplete()}.
+	 * @see #hasValue()
+	 */
+	public abstract String getValue() throws IllegalStateException;
 }

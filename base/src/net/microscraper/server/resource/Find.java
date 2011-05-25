@@ -30,11 +30,11 @@ public class Find extends Regexp {
 	public final Regexp[] tests;
 	
 	/**
-	 * A name attached to this particular {@link Find} {@link Resource}.
+	 * A {@link MustacheTemplate} attached to this particular {@link Find} {@link Resource}.
 	 * Is <code>null</code> if it has none.
 	 * @see {@link #hasName}
 	 */
-	public final String name;
+	public final MustacheTemplate name;
 	
 	/**
 	 * Whether this {@link Find} {@link Resource} has a {@link #name}.
@@ -56,7 +56,7 @@ public class Find extends Regexp {
 		try {
 			if(jsonObject.has(NAME)) {
 				hasName = true;
-				name = jsonObject.getString(NAME);
+				name = new MustacheTemplate(jsonObject.getString(NAME));
 			} else {
 				hasName = false;
 				name = null;

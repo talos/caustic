@@ -6,11 +6,17 @@ package net.microscraper.client.interfaces;
  *
  */
 public interface URIInterface {
-	public boolean isAbsolute();
+	public abstract boolean isAbsolute();
 
-	public URIInterface resolve(String link);
-	public URIInterface resolve(URIInterface otherURI);
+	public abstract URIInterface resolve(String link);
+	public abstract URIInterface resolve(URIInterface otherURI);
 	
-	public URIInterface resolveJSONFragment(String key);
-	public URIInterface resolveJSONFragment(int index);
+	public abstract URIInterface resolveJSONFragment(String key) throws NetInterfaceException;
+	public abstract URIInterface resolveJSONFragment(int index) throws NetInterfaceException;
+	
+	public abstract String getScheme();
+	public abstract String getSchemeSpecificPart();
+	public abstract String getFragment();
+	
+	public abstract String toString();
 }

@@ -30,5 +30,5 @@ public interface Publisher {
 	 * @throws PublisherException If the publisher has experienced an exception.
 	 * @see Executable
 	 */
-	public void publish(Executable execution) throws PublisherException;
+	public void publish(Executable findOneExecutable) throws PublisherException;
 }

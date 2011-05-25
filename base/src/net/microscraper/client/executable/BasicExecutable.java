@@ -37,6 +37,9 @@ public abstract class BasicExecutable implements Executable {
 	private boolean isStuck = false;
 	private boolean isComplete = false;
 	
+	private static int count = 0;
+	private final int id;
+	
 	/**
 	 * Construct a BasicExecution with a parent.
 	 * @param context
@@ -44,7 +47,10 @@ public abstract class BasicExecutable implements Executable {
 	 * @param parent
 	 */
 	protected BasicExecutable(Interfaces context, Resource resource,
-			Variables variables, Executable parent) {		
+			Variables variables, Executable parent) {
+		this.id = count;
+		count++;
+		
 		this.context = context;
 		this.variables = variables;
 		this.resource = resource;
@@ -57,6 +63,9 @@ public abstract class BasicExecutable implements Executable {
 	 * @param resourceLocation
 	 */
 	protected BasicExecutable(Interfaces context, Resource resource, Variables variables) {
+		this.id = count;
+		count++;
+		
 		this.context = context;
 		this.variables = variables;
 		this.resource = resource;
@@ -71,24 +80,22 @@ public abstract class BasicExecutable implements Executable {
 			try {
 				// Only generate the result if we don't have one, and we have a resource.
 				if(result == null) {
-					try {
-						result = generateResult();
-					} catch(MustacheTemplateException e) {
-						throw new ExecutionFailure(e);
-					} catch (BrowserDelayException e) {
-						handleDelay(e);
-					} catch(MissingVariableException e) {
-						handleMissingVariable(e);
-					}
+					result = generateResult();
+				}
+				if(result != null) {
+					children = generateChildren(result);
+					handleComplete(); 
 				}
 			} catch(ExecutionFailure e) {
 				handleFailure(e);
+			} catch(MustacheTemplateException e) {
+				handleFailure(new ExecutionFailure(e));
+			} catch (BrowserDelayException e) {
+				handleDelay(e);
+			} catch(MissingVariableException e) {
+				handleMissingVariable(e);
 			}
 			
-			if(result != null) {
-				children = generateChildren(result);
-				handleComplete();
-			}
 		}
 	}
 	
@@ -166,11 +173,14 @@ public abstract class BasicExecutable implements Executable {
 	 * @param result The Object result from {@link #generateResult}. Should be cast.
 	 * @return An array of {@link Execution[]}s whose parent is this execution.
 	 * Later accessible through {@link #getChildren}.
+	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
+	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
+	 * {@link Executable}'s {@link Variables}.
 	 * @see #generateResource
 	 * @see #generateResult
 	 * @see #getChildren
 	 */
-	protected Executable[] generateChildren(Object result) {
+	protected Executable[] generateChildren(Object result) throws MissingVariableException, MustacheTemplateException {
 		return new Executable[0];
 	}
 	
@@ -190,6 +200,10 @@ public abstract class BasicExecutable implements Executable {
 		}
 	}
 
+	public int getId() {
+		return id;
+	}
+	
 	public final Executable getParent() throws NullPointerException {
 		if(hasParent()) {
 			return parent;
@@ -269,5 +283,37 @@ public abstract class BasicExecutable implements Executable {
 	 */
 	public final Interfaces getContext() {
 		return context;
+	}
+	
+	/**
+	 * Defaults to <code>false</code>.
+	 */
+	public boolean hasName() {
+		return false;
+	}
+	
+	/**
+	 * Defaults to throwing {@link NullPointerException}.
+	 */
+	public String getName() {
+		throw new NullPointerException();
+	}
+	
+	/**
+	 * Defaults to <code>false</code>.
+	 */
+	public boolean hasValue() {
+		return false;
+	}
+	
+	/**
+	 * Defaults to throwing {@link NullPointerException}.
+	 */
+	public String getValue() {
+		if(isComplete()) {
+			throw new NullPointerException();
+		} else {
+			throw new IllegalStateException();
+		}
 	}
 }

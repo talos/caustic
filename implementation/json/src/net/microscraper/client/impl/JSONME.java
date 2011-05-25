@@ -8,6 +8,7 @@ import net.microscraper.client.interfaces.JSONInterfaceIterator;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceStringer;
+import net.microscraper.client.interfaces.NetInterfaceException;
 import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.client.interfaces.URILoader;
 
@@ -79,6 +80,8 @@ public class JSONME implements JSONInterface {
 						object.getJSONArray(name));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
+			} catch (NetInterfaceException e) {
+				throw new JSONInterfaceException(e);
 			}
 		}
 
@@ -88,6 +91,8 @@ public class JSONME implements JSONInterface {
 				return new JSONMEObject(this.location.resolveJSONFragment(name),
 						object.getJSONObject(name));
 			} catch(JSONException e) {
+				throw new JSONInterfaceException(e);
+			} catch (NetInterfaceException e) {
 				throw new JSONInterfaceException(e);
 			}
 		}
@@ -160,6 +165,8 @@ public class JSONME implements JSONInterface {
 				return new JSONMEArray(location.resolveJSONFragment(index), array.getJSONArray(index));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
+			} catch (NetInterfaceException e) {
+				throw new JSONInterfaceException(e);
 			}
 		}
 
@@ -168,6 +175,8 @@ public class JSONME implements JSONInterface {
 			try {
 				return new JSONMEObject(location.resolveJSONFragment(index), array.getJSONObject(index));
 			} catch(JSONException e) {
+				throw new JSONInterfaceException(e);
+			} catch (NetInterfaceException e) {
 				throw new JSONInterfaceException(e);
 			}
 		}

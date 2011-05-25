@@ -186,15 +186,16 @@ public class Utils {
 	}
 	*/
 	/**
-	 * Turn Form-encoded data into an array of {@link UnencodedNameValuePair}s.
+	 * Turn Form-encoded data into an array of {@link NameValuePair}s.
 	 * @param formEncodedData A String of form data to convert.
 	 * @param encoding The encoding to use.  "UTF-8" recommended.
-	 * @return An array of {@link UnencodedNameValuePair}s
+	 * @return An array of {@link NameValuePair}s
 	 * @throws UnsupportedEncodingException If the encoding is not supported.
 	 */
-	public static UnencodedNameValuePair[] formEncodedDataToNameValuePairs(String formEncodedData, String encoding) throws UnsupportedEncodingException {
+	public static NameValuePair[] formEncodedDataToNameValuePairs(String formEncodedData,
+				String encoding) throws UnsupportedEncodingException {
 		String[] split = Utils.split(formEncodedData, "&");
-		UnencodedNameValuePair[] pairs = new UnencodedNameValuePair[split.length];
+		NameValuePair[] pairs = new NameValuePair[split.length];
 		for(int i = 0 ; i < split.length; i++) {
 			String[] pair = Utils.split(formEncodedData, "=");
 			pairs[i] = new UnencodedNameValuePair(

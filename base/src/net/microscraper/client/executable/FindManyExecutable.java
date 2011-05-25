@@ -26,6 +26,7 @@ public class FindManyExecutable extends FindExecutable {
 	/**
 	 * Returns a <code>String[]</code>.
 	 */
+	// TODO: NameValuePair[]
 	protected Object generateResult()
 			throws MissingVariableException, ExecutionFailure {
 		try {
@@ -50,8 +51,10 @@ public class FindManyExecutable extends FindExecutable {
 
 	/**
 	 * @return An array of {@link ScraperExecutableChild}s.
+	 * @throws MustacheTemplateException 
+	 * @throws MissingVariableException 
 	 */
-	protected Executable[] generateChildren(Object result) {
+	protected Executable[] generateChildren(Object result) throws MissingVariableException, MustacheTemplateException {
 		String[] results = (String[]) result;
 		FindMany findMany = (FindMany) getResource();
 		Scraper[] scrapers = findMany.getScrapers();
@@ -65,7 +68,7 @@ public class FindManyExecutable extends FindExecutable {
 								getContext(),
 								this, scrapers[i],
 								getVariables(),
-								findMany.name, results[j]));
+								findMany.name.compile(getVariables()), results[j]));
 				}
 			} else {
 				new ScraperExecutableChild(

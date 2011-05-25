@@ -79,17 +79,17 @@ public class SQLPublisher implements Publisher {
 		}
 	}
 	
-	private void addEntry(Executable execution) throws SQLInterfaceException {
+	private void addEntry(Executable executable) throws SQLInterfaceException {
 		String[] parameters = new String[] {
-				getResourceLocationString(execution),
-				execution.hasParent() ? Integer.toString(execution.getParent().getId()) : sql.nullValue(),
-				Integer.toString(execution.getId()),
-				execution.isStuck()    ? truncateToVarchar(execution.stuckOn()) : sql.nullValue(),
-				execution.hasFailed()  ? truncateToVarchar(execution.failedBecause().toString()) : sql.nullValue(),
-				execution.hasName() ? truncateToVarchar(execution.getName()) : sql.nullValue(),
-				execution.hasValue() ? execution.getValue() : sql.nullValue()
+				getResourceLocationString(executable),
+				executable.hasParent() ? Integer.toString(executable.getParent().getId()) : sql.nullValue(),
+				Integer.toString(executable.getId()),
+				executable.isStuck()    ? truncateToVarchar(executable.stuckOn()) : sql.nullValue(),
+				executable.hasFailed()  ? truncateToVarchar(executable.failedBecause().toString()) : sql.nullValue(),
+				executable.hasName() ? truncateToVarchar(executable.getName()) : sql.nullValue(),
+				executable.hasValue() ? executable.getValue() : sql.nullValue()
 			};
-		batchParameters.put(execution.getId(), parameters);
+		batchParameters.put(executable.getId(), parameters);
 		//insertExecution.bindStrings();
 		//insertExecution.addBatch();
 	}
@@ -143,6 +143,6 @@ public class SQLPublisher implements Publisher {
 	}
 	
 	private static String getResourceLocationString(Executable execution) {
-		return execution.getResourceLocation().toString();
+		return execution.getResource().location.toString();
 	}
 }

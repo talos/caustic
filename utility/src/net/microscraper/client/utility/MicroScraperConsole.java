@@ -2,19 +2,20 @@ package net.microscraper.client.utility;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import net.microscraper.client.Client;
+import net.microscraper.client.ClientException;
 import net.microscraper.client.Log;
-import net.microscraper.client.UnencodedNameValuePair;
+import net.microscraper.client.NameValuePair;
 import net.microscraper.client.Utils;
 import net.microscraper.client.impl.FileLogInterface;
 import net.microscraper.client.impl.JDBCSQLite;
 import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaNetBrowser;
+import net.microscraper.client.impl.JavaNetInterface;
+import net.microscraper.client.impl.JavaNetURI;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.client.impl.SQLPublisher;
@@ -22,7 +23,9 @@ import net.microscraper.client.impl.SystemLogInterface;
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.Logger;
-import net.microscraper.server.resource.URIMustBeAbsoluteException;
+import net.microscraper.client.interfaces.NetInterfaceException;
+import net.microscraper.client.interfaces.URIInterface;
+import net.microscraper.client.interfaces.URILoader;
 
 public class MicroScraperConsole {
 	private static final SimpleDateFormat DATETIME_FORMAT =
@@ -31,7 +34,8 @@ public class MicroScraperConsole {
 	private static final int sqlBatchSize = 400;
 	
 	private final Log log = new Log();
-	private final JSONInterface jsonInterface = new JSONME();
+	private final URILoader uriLoader = new LocalURILoader();
+	private final JSONInterface jsonInterface = new JSONME(uriLoader);
 	private SQLPublisher publisher;
 	private Client client;
 	
@@ -56,21 +60,18 @@ public class MicroScraperConsole {
 			publisher = new SQLPublisher(
 					new JDBCSQLite("./" + fileTimestamp + ".sqlite",
 							log), sqlBatchSize);
-			client = new Client(
-					new LocalJSONResourceLoader(jsonInterface),
-					new JavaUtilRegexInterface(),
-					jsonInterface,
+			client = new Client(new JavaUtilRegexInterface(),
 					new JavaNetBrowser(log, Browser.MAX_KBPS_FROM_HOST),
 					log,
-					ENCODING
-				);
-			
-			URI uri = new URI(args[0]);
-			UnencodedNameValuePair[] extraVariables;
+					new JavaNetInterface(),
+					jsonInterface, ENCODING);
+					
+			URIInterface uri = new JavaNetURI(args[0]);
+			NameValuePair[] extraVariables;
 			if(args.length == 2) {
 				extraVariables = Utils.formEncodedDataToNameValuePairs(args[1], ENCODING);
 			} else {
-				extraVariables = new UnencodedNameValuePair[0];
+				extraVariables = new NameValuePair[0];
 			}
 			client.scrape(uri, extraVariables, publisher);
 			
@@ -81,15 +82,15 @@ public class MicroScraperConsole {
 			} catch (IOException e) {
 				sysLogger.e(e);
 			}
-		} catch (URIMustBeAbsoluteException e) {
-			log.e(e);
-		} catch (URISyntaxException e) {
-			log.e(e);
 		} catch (UnsupportedEncodingException e) {
 			log.e(e);
 		} catch (SQLInterfaceException e ) {
 			log.e(e);
 		} catch (IOException e) {
+			log.e(e);
+		} catch (ClientException e) {
+			log.e(e);
+		} catch (NetInterfaceException e) {
 			log.e(e);
 		}
 	}
