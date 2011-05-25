@@ -21,7 +21,7 @@ public class Resource {
 	 * @throws InstantiationError If {@link #location} is not absolute.
 	 */
 	public Resource(URIInterface location) {
-		if(!this.location.isAbsolute()) {
+		if(location.isAbsolute()) {
 			this.location = location;
 		} else {
 			throw new InstantiationError();

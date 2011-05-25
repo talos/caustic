@@ -10,9 +10,9 @@ Here's a simple one:
 
     {
      "source" : {
-       "url" : "http://www.google.com?q={{query}}",
+       "url" : "http://www.google.com/search?q={{query}}",
      },
-     "findMany"  : [{
+     "finds_many"  : [{
        "name"   : "what do we say after {{query}}?",
        "pattern"     : "{{query}}\\s+(\\w+)",
        "replacement" : "$1"

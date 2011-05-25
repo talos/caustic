@@ -29,8 +29,8 @@ public class PageExecutable extends BasicExecutable {
 	
 	private URLInterface getURL() throws NetInterfaceException, MissingVariableException, MustacheTemplateException {
 		Page page = (Page) getResource();
-		NetInterface netInterface = getContext().netInterface;
-		return netInterface.getURL(page.url.compile(getVariables()));
+		getContext().log.i(page.url.compile(getVariables()));
+		return getContext().netInterface.getURL(page.url.compile(getVariables()));
 	}
 	
 	private PatternInterface[] getStopBecause() {

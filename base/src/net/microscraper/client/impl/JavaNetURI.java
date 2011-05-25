@@ -11,13 +11,6 @@ public class JavaNetURI implements URIInterface {
 	public JavaNetURI(URI uri) {
 		this.uri = uri;
 	}
-	public JavaNetURI(String string) throws NetInterfaceException {
-		try {
-			this.uri = new URI(string);
-		} catch(URISyntaxException e) {
-			throw new NetInterfaceException(e);
-		}
-	}
 	/*
 	public URLInterface toURL() throws NetInterfaceException {
 		try {

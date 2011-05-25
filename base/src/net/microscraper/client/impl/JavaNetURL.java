@@ -9,4 +9,7 @@ public class JavaNetURL implements URLInterface {
 	public JavaNetURL(URL url) {
 		this.url = url;
 	}
+	public String toString() {
+		return this.url.toString();
+	}
 }

@@ -72,6 +72,7 @@ public final class Page extends URL {
 	
 	/**
 	 * The HTTP request type to use.  Either Post, Get, or Head.
+	 * Defaults to {@link #DEFAULT_METHOD}
 	 */
 	public final Method method;
 	
@@ -110,7 +111,8 @@ public final class Page extends URL {
 	public Page(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		super(jsonObject);
 		try {
-			this.method = Method.fromString(jsonObject.getString(METHOD));
+			this.method = jsonObject.has(METHOD) ?
+					Method.fromString(jsonObject.getString(METHOD)) : DEFAULT_METHOD;
 			
 			this.cookies = jsonObject.has(COOKIES) ?
 					new NameValuePairs(jsonObject.getJSONObject(COOKIES)).pairs :
@@ -150,6 +152,11 @@ public final class Page extends URL {
 	}
 	
 	private static final String METHOD = "method";
+	
+	/**
+	 * The default {@link Method} is {@link Method#GET}.
+	 */
+	private static final Method DEFAULT_METHOD = Method.GET;
 	private static final String COOKIES = "cookies";
 	private static final String HEADERS = "headers";
 	private static final String PRELOAD = "preload";
