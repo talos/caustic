@@ -10,13 +10,7 @@ import net.microscraper.server.Resource;
  *
  */
 public interface Executable extends Runnable {
-	
-	/**
-	 * 
-	 * @return A unique ID for this Execution.
-	 */
-	public abstract int getId();
-	
+
 	/**
 	 * 
 	 * Run the {@link Executable}.
@@ -69,7 +63,7 @@ public interface Executable extends Runnable {
 
 	/**
 	 * 
-	 * @return <code>True</code> if the {@link Executable} has definitevely failed to {@link #run},
+	 * @return <code>True</code> if the {@link Executable} has failed to {@link #run},
 	 * and cannot do so, <code>false</code> otherwise.
 	 * @see #run()
 	 * @see #failedBecause()
@@ -79,7 +73,7 @@ public interface Executable extends Runnable {
 
 	/**
 	 * 
-	 * @return <code>True</code> if the {@link Executable} has definitevely failed to {@link #run},
+	 * @return <code>True</code> if the {@link Executable} has failed to {@link #run},
 	 * and cannot do so.
 	 * @see #run()
 	 * @see #hasFailed()
@@ -92,11 +86,18 @@ public interface Executable extends Runnable {
 	 * {@link #getChildren} called upon it, <code>false</code> otherwise.
 	 * @see #run()
 	 * @see #getChildren()
-	 * @see #getValue()
+	 * @see #getResult()
 	 */
 	public abstract boolean isComplete();
 	
 
+	/**
+	 * 
+	 * @throws IllegalStateException If {@link #isComplete} is <code>false</code>.
+	 * @see #isComplete()
+	 */
+	public abstract Object getResult() throws IllegalStateException;
+	
 	/**
 	 * 
 	 * @return An array of {@link Executable}s that this {@link Executable} has created.
@@ -113,40 +114,5 @@ public interface Executable extends Runnable {
 	 */
 	public abstract Variables getVariables() throws IllegalStateException;
 	
-	
-	/**
-	 * 
-	 * @return <code>True</code> if this {@link Executable} is identified by a particular name for the
-	 * {@link Publisher}, <code>false</code> otherwise.
-	 * @see #getPublishName()
-	 */
-	public abstract boolean hasName();
-	
-	/**
-	 * 
-	 * @return A particular string for the {@link Publisher} use as a name for this {@link Executable}.
-	 * @throw {@link NullPointerException} if {@link #hasName()} is <code>false</code>
-	 * @see #hasName()
-	 */
-	public abstract String getName() throws NullPointerException;
-	
-	
-	/**
-	 * 
-	 * @return <code>True</code> if this {@link Executable} produces a value that {@link Publisher} can use,
-	 * <code>false</code> otherwise.
-	 * @see #getValue()
-	 */
-	public abstract boolean hasValue();
-	
-	/**
-	 * 
-	 * @return The value that {@link Publisher} should use for this {@link Executable}.
-	 * @throws NullPointerException If {@link #hasPublishValue} is <code>false</code>.
-	 * @throws IllegalStateException If {@link #isComplete} is <code>false</code>.
-	 * @see #hasValue()
-	 * @see #isComplete()
-	 */
-	public abstract String getValue() throws NullPointerException, IllegalStateException;
 	
 }

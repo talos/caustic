@@ -16,6 +16,7 @@ import net.microscraper.client.EncodedNameValuePair;
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.interfaces.BrowserException;
+import net.microscraper.client.interfaces.NetInterface;
 import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.client.interfaces.URLInterface;
 import net.microscraper.client.Log;
@@ -55,7 +56,7 @@ public class JavaNetBrowser implements Browser {
 			throws BrowserDelayException, BrowserException {
 		log.i("Retrieving Head from  " + url.toString() + "...");
 		try {
-			HttpURLConnection conn = generateConnection(JavaNetURL.fromInterface(url), headers, cookies);
+			HttpURLConnection conn = generateConnection(new URL(url.toString()), headers, cookies);
 			conn.setRequestMethod("HEAD");
 			connectHandlingRedirectCookies(conn);
 		} catch (IOException e) {
@@ -68,7 +69,7 @@ public class JavaNetBrowser implements Browser {
 			BrowserException {
 		log.i("Getting  " + url.toString() + "...");
 		try {
-			HttpURLConnection conn = generateConnection(JavaNetURL.fromInterface(url), headers, cookies);
+			HttpURLConnection conn = generateConnection(new URL(url.toString()), headers, cookies);
 			conn.setRequestMethod("GET");
 			connectHandlingRedirectCookies(conn);
 			return pullResponse(conn, terminates);
@@ -82,7 +83,7 @@ public class JavaNetBrowser implements Browser {
 				throws BrowserDelayException, BrowserException {
 		log.i("Posting to  " + url.toString() + "...");
 		try {
-			HttpURLConnection conn = generateConnection(JavaNetURL.fromInterface(url), headers, cookies);
+			HttpURLConnection conn = generateConnection(new URL(url.toString()), headers, cookies);
 			
 			String post_data = "";
 			for(int i = 0 ; i < posts.length ; i ++) {

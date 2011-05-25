@@ -6,8 +6,7 @@ import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Variables;
 import net.microscraper.server.MustacheNameValuePair;
 
-public abstract class MustacheUnencodedNameValuePair implements
-		MustacheNameValuePair {
+public abstract class MustacheUnencodedNameValuePair {
 	
 	public static UnencodedNameValuePair[] compile(MustacheNameValuePair[] nameValuePairs,
 					Variables variables)
@@ -16,8 +15,8 @@ public abstract class MustacheUnencodedNameValuePair implements
 			new UnencodedNameValuePair[nameValuePairs.length];
 		for(int i = 0; i < nameValuePairs.length ; i ++) {
 			encodedNameValuePairs[i] = new UnencodedNameValuePair(
-					nameValuePairs[i].getName().compile(variables),
-					nameValuePairs[i].getValue().compile(variables));
+					nameValuePairs[i].name.compile(variables),
+					nameValuePairs[i].value.compile(variables));
 		}
 		return encodedNameValuePairs;
 	}

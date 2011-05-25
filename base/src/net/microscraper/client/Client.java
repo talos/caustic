@@ -6,6 +6,7 @@ import java.util.Vector;
 import net.microscraper.client.executable.Executable;
 import net.microscraper.client.executable.ScraperExecutable;
 import net.microscraper.client.interfaces.Browser;
+import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.Publisher;
 import net.microscraper.client.interfaces.PublisherException;
@@ -20,7 +21,7 @@ import net.microscraper.server.resource.URIMustBeAbsoluteException;
  */
 public final class Client {
 	private static final int LARGE_QUEUE = 1000000; // TODO: handle this warning differently
-	private final ExecutionContext context;
+	private final Interfaces context;
 	
 	/**
 	 * @param browser The {@link Browser} this {@link Client} should use.
@@ -31,7 +32,7 @@ public final class Client {
 	 */
 	public Client(RegexpCompiler regexpCompiler, Browser browser,
 			Log log, String encoding) {
-		this.context = new ExecutionContext( log,
+		this.context = new Interfaces( log,
 				regexpCompiler, browser, encoding);
 	}
 	

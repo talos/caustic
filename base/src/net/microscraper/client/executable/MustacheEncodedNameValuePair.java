@@ -8,7 +8,7 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.server.MustacheNameValuePair;
 
-public abstract class MustacheEncodedNameValuePair implements MustacheNameValuePair {
+public abstract class MustacheEncodedNameValuePair {
 	public static EncodedNameValuePair[] compile(MustacheNameValuePair[] nameValuePairs,
 						Variables variables, String encoding)
 				throws MissingVariableException, UnsupportedEncodingException, MustacheTemplateException {
@@ -16,8 +16,8 @@ public abstract class MustacheEncodedNameValuePair implements MustacheNameValueP
 			new EncodedNameValuePair[nameValuePairs.length];
 		for(int i = 0; i < nameValuePairs.length ; i ++) {
 			encodedNameValuePairs[i] = new EncodedNameValuePair(
-					nameValuePairs[i].getName().compile(variables),
-					nameValuePairs[i].getValue().compile(variables),
+					nameValuePairs[i].name.compile(variables),
+					nameValuePairs[i].value.compile(variables),
 					encoding);
 		}
 		return encodedNameValuePairs;

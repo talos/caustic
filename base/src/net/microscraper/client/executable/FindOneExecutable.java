@@ -2,16 +2,14 @@ package net.microscraper.client.executable;
 
 import java.util.Vector;
 
-import net.microscraper.client.ExecutionContext;
 import net.microscraper.client.Variables;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
+import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
 import net.microscraper.client.interfaces.PatternInterface;
-import net.microscraper.server.Resource;
 import net.microscraper.server.resource.FindMany;
-import net.microscraper.server.resource.Parser;
 import net.microscraper.server.resource.FindOne;
 
 /**
@@ -24,22 +22,16 @@ import net.microscraper.server.resource.FindOne;
  *
  */
 public class FindOneExecutable extends FindExecutable implements Variables {
-	private final int matchNumber;
 	private final String stringToParse;
 	
-	private final FindOne variable;
 	private FindOneExecutable[] variableExecutions = new FindOneExecutable[0];
 	
-	private String result = null;
-	
-	public FindOneExecutable(ExecutionContext context,
-			Executable parent, FindOne variable, String stringToParse) {
-		super(context, variable, parent);
+	public FindOneExecutable(Interfaces context,
+			Executable parent, FindOne findOne, Variables variables,
+			String stringToParse) {
+		super(context, findOne, variables, parent);
 		
-		this.matchNumber = variable.match;
 		this.stringToParse = stringToParse;
-		
-		this.variable = variable;
 	}
 	
 	/**
@@ -53,10 +45,11 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 	 * corresponding to <code>key</code>. 
 	 */
 	public String get(String key) throws MissingVariableException {
-		if(result != null) {
-			if(hasName()) {
-				if(getName().equals(key))
-					return result;
+		if(isComplete()) {
+			FindOne findOne = (FindOne) getResource();
+			if(findOne.hasName) {
+				if(findOne.name.equals(key))
+					return (String) getResult();
 			}
 			for(int i = 0 ; i < variableExecutions.length ; i ++) {
 				if(variableExecutions[i].containsKey(key))
@@ -75,9 +68,10 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 	 * @throws NullPointerException if the key is <code>null</code>
 	 */
 	public boolean containsKey(String key) {
-		if(result != null) {
-			if(hasName()) {
-				if(getName().equals(key))
+		if(isComplete()) {
+			FindOne findOne = (FindOne) getResource();
+			if(findOne.hasName) {
+				if(findOne.name.equals(key))
 					return true;
 			}
 			for(int i = 0 ; i < variableExecutions.length ; i ++) {
@@ -89,36 +83,16 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 	}
 	
 	/**
-	 * {@link FindOneExecutable} provides its result as a value if it {@link #isComplete}.
-	 */
-	public boolean hasValue() {
-		if(result != null)
-			return true;
-		return false;
-	}
-	
-	/**
-	 * 
-	 */
-	public String getValue() {
-		if(hasValue()) {
-			return result;
-		} else {
-			throw new IllegalStateException();
-		}
-	}
-
-	/**
 	 * A result value for the {@link FindOneExecutable}.
 	 */
-	protected Object generateResult(ExecutionContext context, Resource resource)
+	protected Object generateResult()
 				throws MissingVariableException,
 				MustacheTemplateException, ExecutionFailure  {
 		try {
-			Parser parser = (Parser) resource;
-			PatternInterface pattern = parser.pattern.compile(this, context.regexpInterface);
-			String replacement = parser.replacement.compile(this);
-			return pattern.match(stringToParse, replacement, matchNumber);
+			FindOne findOne = (FindOne) getResource();
+			PatternInterface pattern = getPattern();
+			String replacement = getReplacement();
+			return pattern.match(stringToParse, replacement, findOne.match);
 		} catch (NoMatchesException e) {
 			throw new ExecutionFailure(e);
 		} catch (MissingGroupException e) {
@@ -129,20 +103,22 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 	/**
 	 * @return {@link FindManyExecutable}s and {@link FindOneExecutable}s.
 	 */
-	protected Executable[] generateChildren(ExecutionContext context, Resource resource, Object result) {
-		this.result = (String) result;
+	protected Executable[] generateChildren(Object result) {
+		String source = (String) result;
+		FindOne findOne = (FindOne) getResource();
 		
-		FindOne[] variables = variable.getFindOnes();
-		FindMany[] leaves = variable.getFindMany();
+		FindOne[] findOnes = findOne.getFindOnes();
+		FindMany[] findManys = findOne.getFindManys();
 		Vector variableExecutions = new Vector();
 		Vector leafExecutions = new Vector();
-		for(int i = 0 ; i < variables.length ; i ++) {
+		
+		for(int i = 0 ; i < findOnes.length ; i ++) {
 			variableExecutions.add(
-				new FindOneExecutable(context, this, variables[i], this.result));
+				new FindOneExecutable(getContext(), this, findOnes[i], getVariables(), source));
 		}
-		for(int i = 0 ; i < leaves.length ; i ++) {
+		for(int i = 0 ; i < findManys.length ; i ++) {
 			leafExecutions.add(
-				new FindManyExecutable(context, this, this, leaves[i], this.result));
+				new FindManyExecutable(getContext(), this, findManys[i], getVariables(), source));
 		}
 		this.variableExecutions = new FindOneExecutable[variableExecutions.size()];
 		variableExecutions.copyInto(this.variableExecutions);

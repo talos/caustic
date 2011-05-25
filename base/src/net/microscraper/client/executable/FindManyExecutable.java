@@ -2,60 +2,41 @@ package net.microscraper.client.executable;
 
 import java.util.Vector;
 
-import net.microscraper.client.ExecutionContext;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Variables;
+import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.InvalidRangeException;
 import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
 import net.microscraper.client.interfaces.PatternInterface;
-import net.microscraper.server.Ref;
-import net.microscraper.server.Resource;
 import net.microscraper.server.resource.FindMany;
-import net.microscraper.server.resource.Parser;
+import net.microscraper.server.resource.Scraper;
 
 public class FindManyExecutable extends FindExecutable {
-	private String[] results = null;
-	private final int minMatch;
-	private final int maxMatch;
 	private final String stringToParse;
-	private final Ref[] pipes;
-	private final Variables variables;
-	
-	public FindManyExecutable(ExecutionContext context,
-			Executable parent, Variables variables,
-			FindMany findMany, String stringToParse) {
-		super(context, findMany, parent);
+	public FindManyExecutable(Interfaces context,
+			Executable parent, FindMany findMany, 
+			Variables variables, String stringToParse) {
+		super(context, findMany, variables, parent);
 		this.stringToParse = stringToParse;
-		this.maxMatch = findMany.maxMatch;
-		this.minMatch = findMany.minMatch;
-		this.variables = variables;
-		this.pipes = findMany.getScrapers();
 	}
 	
-	// TODO what should leaves publish?
-	public boolean hasValue() {
-		/*if(results != null)
-			return true;
-		return false;*/
-		return false;
-	}
-	public String getValue() {
-		//return Utils.join(results, ", ");
-		return null;
-	}
 	
 	/**
 	 * Returns a <code>String[]</code>.
 	 */
-	protected Object generateResult(ExecutionContext context, Resource resource)
+	protected Object generateResult()
 			throws MissingVariableException, ExecutionFailure {
 		try {
 			FindMany findMany = (FindMany) getResource();
-			PatternInterface pattern = findMany.pattern.compile(variables);
-			String replacement = parser.replacement.compile(variables);
-			return pattern.allMatches(stringToParse, replacement, minMatch, maxMatch);
+			PatternInterface pattern = getPattern();
+			String replacement = getReplacement();
+			return pattern.allMatches(
+					stringToParse,
+					replacement,
+					findMany.minMatch,
+					findMany.maxMatch);
 		} catch(MustacheTemplateException e) {
 			throw new ExecutionFailure(e);
 		} catch (NoMatchesException e) {
@@ -70,20 +51,26 @@ public class FindManyExecutable extends FindExecutable {
 	/**
 	 * @return An array of {@link ScraperExecutableChild}s.
 	 */
-	protected Executable[] generateChildren(ExecutionContext context, Resource resource, Object result) {
-		results = (String[]) result;
+	protected Executable[] generateChildren(Object result) {
+		String[] results = (String[]) result;
+		FindMany findMany = (FindMany) getResource();
+		Scraper[] scrapers = findMany.getScrapers();
+		
 		Vector scraperExecutions = new Vector();
-		for(int i = 0 ; i < pipes.length ; i ++) {
-			for(int j = 0 ; j < results.length ; j ++ ) {
-				if(hasName()) {
-					// If the Leaf has a Name, send a single match to spawn the scraper.
+		for(int i = 0 ; i < scrapers.length ; i ++) {
+			if(findMany.hasName) {
+				for(int j = 0 ; j < results.length ; j ++ ) {
 					scraperExecutions.add(
-							new ScraperExecutableChild(context, pipes[i], this, variables, getName(), results[j]));
-				} else {
-					//TODO: should this spawn only one per pipe?
-					// If the Leaf does not, spawn the scraper with the standard variables.
-					new ScraperExecutableChild(context, pipes[i], this, variables);
+						new ScraperExecutableChild(
+								getContext(),
+								this, scrapers[i],
+								getVariables(),
+								findMany.name, results[j]));
 				}
+			} else {
+				new ScraperExecutableChild(
+						getContext(),
+						this, scrapers[i], getVariables());
 			}
 		}
 		Executable[] children = new ScraperExecutable[scraperExecutions.size()];

@@ -14,6 +14,7 @@ import net.microscraper.server.MustacheTemplate;
  *
  */
 public class Find extends Regexp {
+	private static final String NAME = "name";
 	private static final String REPLACEMENT = "replacement";
 	private static final String TESTS = "tests";
 	
@@ -29,6 +30,19 @@ public class Find extends Regexp {
 	public final Regexp[] tests;
 	
 	/**
+	 * A name attached to this particular {@link Find} {@link Resource}.
+	 * Is <code>null</code> if it has none.
+	 * @see {@link #hasName}
+	 */
+	public final String name;
+	
+	/**
+	 * Whether this {@link Find} {@link Resource} has a {@link #name}.
+	 * @see {@link #name}
+	 */
+	public final boolean hasName;
+	
+	/**
 	 * Deserialize a {@link Find} from a {@link JSONInterfaceObject}.
 	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return A {@link Find} instance.
@@ -40,6 +54,13 @@ public class Find extends Regexp {
 	public Find(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		super(jsonObject);
 		try {
+			if(jsonObject.has(NAME)) {
+				hasName = true;
+				name = jsonObject.getString(NAME);
+			} else {
+				hasName = false;
+				name = null;
+			}
 			if(jsonObject.has(TESTS)) {
 				JSONInterfaceArray tests = jsonObject.getJSONArray(TESTS);
 				this.tests = new Regexp[tests.length()];

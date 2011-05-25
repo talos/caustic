@@ -1,10 +1,12 @@
 package net.microscraper.client.executable;
 
-import net.microscraper.client.ExecutionContext;
 import net.microscraper.client.MissingVariableException;
-import net.microscraper.client.UnencodedNameValuePair;
+import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Variables;
-import net.microscraper.server.Ref;
+import net.microscraper.client.interfaces.BrowserDelayException;
+import net.microscraper.client.interfaces.Interfaces;
+import net.microscraper.server.resource.Page;
+import net.microscraper.server.resource.Scraper;
 
 /**
  * {@link ScraperExecutableChild} is a {@link ScraperExecutable} subclass spawned
@@ -16,67 +18,40 @@ import net.microscraper.server.Ref;
  *
  */
 public final class ScraperExecutableChild extends ScraperExecutable {
-	private final String extraName;
-	private final String extraValue;
-	private final Variables parentVariables;
+	private final String spawnedWithName;
 	
-	public ScraperExecutableChild(ExecutionContext context, 
-			Ref pipe, Executable parent, Variables parentVariables) {
-		super(context, pipe, new UnencodedNameValuePair[] { }, parent);
-		//super(log,resourceLoader,browser, regexpInterface, pipe, , parent );
-		this.extraName = null;
-		this.extraValue = null;
-		this.parentVariables = parentVariables;
+	/**
+	 * If a {@link ScraperExecutableChild} was spawned from a {@link FindManyExecutable},
+	 * it will have a particular value it can feed from instead of from a {@link PageExecutable}.
+	 */
+	private final String spawnedWithValue;
+	
+	public ScraperExecutableChild(Interfaces context, 
+			Executable parent, Scraper scraper, Variables variables) {
+		super(context, parent, scraper, variables);
+		this.spawnedWithName = null;
+		this.spawnedWithValue = null;
 	}
-	public ScraperExecutableChild(ExecutionContext context, 
-			Ref pipe, Executable parent, Variables parentVariables,
-			String extraName, String extraValue) {
-		super(context, pipe,
-				new UnencodedNameValuePair[] { 
-					new UnencodedNameValuePair(extraName, extraValue)
-				}, parent);
-		//super(pipe, context, new UnencodedNameValuePair[] { new UnencodedNameValuePair(extraName, extraValue) }, parent);
-		this.extraName = extraName;
-		this.extraValue = extraValue;
-		this.parentVariables = parentVariables;
+	public ScraperExecutableChild(Interfaces context, 
+			Executable parent, Scraper scraper, Variables variables,
+			String spawnedWithName, String spawnedWithValue) {
+		super(context, parent, scraper, variables);
+		this.spawnedWithName = spawnedWithName;
+		this.spawnedWithValue = spawnedWithValue;
 	}
 	
-	public String get(String key) throws MissingVariableException {
-		if(super.containsKey(key) == false) {
-			return parentVariables.get(key);
-		} else{
-			return super.get(key);
+
+	/**
+	 * For {@link ScraperExecutableChild}, it is possible to execute without an explicit source,
+	 * provided {@link #spawnedWithValue} was set.
+	 */
+	protected Object generateResult()
+				throws MissingVariableException, BrowserDelayException,
+				ExecutionFailure, MustacheTemplateException {
+		Scraper scraper = (Scraper) getResource();
+		if(!scraper.hasSource && spawnedWithValue != null) {
+			return spawnedWithValue;
 		}
-	}
-	
-	public boolean containsKey(String key) {
-		if(super.containsKey(key) == false) {
-			return parentVariables.containsKey(key);
-		}
-		return true;
-	}
-
-	public boolean hasName() {
-		if(extraName != null)
-			return true;
-		return false;
-	}
-
-	public String getName() {
-		if(hasName())
-			return extraName;
-		return null;
-	}
-
-	public boolean hasValue() {
-		if(extraValue != null)
-			return true;
-		return false;
-	}
-
-	public String getValue() {
-		if(hasValue())
-			return extraValue;
-		return null;
+		return super.generateResult();
 	}
 }
