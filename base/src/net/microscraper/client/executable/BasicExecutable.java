@@ -4,6 +4,7 @@ import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
+import net.microscraper.client.NameValuePair;
 import net.microscraper.client.Utils;
 import net.microscraper.client.Variables;
 import net.microscraper.server.Resource;
@@ -27,7 +28,7 @@ public abstract class BasicExecutable implements Executable {
 	private final static int SLEEP_TIME = 1000; //TODO this belongs elsewhere
 	
 	//private Resource resource = null;
-	private Object result = null;
+	private NameValuePair[] results = null;
 	private Executable[] children = null;
 	
 	private Throwable failure = null; // has to be Throwable because that's what #getCause returns.
@@ -79,11 +80,11 @@ public abstract class BasicExecutable implements Executable {
 		if(!isComplete() && !hasFailed()) {
 			try {
 				// Only generate the result if we don't have one, and we have a resource.
-				if(result == null) {
-					result = generateResult();
+				if(results == null) {
+					results = generateResults();
 				}
-				if(result != null) {
-					children = generateChildren(result);
+				if(results != null) {
+					children = generateChildren(results);
 					handleComplete(); 
 				}
 			} catch(ExecutionFailure e) {
@@ -144,9 +145,6 @@ public abstract class BasicExecutable implements Executable {
 	 */
 	private void handleComplete() {
 		isComplete = true;
-		//String publishName = hasPublishName() ? getPublishName() : "";
-		//String publishValue = hasPublishValue() ? getPublishValue() : "";
-		//context.i(toString() + " completed successfully, with '" + publishName + "'='" + publishValue + "'");
 	}
 	
 	/**
@@ -163,14 +161,14 @@ public abstract class BasicExecutable implements Executable {
 	 * @see #generateResource
 	 * @see #generateChildren
 	 */
-	protected abstract Object generateResult() throws
+	protected abstract NameValuePair[] generateResults() throws
 			BrowserDelayException, MissingVariableException, MustacheTemplateException,
 			ExecutionFailure;
 	
 	/**
 	 * Must be overriden by {@link BasicExecutable} subclass.  By default returns a 0-length array.
 	 * @param context A {@link Interfaces} to use in generating the resource.
-	 * @param result The Object result from {@link #generateResult}. Should be cast.
+	 * @param results The {@link NameValuePair} array from {@link #generateResult}.
 	 * @return An array of {@link Execution[]}s whose parent is this execution.
 	 * Later accessible through {@link #getChildren}.
 	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
@@ -180,7 +178,7 @@ public abstract class BasicExecutable implements Executable {
 	 * @see #generateResult
 	 * @see #getChildren
 	 */
-	protected Executable[] generateChildren(Object result) throws MissingVariableException, MustacheTemplateException {
+	protected Executable[] generateChildren(NameValuePair[] results) throws MissingVariableException, MustacheTemplateException {
 		return new Executable[0];
 	}
 	
@@ -257,7 +255,7 @@ public abstract class BasicExecutable implements Executable {
 		if(!isComplete()) {
 			throw new IllegalStateException();
 		} else {
-			return result;
+			return results;
 		}
 	}
 	
@@ -285,35 +283,42 @@ public abstract class BasicExecutable implements Executable {
 		return context;
 	}
 	
+	public NameValuePair[] getResults() throws IllegalStateException {
+		if(isComplete()) {
+			return results;
+		}
+		throw new IllegalStateException();
+	}
+	
 	/**
 	 * Defaults to <code>false</code>.
 	 */
-	public boolean hasName() {
+	/*public boolean hasName() {
 		return false;
-	}
+	}*/
 	
 	/**
 	 * Defaults to throwing {@link NullPointerException}.
 	 */
-	public String getName() {
+	/*public String getName() {
 		throw new NullPointerException();
-	}
+	}*/
 	
 	/**
 	 * Defaults to <code>false</code>.
 	 */
-	public boolean hasValue() {
+	/*public boolean hasValue() {
 		return false;
-	}
+	}*/
 	
 	/**
 	 * Defaults to throwing {@link NullPointerException}.
 	 */
-	public String getValue() {
+	/*public String getValue() {
 		if(isComplete()) {
 			throw new NullPointerException();
 		} else {
 			throw new IllegalStateException();
 		}
-	}
+	}*/
 }

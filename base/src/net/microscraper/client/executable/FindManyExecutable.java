@@ -4,6 +4,8 @@ import java.util.Vector;
 
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
+import net.microscraper.client.NameValuePair;
+import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Variables;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.InvalidRangeException;
@@ -11,6 +13,7 @@ import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
 import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.server.resource.FindMany;
+import net.microscraper.server.resource.Regexp;
 import net.microscraper.server.resource.Scraper;
 
 public class FindManyExecutable extends FindExecutable {
@@ -24,20 +27,25 @@ public class FindManyExecutable extends FindExecutable {
 	
 	
 	/**
-	 * Returns a <code>String[]</code>.
+	 * {@link FindManyExecutable} returns an array of {@link NameValuePair}s.
 	 */
-	// TODO: NameValuePair[]
-	protected Object generateResult()
+	protected NameValuePair[] generateResults()
 			throws MissingVariableException, ExecutionFailure {
 		try {
 			FindMany findMany = (FindMany) getResource();
-			PatternInterface pattern = getPattern();
+			
 			String replacement = getReplacement();
-			return pattern.allMatches(
+			String name = getName();
+			String[] values = getPattern().allMatches(
 					stringToParse,
 					replacement,
 					findMany.minMatch,
 					findMany.maxMatch);
+			NameValuePair[] results = new NameValuePair[values.length];
+			for(int i = 0 ; i < results.length ; i++) {
+				results[i] = new UnencodedNameValuePair(name, values[i]);
+			}
+			return results;
 		} catch(MustacheTemplateException e) {
 			throw new ExecutionFailure(e);
 		} catch (NoMatchesException e) {
@@ -54,8 +62,7 @@ public class FindManyExecutable extends FindExecutable {
 	 * @throws MustacheTemplateException 
 	 * @throws MissingVariableException 
 	 */
-	protected Executable[] generateChildren(Object result) throws MissingVariableException, MustacheTemplateException {
-		String[] results = (String[]) result;
+	protected Executable[] generateChildren(NameValuePair[] results) throws MissingVariableException, MustacheTemplateException {
 		FindMany findMany = (FindMany) getResource();
 		Scraper[] scrapers = findMany.getScrapers();
 		
@@ -68,7 +75,7 @@ public class FindManyExecutable extends FindExecutable {
 								getContext(),
 								this, scrapers[i],
 								getVariables(),
-								findMany.name.compile(getVariables()), results[j]));
+								results[j]));
 				}
 			} else {
 				new ScraperExecutableChild(

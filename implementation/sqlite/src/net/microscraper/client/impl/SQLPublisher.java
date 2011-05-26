@@ -3,6 +3,7 @@ package net.microscraper.client.impl;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import net.microscraper.client.NameValuePair;
 import net.microscraper.client.Utils;
 import net.microscraper.client.executable.Executable;
 import net.microscraper.client.impl.SQLInterface.PreparedStatement;
@@ -79,19 +80,27 @@ public class SQLPublisher implements Publisher {
 		}
 	}
 	
-	private void addEntry(Executable executable) throws SQLInterfaceException {
-		String[] parameters = new String[] {
+	private String[] generateParams(Executable executable, String resultName, String resultValue) {
+		return new String[] {
 				getResourceLocationString(executable),
 				executable.hasParent() ? Integer.toString(executable.getParent().getId()) : sql.nullValue(),
 				Integer.toString(executable.getId()),
 				executable.isStuck()    ? truncateToVarchar(executable.stuckOn()) : sql.nullValue(),
 				executable.hasFailed()  ? truncateToVarchar(executable.failedBecause().toString()) : sql.nullValue(),
-				executable.hasName() ? truncateToVarchar(executable.getName()) : sql.nullValue(),
-				executable.hasValue() ? executable.getValue() : sql.nullValue()
-			};
-		batchParameters.put(executable.getId(), parameters);
-		//insertExecution.bindStrings();
-		//insertExecution.addBatch();
+				resultName, resultValue
+		};
+	}
+	
+	private void addEntry(Executable executable) throws SQLInterfaceException {
+		if(executable.isComplete()) {
+			NameValuePair[] results = executable.getResults();
+			for(int i = 0 ; i < executable.getResults().length ; i ++ ) {
+				batchParameters.put(executable.getId(),
+						generateParams(executable, results[i].getName(), results[i].getValue()));
+			}
+		} else {
+			batchParameters.put(executable.getId(), generateParams(executable, null, null));
+		}
 	}
 	/*
 	private void deleteEntry(Execution execution) throws SQLInterfaceException {
@@ -122,9 +131,9 @@ public class SQLPublisher implements Publisher {
 		while(ids.hasMoreElements()) {
 			Integer id = ids.nextElement();
 			
-			deleteExecution.bindStrings(new String[] { Integer.toString(id) } );
+			/*deleteExecution.bindStrings(new String[] { Integer.toString(id) } );
 			deleteExecution.addBatch();
-			
+			*/
 			insertExecution.bindStrings(batchParameters.get(id));
 			insertExecution.addBatch();
 		}

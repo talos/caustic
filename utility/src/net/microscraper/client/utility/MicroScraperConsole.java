@@ -46,6 +46,7 @@ public class MicroScraperConsole {
 	public static void main (String[] args) {
 		new MicroScraperConsole(args);
 	}
+	
 	public MicroScraperConsole(String[] args) {
 		Logger sysLogger = new SystemLogInterface();
 		FileLogInterface fileLogger;
@@ -62,8 +63,7 @@ public class MicroScraperConsole {
 			
 			fileLogger.open();
 			publisher = new SQLPublisher(
-					new JDBCSQLite("./" + fileTimestamp + ".sqlite",
-							log), sqlBatchSize);
+					new JDBCSQLite("./" + fileTimestamp + ".sqlite", log), sqlBatchSize);
 			client = new Client(regexpCompiler,
 					browser,
 					log,

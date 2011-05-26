@@ -1,17 +1,14 @@
 package net.microscraper.client.executable;
 
-import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.interfaces.Interfaces;
-import net.microscraper.client.DefaultVariables;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
+import net.microscraper.client.NameValuePair;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Variables;
-import net.microscraper.server.DeserializationException;
-import net.microscraper.server.Resource;
 import net.microscraper.server.resource.FindMany;
 import net.microscraper.server.resource.Page;
 import net.microscraper.server.resource.Scraper;
@@ -27,6 +24,7 @@ public class ScraperExecutable extends BasicExecutable implements Variables {
 	//private final UnencodedNameValuePair[] extraVariables;	
 	
 	private FindOneExecutable[] findOneExecutables;
+	private String sourcePageBody;
 	
 	public ScraperExecutable(Interfaces context, Scraper scraper,
 				Variables variables) {
@@ -69,27 +67,24 @@ public class ScraperExecutable extends BasicExecutable implements Variables {
 	/**
 	 * @return The source from which this {@link ScraperExecutable}'s {@link FindExecutable}'s will work.
 	 */
-	protected Object generateResult()
+	protected NameValuePair[] generateResults()
 				throws MissingVariableException, BrowserDelayException,
 				ExecutionFailure, MustacheTemplateException {
 		Scraper scraper = (Scraper) getResource();
 		if(scraper.hasSource) {
 			Page sourcePage = (Page) scraper.sourcePage;
-			PageExecutable pageExecutable =
-				new PageExecutable(getContext(), this, sourcePage, this);
+			PageExecution pageExecutable =
+				new PageExecution(getContext(), sourcePage, this);
 			
-			return pageExecutable.generateResult();
+			sourcePageBody = pageExecutable.getBody();
+			return new NameValuePair[0];
 		} else {
 			throw new ExecutionFailure(new MissingScraperSource());
 		}
 	}
-
-	/**
-	 * @return {@link FindOneExecutable}s, {@link FindManyExecutable}s, and {@link ScraperExecutableChild}s.
-	 */
-	protected Executable[] generateChildren(Object result) {
+	
+	protected final Executable[] generateChildren(String source) {
 		Scraper scraper = (Scraper) getResource();
-		String source = (String) result;
 		
 		FindOne[] findOnes = scraper.getFindOnes();
 		FindMany[] findManys = scraper.getFindManys();
@@ -116,5 +111,12 @@ public class ScraperExecutable extends BasicExecutable implements Variables {
 		Executable[] childrenAry = new Executable[children.size()];
 		children.copyInto(childrenAry);
 		return childrenAry;
+	}
+	
+	/**
+	 * @return {@link FindOneExecutable}s, {@link FindManyExecutable}s, and {@link ScraperExecutableChild}s.
+	 */
+	protected Executable[] generateChildren(NameValuePair[] result) {
+		return generateChildren(sourcePageBody);
 	}
 }

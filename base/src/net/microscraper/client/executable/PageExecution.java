@@ -8,7 +8,6 @@ import net.microscraper.client.Variables;
 import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.interfaces.BrowserException;
 import net.microscraper.client.interfaces.Interfaces;
-import net.microscraper.client.interfaces.NetInterface;
 import net.microscraper.client.interfaces.NetInterfaceException;
 import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.client.interfaces.URLInterface;
@@ -16,30 +15,33 @@ import net.microscraper.server.Resource;
 import net.microscraper.server.resource.Page;
 
 /**
- * When {@link #run}, {@link PageExecutable} makes an HTTP request according to
+ * When {@link #run}, {@link PageExecution} makes an HTTP request according to
  * the instructions linked at {@link #pageLink}.
  * @author john
  *
  */
-public class PageExecutable extends BasicExecutable {
-	public PageExecutable(Interfaces context, Executable parent,
+public class PageExecution {
+	private final Page page;
+	private final Interfaces interfaces;
+	private final Variables variables;
+	public PageExecution(Interfaces interfaces,
 			Page page, Variables variables) {
-		super(context, page, variables, parent);
+		this.page = page;
+		this.variables = variables;
+		this.interfaces = interfaces;
+		//super(context, page, variables, parent);
 	}
 	
 	private URLInterface getURL() throws NetInterfaceException, MissingVariableException, MustacheTemplateException {
-		Page page = (Page) getResource();
-		getContext().log.i(page.url.compile(getVariables()));
-		return getContext().netInterface.getURL(page.url.compile(getVariables()));
+		return interfaces.netInterface.getURL(page.url.compile(variables));
 	}
 	
-	private PatternInterface[] getStopBecause() {
-		Page page = (Page) getResource();
-		PatternInterface[] stopBecause = new PatternInterface[page.stopBecause.length];
-		for(int i  = 0 ; i < stopBecause.length ; i++) {
-			
+	private PatternInterface[] getStopBecause() throws MissingVariableException, MustacheTemplateException {
+		PatternInterface[] stopPatterns = new PatternInterface[page.stopBecause.length];
+		for(int i  = 0 ; i < stopPatterns.length ; i++) {
+			stopPatterns[i] = new RegexpExecution(interfaces, page.stopBecause[i], variables).getPattern();
 		}
-		return stopBecause;
+		return stopPatterns;
 		//RegexpExecutable.compile(page.stopBecause, getVariables(), context.regexpCompiler)
 	}
 	
@@ -47,22 +49,18 @@ public class PageExecutable extends BasicExecutable {
 				BrowserDelayException, MissingVariableException,
 				BrowserException, MustacheTemplateException,
 				NetInterfaceException {
-		Page page = (Page) getResource();
-		Interfaces context = getContext();
-		context.browser.head(getURL(), 
-				MustacheUnencodedNameValuePair.compile(page.headers, getVariables()),
-				MustacheEncodedNameValuePair.compile(page.cookies, getVariables(), context.encoding));
+		interfaces.browser.head(getURL(), 
+				MustacheUnencodedNameValuePair.compile(page.headers, variables),
+				MustacheEncodedNameValuePair.compile(page.cookies, variables, interfaces.encoding));
 	}
 	
 	private String get() throws UnsupportedEncodingException,
 				BrowserDelayException, MissingVariableException,
 				BrowserException, MustacheTemplateException,
 				InvalidBodyMethodException, NetInterfaceException {
-		Page page = (Page) getResource();
-		Interfaces context = getContext();
-		return context.browser.get(getURL(),
-				MustacheUnencodedNameValuePair.compile(page.headers, getVariables()),
-				MustacheEncodedNameValuePair.compile(page.cookies, getVariables(), context.encoding),
+		return interfaces.browser.get(getURL(),
+				MustacheUnencodedNameValuePair.compile(page.headers, variables),
+				MustacheEncodedNameValuePair.compile(page.cookies, variables, interfaces.encoding),
 				getStopBecause());
 	}
 	
@@ -70,31 +68,28 @@ public class PageExecutable extends BasicExecutable {
 				BrowserDelayException, MissingVariableException,
 				BrowserException, MustacheTemplateException,
 				InvalidBodyMethodException, NetInterfaceException {	
-		Page page = (Page) getResource();
-		Interfaces context = getContext();
-		return context.browser.post(getURL(),
-				MustacheUnencodedNameValuePair.compile(page.headers, getVariables()),
-				MustacheEncodedNameValuePair.compile(page.cookies, getVariables(), context.encoding),
+		return interfaces.browser.post(getURL(),
+				MustacheUnencodedNameValuePair.compile(page.headers, variables),
+				MustacheEncodedNameValuePair.compile(page.cookies, variables, interfaces.encoding),
 				getStopBecause(),
-				MustacheEncodedNameValuePair.compile(page.posts, getVariables(), context.encoding));
+				MustacheEncodedNameValuePair.compile(page.posts, variables, interfaces.encoding));
 	}
 	
 	/**
-	 * @return The body of the page, if the {@link PageExecutable}'s {@link Page.method} is
+	 * @return The body of the page, if the {@link PageExecution}'s {@link Page.method} is
 	 * {@link Page.Method.GET} or {@link Page.Method.POST}; <code>Null</code> if it is
 	 * {@link Page.Method.HEAD}.
 	 */
-	protected Object generateResult()
+	protected String getBody()
 			throws MissingVariableException, BrowserDelayException, ExecutionFailure {
 		try {
-			Page page = (Page) getResource();
 			// Temporary executions to do before.  Not published, executed each time.
 			for(int i = 0 ; i < page.preload.length ; i ++) {
 				Page preloadPage = (Page) page.preload[i];
 				
-				PageExecutable preloadExecution =
-					new PageExecutable(getContext(), this, preloadPage, getVariables());
-				preloadExecution.generateResult();
+				PageExecution preloadExecution =
+					new PageExecution(interfaces, preloadPage, variables);
+				preloadExecution.getBody();
 			}
 			if(page.method.equals(Page.Method.GET)) {
 				return get();
@@ -120,7 +115,7 @@ public class PageExecutable extends BasicExecutable {
 	}
 
 	/**
-	 * An empty array, {@link PageExecutable} does not have children.
+	 * An empty array, {@link PageExecution} does not have children.
 	 */
 	protected Executable[] generateChildren(Interfaces context, 
 			Resource resource, Object result) {

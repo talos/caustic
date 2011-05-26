@@ -1,5 +1,6 @@
 package net.microscraper.client.executable;
 
+import net.microscraper.client.NameValuePair;
 import net.microscraper.client.Variables;
 import net.microscraper.server.Resource;
 
@@ -93,10 +94,12 @@ public interface Executable extends Runnable {
 
 	/**
 	 * 
+	 * @return An array of {@link NameValuePair}s generated from a successful {@link #run}.
+	 * May be a 0-length array.
 	 * @throws IllegalStateException If {@link #isComplete} is <code>false</code>.
 	 * @see #isComplete()
 	 */
-	public abstract Object getResult() throws IllegalStateException;
+	public abstract NameValuePair[] getResults() throws IllegalStateException;
 	
 	/**
 	 * 
@@ -125,7 +128,7 @@ public interface Executable extends Runnable {
 	 * @return Whether this {@link Executable} has a special name for {@link Publisher}.
 	 * @see #getName()
 	 */
-	public abstract boolean hasName();
+	//public abstract boolean hasName();
 	
 
 	/**
@@ -134,14 +137,14 @@ public interface Executable extends Runnable {
 	 * @see #hasName()
 	 * @throws IllegalStateException if called before the {@link Executable} {@link #isComplete()}.
 	 */
-	public abstract String getName();
+	//public abstract String getName();
 	
 	/**
 	 * 
 	 * @return Whether this {@link Executable} has a value for {@link Publisher}.
 	 * @see #getValue()
 	 */
-	public abstract boolean hasValue();
+	//public abstract boolean hasValue();
 	
 
 	/**
@@ -151,5 +154,5 @@ public interface Executable extends Runnable {
 	 * @throws IllegalStateException if called before the {@link Executable} {@link #isComplete()}.
 	 * @see #hasValue()
 	 */
-	public abstract String getValue() throws IllegalStateException;
+	//public abstract String getValue() throws IllegalStateException;
 }

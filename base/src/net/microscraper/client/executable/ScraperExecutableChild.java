@@ -2,10 +2,10 @@ package net.microscraper.client.executable;
 
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
+import net.microscraper.client.NameValuePair;
 import net.microscraper.client.Variables;
 import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.interfaces.Interfaces;
-import net.microscraper.server.resource.Page;
 import net.microscraper.server.resource.Scraper;
 
 /**
@@ -18,26 +18,22 @@ import net.microscraper.server.resource.Scraper;
  *
  */
 public final class ScraperExecutableChild extends ScraperExecutable {
-	private final String spawnedWithName;
-	
 	/**
 	 * If a {@link ScraperExecutableChild} was spawned from a {@link FindManyExecutable},
-	 * it will have a particular value it can feed from instead of from a {@link PageExecutable}.
+	 * it will have a particular value it can feed from instead of from a {@link PageExecution}.
 	 */
-	private final String spawnedWithValue;
+	private final NameValuePair spawnedWithResult;
 	
 	public ScraperExecutableChild(Interfaces context, 
 			Executable parent, Scraper scraper, Variables variables) {
 		super(context, parent, scraper, variables);
-		this.spawnedWithName = null;
-		this.spawnedWithValue = null;
+		this.spawnedWithResult = null;
 	}
 	public ScraperExecutableChild(Interfaces context, 
 			Executable parent, Scraper scraper, Variables variables,
-			String spawnedWithName, String spawnedWithValue) {
+			NameValuePair spawnedWithResult) {
 		super(context, parent, scraper, variables);
-		this.spawnedWithName = spawnedWithName;
-		this.spawnedWithValue = spawnedWithValue;
+		this.spawnedWithResult = spawnedWithResult;
 	}
 	
 
@@ -45,13 +41,20 @@ public final class ScraperExecutableChild extends ScraperExecutable {
 	 * For {@link ScraperExecutableChild}, it is possible to execute without an explicit source,
 	 * provided {@link #spawnedWithValue} was set.
 	 */
-	protected Object generateResult()
+	protected NameValuePair[] generateResults()
 				throws MissingVariableException, BrowserDelayException,
 				ExecutionFailure, MustacheTemplateException {
 		Scraper scraper = (Scraper) getResource();
-		if(!scraper.hasSource && spawnedWithValue != null) {
-			return spawnedWithValue;
+		if(!scraper.hasSource && spawnedWithResult != null) {
+			return new NameValuePair[0];
 		}
-		return super.generateResult();
+		return super.generateResults();
+	}
+	
+	protected Executable[] generateChildren(NameValuePair[] result) {
+		if(spawnedWithResult != null) {
+			return generateChildren(spawnedWithResult.getValue());
+		}
+		return super.generateChildren(result);
 	}
 }

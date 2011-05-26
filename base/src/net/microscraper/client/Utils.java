@@ -2,8 +2,6 @@ package net.microscraper.client;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Vector;
 
 /**
