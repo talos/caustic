@@ -1,13 +1,16 @@
 package net.microscraper.server.resource.mixin;
 
 import java.io.IOException;
+import java.util.Vector;
 
 import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.DeserializationException;
 import net.microscraper.server.resource.FindMany;
+import net.microscraper.server.resource.Page;
 import net.microscraper.server.resource.Scraper;
+import net.microscraper.server.resource.URL;
 
 /**
  * Implementations of this interface can link to {@link Scraper} {@link Resource}s.
@@ -22,13 +25,19 @@ public interface SpawnsScrapers {
 	 */
 	public abstract Scraper[] getScrapers();
 	
+	/**
+	 * 
+	 * @return An array of {@link Page}s.
+	 */
+	public abstract Page[] getPages();
+	
 
 	/**
 	 * A helper class to deserialize 
 	 * interfaces of {@link SpawnsScrapers} using an inner constructor.
-	 * Should only be instantiated inside {@link FindMany} or {@link ScraperExecutable}.
+	 * Should only be instantiated inside {@link FindMany} or {@link SpawnedScraperExecutable}.
 	 * @see FindMany
-	 * @see ScraperExecutable
+	 * @see SpawnedScraperExecutable
 	 * @author john
 	 *
 	 */
@@ -46,19 +55,39 @@ public interface SpawnsScrapers {
 		public static SpawnsScrapers deserialize(JSONInterfaceObject jsonObject)
 					throws DeserializationException, IOException {
 			try {
-				final Scraper[] scrapers;
+				final Scraper[] scrapersAry;
+				final Page[] pagesAry;
 				if(jsonObject.has(KEY)) {
 					JSONInterfaceArray array = jsonObject.getJSONArray(KEY);
-					scrapers = new Scraper[array.length()];
-					for(int i = 0 ; i < scrapers.length ; i ++) {
-						scrapers[i] = new Scraper(array.getJSONObject(i));
+					
+					Vector pages = new Vector();
+					Vector scrapers = new Vector();
+					
+					//scrapers = new Scraper[array.length()];
+					for(int i = 0 ; i < array.length() ; i ++) {
+						//scrapers[i] = new Scraper(array.getJSONObject(i));
+						JSONInterfaceObject obj = array.getJSONObject(i);
+						if(URL.isURL(obj) == true) {
+							pages.add(new Page(obj));
+						} else {
+							scrapers.add(new Scraper(obj));
+						}
 					}
+					
+					scrapersAry = new Scraper[scrapers.size()];
+					pagesAry = new Page[pages.size()];
+					scrapers.copyInto(scrapersAry);
+					pages.copyInto(pagesAry);
 				} else {
-					scrapers = new Scraper[0];
+					scrapersAry = new Scraper[0];
+					pagesAry = new Page[0];
 				}
 				return new SpawnsScrapers() {
 					public Scraper[] getScrapers() {
-						return scrapers;
+						return scrapersAry;
+					}
+					public Page[] getPages() {
+						return pagesAry;
 					}
 				};
 			} catch(JSONInterfaceException e) {

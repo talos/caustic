@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 import net.microscraper.client.Client;
-import net.microscraper.client.executable.ScraperExecutable;
+import net.microscraper.client.executable.SpawnedScraperExecutable;
 import net.microscraper.client.executable.Status;
-import net.microscraper.client.executable.ScraperExecutable.ExecutionProblem;
+import net.microscraper.client.executable.SpawnedScraperExecutable.ExecutionProblem;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.Publisher;
 import net.microscraper.client.interfaces.PublisherException;
@@ -21,7 +21,7 @@ public class ThreadSafeJSONPublisher implements Publisher {
 	}
 	private static void appendProblemToJSON(ExecutionProblem problem, JSONInterfaceWriter writer) throws JSONInterfaceException {
 		writer.object()
-			.key(SOURCE_ID)
+			.key(SOURCE_RESULT_ID)
 			.value(problem.callerExecution().id)
 			.key(TYPE)
 			.value(problem.problemClass().getSimpleName())
@@ -31,12 +31,12 @@ public class ThreadSafeJSONPublisher implements Publisher {
 	}
 	
 	@Override
-	public void publish(ScraperExecutable execution, Status status) throws PublisherException {
+	public void publish(SpawnedScraperExecutable execution, Status status) throws PublisherException {
 		try {
 			JSONInterfaceStringer stringer = json.getStringer();
 			stringer.object()
 				.key(ID).value(execution.id)
-				.key(SOURCE_ID).value(execution.getSourceExecution().id)
+				.key(SOURCE_RESULT_ID).value(execution.getSourceExecution().id)
 				.key(NAME).value(execution.getName());
 			
 			String[] successes = status.successes();

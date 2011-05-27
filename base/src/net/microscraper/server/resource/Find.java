@@ -16,11 +16,17 @@ import net.microscraper.server.MustacheTemplate;
 public class Find extends Regexp {
 	private static final String NAME = "name";
 	private static final String REPLACEMENT = "replacement";
+	
+	/**
+	 * By default, carry through the entire match through the find operation.
+	 */
+	private static final String DEFAULT_REPLACEMENT = "$0";
 	private static final String TESTS = "tests";
 	
 	/**
 	 * This string, which is mustached and evaluated for backreferences,
 	 * is returned for each match.
+	 * Defaults to {@link #DEFAULT_REPLACEMENT}.
 	 */
 	public final MustacheTemplate replacement;
 	
@@ -70,7 +76,9 @@ public class Find extends Regexp {
 			} else {
 				this.tests = new Regexp[0];
 			}
-			this.replacement = new MustacheTemplate(jsonObject.getString(REPLACEMENT));
+			this.replacement = jsonObject.has(REPLACEMENT) ?
+					new MustacheTemplate(jsonObject.getString(REPLACEMENT)) :
+					new MustacheTemplate(DEFAULT_REPLACEMENT);
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}

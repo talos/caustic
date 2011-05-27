@@ -4,7 +4,6 @@ import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
-import net.microscraper.client.NameValuePair;
 import net.microscraper.client.Utils;
 import net.microscraper.client.Variables;
 import net.microscraper.server.Resource;
@@ -22,13 +21,13 @@ import net.microscraper.server.Resource;
 public abstract class BasicExecutable implements Executable {
 	private final Resource resource;
 	private final Variables variables;
-	private final Executable parent;
+	private final Result source;
 	private final Interfaces context;
 	
 	private final static int SLEEP_TIME = 1000; //TODO this belongs elsewhere
 	
 	//private Resource resource = null;
-	private NameValuePair[] results = null;
+	private Result[] results = null;
 	private Executable[] children = null;
 	
 	private Throwable failure = null; // has to be Throwable because that's what #getCause returns.
@@ -42,35 +41,22 @@ public abstract class BasicExecutable implements Executable {
 	private final int id;
 	
 	/**
-	 * Construct a BasicExecution with a parent.
+	 * Construct a BasicExecution with a source {@link Result}.
 	 * @param context
 	 * @param resource
 	 * @param parent
+	 * @param variables
+	 * @param source
 	 */
 	protected BasicExecutable(Interfaces context, Resource resource,
-			Variables variables, Executable parent) {
+			Variables variables, Result source) {
 		this.id = count;
 		count++;
 		
 		this.context = context;
 		this.variables = variables;
 		this.resource = resource;
-		this.parent = parent;
-	}
-	
-	/**
-	 * Construct a BasicExecution without a parent.
-	 * @param context
-	 * @param resourceLocation
-	 */
-	protected BasicExecutable(Interfaces context, Resource resource, Variables variables) {
-		this.id = count;
-		count++;
-		
-		this.context = context;
-		this.variables = variables;
-		this.resource = resource;
-		this.parent = null;
+		this.source = source;
 	}
 	
 	public final void run() {
@@ -149,7 +135,7 @@ public abstract class BasicExecutable implements Executable {
 	
 	/**
 	 * Must be overriden by {@link BasicExecutable} subclass.
-	 * @return An Object result for executing this particular {@link Executable}.  Will be passed to
+	 * @return An array of {@link Result}s from executing this particular {@link Executable}.  Will be passed to
 	 * {@link generateChildren}
 	 * @throws BrowserDelayException If a {@link Browser} must wait before having this {@link Executable}
 	 * generate a result.
@@ -161,14 +147,14 @@ public abstract class BasicExecutable implements Executable {
 	 * @see #generateResource
 	 * @see #generateChildren
 	 */
-	protected abstract NameValuePair[] generateResults() throws
+	protected abstract Result[] generateResults() throws
 			BrowserDelayException, MissingVariableException, MustacheTemplateException,
 			ExecutionFailure;
 	
 	/**
-	 * Must be overriden by {@link BasicExecutable} subclass.  By default returns a 0-length array.
-	 * @param context A {@link Interfaces} to use in generating the resource.
-	 * @param results The {@link NameValuePair} array from {@link #generateResult}.
+	 * Must be overriden by {@link BasicExecutable} subclass.  Should return 0-length array if there are
+	 * no children.
+	 * @param results The {@link Result} array from {@link #generateResult}.
 	 * @return An array of {@link Execution[]}s whose parent is this execution.
 	 * Later accessible through {@link #getChildren}.
 	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
@@ -178,9 +164,8 @@ public abstract class BasicExecutable implements Executable {
 	 * @see #generateResult
 	 * @see #getChildren
 	 */
-	protected Executable[] generateChildren(NameValuePair[] results) throws MissingVariableException, MustacheTemplateException {
-		return new Executable[0];
-	}
+	protected abstract Executable[] generateChildren(Result[] results)
+			throws MissingVariableException, MustacheTemplateException;
 	
 	public final Resource getResource() {
 		return resource;
@@ -189,25 +174,13 @@ public abstract class BasicExecutable implements Executable {
 	public final Variables getVariables() {
 		return variables;
 	}
-	
-	public final boolean hasParent() {
-		if(parent != null) {
-			return true;
-		} else {
-			return false;
-		}
-	}
 
 	public int getId() {
 		return id;
 	}
 	
-	public final Executable getParent() throws NullPointerException {
-		if(hasParent()) {
-			return parent;
-		} else {
-			throw new NullPointerException();
-		}
+	public final Result getSource() {
+		return source;
 	}
 	
 	/**
@@ -283,7 +256,7 @@ public abstract class BasicExecutable implements Executable {
 		return context;
 	}
 	
-	public NameValuePair[] getResults() throws IllegalStateException {
+	public Result[] getResults() throws IllegalStateException {
 		if(isComplete()) {
 			return results;
 		}

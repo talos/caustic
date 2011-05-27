@@ -20,11 +20,6 @@ public interface SQLInterface {
 		public abstract void addBatch() throws SQLInterfaceException;
 		public abstract int[] executeBatch() throws SQLInterfaceException;
 	}
-	/**
-	 * For example, "INTEGER".
-	 * @return
-	 */
-	public abstract String idColumnType();
 	
 	/**
 	 * For example, "PRIMARY KEY".  Used in the table definition.
@@ -33,6 +28,10 @@ public interface SQLInterface {
 	public abstract String keyColumnDefinition();
 	public abstract String varcharColumnType();
 	public abstract String textColumnType();
+	/**
+	 * For example, "INTEGER".
+	 * @return
+	 */
 	public abstract String intColumnType();
 	public abstract String nullValue();
 

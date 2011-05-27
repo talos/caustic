@@ -2,14 +2,14 @@ package net.microscraper.client;
 
 import java.util.Hashtable;
 
-import net.microscraper.client.executable.ScraperExecutable;
+import net.microscraper.client.executable.SpawnedScraperExecutable;
 import net.microscraper.client.executable.FindOneExecutable;
 
 /**
  * A simple read-only hash-wrapper with String keys and values.
  * @author john
  * @see Hashtable
- * @see ScraperExecutable
+ * @see SpawnedScraperExecutable
  * @see FindOneExecutable
  *
  */

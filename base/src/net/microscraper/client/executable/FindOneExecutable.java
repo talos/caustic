@@ -3,14 +3,12 @@ package net.microscraper.client.executable;
 import java.util.Vector;
 
 import net.microscraper.client.NameValuePair;
-import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Variables;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
-import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.server.resource.FindMany;
 import net.microscraper.server.resource.FindOne;
 
@@ -24,17 +22,14 @@ import net.microscraper.server.resource.FindOne;
  *
  */
 public class FindOneExecutable extends FindExecutable implements Variables {
-	private final String stringToParse;
 	private String result;
 	
 	private FindOneExecutable[] findOneExecutables;
 	
 	public FindOneExecutable(Interfaces context,
-			Executable parent, FindOne findOne, Variables variables,
-			String stringToParse) {
-		super(context, findOne, variables, parent);
-		
-		this.stringToParse = stringToParse;
+			FindOne findOne, Variables variables,
+			Result sourceResult) {
+		super(context, findOne, variables, sourceResult);
 	}
 	
 	/**
@@ -83,14 +78,14 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 	/**
 	 * A {@link NameValuePair} result for {@link FindOneExecutable}.
 	 */
-	protected NameValuePair[] generateResults() throws MissingVariableException,
+	protected Result[] generateResults() throws MissingVariableException,
 				MustacheTemplateException, ExecutionFailure  {
 		try {
 			FindOne findOne = (FindOne) getResource();
 			String replacement = getReplacement();
-			result = getPattern().match(stringToParse, replacement, findOne.match);
+			result = getPattern().match(getSource().getValue(), replacement, findOne.match);
 			String name = getName();
-			return new NameValuePair[] { new UnencodedNameValuePair(name, result) };
+			return new Result[] { new BasicResult(name, result) };
 		} catch (NoMatchesException e) {
 			throw new ExecutionFailure(e);
 		} catch (MissingGroupException e) {
@@ -101,7 +96,7 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 	/**
 	 * @return {@link FindManyExecutable}s and {@link FindOneExecutable}s.
 	 */
-	protected Executable[] generateChildren(NameValuePair[] results) {
+	protected Executable[] generateChildren(Result[] results) {
 		FindOne findOne = (FindOne) getResource();
 		
 		FindOne[] findOnes = findOne.getFindOnes();
@@ -109,13 +104,16 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 		Vector findOneExecutables = new Vector();
 		Vector findManyExecutables = new Vector();
 		
-		for(int i = 0 ; i < findOnes.length ; i ++) {
-			findOneExecutables.add(
-				new FindOneExecutable(getContext(), this, findOnes[i], getVariables(), result));
-		}
-		for(int i = 0 ; i < findManys.length ; i ++) {
-			findManyExecutables.add(
-				new FindManyExecutable(getContext(), this, findManys[i], getVariables(), result));
+		for(int i = 0 ; i < results.length ; i ++) {
+			Result sourceResult = results[i];
+			for(int j = 0 ; j < findOnes.length ; j ++) {
+				findOneExecutables.add(
+					new FindOneExecutable(getContext(), findOnes[j], getVariables(), sourceResult));
+			}
+			for(int j = 0 ; j < findManys.length ; j ++) {
+				findManyExecutables.add(
+					new FindManyExecutable(getContext(), findManys[j], getVariables(), sourceResult));
+			}
 		}
 		this.findOneExecutables = new FindOneExecutable[findOneExecutables.size()];
 		findOneExecutables.copyInto(this.findOneExecutables);

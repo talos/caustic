@@ -24,9 +24,9 @@ public interface FindsOne {
 	/**
 	 * A helper class to deserialize 
 	 * interfaces of {@link FindsOne} using an inner constructor.
-	 * Should only be instantiated inside {@link FindOne} or {@link ScraperExecutable}.
+	 * Should only be instantiated inside {@link FindOne} or {@link SpawnedScraperExecutable}.
 	 * @see FindOne
-	 * @see ScraperExecutable
+	 * @see SpawnedScraperExecutable
 	 * @author john
 	 *
 	 */
@@ -34,7 +34,7 @@ public interface FindsOne {
 		private static final String KEY = "finds_one";
 		
 		/**
-		 * Protected, should be called only by {@link FindOne} or {@link ScraperExecutable}.
+		 * Protected, should be called only by {@link FindOne} or {@link SpawnedScraperExecutable}.
 		 * Deserialize an {@link FindsOne} from a {@link JSONInterfaceObject}.
 		 * @param jsonObject Input {@link JSONInterfaceObject} object.
 		 * @return An {@link FindsOne} instance.

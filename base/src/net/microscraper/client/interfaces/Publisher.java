@@ -2,7 +2,6 @@ package net.microscraper.client.interfaces;
 
 import net.microscraper.client.executable.Executable;
 import net.microscraper.client.executable.FindManyExecutable;
-import net.microscraper.client.executable.FindOneExecutable;
 
 /**
  * Implementations of {@link Publisher} receive updates of {@link Executable}s 
@@ -16,7 +15,8 @@ public interface Publisher {
 	public static final String RESOURCE_LOCATION = "resource_location";
 	
 	public static final String ID = "id";
-	public static final String SOURCE_ID = "source_id";
+	public static final String SOURCE_RESULT_ID = "source_result_id";
+	public static final String EXECUTABLE_ID = "executable_id";
 	
 	public static final String STUCK_ON = "stuck_on";
 	public static final String FAILURE_BECAUSE = "failure_because";

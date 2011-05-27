@@ -3,8 +3,10 @@ package net.microscraper.client;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.microscraper.client.executable.BasicResult;
 import net.microscraper.client.executable.Executable;
-import net.microscraper.client.executable.ScraperExecutable;
+import net.microscraper.client.executable.PageExecutable;
+import net.microscraper.client.executable.SpawnedScraperExecutable;
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.JSONInterface;
@@ -15,6 +17,7 @@ import net.microscraper.client.interfaces.PublisherException;
 import net.microscraper.client.interfaces.RegexpCompiler;
 import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.DeserializationException;
+import net.microscraper.server.resource.Page;
 import net.microscraper.server.resource.Scraper;
 
 /**
@@ -46,19 +49,21 @@ public final class Client {
 	
 	/**
 	 * 
-	 * @param scraperLocation A {@link java.net.URI} to get the {@link Scraper} instructions from.
-	 * @param extraVariables An array of {@link UnencodedNameValuePair}s to stock the {@link ScraperExecutable}s
+	 * @param pageLocation A {@link java.net.URI} to get the {@link Scraper} instructions from.
+	 * @param extraVariables An array of {@link UnencodedNameValuePair}s to stock the {@link SpawnedScraperExecutable}s
 	 * {@link FindOne}s with.
 	 * @param publisher A {@link Publisher} to send the results of {@link Executable}s to.
 	 * @throws ClientException If the {@link Scraper} could not be run.
 	 */
-	public void scrape(URIInterface scraperLocation, NameValuePair[] extraVariables,
+	public void scrape(URIInterface pageLocation, NameValuePair[] extraVariables,
 			Publisher publisher) throws ClientException {
 		try {
-			Scraper scraper = new Scraper(interfaces.jsonInterface.loadJSONObject(scraperLocation));
+			Page page = new Page(interfaces.jsonInterface.loadJSONObject(pageLocation));
 			
-			Executable rootExecutable = new ScraperExecutable(interfaces,
-					scraper, new DefaultVariables(extraVariables));
+			Executable rootExecutable = new PageExecutable(interfaces,
+					page, new DefaultVariables(extraVariables), 
+					BasicResult.Root()
+					);
 			execute(rootExecutable, publisher);
 		} catch(IOException e) {
 			throw new ClientException(e);

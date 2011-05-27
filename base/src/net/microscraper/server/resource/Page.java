@@ -11,7 +11,7 @@ import net.microscraper.server.resource.Page.Method.UnknownHTTPMethodException;
 
 
 /**
- * A web page.
+ * A {@link Scraper} that load a web page.
  * @author realest
  *
  */
@@ -71,6 +71,11 @@ public final class Page extends URL {
 	}
 	
 	/**
+	 * The {@link URL} {@link Resource} to use in constructing the {@link URLInterface} to load.
+	 */
+	//public final URL url;
+	
+	/**
 	 * The HTTP request type to use.  Either Post, Get, or Head.
 	 * Defaults to {@link #DEFAULT_METHOD}
 	 */
@@ -111,6 +116,8 @@ public final class Page extends URL {
 	public Page(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		super(jsonObject);
 		try {
+			//this.url = new URL(jsonObject);
+			
 			this.method = jsonObject.has(METHOD) ?
 					Method.fromString(jsonObject.getString(METHOD)) : DEFAULT_METHOD;
 			
@@ -162,4 +169,5 @@ public final class Page extends URL {
 	private static final String PRELOAD = "preload";
 	private static final String STOP_BECAUSE = "stop_because";
 	private static final String POSTS = "posts";
+	
 }

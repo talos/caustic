@@ -1,6 +1,5 @@
 package net.microscraper.client.executable;
 
-import net.microscraper.client.NameValuePair;
 import net.microscraper.client.Variables;
 import net.microscraper.server.Resource;
 
@@ -29,19 +28,10 @@ public interface Executable extends Runnable {
 	
 	/**
 	 * Can be called before the {@link Executable} is {@link #run}.
-	 * @return Whether this {@link Executable} was created by another {@link Executable}.
-	 * @see getParent()
+	 * @return The {@link Result} that spawned this {@link Executable}.
+	 * @see {@link #hasSource()}
 	 */
-	public abstract boolean hasParent();
-	
-	/**
-	 * Can be called before the {@link Executable} is {@link #run}.
-	 * @return The {@link Executable} that created this {@link Executable}.
-	 * @throws NullPointerException If the {@link Executable} has no parent.
-	 * @see hasParent()
-	 */
-	public abstract Executable getParent() throws NullPointerException;
-	
+	public abstract Result getSource();
 
 	/**
 	 * 
@@ -56,7 +46,7 @@ public interface Executable extends Runnable {
 	 * 
 	 * @return The name of the {@link MissingVariable} that is stopping this {@link Executable} 
 	 * from completing its {@link #run}, if the {@link #isStuck} is returning <code>true</code>.
-	 * @throws IllegalStateException if called when {@link #isStuck} is not <code>true</code>.
+	 * @throws IllegalStateException If called when {@link #isStuck} is not <code>true</code>.
 	 * @see #isStuck()
 	 */
 	public abstract String stuckOn() throws IllegalStateException;
@@ -74,8 +64,8 @@ public interface Executable extends Runnable {
 
 	/**
 	 * 
-	 * @return <code>True</code> if the {@link Executable} has failed to {@link #run},
-	 * and cannot do so.
+	 * @return The {@link Throwable} that caused the {@link Executable} to fail to {@link #run},
+	 * @throws IllegalStateException If {@link #hasFailed} is <code>false</code>.
 	 * @see #run()
 	 * @see #hasFailed()
 	 */
@@ -94,16 +84,16 @@ public interface Executable extends Runnable {
 
 	/**
 	 * 
-	 * @return An array of {@link NameValuePair}s generated from a successful {@link #run}.
+	 * @return An array of {@link Result}s generated from a successful {@link #run}.
 	 * May be a 0-length array.
 	 * @throws IllegalStateException If {@link #isComplete} is <code>false</code>.
-	 * @see #isComplete()
+	 * @see {@link #isComplete()}
 	 */
-	public abstract NameValuePair[] getResults() throws IllegalStateException;
+	public abstract Result[] getResults() throws IllegalStateException;
 	
 	/**
 	 * 
-	 * @return An array of {@link Executable}s that this {@link Executable} has created.
+	 * @return An array of fresh {@link Executable}s that this {@link Executable} has created.
 	 * @throws IllegalStateException if called before the {@link Executable} {@link #isComplete()}.
 	 * @see #run()
 	 * @see #isComplete()
@@ -113,7 +103,7 @@ public interface Executable extends Runnable {
 
 	/**
 	 * 
-	 * @return The {@link Variables} instance accessible inside this {@Executable}.
+	 * @return The {@link Variables} instance accessible inside this {@link Executable}.
 	 */
 	public abstract Variables getVariables();
 	

@@ -13,23 +13,21 @@ import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
 import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.server.resource.FindMany;
+import net.microscraper.server.resource.Page;
 import net.microscraper.server.resource.Regexp;
 import net.microscraper.server.resource.Scraper;
 
 public class FindManyExecutable extends FindExecutable {
-	private final String stringToParse;
-	public FindManyExecutable(Interfaces context,
-			Executable parent, FindMany findMany, 
-			Variables variables, String stringToParse) {
-		super(context, findMany, variables, parent);
-		this.stringToParse = stringToParse;
+	public FindManyExecutable(Interfaces context, FindMany findMany, 
+			Variables variables, Result sourceResult) {
+		super(context, findMany, variables, sourceResult);
 	}
 	
 	
 	/**
 	 * {@link FindManyExecutable} returns an array of {@link NameValuePair}s.
 	 */
-	protected NameValuePair[] generateResults()
+	protected Result[] generateResults()
 			throws MissingVariableException, ExecutionFailure {
 		try {
 			FindMany findMany = (FindMany) getResource();
@@ -37,13 +35,13 @@ public class FindManyExecutable extends FindExecutable {
 			String replacement = getReplacement();
 			String name = getName();
 			String[] values = getPattern().allMatches(
-					stringToParse,
+					getSource().getValue(),
 					replacement,
 					findMany.minMatch,
 					findMany.maxMatch);
-			NameValuePair[] results = new NameValuePair[values.length];
+			Result[] results = new Result[values.length];
 			for(int i = 0 ; i < results.length ; i++) {
-				results[i] = new UnencodedNameValuePair(name, values[i]);
+				results[i] = new BasicResult(name, values[i]);
 			}
 			return results;
 		} catch(MustacheTemplateException e) {
@@ -58,33 +56,28 @@ public class FindManyExecutable extends FindExecutable {
 	}
 
 	/**
-	 * @return An array of {@link ScraperExecutableChild}s.
+	 * @return An array of {@link ScraperExecutable}s.
 	 * @throws MustacheTemplateException 
 	 * @throws MissingVariableException 
 	 */
-	protected Executable[] generateChildren(NameValuePair[] results) throws MissingVariableException, MustacheTemplateException {
+	protected Executable[] generateChildren(Result[] results) throws MissingVariableException, MustacheTemplateException {
 		FindMany findMany = (FindMany) getResource();
 		Scraper[] scrapers = findMany.getScrapers();
+		Page[] pages = findMany.getPages();
 		
-		Vector scraperExecutions = new Vector();
-		for(int i = 0 ; i < scrapers.length ; i ++) {
-			if(findMany.hasName) {
-				for(int j = 0 ; j < results.length ; j ++ ) {
-					scraperExecutions.add(
-						new ScraperExecutableChild(
-								getContext(),
-								this, scrapers[i],
-								getVariables(),
-								results[j]));
-				}
-			} else {
-				new ScraperExecutableChild(
-						getContext(),
-						this, scrapers[i], getVariables());
+		Vector children = new Vector();
+		
+		for(int i = 0 ; i < results.length ; i ++) {
+			Result source = results[i];
+			for(int j = 0 ; j < scrapers.length ; j++) {
+				children.add(new SpawnedScraperExecutable(getContext(), scrapers[j], getVariables(), source));
+			}
+			for(int j = 0 ; j < pages.length ; j++) {
+				children.add(new PageExecutable(getContext(), pages[j], getVariables(), source));
 			}
 		}
-		Executable[] children = new ScraperExecutable[scraperExecutions.size()];
-		scraperExecutions.copyInto(children);
-		return children;
+		Executable[] childrenAry = new ScraperExecutable[children.size()];
+		children.copyInto(childrenAry);
+		return childrenAry;
 	}
 }

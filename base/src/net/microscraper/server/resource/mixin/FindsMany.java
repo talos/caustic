@@ -25,9 +25,9 @@ public interface FindsMany {
 	/**
 	 * A helper class to deserialize 
 	 * interfaces of {@link FindsMany} using an inner constructor.
-	 * Should only be instantiated inside {@link FindOne} or {@link ScraperExecutable}.
+	 * Should only be instantiated inside {@link FindOne} or {@link SpawnedScraperExecutable}.
 	 * @see FindOne
-	 * @see ScraperExecutable
+	 * @see SpawnedScraperExecutable
 	 * @author john
 	 *
 	 */

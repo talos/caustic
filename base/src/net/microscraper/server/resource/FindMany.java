@@ -62,6 +62,10 @@ public class FindMany extends Find implements SpawnsScrapers {
 		return spawnsScrapers.getScrapers();
 	}
 	
+	public Page[] getPages() {
+		return spawnsScrapers.getPages();
+	}
+	
 	private static final String MIN_MATCH = "min";
 	private static final String MAX_MATCH = "max";
 	

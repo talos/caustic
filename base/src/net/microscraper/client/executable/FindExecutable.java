@@ -21,11 +21,15 @@ import net.microscraper.server.resource.Regexp;
  * 
  */
 public abstract class FindExecutable extends BasicExecutable {
+	
+	/**
+	 * The {@link Regexp} {@link Resource} that is used to parse.
+	 */
 	private final Regexp regexp;
-
+	
 	public FindExecutable(Interfaces context,
-			Find find, Variables variables, Executable parent) {
-		super(context, find, variables, parent);
+			Find find, Variables variables, Result source) {
+		super(context, find, variables, source);
 		this.regexp = find;
 	}
 	
@@ -59,6 +63,13 @@ public abstract class FindExecutable extends BasicExecutable {
 		}
 	}
 	
+	/**
+	 * 
+	 * @return The {@link PatternInterface} that this {@link FindExecutable} can use to parse its
+	 * {@link #sourceResult}.
+	 * @throws MissingVariableException
+	 * @throws MustacheTemplateException
+	 */
 	protected final PatternInterface getPattern() throws MissingVariableException, MustacheTemplateException {
 		return new RegexpExecution(getContext(), regexp, getVariables()).getPattern();
 	}

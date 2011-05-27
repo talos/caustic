@@ -142,11 +142,6 @@ public class JDBCSQLite implements SQLInterface {
 		}
 
 	}
-
-	@Override
-	public String idColumnType() {
-		return "INTEGER";
-	}
 	
 	@Override
 	public String keyColumnDefinition() {

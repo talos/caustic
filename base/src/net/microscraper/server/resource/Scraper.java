@@ -33,22 +33,11 @@ public class Scraper extends Resource implements FindsOne, FindsMany,
 	public FindOne[] getFindOnes() {
 		return findsOne.getFindOnes();
 	}
-	
-	/**
-		The optional source {@link Page} for this {@link Scraper}.
-		Is <code>null</code> if {@link #hasSource} is <code>false</code>.
-		@see #hasSource()
-	*/
-	public final Page sourcePage;
-	
-	/**
-	 * Whether or not this {@link Scraper} has a source {@link Page}.
-	 * @see #source
-	 */
-	public final boolean hasSource;
-	
-	private static final String SOURCE = "source";
 
+	public Page[] getPages() {
+		return spawnsScrapers.getPages();
+	}
+	
 	/**
 	 * Deserialize a {@link Scraper} from a {@link JSONInterfaceObject}.
 	 * @param jsonObject Input {@link JSONInterfaceObject} object.
@@ -58,20 +47,8 @@ public class Scraper extends Resource implements FindsOne, FindsMany,
 	 */
 	public Scraper(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		super(jsonObject.getLocation());
-		try {
-			this.findsMany = FindsMany.Deserializer.deserialize(jsonObject);
-			this.findsOne = FindsOne.Deserializer.deserialize(jsonObject);
-			this.spawnsScrapers = SpawnsScrapers.Deserializer.deserialize(jsonObject);
-			
-			if(jsonObject.has(SOURCE)) {
-				hasSource = true;
-				sourcePage = new Page(jsonObject.getJSONObject(SOURCE));
-			} else {
-				hasSource = false;
-				sourcePage = null;
-			}
-		} catch(JSONInterfaceException e) {
-			throw new DeserializationException(e, jsonObject);
-		}
+		this.findsMany = FindsMany.Deserializer.deserialize(jsonObject);
+		this.findsOne = FindsOne.Deserializer.deserialize(jsonObject);
+		this.spawnsScrapers = SpawnsScrapers.Deserializer.deserialize(jsonObject);
 	}
 }
