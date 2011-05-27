@@ -13,7 +13,8 @@ public class LocalURILoader extends CachedURILoader {
 	@Override
 	protected String loadNew(URIInterface location) throws IOException {
 		try {
-			File file = new File(new URI(location.toString()));
+			System.out.println(location.toString());
+			File file = new File(new URI(location.getScheme(), location.getSchemeSpecificPart(), null));
 			FileInputStream fileInputStream = new FileInputStream(file);
 			byte[] buffer = new byte[(int) file.length()];  
 			fileInputStream.read(buffer);

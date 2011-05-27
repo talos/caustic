@@ -1,11 +1,14 @@
 package net.microscraper.client.executable;
 
+import java.io.IOException;
+
 import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Utils;
 import net.microscraper.client.Variables;
+import net.microscraper.server.DeserializationException;
 import net.microscraper.server.Resource;
 
 /**
@@ -81,8 +84,11 @@ public abstract class BasicExecutable implements Executable {
 				handleDelay(e);
 			} catch(MissingVariableException e) {
 				handleMissingVariable(e);
+			} catch(IOException e) {
+				handleFailure(new ExecutionFailure(e));
+			} catch(DeserializationException e) {
+				handleFailure(new ExecutionFailure(e));
 			}
-			
 		}
 	}
 	
@@ -160,12 +166,15 @@ public abstract class BasicExecutable implements Executable {
 	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
 	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
 	 * {@link Executable}'s {@link Variables}.
+	 * @throws IOException If there was an error loading the {@link Resource} for one of the children.
+	 * @throws DeserializationException If there was an error deserializing the {@link Resource} for one
+	 * of the children.
 	 * @see #generateResource
 	 * @see #generateResult
 	 * @see #getChildren
 	 */
 	protected abstract Executable[] generateChildren(Result[] results)
-			throws MissingVariableException, MustacheTemplateException;
+			throws MissingVariableException, MustacheTemplateException, DeserializationException, IOException;
 	
 	public final Resource getResource() {
 		return resource;

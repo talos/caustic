@@ -1,5 +1,6 @@
 package net.microscraper.client.executable;
 
+import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.client.MissingVariableException;
@@ -12,6 +13,7 @@ import net.microscraper.client.interfaces.InvalidRangeException;
 import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
 import net.microscraper.client.interfaces.PatternInterface;
+import net.microscraper.server.DeserializationException;
 import net.microscraper.server.resource.FindMany;
 import net.microscraper.server.resource.Page;
 import net.microscraper.server.resource.Regexp;
@@ -59,8 +61,10 @@ public class FindManyExecutable extends FindExecutable {
 	 * @return An array of {@link ScraperExecutable}s.
 	 * @throws MustacheTemplateException 
 	 * @throws MissingVariableException 
+	 * @throws IOException 
+	 * @throws DeserializationException 
 	 */
-	protected Executable[] generateChildren(Result[] results) throws MissingVariableException, MustacheTemplateException {
+	protected Executable[] generateChildren(Result[] results) throws MissingVariableException, MustacheTemplateException, DeserializationException, IOException {
 		FindMany findMany = (FindMany) getResource();
 		Scraper[] scrapers = findMany.getScrapers();
 		Page[] pages = findMany.getPages();

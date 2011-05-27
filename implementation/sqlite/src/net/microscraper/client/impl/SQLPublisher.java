@@ -1,14 +1,11 @@
 package net.microscraper.client.impl;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import net.microscraper.client.NameValuePair;
 import net.microscraper.client.Utils;
 import net.microscraper.client.executable.Executable;
 import net.microscraper.client.executable.Result;
@@ -54,7 +51,9 @@ public class SQLPublisher implements Publisher {
 				sql.prepareStatement(
 						"CREATE TABLE `" + RESULTS_TABLE + "` (" +
 						"`" + EXECUTABLE_ID + "` " + sql.intColumnType() + ", " +
-						"`" + ID + "` " + sql.intColumnType() + " " + sql.keyColumnDefinition() + ", " +
+						"`" + ID + "` " + sql.intColumnType() //+ " " + sql.keyColumnDefinition() + ", " +
+				+ ", " +
+						
 						"`" + NAME + "` " + sql.varcharColumnType() + ", " + 
 						"`" + VALUE + "` " + sql.textColumnType() + " )");
 			createResultsTable.execute();
@@ -131,18 +130,10 @@ public class SQLPublisher implements Publisher {
 			}
 		}
 	}
-	/*
-	private void deleteEntry(Execution execution) throws SQLInterfaceException {
-		deleteExecution.bindStrings(new String[] { Integer.toString(execution.getId()) });
-		deleteExecution.addBatch();
-	}
-*/
+	
 	@Override
 	public void publish(Executable execution) throws PublisherException {
 		try {
-			// delete existing entry
-			//deleteEntry(execution);
-			// Add new entry
 			addEntry(execution);
 			executionsSinceLastCommit++;
 			
@@ -177,10 +168,9 @@ public class SQLPublisher implements Publisher {
 		insertResult.executeBatch();
 		sql.commit();
 		
-		
-		
 		// Clear out our batch parameters
 		batchExecutables.clear();
+		batchResults.clear();
 		executionsSinceLastCommit = 0;
 	}
 	

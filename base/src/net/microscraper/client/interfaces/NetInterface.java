@@ -8,4 +8,6 @@ package net.microscraper.client.interfaces;
 public interface NetInterface {
 	public abstract URIInterface getURI(String uriString) throws NetInterfaceException;
 	public abstract URLInterface getURL(String urlString) throws NetInterfaceException;
+	public abstract URIInterface getURI(String scheme, String schemeSpecificPart, String fragment)
+				throws NetInterfaceException;
 }

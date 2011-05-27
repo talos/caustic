@@ -22,7 +22,7 @@ public class Scraper extends Resource implements FindsOne, FindsMany,
 	private final FindsMany findsMany;
 	private final SpawnsScrapers spawnsScrapers;
 	
-	public Scraper[] getScrapers() {
+	public Scraper[] getScrapers() throws DeserializationException, IOException {
 		return spawnsScrapers.getScrapers();
 	}
 
@@ -34,7 +34,7 @@ public class Scraper extends Resource implements FindsOne, FindsMany,
 		return findsOne.getFindOnes();
 	}
 
-	public Page[] getPages() {
+	public Page[] getPages() throws DeserializationException, IOException {
 		return spawnsScrapers.getPages();
 	}
 	

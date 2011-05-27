@@ -58,11 +58,11 @@ public class FindMany extends Find implements SpawnsScrapers {
 		}
 	}
 	
-	public Scraper[] getScrapers() {
+	public Scraper[] getScrapers() throws DeserializationException, IOException {
 		return spawnsScrapers.getScrapers();
 	}
 	
-	public Page[] getPages() {
+	public Page[] getPages() throws DeserializationException, IOException {
 		return spawnsScrapers.getPages();
 	}
 	

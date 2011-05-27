@@ -22,14 +22,18 @@ public interface SpawnsScrapers {
 	/**
 	 * 
 	 * @return An array of {@link Scraper}s.
+	 * @throws IOException 
+	 * @throws DeserializationException 
 	 */
-	public abstract Scraper[] getScrapers();
+	public abstract Scraper[] getScrapers() throws DeserializationException, IOException;
 	
 	/**
 	 * 
 	 * @return An array of {@link Page}s.
+	 * @throws IOException 
+	 * @throws DeserializationException 
 	 */
-	public abstract Page[] getPages();
+	public abstract Page[] getPages() throws DeserializationException, IOException;
 	
 
 	/**
@@ -52,47 +56,59 @@ public interface SpawnsScrapers {
 		 * a {@link SpawnsScrapers}.
 		 * @throws IOException If there is an error loading one of the references.
 		 */
-		public static SpawnsScrapers deserialize(JSONInterfaceObject jsonObject)
+		public static SpawnsScrapers deserialize(final JSONInterfaceObject jsonObject)
 					throws DeserializationException, IOException {
-			try {
-				final Scraper[] scrapersAry;
-				final Page[] pagesAry;
-				if(jsonObject.has(KEY)) {
-					JSONInterfaceArray array = jsonObject.getJSONArray(KEY);
-					
-					Vector pages = new Vector();
-					Vector scrapers = new Vector();
-					
-					//scrapers = new Scraper[array.length()];
-					for(int i = 0 ; i < array.length() ; i ++) {
-						//scrapers[i] = new Scraper(array.getJSONObject(i));
-						JSONInterfaceObject obj = array.getJSONObject(i);
-						if(URL.isURL(obj) == true) {
-							pages.add(new Page(obj));
-						} else {
-							scrapers.add(new Scraper(obj));
+			return new SpawnsScrapers() {
+				private Scraper[] scrapers;
+				private Page[] pages;
+				
+				private void load() throws JSONInterfaceException, IOException, DeserializationException {
+					if(jsonObject.has(KEY)) {
+						final JSONInterfaceArray array = jsonObject.getJSONArray(KEY);
+
+						Vector pages = new Vector();
+						Vector scrapers = new Vector();
+						
+						//scrapers = new Scraper[array.length()];
+						for(int i = 0 ; i < array.length() ; i ++) {
+							//scrapers[i] = new Scraper(array.getJSONObject(i));
+							JSONInterfaceObject obj = array.getJSONObject(i);
+							if(URL.isURL(obj) == true) {
+								pages.add(new Page(obj));
+							} else {
+								scrapers.add(new Scraper(obj));
+							}
 						}
+						this.scrapers = new Scraper[scrapers.size()];
+						this.pages = new Page[pages.size()];
+						scrapers.copyInto(this.scrapers);
+						pages.copyInto(this.pages);
+
+					} else {
+						this.scrapers = new Scraper[0];
+						this.pages = new Page[0];
 					}
 					
-					scrapersAry = new Scraper[scrapers.size()];
-					pagesAry = new Page[pages.size()];
-					scrapers.copyInto(scrapersAry);
-					pages.copyInto(pagesAry);
-				} else {
-					scrapersAry = new Scraper[0];
-					pagesAry = new Page[0];
 				}
-				return new SpawnsScrapers() {
-					public Scraper[] getScrapers() {
-						return scrapersAry;
+				public Scraper[] getScrapers() throws DeserializationException, IOException {
+					try {
+						if(scrapers == null)
+							load();
+						return scrapers;
+					} catch(JSONInterfaceException e) {
+						throw new DeserializationException(e, jsonObject);
 					}
-					public Page[] getPages() {
-						return pagesAry;
+				}
+				public Page[] getPages() throws DeserializationException, IOException {
+					try {
+						if(pages == null)
+							load();
+						return pages;
+					} catch(JSONInterfaceException e) {
+						throw new DeserializationException(e, jsonObject);
 					}
-				};
-			} catch(JSONInterfaceException e) {
-				throw new DeserializationException(e, jsonObject);
-			}
+				}
+			};
 		}
 	}
 }

@@ -28,4 +28,12 @@ public class JavaNetInterface implements NetInterface {
 		}
 	}
 
+	public URIInterface getURI(String scheme, String schemeSpecificPart, String fragment)
+				throws NetInterfaceException {
+		try {
+			return new JavaNetURI(new URI(scheme, schemeSpecificPart, fragment));	
+		} catch(URISyntaxException e) {
+			throw new NetInterfaceException(e);
+		}
+	}
 }

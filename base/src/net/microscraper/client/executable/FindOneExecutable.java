@@ -43,13 +43,13 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 	 */
 	public String get(String key) throws MissingVariableException {
 		if(isComplete()) {
-			NameValuePair result = (NameValuePair) getResult();
-			if(result.getName().equals(key))
-				return result.getValue();
 			for(int i = 0 ; i < findOneExecutables.length ; i ++) {
 				if(findOneExecutables[i].containsKey(key))
 					return findOneExecutables[i].get(key);
 			}
+			NameValuePair result = (NameValuePair) getResult();
+			if(result.getName().equals(key))
+				return result.getValue();
 		}
 		throw new MissingVariableException(this, key);
 	}

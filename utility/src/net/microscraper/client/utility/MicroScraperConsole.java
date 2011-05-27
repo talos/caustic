@@ -32,7 +32,7 @@ public class MicroScraperConsole {
 	private static final SimpleDateFormat DATETIME_FORMAT =
 		new SimpleDateFormat("yyyyMMddkkmmss");
 	private static final String ENCODING = "UTF-8";
-	private static final int sqlBatchSize = 400;
+	private static final int sqlBatchSize = 1;
 	
 	private final Log log = new Log();
 	private final URILoader uriLoader = new LocalURILoader();

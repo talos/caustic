@@ -1,10 +1,12 @@
 package net.microscraper.client.executable;
 
+import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.Variables;
 import net.microscraper.client.interfaces.Interfaces;
+import net.microscraper.server.DeserializationException;
 import net.microscraper.server.resource.FindMany;
 import net.microscraper.server.resource.FindOne;
 import net.microscraper.server.resource.Page;
@@ -19,15 +21,15 @@ public abstract class ScraperExecutable extends BasicExecutable implements Varia
 	}
 	
 	public String get(String key) throws MissingVariableException {
-		if(getVariables().containsKey(key)) {
-			return getVariables().get(key);
-		}
 		if(isComplete()) {
 			for(int i = 0 ; i < findOneExecutables.length ; i ++) {
 				if(findOneExecutables[i].containsKey(key)) {
 					return findOneExecutables[i].get(key);
 				}
 			}
+		}
+		if(getVariables().containsKey(key)) {
+			return getVariables().get(key);
 		}
 		throw new MissingVariableException(this, key);
 	}
@@ -46,7 +48,7 @@ public abstract class ScraperExecutable extends BasicExecutable implements Varia
 		return false;
 	}
 	
-	protected final Executable[] generateChildren(Result[] sourceResults) {
+	protected final Executable[] generateChildren(Result[] sourceResults) throws DeserializationException, IOException {
 		Vector children = new Vector();
 		Vector findOneExecutables = new Vector();
 		Scraper scraper = (Scraper) getResource();

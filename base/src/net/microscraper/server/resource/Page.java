@@ -115,9 +115,7 @@ public final class Page extends URL {
 	 */
 	public Page(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		super(jsonObject);
-		try {
-			//this.url = new URL(jsonObject);
-			
+		try {			
 			this.method = jsonObject.has(METHOD) ?
 					Method.fromString(jsonObject.getString(METHOD)) : DEFAULT_METHOD;
 			
