@@ -9,9 +9,7 @@ Microscrapers are ultra lightweight, logic-free JSON objects that provide templa
 Here's a simple one:
 
     {
-     "source" : {
-       "url" : "http://www.google.com/search?q={{query}}",
-     },
+     "url" : "http://www.google.com/search?q={{query}}",
      "finds_many"  : [{
        "name"   : "what do we say after {{query}}?",
        "pattern"     : "{{query}}\\s+(\\w+)",
@@ -22,12 +20,17 @@ Here's a simple one:
 Mapping <i>query</i> to "hello", the results look something like...
 
 <table>
-  <tr><td>what do we say after hello? <td>Kitty</tr>
-  <tr><td>what do we say after hello? <td>to   </tr>
-  <tr><td>what do we say after hello? <td>World</tr>
+  <tr><th>executable_id<th>id<th>name              <th>value</tr>
+  <tr><td>0            <td>1 <td>simple-google.json<td><i>...Google HTML...</i></tr>
+  <tr><td>1            <td>2 <td>what do we say after hello? <td>project</tr>
+  <tr><td>1            <td>3 <td>what do we say after hello? <td>kitty</tr>
+  <tr><td>1            <td>4 <td>what do we say after hello? <td>lyrics</tr>
+  <tr><td>1            <td>5 <td>what do we say after hello? <td>lionel</tr>
+  <tr><td>1            <td>6 <td>what do we say after hello? <td>kitty</tr>
+  <tr><td>1            <td>7 <td>what do we say after hello? <td>beyonce</tr>
+  <tr><td>1            <td>8 <td>what do we say after hello? <td>beyonce</tr>
+  <tr><td>1            <td>9 <td>what do we say after hello? <td>glee</tr>
 </table>
-
-...and so on.
 
 #### Why? ####
 
