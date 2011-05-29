@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite name="Suite1" verbose="1" >
+	<listeners>
+		<listener class-name="mockit.integration.testng.Initializer"/>
+	</listeners>	
+	<test name = "microscraper" >
+		<packages>
+			<package name = "net.microscraper.client.test" />
+		</packages>
+	</test>
+</suite>

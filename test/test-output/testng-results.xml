@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="1" total="1" passed="0">
+  <reporter-output>
+  </reporter-output>
+  <suite name="Suite1" duration-ms="440" started-at="2011-05-29T15:33:59Z" finished-at="2011-05-29T15:33:59Z">
+    <groups>
+    </groups>
+    <test name="Default test" duration-ms="440" started-at="2011-05-29T15:33:59Z" finished-at="2011-05-29T15:33:59Z">
+      <class name="net.microscraper.test.ScraperTest">
+        <test-method status="PASS" signature="setupClient()" name="setupClient" is-config="true" duration-ms="16" started-at="2011-05-29T15:33:59Z" finished-at="2011-05-29T15:33:59Z">
+        </test-method>
+        <test-method status="FAIL" signature="testSimpleGoogleScraper()" name="testSimpleGoogleScraper" duration-ms="411" started-at="2011-05-29T15:33:59Z" finished-at="2011-05-29T15:33:59Z">
+          <exception class="java.lang.AssertionError">
+            <message>
+              <![CDATA[Missing 1 invocation to:
+void net.microscraper.client.interfaces.Publisher#publishResult(int, int, int, String, String)
+with arguments: 0, 0, 1, "lksjdf", ""
+on mock instance: $Impl_Publisher@b05acd]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[java.lang.AssertionError: Missing 1 invocation to:
+void net.microscraper.client.interfaces.Publisher#publishResult(int, int, int, String, String)
+with arguments: 0, 0, 1, "lksjdf", ""
+on mock instance: $Impl_Publisher@b05acd
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+Caused by: Missing invocations
+	at net.microscraper.test.ScraperTest$1.<init>(ScraperTest.java:64)
+	at net.microscraper.test.ScraperTest.testSimpleGoogleScraper(ScraperTest.java:62)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	... 2 more
+]]>
+            </full-stacktrace>
+          </exception>
+        </test-method>
+      </class>
+    </test>
+  </suite>
+</testng-results>

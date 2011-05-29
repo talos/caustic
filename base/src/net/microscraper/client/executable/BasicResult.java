@@ -49,6 +49,9 @@ public class BasicResult implements Result {
 		return null;
 	}
 */
+	/**
+	 * Starts at <code>0</code> and increments up.
+	 */
 	public int getId() {
 		return id;
 	}

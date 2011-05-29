@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite hostname="john-krausss-macbook-pro-15.local" name="net.microscraper.test.ScraperTest" tests="1" failures="1" timestamp="29 May 2011 19:33:59 GMT" time="0.44" errors="0">
+  <testcase name="testSimpleGoogleScraper" time="0.411" classname="net.microscraper.test.ScraperTest">
+    <failure type="java.lang.AssertionError" message="Missing 1 invocation to:
+void net.microscraper.client.interfaces.Publisher#publishResult(int, int, int, String, String)
+with arguments: 0, 0, 1, &amp;quot;lksjdf&amp;quot;, &amp;quot;&amp;quot;
+on mock instance: $Impl_Publisher@b05acd">
+      <![CDATA[java.lang.AssertionError: Missing 1 invocation to:
+void net.microscraper.client.interfaces.Publisher#publishResult(int, int, int, String, String)
+with arguments: 0, 0, 1, "lksjdf", ""
+on mock instance: $Impl_Publisher@b05acd
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+Caused by: Missing invocations
+	at net.microscraper.test.ScraperTest$1.<init>(ScraperTest.java:64)
+	at net.microscraper.test.ScraperTest.testSimpleGoogleScraper(ScraperTest.java:62)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	... 2 more
+]]>
+    </failure>
+  </testcase>
+</testsuite>

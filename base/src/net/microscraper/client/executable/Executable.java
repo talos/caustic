@@ -109,7 +109,8 @@ public interface Executable extends Runnable {
 	
 	/**
 	 * 
-	 * @return A unique identifier for this {@link Executable}.
+	 * @return A unique identifier for this {@link Executable}.  Starts at <code>0</code>
+	 * and increments up.
 	 */
 	public abstract int getId();
 	

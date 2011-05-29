@@ -15,11 +15,11 @@ public final class Interfaces {
 	public final JSONInterface jsonInterface;
 	public final String encoding;
 	public Interfaces(Log log, RegexpCompiler regexpInterface,
-			Browser browser, NetInterface netInterface,
+			NetInterface netInterface,
 			JSONInterface jsonInterface, String encoding) {
 		this.log = log;
 		this.regexpCompiler = regexpInterface;
-		this.browser = browser;
+		this.browser = netInterface.getBrowser();
 		this.netInterface = netInterface;
 		this.jsonInterface = jsonInterface;
 		this.encoding = encoding;

@@ -1,6 +1,8 @@
 package net.microscraper.client.interfaces;
 
-public class PublisherException extends Exception {
+import net.microscraper.client.ClientException;
+
+public class PublisherException extends ClientException {
 
 	public PublisherException(Throwable e) {
 		super(e);

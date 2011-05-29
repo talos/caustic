@@ -6,6 +6,7 @@ import java.util.Vector;
 import net.microscraper.client.executable.BasicResult;
 import net.microscraper.client.executable.Executable;
 import net.microscraper.client.executable.PageExecutable;
+import net.microscraper.client.executable.Result;
 import net.microscraper.client.executable.SpawnedScraperExecutable;
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.Interfaces;
@@ -30,7 +31,6 @@ public final class Client {
 	private final Interfaces interfaces;
 	
 	/**
-	 * @param browser The {@link Browser} this {@link Client} should use.
 	 * @param log The {@link Log} this {@link Client} should use.
 	 * @param encoding The encoding to use when encoding or decoding post data, cookies,
 	 * and JSON resources. "UTF-8" is recommended.
@@ -39,11 +39,11 @@ public final class Client {
 	 * @param jsonInterface A {@link JSONInterface} to use when loading {@link JSONInterfaceObject}s.
 	 * @param regexpCompiler The {@link RegexpCompiler} interface to use when compiling regexps.
 	 */
-	public Client(RegexpCompiler regexpCompiler, Browser browser,
+	public Client(RegexpCompiler regexpCompiler,
 			Log log, NetInterface netInterface, JSONInterface jsonInterface,
 			String encoding) {
 		this.interfaces = new Interfaces( log,
-				regexpCompiler, browser, netInterface,
+				regexpCompiler, netInterface,
 				jsonInterface, encoding);
 	}
 	
@@ -78,8 +78,9 @@ public final class Client {
 	 * {@link #execute} runs an {@link Executable} and its children, publishing them after each run.
 	 * @param rootExecutable The {@link Executable} to start with.
 	 * @param publisher The {@link Publisher} to publish to after each execution.
+	 * @throws PublisherException if the {@link Publisher} experienced an error.
 	 */
-	private void execute(Executable rootExecutable, Publisher publisher) {
+	private void execute(Executable rootExecutable, Publisher publisher) throws PublisherException {
 		Vector queue = new Vector();
 		queue.add(rootExecutable);
 		while(queue.size() > 0) {
@@ -89,18 +90,26 @@ public final class Client {
 			Executable exc = (Executable) queue.elementAt(0);
 			queue.removeElementAt(0);
 			exc.run();
-			try {
-				publisher.publish(exc);
-			} catch(PublisherException e) {
-				interfaces.log.e(e);
-			}
 			// If the execution is complete, add its children to the queue.
 			if(exc.isComplete()) {
+				Result[] results = exc.getResults();
+				for(int i = 0 ; i < results.length ; i ++) {
+					publisher.publishResult(
+							exc.getSource().getId(),
+							exc.getId(),
+							results[i].getId(),
+							results[i].getName(),
+							results[i].getValue());
+				}
+				
 				Executable[] children = exc.getChildren();
 				Utils.arrayIntoVector(children, queue);
-				
+			} else if (exc.isStuck()) {
+				publisher.publishStuck(exc.getSource().getId(), exc.getId(), exc.stuckOn());
+			} else if (exc.hasFailed()) {
+				publisher.publishFailure(exc.getSource().getId(), exc.getId(), exc.failedBecause());
 			// If the execution is not stuck and is not failed, add it back to the queue.
-			} else if(!exc.hasFailed() && !exc.isStuck()) {
+			} else {
 				queue.addElement(exc);
 			}
 		}
