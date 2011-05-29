@@ -1,20 +1,19 @@
 package net.microscraper.client.interfaces;
 
-import java.net.URL;
-
 /**
  * This is thrown when the Browser should wait to request this Page in order to limit traffic.
  * @author john
  *
  */
-public class BrowserDelayException extends Exception {
+public class BrowserDelayException extends BrowserException {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 8357347717343426486L;
-	public final URL url;
+	public final URLInterface url;
 	public final float kbpsSinceLastLoad;
-	public BrowserDelayException(URL url, float kbpsSinceLastLoad) {
+	public BrowserDelayException(URLInterface url, float kbpsSinceLastLoad) {
+		super(url);
 		this.url = url;
 		this.kbpsSinceLastLoad = kbpsSinceLastLoad;
 		/*super("Delaying load of " + Utils.quote(url.toString()) +

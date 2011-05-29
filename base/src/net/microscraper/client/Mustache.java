@@ -2,9 +2,10 @@ package net.microscraper.client;
 
 
 /**
- * Mustache-like substitutions from Variables.
- * This does not currently support any commenting.
+ * Mustache-like substitutions from {@link Variables}.
+ * This can substitute tags within {{ and }} with a value from {@link Variables}.
  * @author john
+ * @see #compile
  *
  */
 public class Mustache {
@@ -12,7 +13,7 @@ public class Mustache {
 	public static final String close_tag = "}}";
 	
 	/**
-	 * Attempt to compile a template within an ContextRoot.
+	 * Attempt to compile a Mustache template within a {@link Variables}.
 	 * @param template A string containing the template to compile.
 	 * @param variables A {@link Variables} instance.
 	 * @return The string, with tags substituted using the variables.

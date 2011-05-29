@@ -1,5 +1,7 @@
 package net.microscraper.client.executable;
 
+import net.microscraper.client.ClientException;
+
 /**
  * An {@link Exception} that indicates an {@link Executable}
  * has failed.  Its {@link #getCause} is the reason
@@ -7,7 +9,7 @@ package net.microscraper.client.executable;
  * @author john
  *
  */
-public class ExecutionFailure extends Exception {
+public class ExecutionFailure extends ClientException {
 	/**
 	 * 
 	 */

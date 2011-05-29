@@ -1,7 +1,5 @@
 package net.microscraper.client.interfaces;
 
-import java.util.Date;
-
 import net.microscraper.client.EncodedNameValuePair;
 import net.microscraper.client.UnencodedNameValuePair;
 
@@ -30,48 +28,46 @@ public interface Browser {
 	
 	public static final String UTF_8 = "UTF-8";
 	
-	/*
-	public JSON.Object loadJSON(String url, Interfaces.JSON jsonInterface)
-			throws InterruptedException, BrowserException, JSONInterfaceException;
-	*/
-	
 	/**
 	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies
-	 * from Set-Cookie to the Browser's cookie store.
+	 * from the Set-Cookie response header to the {@link Browser}'s cookie store.
+	 * @param useRateLimit Whether to throw a {@link BrowserDelayException} to avoid overburdening a host.
 	 * @param url the {@link URLInterface} to HTTP Head.
-	 * @param headers Array of NameValuePair extra headers.
-	 * @param cookies Array of NameValuePair extra cookies.  These should also be added to the browser's cookie store.
-	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host.
+	 * @param headers Array of {@link UnencodedNameValuePair} extra headers.  Can be <code>null</code> if there are none.
+	 * @param cookies Array of {@link EncodedNameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
+	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host, if <code>useRateLimit</code> is <code>true</code>.
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
-	public abstract void head(URLInterface url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies)
+	public abstract void head(boolean useRateLimit, URLInterface url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies)
 			throws BrowserDelayException, BrowserException;
 	
 	/**
 	 * Make an HTTP Get request.  This returns the body of the response, and adds cookies to the cookie jar.
+	 * @param useRateLimit Whether to throw a {@link BrowserDelayException} to avoid overburdening a host.
 	 * @param url the {@link URLInterface} to HTTP Get.
-	 * @param headers Array of NameValuePair extra headers.
-	 * @param cookies Array of NameValuePair extra cookies.  These should also be added to the browser's cookie store.
-	 * @param terminates Array of Patterns that prematurely terminate the load and return the body.
-	 * @return the body of the response.
-	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host.
+	 * @param headers Array of {@link UnencodedNameValuePair} extra headers.  Can be <code>null</code> if there are none.
+	 * @param cookies Array of {@link EncodedNameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
+	 * @param terminates Array of {@link PatternInterface}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
+	 * @return The body of the response.
+	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host, if <code>useRateLimit</code> is <code>true</code>.
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
-	public abstract String get(URLInterface url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies,
+	public abstract String get(boolean useRateLimit, URLInterface url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies,
 			PatternInterface[] terminates) throws BrowserDelayException, BrowserException;
 	
 	/**
 	 * Make an HTTP Post request.  This returns the body of the response, and adds cookies to the cookie jar.
+	 * @param useRateLimit Whether to throw a {@link BrowserDelayException} to avoid overburdening a host.
 	 * @param url the {@link URLInterface} to HTTP Get.
-	 * @param headers Array of NameValuePair extra headers.
-	 * @param cookies Array of NameValuePair extra cookies.  These should also be added to the browser's cookie store.
-	 * @param terminates Array of Patterns that prematurely terminate the load and return the body.
-	 * @param posts Array of NameValuePair post data.
-	 * @return
-	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host.
+	 * @param headers Array of {@link UnencodedNameValuePair} extra headers.  Can be <code>null</code> if there are none.
+	 * @param cookies Array of {@link EncodedNameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
+	 * @param terminates Array of {@link PatternInterface}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
+	 * @param posts Array of {@link EncodedNameValuePair} post data.  Can be <code>null</code> if there are none.
+	 * @return The body of the response.
+	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host, if <code>useRateLimit</code> is <code>true</code>.
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
-	public abstract String post(URLInterface url, UnencodedNameValuePair[] headers,
+	public abstract String post(boolean useRateLimit, URLInterface url, UnencodedNameValuePair[] headers,
 			EncodedNameValuePair[] cookies, PatternInterface[] terminates, EncodedNameValuePair[] posts)
 			throws BrowserDelayException, BrowserException;
 }

@@ -51,9 +51,8 @@ public class SQLPublisher implements Publisher {
 				sql.prepareStatement(
 						"CREATE TABLE `" + RESULTS_TABLE + "` (" +
 						"`" + EXECUTABLE_ID + "` " + sql.intColumnType() + ", " +
-						"`" + ID + "` " + sql.intColumnType() //+ " " + sql.keyColumnDefinition() + ", " +
-				+ ", " +
-						
+						"`" + SOURCE_RESULT_ID + "` " + sql.intColumnType() + ", " +
+						"`" + ID + "` " + sql.intColumnType() + " " + sql.keyColumnDefinition() + ", " +						
 						"`" + NAME + "` " + sql.varcharColumnType() + ", " + 
 						"`" + VALUE + "` " + sql.textColumnType() + " )");
 			createResultsTable.execute();
@@ -69,6 +68,7 @@ public class SQLPublisher implements Publisher {
 			checkResultsTable = 
 				sql.prepareStatement(
 						"SELECT `"+ EXECUTABLE_ID + "`, " +
+								"`" + SOURCE_RESULT_ID + "`, " +
 								"`" + ID + "`, " +
 								"`" + NAME + "`, " +
 								"`" + VALUE + "` " +

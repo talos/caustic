@@ -42,7 +42,7 @@ public class PageExecutable extends ScraperExecutable {
 				BrowserDelayException, MissingVariableException,
 				BrowserException, MustacheTemplateException,
 				NetInterfaceException {
-		getContext().browser.head(getURLFor(page), 
+		getContext().browser.head(true, getURLFor(page), 
 				MustacheUnencodedNameValuePair.compile(page.headers, getVariables()),
 				MustacheEncodedNameValuePair.compile(page.cookies, getVariables(), getContext().encoding));
 	}
@@ -50,8 +50,8 @@ public class PageExecutable extends ScraperExecutable {
 	private String get(Page page) throws UnsupportedEncodingException,
 				BrowserDelayException, MissingVariableException,
 				BrowserException, MustacheTemplateException,
-				InvalidBodyMethodException, NetInterfaceException {
-		return getContext().browser.get(getURLFor(page),
+				NetInterfaceException {
+		return getContext().browser.get(true, getURLFor(page),
 				MustacheUnencodedNameValuePair.compile(page.headers, getVariables()),
 				MustacheEncodedNameValuePair.compile(page.cookies, getVariables(), getContext().encoding),
 				getStopBecause(page));
@@ -60,8 +60,8 @@ public class PageExecutable extends ScraperExecutable {
 	private String post(Page page) throws UnsupportedEncodingException,
 				BrowserDelayException, MissingVariableException,
 				BrowserException, MustacheTemplateException,
-				InvalidBodyMethodException, NetInterfaceException {	
-		return getContext().browser.post(getURLFor(page),
+				NetInterfaceException {	
+		return getContext().browser.post(true, getURLFor(page),
 				MustacheUnencodedNameValuePair.compile(page.headers, getVariables()),
 				MustacheEncodedNameValuePair.compile(page.cookies, getVariables(), getContext().encoding),
 				getStopBecause(page),
@@ -87,19 +87,13 @@ public class PageExecutable extends ScraperExecutable {
 				return post(page);
 			} else if(page.method.equals(Page.Method.HEAD)) {
 				head(page);
-				return null;
-			} else {
-				throw new InvalidBodyMethodException(page);
 			}
+			return null;
 		} catch (UnsupportedEncodingException e) {
 			throw new ExecutionFailure(e);
 		} catch (NetInterfaceException e) {
 			throw new ExecutionFailure(e);
-		} catch (BrowserException e) {
-			throw new ExecutionFailure(e);
 		} catch (MustacheTemplateException e) {
-			throw new ExecutionFailure(e);
-		} catch (InvalidBodyMethodException e) {
 			throw new ExecutionFailure(e);
 		}
 	}

@@ -7,8 +7,6 @@ import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.DeserializationException;
 import net.microscraper.server.MustacheNameValuePair;
-import net.microscraper.server.resource.Page.Method.UnknownHTTPMethodException;
-
 
 /**
  * A {@link Scraper} that load a web page.
@@ -46,7 +44,7 @@ public final class Page extends URL {
 		 * passed.
 		 */
 		public static final Method fromString(String method)
-				throws UnknownHTTPMethodException {
+				throws IllegalArgumentException {
 			if(method.equals("get")) {
 				return GET;
 			} else if (method.equals("post")) {
@@ -54,7 +52,7 @@ public final class Page extends URL {
 			} else if (method.equals("head")) {
 				return HEAD;
 			} else {
-				throw new UnknownHTTPMethodException(method);
+				throw new IllegalArgumentException("Method '" + method + "' is not recognized, should use 'post', 'cookie', or 'header'.");
 			}
 		}
 		
@@ -62,12 +60,6 @@ public final class Page extends URL {
 		 * Use only the static Method declarations.
 		 */
 		private Method() {}
-		
-		public static class UnknownHTTPMethodException extends Exception {
-			public UnknownHTTPMethodException(String method) {
-				super("Method '" + method + "' is not recognized, should use 'post', 'cookie', or 'header'.");
-			}
-		}
 	}
 	
 	/**
@@ -116,8 +108,12 @@ public final class Page extends URL {
 	public Page(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		super(jsonObject);
 		try {			
-			this.method = jsonObject.has(METHOD) ?
+			try {
+				this.method = jsonObject.has(METHOD) ?
 					Method.fromString(jsonObject.getString(METHOD)) : DEFAULT_METHOD;
+			} catch(IllegalArgumentException e) {
+				throw new DeserializationException(e, jsonObject);
+			}
 			
 			this.cookies = jsonObject.has(COOKIES) ?
 					new NameValuePairs(jsonObject.getJSONObject(COOKIES)).pairs :
@@ -151,8 +147,6 @@ public final class Page extends URL {
 					new MustacheNameValuePair[0];
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
-		} catch(UnknownHTTPMethodException e) {
-			throw new DeserializationException(e.getLocalizedMessage(), jsonObject);
 		}
 	}
 	

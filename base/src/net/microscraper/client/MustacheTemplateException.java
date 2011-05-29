@@ -1,6 +1,11 @@
 package net.microscraper.client;
 
-public class MustacheTemplateException extends Exception {
+/**
+ * This is thrown when {@link Mustache#compile(String, Variables)} fails.
+ * @author john
+ *
+ */
+public class MustacheTemplateException extends ClientException {
 
 	/**
 	 * 

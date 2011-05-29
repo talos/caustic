@@ -12,4 +12,7 @@ public class JavaNetURL implements URLInterface {
 	public String toString() {
 		return this.url.toString();
 	}
+	public String getHost() {
+		return this.url.getHost();
+	}
 }

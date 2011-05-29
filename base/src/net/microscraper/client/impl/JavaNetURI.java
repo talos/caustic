@@ -23,6 +23,7 @@ public class JavaNetURI implements URIInterface {
 		return uri.isAbsolute();
 	}
 	public URIInterface resolve(String link) {
+		uri.resolve(uri);
 		return new JavaNetURI(uri.resolve(link));
 	}
 	public URIInterface resolve(URIInterface otherURI) {

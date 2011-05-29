@@ -3,8 +3,8 @@ package net.microscraper.client.interfaces;
 import java.io.IOException;
 
 /**
- * Implementations of this interface can load files located at a {@link URIInterface}
- * into a String.
+ * Implementations of this interface can load the contents of files located at a {@link URIInterface}
+ * into a {@link String}.
  * @author realest
  *
  */
