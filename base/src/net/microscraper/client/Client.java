@@ -9,6 +9,7 @@ import net.microscraper.client.executable.PageExecutable;
 import net.microscraper.client.executable.Result;
 import net.microscraper.client.executable.SpawnedScraperExecutable;
 import net.microscraper.client.interfaces.Browser;
+import net.microscraper.client.interfaces.BrowserException;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
@@ -53,17 +54,17 @@ public final class Client {
 	 * @param extraVariables An array of {@link UnencodedNameValuePair}s to stock the {@link SpawnedScraperExecutable}s
 	 * {@link FindOne}s with.
 	 * @param publisher A {@link Publisher} to send the results of {@link Executable}s to.
+	 * @throws BrowserException If a {@link Browser} problem prevented the {@link Scraper} from running.
 	 * @throws ClientException If the {@link Scraper} could not be run.
 	 */
 	public void scrape(URIInterface pageLocation, NameValuePair[] extraVariables,
-			Publisher publisher) throws ClientException {
+			Publisher publisher) throws BrowserException, ClientException {
 		try {
 			Page page = new Page(interfaces.jsonInterface.loadJSONObject(pageLocation));
 			
 			Executable rootExecutable = new PageExecutable(interfaces,
 					page, new DefaultVariables(extraVariables), 
-					BasicResult.Root()
-					);
+					null);
 			execute(rootExecutable, publisher);
 		} catch(IOException e) {
 			throw new ClientException(e);
@@ -93,40 +94,19 @@ public final class Client {
 			// If the execution is complete, add its children to the queue.
 			if(exc.isComplete()) {
 				Result[] results = exc.getResults();
-				for(int i = 0 ; i < results.length ; i ++) {
-					publisher.publishResult(
-							exc.getSource().getId(),
-							exc.getId(),
-							results[i].getId(),
-							results[i].getName(),
-							results[i].getValue());
+				for(int i = 0 ; i < results.length ; i++) {
+					results[i].publishTo(publisher);
 				}
-				
 				Executable[] children = exc.getChildren();
 				Utils.arrayIntoVector(children, queue);
 			} else if (exc.isStuck()) {
-				publisher.publishStuck(exc.getSource().getId(), exc.getId(), exc.stuckOn());
+				//publisher.publishStuck(exc.getSource().getId(), exc.getId(), exc.stuckOn());
 			} else if (exc.hasFailed()) {
-				publisher.publishFailure(exc.getSource().getId(), exc.getId(), exc.failedBecause());
+				//publisher.publishFailure(exc.getSource().getId(), exc.getId(), exc.failedBecause());
 			// If the execution is not stuck and is not failed, add it back to the queue.
 			} else {
 				queue.addElement(exc);
 			}
 		}
 	}
-	/*
-	public void testPage(URI pageLocation, UnencodedNameValuePair[] extraVariables) {
-		///new PageExecution(new Link(pageLocation), context, extraVariables);
-		
-	}
-	
-	public void testVariable(URI variableLocation, MustacheTemplate input, UnencodedNameValuePair[] extraVariables) {
-		//new VariableExecution(new Link(variableLocation), context, extraVariables, input);
-		
-	}
-	
-	public void testLeaf(URI leafLocation, MustacheTemplate input, UnencodedNameValuePair[] extraVariables) {
-		//new LeafExecution(new Link(leafLocation), context, extraVariables);
-		
-	}*/
 }

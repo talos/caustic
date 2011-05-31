@@ -101,6 +101,6 @@ public class PageExecutable extends ScraperExecutable {
 			MissingVariableException, MustacheTemplateException,
 			ExecutionFailure {
 		Page page = (Page) getResource();
-		return new Result[] { new BasicResult(page, doMethod(page)) };
+		return new Result[] { generateResult(null, doMethod(page)) };
 	}
 }

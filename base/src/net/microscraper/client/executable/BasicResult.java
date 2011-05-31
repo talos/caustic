@@ -1,40 +1,64 @@
 package net.microscraper.client.executable;
 
+import java.util.Hashtable;
+
+import net.microscraper.client.interfaces.Publisher;
+import net.microscraper.client.interfaces.PublisherException;
+import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.Resource;
 
 public class BasicResult implements Result {
 	//private final Resource resource;
 	private final String name;
 	private final String value;
-	private final int id;
-	private static int count = 0;
+	private final URIInterface uri;
+	private final int number;
+	private final URIInterface sourceUri;
+	private final Integer sourceNumber;
 	
 	/**
-	 * Construct a {@link BasicResult} without an explicit value for {@link #getName}.
-	 * Defaults to the location of the executed {@link Resource}.
-	 * @param resource the executed {@link Resource}.
-	 * @param value The String result value.
+	 * Keeps track of how many times each {@link Resource} has generated a {@link Result}.
 	 */
-	public BasicResult(Resource resource, String value) {
-		this.id = count;
-		count ++;
-		
-		this.name = resource.location.toString();
-		this.value = value;
-	}
+	private static final Hashtable countsForResource = new Hashtable();
 
 	/**
 	 * Construct a {@link BasicResult} with an explicit value for {@link #getName}.
-	 * @parm name The String result name.  Used in {@link Variables}.
+	 * @param executable The {@link Executable} that created this {@link Result}.
+	 * @param name The String result name.  Used in {@link Variables}. Can be <code>null</code>.
 	 * @param value The String result value.
 	 */
-	public BasicResult(String name, String value) {
-		this.id = count;
-		count++;
-		
+	public BasicResult(Executable executable, String name, String value) {
 		this.name = name;
 		this.value = value;
+		this.uri = executable.getResource().location;
+		this.number = generateNumber(this.uri);
+		if(executable.hasSource()) {
+			this.sourceUri = executable.getSource().getUri();
+			this.sourceNumber = new Integer(executable.getSource().getNumber());
+		} else {
+			this.sourceUri = null;
+			this.sourceNumber = null;
+		}
 	}
+	
+	/**
+	 * 
+	 * @param location The {@link Resource} location to check &amp; increment.
+	 * @return How many times {@link Resource} has generated a {@link Result}.
+	 */
+	private static int generateNumber(URIInterface location) {
+		String key = location.toString();
+		if(countsForResource.containsKey(key)) {
+			int id = ((Integer) countsForResource.get(key)).intValue();
+			countsForResource.put(key, new Integer(id));
+			return id;
+		} else {
+			int id = 0;
+			countsForResource.put(key, new Integer(id));
+			return id;
+		}
+	}
+	
 	
 	public String getName() {
 		return name;
@@ -43,24 +67,18 @@ public class BasicResult implements Result {
 	public String getValue() {
 		return value;
 	}
-/*
-	public Executable getExecutable() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-*/
-	/**
-	 * Starts at <code>0</code> and increments up.
-	 */
-	public int getId() {
-		return id;
+
+	public int getNumber() {
+		return number;
 	}
 
-	/**
-	 * 
-	 * @return A {@link BasicResult} as an initial result.
-	 */
-	public static BasicResult Root() {
-		return new BasicResult("", "");
+	public URIInterface getUri() {
+		return uri;
+	}
+	
+	public void publishTo(Publisher publisher) throws PublisherException {
+		publisher.publishResult(name, value, uri.toString(), number,
+				sourceUri == null ? null : sourceUri.toString(),
+				sourceNumber == null ? null : sourceNumber);
 	}
 }

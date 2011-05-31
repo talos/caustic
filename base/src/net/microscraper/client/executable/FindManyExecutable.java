@@ -43,7 +43,7 @@ public class FindManyExecutable extends FindExecutable {
 					findMany.maxMatch);
 			Result[] results = new Result[values.length];
 			for(int i = 0 ; i < results.length ; i++) {
-				results[i] = new BasicResult(name, values[i]);
+				results[i] = generateResult(name, values[i]);
 			}
 			return results;
 		} catch(MustacheTemplateException e) {

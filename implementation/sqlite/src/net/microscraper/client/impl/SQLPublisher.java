@@ -15,28 +15,41 @@ import net.microscraper.client.interfaces.Publisher;
 import net.microscraper.client.interfaces.PublisherException;
 
 public class SQLPublisher implements Publisher {
-	public static final String EXECUTABLES_TABLE = "executables";
-	public static final String RESULTS_TABLE = "results";
+	private static final String RESULTS_TABLE = "results";
+
+	private static final String NAME = "name";
+	private static final String VALUE = "value";
+	private static final String URI = "uri";
+	private static final String NUMBER = "number";
+	private static final String SOURCE_URI = "source_uri";
+	private static final String SOURCE_NUMBER = "source_number";
+	
+	//private static final String EXECUTABLE_ID = "executable_id";
+	
+	//private static final String STUCK_ON = "stuck_on";
+	//private static final String FAILURE_BECAUSE = "failure_because";	
+	
+	//public static final String EXECUTABLES_TABLE = "executables";
 	
 	private final SQLInterface sql;
-	private final PreparedStatement createExecutionsTable;
+	//private final PreparedStatement createExecutionsTable;
 	private final PreparedStatement createResultsTable;
-	private final PreparedStatement checkExecutionsTable;
+	//private final PreparedStatement checkExecutionsTable;
 	private final PreparedStatement checkResultsTable;
-	private final PreparedStatement insertExecution;
-	private final PreparedStatement deleteExecution;
+	//private final PreparedStatement insertExecution;
+	//private final PreparedStatement deleteExecution;
 	private final PreparedStatement insertResult;
 	
 	private final int batchSize;
 	private int executionsSinceLastCommit = 0;
-	private final Map<Integer, String[]> batchExecutables = new HashMap<Integer, String[]>();
+	//private final Map<Integer, String[]> batchExecutables = new HashMap<Integer, String[]>();
 	private final List<String[]> batchResults = new ArrayList<String[]>();
 	
 	public SQLPublisher(SQLInterface sql, int batchSize) throws SQLInterfaceException {
 		this.sql = sql;
 		this.batchSize = batchSize;
 		try {
-			createExecutionsTable =
+			/*createExecutionsTable =
 				sql.prepareStatement(
 						"CREATE TABLE `" + EXECUTABLES_TABLE + "` (" +
 					"`" + RESOURCE_LOCATION + "` " + sql.varcharColumnType() + ", " +
@@ -45,36 +58,38 @@ public class SQLPublisher implements Publisher {
 					"`" + STUCK_ON + "` " + sql.varcharColumnType() + ", " +
 					"`" + FAILURE_BECAUSE + "` " + sql.varcharColumnType() + " )");
 			
-			createExecutionsTable.execute();
+			createExecutionsTable.execute();*/
 			
 			createResultsTable = 
 				sql.prepareStatement(
 						"CREATE TABLE `" + RESULTS_TABLE + "` (" +
-						"`" + EXECUTABLE_ID + "` " + sql.intColumnType() + ", " +
-						"`" + SOURCE_RESULT_ID + "` " + sql.intColumnType() + ", " +
-						"`" + ID + "` " + sql.intColumnType() + " " + sql.keyColumnDefinition() + ", " +						
-						"`" + NAME + "` " + sql.varcharColumnType() + ", " + 
-						"`" + VALUE + "` " + sql.textColumnType() + " )");
+						"`" + NAME  + "` " + sql.varcharColumnType() + ", " + 
+						"`" + VALUE + "` " + sql.textColumnType()    + ", " +
+						"`" + URI   + "` " + sql.varcharColumnType() + ", " +
+						"`" + NUMBER+ "` " + sql.intColumnType()     + ", " +
+						"`" + SOURCE_URI   + "` " + sql.varcharColumnType() + ", " +
+						"`" + SOURCE_NUMBER+ "` " + sql.intColumnType()     + " )");						
 			createResultsTable.execute();
 			
-			checkExecutionsTable = 
+			/*checkExecutionsTable = 
 				sql.prepareStatement(
 						"SELECT `"+ RESOURCE_LOCATION + "`, " +
 								"`" + SOURCE_RESULT_ID + "`, " +
 								"`" + ID + "`, " +
 								"`" + STUCK_ON + "`, " +
 								"`" + FAILURE_BECAUSE + "` " +
-								"FROM " + EXECUTABLES_TABLE);
+								"FROM " + EXECUTABLES_TABLE);*/
 			checkResultsTable = 
 				sql.prepareStatement(
-						"SELECT `"+ EXECUTABLE_ID + "`, " +
-								"`" + SOURCE_RESULT_ID + "`, " +
-								"`" + ID + "`, " +
-								"`" + NAME + "`, " +
-								"`" + VALUE + "` " +
+						"SELECT `"+ NAME + "`, " +
+								"`" + VALUE + "`, " +
+								"`" + URI + "`, " +
+								"`" + NUMBER + "`, " +
+								"`" + SOURCE_URI + "` " +
+								"`" + SOURCE_NUMBER + "` " +
 								"FROM " + RESULTS_TABLE);
 
-			deleteExecution = 
+			/*deleteExecution = 
 				sql.prepareStatement(
 						"DELETE FROM `" + EXECUTABLES_TABLE + "` " +
 						"WHERE `" + ID + "` = ?");
@@ -86,17 +101,19 @@ public class SQLPublisher implements Publisher {
 								"`" + ID + "`," +
 								"`" + STUCK_ON + "`," +
 								"`" + FAILURE_BECAUSE + "`) " +
-							"VALUES (?, ?, ?, ?, ?)");
+							"VALUES (?, ?, ?, ?, ?)");*/
 			insertResult =
 				sql.prepareStatement(
 						"INSERT INTO `" + RESULTS_TABLE + "` (" +
-								"`" + EXECUTABLE_ID + "`," +
-								"`" + ID + "`," +
 								"`" + NAME + "`," +
-								"`" + VALUE + "`) " +
-							"VALUES (?, ?, ?, ?)");
+								"`" + VALUE + "`," +
+								"`" + URI + "`," +
+								"`" + NUMBER + "`," +
+								"`" + SOURCE_URI + "`," +
+								"`" + SOURCE_NUMBER + "`) " +
+							"VALUES (?, ?, ?, ?, ?, ?)");
 			
-			checkExecutionsTable.executeQuery();
+			//checkExecutionsTable.executeQuery();
 			checkResultsTable.executeQuery();
 			sql.disableAutoCommit();
 		} catch(SQLInterfaceException e) {
@@ -104,7 +121,7 @@ public class SQLPublisher implements Publisher {
 			throw new SQLInterfaceException(e);
 		}
 	}
-	
+	/*
 	private void addEntry(Executable executable) throws SQLInterfaceException {
 		batchExecutables.put(executable.getId(),
 			new String[] {
@@ -130,24 +147,10 @@ public class SQLPublisher implements Publisher {
 			}
 		}
 	}
-	
-	@Override
-	public void publish(Executable execution) throws PublisherException {
-		try {
-			addEntry(execution);
-			executionsSinceLastCommit++;
-			
-			if(executionsSinceLastCommit > batchSize) {
-				forceCommit();
-			}
-		} catch(SQLInterfaceException e) {
-			throw new PublisherException(e);
-		}
-	}
-	
+	*/
 	public void forceCommit() throws SQLInterfaceException {
 		// Iterate through our batch of ids, update the PreparedStatements.
-		Iterator<Integer> ids = batchExecutables.keySet().iterator();
+		/*Iterator<Integer> ids = batchExecutables.keySet().iterator();
 		while(ids.hasNext()) {
 			Integer id = ids.next();
 			
@@ -157,19 +160,19 @@ public class SQLPublisher implements Publisher {
 			insertExecution.bindStrings(batchExecutables.get(id));
 			insertExecution.addBatch();
 		}
-		
+		*/
 		for(int i = 0 ; i < batchResults.size() ; i ++) {
 			insertResult.bindStrings(batchResults.get(i));
 			insertResult.addBatch();
 		}
 		// Delete, then insert.
-		deleteExecution.executeBatch();
-		insertExecution.executeBatch();
+		//deleteExecution.executeBatch();
+		//insertExecution.executeBatch();
 		insertResult.executeBatch();
 		sql.commit();
 		
 		// Clear out our batch parameters
-		batchExecutables.clear();
+		//batchExecutables.clear();
 		batchResults.clear();
 		executionsSinceLastCommit = 0;
 	}
@@ -180,5 +183,28 @@ public class SQLPublisher implements Publisher {
 	
 	private static String getResourceLocationString(Executable execution) {
 		return execution.getResource().location.toString();
+	}
+
+	@Override
+	public void publishResult(String name, String value, String uri,
+			int number, String sourceUri, Integer sourceNumber) throws PublisherException {
+		try {
+			batchResults.add(
+					new String[] {
+						name == null ? sql.nullValue() : name,
+						value,
+						Integer.toString(number),
+						sourceUri == null ? sql.nullValue() : sourceUri,
+						sourceNumber == null ? sql.nullValue() : Integer.toString(sourceNumber)
+					}
+				);
+			executionsSinceLastCommit++;
+			
+			if(executionsSinceLastCommit > batchSize) {
+				forceCommit();
+			}
+		} catch(SQLInterfaceException e) {
+			throw new PublisherException(e);
+		}		
 	}
 }

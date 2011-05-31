@@ -63,8 +63,7 @@ public class MicroScraperConsole {
 			fileLogger.open();
 			publisher = new SQLPublisher(
 					new JDBCSQLite("./" + fileTimestamp + ".sqlite", log), sqlBatchSize);
-			client = new Client(regexpCompiler,
-					browser,
+			client = new Client(regexpCompiler,	
 					log,
 					netInterface,
 					jsonInterface, ENCODING);

@@ -28,8 +28,16 @@ public interface Executable extends Runnable {
 	
 	/**
 	 * Can be called before the {@link Executable} is {@link #run}.
+	 * @return Whether this {@link Executable} was spawned by a {@link Result}.
+	 * @see {@link #getSource()}
+	 */
+	public abstract boolean hasSource();
+	
+	/**
+	 * Can be called before the {@link Executable} is {@link #run}.
 	 * @return The {@link Result} that spawned this {@link Executable}.
 	 * @see {@link #hasSource()}
+	 * @throws NullPointerException if {@link #hasSource()} is <code>false</code>.
 	 */
 	public abstract Result getSource();
 
@@ -112,38 +120,5 @@ public interface Executable extends Runnable {
 	 * @return A unique identifier for this {@link Executable}.  Starts at <code>0</code>
 	 * and increments up.
 	 */
-	public abstract int getId();
-	
-	/**
-	 * 
-	 * @return Whether this {@link Executable} has a special name for {@link Publisher}.
-	 * @see #getName()
-	 */
-	//public abstract boolean hasName();
-	
-
-	/**
-	 * 
-	 * @return This {@link Executable}'s special name for {@link Publisher}.
-	 * @see #hasName()
-	 * @throws IllegalStateException if called before the {@link Executable} {@link #isComplete()}.
-	 */
-	//public abstract String getName();
-	
-	/**
-	 * 
-	 * @return Whether this {@link Executable} has a value for {@link Publisher}.
-	 * @see #getValue()
-	 */
-	//public abstract boolean hasValue();
-	
-
-	/**
-	 * 
-	 * @return Whether this {@link Executable} has a value for {@link Publisher}.
-	 * @throws NullPointerException if {@link hasValue()} is <code>false</code>
-	 * @throws IllegalStateException if called before the {@link Executable} {@link #isComplete()}.
-	 * @see #hasValue()
-	 */
-	//public abstract String getValue() throws IllegalStateException;
+	//public abstract int getId();
 }

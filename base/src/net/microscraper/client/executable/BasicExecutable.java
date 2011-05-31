@@ -40,22 +40,17 @@ public abstract class BasicExecutable implements Executable {
 	private boolean isStuck = false;
 	private boolean isComplete = false;
 	
-	private static int count = 0;
-	private final int id;
-	
 	/**
-	 * Construct a BasicExecution with a source {@link Result}.
-	 * @param context
-	 * @param resource
-	 * @param parent
-	 * @param variables
-	 * @param source
+	 * Construct a new {@link BasicExecutable}.
+	 * @param context The {@link Interfaces} to use.
+	 * @param resource The {@link Resource} with instructions for execution.
+	 * @param variables The {@link Variables} to use when substituting for tags.
+	 * @param source The {@link Result} which is the source of this {@link Executable}.  Can
+	 * be <code>null</code> if there was none.
+	 * @see #run
 	 */
 	protected BasicExecutable(Interfaces context, Resource resource,
 			Variables variables, Result source) {
-		this.id = count;
-		count++;
-		
 		this.context = context;
 		this.variables = variables;
 		this.resource = resource;
@@ -183,13 +178,20 @@ public abstract class BasicExecutable implements Executable {
 	public final Variables getVariables() {
 		return variables;
 	}
-
-	public int getId() {
-		return id;
+	
+	public final boolean hasSource() {
+		if(source != null) {
+			return true;
+		}
+		return false;
 	}
 	
 	public final Result getSource() {
-		return source;
+		if(hasSource()) {
+			return source;
+		} else {
+			throw new NullPointerException();
+		}
 	}
 	
 	/**
@@ -273,34 +275,15 @@ public abstract class BasicExecutable implements Executable {
 	}
 	
 	/**
-	 * Defaults to <code>false</code>.
+	 * Convenience method to generate a {@link Result} for an {@link Executable}.
+	 * @param name The name to attach to the {@link Result}.  Can be <code>null</code>.
+	 * @param value The value to attach to the {@link Result}.  Cannot be <code>null</code>.
+	 * @return A {@link Result} from this {@link Executable}.
+	 * @throws NullPointerException If <b>value</b> is <code>null</code>.
 	 */
-	/*public boolean hasName() {
-		return false;
-	}*/
-	
-	/**
-	 * Defaults to throwing {@link NullPointerException}.
-	 */
-	/*public String getName() {
-		throw new NullPointerException();
-	}*/
-	
-	/**
-	 * Defaults to <code>false</code>.
-	 */
-	/*public boolean hasValue() {
-		return false;
-	}*/
-	
-	/**
-	 * Defaults to throwing {@link NullPointerException}.
-	 */
-	/*public String getValue() {
-		if(isComplete()) {
-			throw new NullPointerException();
-		} else {
-			throw new IllegalStateException();
-		}
-	}*/
+	protected Result generateResult(String name, String value) {
+		if(value == null)
+			throw new NullPointerException("Result value cannot be null");
+		return new BasicResult(this, name, value);
+	}
 }

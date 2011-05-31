@@ -22,8 +22,10 @@ import net.microscraper.server.resource.FindOne;
  *
  */
 public class FindOneExecutable extends FindExecutable implements Variables {
-	private String result;
 	
+	/**
+	 * The {@link FindOneExecutable}s spawned by this {@link FindOneExecutable}.
+	 */
 	private FindOneExecutable[] findOneExecutables;
 	
 	public FindOneExecutable(Interfaces context,
@@ -83,9 +85,9 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 		try {
 			FindOne findOne = (FindOne) getResource();
 			String replacement = getReplacement();
-			result = getPattern().match(getSource().getValue(), replacement, findOne.match);
+			String value = getPattern().match(getSource().getValue(), replacement, findOne.match);
 			String name = getName();
-			return new Result[] { new BasicResult(name, result) };
+			return new Result[] { generateResult(name, value) };
 		} catch (NoMatchesException e) {
 			throw new ExecutionFailure(e);
 		} catch (MissingGroupException e) {

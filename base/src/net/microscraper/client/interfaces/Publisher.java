@@ -13,20 +13,9 @@ import net.microscraper.client.executable.Result;
  *
  */
 public interface Publisher {
-	public static final String RESOURCE_LOCATION = "resource_location";
-	
-	public static final String ID = "id";
-	public static final String SOURCE_RESULT_ID = "source_result_id";
-	public static final String EXECUTABLE_ID = "executable_id";
-	
-	public static final String STUCK_ON = "stuck_on";
-	public static final String FAILURE_BECAUSE = "failure_because";
-	
-	public static final String NAME = "name";
-	public static final String VALUE = "value";
-	
 
-	/**
+
+	/*
 	 * This can be called multiple times on a single {@link Executable}.
 	 * {@link Executable}s <b>should not</b> be accessed outside of this method.
 	 * @param executable The {@link Executable} instance that may, or may not,
@@ -37,33 +26,49 @@ public interface Publisher {
 	//public void publish(Executable executable) throws PublisherException;
 	
 	
-	/**
-	 * @param sourceResultId The unique <code>int</code> ID of the {@link Result} that was the source.
-	 * @param executableId The <code>int</code> ID of the {@link Executable} that is being published.
+	/*
+	 * @param sourceResourceLocation A String describing where the source {@link Resource} is.
+	 * @param sourceResultNumber The <b>resultNumber</b> of the source {@link Result}.
+	 * @param resourceLocation A String describing where the {@link Resource} is.
 	 * @param stuckOn The name of the tag that could not be found in {@link Variables}.
 	 * @throws PublisherException If the publisher has experienced an {@link Exception}.
 	 */
-	public void publishStuck(int sourceResultId, int executableId, String stuckOn) throws PublisherException;
+	//public void publishStuck(String sourceResourceLocation, int sourceTryNumber,
+	//		String resourceLocation, String stuckOn) throws PublisherException;
 	
-	/**
+	/*
 	 * @param sourceResultId The unique <code>int</code> ID of the {@link Result} that was the source.
 	 * @param executableId The <code>int</code> ID of the {@link Executable} that is being published.
 	 * @param failureBecause The {@link Throwable} that caused the {@link Executable} to fail.
 	 * @throws PublisherException If the publisher has experienced an {@link Exception}.
 	 */
-	public void publishFailure(int sourceResultId, int executableId, Throwable failureBecause) throws PublisherException;
+	//public void publishFailure(String sourceResourceLocation, int sourceTryNumber,
+	//		String resourceLocation, Throwable failureBecause) throws PublisherException;
 	
-	/**
+	/*
 	 * @param sourceResultId The unique <code>int</code> ID of the {@link Result} that was the source.
 	 * @param executableId The <code>int</code> ID of the {@link Executable} that is being published.
-	 * @param resultId The <code>int</code> ID of the new {@link Result}.
-	 * @param name The name of the {@link Result}.
-	 * @param value The value of the {@link Result}.
+	 * @param results An array of {@link Result}s.
 	 * @throws PublisherException If the publisher has experienced an {@link Exception}.
 	 */
-	public void publishResult(int sourceResultId, int executableId, int resultId,
-			String name, String value) throws PublisherException;
 	
+	/**
+	 * Publish a {@link Result} or equivalent.
+	 * @param name The {@link Result}'s name.  Can be <code>null</code>.
+	 * @param value The {@link Result}'s value.  Cannot be <code>null</code>.
+	 * @param uri The URI where instructions for {@link Result} are located.  Cannot be <code>null</code>.
+	 * @param number How many times thus far a {@link Result} has been generated from the <b>uri</b>.
+	 * Provides a unique identifier when combined with <b>uri</b>.  Cannot be <code>null</code>
+	 * @param sourceUri The URI where instructions for the {@link Result} that was the source for this
+	 * {@link Result} are located.  Is <code>null</code> if there was no source.
+	 * @param sourceNumber The <b>number</b> of the source {@link Result}.  Is <code>null</code> if
+	 * there was no source.  Can identify the source along with <b>sourceUri</b>.
+	 * @throws PublisherException If the publisher has experienced an {@link Exception}.
+	 * @see {@link Result#publishTo}.
+	 */
+	public void publishResult(String name, String value,
+			String uri, int number, String sourceUri, Integer sourceNumber) throws PublisherException;
+
 	/**
 	 * This can be called multiple times on a single {@link FindManyExecutable}.
 	 * {@link FindManyExecutable}s <b>should not</b> be accessed outside of this method.

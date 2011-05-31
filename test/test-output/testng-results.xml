@@ -2,31 +2,31 @@
 <testng-results skipped="0" failed="1" total="1" passed="0">
   <reporter-output>
   </reporter-output>
-  <suite name="Suite1" duration-ms="440" started-at="2011-05-29T15:33:59Z" finished-at="2011-05-29T15:33:59Z">
+  <suite name="Suite1" duration-ms="554" started-at="2011-05-30T12:00:40Z" finished-at="2011-05-30T12:00:40Z">
     <groups>
     </groups>
-    <test name="Default test" duration-ms="440" started-at="2011-05-29T15:33:59Z" finished-at="2011-05-29T15:33:59Z">
+    <test name="Default test" duration-ms="554" started-at="2011-05-30T12:00:40Z" finished-at="2011-05-30T12:00:40Z">
       <class name="net.microscraper.test.ScraperTest">
-        <test-method status="PASS" signature="setupClient()" name="setupClient" is-config="true" duration-ms="16" started-at="2011-05-29T15:33:59Z" finished-at="2011-05-29T15:33:59Z">
+        <test-method status="PASS" signature="setupClient()" name="setupClient" is-config="true" duration-ms="17" started-at="2011-05-30T12:00:40Z" finished-at="2011-05-30T12:00:40Z">
         </test-method>
-        <test-method status="FAIL" signature="testSimpleGoogleScraper()" name="testSimpleGoogleScraper" duration-ms="411" started-at="2011-05-29T15:33:59Z" finished-at="2011-05-29T15:33:59Z">
+        <test-method status="FAIL" signature="testSimpleGoogleScraper()" name="testSimpleGoogleScraper" duration-ms="521" started-at="2011-05-30T12:00:40Z" finished-at="2011-05-30T12:00:40Z">
           <exception class="java.lang.AssertionError">
             <message>
-              <![CDATA[Missing 1 invocation to:
-void net.microscraper.client.interfaces.Publisher#publishResult(int, int, int, String, String)
-with arguments: 0, 0, 1, "lksjdf", ""
-on mock instance: $Impl_Publisher@b05acd]]>
+              <![CDATA[Missing invocation of:
+void net.microscraper.client.interfaces.Publisher#publishResult(String, String, String, int, String, Integer)
+with arguments: null, "", "simple-google.json#", 0, null, null
+on mock instance: $Impl_Publisher@1a9d1b]]>
             </message>
             <full-stacktrace>
-              <![CDATA[java.lang.AssertionError: Missing 1 invocation to:
-void net.microscraper.client.interfaces.Publisher#publishResult(int, int, int, String, String)
-with arguments: 0, 0, 1, "lksjdf", ""
-on mock instance: $Impl_Publisher@b05acd
+              <![CDATA[java.lang.AssertionError: Missing invocation of:
+void net.microscraper.client.interfaces.Publisher#publishResult(String, String, String, int, String, Integer)
+with arguments: null, "", "simple-google.json#", 0, null, null
+on mock instance: $Impl_Publisher@1a9d1b
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at java.lang.reflect.Method.invoke(Method.java:597)
-Caused by: Missing invocations
-	at net.microscraper.test.ScraperTest$1.<init>(ScraperTest.java:64)
-	at net.microscraper.test.ScraperTest.testSimpleGoogleScraper(ScraperTest.java:62)
+Caused by: Missing invocation
+	at net.microscraper.test.ScraperTest$1.<init>(ScraperTest.java:72)
+	at net.microscraper.test.ScraperTest.testSimpleGoogleScraper(ScraperTest.java:70)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at java.lang.reflect.Method.invoke(Method.java:597)
 	... 2 more

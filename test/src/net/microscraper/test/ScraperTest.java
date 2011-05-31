@@ -1,5 +1,6 @@
 package net.microscraper.test;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
@@ -19,6 +20,7 @@ import net.microscraper.client.impl.JSONME;
 import net.microscraper.client.impl.JavaNetBrowser;
 import net.microscraper.client.impl.JavaNetInterface;
 import net.microscraper.client.interfaces.Browser;
+import net.microscraper.client.interfaces.BrowserException;
 import net.microscraper.client.interfaces.JSONInterface;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.NetInterface;
@@ -32,6 +34,7 @@ import net.microscraper.server.resource.Scraper;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
 
 import org.testng.Reporter;
+import org.testng.TestException;
 import org.testng.annotations.*;
 
 /**
@@ -40,72 +43,63 @@ import org.testng.annotations.*;
  *
  */
 public class ScraperTest {
+	private static final URI fixturesFolder = new File(System.getProperty("user.dir")).toURI().resolve("fixtures/");
+	
 	private final URILoader uriLoader = new FileLoader();
 	private final JSONInterface jsonInterface = new JSONME(uriLoader);
 	private final Log log = new Log();
 	private final NetInterface netInterface = new JavaNetInterface(new JavaNetBrowser(log, 10000));
 	private Client client;
 	
-	@NonStrict Publisher publisher;
+	@Mocked Publisher publisher;
 	
 	@BeforeTest
 	public void setupClient() throws ClientException {
-		client = new Client(new JavaUtilRegexInterface(),
-				log, netInterface, jsonInterface, Browser.UTF_8);
-		//client.scrape(null, null, publisher);
+		client = new Client(new JavaUtilRegexInterface(), log, netInterface, jsonInterface, Browser.UTF_8);
 	}
 	
+	/**
+	 * Tests the simple-google-scraper.json fixture.
+	 * @throws Exception
+	 */
 	@Test
 	public void testSimpleGoogleScraper() throws Exception {
-		URIInterface location = netInterface.getURI("file:///Users/john/microscraper/microscraper-client/test/fixtures/simple-google-scraper.json");
+		URIInterface location = netInterface.getURI(fixturesFolder.resolve("simple-google-scraper.json").toString());
+		final String expectedPhrase = "what do we say after hello?";
 		
 		new Expectations() {
 			{
-				publisher.publishResult(0, 0, 1, withSubstring("microscraper"), anyString); times = 1; 
-				publisher.publishResult(1, 1, 2, "what do we say after hello?", anyString); minTimes = 1; 
-				//publisher.publishResult(0, 1, 0, "what do we say after hello?", anyString); times = 1; 
+				publisher.publishResult(null,null,null,anyInt,null,null);
+				forEachInvocation = new Object() {
+					public void report(String name, String value, String uri, int number, String sourceUri, Integer sourceNumber) {
+						
+					}
+				};
+				/*publisher.publishResult(
+						(String) withNull(),
+						anyString,
+						withSuffix("simple-google.json#"),
+						0,
+						(String) withNull(),
+						(Integer) withNull());
+				
+				publisher.publishResult(
+						expectedPhrase,
+						anyString,
+						withSuffix("simple-google.json#finds_many.0"),
+						anyInt,
+						withSuffix("simple-google.json#"),
+						0);*/
 			}
 		};
 		
 		UnencodedNameValuePair[] extraVariables = new UnencodedNameValuePair[] {
 				new UnencodedNameValuePair("query", "hello")
 		};
-		
-		client.scrape(location, extraVariables, publisher);
+		try {
+			client.scrape(location, extraVariables, publisher);
+		} catch(BrowserException e) {
+			throw new TestException("Error loading the page.", e);
+		}
 	}
-	/**
-	 * 
-	 * 
-	 * @param path The {@link URIInterface} path to the {@link Scraper}'s directory.
-	 * @param name The {@link String} name of the {@link Scraper}.
-	 * @return A {@link Scraper} from a {@link URIInterface URI}.
-	 * @throws ClientException 
-	 * @throws IllegalArgumentException 
-	 */
-	/*private void runScraper(String path, String name, UnencodedNameValuePair[] extraVariables, 
-			Publisher publisher)
-		throws IllegalArgumentException, ClientException {
-		
-		client.scrape(netInterface.getURI(path).resolve(name), extraVariables, publisher);
-		//return new Scraper(jsonInterface.loadJSONObject(path.resolve(name)));
-	}
-	
-	@Parameters({ "pathToScrapers" })
-	@Test
-	public void testSimpleGoogleScraper(String pathToScrapers)
-			throws IllegalArgumentException, ClientException {
-		
-		// Recording
-		Publisher publisher;
-		new MockUp<Publisher>() {
-			void publish(Executable executable) {
-				
-			}
-		};
-		String name = "simple-google-scraper.json";
-		runScraper(pathToScrapers, name, new UnencodedNameValuePair[] {
-				new UnencodedNameValuePair("query", "hello")
-		}, publisher);
-		//Scraper simpleGoogleScraper = newScraper(netInterface.getURI(pathToScrapers), name);
-	}*/
 }

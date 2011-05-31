@@ -20,16 +20,16 @@ Here's a simple one:
 Mapping <i>query</i> to "hello", the results look something like...
 
 <table>
-  <tr><th>executable_id<th>id<th>name              <th>value</tr>
-  <tr><td>0            <td>1 <td>simple-google.json<td><i>...Google HTML...</i></tr>
-  <tr><td>1            <td>2 <td>what do we say after hello? <td>project</tr>
-  <tr><td>1            <td>3 <td>what do we say after hello? <td>kitty</tr>
-  <tr><td>1            <td>4 <td>what do we say after hello? <td>lyrics</tr>
-  <tr><td>1            <td>5 <td>what do we say after hello? <td>lionel</tr>
-  <tr><td>1            <td>6 <td>what do we say after hello? <td>kitty</tr>
-  <tr><td>1            <td>7 <td>what do we say after hello? <td>beyonce</tr>
-  <tr><td>1            <td>8 <td>what do we say after hello? <td>beyonce</tr>
-  <tr><td>1            <td>9 <td>what do we say after hello? <td>glee</tr>
+  <tr><th>name                        <th>value                   <th>uri                            <th>number  <th>source_uri         <th>source_number</tr>
+  <tr><td><i>null</i>                 <td><i>...Google HTML...</i><td>simple-google.json#            <td>0       <td><i>null</i>        <td><i>null</i>  </tr>
+  <tr><td>what do we say after hello? <td>project                 <td>simple-google.json#finds_many.0<td>0       <td>simple-google.json#<td>0            </tr>
+  <tr><td>what do we say after hello? <td>kitty                   <td>simple-google.json#finds_many.0<td>1       <td>simple-google.json#<td>0            </tr>
+  <tr><td>what do we say after hello? <td>lyrics                  <td>simple-google.json#finds_many.0<td>2       <td>simple-google.json#<td>0            </tr>
+  <tr><td>what do we say after hello? <td>lionel                  <td>simple-google.json#finds_many.0<td>3       <td>simple-google.json#<td>0            </tr>
+  <tr><td>what do we say after hello? <td>kitty                   <td>simple-google.json#finds_many.0<td>4       <td>simple-google.json#<td>0            </tr>
+  <tr><td>what do we say after hello? <td>beyonce                 <td>simple-google.json#finds_many.0<td>5       <td>simple-google.json#<td>0            </tr>
+  <tr><td>what do we say after hello? <td>beyonce                 <td>simple-google.json#finds_many.0<td>6       <td>simple-google.json#<td>0            </tr>
+  <tr><td>what do we say after hello? <td>glee                    <td>simple-google.json#finds_many.0<td>7       <td>simple-google.json#<td>0            </tr>
 </table>
 
 #### Why? ####
