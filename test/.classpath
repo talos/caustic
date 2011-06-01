@@ -2,11 +2,10 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/jmockit.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="con" path="org.testng.TESTNG_CONTAINER"/>
 	<classpathentry kind="src" path="/MicroScraper Base"/>
 	<classpathentry kind="src" path="/MicroScraper JSON Implementation"/>
 	<classpathentry kind="src" path="/MicroScraper Regexp Implementation"/>
-	<classpathentry kind="lib" path="lib/jmockit.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

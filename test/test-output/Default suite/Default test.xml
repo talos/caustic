@@ -1,18 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testng-results skipped="0" failed="1" total="1" passed="0">
-  <reporter-output>
-  </reporter-output>
-  <suite name="Default suite" duration-ms="175" started-at="2011-06-01T16:03:03Z" finished-at="2011-06-01T16:03:03Z">
-    <groups>
-    </groups>
-    <test name="Default test" duration-ms="175" started-at="2011-06-01T16:03:03Z" finished-at="2011-06-01T16:03:03Z">
-      <class name="net.microscraper.test.ScraperTest">
-        <test-method status="PASS" signature="setupClient()" name="setupClient" is-config="true" duration-ms="20" started-at="2011-06-01T16:03:03Z" finished-at="2011-06-01T16:03:03Z">
-        </test-method>
-        <test-method status="FAIL" signature="testSimpleGoogleScraper()" name="testSimpleGoogleScraper" duration-ms="111" started-at="2011-06-01T16:03:03Z" finished-at="2011-06-01T16:03:03Z">
-          <exception class="java.lang.ExceptionInInitializerError">
-            <full-stacktrace>
-              <![CDATA[java.lang.ExceptionInInitializerError
+<testsuite hostname="SOLNYU-YGG9ACR1" name="net.microscraper.test.ScraperTest" tests="1" failures="1" timestamp="1 Jun 2011 20:03:03 GMT" time="0.175" errors="0">
+  <testcase name="testSimpleGoogleScraper" time="0.111" classname="net.microscraper.test.ScraperTest">
+    <failure type="java.lang.ExceptionInInitializerError">
+      <![CDATA[java.lang.ExceptionInInitializerError
 	at net.microscraper.test.ScraperTest.testSimpleGoogleScraper(ScraperTest.java:70)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)
@@ -54,10 +44,6 @@ Caused by: java.lang.UnsatisfiedLinkError: no attach in java.library.path
 	at mockit.internal.startup.JDK6AgentLoader.getVirtualMachineImplementationFromEmbeddedOnes(JDK6AgentLoader.java:68)
 	... 30 more
 ]]>
-            </full-stacktrace>
-          </exception>
-        </test-method>
-      </class>
-    </test>
-  </suite>
-</testng-results>
+    </failure>
+  </testcase>
+</testsuite>

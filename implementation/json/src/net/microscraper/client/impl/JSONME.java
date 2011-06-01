@@ -57,22 +57,11 @@ public class JSONME implements JSONInterface {
 				jsonObject = load(location);
 			}
 			this.object = jsonObject;
+			if(location.getFragment() == null) {
+				location = location.resolve("#");
+			}
 			this.location = location;
 		}
-		/* 
-		public JSONMEObject create(URIInterface location, JSONObject obj) {
-				
-				return loadJSONObject(linkedLocation);
-			} else {
-				return new JSONMEObject(location, obj);
-			}
-		}
-		*/
-		/*
-		public JSONInterfaceObject load(URIInterface reference) throws IOException, JSONInterfaceException {
-			return loadJSONObject(linkedLocation);
-		}
-		*/
 		public JSONInterfaceArray getJSONArray(String name)
 				throws JSONInterfaceException {
 			try {
@@ -88,7 +77,8 @@ public class JSONME implements JSONInterface {
 		public JSONInterfaceObject getJSONObject(String name)
 				throws JSONInterfaceException, IOException {
 			try {
-				return new JSONMEObject(this.location.resolveJSONFragment(name),
+				return new JSONMEObject(
+						this.location.resolveJSONFragment(name),
 						object.getJSONObject(name));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
