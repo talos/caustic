@@ -7,6 +7,10 @@ import net.microscraper.client.interfaces.NetInterfaceException;
 import net.microscraper.client.interfaces.URIInterface;
 
 public class JavaNetURI implements URIInterface {
+	/**
+	 * The separator to use when constructing JSON fragments.
+	 */
+	private static final String FRAGMENT_SEPARATOR = "/";
 	private final URI uri;
 	public JavaNetURI(URI uri) {
 		this.uri = uri;
@@ -38,12 +42,36 @@ public class JavaNetURI implements URIInterface {
 	public String getFragment() {
 		return uri.getFragment();
 	}
+	
+	/**
+	 * 
+	 * @return <code>False</code> if the fragment is <code>null</code>
+	 * or an empty {@link String}, <code>True</code> otherwise;
+	 */
+	private boolean hasFragment() {
+		if(getFragment() == null) {
+			return false;
+		} else if(getFragment().equals("")) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
+	private String initialJSONFragment() {
+		if(hasFragment()) {
+			return getFragment();
+		} else {
+			return "";
+		}
+	}
+	
 	public URIInterface resolveJSONFragment(String key) throws NetInterfaceException {
 		try {
 			return new JavaNetURI(
 				new URI(uri.getScheme(),
 						uri.getSchemeSpecificPart(),
-						uri.getFragment() + '.' + key));
+						initialJSONFragment() + FRAGMENT_SEPARATOR + key));
 		} catch(URISyntaxException e) {
 			throw new NetInterfaceException(e);
 		}
@@ -53,7 +81,7 @@ public class JavaNetURI implements URIInterface {
 			return new JavaNetURI(
 				new URI(uri.getScheme(),
 						uri.getSchemeSpecificPart(),
-						uri.getFragment() + '.' + Integer.toString(index)));
+						initialJSONFragment() + FRAGMENT_SEPARATOR + Integer.toString(index)));
 		} catch(URISyntaxException e) {
 			throw new NetInterfaceException(e);
 		}

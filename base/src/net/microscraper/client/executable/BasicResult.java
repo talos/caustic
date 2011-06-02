@@ -8,7 +8,6 @@ import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.Resource;
 
 public class BasicResult implements Result {
-	//private final Resource resource;
 	private final String name;
 	private final String value;
 	private final URIInterface uri;
@@ -50,11 +49,11 @@ public class BasicResult implements Result {
 		String key = location.toString();
 		if(countsForResource.containsKey(key)) {
 			int id = ((Integer) countsForResource.get(key)).intValue();
-			countsForResource.put(key, new Integer(id));
+			countsForResource.put(key, new Integer(id + 1));
 			return id;
 		} else {
 			int id = 0;
-			countsForResource.put(key, new Integer(id));
+			countsForResource.put(key, new Integer(id + 1));
 			return id;
 		}
 	}

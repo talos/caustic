@@ -13,12 +13,6 @@ import net.microscraper.client.interfaces.URIInterface;
 public interface Result extends NameValuePair {
 	
 	/**
-	 *
-	 * @return The location of the file with the {@link Resource} used to generate this {@link Result}.
-	 */
-	//public String getResourceLocation();
-	
-	/**
 	 * 
 	 * Publish this {@link Result} to a {@link Publisher}.  Should only be done once.
 	 * @param publisher The {@link Publisher} to send this {@link Result} to.
