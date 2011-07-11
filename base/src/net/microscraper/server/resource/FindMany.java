@@ -8,19 +8,19 @@ import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.DeserializationException;
-import net.microscraper.server.resource.mixin.SpawnsScrapers;
+import net.microscraper.server.resource.mixin.CanSpawnScrapers;
 
 /**
  * A {@link Find} that can connect to other {@link Scraper} through {@link #getPipes},
  * and is one-to-many (even if it only has one result.)
  * Its executions do not implement {@link Variables}, because {@link FindMany} can be one-to-many.
  * @see Find
- * @see SpawnsScrapers
+ * @see CanSpawnScrapers
  * @author john
  *
  */
-public class FindMany extends Find implements SpawnsScrapers {	
-	private final SpawnsScrapers spawnsScrapers;
+public class FindMany extends Find implements CanSpawnScrapers {	
+	private final CanSpawnScrapers spawnsScrapers;
 	
 	/**
 	 * The first of the parser's matches to export.
@@ -52,7 +52,7 @@ public class FindMany extends Find implements SpawnsScrapers {
 		try {
 			this.minMatch = jsonObject.has(MIN_MATCH) ? jsonObject.getInt(MIN_MATCH) : DEFAULT_MIN_MATCH;
 			this.maxMatch = jsonObject.has(MAX_MATCH) ? jsonObject.getInt(MAX_MATCH) : DEFAULT_MAX_MATCH;
-			this.spawnsScrapers = SpawnsScrapers.Deserializer.deserialize(jsonObject);
+			this.spawnsScrapers = CanSpawnScrapers.Deserializer.deserialize(jsonObject);
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}

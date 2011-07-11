@@ -14,7 +14,7 @@ import net.microscraper.server.resource.FindOne;
  * @author john
  *
  */
-public interface FindsMany {
+public interface CanFindMany {
 	
 	/**
 	 * 
@@ -24,7 +24,7 @@ public interface FindsMany {
 	
 	/**
 	 * A helper class to deserialize 
-	 * interfaces of {@link FindsMany} using an inner constructor.
+	 * interfaces of {@link CanFindMany} using an inner constructor.
 	 * Should only be instantiated inside {@link FindOne} or {@link SpawnedScraperExecutable}.
 	 * @see FindOne
 	 * @see SpawnedScraperExecutable
@@ -35,14 +35,14 @@ public interface FindsMany {
 		private static final String KEY = "finds_many";
 		
 		/**
-		 * Deserialize an {@link FindsMany} from a {@link JSONInterfaceObject}.
+		 * Deserialize an {@link CanFindMany} from a {@link JSONInterfaceObject}.
 		 * @param jsonObject Input {@link JSONInterfaceObject} object.
-		 * @return An {@link FindsMany} instance.
+		 * @return An {@link CanFindMany} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
-		 * a {@link FindsMany}.
+		 * a {@link CanFindMany}.
 		 * @throws IOException If there is an error loading one of the references.
 		 */
-		public static FindsMany deserialize(JSONInterfaceObject jsonObject)
+		public static CanFindMany deserialize(JSONInterfaceObject jsonObject)
 					throws DeserializationException, IOException {
 			try {
 				final FindMany[] findManys;
@@ -55,7 +55,7 @@ public interface FindsMany {
 				} else {
 					findManys = new FindMany[0];
 				}
-				return new FindsMany() {
+				return new CanFindMany() {
 					public FindMany[] getFindManys() {
 						return findManys;
 					}

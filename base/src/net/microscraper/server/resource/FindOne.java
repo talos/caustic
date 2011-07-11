@@ -5,8 +5,8 @@ import java.io.IOException;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.DeserializationException;
-import net.microscraper.server.resource.mixin.FindsMany;
-import net.microscraper.server.resource.mixin.FindsOne;
+import net.microscraper.server.resource.mixin.CanFindMany;
+import net.microscraper.server.resource.mixin.CanFindOne;
 
 /**
  * A one-to-one {@link Find} that can link to other {@link Find}s,
@@ -15,15 +15,15 @@ import net.microscraper.server.resource.mixin.FindsOne;
  * @author john
  *
  */
-public class FindOne extends Find implements FindsMany, FindsOne {
+public class FindOne extends Find implements CanFindMany, CanFindOne {
 	
 	/**
 	 * The resource's identifier when deserializing.
 	 */
 	public static final String KEY = "find_one";
 	
-	private final FindsMany findsMany;
-	private final FindsOne findsOne;
+	private final CanFindMany findsMany;
+	private final CanFindOne findsOne;
 	
 	/**
 	 * A {@link FindOne} finds a single scraper match.
@@ -45,8 +45,8 @@ public class FindOne extends Find implements FindsMany, FindsOne {
 		super(jsonObject);
 		try {
 			this.match = jsonObject.has(MATCH) ? jsonObject.getInt(MATCH) : DEFAULT_MATCH;
-			this.findsOne = FindsOne.Deserializer.deserialize(jsonObject);
-			this.findsMany = FindsMany.Deserializer.deserialize(jsonObject);
+			this.findsOne = CanFindOne.Deserializer.deserialize(jsonObject);
+			this.findsMany = CanFindMany.Deserializer.deserialize(jsonObject);
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}

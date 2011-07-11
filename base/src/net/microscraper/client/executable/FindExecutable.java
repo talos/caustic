@@ -71,47 +71,6 @@ public abstract class FindExecutable extends BasicExecutable {
 	 * @throws MustacheTemplateException
 	 */
 	protected final PatternInterface getPattern() throws MissingVariableException, MustacheTemplateException {
-		return new RegexpExecution(getContext(), regexp, getVariables()).getPattern();
+		return new RegexpExecutable(getContext(), regexp, getVariables()).getPattern();
 	}
-	
-	/**
-	 * {@link FindExecutable} overrides this, returns {@link Find#hasName}.
-	 */
-	/*public boolean hasName() {
-		Find find = (Find) getResource();
-		return find.hasName;
-	}*/
-	
-	/**
-	 * {@link FindExecutable} overrides this, returns {@link Find#getName}.
-	 * @throws MustacheTemplateException If the {@link Find#name} cannot be compiled.
-	 * @throws MissingVariableException If the {@link Find#name} needs another variable.
-	 */
-	/*public String getName() throws MissingVariableException, MustacheTemplateException {
-		if(hasName()) {
-			return ((Find) getResource()).name.compile(getVariables());
-		}
-		throw new NullPointerException();
-	}*/
-	
-	/**
-	 * {@link FindExecutable} overrides this, returns {@link BasicExecutable#generateResult}.
-	 */
-	/*public boolean hasValue() {
-		if(isComplete()) {
-			return true;
-		}
-		return false;
-	}*/
-	
-	/**
-	 * Defaults to throwing {@link NullPointerException}.
-	 */
-	/*public String getValue() {
-		if(isComplete()) {
-			throw new NullPointerException();
-		} else {
-			throw new IllegalStateException();
-		}
-	}*/
 }

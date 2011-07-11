@@ -99,7 +99,7 @@ public abstract class BasicExecutable implements Executable {
 	}
 	
 	/**
-	 * Catch-all failures.  Sets the state of the execution to failed.
+	 * Catch-all failures.  Sets the state of the {@link Executable} to failed.
 	 * @param e The {@link ExecutionFailure}.
 	 */
 	private void handleFailure(ExecutionFailure e) {
@@ -233,14 +233,6 @@ public abstract class BasicExecutable implements Executable {
 
 	public final boolean isComplete() {
 		return isComplete;
-	}
-	
-	public final Object getResult() {
-		if(!isComplete()) {
-			throw new IllegalStateException();
-		} else {
-			return results;
-		}
 	}
 	
 	/**

@@ -17,7 +17,7 @@ import net.microscraper.server.resource.URL;
  * @author john
  *
  */
-public interface SpawnsScrapers {
+public interface CanSpawnScrapers {
 	
 	/**
 	 * 
@@ -38,7 +38,7 @@ public interface SpawnsScrapers {
 
 	/**
 	 * A helper class to deserialize 
-	 * interfaces of {@link SpawnsScrapers} using an inner constructor.
+	 * interfaces of {@link CanSpawnScrapers} using an inner constructor.
 	 * Should only be instantiated inside {@link FindMany} or {@link SpawnedScraperExecutable}.
 	 * @see FindMany
 	 * @see SpawnedScraperExecutable
@@ -49,16 +49,16 @@ public interface SpawnsScrapers {
 		public static String KEY = "then";
 
 		/**
-		 * Deserialize a {@link SpawnsScrapers} from a {@link JSONInterfaceObject}.
+		 * Deserialize a {@link CanSpawnScrapers} from a {@link JSONInterfaceObject}.
 		 * @param jsonObject Input {@link JSONInterfaceObject} object.
-		 * @return A {@link SpawnsScrapers} instance.
+		 * @return A {@link CanSpawnScrapers} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
-		 * a {@link SpawnsScrapers}.
+		 * a {@link CanSpawnScrapers}.
 		 * @throws IOException If there is an error loading one of the references.
 		 */
-		public static SpawnsScrapers deserialize(final JSONInterfaceObject jsonObject)
+		public static CanSpawnScrapers deserialize(final JSONInterfaceObject jsonObject)
 					throws DeserializationException, IOException {
-			return new SpawnsScrapers() {
+			return new CanSpawnScrapers() {
 				private Scraper[] scrapers;
 				private Page[] pages;
 				

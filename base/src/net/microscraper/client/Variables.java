@@ -19,9 +19,7 @@ public interface Variables {
 	 * @param key A String key.
 	 * @return A String value.
 	 * @throws NullPointerException if the specified key is null
-	 * @throws MissingVariableException if this {@link Variables} contains no mapping.
-	 * @throws MissingVariableException with a {@link FindOneExecutable#getName}
-	 * corresponding to <code>key</code>. 
+	 * @throws MissingVariableException if this {@link Variables} contains no mapping,
 	 * @see Hashtable#get
 	 * @see #containsKey(String key)
 	 */

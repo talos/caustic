@@ -3,7 +3,7 @@
 	"url" : "https://a836-propertyportal.nyc.gov/Default.aspx",
 	"finds_one" : [{
 		"name" : "VIEWSTATE",
-		"pattern" : "id=\"__VIEWSTATE\" value=\"([^\"]+)\"",
+		"pattern" : "id=\"__VIEWSTATE\"\\s+value=\"([^\"]+)\"",
 		"replacement" : "$1"
 	}],
 	"then": [{

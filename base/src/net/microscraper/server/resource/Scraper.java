@@ -6,9 +6,9 @@ import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.DeserializationException;
 import net.microscraper.server.Resource;
-import net.microscraper.server.resource.mixin.FindsMany;
-import net.microscraper.server.resource.mixin.FindsOne;
-import net.microscraper.server.resource.mixin.SpawnsScrapers;
+import net.microscraper.server.resource.mixin.CanFindMany;
+import net.microscraper.server.resource.mixin.CanFindOne;
+import net.microscraper.server.resource.mixin.CanSpawnScrapers;
 
 /**
  * A scraper can include a {@link Page}, a set of {@link FindOne}s, a set of {@link FindMany}s, and a
@@ -16,11 +16,11 @@ import net.microscraper.server.resource.mixin.SpawnsScrapers;
  * @author john
  *
  */
-public class Scraper extends Resource implements FindsOne, FindsMany,
-			SpawnsScrapers {
-	private final FindsOne findsOne;
-	private final FindsMany findsMany;
-	private final SpawnsScrapers spawnsScrapers;
+public class Scraper extends Resource implements CanFindOne, CanFindMany,
+			CanSpawnScrapers {
+	private final CanFindOne findsOne;
+	private final CanFindMany findsMany;
+	private final CanSpawnScrapers spawnsScrapers;
 	
 	public Scraper[] getScrapers() throws DeserializationException, IOException {
 		return spawnsScrapers.getScrapers();
@@ -47,8 +47,8 @@ public class Scraper extends Resource implements FindsOne, FindsMany,
 	 */
 	public Scraper(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		super(jsonObject.getLocation());
-		this.findsMany = FindsMany.Deserializer.deserialize(jsonObject);
-		this.findsOne = FindsOne.Deserializer.deserialize(jsonObject);
-		this.spawnsScrapers = SpawnsScrapers.Deserializer.deserialize(jsonObject);
+		this.findsMany = CanFindMany.Deserializer.deserialize(jsonObject);
+		this.findsOne = CanFindOne.Deserializer.deserialize(jsonObject);
+		this.spawnsScrapers = CanSpawnScrapers.Deserializer.deserialize(jsonObject);
 	}
 }

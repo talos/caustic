@@ -29,7 +29,7 @@ public class PageExecutable extends ScraperExecutable {
 	private PatternInterface[] getStopBecause(Page page) throws MissingVariableException, MustacheTemplateException {
 		PatternInterface[] stopPatterns = new PatternInterface[page.stopBecause.length];
 		for(int i  = 0 ; i < stopPatterns.length ; i++) {
-			stopPatterns[i] = new RegexpExecution(getContext(), page.stopBecause[i], getVariables()).getPattern();
+			stopPatterns[i] = new RegexpExecutable(getContext(), page.stopBecause[i], getVariables()).getPattern();
 		}
 		return stopPatterns;
 	}
