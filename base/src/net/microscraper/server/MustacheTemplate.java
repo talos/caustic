@@ -4,7 +4,7 @@ import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.Mustache;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Variables;
-import net.microscraper.server.resource.URL;
+import net.microscraper.server.instruction.URL;
 
 /**
  * A string where Mustache-style demarcation denotes where Variables are taken out.

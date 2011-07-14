@@ -7,11 +7,16 @@ import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.Variables;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.server.DeserializationException;
-import net.microscraper.server.resource.FindMany;
-import net.microscraper.server.resource.FindOne;
-import net.microscraper.server.resource.Page;
-import net.microscraper.server.resource.Scraper;
+import net.microscraper.server.instruction.FindMany;
+import net.microscraper.server.instruction.FindOne;
+import net.microscraper.server.instruction.Page;
+import net.microscraper.server.instruction.Scraper;
 
+/**
+ * @see {@link SpawnedScraperExecutable}, {@link PageExecutable}, {@link Variables}, {@link BasicExecutable}
+ * @author talos
+ *
+ */
 public abstract class ScraperExecutable extends BasicExecutable implements Variables {
 	private FindOneExecutable[] findOneExecutables;
 
@@ -22,6 +27,7 @@ public abstract class ScraperExecutable extends BasicExecutable implements Varia
 	
 	public String get(String key) throws MissingVariableException {
 		if(isComplete()) {
+			//Executable[] children = getChildren();
 			for(int i = 0 ; i < findOneExecutables.length ; i ++) {
 				if(findOneExecutables[i].containsKey(key)) {
 					return findOneExecutables[i].get(key);

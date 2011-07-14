@@ -1,4 +1,4 @@
-package net.microscraper.server.resource;
+package net.microscraper.server.instruction;
 
 import java.io.IOException;
 
@@ -6,10 +6,10 @@ import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.DeserializationException;
 import net.microscraper.server.MustacheTemplate;
-import net.microscraper.server.Resource;
+import net.microscraper.server.Instruction;
 
 /**
- * The {@link URL} {@link Resource} holds a string that can be mustached and used as a URL.
+ * The {@link URL} {@link Instruction} holds a string that can be mustached and used as a URL.
  * @author john
  *
  */
@@ -26,7 +26,7 @@ public class URL extends Scraper {
 	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return A {@link URL} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of a {@link URL}.
-	 * @throws IOException If there was an error loading a referenced {@link Resource}.
+	 * @throws IOException If there was an error loading a referenced {@link Instruction}.
 	 */
 	public URL(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		//super(jsonObject.getLocation());

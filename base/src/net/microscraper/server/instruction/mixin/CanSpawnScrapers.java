@@ -1,4 +1,4 @@
-package net.microscraper.server.resource.mixin;
+package net.microscraper.server.instruction.mixin;
 
 import java.io.IOException;
 import java.util.Vector;
@@ -7,13 +7,13 @@ import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.DeserializationException;
-import net.microscraper.server.resource.FindMany;
-import net.microscraper.server.resource.Page;
-import net.microscraper.server.resource.Scraper;
-import net.microscraper.server.resource.URL;
+import net.microscraper.server.instruction.FindMany;
+import net.microscraper.server.instruction.Page;
+import net.microscraper.server.instruction.Scraper;
+import net.microscraper.server.instruction.URL;
 
 /**
- * Implementations of this interface can link to {@link Scraper} {@link Resource}s.
+ * Implementations of this interface can link to {@link Scraper} {@link Instruction}s.
  * @author john
  *
  */

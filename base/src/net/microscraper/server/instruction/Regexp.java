@@ -1,17 +1,17 @@
-package net.microscraper.server.resource;
+package net.microscraper.server.instruction;
 
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.DeserializationException;
 import net.microscraper.server.MustacheTemplate;
-import net.microscraper.server.Resource;
+import net.microscraper.server.Instruction;
 
 /**
- * A regular expression {@link Resource}.
+ * A regular expression {@link Instruction}.
  * @author john
  *
  */
-public class Regexp extends Resource {
+public class Regexp extends Instruction {
 	/**
 	 * The {@link Regexp}'s pattern.  Mustache compiled before it is used.
 	 */

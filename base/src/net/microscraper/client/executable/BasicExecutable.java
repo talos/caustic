@@ -9,7 +9,7 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Utils;
 import net.microscraper.client.Variables;
 import net.microscraper.server.DeserializationException;
-import net.microscraper.server.Resource;
+import net.microscraper.server.Instruction;
 
 /**
  * {@link BasicExecutable} is a partial implementation of {@link Executable}.  It provides a framework
@@ -22,7 +22,7 @@ import net.microscraper.server.Resource;
  *
  */
 public abstract class BasicExecutable implements Executable {
-	private final Resource resource;
+	private final Instruction resource;
 	private final Variables variables;
 	private final Result source;
 	private final Interfaces context;
@@ -43,13 +43,13 @@ public abstract class BasicExecutable implements Executable {
 	/**
 	 * Construct a new {@link BasicExecutable}.
 	 * @param context The {@link Interfaces} to use.
-	 * @param resource The {@link Resource} with instructions for execution.
+	 * @param resource The {@link Instruction} with instructions for execution.
 	 * @param variables The {@link Variables} to use when substituting for tags.
 	 * @param source The {@link Result} which is the source of this {@link Executable}.  Can
 	 * be <code>null</code> if there was none.
 	 * @see #run
 	 */
-	protected BasicExecutable(Interfaces context, Resource resource,
+	protected BasicExecutable(Interfaces context, Instruction resource,
 			Variables variables, Result source) {
 		this.context = context;
 		this.variables = variables;
@@ -161,8 +161,8 @@ public abstract class BasicExecutable implements Executable {
 	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
 	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
 	 * {@link Executable}'s {@link Variables}.
-	 * @throws IOException If there was an error loading the {@link Resource} for one of the children.
-	 * @throws DeserializationException If there was an error deserializing the {@link Resource} for one
+	 * @throws IOException If there was an error loading the {@link Instruction} for one of the children.
+	 * @throws DeserializationException If there was an error deserializing the {@link Instruction} for one
 	 * of the children.
 	 * @see #generateResource
 	 * @see #generateResult
@@ -171,7 +171,7 @@ public abstract class BasicExecutable implements Executable {
 	protected abstract Executable[] generateChildren(Result[] results)
 			throws MissingVariableException, MustacheTemplateException, DeserializationException, IOException;
 	
-	public final Resource getResource() {
+	public final Instruction getResource() {
 		return resource;
 	}
 	

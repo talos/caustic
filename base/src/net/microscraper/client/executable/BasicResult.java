@@ -5,7 +5,7 @@ import java.util.Hashtable;
 import net.microscraper.client.interfaces.Publisher;
 import net.microscraper.client.interfaces.PublisherException;
 import net.microscraper.client.interfaces.URIInterface;
-import net.microscraper.server.Resource;
+import net.microscraper.server.Instruction;
 
 public class BasicResult implements Result {
 	private final String name;
@@ -16,7 +16,7 @@ public class BasicResult implements Result {
 	private final Integer sourceNumber;
 	
 	/**
-	 * Keeps track of how many times each {@link Resource} has generated a {@link Result}.
+	 * Keeps track of how many times each {@link Instruction} has generated a {@link Result}.
 	 */
 	private static final Hashtable countsForResource = new Hashtable();
 
@@ -30,7 +30,8 @@ public class BasicResult implements Result {
 		this.name = name;
 		this.value = value;
 		this.uri = executable.getResource().location;
-		this.number = generateNumber(this.uri);
+		//this.number = generateNumber(getUri());
+		this.number = generateNumber();
 		if(executable.hasSource()) {
 			this.sourceUri = executable.getSource().getUri();
 			this.sourceNumber = new Integer(executable.getSource().getNumber());
@@ -42,11 +43,10 @@ public class BasicResult implements Result {
 	
 	/**
 	 * 
-	 * @param location The {@link Resource} location to check &amp; increment.
-	 * @return How many times {@link Resource} has generated a {@link Result}.
+	 * @return How many times {@link Instruction} has generated a {@link Result}.
 	 */
-	private static int generateNumber(URIInterface location) {
-		String key = location.toString();
+	private int generateNumber() {
+		String key = getUri().toString();
 		if(countsForResource.containsKey(key)) {
 			int id = ((Integer) countsForResource.get(key)).intValue();
 			countsForResource.put(key, new Integer(id + 1));

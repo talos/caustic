@@ -19,11 +19,11 @@ import net.microscraper.client.interfaces.PublisherException;
 import net.microscraper.client.interfaces.RegexpCompiler;
 import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.DeserializationException;
-import net.microscraper.server.resource.Page;
-import net.microscraper.server.resource.Scraper;
+import net.microscraper.server.instruction.Page;
+import net.microscraper.server.instruction.Scraper;
 
 /**
- * A microscraper {@link Client} can scrape a {@link Resource}.
+ * A microscraper {@link Client} can scrape a {@link Instruction}.
  * @author john
  *
  */

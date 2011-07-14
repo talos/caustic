@@ -1,4 +1,4 @@
-package net.microscraper.server.resource;
+package net.microscraper.server.instruction;
 
 import java.io.IOException;
 
@@ -35,18 +35,26 @@ public class Find extends Regexp {
 	 */
 	public final Regexp[] tests;
 	
+	private final MustacheTemplate name;
+
 	/**
-	 * A {@link MustacheTemplate} attached to this particular {@link Find} {@link Resource}.
+	 * @return A {@link MustacheTemplate} attached to this particular {@link Find} {@link Instruction}.
 	 * Is <code>null</code> if it has none.
 	 * @see {@link #hasName}
 	 */
-	public final MustacheTemplate name;
+	public final MustacheTemplate getName() {
+		return name;
+	}
 	
 	/**
-	 * Whether this {@link Find} {@link Resource} has a {@link #name}.
+	 * Whether this {@link Find} {@link Instruction} has a {@link #name}.
 	 * @see {@link #name}
 	 */
-	public final boolean hasName;
+	public final boolean hasName() {
+		if(getName() == null)
+			return false;
+		return true;
+	}
 	
 	/**
 	 * Deserialize a {@link Find} from a {@link JSONInterfaceObject}.
@@ -61,10 +69,8 @@ public class Find extends Regexp {
 		super(jsonObject);
 		try {
 			if(jsonObject.has(NAME)) {
-				hasName = true;
 				name = new MustacheTemplate(jsonObject.getString(NAME));
 			} else {
-				hasName = false;
 				name = null;
 			}
 			if(jsonObject.has(TESTS)) {

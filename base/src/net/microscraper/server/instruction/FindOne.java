@@ -1,12 +1,12 @@
-package net.microscraper.server.resource;
+package net.microscraper.server.instruction;
 
 import java.io.IOException;
 
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.DeserializationException;
-import net.microscraper.server.resource.mixin.CanFindMany;
-import net.microscraper.server.resource.mixin.CanFindOne;
+import net.microscraper.server.instruction.mixin.CanFindMany;
+import net.microscraper.server.instruction.mixin.CanFindOne;
 
 /**
  * A one-to-one {@link Find} that can link to other {@link Find}s,

@@ -9,8 +9,8 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
-import net.microscraper.server.resource.FindMany;
-import net.microscraper.server.resource.FindOne;
+import net.microscraper.server.instruction.FindMany;
+import net.microscraper.server.instruction.FindOne;
 
 /**
  * {@link FindOneExecutable} is the {@link Executable} spawned by a {@link FindOne}.

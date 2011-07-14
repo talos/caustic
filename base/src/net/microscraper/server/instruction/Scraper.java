@@ -1,14 +1,14 @@
-package net.microscraper.server.resource;
+package net.microscraper.server.instruction;
 
 import java.io.IOException;
 
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.DeserializationException;
-import net.microscraper.server.Resource;
-import net.microscraper.server.resource.mixin.CanFindMany;
-import net.microscraper.server.resource.mixin.CanFindOne;
-import net.microscraper.server.resource.mixin.CanSpawnScrapers;
+import net.microscraper.server.Instruction;
+import net.microscraper.server.instruction.mixin.CanFindMany;
+import net.microscraper.server.instruction.mixin.CanFindOne;
+import net.microscraper.server.instruction.mixin.CanSpawnScrapers;
 
 /**
  * A scraper can include a {@link Page}, a set of {@link FindOne}s, a set of {@link FindMany}s, and a
@@ -16,7 +16,7 @@ import net.microscraper.server.resource.mixin.CanSpawnScrapers;
  * @author john
  *
  */
-public class Scraper extends Resource implements CanFindOne, CanFindMany,
+public class Scraper extends Instruction implements CanFindOne, CanFindMany,
 			CanSpawnScrapers {
 	private final CanFindOne findsOne;
 	private final CanFindMany findsMany;

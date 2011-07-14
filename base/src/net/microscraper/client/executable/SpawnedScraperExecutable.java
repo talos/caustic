@@ -5,7 +5,7 @@ import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Variables;
-import net.microscraper.server.resource.Scraper;
+import net.microscraper.server.instruction.Scraper;
 
 /**
  * {@link SpawnedScraperExecutable} is the {@link Executable} spawned by a {@link ScraperExecutable}.

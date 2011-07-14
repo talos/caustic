@@ -24,14 +24,14 @@ public interface Result extends NameValuePair {
 	
 	/**
 	 * 
-	 * @return How many times this {@link Result}'s {@link Resource} had generated {@link Result}s
+	 * @return How many times this {@link Result}'s {@link Instruction} had generated {@link Result}s
 	 * before this one was generated.
 	 */
 	public int getNumber();
 
 	/**
 	 * 
-	 * @return The {@link URIInterface} of the {@link Resource} with this {@link Result}'s instructions.
+	 * @return The {@link URIInterface} of the {@link Instruction} with this {@link Result}'s instructions.
 	 */
 	public URIInterface getUri();
 }

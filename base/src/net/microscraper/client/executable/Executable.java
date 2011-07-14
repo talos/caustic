@@ -1,7 +1,7 @@
 package net.microscraper.client.executable;
 
 import net.microscraper.client.Variables;
-import net.microscraper.server.Resource;
+import net.microscraper.server.Instruction;
 
 /**
  * Implementations of {@link Executable} can be
@@ -22,9 +22,9 @@ public interface Executable extends Runnable {
 	
 	/**
 	 * Can be called before the {@link Executable} is {@link #run}.
-	 * @return The {@link Resource} with the {@link Executable}'s instructions.
+	 * @return The {@link Instruction} with the {@link Executable}'s instructions.
 	 */
-	public abstract Resource getResource();
+	public abstract Instruction getResource();
 	
 	/**
 	 * Can be called before the {@link Executable} is {@link #run}.

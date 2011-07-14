@@ -6,7 +6,7 @@ import net.microscraper.client.Variables;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.client.interfaces.RegexpCompiler;
-import net.microscraper.server.resource.Regexp;
+import net.microscraper.server.instruction.Regexp;
 
 public class RegexpExecutable {
 	private final Regexp regexpResource;

@@ -20,7 +20,7 @@ import net.microscraper.client.executable.Result;
 import net.microscraper.client.executable.DatabaseException.ResourceNotFoundException;
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.BrowserException;
-import net.microscraper.server.resource.AbstractHeader;
+import net.microscraper.server.instruction.AbstractHeader;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

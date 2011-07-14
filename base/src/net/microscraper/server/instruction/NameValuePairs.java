@@ -1,4 +1,4 @@
-package net.microscraper.server.resource;
+package net.microscraper.server.instruction;
 
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceIterator;
@@ -6,9 +6,9 @@ import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.DeserializationException;
 import net.microscraper.server.MustacheNameValuePair;
 import net.microscraper.server.MustacheTemplate;
-import net.microscraper.server.Resource;
+import net.microscraper.server.Instruction;
 
-public class NameValuePairs extends Resource {
+public class NameValuePairs extends Instruction {
 	public final MustacheNameValuePair[] pairs;
 	
 	/**

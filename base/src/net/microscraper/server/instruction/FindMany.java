@@ -1,4 +1,4 @@
-package net.microscraper.server.resource;
+package net.microscraper.server.instruction;
 
 import java.io.IOException;
 
@@ -8,7 +8,7 @@ import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.DeserializationException;
-import net.microscraper.server.resource.mixin.CanSpawnScrapers;
+import net.microscraper.server.instruction.mixin.CanSpawnScrapers;
 
 /**
  * A {@link Find} that can connect to other {@link Scraper} through {@link #getPipes},

@@ -11,8 +11,8 @@ import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.NetInterfaceException;
 import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.client.interfaces.URLInterface;
-import net.microscraper.server.Resource;
-import net.microscraper.server.resource.Page;
+import net.microscraper.server.Instruction;
+import net.microscraper.server.instruction.Page;
 
 /**
  * When {@link #run}, {@link PageExecutable} makes an HTTP request according to
@@ -69,7 +69,7 @@ public class PageExecutable extends ScraperExecutable {
 	}
 	
 	/**
-	 * @param page The {@link Page} {@link Resource} whose {@link Page#method} should be executed.
+	 * @param page The {@link Page} {@link Instruction} whose {@link Page#method} should be executed.
 	 * @return The body of the page, if the {@link PageExecutable}'s {@link Page.method} is
 	 * {@link Page.Method.GET} or {@link Page.Method.POST}; <code>Null</code> if it is
 	 * {@link Page.Method.HEAD}.

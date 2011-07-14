@@ -1,4 +1,4 @@
-package net.microscraper.server.resource.mixin;
+package net.microscraper.server.instruction.mixin;
 
 import java.io.IOException;
 
@@ -6,11 +6,11 @@ import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.server.DeserializationException;
-import net.microscraper.server.resource.FindMany;
-import net.microscraper.server.resource.FindOne;
+import net.microscraper.server.instruction.FindMany;
+import net.microscraper.server.instruction.FindOne;
 
 /**
- * Allows connections to a {@link FindMany} {@link Resource}.
+ * Allows connections to a {@link FindMany} {@link Instruction}.
  * @author john
  *
  */
@@ -18,7 +18,7 @@ public interface CanFindMany {
 	
 	/**
 	 * 
-	 * @return An array of associated {@link FindMany} {@link Resource}s.
+	 * @return An array of associated {@link FindMany} {@link Instruction}s.
 	 */
 	public abstract FindMany[] getFindManys();
 	

@@ -5,8 +5,8 @@ import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.Variables;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.PatternInterface;
-import net.microscraper.server.resource.Find;
-import net.microscraper.server.resource.Regexp;
+import net.microscraper.server.instruction.Find;
+import net.microscraper.server.instruction.Regexp;
 
 /**
  * {@link FindExecutable}s are the {@link BasicExecutable} implementation of {@link Find}s, and are contained inside
@@ -23,7 +23,7 @@ import net.microscraper.server.resource.Regexp;
 public abstract class FindExecutable extends BasicExecutable {
 	
 	/**
-	 * The {@link Regexp} {@link Resource} that is used to parse.
+	 * The {@link Regexp} {@link Instruction} that is used to parse.
 	 */
 	private final Regexp regexp;
 	
@@ -48,16 +48,16 @@ public abstract class FindExecutable extends BasicExecutable {
 	
 	/**
 	 * 
-	 * @return The {@link Find} {@link net.microscraper.server.Resource}'s {@link Find#name}, compiled through
-	 * {@link Mustache}.  Returns the {@link net.microscraper.server.Resource#location} as a String if none is
+	 * @return The {@link Find} {@link net.microscraper.server.Instruction}'s {@link Find#name}, compiled through
+	 * {@link Mustache}.  Returns the {@link net.microscraper.server.Instruction#location} as a String if none is
 	 * specified.
 	 * @throws MustacheTemplateException If the {@link Find#name} is an invalid {@link MustacheTemplate}.
 	 * @throws MissingVariableException If the {@link Find#name} cannot be compiled with {@link #getVariables()}.
 	 */
 	protected String getName() throws MissingVariableException, MustacheTemplateException {
 		Find find = (Find) getResource();
-		if(find.hasName) {
-			return find.name.compile(getVariables());
+		if(find.hasName()) {
+			return find.getName().compile(getVariables());
 		} else {
 			return find.location.toString();
 		}

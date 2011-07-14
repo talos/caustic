@@ -14,10 +14,10 @@ import net.microscraper.client.interfaces.MissingGroupException;
 import net.microscraper.client.interfaces.NoMatchesException;
 import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.server.DeserializationException;
-import net.microscraper.server.resource.FindMany;
-import net.microscraper.server.resource.Page;
-import net.microscraper.server.resource.Regexp;
-import net.microscraper.server.resource.Scraper;
+import net.microscraper.server.instruction.FindMany;
+import net.microscraper.server.instruction.Page;
+import net.microscraper.server.instruction.Regexp;
+import net.microscraper.server.instruction.Scraper;
 
 public class FindManyExecutable extends FindExecutable {
 	public FindManyExecutable(Interfaces context, FindMany findMany, 
