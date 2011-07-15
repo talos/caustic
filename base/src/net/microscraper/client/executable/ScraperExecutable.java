@@ -41,9 +41,6 @@ public abstract class ScraperExecutable extends BasicExecutable implements Varia
 	}
 	
 	public boolean containsKey(String key) {
-		if(getVariables().containsKey(key)) {
-			return true;
-		}
 		if(isComplete()) {
 			for(int i = 0 ; i < findOneExecutables.length ; i ++) {
 				if(findOneExecutables[i].containsKey(key)) {
@@ -51,7 +48,7 @@ public abstract class ScraperExecutable extends BasicExecutable implements Varia
 				}
 			}
 		}
-		return false;
+		return getVariables().containsKey(key);
 	}
 	
 	protected final Executable[] generateChildren(Result[] sourceResults) throws DeserializationException, IOException {

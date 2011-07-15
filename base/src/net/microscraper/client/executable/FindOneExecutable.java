@@ -59,6 +59,9 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 					return child.get(key);
 			}
 		}
+		Variables variables = getVariables();
+		if(variables.containsKey(key))
+			return variables.get(key);
 		throw new MissingVariableException(this, key);
 	}
 
@@ -83,7 +86,7 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 					return true;
 			}
 		}
-		return false;
+		return getVariables().containsKey(key);
 	}
 	
 	/**
