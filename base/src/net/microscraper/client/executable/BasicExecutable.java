@@ -22,14 +22,13 @@ import net.microscraper.server.Instruction;
  *
  */
 public abstract class BasicExecutable implements Executable {
-	private final Instruction resource;
+	private final Instruction instruction;
 	private final Variables variables;
 	private final Result source;
-	private final Interfaces context;
+	private final Interfaces interfaces;
 	
 	private final static int SLEEP_TIME = 1000; //TODO this belongs elsewhere
 	
-	//private Resource resource = null;
 	private Result[] results = null;
 	private Executable[] children = null;
 	
@@ -38,22 +37,21 @@ public abstract class BasicExecutable implements Executable {
 	private String missingVariable = null;
 	
 	private boolean isStuck = false;
-	private boolean isComplete = false;
 	
 	/**
 	 * Construct a new {@link BasicExecutable}.
 	 * @param context The {@link Interfaces} to use.
-	 * @param resource The {@link Instruction} with instructions for execution.
+	 * @param instruction The {@link Instruction} with instructions for execution.
 	 * @param variables The {@link Variables} to use when substituting for tags.
 	 * @param source The {@link Result} which is the source of this {@link Executable}.  Can
 	 * be <code>null</code> if there was none.
 	 * @see #run
 	 */
-	protected BasicExecutable(Interfaces context, Instruction resource,
+	protected BasicExecutable(Interfaces context, Instruction instruction,
 			Variables variables, Result source) {
-		this.context = context;
+		this.interfaces = context;
 		this.variables = variables;
-		this.resource = resource;
+		this.instruction = instruction;
 		this.source = source;
 	}
 	
@@ -69,7 +67,6 @@ public abstract class BasicExecutable implements Executable {
 				}
 				if(results != null) {
 					children = generateChildren(results);
-					handleComplete(); 
 				}
 			} catch(ExecutionFailure e) {
 				handleFailure(e);
@@ -91,9 +88,9 @@ public abstract class BasicExecutable implements Executable {
 		try {
 			Thread.sleep(SLEEP_TIME);
 		} catch(InterruptedException interrupt) {
-			context.log.e(interrupt);
+			interfaces.log.e(interrupt);
 		}
-		context.log.i("Delaying load of " + Utils.quote(e.url.toString()) +
+		interfaces.log.i("Delaying load of " + Utils.quote(e.url.toString()) +
 				", current KBPS " +
 				Utils.quote(Float.toString(e.kbpsSinceLastLoad)));
 	}
@@ -104,8 +101,8 @@ public abstract class BasicExecutable implements Executable {
 	 */
 	private void handleFailure(ExecutionFailure e) {
 		failure = e.getCause();
-		context.log.i("Failure in " + toString());
-		context.log.e(e);
+		interfaces.log.i("Failure in " + toString());
+		interfaces.log.e(e);
 	}
 	
 	/**
@@ -114,24 +111,17 @@ public abstract class BasicExecutable implements Executable {
 	 * @param e The {@link MissingVariableException}.
 	 */
 	private void handleMissingVariable(MissingVariableException e) {
-		context.log.i("Missing " + Utils.quote(e.name) + " from " + toString());
+		interfaces.log.i("Missing " + Utils.quote(e.name) + " from " + toString());
 		if(missingVariable != null) {
 			lastMissingVariable = new String(missingVariable);
 			missingVariable = e.name;
 			if(lastMissingVariable.equals(missingVariable)) {
 				isStuck = true;
-				context.log.i("Stuck on " + Utils.quote(missingVariable) + " in " + toString());
+				interfaces.log.i("Stuck on " + Utils.quote(missingVariable) + " in " + toString());
 			}
 		} else {
 			missingVariable = e.name;
 		}
-	}
-	
-	/**
-	 * Sets {@link isComplete} to <code>true</code>.
-	 */
-	private void handleComplete() {
-		isComplete = true;
 	}
 	
 	/**
@@ -172,7 +162,7 @@ public abstract class BasicExecutable implements Executable {
 			throws MissingVariableException, MustacheTemplateException, DeserializationException, IOException;
 	
 	public final Instruction getResource() {
-		return resource;
+		return instruction;
 	}
 	
 	public final Variables getVariables() {
@@ -233,7 +223,11 @@ public abstract class BasicExecutable implements Executable {
 	}
 
 	public final boolean isComplete() {
-		return isComplete;
+		if(results == null) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 	
 	/**
@@ -241,7 +235,7 @@ public abstract class BasicExecutable implements Executable {
 	 * <p><code>Execution {@link #getId()} {@link #getResourceLocation()}.toString()
 	 */
 	public final String toString() {
-		return "Execution " + getResource().location.toString();
+		return "Execution " + getResource().getLocation().toString();
 	}
 	
 	public final Executable[] getChildren() throws IllegalStateException {
@@ -254,10 +248,10 @@ public abstract class BasicExecutable implements Executable {
 	
 	/**
 	 * 
-	 * @return The {@link Interfaces} that provides access to interfaces during execution.
+	 * @return The {@link Interfaces} for this {@link BasicExecutable}.
 	 */
-	public final Interfaces getContext() {
-		return context;
+	public final Interfaces getInterfaces() {
+		return interfaces;
 	}
 	
 	public Result[] getResults() throws IllegalStateException {

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.DeserializationException;
 import net.microscraper.server.MustacheTemplate;
 import net.microscraper.server.Instruction;
@@ -14,10 +15,14 @@ import net.microscraper.server.Instruction;
  *
  */
 public class URL extends Scraper {	
+	
+	private final MustacheTemplate template;
 	/**
-	 * A string that can be mustached and used as a URL.
+	 * @return A string that can be mustached and used as a URL.
 	 */
-	public final MustacheTemplate url;
+	public final MustacheTemplate getTemplate() {
+		return template;
+	}
 	
 	private static final String URL = "url";
 
@@ -32,10 +37,16 @@ public class URL extends Scraper {
 		//super(jsonObject.getLocation());
 		super(jsonObject);
 		try {
-			this.url = new MustacheTemplate(jsonObject.getString(URL));
+			this.template = new MustacheTemplate(jsonObject.getString(URL));
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
+	}
+	
+	public URL(URIInterface location, Page[] spawnPages, Scraper[] spawnScrapers,
+			FindMany[] findManys, FindOne[] findOnes, MustacheTemplate urlTemplate) {
+		super(location, spawnPages, spawnScrapers, findManys, findOnes);
+		this.template = urlTemplate;
 	}
 	
 	/**	

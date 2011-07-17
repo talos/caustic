@@ -29,7 +29,7 @@ public class BasicResult implements Result {
 	public BasicResult(Executable executable, String name, String value) {
 		this.name = name;
 		this.value = value;
-		this.uri = executable.getResource().location;
+		this.uri = executable.getResource().getLocation();
 		//this.number = generateNumber(getUri());
 		this.number = generateNumber();
 		if(executable.hasSource()) {

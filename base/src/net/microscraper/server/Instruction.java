@@ -8,11 +8,16 @@ import net.microscraper.client.interfaces.URIInterface;
  *
  */
 public class Instruction {
+	
+	private final URIInterface location;
+	
 	/**
 	 * 
-	 * The resource's absolute {@link URIInterface} location.
+	 * @return The resource's absolute {@link URIInterface} location.
 	 */
-	public final URIInterface location;
+	public final URIInterface getLocation() {
+		return location;
+	}
 	
 	/**
 	 * {@link Instruction} must be initialized with a {@link URIInterface} location.

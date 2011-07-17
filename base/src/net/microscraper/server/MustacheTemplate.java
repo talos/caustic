@@ -32,4 +32,11 @@ public final class MustacheTemplate {
 	public String compile(Variables variables) throws MissingVariableException, MustacheTemplateException {
 		return Mustache.compile(string, variables);
 	}
+	
+	/**
+	 * @return The raw, uncompiled {@link String} for this {@link MustacheTemplate}.
+	 */
+	public String toString() {
+		return string;
+	}
 }

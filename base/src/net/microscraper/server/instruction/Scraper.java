@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.DeserializationException;
 import net.microscraper.server.Instruction;
 import net.microscraper.server.instruction.mixin.CanFindMany;
@@ -18,24 +19,28 @@ import net.microscraper.server.instruction.mixin.CanSpawnScrapers;
  */
 public class Scraper extends Instruction implements CanFindOne, CanFindMany,
 			CanSpawnScrapers {
-	private final CanFindOne findsOne;
+	/*private final CanFindOne findsOne;
 	private final CanFindMany findsMany;
-	private final CanSpawnScrapers spawnsScrapers;
+	private final CanSpawnScrapers spawnsScrapers;*/
 	
+	private final Scraper[] spawnScrapers;
 	public Scraper[] getScrapers() throws DeserializationException, IOException {
-		return spawnsScrapers.getScrapers();
+		return spawnScrapers;
 	}
 
+	private final FindMany[] findManys;
 	public FindMany[] getFindManys() {
-		return findsMany.getFindManys();
+		return findManys;
 	}
 
+	private final FindOne[] findOnes;
 	public FindOne[] getFindOnes() {
-		return findsOne.getFindOnes();
+		return findOnes;
 	}
 
+	private final Page[] spawnPages;
 	public Page[] getPages() throws DeserializationException, IOException {
-		return spawnsScrapers.getPages();
+		return spawnPages;
 	}
 	
 	/**
@@ -47,8 +52,22 @@ public class Scraper extends Instruction implements CanFindOne, CanFindMany,
 	 */
 	public Scraper(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		super(jsonObject.getLocation());
-		this.findsMany = CanFindMany.Deserializer.deserialize(jsonObject);
-		this.findsOne = CanFindOne.Deserializer.deserialize(jsonObject);
-		this.spawnsScrapers = CanSpawnScrapers.Deserializer.deserialize(jsonObject);
+		CanFindMany canFindMany = CanFindMany.Deserializer.deserialize(jsonObject);
+		CanFindOne  canFindOne = CanFindOne.Deserializer.deserialize(jsonObject);
+		CanSpawnScrapers canSpawnScrapers = CanSpawnScrapers.Deserializer.deserialize(jsonObject);
+		
+		this.spawnPages = canSpawnScrapers.getPages();
+		this.spawnScrapers = canSpawnScrapers.getScrapers();
+		this.findManys = canFindMany.getFindManys();
+		this.findOnes  = canFindOne.getFindOnes();
+	}
+	
+	public Scraper(URIInterface location, Page[] spawnPages, Scraper[] spawnScrapers,
+			FindMany[] findManys, FindOne[] findOnes) {
+		super(location);
+		this.spawnPages = spawnPages;
+		this.spawnScrapers = spawnScrapers;
+		this.findManys = findManys;
+		this.findOnes = findOnes;
 	}
 }

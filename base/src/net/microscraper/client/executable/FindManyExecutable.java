@@ -21,8 +21,8 @@ import net.microscraper.server.instruction.Scraper;
 
 public class FindManyExecutable extends FindExecutable {
 	public FindManyExecutable(Interfaces context, FindMany findMany, 
-			Variables variables, Result sourceResult) {
-		super(context, findMany, variables, sourceResult);
+			ScraperExecutable scraperExecutable, Result sourceResult) {
+		super(context, findMany, scraperExecutable, sourceResult);
 	}
 	
 	
@@ -39,8 +39,8 @@ public class FindManyExecutable extends FindExecutable {
 			String[] values = getPattern().allMatches(
 					getSource().getValue(),
 					replacement,
-					findMany.minMatch,
-					findMany.maxMatch);
+					findMany.getMinMatch(),
+					findMany.getMaxMatch());
 			Result[] results = new Result[values.length];
 			for(int i = 0 ; i < results.length ; i++) {
 				results[i] = generateResult(name, values[i]);
@@ -74,10 +74,10 @@ public class FindManyExecutable extends FindExecutable {
 		for(int i = 0 ; i < results.length ; i ++) {
 			Result source = results[i];
 			for(int j = 0 ; j < scrapers.length ; j++) {
-				children.add(new SpawnedScraperExecutable(getContext(), scrapers[j], getVariables(), source));
+				children.add(new SpawnedScraperExecutable(getInterfaces(), scrapers[j], getVariables(), source));
 			}
 			for(int j = 0 ; j < pages.length ; j++) {
-				children.add(new PageExecutable(getContext(), pages[j], getVariables(), source));
+				children.add(new PageExecutable(getInterfaces(), pages[j], getVariables(), source));
 			}
 		}
 		Executable[] childrenAry = new ScraperExecutable[children.size()];

@@ -16,23 +16,38 @@ import net.microscraper.server.instruction.FindOne;
  * {@link FindOneExecutable} is the {@link Executable} spawned by a {@link FindOne}.
  * It implements {@link Variables}, such that it passes up the values for all of its
  * executed {@link FindOneExecutable} children.
- * @see Variables
  * @see FindOne
  * @author john
  *
  */
-public class FindOneExecutable extends FindExecutable implements Variables {
+public class FindOneExecutable extends FindExecutable {
 	
 	/**
 	 * The {@link FindOneExecutable}s spawned by this {@link FindOneExecutable}.
 	 */
 	private FindOneExecutable[] spawnedFindOneExecutables;
 	
+	private final ScraperExecutable enclosingScraperExecutable;
+	
 	public FindOneExecutable(Interfaces context,
-			FindOne findOne, Variables variables,
+			FindOne findOne, ScraperExecutable scraperExecutable,
 			Result sourceResult) {
-		super(context, findOne, variables, sourceResult);
-
+		super(context, findOne, scraperExecutable, sourceResult);
+		this.enclosingScraperExecutable = scraperExecutable;
+	}
+	
+	protected String localGet(String key) {
+		if(isComplete()) {
+			Result result = getResults()[0];
+			if(result.getName().equals(key))
+				return result.getValue();
+			for(int i = 0 ; i < spawnedFindOneExecutables.length ; i ++) {
+				String spawnedValue = spawnedFindOneExecutables[i].localGet(key);
+				if(spawnedValue != null)
+					return spawnedValue;
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -45,49 +60,43 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 	 * @throws MissingVariableException if this {@link FindOneExecutable} and its children
 	 * contain no result for this key.
 	 */
-	public String get(String key) throws MissingVariableException {
+	/*public String get(String key) throws MissingVariableException {
 		if(isComplete()) {
-			NameValuePair result = (NameValuePair) getResults()[0];
+			Result result = getResults()[0];
 			
 			if(result.getName().equals(key))
 				return result.getValue();
 			
-			Executable[] children = getChildren();
-			for(int i = 0 ; i < children.length ; i ++) {
-				Variables child = (Variables) children[i]; // All children are Variables
-				if(child.containsKey(key))
-					return child.get(key);
+			for(int i = 0 ; i < spawnedFindOneExecutables.length ; i ++) {
+				if(spawnedFindOneExecutables[i].containsKey(key))
+					return spawnedFindOneExecutables[i].get(key);
 			}
 		}
-		Variables variables = getVariables();
-		if(variables.containsKey(key))
-			return variables.get(key);
-		throw new MissingVariableException(this, key);
-	}
+		
+		return getVariables().get(key);
+	}*/
 
 	/**
 	 * Tests if the specified object is a key in this {@link FindOneExecutable} or
 	 * one of its children.
-	 * @param key possible key 
+	 * @param key The key to test. 
 	 * @return <code>true</code> if and only if the specified String is a key
 	 * in this {@link FindOneExecutable} or one of its children.
 	 * @throws NullPointerException if the key is <code>null</code>
 	 */
-	public boolean containsKey(String key) {
+	/*public boolean containsKey(String key) {
 		if(isComplete()) {
-			NameValuePair result = (NameValuePair) getResults()[0];
+			Result result = getResults()[0];
 			if(result.getName().equals(key))
 				return true;
 			
-			Executable[] children = getChildren();
-			for(int i = 0 ; i < children.length ; i ++) {
-				Variables child = (Variables) children[i]; // All children are Variables
-				if(child.containsKey(key))
+			for(int i = 0 ; i < spawnedFindOneExecutables.length ; i ++) {
+				if(spawnedFindOneExecutables[i].containsKey(key))
 					return true;
 			}
 		}
 		return getVariables().containsKey(key);
-	}
+	}*/
 	
 	/**
 	 * A single {@link NameValuePair} {@link Result} for {@link FindOneExecutable}.
@@ -122,11 +131,11 @@ public class FindOneExecutable extends FindExecutable implements Variables {
 			Result sourceResult = results[i];
 			for(int j = 0 ; j < childFindOnes.length ; j ++) {
 				findOneExecutables.add(
-					new FindOneExecutable(getContext(), childFindOnes[j], getVariables(), sourceResult));
+					new FindOneExecutable(getInterfaces(), childFindOnes[j], enclosingScraperExecutable, sourceResult));
 			}
 			for(int j = 0 ; j < childFindManys.length ; j ++) {
 				findManyExecutables.add(
-					new FindManyExecutable(getContext(), childFindManys[j], getVariables(), sourceResult));
+					new FindManyExecutable(getInterfaces(), childFindManys[j], enclosingScraperExecutable, sourceResult));
 			}
 		}
 		this.spawnedFindOneExecutables = new FindOneExecutable[findOneExecutables.size()];

@@ -4,7 +4,9 @@ import java.io.IOException;
 
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.DeserializationException;
+import net.microscraper.server.MustacheTemplate;
 import net.microscraper.server.instruction.mixin.CanFindMany;
 import net.microscraper.server.instruction.mixin.CanFindOne;
 
@@ -21,9 +23,6 @@ public class FindOne extends Find implements CanFindMany, CanFindOne {
 	 * The resource's identifier when deserializing.
 	 */
 	public static final String KEY = "find_one";
-	
-	private final CanFindMany findsMany;
-	private final CanFindOne findsOne;
 	
 	/**
 	 * A {@link FindOne} finds a single scraper match.
@@ -45,25 +44,37 @@ public class FindOne extends Find implements CanFindMany, CanFindOne {
 		super(jsonObject);
 		try {
 			this.match = jsonObject.has(MATCH) ? jsonObject.getInt(MATCH) : DEFAULT_MATCH;
-			this.findsOne = CanFindOne.Deserializer.deserialize(jsonObject);
-			this.findsMany = CanFindMany.Deserializer.deserialize(jsonObject);
+			CanFindOne canFindOne = CanFindOne.Deserializer.deserialize(jsonObject);
+			CanFindMany canFindMany = CanFindMany.Deserializer.deserialize(jsonObject);
+			this.findOnes = canFindOne.getFindOnes();
+			this.findManys = canFindMany.getFindManys();
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
 	
-	public FindOne[] getFindOnes() {
-		return findsOne.getFindOnes();
+	public FindOne(URIInterface location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
+			MustacheTemplate name, Regexp[] tests, MustacheTemplate replacement, int match, FindOne[] findsOne, FindMany[] findsMany) {
+		super(location, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline, name, tests, replacement);
+		this.match = match;
+		this.findOnes = findsOne;
+		this.findManys = findsMany;
 	}
-
+	
+	private final FindOne[] findOnes;
+	public FindOne[] getFindOnes() {
+		return findOnes;
+	}
+	
+	private final FindMany[] findManys;
 	public FindMany[] getFindManys() {
-		return findsMany.getFindManys();
+		return findManys;
 	}
 	
 	private static final String MATCH = "match";
 	
 	/**
-	 * The first match.
+	 * Defaults to <code>0</code>, the first match.
 	 */
 	private static final int DEFAULT_MATCH = 0;
 }

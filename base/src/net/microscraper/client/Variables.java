@@ -6,7 +6,7 @@ import net.microscraper.client.executable.SpawnedScraperExecutable;
 import net.microscraper.client.executable.FindOneExecutable;
 
 /**
- * A simple read-only hash-wrapper with String keys and values.
+ * A {@link Hashtable} wrapper with String keys and values.
  * @author john
  * @see Hashtable
  * @see SpawnedScraperExecutable

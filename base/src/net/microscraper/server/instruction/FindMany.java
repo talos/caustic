@@ -2,12 +2,11 @@ package net.microscraper.server.instruction;
 
 import java.io.IOException;
 
-import net.microscraper.client.interfaces.JSONInterface;
-import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
 import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.DeserializationException;
+import net.microscraper.server.MustacheTemplate;
 import net.microscraper.server.instruction.mixin.CanSpawnScrapers;
 
 /**
@@ -20,8 +19,10 @@ import net.microscraper.server.instruction.mixin.CanSpawnScrapers;
  *
  */
 public class FindMany extends Find implements CanSpawnScrapers {	
-	private final CanSpawnScrapers spawnsScrapers;
+	//private final CanSpawnScrapers spawnsScrapers;
 	
+	private final int minMatch;
+
 	/**
 	 * The first of the parser's matches to export.
 	 * This is 0-indexed, so <code>0</code> is the first match.
@@ -29,15 +30,20 @@ public class FindMany extends Find implements CanSpawnScrapers {
 	 * @see #maxMatch
 	 * @see FindOne#match
 	 */
-	public final int minMatch;
+	public final int getMinMatch() {
+		return minMatch;
+	}
 	
+	private final int maxMatch;
 	/**
 	 * The last of the parser's matches to export.
 	 * Negative numbers count backwards, so <code>-1</code> is the last match.
 	 * @see #minMatch
 	 * @see FindOne#match
 	 */
-	public final int maxMatch;
+	public final int getMaxMatch() {
+		return maxMatch;
+	}
 	
 	/**
 	 * Deserialize a {@link FindMany} from a {@link JSONInterfaceObject}.
@@ -52,18 +58,33 @@ public class FindMany extends Find implements CanSpawnScrapers {
 		try {
 			this.minMatch = jsonObject.has(MIN_MATCH) ? jsonObject.getInt(MIN_MATCH) : DEFAULT_MIN_MATCH;
 			this.maxMatch = jsonObject.has(MAX_MATCH) ? jsonObject.getInt(MAX_MATCH) : DEFAULT_MAX_MATCH;
-			this.spawnsScrapers = CanSpawnScrapers.Deserializer.deserialize(jsonObject);
+			
+			CanSpawnScrapers spawns = CanSpawnScrapers.Deserializer.deserialize(jsonObject);
+			this.spawnsScrapers = spawns.getScrapers();
+			this.spawnsPages = spawns.getPages();
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
 	
-	public Scraper[] getScrapers() throws DeserializationException, IOException {
-		return spawnsScrapers.getScrapers();
+	public FindMany(URIInterface location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
+			MustacheTemplate name, Regexp[] tests, MustacheTemplate replacement, int minMatch, int maxMatch,
+			Scraper[] spawnsScrapers, Page[] spawnsPages) {
+		super(location, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline, name, tests, replacement);
+		this.minMatch = minMatch;
+		this.maxMatch = maxMatch;
+		this.spawnsScrapers = spawnsScrapers;
+		this.spawnsPages = spawnsPages;
 	}
 	
+	private final Scraper[] spawnsScrapers;
+	public Scraper[] getScrapers() throws DeserializationException, IOException {
+		return spawnsScrapers;
+	}
+	
+	private final Page[] spawnsPages;
 	public Page[] getPages() throws DeserializationException, IOException {
-		return spawnsScrapers.getPages();
+		return spawnsPages;
 	}
 	
 	private static final String MIN_MATCH = "min";

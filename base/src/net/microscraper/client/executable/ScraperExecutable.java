@@ -29,9 +29,13 @@ public abstract class ScraperExecutable extends BasicExecutable implements Varia
 		if(isComplete()) {
 			//Executable[] children = getChildren();
 			for(int i = 0 ; i < findOneExecutables.length ; i ++) {
-				if(findOneExecutables[i].containsKey(key)) {
-					return findOneExecutables[i].get(key);
+				String localValue = findOneExecutables[i].localGet(key);
+				if(localValue != null) {
+					return localValue;
 				}
+				/*if(findOneExecutables[i].containsKey(key)) {
+					return findOneExecutables[i].get(key);
+				}*/
 			}
 		}
 		if(getVariables().containsKey(key)) {
@@ -43,7 +47,8 @@ public abstract class ScraperExecutable extends BasicExecutable implements Varia
 	public boolean containsKey(String key) {
 		if(isComplete()) {
 			for(int i = 0 ; i < findOneExecutables.length ; i ++) {
-				if(findOneExecutables[i].containsKey(key)) {
+				String localValue = findOneExecutables[i].localGet(key);
+				if(localValue != null) {
 					return true;
 				}
 			}
@@ -63,21 +68,21 @@ public abstract class ScraperExecutable extends BasicExecutable implements Varia
 		for(int i = 0; i < sourceResults.length ; i++) {
 			Result sourceResult = sourceResults[i];
 			for(int j = 0 ; j < findOnes.length ; j ++) {
-				FindOneExecutable variableExecution = new FindOneExecutable(getContext(),
-						findOnes[j], getVariables(), sourceResult);
+				FindOneExecutable variableExecution = new FindOneExecutable(getInterfaces(),
+						findOnes[j], this, sourceResult);
 				findOneExecutables.add(variableExecution);
 				children.add(variableExecution);
 			}
 			for(int j = 0 ; j < findManys.length ; j ++) {
-				children.add(new FindManyExecutable(getContext(), findManys[j],
-						getVariables(), sourceResult));
+				children.add(new FindManyExecutable(getInterfaces(), findManys[j],
+						this, sourceResult));
 			}
 			for(int j = 0 ; j < pages.length ; j ++) {
-				children.add(new PageExecutable(getContext(), pages[j],
+				children.add(new PageExecutable(getInterfaces(), pages[j],
 						getVariables(), sourceResult));
 			}
 			for(int j = 0 ; j < scrapers.length ; j ++) {
-				children.add(new SpawnedScraperExecutable(getContext(), scrapers[j],
+				children.add(new SpawnedScraperExecutable(getInterfaces(), scrapers[j],
 						getVariables(), sourceResult));
 			}
 		}

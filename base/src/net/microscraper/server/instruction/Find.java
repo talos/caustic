@@ -5,6 +5,7 @@ import java.io.IOException;
 import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.DeserializationException;
 import net.microscraper.server.MustacheTemplate;
 
@@ -18,22 +19,30 @@ public class Find extends Regexp {
 	private static final String REPLACEMENT = "replacement";
 	
 	/**
-	 * By default, carry through the entire match through the find operation.
+	 * By default, <code>$0</code>.  This pulls through the matched string unchanged.
 	 */
 	private static final String DEFAULT_REPLACEMENT = "$0";
 	private static final String TESTS = "tests";
 	
-	/**
-	 * This string, which is mustached and evaluated for backreferences,
-	 * is returned for each match.
-	 * Defaults to {@link #DEFAULT_REPLACEMENT}.
-	 */
-	public final MustacheTemplate replacement;
+	private final MustacheTemplate replacement;
 	
 	/**
-	 * Patterns that test the sanity of the parser's output.
+	 * @return The {@link String} that should be mustached and evaluated for backreferences,
+	 * then returned once for each match.
+	 * Defaults to {@link #DEFAULT_REPLACEMENT}.
 	 */
-	public final Regexp[] tests;
+	public final MustacheTemplate getReplacement() {
+		return replacement;
+	}
+	
+	private final Regexp[] tests;
+	
+	/**
+	 * @return Patterns that test the sanity of the parser's output.
+	 */
+	public final Regexp[] getTests() {
+		return tests;
+	}
 	
 	private final MustacheTemplate name;
 
@@ -88,5 +97,13 @@ public class Find extends Regexp {
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
+	}
+	
+	public Find(URIInterface location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
+			MustacheTemplate name, Regexp[] tests, MustacheTemplate replacement) {
+		super(location, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline);
+		this.name = name;
+		this.tests = tests;
+		this.replacement = replacement;
 	}
 }

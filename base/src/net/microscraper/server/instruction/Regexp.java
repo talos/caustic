@@ -2,6 +2,7 @@ package net.microscraper.server.instruction;
 
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.DeserializationException;
 import net.microscraper.server.MustacheTemplate;
 import net.microscraper.server.Instruction;
@@ -12,26 +13,41 @@ import net.microscraper.server.Instruction;
  *
  */
 public class Regexp extends Instruction {
+	
+	private final MustacheTemplate pattern;
+	
 	/**
-	 * The {@link Regexp}'s pattern.  Mustache compiled before it is used.
+	 * @return The {@link Regexp}'s pattern.  Mustache compiled before it is used.
 	 */
-	public final MustacheTemplate pattern;
+	public final MustacheTemplate getPattern() {
+		return pattern;
+	}
+	
+	private final boolean isCaseSensitive;
 	
 	/**
 	 * @see net.microscraper.client.interfaces.JSONInterface#compile
 	 */
-	public final boolean isCaseSensitive;
+	public final boolean getIsCaseSensitive() {
+		return isCaseSensitive;
+	}
+
+	private final boolean isMultiline;
+
+	/**
+	 * @see net.microscraper.client.interfaces.JSONInterface#compile
+	 */
+	public final boolean getIsMultiline() {
+		return isMultiline;
+	}
 	
-
+	private final boolean doesDotMatchNewline;
 	/**
 	 * @see net.microscraper.client.interfaces.JSONInterface#compile
 	 */
-	public final boolean isMultiline;
-
-	/**
-	 * @see net.microscraper.client.interfaces.JSONInterface#compile
-	 */
-	public final boolean doesDotMatchNewline;
+	public final boolean getDoesDotMatchNewline() {
+		return doesDotMatchNewline;
+	}
 	
 	/**
 	 * Deserialize a {@link Regexp} from a {@link JSONInterfaceObject}.
@@ -51,6 +67,14 @@ public class Regexp extends Instruction {
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
+	}
+	
+	public Regexp(URIInterface location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline) {
+		super(location);
+		this.pattern = pattern;
+		this.isCaseSensitive = isCaseSensitive;
+		this.isMultiline = isMultiline;
+		this.doesDotMatchNewline = doesDotMatchNewline;
 	}
 		
 	private static final String PATTERN = "pattern";

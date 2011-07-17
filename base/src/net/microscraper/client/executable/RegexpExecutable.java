@@ -31,8 +31,8 @@ public class RegexpExecutable {
 	protected PatternInterface getPattern()
 			throws MissingVariableException, MustacheTemplateException {
 		return regexpCompiler.compile(
-				regexpResource.pattern.compile(variables),
-				regexpResource.isCaseSensitive,
-				regexpResource.isMultiline, regexpResource.doesDotMatchNewline);
+				regexpResource.getPattern().compile(variables),
+				regexpResource.getIsCaseSensitive(),
+				regexpResource.getIsMultiline(), regexpResource.getDoesDotMatchNewline());
 	}
 }

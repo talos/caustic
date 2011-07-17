@@ -111,14 +111,15 @@ public interface Executable extends Runnable {
 
 	/**
 	 * 
-	 * @return The {@link Variables} instance accessible inside this {@link Executable}.
+	 * @return The {@link Variables} instance accessible to this {@link Executable}.
 	 */
 	public abstract Variables getVariables();
 	
+	
 	/**
 	 * 
-	 * @return A unique identifier for this {@link Executable}.  Starts at <code>0</code>
-	 * and increments up.
+	 * @return The {@link ScraperExecutable} that contains this {@link Executable}.  May be 
 	 */
-	//public abstract int getId();
+	//public abstract ScraperExecutable getEnclosingScraper();
+	
 }

@@ -8,8 +8,10 @@ import mockit.MockClass;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.client.Client;
+import net.microscraper.client.DefaultVariables;
 import net.microscraper.client.Log;
 import net.microscraper.client.MissingVariableException;
+import net.microscraper.client.TestUtils;
 import net.microscraper.client.UnencodedNameValuePair;
 import net.microscraper.client.Variables;
 import net.microscraper.client.impl.FileLoader;
@@ -28,63 +30,39 @@ import net.microscraper.server.MustacheTemplate;
 import net.microscraper.server.instruction.FindMany;
 import net.microscraper.server.instruction.FindOne;
 import net.microscraper.server.instruction.Page;
+import net.microscraper.server.instruction.Regexp;
 import net.microscraper.server.instruction.Scraper;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class VariablesTest {
+	private static final int rndLength = 5;
+	
+	// not generated randomly, cannot be in Variables
+	private static final String erroneousName = "-";
+
+	Log log = new Log();
+	
+	@Mocked Result sourceResult;
 	
 	@Mocked private Interfaces interfaces;
-	/*private Variables variables;
-	
-	private static final String findOneName = "find one name";
-	private static final String findOneInput = "The quick brown fox jumped over the lazy dog.";
-	private static final String findOneSearch = "dog";
-	private static final String findOneReplace = "$0";
-	
-	@Mocked private Page page;
-	@Mocked private Scraper scraper;
-	*/
-	//@Mocked private Result sourceResult;
-	//@Mocked private URIInterface location;
-	
-	// private FindOneExecutable findOneExecutable1, findOneExecutable2, findOneExecutable3, findOneExecutable4;
-	// private ScraperExecutable pageExecutable;
-	//private ScraperExecutable spawnedScraperExecutable;
-	
-	/*
-	@Mocked Result result1, result2, result3;
-	
-	@Mocked({"isComplete", "getResults", "getChildren"}) FindOneExecutable findOne1, findOne2, findOne3;
-	@Mocked({"isComplete", "getResults", "getChildren"}) ScraperExecutable scraper1, scraper2, scraper3;
-	*/
+	@Mocked private URIInterface mockLocation;
 	
 	/**
-	 * Set up the {@link Variable} implementing {@link Executable}s before each test.
 	 * @throws Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		//Log log = new Log();
-		//log.register(new SystemLogInterface());
+		log.register(new SystemLogInterface());
 		
 		new NonStrictExpectations() {
-			@Mocked({"getName", "getFindOnes", "getFindManys"}) private FindOne findOne1, findOne2, findOne3, findOne4;
-
 			{
-				
-				//sourceResult.getValue(); result = findOneInput;
-				//sourceResult.getUri();   result = location;
+				mockLocation.isAbsolute(); result = true;
 								
 				setField(interfaces, "regexpCompiler", new JavaUtilRegexInterface());
 			}
 		};
-
-		//findOneExecutable = new FindOneExecutable(interfaces, findOne, variables, sourceResult);
-		//pageExecutable = new PageExecutable(interfaces, page, variables, sourceResult);
-		//spawnedScraperExecutable = new SpawnedScraperExecutable(interfaces, scraper, variables, sourceResult);
-
 	}
 	
 	/**
@@ -92,98 +70,96 @@ public class VariablesTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void testFindOneLocalValue(
-			@Mocked ({"isComplete", "getResults", "getChildren"}) final FindOneExecutable simpleExecutable
-			) throws Exception {
-		final String name = "name";
-		final String value = "value";
+	public void testFindOneLocalValue() throws Exception {
+		final String name = TestUtils.makeRandomString(rndLength);
+		final String value = TestUtils.makeRandomString(rndLength);
 		
+		FindOne findOne = new FindOne(mockLocation, new MustacheTemplate(value),
+				false, false, false, new MustacheTemplate(name), new Regexp[] {},
+				new MustacheTemplate("$0"), 0, new FindOne[] {}, new FindMany[] { });
+		final Scraper scraper = new Scraper(mockLocation,
+				new Page[] {},
+				new Scraper[] {},
+				new FindMany[] {},
+				new FindOne[] { findOne } );
 		new NonStrictExpectations() {
-			@Mocked Result mockResult;
 			{
-				/*
-				sourceResult.getValue(); result = findOneInput;
-				sourceResult.getUri();   result = location;
-				
-				findOne.getName(); result = new MustacheTemplate(findOneName);
-				findOne.getFindOnes(); result = new FindOne[] {};
-				findOne.getFindManys(); result = new FindMany[] {};
-				setField(findOne, "location", location);
-				//setField(findOne, "name", new MustacheTemplate(findOneName));
-				setField(findOne, "pattern", new MustacheTemplate(findOneSearch));
-				setField(findOne, "replacement", new MustacheTemplate(findOneReplace));
-				
-				setField(interfaces, "regexpCompiler", new JavaUtilRegexInterface());*/
-				
-				mockResult.getName(); result = name;
-				mockResult.getValue(); result = value;
-				simpleExecutable.isComplete(); result = true;
-				simpleExecutable.getResults(); result = new Result[] { mockResult };
-				simpleExecutable.getChildren(); result = new Executable [] {};
+				sourceResult.getValue(); result = value;
 			}
 		};
 		
-		//simpleExecutable.run();
+		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new DefaultVariables(), sourceResult);
+		TestUtils.recursiveRun(executable);
 		
-		assertEquals("Contains key for name..", true, simpleExecutable.containsKey(name));
-		assertEquals("Retrives value for name.", value, simpleExecutable.get(name));
+		assertEquals(false, executable.containsKey(erroneousName));
+		assertEquals(true, executable.containsKey(name));
+		assertEquals(value, executable.get(name));
+		
 	}
 	
 	
 	/**
-	 * {@link FindOneExecutable} returns its child's value for its child's name.
+	 * {@link FindOneExecutable} values are accessible through multiple levels.
 	 * @throws Exception
 	 */
-	@Test(expected = MissingVariableException.class)
-	public void testFindOneChildValue(
-			@Mocked ({"isComplete", "getResults", "getChildren"}) final FindOneExecutable parentFindOne,
-			@Mocked ({"isComplete", "getResults", "getChildren"}) final FindOneExecutable childFindOne
-			) throws Exception {
+	@Test
+	public void testFindOneChildValue() throws Exception {
+		int levels = 8;
 		
-		final String parentName = "parentName";
-		final String parentValue = "parentValue";
-		final String childName = "childName";
-		final String childValue = "childValue";
+		final FindOne[] findOnes = new FindOne[levels];
+		for(int i = 0 ; i < findOnes.length ; i ++) {
+			String pattern;
+			FindOne[] children;
+			if(i > 0) {
+				pattern  = findOnes[i - 1].getPattern() + " " + TestUtils.makeRandomString(rndLength);
+				children = new FindOne[] { findOnes[i - 1] };
+			} else { // the first generated
+				pattern  = TestUtils.makeRandomString(rndLength);
+				children = new FindOne[]  { };
+			}
+			findOnes[i] = new FindOne(mockLocation, new MustacheTemplate(pattern), 
+					false, false, false, new MustacheTemplate(TestUtils.makeRandomString(rndLength)),
+					new Regexp[] {}, new MustacheTemplate("$0"), 0, children, 
+					new FindMany[] {});
+		}
+		final FindOne parentFindOne = findOnes[findOnes.length -1];
+		final Scraper scraper = new Scraper(mockLocation,
+				new Page[] {},
+				new Scraper[] {},
+				new FindMany[] {},
+				new FindOne[] { parentFindOne } );
 		
 		new NonStrictExpectations() {
-			@Mocked Result parentMockResult, childMockResult;
 			{
-				parentMockResult.getName(); result = parentName;
-				parentMockResult.getValue(); result = parentValue;
-
-				childMockResult.getName(); result = childName;
-				childMockResult.getValue(); result = childValue;
-				
-				parentFindOne.isComplete(); result = true;
-				childFindOne.isComplete(); result = true;
-				
-				parentFindOne.getResults(); result = new Result[] { parentMockResult };
-				childFindOne.getResults(); result = new Result[] { childMockResult };
-				
-				parentFindOne.getChildren(); result = new Executable [] { childFindOne };
-				childFindOne.getChildren(); result = new Executable [] {};
+				sourceResult.getValue(); result = parentFindOne.getPattern().toString();
 			}
 		};
 		
-		//simpleExecutable.run();
+		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new DefaultVariables(), sourceResult);
+		TestUtils.recursiveRun(executable);
 		
-		assertEquals("Parent contains key for child name.", true, parentFindOne.containsKey(parentName));
-		assertEquals("Child does not contain key for parent name.", false, childFindOne.containsKey(parentName));
-		assertEquals("Parent retrieves value for child name.", childValue, parentFindOne.get(childName));
-		childFindOne.get(parentName); // should throw MissingVariableException
+		Executable[] allChildren = TestUtils.getAllChildren(executable);
 		
+		for(int i = 0 ; i < allChildren.length ; i ++) {
+			FindOneExecutable child = (FindOneExecutable) allChildren[i];
+			// Ensure presence of all variables.
+			for(int j = 0 ; j < findOnes.length ; j ++ ) {
+				FindOne findOne = findOnes[j];
+				assertEquals("FindOne " + child.getName() + " contains erroneous key.",
+						false, child.getVariables().containsKey(erroneousName));
+				assertEquals("FindOne " + child.getName() + " = " + child.getPattern() + " does not contain key for " + findOne.getPattern().toString(),
+						true, child.getVariables().containsKey(findOne.getName().toString()));
+				assertEquals("FindOne " + child.getName() + " = " + child.getPattern() + " does not contain value for " + findOne.getPattern().toString(),
+						findOne.getPattern().toString(), child.getVariables().get(findOne.getName().toString()));
+			}
+		}
 	}
 	
 	/**
 	 * {@link PageExecutable} works as {@link Variables} for its child {@link FindOneExecutables}.
 	 */
 	@Test
-	public void testPageChildren  (
-			//@Mocked ({"isComplete", "getChildren"}) final PageExecutable pageExecutable,
-			@Mocked ({"isComplete", "getResults", "getChildren"}) final FindOneExecutable findOne1Executable,
-			@Mocked ({"isComplete", "getResults", "getChildren"}) final FindOneExecutable findOne2Executable,
-			@Mocked ({"isComplete", "getResults", "getChildren"}) final FindOneExecutable findOne3Executable
-			) throws Exception {
+	public void testPageChildren  () throws Exception {
 		
 		PageExecutable pageExecutable;
 		
@@ -217,7 +193,7 @@ public class VariablesTest {
 				setField(page, "findOneExecutables", new FindOneExecutable[] { findOne1, findOne2 });*/
 			}
 		};
-		
+		/*
 		assertEquals("Page contains key for name 1", true, pageExecutable.containsKey(name1));
 		assertEquals("Page contains key for name 2", true, pageExecutable.containsKey(name2));
 		assertEquals("Page contains key for name 3", true, pageExecutable.containsKey(name3));
@@ -226,6 +202,6 @@ public class VariablesTest {
 		assertEquals("Page contains value for name 3", value3, pageExecutable.get(name3));
 		assertEquals("Page contains key for name 1", true, findOne1.containsKey(name1));
 		assertEquals("Page contains key for name 2", true, findOne1.containsKey(name2));
-		assertEquals("Page contains key for name 3", true, findOne1.containsKey(name3));
+		assertEquals("Page contains key for name 3", true, findOne1.containsKey(name3));*/
 	}
 }

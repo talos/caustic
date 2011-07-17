@@ -5,8 +5,10 @@ import java.io.IOException;
 import net.microscraper.client.interfaces.JSONInterfaceArray;
 import net.microscraper.client.interfaces.JSONInterfaceException;
 import net.microscraper.client.interfaces.JSONInterfaceObject;
+import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.DeserializationException;
 import net.microscraper.server.MustacheNameValuePair;
+import net.microscraper.server.MustacheTemplate;
 
 /**
  * A {@link Scraper} that load a web page.
@@ -67,36 +69,54 @@ public final class Page extends URL {
 	 */
 	//public final URL url;
 	
+	private final Method method;
 	/**
-	 * The HTTP request type to use.  Either Post, Get, or Head.
+	 * @return The HTTP request type to use.  Either Post, Get, or Head.
 	 * Defaults to {@link #DEFAULT_METHOD}
 	 */
-	public final Method method;
+	public final Method getMethod() {
+		return method;
+	}
 	
+	private final MustacheNameValuePair[] cookies;
 	/**
-	 * {@link MustacheNameValuePair}s of cookies.
+	 * @return {@link MustacheNameValuePair}s of cookies.
 	 */
-	public final MustacheNameValuePair[] cookies;
+	public final MustacheNameValuePair[] getCookies() {
+		return cookies;
+	}
 	
+	private final MustacheNameValuePair[] headers;
 	/**
-	 * {@link MustacheNameValuePair}s of generic headers.
+	 * @return {@link MustacheNameValuePair}s of generic headers.
 	 */
-	public final MustacheNameValuePair[] headers;
+	public final MustacheNameValuePair[] getHeaders() {
+		return headers;
+	}
 	
+	private final Page[] preload;
 	/**
-	 * {@link Page} requests to make beforehand. No data is extracted from these pages.
+	 * @return {@link Page} requests to make beforehand. No data is extracted from these pages.
 	 */
-	public final Page[] preload;
+	public final Page[] getPreload() {
+		return preload;
+	}
 	
+	private final Regexp[] stopBecause;
 	/**
-	 * {@link Regexp}s that terminate the loading of this page's body.
+	 * @return {@link Regexp}s that terminate the loading of this page's body.
 	 */
-	public final Regexp[] stopBecause;
+	public final Regexp[] getStopBecause() {
+		return stopBecause;
+	}
 	
+	private final MustacheNameValuePair[] posts;
 	/**
-	 * {@link MustacheNameValuePair}s of post data.
+	 * @return {@link MustacheNameValuePair}s of post data.
 	 */
-	public final MustacheNameValuePair[] posts;
+	public final MustacheNameValuePair[] getPosts() {
+		return posts;
+	}
 	
 	/**
 	 * Deserialize a {@link Page} from a {@link JSONInterfaceObject}.
@@ -139,7 +159,7 @@ public final class Page extends URL {
 					this.stopBecause[i] = new Regexp(stopBecause.getJSONObject(i));
 				}
 			} else {
-				this.stopBecause = new Regexp[0];
+				this.stopBecause = new Regexp[] {};
 			}
 			
 			this.posts = jsonObject.has(POSTS) ?
@@ -148,6 +168,20 @@ public final class Page extends URL {
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
+	}
+
+	public Page(URIInterface location, Page[] spawnPages, Scraper[] spawnScrapers,
+			FindMany[] findManys, FindOne[] findOnes, MustacheTemplate urlTemplate,
+			Method method, MustacheNameValuePair[] headers,
+			MustacheNameValuePair[] posts, MustacheNameValuePair[] cookies,
+			Regexp[] stopBecause, Page[] preload) {
+		super(location, spawnPages, spawnScrapers, findManys, findOnes, urlTemplate);
+		this.method = method;
+		this.headers = headers;
+		this.posts = posts;
+		this.cookies = cookies;
+		this.stopBecause = stopBecause;
+		this.preload = preload;
 	}
 	
 	private static final String METHOD = "method";
