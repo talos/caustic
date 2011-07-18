@@ -2,29 +2,14 @@ package net.microscraper.client.executable;
 
 import static org.junit.Assert.*;
 
-import mockit.Expectations;
-import mockit.Injectable;
-import mockit.MockClass;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import net.microscraper.client.Client;
 import net.microscraper.client.DefaultVariables;
 import net.microscraper.client.Log;
-import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.TestUtils;
-import net.microscraper.client.UnencodedNameValuePair;
-import net.microscraper.client.Variables;
-import net.microscraper.client.impl.FileLoader;
-import net.microscraper.client.impl.JSONME;
-import net.microscraper.client.impl.JavaNetBrowser;
-import net.microscraper.client.impl.JavaNetInterface;
 import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.SystemLogInterface;
-import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.Interfaces;
-import net.microscraper.client.interfaces.NetInterface;
-import net.microscraper.client.interfaces.Publisher;
-import net.microscraper.client.interfaces.PublisherException;
 import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.server.MustacheTemplate;
 import net.microscraper.server.instruction.FindMany;
@@ -38,11 +23,12 @@ import org.junit.Test;
 
 public class VariablesTest {
 	private static final int rndLength = 5;
+	private static final int repetitions = 8;
 	
-	// not generated randomly, cannot be in Variables
+	// "-" not generated randomly, is never in randomly generated Variables
 	private static final String erroneousName = "-";
 
-	Log log = new Log();
+	private final Log log = new Log();
 	
 	@Mocked Result sourceResult;
 	
@@ -59,7 +45,7 @@ public class VariablesTest {
 		new NonStrictExpectations() {
 			{
 				mockLocation.isAbsolute(); result = true;
-								
+				sourceResult.getName(); result = "";
 				setField(interfaces, "regexpCompiler", new JavaUtilRegexInterface());
 			}
 		};
@@ -94,19 +80,16 @@ public class VariablesTest {
 		assertEquals(false, executable.containsKey(erroneousName));
 		assertEquals(true, executable.containsKey(name));
 		assertEquals(value, executable.get(name));
-		
 	}
 	
 	
 	/**
-	 * {@link FindOneExecutable} values are accessible through multiple levels.
+	 * {@link FindOne}s that spawn other {@link FindOne}s should share {@link Variable}s throughout the chain.
 	 * @throws Exception
 	 */
 	@Test
-	public void testFindOneChildValue() throws Exception {
-		int levels = 8;
-		
-		final FindOne[] findOnes = new FindOne[levels];
+	public void findOneFindOnesChildrenShareVariables() throws Exception {		
+		final FindOne[] findOnes = new FindOne[repetitions];
 		for(int i = 0 ; i < findOnes.length ; i ++) {
 			String pattern;
 			FindOne[] children;
@@ -146,62 +129,177 @@ public class VariablesTest {
 			for(int j = 0 ; j < findOnes.length ; j ++ ) {
 				FindOne findOne = findOnes[j];
 				assertEquals("FindOne " + child.getName() + " contains erroneous key.",
-						false, child.getVariables().containsKey(erroneousName));
+						false, child.containsKey(erroneousName));
 				assertEquals("FindOne " + child.getName() + " = " + child.getPattern() + " does not contain key for " + findOne.getPattern().toString(),
-						true, child.getVariables().containsKey(findOne.getName().toString()));
+						true, child.containsKey(findOne.getName().toString()));
 				assertEquals("FindOne " + child.getName() + " = " + child.getPattern() + " does not contain value for " + findOne.getPattern().toString(),
-						findOne.getPattern().toString(), child.getVariables().get(findOne.getName().toString()));
+						findOne.getPattern().toString(), child.get(findOne.getName().toString()));
 			}
 		}
 	}
 	
 	/**
-	 * {@link PageExecutable} works as {@link Variables} for its child {@link FindOneExecutables}.
+	 * All {@link FindOne}s spawned from a {@link Scraper} should share {@link Variable}s.
 	 */
 	@Test
-	public void testPageChildren  () throws Exception {
+	public void scraperFindOnesShareVariables  () throws Exception {
+		final FindOne[] findOnes = new FindOne[repetitions];
+		String buildMockResultValue = "";
+		for(int i = 0 ; i < findOnes.length ; i ++ ) {
+			String pattern = TestUtils.makeRandomString(rndLength);
+			buildMockResultValue += pattern;
+			findOnes[i] = new FindOne(mockLocation, new MustacheTemplate(pattern), 
+					false, false, false, new MustacheTemplate(TestUtils.makeRandomString(rndLength)),
+					new Regexp[] {}, new MustacheTemplate("$0"), 0, new FindOne[] {}, 
+					new FindMany[] {});
+		}
+		final String mockResultValue = buildMockResultValue;
 		
-		PageExecutable pageExecutable;
-		
-		final String name1 = "name1";
-		final String value1 = "value1";
-		final String name2 = "name2";
-		final String value2 = "value2";
-		final String name3 = "name3";
-		final String value3 = "value3";
+		final Scraper scraper = new Scraper(mockLocation,
+				new Page[] {},
+				new Scraper[] {},
+				new FindMany[] {},
+				findOnes );
 		
 		new NonStrictExpectations() {
-			@Mocked Result mockResult1, mockResult2, mockResult3;
 			{
-				mockResult1.getName(); result = name1;
-				mockResult2.getName(); result = name2;
-				mockResult3.getName(); result = name3;
-				mockResult1.getValue(); result = value1;
-				mockResult2.getValue(); result = value2;
-				mockResult3.getValue(); result = value3;
-				/*findOne1.isComplete(); result = true;
-				findOne2.isComplete(); result = true;
-				findOne3.isComplete(); result = true;
-				findOne1.getResults(); result = new Result[] { mockResult1 };
-				findOne2.getResults(); result = new Result[] { mockResult2 };
-				findOne3.getResults(); result = new Result[] { mockResult3 };
-				findOne1.getChildren(); result = new Executable [] { };
-				findOne2.getChildren(); result = new Executable [] { findOne3 };
-				findOne3.getChildren(); result = new Executable [] { };
-				
-				page.isComplete(); result  = true;
-				setField(page, "findOneExecutables", new FindOneExecutable[] { findOne1, findOne2 });*/
+				sourceResult.getValue(); result = mockResultValue;
 			}
 		};
-		/*
-		assertEquals("Page contains key for name 1", true, pageExecutable.containsKey(name1));
-		assertEquals("Page contains key for name 2", true, pageExecutable.containsKey(name2));
-		assertEquals("Page contains key for name 3", true, pageExecutable.containsKey(name3));
-		assertEquals("Page contains value for name 1", value1, pageExecutable.get(name1));
-		assertEquals("Page contains value for name 2", value2, pageExecutable.get(name2));
-		assertEquals("Page contains value for name 3", value3, pageExecutable.get(name3));
-		assertEquals("Page contains key for name 1", true, findOne1.containsKey(name1));
-		assertEquals("Page contains key for name 2", true, findOne1.containsKey(name2));
-		assertEquals("Page contains key for name 3", true, findOne1.containsKey(name3));*/
+		
+		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new DefaultVariables(), sourceResult);
+		TestUtils.recursiveRun(executable);
+		
+		assertEquals("ScraperExecutable has erroneous key.", false, executable.containsKey(erroneousName));
+		for(int i = 0 ; i < findOnes.length ; i ++) {
+			String name = findOnes[i].getName().toString();
+			String value = findOnes[i].getPattern().toString();
+			
+			assertEquals("ScraperExecutable does not have key for child", true, executable.containsKey(name));
+			assertEquals("ScraperExecutable has wrong value for child", value, executable.get(name));
+			
+			Executable[] allChildren = TestUtils.getAllChildren(executable);
+			for(int j = 0 ; j < allChildren.length ; j ++) {
+				assertEquals("FindOne does not have key for sibling.", true, allChildren[j].containsKey(name));
+				assertEquals("FindOne has wrong value for sibling.", value, allChildren[j].get(name));
+				assertEquals("FindOne has erroneous key", false, allChildren[j].containsKey(erroneousName));
+			}
+		}
+	}
+	
+	/**
+	 * {@link Scraper} should not have access to the results of {@link FindMany}.
+	 */
+	@Test
+	public void findManyParentsCannotAccessVariables () throws Exception {
+		final String sourceString = TestUtils.makeRandomString(rndLength);
+		final MustacheTemplate pattern = new MustacheTemplate(sourceString);
+		final String name = TestUtils.makeRandomString(rndLength);
+		final MustacheTemplate replacement = new MustacheTemplate("$0");
+		final FindMany findMany = new FindMany(mockLocation, pattern, false, false, false,
+				new MustacheTemplate(name), new Regexp[] {}, replacement, 0, -1,
+				new Scraper [] {}, new Page [] {});
+		final Scraper scraper = new Scraper(mockLocation, new Page[] {}, 
+				new Scraper[] {}, new FindMany[] { findMany }, new FindOne[] { } );
+		
+		new NonStrictExpectations() {
+			{
+				sourceResult.getValue(); result = sourceString;
+			}
+		};
+		
+		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new DefaultVariables(), sourceResult);
+		TestUtils.recursiveRun(executable);
+		
+		assertEquals("Scraper has access to FindMany value.", false, executable.containsKey(name));
+	}
+	
+	/**
+	 * {@link Scraper} children of {@link FindMany} should have access to the {@link Result} that spawned them.
+	 */
+	@Test
+	public void scraperChildrenOfFindManyCanAccessVariables () throws Exception {
+		final String sourceString = "zip zap zop";
+		
+		MustacheTemplate pattern = new MustacheTemplate("z.p");
+		String name = TestUtils.makeRandomString(rndLength);
+		MustacheTemplate replacement = new MustacheTemplate("$0");
+		Scraper childScraper = new Scraper(mockLocation, new Page[] {},
+				new Scraper[] {}, new FindMany[] {}, new FindOne[] {} );
+		FindMany findMany = new FindMany(mockLocation, pattern, false, false, false,
+				new MustacheTemplate(name), new Regexp[] {}, replacement, 0, -1,
+				new Scraper [] { childScraper }, new Page [] {});
+		Scraper parentScraper = new Scraper(mockLocation, new Page[] {}, 
+				new Scraper[] {}, new FindMany[] { findMany }, new FindOne[] { } );
+		
+		new NonStrictExpectations() {
+			{
+				sourceResult.getValue(); result = sourceString;
+			}
+		};
+		
+		ScraperExecutable executable = new SpawnedScraperExecutable(
+				interfaces, parentScraper, new DefaultVariables(), sourceResult);
+		TestUtils.recursiveRun(executable);
+		
+		Executable findManyExecutable = executable.getChildren()[0];
+		Executable[] children = findManyExecutable.getChildren();
+		
+		for(int i = 0 ; i < children.length ; i++) {
+			assertEquals("Scraper doesn't have access to the result of FindMany that spawned it.",
+					true, children[i].containsKey(name));
+		}
+	}
+	
+
+	/**
+	 * {@link Scraper} children of {@link FindMany} should have access to all the {@link FindOne} results of the
+	 * original {@link Scraper}.
+	 */
+	@Test
+	public void scraperChildrenOfFindManyCanAccessVariablesOfOriginalScraper () throws Exception {
+		String sourceString = "zip zap zop";
+		
+		MustacheTemplate pattern = new MustacheTemplate("z.p");
+		String name = TestUtils.makeRandomString(rndLength);
+		MustacheTemplate replacement = new MustacheTemplate("$0");
+		Scraper childScraper = new Scraper(mockLocation, new Page[] {},
+				new Scraper[] {}, new FindMany[] {}, new FindOne[] {} );
+		FindMany findMany = new FindMany(mockLocation, pattern, false, false, false,
+				new MustacheTemplate(name), new Regexp[] {}, replacement, 0, -1,
+				new Scraper [] { childScraper }, new Page [] {});
+		
+		FindOne[] findOnes = new FindOne[repetitions];
+		for(int i = 0 ; i < findOnes.length ; i ++) {
+			String findOnePattern = TestUtils.makeRandomString(rndLength);
+			sourceString += findOnePattern;
+			findOnes[i] = new FindOne(mockLocation, new MustacheTemplate(findOnePattern),
+					false, false, false, new MustacheTemplate(TestUtils.makeRandomString(rndLength)),
+					new Regexp[] {}, replacement, 0, new FindOne[] {}, new FindMany[] {} );
+		}
+		Scraper parentScraper = new Scraper(mockLocation, new Page[] {}, 
+				new Scraper[] {}, new FindMany[] { findMany }, findOnes );
+		
+		final String finalSourceString = sourceString;
+		new NonStrictExpectations() {
+			{
+				sourceResult.getValue(); result = finalSourceString;
+			}
+		};
+		
+		ScraperExecutable executable = new SpawnedScraperExecutable(
+				interfaces, parentScraper, new DefaultVariables(), sourceResult);
+		TestUtils.recursiveRun(executable);
+		
+		Executable findManyExecutable = executable.getChildren()[0];
+		Executable[] children = findManyExecutable.getChildren();
+		
+		for(int i = 0 ; i < children.length ; i++) {
+			for(int j = 0 ; j < findOnes.length ; j ++) {
+				assertEquals("Scraper from FindMany does not have keys for FindOnes from original Scraper.",
+						true, children[i].containsKey(findOnes[j].getName().toString()));
+			}
+			
+		}
 	}
 }

@@ -1,11 +1,13 @@
 package net.microscraper.client.interfaces;
 
+import net.microscraper.client.ClientException;
+
 /**
- * This is thrown when the Browser should wait to request this Page in order to limit traffic.
+ * This is thrown when the {@link Browser} should wait to request this {@link Page} in order to limit traffic.
  * @author john
  *
  */
-public class BrowserDelayException extends BrowserException {
+public class BrowserDelayException extends ClientException {
 	/**
 	 * 
 	 */
@@ -13,7 +15,7 @@ public class BrowserDelayException extends BrowserException {
 	public final URLInterface url;
 	public final float kbpsSinceLastLoad;
 	public BrowserDelayException(URLInterface url, float kbpsSinceLastLoad) {
-		super(url);
+		//super(url);
 		this.url = url;
 		this.kbpsSinceLastLoad = kbpsSinceLastLoad;
 		/*super("Delaying load of " + Utils.quote(url.toString()) +

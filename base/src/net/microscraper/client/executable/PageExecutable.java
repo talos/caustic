@@ -29,13 +29,13 @@ public class PageExecutable extends ScraperExecutable {
 	private PatternInterface[] getStopBecause(Page page) throws MissingVariableException, MustacheTemplateException {
 		PatternInterface[] stopPatterns = new PatternInterface[page.getStopBecause().length];
 		for(int i  = 0 ; i < stopPatterns.length ; i++) {
-			stopPatterns[i] = new RegexpExecutable(getInterfaces(), page.getStopBecause()[i], getVariables()).getPattern();
+			stopPatterns[i] = new RegexpExecutable(getInterfaces(), page.getStopBecause()[i], this).getPattern();
 		}
 		return stopPatterns;
 	}
 	
 	private URLInterface getURLFor(Page page) throws NetInterfaceException, MissingVariableException, MustacheTemplateException {
-		return getInterfaces().netInterface.getURL(page.getTemplate().compile(getVariables()));
+		return getInterfaces().netInterface.getURL(page.getTemplate().compile(this));
 	}
 	
 	private void head(Page page) throws UnsupportedEncodingException,
@@ -43,8 +43,8 @@ public class PageExecutable extends ScraperExecutable {
 				BrowserException, MustacheTemplateException,
 				NetInterfaceException {
 		getInterfaces().browser.head(true, getURLFor(page), 
-				MustacheUnencodedNameValuePair.compile(page.getHeaders(), getVariables()),
-				MustacheEncodedNameValuePair.compile(page.getCookies(), getVariables(), getInterfaces().encoding));
+				MustacheUnencodedNameValuePair.compile(page.getHeaders(), this),
+				MustacheEncodedNameValuePair.compile(page.getCookies(), this, getInterfaces().encoding));
 	}
 	
 	private String get(Page page) throws UnsupportedEncodingException,
@@ -52,8 +52,8 @@ public class PageExecutable extends ScraperExecutable {
 				BrowserException, MustacheTemplateException,
 				NetInterfaceException {
 		return getInterfaces().browser.get(true, getURLFor(page),
-				MustacheUnencodedNameValuePair.compile(page.getHeaders(), getVariables()),
-				MustacheEncodedNameValuePair.compile(page.getCookies(), getVariables(), getInterfaces().encoding),
+				MustacheUnencodedNameValuePair.compile(page.getHeaders(), this),
+				MustacheEncodedNameValuePair.compile(page.getCookies(), this, getInterfaces().encoding),
 				getStopBecause(page));
 	}
 	
@@ -62,10 +62,10 @@ public class PageExecutable extends ScraperExecutable {
 				BrowserException, MustacheTemplateException,
 				NetInterfaceException {	
 		return getInterfaces().browser.post(true, getURLFor(page),
-				MustacheUnencodedNameValuePair.compile(page.getHeaders(), getVariables()),
-				MustacheEncodedNameValuePair.compile(page.getCookies(), getVariables(), getInterfaces().encoding),
+				MustacheUnencodedNameValuePair.compile(page.getHeaders(), this),
+				MustacheEncodedNameValuePair.compile(page.getCookies(), this, getInterfaces().encoding),
 				getStopBecause(page),
-				MustacheEncodedNameValuePair.compile(page.getPosts(), getVariables(), getInterfaces().encoding));
+				MustacheEncodedNameValuePair.compile(page.getPosts(), this, getInterfaces().encoding));
 	}
 	
 	/**

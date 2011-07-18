@@ -17,15 +17,17 @@ import net.microscraper.server.instruction.Scraper;
  * @author talos
  *
  */
-public abstract class ScraperExecutable extends BasicExecutable implements Variables {
+public abstract class ScraperExecutable extends BasicExecutable {
 	private FindOneExecutable[] findOneExecutables;
+	private final Variables extendedVariables;
 
 	protected ScraperExecutable(Interfaces context, Scraper scraper,
-			Variables variables, Result source) {
-		super(context, scraper, variables, source);
+			Variables extendedVariables, Result source) {
+		super(context, scraper, source);
+		this.extendedVariables = extendedVariables;
 	}
 	
-	public String get(String key) throws MissingVariableException {
+	public final String get(String key) throws MissingVariableException {
 		if(isComplete()) {
 			//Executable[] children = getChildren();
 			for(int i = 0 ; i < findOneExecutables.length ; i ++) {
@@ -33,27 +35,25 @@ public abstract class ScraperExecutable extends BasicExecutable implements Varia
 				if(localValue != null) {
 					return localValue;
 				}
-				/*if(findOneExecutables[i].containsKey(key)) {
-					return findOneExecutables[i].get(key);
-				}*/
 			}
 		}
-		if(getVariables().containsKey(key)) {
-			return getVariables().get(key);
-		}
-		throw new MissingVariableException(this, key);
-	}
-	
-	public boolean containsKey(String key) {
-		if(isComplete()) {
-			for(int i = 0 ; i < findOneExecutables.length ; i ++) {
-				String localValue = findOneExecutables[i].localGet(key);
-				if(localValue != null) {
-					return true;
+		if(hasSource()) {
+			if(getSource().hasName()) {
+				if(getSource().getName().equals(key)) {
+					return getSource().getValue();
 				}
 			}
 		}
-		return getVariables().containsKey(key);
+		return extendedVariables.get(key);
+	}
+	
+	public final boolean containsKey(String key) {
+		try {
+			get(key);
+			return true;
+		} catch(MissingVariableException e) {
+			return false;
+		}
 	}
 	
 	protected final Executable[] generateChildren(Result[] sourceResults) throws DeserializationException, IOException {
@@ -79,11 +79,11 @@ public abstract class ScraperExecutable extends BasicExecutable implements Varia
 			}
 			for(int j = 0 ; j < pages.length ; j ++) {
 				children.add(new PageExecutable(getInterfaces(), pages[j],
-						getVariables(), sourceResult));
+						this, sourceResult));
 			}
 			for(int j = 0 ; j < scrapers.length ; j ++) {
 				children.add(new SpawnedScraperExecutable(getInterfaces(), scrapers[j],
-						getVariables(), sourceResult));
+						this, sourceResult));
 			}
 		}
 		this.findOneExecutables = new FindOneExecutable[findOneExecutables.size()];
@@ -93,5 +93,4 @@ public abstract class ScraperExecutable extends BasicExecutable implements Varia
 		children.copyInto(childrenAry);
 		return childrenAry;
 	}
-	
 }

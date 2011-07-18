@@ -11,6 +11,7 @@ import java.util.Hashtable;
 public class DefaultVariables implements Variables {
 	
 	private final Hashtable defaults = new Hashtable();
+	//private Variables extendedVariables = null;
 	
 	/**
 	 * Initialize {@link DefaultVariables} without {@link NameValuePairs}s.
@@ -28,8 +29,20 @@ public class DefaultVariables implements Variables {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param extendedVariables A {@link Variables} instance that will be checked if there are no
+	 * matches found in this one.
+	 */
+	/*public DefaultVariables(Variables extendedVariables) {
+		this.extendedVariables = extendedVariables;
+	}*/
+	
 	public String get(String key) throws MissingVariableException {
 		Object value = defaults.get(key);
+		/*if(extendedVariables != null) {
+			return extendedVariables.get(key);
+		}*/
 		if(value == null) {
 			throw new MissingVariableException(this, key);
 		}
@@ -37,6 +50,11 @@ public class DefaultVariables implements Variables {
 	}
 
 	public boolean containsKey(String key) {
-		return defaults.containsKey(key);
+		try {
+			get(key);
+			return true;
+		} catch(MissingVariableException e) {
+			return false;
+		}
 	}
 }

@@ -9,7 +9,7 @@ import net.microscraper.server.Instruction;
  * @author john
  *
  */
-public interface Executable extends Runnable {
+public interface Executable extends Runnable, Variables {
 
 	/**
 	 * 
@@ -113,7 +113,7 @@ public interface Executable extends Runnable {
 	 * 
 	 * @return The {@link Variables} instance accessible to this {@link Executable}.
 	 */
-	public abstract Variables getVariables();
+	//public abstract Variables getVariables();
 	
 	
 	/**

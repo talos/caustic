@@ -83,9 +83,11 @@ public class JavaNetBrowser implements Browser {
 			String post_data = "";
 			if(posts != null) {
 				for(int i = 0 ; i < posts.length ; i ++) {
+					log.i(posts[i].getName() + '=' + posts[i].getValue() + '&');
 					post_data += posts[i].getName() + '=' + posts[i].getValue() + '&';
 				}
 				post_data = post_data.substring(0, post_data.length() -1); // trim trailing ampersand
+				log.i("Using posts: " + post_data);
 			}
 			
 			conn.setRequestMethod("POST");

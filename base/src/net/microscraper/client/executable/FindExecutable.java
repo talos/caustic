@@ -27,13 +27,13 @@ public abstract class FindExecutable extends BasicExecutable {
 	 */
 	private final Regexp regexp;
 	
-	//private final ScraperExecutable scraperExecutable;
+	private final ScraperExecutable enclosingScraperExecutable;
 	
 	public FindExecutable(Interfaces context,
-			Find find, ScraperExecutable scraperExecutable, Result source) {
-		super(context, find, scraperExecutable, source);
+			Find find, ScraperExecutable enclosingScraperExecutable, Result source) {
+		super(context, find, source);
 		this.regexp = find;
-		//this.scraperExecutable = scraperExecutable;
+		this.enclosingScraperExecutable = enclosingScraperExecutable;
 	}
 	
 	/**
@@ -46,7 +46,7 @@ public abstract class FindExecutable extends BasicExecutable {
 	protected String getReplacement()
 			throws MissingVariableException, MustacheTemplateException {
 		Find find = (Find) getResource();
-		return find.getReplacement().compile(getVariables());
+		return find.getReplacement().compile(this);
 	}
 	
 	/**
@@ -60,7 +60,7 @@ public abstract class FindExecutable extends BasicExecutable {
 	protected String getName() throws MissingVariableException, MustacheTemplateException {
 		Find find = (Find) getResource();
 		if(find.hasName()) {
-			return find.getName().compile(getVariables());
+			return find.getName().compile(this);
 		} else {
 			return find.getLocation().toString();
 		}
@@ -74,7 +74,16 @@ public abstract class FindExecutable extends BasicExecutable {
 	 * @throws MustacheTemplateException
 	 */
 	protected final PatternInterface getPattern() throws MissingVariableException, MustacheTemplateException {
-		return new RegexpExecutable(getInterfaces(), regexp, getVariables()).getPattern();
+		return new RegexpExecutable(getInterfaces(), regexp, this).getPattern();
+	}
+	
+
+	public final String get(String key) throws MissingVariableException {
+		return enclosingScraperExecutable.get(key);
+	}
+	
+	public final boolean containsKey(String key) {
+		return enclosingScraperExecutable.containsKey(key);
 	}
 	
 	/**

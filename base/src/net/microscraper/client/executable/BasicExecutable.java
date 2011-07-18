@@ -23,7 +23,7 @@ import net.microscraper.server.Instruction;
  */
 public abstract class BasicExecutable implements Executable {
 	private final Instruction instruction;
-	private final Variables variables;
+	//private final Variables variables;
 	private final Result source;
 	private final Interfaces interfaces;
 	
@@ -42,15 +42,13 @@ public abstract class BasicExecutable implements Executable {
 	 * Construct a new {@link BasicExecutable}.
 	 * @param context The {@link Interfaces} to use.
 	 * @param instruction The {@link Instruction} with instructions for execution.
-	 * @param variables The {@link Variables} to use when substituting for tags.
 	 * @param source The {@link Result} which is the source of this {@link Executable}.  Can
 	 * be <code>null</code> if there was none.
 	 * @see #run
 	 */
 	protected BasicExecutable(Interfaces context, Instruction instruction,
-			Variables variables, Result source) {
+			Result source) {
 		this.interfaces = context;
-		this.variables = variables;
 		this.instruction = instruction;
 		this.source = source;
 	}
@@ -164,11 +162,11 @@ public abstract class BasicExecutable implements Executable {
 	public final Instruction getResource() {
 		return instruction;
 	}
-	
-	public final Variables getVariables() {
+	/*
+	public Variables getVariables() {
 		return variables;
 	}
-	
+	*/
 	public final boolean hasSource() {
 		if(source != null) {
 			return true;

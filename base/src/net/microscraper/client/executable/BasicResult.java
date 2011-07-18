@@ -80,4 +80,12 @@ public class BasicResult implements Result {
 				sourceUri == null ? null : sourceUri.toString(),
 				sourceNumber == null ? null : sourceNumber);
 	}
+
+	public boolean hasName() {
+		if(getName() != null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
