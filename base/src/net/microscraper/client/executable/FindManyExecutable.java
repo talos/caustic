@@ -6,7 +6,7 @@ import java.util.Vector;
 import net.microscraper.client.MissingVariableException;
 import net.microscraper.client.MustacheTemplateException;
 import net.microscraper.client.NameValuePair;
-import net.microscraper.client.UnencodedNameValuePair;
+import net.microscraper.client.DefaultNameValuePair;
 import net.microscraper.client.Variables;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.InvalidRangeException;

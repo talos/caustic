@@ -1,40 +1,13 @@
 
 {
 	"url" : "https://a836-propertyportal.nyc.gov/Default.aspx",
-	"finds_one" : [{
-		"name" : "VIEWSTATE",
-		"pattern" : "id=\"__VIEWSTATE\"\\s+value=\"([^\"]+)\"",
-		"replacement" : "$1"
-	},
-	{
-		"name" : "EVENTVALIDATION",
-		"pattern" : "id=\"__EVENTVALIDATION\"\\s+value=\"([^\"]+)\"",
-		"replacement" : "$1"
-	}],
 	"then": [{
-		"url" : "https://a836-propertyportal.nyc.gov/Default.aspx",
-		"method" : "post",
-		"posts" : {
-			"ctl00_ScriptManager1_HiddenField" : ";;AjaxControlToolkit, Version=3.0.11119.25904, Culture=neutral, PublicKeyToken=28f01b0e84b6d53e:en-US:f48478dd-9360-4d50-94c1-5c5fa55bd379:865923e8:411fea1c:e7c87f07:91bd373d:1d58b08c:8e72a662:acd642d2:596d588c:77c58d20:14b56adc:269a19ae:bbfda34c:30a78ec5:5430d994",
-			"ctl00$SampleContent$MyAccordion_AccordionExtender_ClientState" : "0",
-			"ctl00$SampleContent$ctl01$TextBox1" :  "%A01 Manhattan",
-			"ctl00$SampleContent$ctl01$ddlParclBorough" : "{{Borough Number}}",
-			"ctl00$SampleContent$ctl01$txtBlock" : "{{Block}}",
-			"ctl00$SampleContent$ctl01$txtLot"   : "{{Lot}}",
-			"ctl00$SampleContent$ctl01$btnSearchBBL": "Please Wait...",
-			"ctl00$SampleContent$ctl03$TextBox2"    : "%A01 Manhattan",
-			"ctl00$SampleContent$ctl03$ddlParclBoroughPropAddr" : "{{Borough Number}}",
-			"ctl00$SampleContent$ctl03$txtHouseNbr" : "",
-			"ctl00$SampleContent$ctl03$txtStreetNm" : "",
-			"ctl00$SampleContent$ctl03$txtAptNbr"   : "",
-			"__VIEWSTATE"                        : "{{VIEWSTATE}}",
-			"__EVENTVALIDATION"					 : "{{EVENTVALIDATION}}",
-			"__EVENTTARGET" : "",
-			"__EVENTARGUMENT" : "",
-			"grpStyle" : "blue"
-		},
+		"url" : "https://a836-propertyportal.nyc.gov/searchdetails.aspx",
 		"cookies" : {
-			"style" : "default"
+			"style"   : "default",
+			"borough" : "{{Borough Number}}",
+			"block"   : "{{Block}}",
+			"lot"     : "{{Lot}}"
 		},
 		"finds_one" : [{
 			"name"    : "Benefit Name",

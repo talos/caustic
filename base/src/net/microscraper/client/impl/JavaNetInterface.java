@@ -1,9 +1,12 @@
 package net.microscraper.client.impl;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.NetInterface;
@@ -17,7 +20,7 @@ public class JavaNetInterface implements NetInterface {
 		this.browser = browser;
 	}
 	
-	public URIInterface getURI(String uriString) throws NetInterfaceException {
+	public URIInterface makeURI(String uriString) throws NetInterfaceException {
 		try {
 			return new JavaNetURI(new URI(uriString));
 		} catch(URISyntaxException e) {
@@ -25,7 +28,7 @@ public class JavaNetInterface implements NetInterface {
 		}
 	}
 
-	public URLInterface getURL(String urlString) throws NetInterfaceException {
+	public URLInterface makeURL(String urlString) throws NetInterfaceException {
 		try {
 			return new JavaNetURL(new URL(urlString));
 		} catch (MalformedURLException e) {
@@ -33,7 +36,7 @@ public class JavaNetInterface implements NetInterface {
 		}
 	}
 
-	public URIInterface getURI(String scheme, String schemeSpecificPart, String fragment)
+	public URIInterface makeURI(String scheme, String schemeSpecificPart, String fragment)
 				throws NetInterfaceException {
 		try {
 			return new JavaNetURI(new URI(scheme, schemeSpecificPart, fragment));	

@@ -12,6 +12,7 @@ import net.microscraper.client.interfaces.NetInterfaceException;
 import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.client.interfaces.URLInterface;
 import net.microscraper.server.Instruction;
+import net.microscraper.server.MustacheNameValuePair;
 import net.microscraper.server.instruction.Page;
 
 /**
@@ -35,7 +36,7 @@ public class PageExecutable extends ScraperExecutable {
 	}
 	
 	private URLInterface getURLFor(Page page) throws NetInterfaceException, MissingVariableException, MustacheTemplateException {
-		return getInterfaces().netInterface.getURL(page.getTemplate().compile(this));
+		return getInterfaces().netInterface.makeURL(page.getTemplate().compile(this));
 	}
 	
 	private void head(Page page) throws UnsupportedEncodingException,
@@ -43,8 +44,8 @@ public class PageExecutable extends ScraperExecutable {
 				BrowserException, MustacheTemplateException,
 				NetInterfaceException {
 		getInterfaces().browser.head(true, getURLFor(page), 
-				MustacheUnencodedNameValuePair.compile(page.getHeaders(), this),
-				MustacheEncodedNameValuePair.compile(page.getCookies(), this, getInterfaces().encoding));
+				MustacheNameValuePair.compile(page.getHeaders(), this),
+				MustacheNameValuePair.compile(page.getCookies(), this));
 	}
 	
 	private String get(Page page) throws UnsupportedEncodingException,
@@ -52,8 +53,8 @@ public class PageExecutable extends ScraperExecutable {
 				BrowserException, MustacheTemplateException,
 				NetInterfaceException {
 		return getInterfaces().browser.get(true, getURLFor(page),
-				MustacheUnencodedNameValuePair.compile(page.getHeaders(), this),
-				MustacheEncodedNameValuePair.compile(page.getCookies(), this, getInterfaces().encoding),
+				MustacheNameValuePair.compile(page.getHeaders(), this),
+				MustacheNameValuePair.compile(page.getCookies(), this),
 				getStopBecause(page));
 	}
 	
@@ -62,10 +63,10 @@ public class PageExecutable extends ScraperExecutable {
 				BrowserException, MustacheTemplateException,
 				NetInterfaceException {	
 		return getInterfaces().browser.post(true, getURLFor(page),
-				MustacheUnencodedNameValuePair.compile(page.getHeaders(), this),
-				MustacheEncodedNameValuePair.compile(page.getCookies(), this, getInterfaces().encoding),
+				MustacheNameValuePair.compile(page.getHeaders(), this),
+				MustacheNameValuePair.compile(page.getCookies(), this),
 				getStopBecause(page),
-				MustacheEncodedNameValuePair.compile(page.getPosts(), this, getInterfaces().encoding));
+				MustacheNameValuePair.compile(page.getPosts(), this));
 	}
 	
 	/**

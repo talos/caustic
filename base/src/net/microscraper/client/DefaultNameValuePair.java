@@ -5,10 +5,10 @@ package net.microscraper.client;
  * @author john
  *
  */
-public final class UnencodedNameValuePair implements NameValuePair {
+public final class DefaultNameValuePair implements NameValuePair {
 	private final String name;
 	private final String value;
-	public UnencodedNameValuePair(String name, String value) {
+	public DefaultNameValuePair(String name, String value) {
 		this.name = name;
 		this.value = value;
 	}

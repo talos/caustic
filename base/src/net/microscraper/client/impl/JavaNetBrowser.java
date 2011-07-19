@@ -4,23 +4,26 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import net.microscraper.client.EncodedNameValuePair;
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.interfaces.BrowserException;
-import net.microscraper.client.interfaces.NetInterface;
 import net.microscraper.client.interfaces.PatternInterface;
 import net.microscraper.client.interfaces.URLInterface;
 import net.microscraper.client.Log;
-import net.microscraper.client.UnencodedNameValuePair;
+import net.microscraper.client.DefaultNameValuePair;
+import net.microscraper.client.NameValuePair;
 import net.microscraper.client.Utils;
 
 /**
@@ -31,6 +34,7 @@ import net.microscraper.client.Utils;
  *
  */
 public class JavaNetBrowser implements Browser {
+	private static final String encoding = UTF_8;
 	private final Log log;
 	private final Hashtable cookieStore = new Hashtable();
 	private final HostMemory hostMemory = new HostMemory();
@@ -47,60 +51,39 @@ public class JavaNetBrowser implements Browser {
 		this.maxKBPS = maxKBPS;
 	}
 	
-	public void head(boolean rateLimit, URLInterface url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies)
+	public void head(boolean useRateLimit, URLInterface url, NameValuePair[] headers, NameValuePair[] cookies)
 			throws BrowserDelayException, BrowserException {
 		log.i("Retrieving Head from  " + url.toString() + "...");
 		try {
-			HttpURLConnection conn = generateConnection(rateLimit, url, headers, cookies);
-			conn.setRequestMethod("HEAD");
-			connectHandlingRedirectCookies(conn);
+			//HttpURLConnection conn = generateConnection(rateLimit, url, headers, cookies);
+			//conn.setRequestMethod("HEAD");
+			connectHandlingRedirectCookies(useRateLimit, "HEAD", new URL(url.toString()), null, headers, cookies);
 		} catch (IOException e) {
 			throw new BrowserException(url, e);
 		}
 	}
 
-	public String get(boolean rateLimit, URLInterface url, UnencodedNameValuePair[] headers,
-			EncodedNameValuePair[] cookies, PatternInterface[] terminates) throws BrowserDelayException,
+	public String get(boolean useRateLimit, URLInterface url, NameValuePair[] headers,
+			NameValuePair[] cookies, PatternInterface[] terminates) throws BrowserDelayException,
 			BrowserException {
 		log.i("Getting  " + url.toString() + "...");
 		try {
-			HttpURLConnection conn = generateConnection(rateLimit, url, headers, cookies);
-			conn.setRequestMethod("GET");
-			connectHandlingRedirectCookies(conn);
-			return pullResponse(conn, terminates);
+			InputStream stream = connectHandlingRedirectCookies(useRateLimit, "GET", new URL(url.toString()), null, headers, cookies);
+			return pullResponse(url, stream, terminates);
 		} catch(IOException e) {
 			throw new BrowserException(url, e);
 		}
 	}
 
-	public String post(boolean rateLimit, URLInterface url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies,
-			PatternInterface[] terminates, EncodedNameValuePair[] posts)
+	public String post(boolean useRateLimit, URLInterface url, NameValuePair[] headers, NameValuePair[] cookies,
+			PatternInterface[] terminates, NameValuePair[] posts)
 				throws BrowserDelayException, BrowserException {
 		log.i("Posting to  " + url.toString() + "...");
 		try {
-			HttpURLConnection conn = generateConnection(rateLimit, url, headers, cookies);
+			//HttpURLConnection conn = generateConnection(rateLimit, url, headers, cookies);
 			
-			String post_data = "";
-			if(posts != null) {
-				for(int i = 0 ; i < posts.length ; i ++) {
-					log.i(posts[i].getName() + '=' + posts[i].getValue() + '&');
-					post_data += posts[i].getName() + '=' + posts[i].getValue() + '&';
-				}
-				post_data = post_data.substring(0, post_data.length() -1); // trim trailing ampersand
-				log.i("Using posts: " + post_data);
-			}
-			
-			conn.setRequestMethod("POST");
-			
-			OutputStreamWriter writer = null;
-			
-			writer = new OutputStreamWriter(conn.getOutputStream());
-			
-			writer.write(post_data);
-			writer.flush();
-			
-			connectHandlingRedirectCookies(conn);
-			return pullResponse(conn, terminates);
+			InputStream stream = connectHandlingRedirectCookies(useRateLimit, "POST", new URL(url.toString()), posts, headers, cookies);
+			return pullResponse(url, stream, terminates);
 		} catch(IOException e) {
 			throw new BrowserException(url, e);
 		}
@@ -115,15 +98,15 @@ public class JavaNetBrowser implements Browser {
 	 * @throws BrowserException if there was an exception loading, including user interrupt.
 	 * @throws BrowserDelayException if we have loaded too much too fast from a host, if <code>useRateLimit</code> is <code>true</code>.
 	 */
-	private String pullResponse(HttpURLConnection conn, PatternInterface[] terminates)
+	private String pullResponse(URLInterface url, InputStream stream, PatternInterface[] terminates)
 			throws BrowserException {
 
-		URL url = conn.getURL();
+		//URL url = conn.getURL();
 		String responseBody;
 		ByteArrayOutputStream content = new ByteArrayOutputStream();
 		try {
 			// Pull response.
-			InputStream stream = conn.getInputStream();
+			//InputStream stream = conn.getInputStream();
 			byte[] buffer = new byte[512];
 			int readBytes;
 			loading: while((readBytes = stream.read(buffer)) != -1) {
@@ -136,55 +119,70 @@ public class JavaNetBrowser implements Browser {
 				if(terminates != null) {
 					for(int i = 0 ; i < terminates.length ; i++) {
 						if(terminates[i].matches(responseBody)){
-							log.i("Terminating " + conn.getURL().toString() + " due to pattern " + terminates[i].toString());
+							log.i("Terminating " + url.toString() + " due to pattern " + terminates[i].toString());
 							break loading;
 						}
 					}
 				}
 			}
 			stream.close();
-			conn.disconnect();
+			//conn.disconnect();
 		} catch(IOException e) {
-			throw new BrowserException(new JavaNetURL(url), e);
+			throw new BrowserException((url), e);
 		} catch(InterruptedException e) {
-			throw new BrowserException(new JavaNetURL(url), e);
+			throw new BrowserException((url), e);
 		}
 		responseBody = content.toString();
-		hostMemory.add(url, responseBody.length());
+		try {
+			hostMemory.add(new URL(url.toString()), responseBody.length());
+		} catch (MalformedURLException e) {
+			throw new BrowserException(url, e);
+		}
+		log.i("Response body: " + responseBody);
 		return responseBody;
 	}
 	
-	private static void addHeaderToConnection(HttpURLConnection conn, UnencodedNameValuePair header) {
+	private static void addHeaderToConnection(HttpURLConnection conn, NameValuePair header) {
 		conn.setRequestProperty(header.getName(), header.getValue());
 	}
 	
 	/**
 	 * Generate an {@link java.net.HttpURLConnection}.  Defaults the Referer header to the current url.
 	 * @param useRateLimit Whether to throw {@link BrowserDelayException} to avoid loading too much from a host.
-	 * @param url A {@link URLInterface} to load.  Also defaults to be the Referer in the request header.
-	 * @param headers An array of {@link UnencodedNameValuePair}s, can be <code>null</code>
-	 * @param cookies An array of {@link EncodedNameValuePair}s, can be <code>null</code>
+	 * @param url A {@link URL} to load.  Also defaults to be the Referer in the request header.
+	 * @param headers An array of {@link NameValuePair}s, can be <code>null</code>
+	 * @param cookies An array of {@link NameValuePair}s, can be <code>null</code>
 	 * @return A {@link java.net.HttpURLConnection}
 	 * @throws IOException If there was an error generating the {@link java.net.HttpURLConnection}.
 	 * @throws BrowserDelayException If this {@link Browser} is averaging more kilobytes per second from this
 	 * host than allowed at instantiation.
 	 */
-	private HttpURLConnection generateConnection(boolean useRateLimit, URLInterface url, UnencodedNameValuePair[] headers, EncodedNameValuePair[] cookies)
+	private HttpURLConnection generateConnection(boolean useRateLimit, String method,
+			URL url, NameValuePair[] posts,
+			NameValuePair[] headers, NameValuePair[] cookies)
 				throws IOException, BrowserDelayException {
 		if(useRateLimit == true) {
 			float kbpsSinceLastLoad = hostMemory.kbpsSinceLastLoadFor(url);
 			//log.i("Load speed from " + url.toString() + " : " + Float.toString(kbpsSinceLastLoad));
 			if(kbpsSinceLastLoad > maxKBPS) {
-				throw new BrowserDelayException(url, kbpsSinceLastLoad);
+				throw new BrowserDelayException(url.toString(), kbpsSinceLastLoad);
 			}
 		}
 		log.i("Browser loading URL '" + url.toString() + "'");
 		
-		HttpURLConnection.setFollowRedirects(true);
-		HttpURLConnection conn = (HttpURLConnection) (new URL(url.toString())).openConnection();			
-		conn.setDoOutput(true);
-		conn.setDoInput(true);
-		conn.setReadTimeout(TIMEOUT);
+		//HttpURLConnection.setFollowRedirects(true);
+		HttpURLConnection conn = (HttpURLConnection) (new URL(url.toString())).openConnection();	
+		
+		// Add generic Headers.
+		addHeaderToConnection(conn, new DefaultNameValuePair(ACCEPT_HEADER_NAME, ACCEPT_HEADER_DEFAULT_VALUE));
+		addHeaderToConnection(conn, new DefaultNameValuePair(ACCEPT_LANGUAGE_HEADER_NAME, ACCEPT_LANGUAGE_HEADER_DEFAULT_VALUE));
+		addHeaderToConnection(conn, new DefaultNameValuePair(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER_DEFAULT_VALUE));
+		addHeaderToConnection(conn, new DefaultNameValuePair(REFERER_HEADER_NAME, url.toString())); // default to the current URL as referer.
+		if(headers != null) {
+			for(int i = 0 ; i < headers.length ; i++) {
+				addHeaderToConnection(conn, headers[i]);
+			}
+		}
 		
 		// Add cookies passed directly into cookie store. Very primitive.
 		if(cookies != null) {
@@ -192,51 +190,69 @@ public class JavaNetBrowser implements Browser {
 				cookieStore.put(cookies[i].getName(), cookies[i].getValue());
 			}
 		}
+
 		
-		// Add generic Headers.
-		addHeaderToConnection(conn, new UnencodedNameValuePair(ACCEPT_HEADER_NAME, ACCEPT_HEADER_DEFAULT_VALUE));
-		addHeaderToConnection(conn, new UnencodedNameValuePair(ACCEPT_LANGUAGE_HEADER_NAME, ACCEPT_LANGUAGE_HEADER_DEFAULT_VALUE));
-		addHeaderToConnection(conn, new UnencodedNameValuePair(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER_DEFAULT_VALUE));
-		addHeaderToConnection(conn, new UnencodedNameValuePair(REFERER_HEADER_NAME, url.toString())); // default to the current URL as referer.
-		if(headers != null) {
-			for(int i = 0 ; i < headers.length ; i++) {
-				addHeaderToConnection(conn, headers[i]);
-			}
-		}
-		
-		// Add cookie headers.
+		// Add cookie header to request.
 		if(cookieStore.size() > 0) {
-			//String cookie_string = "";
-			String[] cookieAry = new String[cookieStore.size()];
-			Enumeration e = cookieStore.keys();
-			int i = 0;
-			while(e.hasMoreElements()) {
-				String name = (String) e.nextElement();
-				cookieAry[i] = name + '=' + (String) cookieStore.get(name);// + "; ";
-			}
-			String cookieString = Utils.join(cookieAry, "; ");
-			log.i("Using cookies: " + cookieString);
-			conn.setRequestProperty("Cookie", cookieString);
+			updateCookieRequestHeader(conn);
 		}
+		
+		conn.setDoOutput(true);
+		conn.setDoInput(true);
+		conn.setReadTimeout(TIMEOUT);
+		
+		if(method.equals("POST")) {
+
+			String post_data = "";
+			if(posts != null) {
+				for(int i = 0 ; i < posts.length ; i ++) {
+					post_data += encode(posts[i].getName()) + '=' + encode(posts[i].getValue()) + '&';
+				}
+				post_data = post_data.substring(0, post_data.length() -1); // trim trailing ampersand
+				log.i("Using posts: " + post_data);
+			}
+			
+			conn.setRequestMethod("POST");
+			
+			OutputStreamWriter writer = null;
+			
+			writer = new OutputStreamWriter(conn.getOutputStream());
+			
+			writer.write(post_data);
+			writer.flush();
+			
+		} else {
+			conn.setRequestMethod(method);
+		}
+		
 		
 		return conn;
 	}
 	
 	// Indebted to jcookie (http://jcookie.sourceforge.net/doc.html)
-	private InputStream connectHandlingRedirectCookies(HttpURLConnection conn)
-				throws IOException {
-		return connectHandlingRedirectCookies(conn, new Vector());
+	//private InputStream connectHandlingRedirectCookies(HttpURLConnection conn)
+	private InputStream connectHandlingRedirectCookies(boolean useRateLimit, String method, URL url,
+			NameValuePair[] posts,
+			NameValuePair[] headers, NameValuePair[] cookies)
+				throws BrowserDelayException, IOException {
+		return connectHandlingRedirectCookies(useRateLimit, method, url, posts, headers, cookies, new Vector());
 	}
 	
-	private InputStream connectHandlingRedirectCookies(HttpURLConnection conn, Vector redirects_followed)
-				throws IOException {
+	//private InputStream connectHandlingRedirectCookies(/*HttpURLConnection conn, */Vector redirects_followed)
+	private InputStream connectHandlingRedirectCookies(boolean useRateLimit, String method, URL url,
+			NameValuePair[] posts,
+			NameValuePair[] headers, NameValuePair[] cookies, Vector redirects_followed)
+				throws BrowserDelayException, IOException {
+		HttpURLConnection conn = generateConnection(useRateLimit, method, url, posts, headers, cookies);
 		conn.setInstanceFollowRedirects(false);
 		conn.connect();
 		InputStream stream = conn.getInputStream();
 		int code = conn.getResponseCode();
 		
+		log.i("Response code: " + Integer.toString(code));
+		
 		if(redirects_followed.size() <= MAX_REDIRECTS) {
-			updateCookieStore(conn);
+			updateCookieStoreFromResponse(conn);
 			if(code >= 300 && code < 400 ) {
 				String redirect_string = conn.getHeaderField(LOCATION_HEADER_NAME);
 				if(redirects_followed.contains(redirect_string)) {
@@ -250,18 +266,20 @@ public class JavaNetBrowser implements Browser {
 					+ Integer.toString(redirects_followed.size()) + " from " + conn.getURL().toString()
 					+ " to " + redirect_string);
 				
-				URI newURI;
 				try {
-					newURI = new URI(conn.getURL().toString()).resolve(redirect_string);
-
+					stream.close();
+					conn.disconnect();
+					return connectHandlingRedirectCookies(useRateLimit, "GET",
+							new URI(url.toString()).resolve(redirect_string).toURL(), null,
+							headers, null, redirects_followed);
+					
 				} catch(Exception e) {
 					throw new IOException("Unable to parse redirect from " + conn.getURL().toString()
 							+ " to " + redirect_string + " (" + e.getMessage() + ")");
+				} finally {
+					stream.close();
+					conn.disconnect();
 				}
-				stream.close();
-				conn.disconnect();
-				return connectHandlingRedirectCookies(
-						(HttpURLConnection) newURI.toURL().openConnection(), redirects_followed);
 			} else if(code != SUCCESS_CODE) {
 				throw new IOException("Can't deal with this response code (" + code + ").");
 			}
@@ -275,7 +293,7 @@ public class JavaNetBrowser implements Browser {
 	 * Very primitive handling of cookies.  Simply overwrites duplicate names in the CookieStore, ignoring host & path.
 	 * @param conn
 	 */
-	private void updateCookieStore(HttpURLConnection conn) {
+	private void updateCookieStoreFromResponse(HttpURLConnection conn) {
 		String header_name, header_value;
 		for(int i = 0 ; (header_name = conn.getHeaderFieldKey(i)) != null || i == 0 ; i++) {
 			if(header_name == null) continue; // A mess, but sometimes the first header is null.
@@ -292,6 +310,25 @@ public class JavaNetBrowser implements Browser {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Bring the <code>Cookie</code> header of <code>conn</code> into line with {@link #cookieStore}.
+	 * @param conn
+	 */
+	private void updateCookieRequestHeader(HttpURLConnection conn) {
+		//String cookie_string = "";
+		String[] cookieAry = new String[cookieStore.size()];
+		Enumeration e = cookieStore.keys();
+		int i = 0;
+		while(e.hasMoreElements()) {
+			String name = (String) e.nextElement();
+			cookieAry[i] = name + '=' + (String) cookieStore.get(name);// + "; ";
+			i++;
+		}
+		String cookieString = Utils.join(cookieAry, "; ");
+		log.i("Using cookies: " + cookieString);
+		conn.setRequestProperty("Cookie", cookieString);
 	}
 	
 	private static class HostMemory {
@@ -313,16 +350,24 @@ public class JavaNetBrowser implements Browser {
 					url, bytesLoaded);
 			hostMemory.put(loadedFromHost.host, loadedFromHost);
 		}
-		public float kbpsSinceLastLoadFor(URLInterface url) {
+		public float kbpsSinceLastLoadFor(URL url) {
 			Date now = new Date();
 			String host = url.getHost();
 			if(hostMemory.containsKey(host)) {
 				LoadedFromHost lastLoad = (LoadedFromHost) hostMemory.get(host);
-				long millisecondsSince = now.getTime() - lastLoad.timestamp.getTime();
+				long millisecondsSince = now.getTime() - lastLoad.timestamp.getTime() + 1;
 				return lastLoad.bytesLoaded / millisecondsSince;
 			} else {
 				return 0;
 			}
 		}
+	}
+	
+	private String encode(String string) throws UnsupportedEncodingException {
+		return URLEncoder.encode(string, encoding);
+	}
+
+	private String decode(String string) throws UnsupportedEncodingException {
+		return URLDecoder.decode(string, encoding);
 	}
 }

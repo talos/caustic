@@ -68,7 +68,7 @@ public class MicroScraperConsole {
 					netInterface,
 					jsonInterface, ENCODING);
 					
-			URIInterface uri = netInterface.getURI(args[0]);
+			URIInterface uri = netInterface.makeURI(args[0]);
 			
 			NameValuePair[] extraVariables;
 			if(args.length == 2) {

@@ -1,7 +1,7 @@
 package net.microscraper.client.interfaces;
 
 public interface Logger {
-	public static final int MAX_ENTRY_LENGTH = 2048;
+	public static final int MAX_ENTRY_LENGTH = 512;
 	
 	/**
 	 * Provide the ability to log throwables as errors.

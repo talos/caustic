@@ -68,10 +68,10 @@ public abstract class ScraperExecutable extends BasicExecutable {
 		for(int i = 0; i < sourceResults.length ; i++) {
 			Result sourceResult = sourceResults[i];
 			for(int j = 0 ; j < findOnes.length ; j ++) {
-				FindOneExecutable variableExecution = new FindOneExecutable(getInterfaces(),
+				FindOneExecutable findOneExecutable = new FindOneExecutable(getInterfaces(),
 						findOnes[j], this, sourceResult);
-				findOneExecutables.add(variableExecution);
-				children.add(variableExecution);
+				findOneExecutables.add(findOneExecutable);
+				children.add(findOneExecutable);
 			}
 			for(int j = 0 ; j < findManys.length ; j ++) {
 				children.add(new FindManyExecutable(getInterfaces(), findManys[j],

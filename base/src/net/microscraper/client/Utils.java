@@ -196,7 +196,7 @@ public class Utils {
 		NameValuePair[] pairs = new NameValuePair[split.length];
 		for(int i = 0 ; i < split.length; i++) {
 			String[] pair = Utils.split(formEncodedData, "=");
-			pairs[i] = new UnencodedNameValuePair(
+			pairs[i] = new DefaultNameValuePair(
 					URLDecoder.decode(pair[0], encoding),
 					URLDecoder.decode(pair[1], encoding));
 		}

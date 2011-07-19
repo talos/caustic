@@ -50,7 +50,7 @@ public class UtilityURILoader extends CachedURILoader {
 	}
 	
 	private String loadHTTP(URIInterface httpLocation) throws NetInterfaceException {
-		return browser.get(false, netInterface.getURL(httpLocation.toString()), null, null, null);
+		return browser.get(false, netInterface.makeURL(httpLocation.toString()), null, null, null);
 	}
 	
 	private String loadFile(URIInterface fileLocation) throws IOException {

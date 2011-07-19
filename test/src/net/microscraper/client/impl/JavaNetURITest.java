@@ -35,11 +35,11 @@ public class JavaNetURITest {
 		NetInterface netInterface = new JavaNetInterface(
 				new JavaNetBrowser(
 						new Log(), 10000));
-		absFixture = netInterface.getURI(
+		absFixture = netInterface.makeURI(
 				"scheme:/domain/dir1/dir2/file.ext#frag");
-		relFixture = netInterface.getURI(
+		relFixture = netInterface.makeURI(
 				"../../path/to/file.html");
-		jsonFixture = netInterface.getURI(
+		jsonFixture = netInterface.makeURI(
 				"scheme:/domain/dir1/dir2/file.json#/frag");
 	}
 

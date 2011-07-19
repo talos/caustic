@@ -51,7 +51,7 @@ public final class Client {
 	/**
 	 * 
 	 * @param pageLocation A {@link java.net.URI} to get the {@link Scraper} instructions from.
-	 * @param extraVariables An array of {@link UnencodedNameValuePair}s to stock the {@link SpawnedScraperExecutable}s
+	 * @param extraVariables An array of {@link DefaultNameValuePair}s to stock the {@link SpawnedScraperExecutable}s
 	 * {@link FindOne}s with.
 	 * @param publisher A {@link Publisher} to send the results of {@link Executable}s to.
 	 * @throws BrowserException If a {@link Browser} problem prevented the {@link Scraper} from running.

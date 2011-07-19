@@ -12,9 +12,9 @@ public class BrowserDelayException extends ClientException {
 	 * 
 	 */
 	private static final long serialVersionUID = 8357347717343426486L;
-	public final URLInterface url;
+	public final String url;
 	public final float kbpsSinceLastLoad;
-	public BrowserDelayException(URLInterface url, float kbpsSinceLastLoad) {
+	public BrowserDelayException(String url, float kbpsSinceLastLoad) {
 		//super(url);
 		this.url = url;
 		this.kbpsSinceLastLoad = kbpsSinceLastLoad;

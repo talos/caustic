@@ -8,12 +8,13 @@ import java.net.URLDecoder;
  * @author john
  *
  */
+/*
 public final class EncodedNameValuePair implements NameValuePair {
 	private final String name;
 	private final String value;
-	public EncodedNameValuePair(String name, String value, String encoding) throws UnsupportedEncodingException {
-		this.name = URLDecoder.decode(name, encoding);
-		this.value = URLDecoder.decode(value, encoding);
+	public EncodedNameValuePair(String encodedName, String encodedValue, String encoding) throws UnsupportedEncodingException {
+		this.name = URLDecoder.decode(encodedName, encoding);
+		this.value = URLDecoder.decode(encodedValue, encoding);
 	}
 	public String getName() {
 		return name;
@@ -22,3 +23,4 @@ public final class EncodedNameValuePair implements NameValuePair {
 		return value;
 	}
 }
+*/

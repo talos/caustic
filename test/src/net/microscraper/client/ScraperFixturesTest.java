@@ -31,6 +31,7 @@ public class ScraperFixturesTest {
 	private static final String simpleGoogle = "simple-google.json";
 	private static final String nycPropertyOwner = "nyc-property-owner.json";
 	private static final String nycIncentives = "nyc-incentives.json";
+	private static final String nycIncentivesSimple = "nyc-incentives-simple.json";
 	/**
 	 * The test {@link Client} instance.
 	 */
@@ -81,8 +82,8 @@ public class ScraperFixturesTest {
 	public void testScrapeSimpleGoogle() throws Exception {
 		final String expectedPhrase = "what do we say after hello?";
 
-		UnencodedNameValuePair[] extraVariables = new UnencodedNameValuePair[] {
-				new UnencodedNameValuePair("query", "hello")
+		DefaultNameValuePair[] extraVariables = new DefaultNameValuePair[] {
+				new DefaultNameValuePair("query", "hello")
 		};
 		
 		new Expectations() {
@@ -115,11 +116,11 @@ public class ScraperFixturesTest {
 		final String ownerName = "Owner Name";
 		final String expectedOwner0 = "373 ATLANTIC AVENUE C";
 		final String expectedOwner1 = "373 ATLANTIC AVENUE CORPORATION";
-		UnencodedNameValuePair[] extraVariables = new UnencodedNameValuePair[] {
-				new UnencodedNameValuePair("House Number", "373"),
-				new UnencodedNameValuePair("Street Name", "Atlantic Av"),
-				new UnencodedNameValuePair("Borough Number", "3"),
-				new UnencodedNameValuePair("Apartment Number", "")
+		DefaultNameValuePair[] extraVariables = new DefaultNameValuePair[] {
+				new DefaultNameValuePair("House Number", "373"),
+				new DefaultNameValuePair("Street Name", "Atlantic Av"),
+				new DefaultNameValuePair("Borough Number", "3"),
+				new DefaultNameValuePair("Apartment Number", "")
 		};
 		
 		new Expectations() {
@@ -160,10 +161,10 @@ public class ScraperFixturesTest {
 	
 	@Test
 	public void testScrapeNYCIncentives() throws Exception {
-		UnencodedNameValuePair[] extraVariables = new UnencodedNameValuePair[] {
-				new UnencodedNameValuePair("Borough Number", "1"),
-				new UnencodedNameValuePair("Block", "1171"),
-				new UnencodedNameValuePair("Lot", "63")
+		DefaultNameValuePair[] extraVariables = new DefaultNameValuePair[] {
+				new DefaultNameValuePair("Borough Number", "1"),
+				new DefaultNameValuePair("Block", "1171"),
+				new DefaultNameValuePair("Lot", "63")
 		};
 		
 		new Expectations() {
@@ -177,7 +178,6 @@ public class ScraperFixturesTest {
 						(Integer) withNull());
 				$ = "Problem with initial page"; times = 1;
 				
-				// Viewstate.
 				publisher.publishResult(
 						"VIEWSTATE",
 						anyString,
@@ -186,8 +186,16 @@ public class ScraperFixturesTest {
 						withSuffix(nycIncentives + "#"),
 						0);
 				$ = "Problem with Viewstate"; times = 1;
+
+				publisher.publishResult(
+						"EVENTVALIDATION",
+						anyString,
+						withSuffix(nycIncentives + "#/finds_one/1"),
+						0,
+						withSuffix(nycIncentives + "#"),
+						0);
+				$ = "Problem with EventValidation"; times = 1;
 				
-				// Dependent page load.
 				publisher.publishResult(
 						(String) withNull(),
 						anyString,
@@ -197,7 +205,6 @@ public class ScraperFixturesTest {
 						0);
 				$ = "Problem with data page"; times = 1;
 				
-				// Find the Benefit name.
 				publisher.publishResult(
 						"Benefit Name",
 						"421A-Newly constructed Multiple Dwelling Residential Property",
@@ -207,7 +214,6 @@ public class ScraperFixturesTest {
 						0);
 				$ = "Problem with Benefit Name result"; times = 1;
 				
-				// Find the Benefit amount.
 				publisher.publishResult(
 						"Benefit Amount",
 						withPrefix("$"),
@@ -217,22 +223,222 @@ public class ScraperFixturesTest {
 						0);
 				$ = "Problem with Benefit Name result"; times = 1;
 				
+
+				publisher.publishResult(
+						"Current Benefit Year",
+						"16",
+						withSuffix(nycIncentives + "#/then/0/finds_one/2"),
+						0,
+						withSuffix(nycIncentives + "#/then/0"),
+						0);
+				$ = "Problem with Benefit Year result"; times = 1;
+
+				publisher.publishResult(
+						"Number of Benefit Years",
+						"20",
+						withSuffix(nycIncentives + "#/then/0/finds_one/3"),
+						0,
+						withSuffix(nycIncentives + "#/then/0"),
+						0);
+				$ = "Problem with Number of Benefit Years result"; times = 1;
+				
+				publisher.publishResult(
+						"Benefit Type",
+						"Completion",
+						withSuffix(nycIncentives + "#/then/0/finds_one/4"),
+						0,
+						withSuffix(nycIncentives + "#/then/0"),
+						0);
+				$ = "Problem with Benefit Type result"; times = 1;
+
+				publisher.publishResult(
+						"Benefit Start Date",
+						"July 01, 1996",
+						withSuffix(nycIncentives + "#/then/0/finds_one/5"),
+						0,
+						withSuffix(nycIncentives + "#/then/0"),
+						0);
+				$ = "Problem with Benefit Start Date result"; times = 1;
+
+				publisher.publishResult(
+						"Benefit End Date",
+						"June 30, 2016",
+						withSuffix(nycIncentives + "#/then/0/finds_one/6"),
+						0,
+						withSuffix(nycIncentives + "#/then/0"),
+						0);
+				$ = "Problem with Benefit Start Date result"; times = 1;
+
+				publisher.publishResult(
+						"Ineligible Commercial %",
+						"00.0000%",
+						withSuffix(nycIncentives + "#/then/0/finds_one/7"),
+						0,
+						withSuffix(nycIncentives + "#/then/0"),
+						0);
+				$ = "Problem with Ineligible Commercial % result"; times = 1;
+				
+
+				publisher.publishResult(
+						"Base Year",
+						"Year ending June 30, 1993",
+						withSuffix(nycIncentives + "#/then/0/finds_one/8"),
+						0,
+						withSuffix(nycIncentives + "#/then/0"),
+						0);
+				$ = "Problem with Base Year result"; times = 1;
+
+				publisher.publishResult(
+						"Base Year Assessed Value",
+						"$5,500,000",
+						withSuffix(nycIncentives + "#/then/0/finds_one/9"),
+						0,
+						withSuffix(nycIncentives + "#/then/0"),
+						0);
+				$ = "Problem with Base Year Assessed Value result"; times = 1;
+				
 			}
 		};
 		
 		testScrape(getScraperURI(nycIncentives), extraVariables);
 	}
 	
+
+	@Test
+	public void testScrapeNYCIncentivesSimple() throws Exception {
+		DefaultNameValuePair[] extraVariables = new DefaultNameValuePair[] {
+				new DefaultNameValuePair("Borough Number", "1"),
+				new DefaultNameValuePair("Block", "1171"),
+				new DefaultNameValuePair("Lot", "63")
+		};
+		
+		new Expectations() {
+			{
+				publisher.publishResult(
+						(String) withNull(),
+						anyString,
+						withSuffix(nycIncentivesSimple + "#"),
+						0,
+						(String) withNull(),
+						(Integer) withNull());
+				$ = "Problem with initial page"; times = 1;
+				
+				// Dependent page load.
+				publisher.publishResult(
+						(String) withNull(),
+						anyString,
+						withSuffix(nycIncentivesSimple + "#/then/0"),
+						0,
+						withSuffix(nycIncentivesSimple + "#"),
+						0);
+				$ = "Problem with data page"; times = 1;
+				
+				publisher.publishResult(
+						"Benefit Name",
+						"421A-Newly constructed Multiple Dwelling Residential Property",
+						withSuffix(nycIncentivesSimple + "#/then/0/finds_one/0"),
+						0,
+						withSuffix(nycIncentivesSimple + "#/then/0"),
+						0);
+				$ = "Problem with Benefit Name result"; times = 1;
+				
+				publisher.publishResult(
+						"Benefit Amount",
+						withPrefix("$"),
+						withSuffix(nycIncentivesSimple + "#/then/0/finds_one/1"),
+						0,
+						withSuffix(nycIncentivesSimple + "#/then/0"),
+						0);
+				$ = "Problem with Benefit Amount result"; times = 1;
+
+				publisher.publishResult(
+						"Current Benefit Year",
+						"16",
+						withSuffix(nycIncentivesSimple + "#/then/0/finds_one/2"),
+						0,
+						withSuffix(nycIncentivesSimple + "#/then/0"),
+						0);
+				$ = "Problem with Benefit Year result"; times = 1;
+
+				publisher.publishResult(
+						"Number of Benefit Years",
+						"20",
+						withSuffix(nycIncentivesSimple + "#/then/0/finds_one/3"),
+						0,
+						withSuffix(nycIncentivesSimple + "#/then/0"),
+						0);
+				$ = "Problem with Number of Benefit Years result"; times = 1;
+				
+				publisher.publishResult(
+						"Benefit Type",
+						"Completion",
+						withSuffix(nycIncentivesSimple + "#/then/0/finds_one/4"),
+						0,
+						withSuffix(nycIncentivesSimple + "#/then/0"),
+						0);
+				$ = "Problem with Benefit Type result"; times = 1;
+
+				publisher.publishResult(
+						"Benefit Start Date",
+						"July 01, 1996",
+						withSuffix(nycIncentivesSimple + "#/then/0/finds_one/5"),
+						0,
+						withSuffix(nycIncentivesSimple + "#/then/0"),
+						0);
+				$ = "Problem with Benefit Start Date result"; times = 1;
+
+				publisher.publishResult(
+						"Benefit End Date",
+						"June 30, 2016",
+						withSuffix(nycIncentivesSimple + "#/then/0/finds_one/6"),
+						0,
+						withSuffix(nycIncentivesSimple + "#/then/0"),
+						0);
+				$ = "Problem with Benefit Start Date result"; times = 1;
+
+				publisher.publishResult(
+						"Ineligible Commercial %",
+						"00.0000%",
+						withSuffix(nycIncentivesSimple + "#/then/0/finds_one/7"),
+						0,
+						withSuffix(nycIncentivesSimple + "#/then/0"),
+						0);
+				$ = "Problem with Ineligible Commercial % result"; times = 1;
+				
+
+				publisher.publishResult(
+						"Base Year",
+						"Year ending June 30, 1993",
+						withSuffix(nycIncentivesSimple + "#/then/0/finds_one/8"),
+						0,
+						withSuffix(nycIncentivesSimple + "#/then/0"),
+						0);
+				$ = "Problem with Base Year result"; times = 1;
+
+				publisher.publishResult(
+						"Base Year Assessed Value",
+						"$5,500,000",
+						withSuffix(nycIncentivesSimple + "#/then/0/finds_one/9"),
+						0,
+						withSuffix(nycIncentivesSimple + "#/then/0"),
+						0);
+				$ = "Problem with Base Year Assessed Value result"; times = 1;
+			}
+		};
+		
+		testScrape(getScraperURI(nycIncentivesSimple), extraVariables);
+	}
+	
 	/**
 	 * Convenience method to test one Scraper with our mock publisher.
 	 * @param String {@link URIInterface} location of the {@link Scraper}
 	 * instructions.
-	 * @param extraVariables Array of {@link UnencodedNameValuePair}s to
+	 * @param extraVariables Array of {@link DefaultNameValuePair}s to
 	 * use as extra {@link Variables}.
 	 * @throws Exception If the test failed.
 	 */
 	private void testScrape(URIInterface location,
-			UnencodedNameValuePair[] extraVariables) throws Exception {
+			DefaultNameValuePair[] extraVariables) throws Exception {
 		try {
 			client.scrape(location, extraVariables, publisher);
 		} catch(BrowserException e) {
@@ -250,6 +456,6 @@ public class ScraperFixturesTest {
 	 * path to the {@link Scraper}.
 	 */
 	private URIInterface getScraperURI(String scraperName) throws NetInterfaceException {
-		return netInterface.getURI(fixturesFolder.resolve(scraperName).toString());
+		return netInterface.makeURI(fixturesFolder.resolve(scraperName).toString());
 	}
 }
