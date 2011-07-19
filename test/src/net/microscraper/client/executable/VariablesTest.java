@@ -6,8 +6,7 @@ import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.client.DefaultVariables;
 import net.microscraper.client.Log;
-import net.microscraper.client.TestUtils;
-import net.microscraper.client.impl.JavaUtilRegexInterface;
+import net.microscraper.client.impl.JakartaRegexpCompiler;
 import net.microscraper.client.impl.SystemLogInterface;
 import net.microscraper.client.interfaces.Interfaces;
 import net.microscraper.client.interfaces.URIInterface;
@@ -17,6 +16,7 @@ import net.microscraper.server.instruction.FindOne;
 import net.microscraper.server.instruction.Page;
 import net.microscraper.server.instruction.Regexp;
 import net.microscraper.server.instruction.Scraper;
+import net.microscraper.test.TestUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class VariablesTest {
 			{
 				mockLocation.isAbsolute(); result = true;
 				sourceResult.getName(); result = "";
-				setField(interfaces, "regexpCompiler", new JavaUtilRegexInterface());
+				setField(interfaces, "regexpCompiler", new JakartaRegexpCompiler());
 			}
 		};
 	}

@@ -3,11 +3,9 @@ package net.microscraper.client;
 import java.io.IOException;
 import java.util.Vector;
 
-import net.microscraper.client.executable.BasicResult;
 import net.microscraper.client.executable.Executable;
 import net.microscraper.client.executable.PageExecutable;
 import net.microscraper.client.executable.Result;
-import net.microscraper.client.executable.SpawnedScraperExecutable;
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.BrowserException;
 import net.microscraper.client.interfaces.Interfaces;
@@ -50,9 +48,8 @@ public final class Client {
 	
 	/**
 	 * 
-	 * @param pageLocation A {@link java.net.URI} to get the {@link Scraper} instructions from.
-	 * @param extraVariables An array of {@link DefaultNameValuePair}s to stock the {@link SpawnedScraperExecutable}s
-	 * {@link FindOne}s with.
+	 * @param pageLocation A {@link URIInterface} to get the {@link Scraper} instructions from.
+	 * @param extraVariables An array of {@link NameValuePair}s to use initially.
 	 * @param publisher A {@link Publisher} to send the results of {@link Executable}s to.
 	 * @throws BrowserException If a {@link Browser} problem prevented the {@link Scraper} from running.
 	 * @throws ClientException If the {@link Scraper} could not be run.

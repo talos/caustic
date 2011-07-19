@@ -26,7 +26,7 @@ public interface PatternInterface {
 	/**
 	 * Returns a String of the substitution at matchNumber.
 	 * @param input String input
-	 * @param substitution The substitution to use, for example "\0"
+	 * @param substitution The substitution to use, for example "$0"
 	 * @param matchNumber Which match to use in the substitution. 0-indexed.
 	 * @return {@link String} A string of the substitution at matchNumber.
 	 * @throws NoMatchesException There was no match at the match number for this pattern.
@@ -37,7 +37,7 @@ public interface PatternInterface {
 	/**
 	 * Returns an array of Strings of the substitution, one for each match.
 	 * @param input String input
-	 * @param substitution The substitution to use, for example "\0"
+	 * @param substitution The substitution to use, for example "$0"
 	 * @param minMatch Which match should be the first to be included in the return.  0-indexed, with negative numbers counting backwards from end (-1 is last).
 	 * @param maxMatch Which match should be the last to be included in the return.  0-indexed, with negative numbers counting backwards from end (-1 is last.
 	 * @return {@link String[]} An array of strings, each using the substitution for the pattern.

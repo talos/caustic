@@ -12,8 +12,8 @@ public interface RegexpCompiler {
 	 * Roughly equivalent to {@link java.util.regex.Pattern#compile}.  There are fewer flags,
 	 * and they are specified as booleans.
 	 * @param patternString The pattern, as a String.
-	 * @param isCaseInsensitive <code>True</code> if the pattern should be case-sensitive,
-	 * <code>false</code> otherwise.  Should work in a manner equivalent to
+	 * @param isCaseInsensitive <code>False</code> if the pattern should be case-sensitive,
+	 * <code>true</code> otherwise.  Should work in a manner equivalent to
 	 * {@link java.util.regex.Pattern#CASE_INSENSITIVE}.
 	 * @param isMultiline <code>True</code> if <code>^</code> and <code>$</code> should match at the start and end of
 	 * every line, <code>false</code> otherwise.  Should work in a manner equivalent to

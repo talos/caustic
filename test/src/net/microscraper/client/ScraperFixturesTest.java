@@ -9,9 +9,9 @@ import mockit.Expectations;
 import mockit.Mocked;
 import net.microscraper.client.impl.FileLoader;
 import net.microscraper.client.impl.JSONME;
+import net.microscraper.client.impl.JakartaRegexpCompiler;
 import net.microscraper.client.impl.JavaNetBrowser;
 import net.microscraper.client.impl.JavaNetInterface;
-import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.SystemLogInterface;
 import net.microscraper.client.interfaces.Browser;
 import net.microscraper.client.interfaces.BrowserException;
@@ -57,7 +57,7 @@ public class ScraperFixturesTest {
 		log.register(new SystemLogInterface());
 		netInterface = new JavaNetInterface(new JavaNetBrowser(log, 10000));
 		client = new Client(
-				new JavaUtilRegexInterface(),
+				new JakartaRegexpCompiler(),
 				log,
 				netInterface,
 				new JSONME(new FileLoader()),

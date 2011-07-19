@@ -13,9 +13,9 @@ import net.microscraper.client.Utils;
 import net.microscraper.client.impl.FileLogInterface;
 import net.microscraper.client.impl.JDBCSQLite;
 import net.microscraper.client.impl.JSONME;
+import net.microscraper.client.impl.JakartaRegexpCompiler;
 import net.microscraper.client.impl.JavaNetBrowser;
 import net.microscraper.client.impl.JavaNetInterface;
-import net.microscraper.client.impl.JavaUtilRegexInterface;
 import net.microscraper.client.impl.SQLInterface.SQLInterfaceException;
 import net.microscraper.client.impl.SQLPublisher;
 import net.microscraper.client.impl.SystemLogInterface;
@@ -38,7 +38,7 @@ public class MicroScraperConsole {
 	private final NetInterface netInterface = new JavaNetInterface(browser);
 	private final URILoader uriLoader = new UtilityURILoader(netInterface);
 	private final JSONInterface jsonInterface = new JSONME(uriLoader);
-	private final RegexpCompiler regexpCompiler = new JavaUtilRegexInterface();
+	private final RegexpCompiler regexpCompiler = new JakartaRegexpCompiler();
 	private SQLPublisher publisher;
 	private Client client;
 	
@@ -74,7 +74,7 @@ public class MicroScraperConsole {
 			if(args.length == 2) {
 				extraVariables = Utils.formEncodedDataToNameValuePairs(args[1], ENCODING);
 			} else {
-				extraVariables = new NameValuePair[0];
+				extraVariables = new NameValuePair[] {};
 			}
 			
 			// scrape!

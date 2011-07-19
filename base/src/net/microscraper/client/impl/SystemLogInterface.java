@@ -4,7 +4,6 @@ import net.microscraper.client.interfaces.Logger;
 import net.microscraper.client.Utils;
 
 public class SystemLogInterface implements Logger {
-
 	
 	public void i(String infoText) {
 		System.out.print("Info: " + Utils.truncate(infoText, MAX_ENTRY_LENGTH));
