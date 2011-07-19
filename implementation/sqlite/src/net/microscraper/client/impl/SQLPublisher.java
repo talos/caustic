@@ -177,13 +177,16 @@ public class SQLPublisher implements Publisher {
 		executionsSinceLastCommit = 0;
 	}
 	
+	/*
+	
 	private String truncateToVarchar(String stringToTruncate) {
 		return Utils.truncate(stringToTruncate, sql.defaultVarcharLength());
 	}
 	
 	private static String getResourceLocationString(Executable execution) {
-		return execution.getResource().location.toString();
+		return execution.getResource().getLocation().toString();
 	}
+	*/
 
 	@Override
 	public void publishResult(String name, String value, String uri,

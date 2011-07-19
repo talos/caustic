@@ -7,6 +7,7 @@ import java.io.IOException;
 import net.microscraper.client.Utils;
 import net.microscraper.client.impl.CachedURILoader;
 import net.microscraper.client.interfaces.Browser;
+import net.microscraper.client.interfaces.BrowserDelayException;
 import net.microscraper.client.interfaces.NetInterface;
 import net.microscraper.client.interfaces.NetInterfaceException;
 import net.microscraper.client.interfaces.URIInterface;
@@ -17,6 +18,8 @@ import net.microscraper.client.interfaces.URIInterface;
  *
  */
 public class UtilityURILoader extends CachedURILoader {
+	private static final int SLEEP_TIME = 100;
+	
 	private final Browser browser;
 	private final NetInterface netInterface;
 	/**
@@ -33,7 +36,7 @@ public class UtilityURILoader extends CachedURILoader {
 		try {
 			// URI is absolute if it has a scheme.
 			if(location.isAbsolute()) {
-				String scheme = location.getSchemeSpecificPart();			
+				String scheme = location.getScheme();			
 				if(scheme.equals("file")) {
 					return loadFile(location);
 				} else if(scheme.equals("http")) {
@@ -50,7 +53,17 @@ public class UtilityURILoader extends CachedURILoader {
 	}
 	
 	private String loadHTTP(URIInterface httpLocation) throws NetInterfaceException {
-		return browser.get(false, netInterface.makeURL(httpLocation.toString()), null, null, null);
+		try {
+			return browser.get(false, netInterface.makeURL(httpLocation.toString()), null, null, null);
+		} catch(BrowserDelayException delay) {
+			//interfaces.log.e(interrupt);
+			try {
+				Thread.sleep(SLEEP_TIME);
+			} catch(InterruptedException e) {
+				throw new NetInterfaceException(e);
+			}
+			return loadHTTP(httpLocation);
+		}
 	}
 	
 	private String loadFile(URIInterface fileLocation) throws IOException {

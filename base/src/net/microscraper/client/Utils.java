@@ -53,7 +53,7 @@ public class Utils {
 		if(string.length() < length) {
 			return string;
 		} else {
-			return string.substring(0, length - 1);
+			return string.substring(0, length);
 		}
 	}
 
@@ -66,34 +66,37 @@ public class Utils {
 	 * @return An array of Strings resulting from the split.
 	 */
 	public static String[] split(String input, String splitter) {
-		int splitLoc = 0;
-		String wordsString = input.trim();
-		Vector splitString = new Vector();
 		if(input.equals("")) {
-			return new String[] { };
+			return new String[] { "" };
 		} else {
+			int splitLoc;
+			String wordsString = input.trim();
+			Vector splitString = new Vector();
 	    	do {
 	    		splitLoc = wordsString.indexOf(splitter);
 	    		String word;
 	    		switch(splitLoc) {
 	    			case 0:
+	    				word = "";
 	        			wordsString = wordsString.substring(splitter.length());
-	        			continue;
+	        			break;
 	    			case -1:
 	    				word = wordsString;
 	    				break;
 	    			default:
 	        			word = wordsString.substring(0, splitLoc);
-	        			wordsString = wordsString.substring(splitLoc);
+	        			wordsString = wordsString.substring(splitLoc + splitter.length());
+	        			break;
 	    		}
 	    		splitString.addElement(word);
 	    	} while(splitLoc != -1);
-		}
-		
-    	String[] output = new String[splitString.size()];
-    	splitString.copyInto(output);
-    	return output;
+	    	String[] output = new String[splitString.size()];
+	    	splitString.copyInto(output);
+	    	return output;
+		}	
 	}
+	
+	public static char quotation = '"';
 	
 	/**
 	 * Return the string with quotations around it. (ex.: a string => "a string")
@@ -101,7 +104,7 @@ public class Utils {
 	 * @return The string, quoted.
 	 */
 	public static String quote(String stringToQuote) {
-		return "\"" + stringToQuote + "\"";
+		return quotation + stringToQuote + quotation;
 	}
 
 	/**
@@ -192,10 +195,10 @@ public class Utils {
 	 */
 	public static NameValuePair[] formEncodedDataToNameValuePairs(String formEncodedData,
 				String encoding) throws UnsupportedEncodingException {
-		String[] split = Utils.split(formEncodedData, "&");
-		NameValuePair[] pairs = new NameValuePair[split.length];
-		for(int i = 0 ; i < split.length; i++) {
-			String[] pair = Utils.split(formEncodedData, "=");
+		String[] splitByAmpersands = Utils.split(formEncodedData, "&");
+		NameValuePair[] pairs = new NameValuePair[splitByAmpersands.length];
+		for(int i = 0 ; i < splitByAmpersands.length; i++) {
+			String[] pair = Utils.split(splitByAmpersands[i], "=");
 			pairs[i] = new DefaultNameValuePair(
 					URLDecoder.decode(pair[0], encoding),
 					URLDecoder.decode(pair[1], encoding));

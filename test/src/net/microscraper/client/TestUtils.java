@@ -12,6 +12,10 @@ public class TestUtils {
 	static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	static Random rnd = new Random();
 	
+	public static int getRandomInt(int max) {
+		return rnd.nextInt(max);
+	}
+	
 	/**
 	 * http://stackoverflow.com/questions/41107/how-to-generate-a-random-alpha-numeric-string-in-java
 	 * @param length The length of the random string.
