@@ -55,12 +55,20 @@ public class JavaUtilRegexpCompiler implements RegexpCompiler {
 		@Override
 		public String match(String input, String substitution, int matchNumber) throws NoMatchesException, MissingGroupException {			
 			Matcher matcher = pattern.matcher(input);
+			List<String> backwardsMemory = new ArrayList<String>();
 			int i = 0;
 			while(matcher.find()) {
-				if(i == matchNumber) {
-					return replace(matcher.group(), substitution);
-				} else if(i > matchNumber) { break; }
+				if(matchNumber >= 0) {
+					if(i == matchNumber) {
+						return replace(matcher.group(), substitution);
+					} else if(i > matchNumber) { break; }
+				} else {
+					backwardsMemory.add(replace(matcher.group(), substitution));
+				}
 				i++;
+			}
+			if(matchNumber < 0 && backwardsMemory.size() + matchNumber >= 0) {
+				return backwardsMemory.get(backwardsMemory.size() + matchNumber);
 			}
 			throw new NoMatchesException(this, i, matchNumber, input);
 		}

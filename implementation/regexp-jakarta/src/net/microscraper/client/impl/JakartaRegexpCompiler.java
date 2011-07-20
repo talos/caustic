@@ -56,12 +56,20 @@ public class JakartaRegexpCompiler implements RegexpCompiler {
 		public String match(String input, String substitution, int matchNumber) throws NoMatchesException, MissingGroupException {			
 			int pos = 0;
 			int curMatch = 0;
+			Vector backwardsMemory = new Vector();
 			while(re.match(input, pos)) {
-				if(curMatch == matchNumber) {
-					return replace(re.getParen(0), substitution);
-				}
 				pos = re.getParenEnd(0);
+				if(matchNumber >= 0) {
+					if(curMatch == matchNumber) {
+						return replace(re.getParen(0), substitution);
+					}
+				} else {
+					backwardsMemory.addElement(replace(re.getParen(0), substitution));
+				}
 				curMatch++;
+			}
+			if(matchNumber < 0 && backwardsMemory.size() + matchNumber >= 0) {
+				return (String) backwardsMemory.elementAt(backwardsMemory.size() + matchNumber);
 			}
 			throw new NoMatchesException(this, curMatch, matchNumber, input);
 		}
@@ -78,7 +86,8 @@ public class JakartaRegexpCompiler implements RegexpCompiler {
 			Vector matchesList = new Vector();
 			int pos = 0;
 			while(re.match(input, pos)) {
-				matchesList.add(replace(re.getParen(0), substitution));
+				pos = re.getParenEnd(0);
+				matchesList.addElement(replace(re.getParen(0), substitution));
 			}
 			// No matches at all.
 			if(matchesList.size() == 0)

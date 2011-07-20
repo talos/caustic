@@ -1,9 +1,12 @@
 package net.microscraper.client.utility;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import au.com.bytecode.opencsv.CSVReader;
 
 import net.microscraper.client.Client;
 import net.microscraper.client.ClientException;
@@ -28,6 +31,45 @@ import net.microscraper.client.interfaces.URIInterface;
 import net.microscraper.client.interfaces.URILoader;
 
 public class MicroScraperConsole {
+	private static final String newline = System.getProperty("line.separator");
+	private static final String usage = 
+"usage: microscraper <uri> [<options>]" + newline +
+"" + newline +
+"uri" + newline +
+"	A URI that points to microscraper instructions." + newline +
+"options:" + newline +
+"	--defaults=<defaults>" + newline +
+"		A form-encoded string of name value pairs to use as" + newline +
+"		defaults during execution." + newline +
+"	--input=<path> [--column-delimiter=<delimiter>]" + newline +
+"		Path to a file with any number of additional default" + newline +
+"		values.  Each row is executed separately.  The first" + newline +
+"		row contains column names." + newline +
+"		The default column delimiter is ',' ." + newline +
+"	--log-file[=<path>]" + newline +
+"		Pipe the log to a file." + newline +
+"		Path is optional, defaults to 'yyyyMMddkkmmss.log' in the" + newline +
+"		current directory." + newline +
+"	--log-stdout" + newline +
+"		Pipe the log to stdout." + newline +
+"	--output-format=(csv|formencoded|tab|sqlite)" + newline +
+"		How to format output.  Defaults to sqlite." + newline +
+"	--output-file[=<path>], --no-output-file" + newline +
+"		Whether to save output to a file.  Enabled by default." + newline +
+"		Path is optional, defaults to 'yyyyMMddkkmmss.<format>' in" + newline +
+"		the current directory." + newline +
+"	--output-stdout" + newline +
+"		Pipe output to stdout.  This is not recommended for a" + newline +
+"		binary format like sqlite.";
+	
+	private NameValuePair[] defaults = new NameValuePair[0];
+	private CSVReader input = null;
+	private File logFile = null;
+	private boolean logStdout = false;
+	private String outputFormat = "sqlite";
+	private File outputFile = null;
+	private boolean outputStdout = false;
+	
 	private static final SimpleDateFormat DATETIME_FORMAT =
 		new SimpleDateFormat("yyyyMMddkkmmss");
 	private static final String ENCODING = "UTF-8";
@@ -56,7 +98,7 @@ public class MicroScraperConsole {
 			log.register(fileLogger);
 
 			if(args.length > 2 || args.length < 1) {
-				log.i("Proper use: microscraperconsole <url> [<defaults>]");
+				System.out.print(usage);
 				return;
 			}
 			
