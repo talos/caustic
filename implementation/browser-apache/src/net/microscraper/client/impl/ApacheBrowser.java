@@ -11,16 +11,16 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.microscraper.client.Client;
-import net.microscraper.client.Mustache.MissingVariable;
-import net.microscraper.client.Mustache.TemplateException;
-import net.microscraper.client.executable.AbstractResource;
-import net.microscraper.client.executable.AbstractResult;
-import net.microscraper.client.executable.Result;
-import net.microscraper.client.executable.DatabaseException.ResourceNotFoundException;
-import net.microscraper.client.interfaces.Browser;
-import net.microscraper.client.interfaces.BrowserException;
-import net.microscraper.server.instruction.AbstractHeader;
+import net.microscraper.Client;
+import net.microscraper.Mustache.MissingVariable;
+import net.microscraper.Mustache.TemplateException;
+import net.microscraper.executable.AbstractResource;
+import net.microscraper.executable.AbstractResult;
+import net.microscraper.executable.Result;
+import net.microscraper.executable.DatabaseException.ResourceNotFoundException;
+import net.microscraper.instruction.AbstractHeader;
+import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.browser.BrowserException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

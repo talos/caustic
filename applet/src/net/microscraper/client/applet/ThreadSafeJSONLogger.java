@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.microscraper.client.interfaces.JSONInterface;
-import net.microscraper.client.interfaces.Logger;
-import net.microscraper.client.Utils;
+import net.microscraper.Utils;
+import net.microscraper.interfaces.json.JSONInterface;
+import net.microscraper.interfaces.log.Logger;
 
 public class ThreadSafeJSONLogger implements Logger {
 	private final List<JSONInterfaceStringer> logList = Collections.synchronizedList(new ArrayList<JSONInterfaceStringer>());

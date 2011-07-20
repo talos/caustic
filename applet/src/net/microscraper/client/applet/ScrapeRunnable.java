@@ -3,9 +3,9 @@ package net.microscraper.client.applet;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import net.microscraper.client.Client;
-import net.microscraper.client.Variables;
-import net.microscraper.server.instruction.Reference;
+import net.microscraper.Client;
+import net.microscraper.Variables;
+import net.microscraper.instruction.Reference;
 
 public class ScrapeRunnable implements Runnable {
 	private final Client client;

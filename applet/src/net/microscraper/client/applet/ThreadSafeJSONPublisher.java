@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.microscraper.client.Client;
-import net.microscraper.client.executable.SpawnedScraperExecutable;
-import net.microscraper.client.executable.Status;
-import net.microscraper.client.executable.SpawnedScraperExecutable.ExecutionProblem;
-import net.microscraper.client.interfaces.JSONInterface;
-import net.microscraper.client.interfaces.Publisher;
-import net.microscraper.client.interfaces.PublisherException;
+import net.microscraper.Client;
+import net.microscraper.executable.SpawnedScraperExecutable;
+import net.microscraper.executable.Status;
+import net.microscraper.executable.SpawnedScraperExecutable.ExecutionProblem;
+import net.microscraper.interfaces.json.JSONInterface;
+import net.microscraper.interfaces.publisher.Publisher;
+import net.microscraper.interfaces.publisher.PublisherException;
 
 public class ThreadSafeJSONPublisher implements Publisher {
 	private final List<JSONInterfaceStringer> executions = Collections.synchronizedList(new ArrayList<JSONInterfaceStringer>());

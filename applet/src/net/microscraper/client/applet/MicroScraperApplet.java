@@ -5,12 +5,12 @@ import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import net.microscraper.client.Client;
-import net.microscraper.client.impl.JSONME;
-import net.microscraper.client.impl.JavaNetBrowser;
-import net.microscraper.client.impl.JavaUtilRegexInterface;
-import net.microscraper.client.interfaces.JSONInterface;
-import net.microscraper.client.interfaces.Logger;
+import net.microscraper.Client;
+import net.microscraper.impl.JSONME;
+import net.microscraper.impl.JavaNetBrowser;
+import net.microscraper.impl.JavaUtilRegexInterface;
+import net.microscraper.interfaces.json.JSONInterface;
+import net.microscraper.interfaces.log.Logger;
 
 /**
  * Provides interface between browser and scraper applet through public methods.
