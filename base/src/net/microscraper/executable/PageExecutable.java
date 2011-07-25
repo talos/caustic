@@ -10,7 +10,6 @@ import net.microscraper.Variables;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Page;
 import net.microscraper.interfaces.browser.Browser;
-import net.microscraper.interfaces.browser.BrowserDelayException;
 import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.regexp.PatternInterface;
 
@@ -41,7 +40,7 @@ public class PageExecutable extends ScraperExecutable {
 	}
 	
 	private void head(Page page) throws UnsupportedEncodingException,
-				BrowserDelayException, MissingVariableException,
+				MissingVariableException,
 				BrowserException, MustacheTemplateException {
 		browser.head(true, getURLFor(page), 
 				MustacheNameValuePair.compile(page.getHeaders(), this),
@@ -49,7 +48,7 @@ public class PageExecutable extends ScraperExecutable {
 	}
 	
 	private String get(Page page) throws UnsupportedEncodingException,
-				BrowserDelayException, MissingVariableException,
+				MissingVariableException,
 				BrowserException, MustacheTemplateException {
 		return browser.get(true, getURLFor(page),
 				MustacheNameValuePair.compile(page.getHeaders(), this),
@@ -58,7 +57,7 @@ public class PageExecutable extends ScraperExecutable {
 	}
 	
 	private String post(Page page) throws UnsupportedEncodingException,
-				BrowserDelayException, MissingVariableException,
+				MissingVariableException,
 				BrowserException, MustacheTemplateException {	
 		return browser.post(true, getURLFor(page),
 				MustacheNameValuePair.compile(page.getHeaders(), this),
@@ -74,7 +73,7 @@ public class PageExecutable extends ScraperExecutable {
 	 * {@link Page.Method.HEAD}.
 	 */
 	protected String doMethod(Page page)
-			throws MissingVariableException, BrowserDelayException, ExecutionFailure {
+			throws MissingVariableException, ExecutionFailure {
 		try {
 			// Temporary executions to do before.  Not published, executed each time.
 			for(int i = 0 ; i < page.getPreload().length ; i ++) {
@@ -88,8 +87,6 @@ public class PageExecutable extends ScraperExecutable {
 				head(page);
 			}
 			return null;
-		} catch (BrowserDelayException e) {
-			throw e;
 		} catch (UnsupportedEncodingException e) {
 			throw new ExecutionFailure(e);
 		} catch (MustacheTemplateException e) {
@@ -98,8 +95,8 @@ public class PageExecutable extends ScraperExecutable {
 			throw new ExecutionFailure(e);
 		}
 	}
-	protected Result[] generateResults() throws BrowserDelayException,
-			MissingVariableException, MustacheTemplateException,
+	protected Result[] generateResults() 
+			throws MissingVariableException, MustacheTemplateException,
 			ExecutionFailure {
 		Page page = (Page) getInstruction();
 		return new Result[] { generateResult(null, doMethod(page)) };

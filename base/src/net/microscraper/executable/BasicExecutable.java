@@ -9,7 +9,6 @@ import net.microscraper.Utils;
 import net.microscraper.Variables;
 import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.Instruction;
-import net.microscraper.interfaces.browser.BrowserDelayException;
 
 /**
  * {@link BasicExecutable} is a partial implementation of {@link Executable}.  It provides a framework
@@ -23,11 +22,9 @@ import net.microscraper.interfaces.browser.BrowserDelayException;
  */
 public abstract class BasicExecutable implements Executable {
 	private final Instruction instruction;
-	//private final Variables variables;
+
 	private final Result source;
 	private final Interfaces interfaces;
-	
-	private final static int SLEEP_TIME = 1000; //TODO this belongs elsewhere
 	
 	private Result[] results = null;
 	private Executable[] children = null;
@@ -70,8 +67,6 @@ public abstract class BasicExecutable implements Executable {
 				handleFailure(e);
 			} catch(MustacheTemplateException e) {
 				handleFailure(new ExecutionFailure(e));
-			} catch (BrowserDelayException e) {
-				handleDelay(e);
 			} catch(MissingVariableException e) {
 				handleMissingVariable(e);
 			} catch(IOException e) {
@@ -80,17 +75,6 @@ public abstract class BasicExecutable implements Executable {
 				handleFailure(new ExecutionFailure(e));
 			}
 		}
-	}
-	
-	private void handleDelay(BrowserDelayException e) {
-		try {
-			Thread.sleep(SLEEP_TIME);
-		} catch(InterruptedException interrupt) {
-			interfaces.getLog().e(interrupt);
-		}
-		interfaces.getLog().i("Delaying load of " + Utils.quote(e.url.toString()) +
-				", current KBPS " +
-				Utils.quote(Float.toString(e.kbpsSinceLastLoad)));
 	}
 	
 	/**
@@ -126,8 +110,6 @@ public abstract class BasicExecutable implements Executable {
 	 * Must be overriden by {@link BasicExecutable} subclass.
 	 * @return An array of {@link Result}s from executing this particular {@link Executable}.  Will be passed to
 	 * {@link generateChildren}
-	 * @throws BrowserDelayException If a {@link Browser} must wait before having this {@link Executable}
-	 * generate a result.
 	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
 	 * {@link Executable}'s {@link Variables}.
 	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
@@ -137,8 +119,7 @@ public abstract class BasicExecutable implements Executable {
 	 * @see #generateChildren
 	 */
 	protected abstract Result[] generateResults() throws
-			BrowserDelayException, MissingVariableException, MustacheTemplateException,
-			ExecutionFailure;
+			MissingVariableException, MustacheTemplateException, ExecutionFailure;
 	
 	/**
 	 * Must be overriden by {@link BasicExecutable} subclass.  Should return 0-length array if there are

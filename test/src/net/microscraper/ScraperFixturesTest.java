@@ -2,21 +2,21 @@ package net.microscraper;
 
 import static org.junit.Assert.*;
 
-import java.io.File;
-import java.net.URI;
-
 import mockit.Expectations;
 import mockit.Mocked;
 import net.microscraper.Client;
 import net.microscraper.DefaultNameValuePair;
 import net.microscraper.Log;
 import net.microscraper.Variables;
+import net.microscraper.impl.file.IOFileLoader;
 import net.microscraper.impl.json.JSONME;
-import net.microscraper.impl.log.IOFileLoader;
+import net.microscraper.impl.json.JavaNetJSONLocation;
 import net.microscraper.impl.log.SystemLogInterface;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
+import net.microscraper.interfaces.json.JSONInterfaceException;
+import net.microscraper.interfaces.json.JSONLocation;
 import net.microscraper.interfaces.publisher.Publisher;
 
 import org.junit.After;
@@ -24,11 +24,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class ScraperFixturesTest {
-	private static final URI fixturesFolder = new File(System.getProperty("user.dir")).toURI().resolve("fixtures/");
-	private static final String simpleGoogle = "simple-google.json";
-	private static final String nycPropertyOwner = "nyc-property-owner.json";
-	private static final String nycIncentives = "nyc-incentives.json";
-	private static final String nycIncentivesSimple = "nyc-incentives-simple.json";
+	private JSONLocation fixturesFolder;
+	private JSONLocation simpleGoogle;
+	private JSONLocation nycPropertyOwner;
+	private JSONLocation nycIncentives;
+	private JSONLocation nycIncentivesSimple;
+	
 	/**
 	 * The test {@link Client} instance.
 	 */
@@ -50,12 +51,18 @@ public class ScraperFixturesTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
+		simpleGoogle = new JavaNetJSONLocation("simple-google.json");
+		nycPropertyOwner = new JavaNetJSONLocation("nyc-property-owner.json");
+		nycIncentives = new JavaNetJSONLocation("nyc-incentives.json");
+		nycIncentivesSimple = new JavaNetJSONLocation("nyc-incentives-simple.json");
+		fixturesFolder = new JavaNetJSONLocation(System.getProperty("user.dir")).resolve("test/fixtures/");
+		
 		Log log = new Log();
 		log.register(new SystemLogInterface());
 		client = new Client(
 				new JakartaRegexpCompiler(),
 				log, browser,
-				new JSONME(new IOFileLoader()));
+				new JSONME(new IOFileLoader(), browser));
 	}
 	
 	/**
@@ -424,13 +431,13 @@ public class ScraperFixturesTest {
 	
 	/**
 	 * Convenience method to test one Scraper with our mock publisher.
-	 * @param String {@link URIInterface} location of the {@link Scraper}
+	 * @param String {@link JSONLocation} location of the {@link Scraper}
 	 * instructions.
 	 * @param extraVariables Array of {@link DefaultNameValuePair}s to
 	 * use as extra {@link Variables}.
 	 * @throws Exception If the test failed.
 	 */
-	private void testScrape(String location,
+	private void testScrape(JSONLocation location,
 			DefaultNameValuePair[] extraVariables) throws Exception {
 		try {
 			client.scrape(location, extraVariables, publisher);
@@ -445,8 +452,9 @@ public class ScraperFixturesTest {
 	 * Uses {@link #fixturesFolder}.
 	 * @param scraperName The file name of the {@link Scraper}.
 	 * @return The URI to the {@link Scraper} file.
+	 * @throws JSONInterfaceException 
 	 */
-	private String getScraperURI(String scraperName) {
-		return fixturesFolder.resolve(scraperName).toString();
+	private JSONLocation getScraperURI(JSONLocation scraperName) throws JSONInterfaceException {
+		return fixturesFolder.resolve(scraperName);
 	}
 }

@@ -21,7 +21,6 @@ import net.microscraper.Log;
 import net.microscraper.NameValuePair;
 import net.microscraper.Utils;
 import net.microscraper.interfaces.browser.Browser;
-import net.microscraper.interfaces.browser.BrowserDelayException;
 import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.regexp.PatternInterface;
 
@@ -38,20 +37,24 @@ public class JavaNetBrowser implements Browser {
 	private final Hashtable cookieStore = new Hashtable();
 	private final HostMemory hostMemory = new HostMemory();
 	private final int maxKBPS;
+	private final int sleepTime;
 
 	/**
 	 * 
 	 * @param log The {@link Log} to send messages to.
 	 * @param maxKBPS The maximum average number of kilobytes per second that can be loaded
 	 * from a single host before another request is made.
+	 * @param sleepTime How many milliseconds to wait before making another request if the maxKBPS
+	 * threshold was exceeded when the last request was tried.
 	 */
-	public JavaNetBrowser(Log log, int maxKBPS) {
+	public JavaNetBrowser(Log log, int maxKBPS, int sleepTime) {
 		this.log = log;
 		this.maxKBPS = maxKBPS;
+		this.sleepTime = sleepTime;
 	}
 	
 	public void head(boolean useRateLimit, String url, NameValuePair[] headers, NameValuePair[] cookies)
-			throws BrowserDelayException, BrowserException {
+			throws BrowserException {
 		log.i("Retrieving Head from  " + url.toString() + "...");
 		try {
 			//HttpURLConnection conn = generateConnection(rateLimit, url, headers, cookies);
@@ -63,7 +66,7 @@ public class JavaNetBrowser implements Browser {
 	}
 
 	public String get(boolean useRateLimit, String url, NameValuePair[] headers,
-			NameValuePair[] cookies, PatternInterface[] terminates) throws BrowserDelayException,
+			NameValuePair[] cookies, PatternInterface[] terminates) throws
 			BrowserException {
 		log.i("Getting  " + url.toString() + "...");
 		try {
@@ -76,11 +79,9 @@ public class JavaNetBrowser implements Browser {
 
 	public String post(boolean useRateLimit, String url, NameValuePair[] headers, NameValuePair[] cookies,
 			PatternInterface[] terminates, NameValuePair[] posts)
-				throws BrowserDelayException, BrowserException {
+				throws BrowserException {
 		log.i("Posting to  " + url.toString() + "...");
-		try {
-			//HttpURLConnection conn = generateConnection(rateLimit, url, headers, cookies);
-			
+		try {			
 			InputStream stream = connectHandlingRedirectCookies(useRateLimit, "POST", new URL(url.toString()), posts, headers, cookies);
 			return pullResponse(url, stream, terminates);
 		} catch(IOException e) {
@@ -95,7 +96,6 @@ public class JavaNetBrowser implements Browser {
 	 * @param terminates array of {@link PatternInterface}s to interrupt the load. Can be <code>null</code>.
 	 * @return the response body.
 	 * @throws BrowserException if there was an exception loading, including user interrupt.
-	 * @throws BrowserDelayException if we have loaded too much too fast from a host, if <code>useRateLimit</code> is <code>true</code>.
 	 */
 	private String pullResponse(String url, InputStream stream, PatternInterface[] terminates)
 			throws BrowserException {
@@ -159,12 +159,20 @@ public class JavaNetBrowser implements Browser {
 	private HttpURLConnection generateConnection(boolean useRateLimit, String method,
 			URL url, NameValuePair[] posts,
 			NameValuePair[] headers, NameValuePair[] cookies)
-				throws IOException, BrowserDelayException {
+				throws IOException {
 		if(useRateLimit == true) {
 			float kbpsSinceLastLoad = hostMemory.kbpsSinceLastLoadFor(url);
-			//log.i("Load speed from " + url.toString() + " : " + Float.toString(kbpsSinceLastLoad));
+			log.i("Load speed from " + url.toString() + " : " + Float.toString(kbpsSinceLastLoad));
 			if(kbpsSinceLastLoad > maxKBPS) {
-				throw new BrowserDelayException(url.toString(), kbpsSinceLastLoad);
+				log.i("Delaying load of " + Utils.quote(url.toString()) +
+							", current KBPS " +
+							Utils.quote(Float.toString(kbpsSinceLastLoad)));
+				try {
+					Thread.sleep(sleepTime);
+				} catch (InterruptedException e) {
+					log.e(e);
+					throw new IOException(e);
+				}			
 			}
 		}
 		log.i("Browser loading URL '" + url.toString() + "'");
@@ -233,7 +241,7 @@ public class JavaNetBrowser implements Browser {
 	private InputStream connectHandlingRedirectCookies(boolean useRateLimit, String method, URL url,
 			NameValuePair[] posts,
 			NameValuePair[] headers, NameValuePair[] cookies)
-				throws BrowserDelayException, IOException {
+				throws IOException {
 		return connectHandlingRedirectCookies(useRateLimit, method, url, posts, headers, cookies, new Vector());
 	}
 	
@@ -241,7 +249,7 @@ public class JavaNetBrowser implements Browser {
 	private InputStream connectHandlingRedirectCookies(boolean useRateLimit, String method, URL url,
 			NameValuePair[] posts,
 			NameValuePair[] headers, NameValuePair[] cookies, Vector redirects_followed)
-				throws BrowserDelayException, IOException {
+				throws IOException {
 		HttpURLConnection conn = generateConnection(useRateLimit, method, url, posts, headers, cookies);
 		conn.setInstanceFollowRedirects(false);
 		conn.connect();

@@ -4,8 +4,7 @@ import net.microscraper.NameValuePair;
 import net.microscraper.interfaces.regexp.PatternInterface;
 
 /**
- * Implementations of the Browser interface can be used by a microscraper Client
- * to load pages.
+ * Implementations of the {@link Browser} interface can be used by to make HTTP requests and handle the responses.
  */
 public interface Browser {
 	public static final int TIMEOUT = 30000;
@@ -31,19 +30,18 @@ public interface Browser {
 	/**
 	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies
 	 * from the Set-Cookie response header to the {@link Browser}'s cookie store.
-	 * @param useRateLimit Whether to throw a {@link BrowserDelayException} to avoid overburdening a host.
+	 * @param useRateLimit Whether to avoid overburdening a host.
 	 * @param url the URL to HTTP Head.
 	 * @param headers Array of {@link DefaultNameValuePair} extra headers.  Can be <code>null</code> if there are none.
 	 * @param cookies Array of {@link EncodedNameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
-	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host, if <code>useRateLimit</code> is <code>true</code>.
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
 	public abstract void head(boolean useRateLimit, String url, NameValuePair[] headers, NameValuePair[] cookies)
-			throws BrowserDelayException, BrowserException;
+			throws BrowserException;
 	
 	/**
 	 * Make an HTTP Get request.  This returns the body of the response, and adds cookies to the cookie jar.
-	 * @param useRateLimit Whether to throw a {@link BrowserDelayException} to avoid overburdening a host.
+	 * @param useRateLimit Whether to avoid overburdening a host.
 	 * @param url the URL to HTTP Get.
 	 * @param headers Array of {@link DefaultNameValuePair} extra headers.  Can be <code>null</code> if there are none.
 	 * @param cookies Array of {@link EncodedNameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
@@ -53,11 +51,11 @@ public interface Browser {
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
 	public abstract String get(boolean useRateLimit, String url, NameValuePair[] headers, NameValuePair[] cookies,
-			PatternInterface[] terminates) throws BrowserDelayException, BrowserException;
+			PatternInterface[] terminates) throws BrowserException;
 	
 	/**
 	 * Make an HTTP Post request.  This returns the body of the response, and adds cookies to the cookie jar.
-	 * @param useRateLimit Whether to throw a {@link BrowserDelayException} to avoid overburdening a host.
+	 * @param useRateLimit Whether to avoid overburdening a host.
 	 * @param url the URL to HTTP Get.
 	 * @param headers Array of {@link DefaultNameValuePair} extra headers.  Can be <code>null</code> if there are none.
 	 * @param cookies Array of {@link EncodedNameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
@@ -69,5 +67,5 @@ public interface Browser {
 	 */
 	public abstract String post(boolean useRateLimit, String url, NameValuePair[] headers,
 			NameValuePair[] cookies, PatternInterface[] terminates, NameValuePair[] posts)
-			throws BrowserDelayException, BrowserException;
+			throws BrowserException;
 }

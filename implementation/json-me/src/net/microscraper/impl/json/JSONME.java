@@ -1,7 +1,11 @@
 package net.microscraper.impl.json;
 
 import java.io.IOException;
+import java.util.Vector;
 
+import net.microscraper.Utils;
+import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.file.FileLoader;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.json.JSONInterfaceArray;
@@ -19,28 +23,111 @@ import org.json.me.JSONWriter;
 import org.json.me.StringWriter;
 
 public class JSONME implements JSONInterface {
-	private final FileLoader uriLoader;
-	public JSONME(FileLoader uriLoader) {
-		this.uriLoader = uriLoader;
+	private final FileLoader fileLoader;
+	private final Browser browser;
+	
+	public JSONME(FileLoader fileLoader, Browser browser) {
+		this.fileLoader = fileLoader;
+		this.browser = browser;
 	}
 	
 	public JSONInterfaceStringer getStringer() throws JSONInterfaceException {
 		return new JSONMEStringer();
 	}
 	
-	public JSONInterfaceObject loadJSONObject(String jsonLocation)
+	public JSONInterfaceObject load(JSONLocation jsonLocation)
 			throws JSONInterfaceException, IOException {
 		try {
-			JSONObject jsonObject = load(jsonLocation);
-			return new JSONMEObject(jsonLocation, jsonObject);
+			return new JSONMEObject(jsonLocation, loadJSONObject(jsonLocation));
 		} catch(JSONException e) {
 			throw new JSONInterfaceException(e);
 		}
 	}
 	
-	private JSONObject load(JSONLocation jsonLocation) throws IOException, JSONException {
-		String jsonString = uriLoader.load(jsonLocation);
-		return (JSONObject) new JSONTokener(jsonString).nextValue();
+	private String loadRawJSONString(JSONLocation jsonLocation)  throws IOException {
+		try {
+			if(jsonLocation.isFile()) {
+				return fileLoader.load(jsonLocation.getSchemeSpecificPart());
+			} else if(jsonLocation.isHttp()) {
+				return browser.get(false, jsonLocation.toString(), null, null, null);
+			} else {
+				throw new IOException("JSON can only be loaded from local filesystem or HTTP.");
+			}
+		} catch(BrowserException e) {
+			throw new IOException(e);
+		}
+	}
+	
+	private JSONObject loadJSONObject(JSONLocation jsonLocation) throws IOException, JSONInterfaceException {
+		String jsonString = loadRawJSONString(jsonLocation);
+		try {
+			JSONObject obj = (JSONObject) new JSONTokener(jsonString).nextValue();
+			String[] jsonPath = jsonLocation.explodeJSONPath();
+			if(jsonPath.length > 0) {
+				Vector paths = new Vector();
+				Utils.arrayIntoVector(jsonPath, paths);
+				obj = (JSONObject) new JSONTokener(followPathWithin(obj, paths)).nextValue();
+			}
+			
+			return obj;
+		} catch(JSONException e) {
+			throw new JSONInterfaceException(e);
+		}
+	}
+	
+	/**
+	 * 
+	 * @param obj
+	 * @param remainingPaths
+	 * @return
+	 */
+	private String followPathWithin(JSONObject obj, Vector remainingPaths) throws NullPointerException {
+		if(remainingPaths.size() == 0)
+			return obj.toString();
+		
+		String nextKey = (String) remainingPaths.remove(0);
+		JSONObject possibleObject = obj.optJSONObject(nextKey);
+		if(possibleObject != null) {
+			return followPathWithin(possibleObject, remainingPaths);
+		}
+		JSONArray possibleArray = obj.optJSONArray(nextKey);
+		if(possibleArray != null) {
+			return followPathWithin(possibleArray, remainingPaths);
+		}
+		String possibleString = obj.optString(nextKey);
+		System.out.println("Next key: " + nextKey);
+		if(possibleString.equals("")) {
+			throw new NullPointerException("Could not follow path to JSON at " + nextKey);
+		} else {
+			return possibleString;
+		}
+	}
+	
+	/**
+	 * 
+	 * @param array
+	 * @param remainingPaths
+	 * @return
+	 */
+	private String followPathWithin(JSONArray array, Vector remainingPaths) throws ArrayIndexOutOfBoundsException {
+		if(remainingPaths.size() == 0)
+			return array.toString();
+		
+		int nextIndex = Integer.parseInt((String) remainingPaths.remove(0));
+		JSONObject possibleObject = array.optJSONObject(nextIndex);
+		if(possibleObject != null) {
+			return followPathWithin(possibleObject, remainingPaths);
+		}
+		JSONArray possibleArray = array.optJSONArray(nextIndex);
+		if(possibleArray != null) {
+			return followPathWithin(possibleArray, remainingPaths);
+		}
+		String possibleString = array.optString(nextIndex);
+		if(possibleString.equals("")) {
+			throw new ArrayIndexOutOfBoundsException("Could not follow path to JSON at " + Integer.toString(nextIndex));
+		} else {
+			return possibleString;
+		}
 	}
 	
 	private class JSONMEObject implements JSONInterfaceObject {
@@ -48,23 +135,23 @@ public class JSONME implements JSONInterface {
 		private final JSONLocation location;
 		
 		// ensures references are always followed.
-		public JSONMEObject(String initialLocation, JSONObject initialJSONObject) throws JSONException, IOException {
-			JSONObject jsonObject = initialJSONObject;
-			String location = initialLocation;
-			while(jsonObject.has(REFERENCE_KEY)) {
-				location = location.resolve(jsonObject.getString(REFERENCE_KEY));
-				jsonObject = load(location);
+		public JSONMEObject(JSONLocation initialLocation, JSONObject initialJSONObject)
+				throws JSONInterfaceException, JSONException, IOException {
+			JSONObject object = initialJSONObject;
+			JSONLocation location = initialLocation;
+			
+			while(object.has(REFERENCE_KEY)) {
+				location = location.resolve(object.getString(REFERENCE_KEY));
+				object = loadJSONObject(location);
 			}
-			this.object = jsonObject;
-			if(location.getFragment() == null) {
-				location = location.resolve("#");
-			}
+			this.object = object;
 			this.location = location;
 		}
+		
 		public JSONInterfaceArray getJSONArray(String name)
 				throws JSONInterfaceException {
 			try {
-				return new JSONMEArray(this.location.resolveJSONFragment(name),
+				return new JSONMEArray(this.location.resolve(name),
 						object.getJSONArray(name));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
@@ -75,13 +162,13 @@ public class JSONME implements JSONInterface {
 				throws JSONInterfaceException, IOException {
 			try {
 				return new JSONMEObject(
-						this.location.resolveJSONFragment(name),
+						this.location.resolve(name),
 						object.getJSONObject(name));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
 		}
-
+/*
 		public java.lang.Object get(String name) throws JSONInterfaceException {
 			try {
 				return object.get(name);
@@ -89,7 +176,7 @@ public class JSONME implements JSONInterface {
 				throw new JSONInterfaceException(e);
 			}
 		}
-		
+	*/	
 		public String getString(String name) throws JSONInterfaceException {
 			try {
 				return object.getString(name);
@@ -137,8 +224,8 @@ public class JSONME implements JSONInterface {
 	
 	private class JSONMEArray implements JSONInterfaceArray {
 		private final JSONArray array;
-		private final String location;
-		public JSONMEArray(String location, JSONArray ary) {
+		private final JSONLocation location;
+		public JSONMEArray(JSONLocation location, JSONArray ary) {
 			array = ary;
 			this.location = location;
 		}
@@ -146,7 +233,7 @@ public class JSONME implements JSONInterface {
 		public JSONInterfaceArray getJSONArray(int index)
 				throws JSONInterfaceException {
 			try {
-				return new JSONMEArray(location.resolveJSONFragment(index), array.getJSONArray(index));
+				return new JSONMEArray(location.resolve(index), array.getJSONArray(index));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -155,7 +242,7 @@ public class JSONME implements JSONInterface {
 		public JSONInterfaceObject getJSONObject(int index)
 				throws JSONInterfaceException, IOException {
 			try {
-				return new JSONMEObject(location.resolveJSONFragment(index), array.getJSONObject(index));
+				return new JSONMEObject(location.resolve(index), array.getJSONObject(index));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -211,7 +298,7 @@ public class JSONME implements JSONInterface {
 		}
 
 		public String getLocation() {
-			return this.location;
+			return this.location.toString();
 		}
 		
 	}

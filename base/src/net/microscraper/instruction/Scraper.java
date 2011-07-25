@@ -48,7 +48,7 @@ public class Scraper extends Instruction implements CanFindOne, CanFindMany,
 	 * @throws IOException If there is an error loading one of the references.
 	 */
 	public Scraper(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
-		super(jsonObject.getLocation());
+		super(jsonObject);
 		CanFindMany canFindMany = CanFindMany.Deserializer.deserialize(jsonObject);
 		CanFindOne  canFindOne = CanFindOne.Deserializer.deserialize(jsonObject);
 		CanSpawnScrapers canSpawnScrapers = CanSpawnScrapers.Deserializer.deserialize(jsonObject);

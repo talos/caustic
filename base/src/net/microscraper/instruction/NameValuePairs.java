@@ -16,7 +16,7 @@ public class NameValuePairs extends Instruction {
 	 * @throws DeserializationException If this is not a valid JSON serialization of a {@link NameValuePairs}.
 	 */
 	public NameValuePairs(JSONInterfaceObject jsonObject) throws DeserializationException {
-		super(jsonObject.getLocation());
+		super(jsonObject);
 		try {
 			this.pairs = new MustacheNameValuePair[jsonObject.length()];
 			JSONInterfaceIterator iter = jsonObject.keys();

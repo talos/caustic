@@ -1,5 +1,6 @@
 package net.microscraper.interfaces.json;
 
+import java.io.IOException;
 import java.util.Enumeration;
 
 /**
@@ -45,12 +46,13 @@ public interface JSONInterface {
 	
 	/**
 	 * Load a {@link JSONInterfaceObject} from a {@link JSONLocation jsonLocation}
-	 * @param jsonLocation The {@link JSONLocation} to load.
+	 * @param jsonLocation The {@link String} URI to load.
 	 * @return A {@link JSONInterfaceObject}.
+	 * @throws IOException 
 	 * @throws JSONInterfaceException If there is an error generating
 	 * the {@link JSONInterfaceObject}.
 	 */
-	public abstract JSONInterfaceObject load(JSONLocation location) throws JSONInterfaceException;
+	public abstract JSONInterfaceObject load(JSONLocation location) throws IOException, JSONInterfaceException;
 	
 	public abstract JSONInterfaceStringer getStringer() throws JSONInterfaceException;
 }

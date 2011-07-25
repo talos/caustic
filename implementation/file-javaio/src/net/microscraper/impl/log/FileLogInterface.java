@@ -1,4 +1,4 @@
-package net.microscraper.impl.file;
+package net.microscraper.impl.log;
 
 import java.io.File;
 import java.io.IOException;

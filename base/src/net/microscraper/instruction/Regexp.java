@@ -55,7 +55,7 @@ public class Regexp extends Instruction {
 	 * or the location is invalid.
 	 */
 	public Regexp (JSONInterfaceObject jsonObject) throws DeserializationException {
-		super(jsonObject.getLocation());
+		super(jsonObject);
 		try {
 			pattern = new MustacheTemplate(jsonObject.getString(PATTERN));
 			isCaseSensitive = jsonObject.has(IS_CASE_SENSITIVE) ? jsonObject.getBoolean(IS_CASE_SENSITIVE) : IS_CASE_SENSITIVE_DEFAULT;

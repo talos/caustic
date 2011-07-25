@@ -13,6 +13,7 @@ import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.json.JSONInterfaceException;
+import net.microscraper.interfaces.json.JSONLocation;
 import net.microscraper.interfaces.publisher.Publisher;
 import net.microscraper.interfaces.publisher.PublisherException;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
@@ -43,16 +44,16 @@ public final class Client {
 	
 	/**
 	 * 
-	 * @param pageLocation A {@link String} with a URI of the {@link Scraper}'s instructions.
+	 * @param pageLocation A {@link JSONLocation} with the {@link Scraper}'s instructions.
 	 * @param extraVariables An array of {@link NameValuePair}s to use initially.
 	 * @param publisher A {@link Publisher} to send the results of {@link Executable}s to.
 	 * @throws BrowserException If a {@link Browser} problem prevented the {@link Scraper} from running.
 	 * @throws ClientException If the {@link Scraper} could not be run.
 	 */
-	public void scrape(String pageLocation, NameValuePair[] extraVariables,
+	public void scrape(JSONLocation pageLocation, NameValuePair[] extraVariables,
 			Publisher publisher) throws BrowserException, ClientException {
 		try {
-			Page page = new Page(interfaces.getJSONInterface().loadJSONObject(pageLocation));
+			Page page = new Page(interfaces.getJSONInterface().load(pageLocation));
 			
 			Executable rootExecutable = new PageExecutable(interfaces,
 					page, new DefaultVariables(extraVariables), 

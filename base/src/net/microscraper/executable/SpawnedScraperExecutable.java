@@ -5,7 +5,6 @@ import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplateException;
 import net.microscraper.Variables;
 import net.microscraper.instruction.Scraper;
-import net.microscraper.interfaces.browser.BrowserDelayException;
 
 /**
  * {@link SpawnedScraperExecutable} is the {@link Executable} spawned by a {@link ScraperExecutable}.
@@ -22,8 +21,8 @@ public class SpawnedScraperExecutable extends ScraperExecutable {
 	/**
 	 * Works as a pass-through for {@link #getSource()}.
 	 */
-	protected Result[] generateResults() throws BrowserDelayException,
-			MissingVariableException, MustacheTemplateException,
+	protected Result[] generateResults()
+			throws MissingVariableException, MustacheTemplateException,
 			ExecutionFailure {
 		return new Result[] { getSource() };
 	}
