@@ -1,4 +1,4 @@
-package net.microscraper.interfaces;
+package net.microscraper.interfaces.regexp;
 
 import static org.junit.Assert.*;
 
@@ -7,12 +7,7 @@ import java.util.Collection;
 
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
 import net.microscraper.impl.regexp.JavaUtilRegexpCompiler;
-import net.microscraper.interfaces.regexp.InvalidRangeException;
-import net.microscraper.interfaces.regexp.NoMatchesException;
-import net.microscraper.interfaces.regexp.PatternInterface;
-import net.microscraper.interfaces.regexp.RegexpCompiler;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -25,10 +20,6 @@ public class PatternInterfaceTest {
 	private String testClass;
 
 	private static final String quickBrownFox = "The quick brown fox jumped over the lazy dog.";
-	
-	/*@Before
-	public void setUp() throws Exception {
-	}*/
 	
 	public PatternInterfaceTest(final RegexpCompiler regexpCompiler) {
 		this.re = regexpCompiler;

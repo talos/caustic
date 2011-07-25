@@ -11,20 +11,20 @@ import net.microscraper.interfaces.json.JSONLocation;
  */
 public class Instruction {
 	
-	private final String location;
+	private final JSONLocation location;
 	
 	/**
 	 * 
-	 * @return The resource's absolute URI.
+	 * @return The {@link JSONLocation} where this {@link Instruction} is located.
 	 */
-	public final String getLocation() {
+	public final JSONLocation getLocation() {
 		return location;
 	}
 	
 	/**
-	 * {@link Instruction} can be initialized with a {@link String} of its location.
+	 * {@link Instruction} can be initialized with a {@link JSONLocation} of its location.
 	 */
-	public Instruction(String location) {
+	public Instruction(JSONLocation location) {
 		this.location = location;
 	}
 
@@ -34,6 +34,6 @@ public class Instruction {
 	 * @throws DeserializationException If there is a problem deserializing <code>obj</code>
 	 */
 	public Instruction(JSONInterfaceObject obj) throws DeserializationException {
-		this.location = obj.getLocation().toString();
+		this.location = obj.getLocation();
 	}
 }

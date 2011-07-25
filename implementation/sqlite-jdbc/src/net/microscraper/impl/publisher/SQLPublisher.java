@@ -11,6 +11,7 @@ import net.microscraper.executable.Executable;
 import net.microscraper.executable.Result;
 import net.microscraper.impl.publisher.SQLInterface.PreparedStatement;
 import net.microscraper.impl.publisher.SQLInterface.SQLInterfaceException;
+import net.microscraper.interfaces.json.JSONLocation;
 import net.microscraper.interfaces.publisher.Publisher;
 import net.microscraper.interfaces.publisher.PublisherException;
 
@@ -189,15 +190,16 @@ public class SQLPublisher implements Publisher {
 	*/
 
 	@Override
-	public void publishResult(String name, String value, String uri,
-			int number, String sourceUri, Integer sourceNumber) throws PublisherException {
+	public void publishResult(String name, String value, JSONLocation uri,
+			int number, JSONLocation sourceUri, Integer sourceNumber) throws PublisherException {
 		try {
 			batchResults.add(
 					new String[] {
 						name == null ? sql.nullValue() : name,
 						value,
+						uri.toString(),
 						Integer.toString(number),
-						sourceUri == null ? sql.nullValue() : sourceUri,
+						sourceUri == null ? sql.nullValue() : sourceUri.toString(),
 						sourceNumber == null ? sql.nullValue() : Integer.toString(sourceNumber)
 					}
 				);

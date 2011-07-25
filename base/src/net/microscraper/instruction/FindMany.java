@@ -6,6 +6,7 @@ import net.microscraper.MustacheTemplate;
 import net.microscraper.instruction.mixin.CanSpawnScrapers;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
+import net.microscraper.interfaces.json.JSONLocation;
 
 /**
  * A {@link Find} that can connect to other {@link Scraper} through {@link #getPipes},
@@ -65,7 +66,7 @@ public class FindMany extends Find implements CanSpawnScrapers {
 		}
 	}
 	
-	public FindMany(String location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
+	public FindMany(JSONLocation location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
 			MustacheTemplate name, Regexp[] tests, MustacheTemplate replacement, int minMatch, int maxMatch,
 			Scraper[] spawnsScrapers, Page[] spawnsPages) {
 		super(location, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline, name, tests, replacement);

@@ -13,58 +13,79 @@ import net.microscraper.interfaces.json.JSONLocation;
  *
  */
 public class JavaNetJSONLocation implements JSONLocation {
-	public static final String JSON_PATH_SEP = "/";
-	
 	private static final String HTTP_SCHEME = "http";
 	private static final String FILE_SCHEME = "file";
 	
 	private final URI uri;
 	
-	public JavaNetJSONLocation(String uri) throws URISyntaxException {
-		this.uri = new URI(uri);
+	public JavaNetJSONLocation(String uriString) throws JSONInterfaceException {
+		try {
+			URI uri = new URI(uriString);
+			if(uri.getFragment() == null) {
+				uri = uri.resolve("#/");
+			} else if(!uri.getFragment().startsWith(JSON_PATH_SEP)) {
+				uri = uri.resolve("#/" + uri.getFragment());
+			}
+			this.uri = uri;
+
+		} catch(URISyntaxException e) {
+			throw new JSONInterfaceException(e);
+		}
 	}
 	
-	public JavaNetJSONLocation(URI uri) {
+	public JavaNetJSONLocation(URI uri) throws JSONInterfaceException {
+		if(uri.getFragment() == null) {
+			uri = uri.resolve("#/");
+		} else if(!uri.getFragment().startsWith(JSON_PATH_SEP)) {
+			uri = uri.resolve("#/" + uri.getFragment());
+		}
 		this.uri = uri;
 	}
 	
 	public JSONLocation resolve(JSONLocation otherLocation) throws JSONInterfaceException {
-		try {
-			String thisFragment = uri.getFragment();
-			String otherFragment = otherLocation.getFragment();
-			URI resolvedFragment;
-			if(thisFragment != null && otherFragment != null) {
-				resolvedFragment = new URI(thisFragment).resolve(otherFragment);
-			} else if(otherFragment != null) {
-				resolvedFragment = new URI(otherFragment);
-			} else if(thisFragment != null) {
-				resolvedFragment = new URI(thisFragment);
-			} else {
-				resolvedFragment = new URI("");
-			}
-			
-			URI resolvedNonFragment = uri.resolve(otherLocation.toString());
-			
-			URI resolvedURI = new URI(resolvedNonFragment.getScheme(),
-					resolvedNonFragment.getSchemeSpecificPart(),
-					resolvedFragment.toString());
-			
-			return new JavaNetJSONLocation(resolvedURI);
-		} catch(URISyntaxException e) {
-			throw new JSONInterfaceException(e);
+		if(otherLocation.getSchemeSpecificPart() != null || otherLocation.isAbsolute()) {
+			return new JavaNetJSONLocation( uri.resolve(otherLocation.toString()) );
+		} else {
+			return resolveFragment(otherLocation.getFragment());
 		}
 	}
 	
 	public JSONLocation resolve(String path) throws JSONInterfaceException {
+		return resolve(new JavaNetJSONLocation(path));
+	}
+
+	public JSONLocation resolveFragment(String path) throws JSONInterfaceException {
 		try {
-			return resolve(new JavaNetJSONLocation(path));
+			String thisFragment = uri.getFragment();
+			
+			String resolvedFragment;
+			if(thisFragment != null && path != null) {
+				if(!thisFragment.endsWith(JSON_PATH_SEP)) {
+					thisFragment = thisFragment + JSON_PATH_SEP;
+				}
+				resolvedFragment = new URI(thisFragment).resolve(path).toString();
+			} else if(path != null) {
+				resolvedFragment = path;
+			} else if(thisFragment != null) {
+				resolvedFragment = thisFragment;
+			} else {
+				resolvedFragment = "";
+			}
+			
+			return new JavaNetJSONLocation(new URI(getScheme(),
+					getSchemeSpecificPart(),
+					resolvedFragment));
 		} catch(URISyntaxException e) {
 			throw new JSONInterfaceException(e);
 		}
 	}
-	
-	public JSONLocation resolve(int index) throws JSONInterfaceException {
-		return resolve(Integer.toString(index));
+
+	public JSONLocation resolveFragment(int index) throws JSONInterfaceException {
+		return resolveFragment(Integer.toString(index));
+	}
+
+	public boolean isAbsolute() {
+		return getScheme() != null;
 	}
 	
 	public String getScheme() {
@@ -98,10 +119,47 @@ public class JavaNetJSONLocation implements JSONLocation {
 	public String[] explodeJSONPath() {
 		if(getFragment() == null) {
 			return new String[] {};
-		} else if(getFragment().equals("")) {
+		} else if(getFragment().equals(JSON_PATH_SEP)) {
 			return new String[] {};
 		} else {
-			return Utils.split(getFragment(), JSON_PATH_SEP);
+			return Utils.split(getFragment().substring(1), JSON_PATH_SEP);
 		}
 	}
+	
+	public boolean equals(Object obj) {
+		if(obj == this)
+			return true;
+		if(obj instanceof JSONLocation) {
+			JSONLocation that = (JSONLocation) obj;
+			boolean schemesMatch, sspMatch, fragMatch;
+			
+			if(this.getScheme() == null && that.getScheme() == null) {
+				schemesMatch = true;
+			} else if(this.getScheme() == null) {
+				return false;
+			} else {
+				schemesMatch = this.getScheme().equals(that.getScheme());
+			}
+
+			if(this.getSchemeSpecificPart() == null && that.getSchemeSpecificPart() == null) {
+				sspMatch = true;
+			} else if(this.getSchemeSpecificPart() == null) {
+				return false;
+			} else {
+				sspMatch = this.getSchemeSpecificPart().equals(that.getSchemeSpecificPart());
+			}
+			
+			if(this.getFragment() == null && that.getFragment() == null) {
+				fragMatch = true;
+			} else if(this.getFragment() == null) {
+				return false;
+			} else {
+				fragMatch = this.getFragment().equals(that.getFragment());
+			}
+			
+			return schemesMatch && sspMatch && fragMatch;
+		}
+		return false;
+	}
+
 }

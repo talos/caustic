@@ -3,6 +3,7 @@ package net.microscraper.instruction;
 import net.microscraper.MustacheTemplate;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
+import net.microscraper.interfaces.json.JSONLocation;
 
 /**
  * A regular expression {@link Instruction}.
@@ -66,7 +67,7 @@ public class Regexp extends Instruction {
 		}
 	}
 	
-	public Regexp(String location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline) {
+	public Regexp(JSONLocation location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline) {
 		super(location);
 		this.pattern = pattern;
 		this.isCaseSensitive = isCaseSensitive;

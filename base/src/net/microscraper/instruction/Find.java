@@ -6,6 +6,7 @@ import net.microscraper.MustacheTemplate;
 import net.microscraper.interfaces.json.JSONInterfaceArray;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
+import net.microscraper.interfaces.json.JSONLocation;
 
 /**
  * {@link Find} provides a pattern and a replacement value for matches.
@@ -97,7 +98,7 @@ public class Find extends Regexp {
 		}
 	}
 	
-	public Find(String location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
+	public Find(JSONLocation location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
 			MustacheTemplate name, Regexp[] tests, MustacheTemplate replacement) {
 		super(location, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline);
 		this.name = name;

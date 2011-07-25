@@ -5,6 +5,7 @@ import java.io.IOException;
 import net.microscraper.MustacheTemplate;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
+import net.microscraper.interfaces.json.JSONLocation;
 
 /**
  * The {@link URL} {@link Instruction} holds a string that can be mustached and used as a URL.
@@ -40,7 +41,7 @@ public class URL extends Scraper {
 		}
 	}
 	
-	public URL(String location, Page[] spawnPages, Scraper[] spawnScrapers,
+	public URL(JSONLocation location, Page[] spawnPages, Scraper[] spawnScrapers,
 			FindMany[] findManys, FindOne[] findOnes, MustacheTemplate urlTemplate) {
 		super(location, spawnPages, spawnScrapers, findManys, findOnes);
 		this.template = urlTemplate;

@@ -7,6 +7,7 @@ import net.microscraper.MustacheTemplate;
 import net.microscraper.interfaces.json.JSONInterfaceArray;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
+import net.microscraper.interfaces.json.JSONLocation;
 
 /**
  * A {@link Scraper} that load a web page.
@@ -168,7 +169,7 @@ public final class Page extends URL {
 		}
 	}
 
-	public Page(String location, Page[] spawnPages, Scraper[] spawnScrapers,
+	public Page(JSONLocation location, Page[] spawnPages, Scraper[] spawnScrapers,
 			FindMany[] findManys, FindOne[] findOnes, MustacheTemplate urlTemplate,
 			Method method, MustacheNameValuePair[] headers,
 			MustacheNameValuePair[] posts, MustacheNameValuePair[] cookies,

@@ -5,8 +5,8 @@ import java.io.IOException;
 import net.microscraper.instruction.mixin.CanFindMany;
 import net.microscraper.instruction.mixin.CanFindOne;
 import net.microscraper.instruction.mixin.CanSpawnScrapers;
-import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
+import net.microscraper.interfaces.json.JSONLocation;
 
 /**
  * A scraper can include a {@link Page}, a set of {@link FindOne}s, a set of {@link FindMany}s, and a
@@ -15,11 +15,7 @@ import net.microscraper.interfaces.json.JSONInterfaceObject;
  *
  */
 public class Scraper extends Instruction implements CanFindOne, CanFindMany,
-			CanSpawnScrapers {
-	/*private final CanFindOne findsOne;
-	private final CanFindMany findsMany;
-	private final CanSpawnScrapers spawnsScrapers;*/
-	
+			CanSpawnScrapers {	
 	private final Scraper[] spawnScrapers;
 	public Scraper[] getScrapers() throws DeserializationException, IOException {
 		return spawnScrapers;
@@ -59,7 +55,7 @@ public class Scraper extends Instruction implements CanFindOne, CanFindMany,
 		this.findOnes  = canFindOne.getFindOnes();
 	}
 	
-	public Scraper(String location, Page[] spawnPages, Scraper[] spawnScrapers,
+	public Scraper(JSONLocation location, Page[] spawnPages, Scraper[] spawnScrapers,
 			FindMany[] findManys, FindOne[] findOnes) {
 		super(location);
 		this.spawnPages = spawnPages;

@@ -3,6 +3,7 @@ package net.microscraper.executable;
 import java.util.Hashtable;
 
 import net.microscraper.instruction.Instruction;
+import net.microscraper.interfaces.json.JSONLocation;
 import net.microscraper.interfaces.publisher.Publisher;
 import net.microscraper.interfaces.publisher.PublisherException;
 
@@ -11,7 +12,7 @@ public class BasicResult implements Result {
 	private final String value;
 	private final Instruction instruction;
 	private final int number;
-	private final String sourceUri;
+	private final JSONLocation sourceUri;
 	private final Integer sourceNumber;
 	
 	/**
@@ -45,7 +46,7 @@ public class BasicResult implements Result {
 	 * @return How many times {@link Instruction} has generated a {@link Result}.
 	 */
 	private int generateNumber() {
-		String key = getInstruction().getLocation();
+		String key = getInstruction().getLocation().toString();
 		if(countsForResource.containsKey(key)) {
 			int id = ((Integer) countsForResource.get(key)).intValue();
 			countsForResource.put(key, new Integer(id + 1));
@@ -76,7 +77,7 @@ public class BasicResult implements Result {
 	
 	public void publishTo(Publisher publisher) throws PublisherException {
 		publisher.publishResult(name, value, instruction.getLocation(), number,
-				sourceUri == null ? null : sourceUri.toString(),
+				sourceUri == null ? null : sourceUri,
 				sourceNumber == null ? null : sourceNumber);
 	}
 

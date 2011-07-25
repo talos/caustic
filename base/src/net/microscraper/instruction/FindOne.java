@@ -7,6 +7,7 @@ import net.microscraper.instruction.mixin.CanFindMany;
 import net.microscraper.instruction.mixin.CanFindOne;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
+import net.microscraper.interfaces.json.JSONLocation;
 
 /**
  * A one-to-one {@link Find} that can link to other {@link Find}s,
@@ -51,7 +52,7 @@ public class FindOne extends Find implements CanFindMany, CanFindOne {
 		}
 	}
 	
-	public FindOne(String location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
+	public FindOne(JSONLocation location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
 			MustacheTemplate name, Regexp[] tests, MustacheTemplate replacement, int match, FindOne[] findsOne, FindMany[] findsMany) {
 		super(location, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline, name, tests, replacement);
 		this.match = match;

@@ -20,6 +20,7 @@ import net.microscraper.instruction.FindOne;
 import net.microscraper.instruction.Page;
 import net.microscraper.instruction.Regexp;
 import net.microscraper.instruction.Scraper;
+import net.microscraper.interfaces.json.JSONLocation;
 import net.microscraper.test.TestUtils;
 
 import org.junit.Before;
@@ -37,7 +38,7 @@ public class VariablesTest {
 	@Mocked Result sourceResult;
 	
 	@Mocked private Interfaces interfaces;
-	@Mocked private String mockLocation;
+	@Mocked private JSONLocation mockLocation;
 	
 	/**
 	 * @throws Exception

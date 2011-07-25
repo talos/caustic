@@ -151,7 +151,7 @@ public class JSONME implements JSONInterface {
 		public JSONInterfaceArray getJSONArray(String name)
 				throws JSONInterfaceException {
 			try {
-				return new JSONMEArray(this.location.resolve(name),
+				return new JSONMEArray(this.location.resolveFragment(name),
 						object.getJSONArray(name));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
@@ -162,7 +162,7 @@ public class JSONME implements JSONInterface {
 				throws JSONInterfaceException, IOException {
 			try {
 				return new JSONMEObject(
-						this.location.resolve(name),
+						this.location.resolveFragment(name),
 						object.getJSONObject(name));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
@@ -233,7 +233,7 @@ public class JSONME implements JSONInterface {
 		public JSONInterfaceArray getJSONArray(int index)
 				throws JSONInterfaceException {
 			try {
-				return new JSONMEArray(location.resolve(index), array.getJSONArray(index));
+				return new JSONMEArray(location.resolveFragment(index), array.getJSONArray(index));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
@@ -242,7 +242,7 @@ public class JSONME implements JSONInterface {
 		public JSONInterfaceObject getJSONObject(int index)
 				throws JSONInterfaceException, IOException {
 			try {
-				return new JSONMEObject(location.resolve(index), array.getJSONObject(index));
+				return new JSONMEObject(location.resolveFragment(index), array.getJSONObject(index));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
 			}
