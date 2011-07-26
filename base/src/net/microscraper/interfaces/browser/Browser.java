@@ -10,7 +10,8 @@ public interface Browser {
 	public static final int TIMEOUT = 30000;
 	public static final int MAX_REDIRECTS = 50;
 	public static final int SUCCESS_CODE = 200;
-	public static final int MAX_KBPS_FROM_HOST = 30;
+	public static final int DEFAULT_MAX_KBPS_FROM_HOST = 30;
+	public static final int DEFAULT_SLEEP_TIME = 500;
 	
 	public static final String LOCATION_HEADER_NAME = "location";
 	public static final String REFERER_HEADER_NAME = "Referer";

@@ -1,6 +1,7 @@
 package net.microscraper.impl.json;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Vector;
 
 import net.microscraper.Utils;
@@ -14,6 +15,7 @@ import net.microscraper.interfaces.json.JSONInterfaceIterator;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
 import net.microscraper.interfaces.json.JSONInterfaceStringer;
 import net.microscraper.interfaces.json.JSONLocation;
+import net.microscraper.interfaces.json.JSONLocationException;
 
 import org.json.me.JSONArray;
 import org.json.me.JSONException;
@@ -36,7 +38,7 @@ public class JSONME implements JSONInterface {
 	}
 	
 	public JSONInterfaceObject load(JSONLocation jsonLocation)
-			throws JSONInterfaceException, IOException {
+			throws JSONInterfaceException, IOException, JSONLocationException {
 		try {
 			return new JSONMEObject(jsonLocation, loadJSONObject(jsonLocation));
 		} catch(JSONException e) {
@@ -136,7 +138,8 @@ public class JSONME implements JSONInterface {
 		
 		// ensures references are always followed.
 		public JSONMEObject(JSONLocation initialLocation, JSONObject initialJSONObject)
-				throws JSONInterfaceException, JSONException, IOException {
+				throws JSONLocationException, JSONInterfaceException,
+				JSONException, IOException {
 			JSONObject object = initialJSONObject;
 			JSONLocation location = initialLocation;
 			
@@ -155,28 +158,26 @@ public class JSONME implements JSONInterface {
 						object.getJSONArray(name));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
+			} catch(JSONLocationException e) {
+				throw new JSONInterfaceException(e);
 			}
 		}
 
 		public JSONInterfaceObject getJSONObject(String name)
-				throws JSONInterfaceException, IOException {
+				throws JSONInterfaceException {
 			try {
 				return new JSONMEObject(
 						this.location.resolveFragment(name),
 						object.getJSONObject(name));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
-			}
-		}
-/*
-		public java.lang.Object get(String name) throws JSONInterfaceException {
-			try {
-				return object.get(name);
-			} catch(JSONException e) {
+			} catch(JSONLocationException e) {
+				throw new JSONInterfaceException(e);
+			} catch(IOException e) {
 				throw new JSONInterfaceException(e);
 			}
 		}
-	*/	
+		
 		public String getString(String name) throws JSONInterfaceException {
 			try {
 				return object.getString(name);
@@ -222,6 +223,21 @@ public class JSONME implements JSONInterface {
 		}
 	}
 	
+	private final class EnumerationIterator implements JSONInterfaceIterator {
+		private final Enumeration enumeration;
+		public EnumerationIterator(Enumeration e) {
+			enumeration = e;
+		}
+		
+		public boolean hasNext() {
+			return enumeration.hasMoreElements();
+		}
+
+		public String next() {
+			return (String) enumeration.nextElement();
+		}
+	}
+	
 	private class JSONMEArray implements JSONInterfaceArray {
 		private final JSONArray array;
 		private final JSONLocation location;
@@ -236,23 +252,20 @@ public class JSONME implements JSONInterface {
 				return new JSONMEArray(location.resolveFragment(index), array.getJSONArray(index));
 			} catch(JSONException e) {
 				throw new JSONInterfaceException(e);
-			}
-		}
-
-		public JSONInterfaceObject getJSONObject(int index)
-				throws JSONInterfaceException, IOException {
-			try {
-				return new JSONMEObject(location.resolveFragment(index), array.getJSONObject(index));
-			} catch(JSONException e) {
+			} catch(JSONLocationException e) {
 				throw new JSONInterfaceException(e);
 			}
 		}
 
-
-		public Object get(int index) throws JSONInterfaceException {
+		public JSONInterfaceObject getJSONObject(int index)
+				throws JSONInterfaceException {
 			try {
-				return array.get(index);
+				return new JSONMEObject(location.resolveFragment(index), array.getJSONObject(index));
 			} catch(JSONException e) {
+				throw new JSONInterfaceException(e);
+			} catch(JSONLocationException e) {
+				throw new JSONInterfaceException(e);
+			} catch(IOException e) {
 				throw new JSONInterfaceException(e);
 			}
 		}
@@ -297,8 +310,8 @@ public class JSONME implements JSONInterface {
 			}
 		}
 
-		public String getLocation() {
-			return this.location.toString();
+		public JSONLocation getLocation() {
+			return this.location;
 		}
 		
 	}
@@ -310,7 +323,7 @@ public class JSONME implements JSONInterface {
 		/*public JSONMEStringer() {
 			
 		}*/
-		public JSONInterfaceWriter array() throws JSONInterfaceException {
+		public JSONInterfaceStringer array() throws JSONInterfaceException {
 			try {
 				writer.array();
 			} catch (JSONException e) {
@@ -319,7 +332,7 @@ public class JSONME implements JSONInterface {
 			return this;
 		}
 
-		public JSONInterfaceWriter endArray() throws JSONInterfaceException {
+		public JSONInterfaceStringer endArray() throws JSONInterfaceException {
 			try {
 				writer.endArray();
 			} catch (JSONException e) {
@@ -328,7 +341,7 @@ public class JSONME implements JSONInterface {
 			return this;
 		}
 
-		public JSONInterfaceWriter endObject() throws JSONInterfaceException {
+		public JSONInterfaceStringer endObject() throws JSONInterfaceException {
 			try {
 				writer.endObject();
 			} catch (JSONException e) {
@@ -337,7 +350,7 @@ public class JSONME implements JSONInterface {
 			return this;
 		}
 
-		public JSONInterfaceWriter key(String s) throws JSONInterfaceException {
+		public JSONInterfaceStringer key(String s) throws JSONInterfaceException {
 			try {
 				writer.key(s);
 			} catch (JSONException e) {
@@ -346,7 +359,7 @@ public class JSONME implements JSONInterface {
 			return this;
 		}
 
-		public JSONInterfaceWriter object() throws JSONInterfaceException {
+		public JSONInterfaceStringer object() throws JSONInterfaceException {
 			try {
 				writer.object();
 			} catch (JSONException e) {
@@ -355,7 +368,7 @@ public class JSONME implements JSONInterface {
 			return this;
 		}
 
-		public JSONInterfaceWriter value(boolean b) throws JSONInterfaceException {
+		public JSONInterfaceStringer value(boolean b) throws JSONInterfaceException {
 			try {
 				writer.value(b);
 			} catch (JSONException e) {
@@ -364,7 +377,7 @@ public class JSONME implements JSONInterface {
 			return this;
 		}
 
-		public JSONInterfaceWriter value(double d) throws JSONInterfaceException {
+		public JSONInterfaceStringer value(double d) throws JSONInterfaceException {
 			try {
 				writer.value(d);
 			} catch (JSONException e) {
@@ -373,7 +386,7 @@ public class JSONME implements JSONInterface {
 			return this;
 		}
 
-		public JSONInterfaceWriter value(long l) throws JSONInterfaceException {
+		public JSONInterfaceStringer value(long l) throws JSONInterfaceException {
 			try {
 				writer.value(l);
 			} catch (JSONException e) {
@@ -382,7 +395,7 @@ public class JSONME implements JSONInterface {
 			return this;
 		}
 
-		public JSONInterfaceWriter value(String s) throws JSONInterfaceException {
+		public JSONInterfaceStringer value(String s) throws JSONInterfaceException {
 			try {
 				writer.value(s);
 			} catch (JSONException e) {

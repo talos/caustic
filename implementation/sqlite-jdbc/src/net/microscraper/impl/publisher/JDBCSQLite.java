@@ -2,13 +2,18 @@ package net.microscraper.impl.publisher;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import net.microscraper.Log;
 import net.microscraper.Utils;
 
+/**
+ * An implementation of {@link SQLInterface} for org.sqlite.JDBC
+ * @see SQLInterface
+ * @author realest
+ *
+ */
 public class JDBCSQLite implements SQLInterface {
 	private final Connection connection;
 	private final Log log;

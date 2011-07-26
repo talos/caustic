@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import net.microscraper.Utils;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONLocation;
+import net.microscraper.interfaces.json.JSONLocationException;
 
 /**
  * Location of a {@link JSONObject}, used to resolve references.
@@ -18,7 +19,7 @@ public class JavaNetJSONLocation implements JSONLocation {
 	
 	private final URI uri;
 	
-	public JavaNetJSONLocation(String uriString) throws JSONInterfaceException {
+	public JavaNetJSONLocation(String uriString) throws JSONLocationException {
 		try {
 			URI uri = new URI(uriString);
 			if(uri.getFragment() == null) {
@@ -29,11 +30,11 @@ public class JavaNetJSONLocation implements JSONLocation {
 			this.uri = uri;
 
 		} catch(URISyntaxException e) {
-			throw new JSONInterfaceException(e);
+			throw new JSONLocationException(e);
 		}
 	}
 	
-	public JavaNetJSONLocation(URI uri) throws JSONInterfaceException {
+	public JavaNetJSONLocation(URI uri) {
 		if(uri.getFragment() == null) {
 			uri = uri.resolve("#/");
 		} else if(!uri.getFragment().startsWith(JSON_PATH_SEP)) {
@@ -42,7 +43,7 @@ public class JavaNetJSONLocation implements JSONLocation {
 		this.uri = uri;
 	}
 	
-	public JSONLocation resolve(JSONLocation otherLocation) throws JSONInterfaceException {
+	public JSONLocation resolve(JSONLocation otherLocation) throws JSONLocationException {
 		if(otherLocation.getSchemeSpecificPart() != null || otherLocation.isAbsolute()) {
 			return new JavaNetJSONLocation( uri.resolve(otherLocation.toString()) );
 		} else {
@@ -50,11 +51,11 @@ public class JavaNetJSONLocation implements JSONLocation {
 		}
 	}
 	
-	public JSONLocation resolve(String path) throws JSONInterfaceException {
+	public JSONLocation resolve(String path) throws JSONLocationException {
 		return resolve(new JavaNetJSONLocation(path));
 	}
 
-	public JSONLocation resolveFragment(String path) throws JSONInterfaceException {
+	public JSONLocation resolveFragment(String path) throws JSONLocationException {
 		try {
 			String thisFragment = uri.getFragment();
 			
@@ -76,11 +77,11 @@ public class JavaNetJSONLocation implements JSONLocation {
 					getSchemeSpecificPart(),
 					resolvedFragment));
 		} catch(URISyntaxException e) {
-			throw new JSONInterfaceException(e);
+			throw new JSONLocationException(e);
 		}
 	}
 
-	public JSONLocation resolveFragment(int index) throws JSONInterfaceException {
+	public JSONLocation resolveFragment(int index) throws JSONLocationException {
 		return resolveFragment(Integer.toString(index));
 	}
 

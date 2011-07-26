@@ -20,9 +20,9 @@ public interface JSONLocation {
 	 * this {@link JSONLocation}
 	 * @param jsonLocation The {@link JSONLocation} to resolve.
 	 * @return The resulting {@link JSONLocation}.
-	 * @throws JSONInterfaceException if there is an error resolving.
+	 * @throws JSONLocationException if there is an error resolving.
 	 */
-	public JSONLocation resolve(JSONLocation jsonLocation) throws JSONInterfaceException;
+	public JSONLocation resolve(JSONLocation jsonLocation) throws JSONLocationException;
 	
 	/**
 	 * Constructs a new {@link JSONLocation}
@@ -30,9 +30,9 @@ public interface JSONLocation {
 	 * {@link JSONLocation}. 
 	 * @param uri A {@link String} to parse as a URI.
 	 * @return The resulting {@link JSONLocation}.
-	 * @throws JSONInterfaceException if there is an error resolving.
+	 * @throws JSONLocationException if there is an error resolving.
 	 */
-	public JSONLocation resolve(String uri) throws JSONInterfaceException;
+	public JSONLocation resolve(String uri) throws JSONLocationException;
 	
 	/**
 	 * Constructs a new {@link JSONLocation} 
@@ -41,9 +41,9 @@ public interface JSONLocation {
 	 * @param path A {@link String} referring to part of the original {@link JSONLocation}'s
 	 * object.
 	 * @return The resulting {@link JSONLocation}.
-	 * @throws JSONInterfaceException if there is an error resolving.
+	 * @throws JSONLocationException if there is an error resolving.
 	 */
-	public JSONLocation resolveFragment(String path) throws JSONInterfaceException;
+	public JSONLocation resolveFragment(String path) throws JSONLocationException;
 
 	/**
 	 * Constructs a new {@link JSONLocation}
@@ -52,9 +52,9 @@ public interface JSONLocation {
 	 * @param path An int referring to an index inside the original {@link JSONLocation}'s
 	 * array.
 	 * @return The resulting {@link JSONLocation}.
-	 * @throws JSONInterfaceException if there is an error resolving.
+	 * @throws JSONLocationException if there is an error resolving.
 	 */
-	public JSONLocation resolveFragment(int index) throws JSONInterfaceException;
+	public JSONLocation resolveFragment(int index) throws JSONLocationException;
 	
 	/**
 	 * 

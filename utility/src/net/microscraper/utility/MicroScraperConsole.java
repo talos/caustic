@@ -1,6 +1,7 @@
 package net.microscraper.utility;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -13,24 +14,25 @@ import au.com.bytecode.opencsv.CSVReader;
 
 import net.microscraper.Client;
 import net.microscraper.ClientException;
+import net.microscraper.DefaultNameValuePair;
 import net.microscraper.Log;
 import net.microscraper.NameValuePair;
 import net.microscraper.Utils;
 import net.microscraper.impl.browser.JavaNetBrowser;
-import net.microscraper.impl.file.FileLogInterface;
+import net.microscraper.impl.file.IOFileLoader;
 import net.microscraper.impl.json.JSONME;
+import net.microscraper.impl.json.JavaNetJSONLocation;
+import net.microscraper.impl.log.FileLogInterface;
 import net.microscraper.impl.log.SystemLogInterface;
 import net.microscraper.impl.publisher.JDBCSQLite;
 import net.microscraper.impl.publisher.SQLPublisher;
 import net.microscraper.impl.publisher.SQLInterface.SQLInterfaceException;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
-import net.microscraper.impl.regexp.JavaNetInterface;
-import net.microscraper.interfaces.NetInterface;
-import net.microscraper.interfaces.URIInterface;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.file.FileLoader;
 import net.microscraper.interfaces.json.JSONInterface;
-import net.microscraper.interfaces.log.Logger;
+import net.microscraper.interfaces.json.JSONLocation;
+import net.microscraper.interfaces.json.JSONLocationException;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
 
 public class MicroScraperConsole {
@@ -94,6 +96,7 @@ public class MicroScraperConsole {
 			);
 	
 	private static String OUTPUT_FILE_OPTION = "--output-file";
+	private static File outputFile = null;
 	//private static String outputFileName = null;
 	
 	private static String NO_OUTPUT_FILE_OPTION = "--no-output-file";
@@ -104,13 +107,12 @@ public class MicroScraperConsole {
 	
 	private static final int sqlBatchSize = 1;
 	
-	private static String instructionsUri;
+	private static JSONLocation instructionsLocation;
 	
 	private static final Log log = new Log();
-	private static final Browser browser = new JavaNetBrowser(log, Browser.MAX_KBPS_FROM_HOST);
-	private static final NetInterface netInterface = new JavaNetInterface(browser);
-	private static final FileLoader uriLoader = new UtilityURILoader(netInterface);
-	private static final JSONInterface jsonInterface = new JSONME(uriLoader);
+	private static final Browser browser = new JavaNetBrowser(log, Browser.DEFAULT_MAX_KBPS_FROM_HOST, Browser.DEFAULT_SLEEP_TIME);
+	private static final FileLoader fileLoader = new IOFileLoader();
+	private static final JSONInterface jsonInterface = new JSONME(fileLoader, browser);
 	private static final RegexpCompiler regexpCompiler = new JakartaRegexpCompiler();
 	private static SQLPublisher publisher;
 	private static Client client;
@@ -118,41 +120,71 @@ public class MicroScraperConsole {
 	public static void main (String[] args) {
 		try {
 			initialize(args);
-			scrape();
-			publish();
+			try {
+				scrape();
+				try {
+					publish();
+				} catch(SQLInterfaceException e) {
+					
+				}
+			} catch(ClientException e) {
+				// Error scraping
+			} catch(IOException e) {
+				// Error reading input file
+			}
 		} catch(IllegalArgumentException e) {
-			displayUsage();
+			// Error with args provided
+			print(e.getMessage());
+			print(usage);
+		} catch(FileNotFoundException e) {
+			// Could not find the input file
+		} catch(SQLInterfaceException e) {
+			// Could not open connection to SQL
+		} catch(UnsupportedEncodingException e) {
+			// Encoding not supported on this system.
+		} catch(JSONLocationException e) {
+			// Invalid location for instructions.
 		}
-		finish();
+		try {
+			finish();
+		} catch(IOException e) {
+			// Could not close a file
+		}
 	}
 	
-	private static void initialize(String[] args) throws IllegalArgumentException {
+	private static void initialize(String[] args) throws IllegalArgumentException,
+					FileNotFoundException, SQLInterfaceException, JSONLocationException,
+					UnsupportedEncodingException {
+		if(args.length == 0)
+			throw new IllegalArgumentException("You must specify the URI of scraper instructions.");
+		
 		for(int i = 0 ; i < args.length ; i ++) {
 			String arg = args[i];
 			if(arg.startsWith("--")) {
 				String value = null;
 				if(arg.indexOf('=') > -1) {
-					value = arg.substring(arg.indexOf('='));
+					value = arg.substring(arg.indexOf('=') + 1);
 				}
-				if(arg.equals(DEFAULTS_OPTION)) {
+				if(arg.startsWith(DEFAULTS_OPTION)) {
 					defaults = Utils.formEncodedDataToNameValuePairs(value, ENCODING);
-				} else if(arg.equals(INPUT_OPTION)) {
+				} else if(arg.startsWith(INPUT_OPTION)) {
 					input = new CSVReader(new FileReader(value));
-				} else if(arg.equals(LOG_FILE_OPTION)) {
+				} else if(arg.startsWith(LOG_FILE_OPTION)) {
 					logFile = new File(value);
-				} else if(arg.equals(LOG_STDOUT_OPTION)) {
+				} else if(arg.startsWith(LOG_STDOUT_OPTION)) {
 					logStdout = true;
-				} else if(arg.equals(OUTPUT_FORMAT_OPTION)) {
+				} else if(arg.startsWith(OUTPUT_FORMAT_OPTION)) {
 					if(validOutputFormats.contains(value)) {
 						outputFormat = value;
 					} else {
-						throw new IllegalArgumentException();
+						throw new IllegalArgumentException(Utils.quote(value)
+								+ " is not a valid output format.");
 					}
-				} else if(arg.equals(OUTPUT_FILE_OPTION)) {
+				} else if(arg.startsWith(OUTPUT_FILE_OPTION)) {
 					outputFile = new File(value);
-				} else if(arg.equals(NO_OUTPUT_FILE_OPTION)) {
+				} else if(arg.startsWith(NO_OUTPUT_FILE_OPTION)) {
 					noOutputFile = true;
-				} else if(arg.equals(OUTPUT_STDOUT_OPTION)) {
+				} else if(arg.startsWith(OUTPUT_STDOUT_OPTION)) {
 					outputStdout = true;
 				}
 			}
@@ -168,9 +200,15 @@ public class MicroScraperConsole {
 		if(logFile != null) {
 			log.register(new FileLogInterface(logFile));
 		}
+		
+		// Default output file name.
+		if(outputFile == null && noOutputFile == false) {
+			outputFile = new File(TIMESTAMP + "." + outputFormat);
+		}
+		
 		if(outputFormat.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
 			publisher = new SQLPublisher(
-					new JDBCSQLite(outputFile, log),
+					new JDBCSQLite(outputFile.getPath(), log),
 					sqlBatchSize);
 		} else if(outputFormat.equals(CSV_OUTPUT_FORMAT_VALUE)) {
 			//publisher = new CSVPublisher();
@@ -179,25 +217,44 @@ public class MicroScraperConsole {
 		} else if(outputFormat.equals(FORM_ENCODED_OUTPUT_FORMAT_VALUE)) {
 			//publisher = new FormEncodedPublisher();
 		}
-		client = new Client(regexpCompiler,	
-				log,
-				netInterface,
-				jsonInterface, ENCODING);
+		
+		if(!args[0].startsWith("--")) {
+			instructionsLocation = new JavaNetJSONLocation(args[0]);
+		} else {
+			throw new IllegalArgumentException();
+		}
+		client = new Client(regexpCompiler,	log, browser, jsonInterface);
 	}
 	
-	private static void scrape() {
-		client.scrape(instructionsUri, defaults, publisher);
+	private static void scrape() throws ClientException, IOException {
+		if(input == null) {
+			client.scrape(instructionsLocation, defaults, publisher);
+		} else {
+			String[] headers = input.readNext();
+			NameValuePair[] lineDefaults = Arrays.copyOf(defaults, defaults.length + headers.length);
+			
+			String[] values;
+			while((values = input.readNext()) != null) {
+				for(int i = 0 ; i < values.length ; i ++) {
+					lineDefaults[i + defaults.length] = new DefaultNameValuePair(headers[i], values[i]);
+				}
+			}
+			client.scrape(instructionsLocation, lineDefaults, publisher);
+		}
 	}
 	
-	private static void publish() {
+	private static void publish() throws SQLInterfaceException {
 		publisher.forceCommit();
 	}
 	
-	private static void displayUsage() {
-		System.out.print(usage);
+	private static void finish() throws IOException {
+		if(input != null) {
+			input.close();
+		}
 	}
 	
-	private static void finish() {
-		
+	private static void print(String text) {
+		System.out.print(text);
+		System.out.println();
 	}
 }
