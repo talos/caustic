@@ -1,0 +1,31 @@
+Address	157 PULASKI STREET	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/1	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	0
+Zip Code	11206	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/2	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	0
+Borough	Brooklyn	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/3	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	0
+Year Built	1931	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/4	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	0
+Number of Buildings	1	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/5	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	0
+Number of Units	4	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/7	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	0
+Current Tax Year	From July 1, 2011 to June 30, 2012	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/16	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	0
+Building Class	Walk-up apartments__FOUR FAMILIES	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/17	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	0
+Tax Class	2A	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/18	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	0
+Tax Rate	13.353 %	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/19	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	0
+Address	75 WEST END AVENUE	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/1	1	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Zip Code	10023	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/2	1	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Borough	Manhattan	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/3	1	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Year Built	1994	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/4	1	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Number of Buildings	2	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/5	1	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Number of Units	1009	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/7	1	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Corner	Northeast (NE)	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/14	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Current Tax Year	From July 1, 2011 to June 30, 2012	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/16	1	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Building Class	Elevator apartments__LUXURY TYPE	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/17	1	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Tax Class	2	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/18	1	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Tax Rate	13.353 %	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/19	1	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Benefit Name	421A-Newly constructed Multiple Dwelling Residential Property	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/23	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Benefit Amount	$31,683,549	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/24	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Current Benefit Year	16	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/25	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Number of Benefit Years	20	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/26	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Benefit Type	Completion	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/27	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Benefit Start Date	July 01, 1996	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/28	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Benefit End Date	June 30, 2016	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/29	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Ineligible Commercial %	00.0000%	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/30	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Base Year	Year ending June 30, 1993	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/34	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1
+Base Year Assessed Value	$5,500,000	../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/35	0	../test/fixtures/nyc-incentives-simple-extended.json#/then/0	1

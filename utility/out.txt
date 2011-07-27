@@ -1,0 +1,1742 @@
+NULL	
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="stylesheet" type="text/css" title="default" /><link rel="stylesheet" href="FitLook/css/mainstyle.css" type="text/css" /><link rel="stylesheet" href="FitLook/css/MasterBody.css" type="text/css" /><link rel="alternate stylesheet" type="text/css" href="App_Themes/GreenTheme/StyleSheetGreen.css" title="green" /><link rel="alternate stylesheet" type="text/css" href="App_Themes/RedTheme/StyleSheetRed.css" title="red" />
+    <!--<script src="FitLook/includes/scroller.js" type="text/javascript" ></script>-->
+    <script language="javascript" src="FitLook/includes/layerutils.js" type="text/javascript"></script>
+    <script src="FitLook/includes/fontResize.js" type="text/javascript" ></script>
+    <script src="FitLook/includes/styleswitcher.js" type="text/javascript" ></script>
+        
+         
+
+    <script type="text/javascript" language="javascript">
+
+        fontReSize.setDefaults("px", 12, 9, 24, ['body', 'td', 'div', 'p', 'font', 'span', 'img', 'a', 'h2']);
+        window.onload = function SetDefaultStylesheet() {
+            var cookie = readCookie("style");
+            var title = cookie ? cookie : getPreferredStyleSheet();
+            setActiveStyleSheet(title);
+            
+            switch(title)
+            {
+                case 'default':
+                    document.getElementById('rdBlue').checked = true;
+                    break;
+                case 'red':
+                    document.getElementById('rdRed').checked = true;
+                     break;
+                 case 'green':
+                     document.getElementById('rdGreen').checked = true;
+                     break;
+            }
+        }
+        addLoadEvent(fontReSize.init);
+
+        // Move an element directly on top of another element (and optionally
+        // make it the same size)
+        function Cover(bottom, top, ignoreSize) {
+            var location = Sys.UI.DomElement.getLocation(bottom);
+            top.style.position = 'absolute';
+            top.style.top = location.y + 'px';
+            top.style.left = location.x + 'px';
+            if (!ignoreSize) {
+                top.style.height = bottom.offsetHeight + 'px';
+                top.style.width = bottom.offsetWidth + 'px';
+            }
+        }
+        function popup(fileNm, windowNm) {
+            window.open(fileNm, windowNm, "menubar=1,resizable=1,width=450,height=550,scrollbars=1");
+        }
+
+        //cust svc alert
+
+        window.onerror = null;
+        var bName = navigator.appName;
+        var bVer = parseInt(navigator.appVersion);
+        var NS4 = (bName == "Netscape" && bVer >= 4);
+        var IE4 = (bName == "Microsoft Internet Explorer"
+         && bVer >= 4);
+        var NS3 = (bName == "Netscape" && bVer < 4);
+        var IE3 = (bName == "Microsoft Internet Explorer"
+         && bVer < 4);
+        var blink_speed = 400;
+        var i = 0;
+
+        if (NS4 || IE4) {
+            if (navigator.appName == "Netscape") {
+                layerStyleRef = "layer.";
+                layerRef = "document.layers";
+                styleSwitch = "";
+            } else {
+                layerStyleRef = "layer.style.";
+                layerRef = "document.all";
+                styleSwitch = ".style";
+            }
+        }
+
+        //BLINKING
+        var totalBlinkies = 0;
+        function Blink(layerName) {
+            //javascript commands get dynamically built from strings, so use eval()
+            if (NS4 || IE4) {
+                var str_obj = layerRef + '["' + layerName + '"]';
+                var str_cmd = 'if (' + str_obj + ')' + str_obj + '.visibility=';
+                if (totalBlinkies++ > 12) { // n blinks is enough blinks, so stop.
+                    eval(str_cmd + '"visible"');
+                    return;
+                }
+                if (i % 2 == 0) {
+                    eval(str_cmd + '"visible"');
+                }
+                else {
+                    eval(str_cmd + '"hidden"');
+                }
+            }
+            if (i < 1) {
+                i++;
+            }
+            else {
+                i--
+            }
+            setTimeout("Blink('" + layerName + "')", blink_speed);
+        } 
+
+    </script>
+</head>
+<body>
+<div id="ctl00_frmHolder" style="display: none;"></div>
+<form name="aspnetForm" method="post" action="Default.aspx" onsubmit="javascript:return WebForm_OnSubmit();" id="aspnetForm">
+<div>
+<input type="hidden" name="ctl00_ScriptManager1_HiddenField" id="ctl00_ScriptManager1_HiddenField" value="" />
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwULLTEwMDA4NDY4ODAPZBYCZg9kFgICBQ9kFgQCBQ9kFgICBw8WAh4HVmlzaWJsZWgWAgIBDxYCHglpbm5lcmh0bWwFGEFsZXJ0IGZvcjxiciAvPiBCQkwgOiAtLWQCCQ9kFgQCAg9kFgQCAQ9kFgRmDw8WBB4IQ3NzQ2xhc3MFF2FjY29yZGlvbkhlYWRlclNlbGVjdGVkHgRfIVNCAgJkZAIBDw8WBB8CBRBhY2NvcmRpb25Db250ZW50HwMCAhYCHgVzdHlsZQUOZGlzcGxheTpibG9jaztkAgIPZBYEZg8PFgQfAgUPYWNjb3JkaW9uSGVhZGVyHwMCAhYCHgdvbmNsaWNrBTZoaWRlUGFuZWwoJ2N0bDAwX1NhbXBsZUNvbnRlbnRfY3RsMDNfcG5sSG93VG9HZXRCQkwnKTtkAgEPDxYEHwIFEGFjY29yZGlvbkNvbnRlbnQfAwICFgIfBAUNZGlzcGxheTpub25lOxYCAgEPZBYCZg9kFgZmDw9kFgIfBAUNZGlzcGxheTpub25lO2QCDA8PFgIfAGhkZAINDw8WAh8AaGRkAgMPD2QWBh4FU3R5bGUFSHdpZHRoOjM1MHB4O2JhY2tncm91bmQ6d2hpdGU7ZGlzcGxheTpub25lO2ZpbHRlcjphbHBoYShvcGFjaXR5PSc5Mi4wMCcpOx4Lb25tb3VzZW92ZXIFD3d3aEhlbHAuc2hvdygpOx4Kb25tb3VzZW91dAUPd3doSGVscC5oaWRlKCk7ZGQHuCC6T97ldHf5nxH67mN717OGuw==" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['aspnetForm'];
+if (!theForm) {
+    theForm = document.aspnetForm;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=Yj0feEDQN00KHZym_UGpoA2&amp;t=633595192754539605" type="text/javascript"></script>
+
+
+<script src="/ScriptResource.axd?d=Jnlmp03Jqp1O3dvDpZbxqZlXIWxWx_VnTHO78dFq9d7xA0JB5LYKuyh7Vj6sTiXe4WSFqbWjFaXwK1bd6jPiEw2&amp;t=ffffffff834fc288" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=oIegpKP0CBmkQl_UULdwl07grUwXJwMS_uh-lLihT-QhWbJn11fhSelb25S0X36lJCVtqKv-gP-SlsrIvVRG-Eh1UlvwFlNahBvg8msDAVg1&amp;t=fffffffff59fe74a" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=FmUdyqOO4F6k6qnd2GfdOMwuKRGkc6YBa8hFt6wd9WAwna15RWXfQZSyAqad7F-VaE5CY8cgj30Y603xGCSWiyLBKzEbORrgk_O-J--1eWY1&amp;t=ffffffffd08d64ef" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=FmUdyqOO4F6k6qnd2GfdOMwuKRGkc6YBa8hFt6wd9WAwna15RWXfQZSyAqad7F-V3wox79Q7dPLrnkmXwPMxJQeQn8TrcjpKVzI8CTQgK2A1&amp;t=ffffffffd08d64ef" type="text/javascript"></script>
+<script src="/Default.aspx?_TSM_HiddenField_=ctl00_ScriptManager1_HiddenField&amp;_TSM_CombinedScripts_=%3b%3bAjaxControlToolkit%2c+Version%3d3.0.11119.25904%2c+Culture%3dneutral%2c+PublicKeyToken%3d28f01b0e84b6d53e%3aen-US%3af48478dd-9360-4d50-94c1-5c5fa55bd379%3a865923e8%3a411fea1c%3ae7c87f07%3a91bd373d%3a1d58b08c%3a8e72a662%3aacd642d2%3a596d588c%3a77c58d20%3a14b56adc%3a269a19ae%3abbfda34c%3a30a78ec5%3a5430d994" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+function WebForm_OnSubmit() {
+if (typeof(ValidatorOnSubmit) == "function" && ValidatorOnSubmit() == false) return false;
+return true;
+}
+//]]>
+</script>
+
+<div>
+
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEWGgLQoN71DQL687aTAwLmha0BAujn2IECAo3DtaEJAtLdz/kGAr3g5K4DAu78ttcEAvOB3+MGAvKB3+MGAvGB3+MGAvCB3+MGAveB3+MGAoHAg44PArT/mOoPAqrvlMAJAtzQstcEAoDswboFAoHswboFAoLswboFAoPswboFAoTswboFAtjqpO8KAujQ7b0GAqvgnb0NAsPa/KsB92gWDjxIiPCV3SReLt0gtGTN89Y=" />
+</div>
+    <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$ScriptManager1', document.getElementById('aspnetForm'));
+Sys.WebForms.PageRequestManager.getInstance()._updateControls(['tctl00$SampleContent$ctl03$upPropertyAddress'], [], [], 90);
+//]]>
+</script>
+
+    <div id="ctl00_master_header" class="master_header">
+        <div id="master_headertop">
+            <img id="ctl00_Image1" usemap="#TopNav" src="FitLook/images/nycgov_banner.gif" alt="Department of Finance" style="border-width:0px;" />
+            <map name="TopNav" id="123">
+              <area shape="rect" coords="554,1,599,25" href="http://www.nyc.gov/search" alt="Search"/>
+              <area shape="rect" coords="607,1,688,25" href="http://www.nyc.gov/portal/register.jsp" alt="Email Updates"/>
+              <area shape="rect" coords="698,1,762,25" href="http://www.nyc.gov/contact" alt="Contact Us"/>
+              <area shape="rect" coords="328,27,399,50" href="http://www.nyc.gov/residents" alt="Residents"/>
+              <area shape="rect" coords="408,27,471,50" href="http://www.nyc.gov/business" alt="Business"/>
+              <area shape="rect" coords="478,27,535,50" href="http://www.nyc.gov/visitors" alt="Visitors"/>
+              <area shape="rect" coords="544,27,628,50" href="http://www.nyc.gov/government" alt="Government"/>
+              <area shape="rect" coords="635,27,764,50" href="http://www.nyc.gov/mayor" alt="Office of the Mayor"/>
+              <area shape="rect" coords="3,3,49,48" href="http://www.nyc.gov/home.html" alt="NYC.gov always open"/>
+            </map>
+            <a id="ctl00_HomePageLink" title="Department of Finance" href="http://www.nyc.gov/html/dof/html/home/home.shtml"><img id="ctl00_HeaderImage" src="App_Themes/BlueTheme/Images/property_logo.jpg" alt="Department of Finance" style="border-width:0px;" /></a>
+        </div>
+        <div id="master_headerbottom">
+            <table width="100%">
+                <tr>
+                    <td width="35%">
+                        &nbsp;</td>                    
+                    <td valign="middle" align="right"><a onclick="popup('faqs.aspx','FAQs'); return false;" id="ctl00_lnkFAQ" title="Frequently Asked Questions" class="heading2" href="javascript:__doPostBack('ctl00$lnkFAQ','')" style="color:#5275AD;">FAQs</a></td>
+                    <td valign="middle" align="right"><a onclick="popup('glossary.aspx','Glossary'); return false;" id="ctl00_lnkGlossary" title="Definition of Terms" class="heading2" href="javascript:__doPostBack('ctl00$lnkGlossary','')" style="color:#5275AD;">Glossary</a></td>
+                    <td valign="middle" align="center"><a onclick="popup('calculations.aspx','Calculations'); return false;" id="ctl00_lnkCalc" title="View Calculation Methods" class="heading2" href="javascript:__doPostBack('ctl00$lnkCalc','')" style="color:#5275AD;">Calculations</a></td>
+                    <td valign="middle" align="right"><a onclick="popup('Help.aspx','Help'); return false;" id="ctl00_lnkHelp" title="Tips &amp; Shortcuts" class="heading2" href="javascript:__doPostBack('ctl00$lnkHelp','')" style="color:#5275AD;">Help</a></td>
+                    <td align="right" valign="middle" nowrap ><b>Change text size :</b></td>
+                    <td align="right" valign="middle">
+                        <div id="resize" style="white-space:nowrap;">
+                            <a class="increase" href="#" title="Keep clicking to increase text size">
+                            <img id="ctl00_Image2" src="fitLook/Images/txt_large.gif" style="border-width:0px;" /></a>
+                            <a class="reset" href="#" title="Click once to restore standard text size">
+                            <img id="ctl00_Image3" src="fitLook/Images/txt_medium_sel.gif" style="border-width:0px;" /></a>
+                            <a class="decrease" href="#" title="Keep clicking to decrease text size">
+                            <img id="ctl00_Image4" src="fitLook/Images/txt_small.gif" style="border-width:0px;" /></a>
+                        </div>
+                    </td>
+                    <td align="right"><b>Change color: <td>
+                        <table>
+                            <tr>
+                                <td style="background-color:Navy" title="Blue"><input type="radio" value="blue" name="grpStyle" onclick="setActiveStyleSheet('default'); return true;" id="rdBlue" /></td>
+                                <td style="background-color:Green" title="Green"><input type="radio" value="green" name="grpStyle" onclick="setActiveStyleSheet('green'); return true;" id="rdGreen" /></td>
+                                <td style="background-color:Red" title="Red"><input type="radio" value="red" name="grpStyle" onclick="setActiveStyleSheet('red'); return true;" id="rdRed" /></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>            
+            </table>
+        </div>
+    </div>
+    <div id="master_page">
+        <div id="ctl00_master_menu" class="master_menu">
+            <div class="sidebar">
+                <div class="sidebarheader">Finance</div>
+                <div id="master_sidebarSamples" class="sidebarcontent">
+                     
+                            <img id="ctl00_LeftNavLinks_ctl00_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl00_SamplesLink" href="http://www.nyc.gov/html/dof/html/home/home.shtml">Home</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl01_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl01_SamplesLink" href="http://www.nyc.gov/html/dof/html/property/property.shtml">Property</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl02_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl02_SamplesLink" href="http://www.nyc.gov/html/dof/html/parking/parking.shtml">Parking & Vehicles</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl03_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl03_SamplesLink" href="http://www.nyc.gov/html/dof/html/business/business_tax_business.shtml">Business Taxes</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl04_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl04_SamplesLink" href="http://www.nyc.gov/html/dof/html/services/services.shtml">Other Services</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl05_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl05_SamplesLink" href="http://www.nyc.gov/html/dof/html/pub/pub.shtml">Forms & Publications</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl06_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl06_SamplesLink" href="http://www.nyc.gov/html/dof/html/about/about.shtml">About Finance</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl07_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl07_SamplesLink" href="http://www.nyc.gov/html/dof/html/contact/contact.shtml">Contact Finance</a><br />
+                        
+                    
+                    <br />
+                    <div id="ctl00_Div_Survey" class="sidebar">
+                        <div class="sidebarcontent" style="text-align:center;">
+                              <a href="http://www.zoomerang.com/Survey/?p=WEB22A6P7TVPF6">Click to take Property<br />Tax Benefit survey</a>
+                        </div>
+                    </div>
+                    
+                    <br />
+                </div>
+                
+            </div>
+            
+            
+        </div>
+       
+        <div id="master_content">
+            <div id="master_contentheader"></div>
+            <div id="master_contentplaceholder">
+            <span id="ctl00_smpBreadCrumb"><a href="#ctl00_smpBreadCrumb_SkipLink"><img alt="Skip Navigation Links" height="0" width="0" src="/WebResource.axd?d=c7d2M9RT-hsV82IzgcBpLg2&amp;t=633595192754539605" style="border-width:0px;" /></a><span>
+                    <a id="ctl00_smpBreadCrumb_ctl00_HyperLink1" href="http://www.nyc.gov/html/dof/html/home/home.shtml">Finance Home</a>
+                </span><span> &gt; </span><span>
+                    <a id="ctl00_smpBreadCrumb_ctl02_HyperLink2" href="/">Property Portal</a>
+                </span><span> &gt; </span><span>
+                    <a id="ctl00_smpBreadCrumb_ctl04_lnkCurrentNode" style="background-color:#ffffcc;font-weight:bold;">Search Property</a>
+                    
+                </span><a id="ctl00_smpBreadCrumb_SkipLink"></a></span>
+            
+
+    <script src="fitLook/includes/layerutils.js" type="text/javascript"></script>
+    <script src="fitLook/includes/fontResize.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        //This function enables the enter button for form submission
+        function enableEnter(event, form) {
+            var key = (window.event) ? event.keyCode : event.which;
+            if (key != 13) return;
+            var form_obj = document.getElementById((form == 'bbl') ? 'ctl00_SampleContent_ctl01_btnSearchBBL' : 'ctl00_SampleContent_ctl03_btnSearchPropAddr');
+            form_obj.click();
+        }
+
+        function showPanel(panelId) {
+            //alert(panelId);
+            document.getElementById(panelId).style.visibility = "visible";
+            document.getElementById(panelId).style.left = getPosition(event).x;
+            document.getElementById(panelId).style.top = getPosition(event).y;
+        }
+        function hidePanel(panelId) {
+            document.getElementById(panelId).style.visibility = "hidden";
+        }
+
+        // calls function on WestWind control to set an ajax callback.
+        // see http://www.west-wind.com/webconnection/docs/_1WD05RMR0.htm
+        // Ajax postbacks to this aspx's codebehind: "if (this.wwhHelp.IsCallback)", which
+        // invokes "DescProcessCallback()", which calls 
+        // "string itemDesc = CacheObject.GetCacheItem(itemId);" and
+        // retrieves description text from "CacheObject.GetCacheItem(itemId);".
+        function showDescription(event, id) {
+            wwhHelp.startCallback(event, "id=" + id.toString(), null, onError);
+            toggleAllDropDowns(true);
+            //replaceDropdowns(false,'ctl00_SampleContent_ctl01_ddlParclBorough','lblParclBorough');
+            //replaceDropdowns(false,'ctl00_SampleContent_ctl03_ddlParclBoroughPropAddr','lblParclBoroughPropAddr');
+        }
+        function hideDescription() {
+            wwhHelp.hide();
+            toggleAllDropDowns(false);
+            //replaceDropdowns(true,'ctl00_SampleContent_ctl01_ddlParclBorough','lblParclBorough');
+            //replaceDropdowns(true,'ctl00_SampleContent_ctl03_ddlParclBoroughPropAddr','lblParclBoroughPropAddr');
+       }
+        function fillTextBox(controlId, txtValue) {
+            //document.getElementById("ctl00$SampleContent$ctl03$txtStreetNm").value = txtValue;
+            document.getElementById(controlId).value = txtValue;
+        }
+        function Openpane(paneIndex, eventElement) {
+            var behavior = $get('ctl00_SampleContent_MyAccordion').AccordionBehavior;
+            behavior.set_SelectedIndex(paneIndex);
+            showPanel('ctl00_SampleContent_ctl03_pnlHowToGetBBL');
+            //showPopup();
+        }
+        function getPosition(e) {
+            e = e || window.event;
+            var cursor = { x: 0, y: 0 };
+            if (e.pageX || e.pageY) {
+                cursor.x = e.pageX;
+                cursor.y = e.pageY;
+            }
+            else {
+                var de = document.documentElement;
+                var b = document.body;
+                cursor.x = e.clientX +
+                    (de.scrollLeft || b.scrollLeft) - (de.clientLeft || 0);
+                cursor.y = e.clientY +
+                    (de.scrollTop || b.scrollTop) - (de.clientTop || 0);
+            }
+            return cursor;
+        }
+        function onError() {
+
+        }
+
+        Sys.Application.add_init(application_init);
+
+        function application_init() {
+            var prm = Sys.WebForms.PageRequestManager.getInstance();
+            prm.add_pageLoaded(prm_pageLoaded);
+        }
+
+        function prm_pageLoaded() {
+            document.body.style.cursor = "default";
+        }
+    </script>
+
+    <br />
+    <br />
+    <div id="ctl00_SampleContent_pnlLoading" class="modalPopup" style="display: none;">
+	
+        <img src="fitLook/images/loading.gif" alt="Loading" />
+        Loading... Please wait.
+    
+</div>
+    <div id="master_contenthelpmenu">
+        <div class="ContentTitleBar">
+            Property Tax Benefit Information&nbsp;<img src="fitLook/images/question_mark.gif"
+                class="helplink" style="vertical-align: inherit" onmouseover="showDescription(event, 'propTaxBenInfo')"
+                onmouseout="hideDescription()" width="15px" /></div>
+    </div>
+    <br />
+    <h1>
+        Search for your property</h1>
+    <br />
+    <input type="submit" name="ctl00$SampleContent$hiddenTargetControlForModalPopup" value="" id="ctl00_SampleContent_hiddenTargetControlForModalPopup" style="display: none" />
+    <div id="ctl00_SampleContent_MyAccordion">
+	<input type="hidden" name="ctl00$SampleContent$MyAccordion_AccordionExtender_ClientState" id="ctl00_SampleContent_MyAccordion_AccordionExtender_ClientState" value="0" /><div class="accordionHeaderSelected">
+		
+                    <a href="" class="accordionLink">1. Property Identifier - Borough, Block and Lot (BBL)</a>
+	</div><div class="accordionContent" style="display:block;">
+		
+                    
+                    <div id="ctl00_SampleContent_ctl01_pnlHowDoIFind" class="PopupContainer" style="display: none; width: 350px;
+                       height: 70px;">
+			
+                        <div id="ctl00_SampleContent_ctl01_Panel2" class="PopupHeader" style="height:25px;width:100%;">
+				
+                            <div>
+                                How do I find my BBL?</div>
+                        
+			</div>
+                    
+		</div>
+                    <table width="100%" class="mod_content color_3_1" cellpadding="0" cellspacing="0"
+                        border="0">
+                        <tr>
+                            <td valign="top">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="table-layout: fixed;">
+                                    <tr>
+                                        <td align="left" width="20%">
+                                            <span class="heading4bold">Borough</span>
+                                        </td>
+                                        <td width="30%">
+                                            <div id="ctl00_SampleContent_ctl01_lblParclBorough">
+			
+                                                <input name="ctl00$SampleContent$ctl01$TextBox1" type="text" value=" 1 Manhattan" id="ctl00_SampleContent_ctl01_TextBox1" style="height:13px;width:73px;border-right-style: hidden" /><img
+                                                    style="vertical-align: inherit" src="fitLook/images/dropdownarrow.GIF" />
+		</div>
+                                            <select name="ctl00$SampleContent$ctl01$ddlParclBorough" id="ctl00_SampleContent_ctl01_ddlParclBorough">
+			<option value="1">1 Manhattan</option>
+			<option value="2">2 Bronx</option>
+			<option value="3">3 Brooklyn</option>
+			<option value="4">4 Queens</option>
+			<option value="5">5 Staten Island</option>
+
+		</select>
+                                            <span id="ctl00_SampleContent_ctl01_RequiredFieldValidator1" style="color:Red;display:none;"></span>
+                                        </td>
+                                        <td width="50%">
+                                            <a href="#" id="ctl00_SampleContent_ctl01_whatzmybbl" onclick="Openpane(1,event);">* How do I find
+                                                my BBL?</a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align="left">
+                                            <span class="heading4bold">Block</span>
+                                        </td>
+                                        <td>
+                                            <input name="ctl00$SampleContent$ctl01$txtBlock" type="text" id="ctl00_SampleContent_ctl01_txtBlock" onkeypress="enableEnter(event,'bbl')" style="width:80px;" />
+                                            <span id="ctl00_SampleContent_ctl01_rfvBlock" style="color:Red;display:none;"></span>
+                                            <span id="ctl00_SampleContent_ctl01_revBlock" style="color:Red;display:none;"></span>
+                                            
+                                            
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align="left">
+                                            <span class="heading4bold">Lot</span>
+                                        </td>
+                                        <td>
+                                            <input name="ctl00$SampleContent$ctl01$txtLot" type="text" id="ctl00_SampleContent_ctl01_txtLot" onkeypress="enableEnter(event,'bbl')" style="width:80px;" />
+                                            <span id="ctl00_SampleContent_ctl01_rfvLot" style="color:Red;display:none;"></span>
+                                            <span id="ctl00_SampleContent_ctl01_revLot" style="color:Red;display:none;"></span>
+                                            
+                                            
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align="left">
+                                            <span class="heading4"></span>
+                                        </td>
+                                        <td>
+                                            <table class="button_table" cellpadding="0" cellspacing="0" border="0">
+                                                <tr>
+                                                    <td class="button_left" onclick="document.getElementById('ctl00_SampleContent_ctl01_btnSearchBBL').click();">
+                                                    </td>
+                                                    <td>
+                                                        <input type="submit" name="ctl00$SampleContent$ctl01$btnSearchBBL" value="Search" onclick="doWait(this, 'vgBBLE');WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$SampleContent$ctl01$btnSearchBBL&quot;, &quot;&quot;, true, &quot;vgBBLE&quot;, &quot;&quot;, false, false))" id="ctl00_SampleContent_ctl01_btnSearchBBL" class="button" />
+                                                    </td>
+                                                    <td class="button_search" onclick="document.getElementById('ctl00_SampleContent_ctl01_btnSearchBBL').click();">
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                
+	</div><div class="accordionHeader" onclick="hidePanel('ctl00_SampleContent_ctl03_pnlHowToGetBBL');">
+		
+                    <a href="" class="accordionLink">2. Property Address - Click here to search by address</a>
+	</div><div class="accordionContent" style="display:none;">
+		
+                    <div id="ctl00_SampleContent_ctl03_upPropertyAddress">
+			
+                            <table width="100%" class="mod_content color_3_1" cellpadding="0" cellspacing="0"
+                                border="0">
+                                <tr>
+                                    <td valign="top">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td align="left" width="28%">
+                                                    <span class="heading4bold">Borough</span>
+                                                </td>
+                                                <td width="30%">
+                                                    <div id="ctl00_SampleContent_ctl03_lblParclBoroughPropAddr" style="display:none;">
+				
+                                                        <input name="ctl00$SampleContent$ctl03$TextBox2" type="text" value=" 1 Manhattan" id="ctl00_SampleContent_ctl03_TextBox2" style="height:13px;width:73px;border-right-style: hidden" /><img
+                                                            style="vertical-align: inherit" src="fitLook/images/dropdownarrow.GIF" />
+			</div>
+                                                    <select name="ctl00$SampleContent$ctl03$ddlParclBoroughPropAddr" id="ctl00_SampleContent_ctl03_ddlParclBoroughPropAddr">
+				<option value="1">1 Manhattan</option>
+				<option value="2">2 Bronx</option>
+				<option value="3">3 Brooklyn</option>
+				<option value="4">4 Queens</option>
+				<option value="5">5 Staten Island</option>
+
+			</select>
+                                                </td>
+                                                <td rowspan="3" valign="top">
+                                                    <div id="ctl00_SampleContent_ctl03_pnlHowToGetBBL" style="background-color:#FFFFCC;border-color:DarkGray;border-width:1px;border-style:Solid;">
+				
+                                                        <img src="fitLook/images/information_icon.gif" align="left" width="25" height="25" />&nbsp;&nbsp;<b>Quick
+                                                            Tips:</b>
+                                                        <br />
+                                                        <br />
+                                                        Using Address Search, you can get your Borough, Block & Lot (BBL).
+			</div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="left">
+                                                    <span class="heading4bold">House Number</span>
+                                                </td>
+                                                <td>
+                                                    <input name="ctl00$SampleContent$ctl03$txtHouseNbr" type="text" id="ctl00_SampleContent_ctl03_txtHouseNbr" onkeypress="enableEnter(event,'addr')" style="width:80px;" />
+                                                    <span id="ctl00_SampleContent_ctl03_rfvHouseNbr" style="color:Red;display:none;"></span>
+                                                    
+                                                </td>
+                                                <td>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="left">
+                                                    <span class="heading4bold">Street Name</span>
+                                                </td>
+                                                <td>
+                                                    <input name="ctl00$SampleContent$ctl03$txtStreetNm" type="text" id="ctl00_SampleContent_ctl03_txtStreetNm" onkeypress="enableEnter(event,'addr')" style="width:160px;" />
+                                                    <span id="ctl00_SampleContent_ctl03_rfvStreetNm" style="color:Red;display:none;"></span>
+                                                    
+                                                </td>
+                                                <td>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="left">
+                                                    <span class="heading4bold">Apartment/Unit Number</span>
+                                                </td>
+                                                <td colspan="2">
+                                                    <input name="ctl00$SampleContent$ctl03$txtAptNbr" type="text" id="ctl00_SampleContent_ctl03_txtAptNbr" onkeypress="enableEnter(event,'addr')" style="width:80px;" /><i>(Required
+                                                        for Condos) </i>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="left">
+                                                    <span class="heading4bold"></span>
+                                                </td>
+                                                <td>
+                                                    <table class="button_table" cellpadding="0" cellspacing="0" border="0">
+                                                        <tr>
+                                                            <td class="button_left" onclick="document.getElementById('ctl00_SampleContent_ctl03_btnSearchPropAddr').click();">
+                                                            </td>
+                                                            <td>
+                                                                <input type="submit" name="ctl00$SampleContent$ctl03$btnSearchPropAddr" value="Search" onclick="doWait(this, 'vgPropAddr');WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$SampleContent$ctl03$btnSearchPropAddr&quot;, &quot;&quot;, true, &quot;vgPropAddr&quot;, &quot;&quot;, false, false))" id="ctl00_SampleContent_ctl03_btnSearchPropAddr" class="button" />
+                                                            </td>
+                                                            <td class="button_search" onclick="document.getElementById('ctl00_SampleContent_ctl03_btnSearchPropAddr').click();">
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                                <td>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div id="ctl00_SampleContent_ctl03_pnlMessage">
+				
+                                <span id="ctl00_SampleContent_ctl03_lblMessage"></span>
+                            
+			</div>
+                            
+                            
+                        
+		</div>
+                
+	</div>
+</div>
+    <div id="wwhHelp" onmouseover="wwhHelp.show();" onmouseout="wwhHelp.hide();" style="background-color:White;width:350px;background:white;display:none;filter:alpha(opacity='92.00');">
+	
+    
+</div>
+    <div id="ctl00_SampleContent_UpdateProgress1" style="visibility:hidden;display:block;">
+	
+            <img src="fitLook/images/loading.gif" />
+            Loading ...
+        
+</div>
+</div>
+            <br />
+        </div>
+        
+        
+    </div>
+
+<script type="text/javascript">
+//<![CDATA[
+var Page_Validators =  new Array(document.getElementById("ctl00_SampleContent_ctl01_RequiredFieldValidator1"), document.getElementById("ctl00_SampleContent_ctl01_rfvBlock"), document.getElementById("ctl00_SampleContent_ctl01_revBlock"), document.getElementById("ctl00_SampleContent_ctl01_rfvLot"), document.getElementById("ctl00_SampleContent_ctl01_revLot"), document.getElementById("ctl00_SampleContent_ctl03_rfvHouseNbr"), document.getElementById("ctl00_SampleContent_ctl03_rfvStreetNm"));
+//]]>
+</script>
+
+<script type="text/javascript">
+//<![CDATA[
+var ctl00_SampleContent_ctl01_RequiredFieldValidator1 = document.all ? document.all["ctl00_SampleContent_ctl01_RequiredFieldValidator1"] : document.getElementById("ctl00_SampleContent_ctl01_RequiredFieldValidator1");
+ctl00_SampleContent_ctl01_RequiredFieldValidator1.controltovalidate = "ctl00_SampleContent_ctl01_ddlParclBorough";
+ctl00_SampleContent_ctl01_RequiredFieldValidator1.errormessage = "Borough value is required.";
+ctl00_SampleContent_ctl01_RequiredFieldValidator1.display = "None";
+ctl00_SampleContent_ctl01_RequiredFieldValidator1.validationGroup = "vgBBLE";
+ctl00_SampleContent_ctl01_RequiredFieldValidator1.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ctl00_SampleContent_ctl01_RequiredFieldValidator1.initialvalue = "";
+var ctl00_SampleContent_ctl01_rfvBlock = document.all ? document.all["ctl00_SampleContent_ctl01_rfvBlock"] : document.getElementById("ctl00_SampleContent_ctl01_rfvBlock");
+ctl00_SampleContent_ctl01_rfvBlock.controltovalidate = "ctl00_SampleContent_ctl01_txtBlock";
+ctl00_SampleContent_ctl01_rfvBlock.errormessage = "Block number is required.";
+ctl00_SampleContent_ctl01_rfvBlock.display = "None";
+ctl00_SampleContent_ctl01_rfvBlock.validationGroup = "vgBBLE";
+ctl00_SampleContent_ctl01_rfvBlock.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ctl00_SampleContent_ctl01_rfvBlock.initialvalue = "";
+var ctl00_SampleContent_ctl01_revBlock = document.all ? document.all["ctl00_SampleContent_ctl01_revBlock"] : document.getElementById("ctl00_SampleContent_ctl01_revBlock");
+ctl00_SampleContent_ctl01_revBlock.controltovalidate = "ctl00_SampleContent_ctl01_txtBlock";
+ctl00_SampleContent_ctl01_revBlock.errormessage = "Block value must be numeric and maximum 5-digits.";
+ctl00_SampleContent_ctl01_revBlock.display = "None";
+ctl00_SampleContent_ctl01_revBlock.validationGroup = "vgBBLE";
+ctl00_SampleContent_ctl01_revBlock.evaluationfunction = "RegularExpressionValidatorEvaluateIsValid";
+ctl00_SampleContent_ctl01_revBlock.validationexpression = "(\\d{1,5})";
+var ctl00_SampleContent_ctl01_rfvLot = document.all ? document.all["ctl00_SampleContent_ctl01_rfvLot"] : document.getElementById("ctl00_SampleContent_ctl01_rfvLot");
+ctl00_SampleContent_ctl01_rfvLot.controltovalidate = "ctl00_SampleContent_ctl01_txtLot";
+ctl00_SampleContent_ctl01_rfvLot.errormessage = "Lot number is required.";
+ctl00_SampleContent_ctl01_rfvLot.display = "None";
+ctl00_SampleContent_ctl01_rfvLot.validationGroup = "vgBBLE";
+ctl00_SampleContent_ctl01_rfvLot.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ctl00_SampleContent_ctl01_rfvLot.initialvalue = "";
+var ctl00_SampleContent_ctl01_revLot = document.all ? document.all["ctl00_SampleContent_ctl01_revLot"] : document.getElementById("ctl00_SampleContent_ctl01_revLot");
+ctl00_SampleContent_ctl01_revLot.controltovalidate = "ctl00_SampleContent_ctl01_txtLot";
+ctl00_SampleContent_ctl01_revLot.errormessage = "Lot value must be numeric and max 4-digits.";
+ctl00_SampleContent_ctl01_revLot.display = "None";
+ctl00_SampleContent_ctl01_revLot.validationGroup = "vgBBLE";
+ctl00_SampleContent_ctl01_revLot.evaluationfunction = "RegularExpressionValidatorEvaluateIsValid";
+ctl00_SampleContent_ctl01_revLot.validationexpression = "(\\d{1,4})";
+var ctl00_SampleContent_ctl03_rfvHouseNbr = document.all ? document.all["ctl00_SampleContent_ctl03_rfvHouseNbr"] : document.getElementById("ctl00_SampleContent_ctl03_rfvHouseNbr");
+ctl00_SampleContent_ctl03_rfvHouseNbr.controltovalidate = "ctl00_SampleContent_ctl03_txtHouseNbr";
+ctl00_SampleContent_ctl03_rfvHouseNbr.errormessage = "House number is required.";
+ctl00_SampleContent_ctl03_rfvHouseNbr.display = "None";
+ctl00_SampleContent_ctl03_rfvHouseNbr.validationGroup = "vgPropAddr";
+ctl00_SampleContent_ctl03_rfvHouseNbr.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ctl00_SampleContent_ctl03_rfvHouseNbr.initialvalue = "";
+var ctl00_SampleContent_ctl03_rfvStreetNm = document.all ? document.all["ctl00_SampleContent_ctl03_rfvStreetNm"] : document.getElementById("ctl00_SampleContent_ctl03_rfvStreetNm");
+ctl00_SampleContent_ctl03_rfvStreetNm.controltovalidate = "ctl00_SampleContent_ctl03_txtStreetNm";
+ctl00_SampleContent_ctl03_rfvStreetNm.errormessage = "Street name is required.";
+ctl00_SampleContent_ctl03_rfvStreetNm.display = "None";
+ctl00_SampleContent_ctl03_rfvStreetNm.validationGroup = "vgPropAddr";
+ctl00_SampleContent_ctl03_rfvStreetNm.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ctl00_SampleContent_ctl03_rfvStreetNm.initialvalue = "";
+//]]>
+</script>
+
+<script type='text/javascript'>toggleAllDropDowns(false);</script>
+<script type="text/javascript">
+//<![CDATA[
+
+var Page_ValidationActive = false;
+if (typeof(ValidatorOnLoad) == "function") {
+    ValidatorOnLoad();
+}
+
+function ValidatorOnSubmit() {
+    if (Page_ValidationActive) {
+        return ValidatorCommonOnSubmit();
+    }
+    else {
+        return true;
+    }
+}
+        function wwhHelp_GetHoverPanel() {
+    var Hover = new wwHoverPanel("wwhHelp","/Default.aspx");
+    Hover.callbackHandler = null;
+    Hover.htmlTargetClientId = "wwhHelp";
+    Hover.postbackMode = "Post";
+    Hover.navigateDelay = 300;
+    Hover.adjustWindowPosition = true;
+    Hover.eventHandlerMode = "ShowHtmlAtMousePosition";
+    Hover.shadowOpacity = 0.15;
+    Hover.shadowOffset = 8;
+    Hover.hoverOffsetRight = 15;
+    Hover.hoverOffsetBottom = 10;
+    return Hover;
+}
+var wwhHelp = wwhHelp_GetHoverPanel();
+var wwhHelp_DragBehavior = new wwDragBehavior("wwhHelp","");
+wwhHelp_DragBehavior.windowObj.showShadow(0.15,8);
+Sys.Application.initialize();
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.AccordionBehavior, {"ClientStateFieldID":"ctl00_SampleContent_MyAccordion_AccordionExtender_ClientState","ContentCssClass":"accordionContent","FramesPerSecond":40,"HeaderCssClass":"accordionHeader","HeaderSelectedCssClass":"accordionHeaderSelected","id":"ctl00_SampleContent_MyAccordion_AccordionExtender","requireOpenedPane":false,"suppressHeaderPostbacks":true}, null, null, $get("ctl00_SampleContent_MyAccordion"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.ModalPopupBehavior, {"PopupControlID":"ctl00_SampleContent_ctl01_pnlHowDoIFind","dynamicServicePath":"/Default.aspx","id":"programmaticModalPopupBehavior1"}, null, null, $get("ctl00_SampleContent_hiddenTargetControlForModalPopup"));
+});
+
+document.getElementById('ctl00_SampleContent_ctl01_RequiredFieldValidator1').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_SampleContent_ctl01_RequiredFieldValidator1'));
+}
+
+document.getElementById('ctl00_SampleContent_ctl01_rfvBlock').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_SampleContent_ctl01_rfvBlock'));
+}
+
+document.getElementById('ctl00_SampleContent_ctl01_revBlock').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_SampleContent_ctl01_revBlock'));
+}
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.ValidatorCalloutBehavior, {"closeImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrPDH2sAYrZosUliDW7LQRRASS-slmoGSGOZICft8PX801&t=634153158160000000","highlightCssClass":"validatorCalloutHighlight","id":"ctl00_SampleContent_ctl01_NReqE","warningIconImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrupvo_qTrGAGI6LVxvFp26UmbsmRbMqscRMN19pKqnXk1&t=634153158160000000"}, null, null, $get("ctl00_SampleContent_ctl01_rfvBlock"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.ValidatorCalloutBehavior, {"closeImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrPDH2sAYrZosUliDW7LQRRASS-slmoGSGOZICft8PX801&t=634153158160000000","highlightCssClass":"validatorCalloutHighlight","id":"ctl00_SampleContent_ctl01_ValidatorCalloutExtender4","warningIconImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrupvo_qTrGAGI6LVxvFp26UmbsmRbMqscRMN19pKqnXk1&t=634153158160000000"}, null, null, $get("ctl00_SampleContent_ctl01_revBlock"));
+});
+
+document.getElementById('ctl00_SampleContent_ctl01_rfvLot').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_SampleContent_ctl01_rfvLot'));
+}
+
+document.getElementById('ctl00_SampleContent_ctl01_revLot').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_SampleContent_ctl01_revLot'));
+}
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.ValidatorCalloutBehavior, {"closeImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrPDH2sAYrZosUliDW7LQRRASS-slmoGSGOZICft8PX801&t=634153158160000000","highlightCssClass":"validatorCalloutHighlight","id":"ctl00_SampleContent_ctl01_ValidatorCalloutExtender1","warningIconImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrupvo_qTrGAGI6LVxvFp26UmbsmRbMqscRMN19pKqnXk1&t=634153158160000000"}, null, null, $get("ctl00_SampleContent_ctl01_rfvLot"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.ValidatorCalloutBehavior, {"closeImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrPDH2sAYrZosUliDW7LQRRASS-slmoGSGOZICft8PX801&t=634153158160000000","highlightCssClass":"validatorCalloutHighlight","id":"ctl00_SampleContent_ctl01_ValidatorCalloutExtender5","warningIconImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrupvo_qTrGAGI6LVxvFp26UmbsmRbMqscRMN19pKqnXk1&t=634153158160000000"}, null, null, $get("ctl00_SampleContent_ctl01_revLot"));
+});
+
+document.getElementById('ctl00_SampleContent_ctl03_rfvHouseNbr').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_SampleContent_ctl03_rfvHouseNbr'));
+}
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.ValidatorCalloutBehavior, {"closeImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrPDH2sAYrZosUliDW7LQRRASS-slmoGSGOZICft8PX801&t=634153158160000000","highlightCssClass":"validatorCalloutHighlight","id":"ctl00_SampleContent_ctl03_ValidatorCalloutExtender2","warningIconImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrupvo_qTrGAGI6LVxvFp26UmbsmRbMqscRMN19pKqnXk1&t=634153158160000000"}, null, null, $get("ctl00_SampleContent_ctl03_rfvHouseNbr"));
+});
+
+document.getElementById('ctl00_SampleContent_ctl03_rfvStreetNm').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_SampleContent_ctl03_rfvStreetNm'));
+}
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.ValidatorCalloutBehavior, {"closeImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrPDH2sAYrZosUliDW7LQRRASS-slmoGSGOZICft8PX801&t=634153158160000000","highlightCssClass":"validatorCalloutHighlight","id":"ctl00_SampleContent_ctl03_ValidatorCalloutExtender3","warningIconImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrupvo_qTrGAGI6LVxvFp26UmbsmRbMqscRMN19pKqnXk1&t=634153158160000000"}, null, null, $get("ctl00_SampleContent_ctl03_rfvStreetNm"));
+});
+Sys.Application.add_init(function() {
+    $create(Sys.UI._UpdateProgress, {"associatedUpdatePanelId":null,"displayAfter":500,"dynamicLayout":false}, null, null, $get("ctl00_SampleContent_UpdateProgress1"));
+});
+//]]>
+</script>
+</form>
+
+<script type="text/javascript" language="javascript">    // .why not just call expandAll()? 'cause structures for accordion get built AFTER this
+    // call, since they are invoked by add_init() (defined by ajaxtoolkit). So put it in add_init();
+    if (window.jsPrintFlag)
+        Sys.Application.add_init(function() { expandAll(); });
+</script> 
+</body>
+</html>
+	../test/fixtures/nyc-incentives.json#/	0	NULL	NULL
+VIEWSTATE	/wEPDwULLTEwMDA4NDY4ODAPZBYCZg9kFgICBQ9kFgQCBQ9kFgICBw8WAh4HVmlzaWJsZWgWAgIBDxYCHglpbm5lcmh0bWwFGEFsZXJ0IGZvcjxiciAvPiBCQkwgOiAtLWQCCQ9kFgQCAg9kFgQCAQ9kFgRmDw8WBB4IQ3NzQ2xhc3MFF2FjY29yZGlvbkhlYWRlclNlbGVjdGVkHgRfIVNCAgJkZAIBDw8WBB8CBRBhY2NvcmRpb25Db250ZW50HwMCAhYCHgVzdHlsZQUOZGlzcGxheTpibG9jaztkAgIPZBYEZg8PFgQfAgUPYWNjb3JkaW9uSGVhZGVyHwMCAhYCHgdvbmNsaWNrBTZoaWRlUGFuZWwoJ2N0bDAwX1NhbXBsZUNvbnRlbnRfY3RsMDNfcG5sSG93VG9HZXRCQkwnKTtkAgEPDxYEHwIFEGFjY29yZGlvbkNvbnRlbnQfAwICFgIfBAUNZGlzcGxheTpub25lOxYCAgEPZBYCZg9kFgZmDw9kFgIfBAUNZGlzcGxheTpub25lO2QCDA8PFgIfAGhkZAINDw8WAh8AaGRkAgMPD2QWBh4FU3R5bGUFSHdpZHRoOjM1MHB4O2JhY2tncm91bmQ6d2hpdGU7ZGlzcGxheTpub25lO2ZpbHRlcjphbHBoYShvcGFjaXR5PSc5Mi4wMCcpOx4Lb25tb3VzZW92ZXIFD3d3aEhlbHAuc2hvdygpOx4Kb25tb3VzZW91dAUPd3doSGVscC5oaWRlKCk7ZGQHuCC6T97ldHf5nxH67mN717OGuw==	../test/fixtures/nyc-incentives.json#/finds_one/0	0	../test/fixtures/nyc-incentives.json#/	0
+EVENTVALIDATION	/wEWGgLQoN71DQL687aTAwLmha0BAujn2IECAo3DtaEJAtLdz/kGAr3g5K4DAu78ttcEAvOB3+MGAvKB3+MGAvGB3+MGAvCB3+MGAveB3+MGAoHAg44PArT/mOoPAqrvlMAJAtzQstcEAoDswboFAoHswboFAoLswboFAoPswboFAoTswboFAtjqpO8KAujQ7b0GAqvgnb0NAsPa/KsB92gWDjxIiPCV3SReLt0gtGTN89Y=	../test/fixtures/nyc-incentives.json#/finds_one/1	0	../test/fixtures/nyc-incentives.json#/	0
+NULL	
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="stylesheet" type="text/css" title="default" /><link rel="stylesheet" href="FitLook/css/mainstyle.css" type="text/css" /><link rel="stylesheet" href="FitLook/css/MasterBody.css" type="text/css" /><link rel="alternate stylesheet" type="text/css" href="App_Themes/GreenTheme/StyleSheetGreen.css" title="green" /><link rel="alternate stylesheet" type="text/css" href="App_Themes/RedTheme/StyleSheetRed.css" title="red" />
+    <!--<script src="FitLook/includes/scroller.js" type="text/javascript" ></script>-->
+    <script language="javascript" src="FitLook/includes/layerutils.js" type="text/javascript"></script>
+    <script src="FitLook/includes/fontResize.js" type="text/javascript" ></script>
+    <script src="FitLook/includes/styleswitcher.js" type="text/javascript" ></script>
+        
+         
+
+    <script type="text/javascript" language="javascript">
+
+        fontReSize.setDefaults("px", 12, 9, 24, ['body', 'td', 'div', 'p', 'font', 'span', 'img', 'a', 'h2']);
+        window.onload = function SetDefaultStylesheet() {
+            var cookie = readCookie("style");
+            var title = cookie ? cookie : getPreferredStyleSheet();
+            setActiveStyleSheet(title);
+            
+            switch(title)
+            {
+                case 'default':
+                    document.getElementById('rdBlue').checked = true;
+                    break;
+                case 'red':
+                    document.getElementById('rdRed').checked = true;
+                     break;
+                 case 'green':
+                     document.getElementById('rdGreen').checked = true;
+                     break;
+            }
+        }
+        addLoadEvent(fontReSize.init);
+
+        // Move an element directly on top of another element (and optionally
+        // make it the same size)
+        function Cover(bottom, top, ignoreSize) {
+            var location = Sys.UI.DomElement.getLocation(bottom);
+            top.style.position = 'absolute';
+            top.style.top = location.y + 'px';
+            top.style.left = location.x + 'px';
+            if (!ignoreSize) {
+                top.style.height = bottom.offsetHeight + 'px';
+                top.style.width = bottom.offsetWidth + 'px';
+            }
+        }
+        function popup(fileNm, windowNm) {
+            window.open(fileNm, windowNm, "menubar=1,resizable=1,width=450,height=550,scrollbars=1");
+        }
+
+        //cust svc alert
+
+        window.onerror = null;
+        var bName = navigator.appName;
+        var bVer = parseInt(navigator.appVersion);
+        var NS4 = (bName == "Netscape" && bVer >= 4);
+        var IE4 = (bName == "Microsoft Internet Explorer"
+         && bVer >= 4);
+        var NS3 = (bName == "Netscape" && bVer < 4);
+        var IE3 = (bName == "Microsoft Internet Explorer"
+         && bVer < 4);
+        var blink_speed = 400;
+        var i = 0;
+
+        if (NS4 || IE4) {
+            if (navigator.appName == "Netscape") {
+                layerStyleRef = "layer.";
+                layerRef = "document.layers";
+                styleSwitch = "";
+            } else {
+                layerStyleRef = "layer.style.";
+                layerRef = "document.all";
+                styleSwitch = ".style";
+            }
+        }
+
+        //BLINKING
+        var totalBlinkies = 0;
+        function Blink(layerName) {
+            //javascript commands get dynamically built from strings, so use eval()
+            if (NS4 || IE4) {
+                var str_obj = layerRef + '["' + layerName + '"]';
+                var str_cmd = 'if (' + str_obj + ')' + str_obj + '.visibility=';
+                if (totalBlinkies++ > 12) { // n blinks is enough blinks, so stop.
+                    eval(str_cmd + '"visible"');
+                    return;
+                }
+                if (i % 2 == 0) {
+                    eval(str_cmd + '"visible"');
+                }
+                else {
+                    eval(str_cmd + '"hidden"');
+                }
+            }
+            if (i < 1) {
+                i++;
+            }
+            else {
+                i--
+            }
+            setTimeout("Blink('" + layerName + "')", blink_speed);
+        } 
+
+    </script>
+</head>
+<body>
+<div id="ctl00_frmHolder" style="display: none;"></div>
+<form name="aspnetForm" method="post" action="searchdetails.aspx" onsubmit="javascript:return WebForm_OnSubmit();" id="aspnetForm">
+<div>
+<input type="hidden" name="ctl00_ScriptManager1_HiddenField" id="ctl00_ScriptManager1_HiddenField" value="" />
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwUKMTQ3MjcwODM4OWRk/z7l8ydU/8QmCxqGYn+hauUC/Hk=" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['aspnetForm'];
+if (!theForm) {
+    theForm = document.aspnetForm;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=Yj0feEDQN00KHZym_UGpoA2&amp;t=633595192754539605" type="text/javascript"></script>
+
+<script language=javascript src='includes/layerutils.js'></script>
+<script src="/ScriptResource.axd?d=oIegpKP0CBmkQl_UULdwl07grUwXJwMS_uh-lLihT-QhWbJn11fhSelb25S0X36lJCVtqKv-gP-SlsrIvVRG-Eh1UlvwFlNahBvg8msDAVg1&amp;t=fffffffff59fe74a" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=Jnlmp03Jqp1O3dvDpZbxqZlXIWxWx_VnTHO78dFq9d7xA0JB5LYKuyh7Vj6sTiXe4WSFqbWjFaXwK1bd6jPiEw2&amp;t=ffffffff834fc288" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=FmUdyqOO4F6k6qnd2GfdOMwuKRGkc6YBa8hFt6wd9WAwna15RWXfQZSyAqad7F-VaE5CY8cgj30Y603xGCSWiyLBKzEbORrgk_O-J--1eWY1&amp;t=ffffffffd08d64ef" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=FmUdyqOO4F6k6qnd2GfdOMwuKRGkc6YBa8hFt6wd9WAwna15RWXfQZSyAqad7F-V3wox79Q7dPLrnkmXwPMxJQeQn8TrcjpKVzI8CTQgK2A1&amp;t=ffffffffd08d64ef" type="text/javascript"></script>
+<script src="/searchdetails.aspx?_TSM_HiddenField_=ctl00_ScriptManager1_HiddenField&amp;_TSM_CombinedScripts_=%3b%3bAjaxControlToolkit%2c+Version%3d3.0.11119.25904%2c+Culture%3dneutral%2c+PublicKeyToken%3d28f01b0e84b6d53e%3aen-US%3af48478dd-9360-4d50-94c1-5c5fa55bd379%3a411fea1c%3a865923e8%3a77c58d20%3a91bd373d%3a14b56adc%3ae7c87f07%3a1d58b08c%3abbfda34c%3a596d588c%3a30a78ec5%3a58ebc1c5%3abc528fec%3a5430d994" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+function WebForm_OnSubmit() {
+if (typeof(ValidatorOnSubmit) == "function" && ValidatorOnSubmit() == false) return false;
+return true;
+}
+//]]>
+</script>
+
+<div>
+
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEWEwKLyPTPBQL687aTAwLmha0BAujn2IECAo3DtaEJAtLdz/kGAszU6IwMApT0s/cEAr3g5K4DAo3s9qgMAuDfzVoC4d/NWgLi381aAuPfzVoC5N/NWgKU6vDhBwLHiLfGCALdpsiCCgKd3PquCq5NPDVvAcNoIj9plD6PVN5kn10h" />
+</div>
+    <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$ScriptManager1', document.getElementById('aspnetForm'));
+Sys.WebForms.PageRequestManager.getInstance()._updateControls(['tctl00$SampleContent$PropertyInfoContainer'], [], [], 90);
+//]]>
+</script>
+
+    <div id="ctl00_master_header" class="master_header">
+        <div id="master_headertop">
+            <img id="ctl00_Image1" usemap="#TopNav" src="FitLook/images/nycgov_banner.gif" alt="Department of Finance" style="border-width:0px;" />
+            <map name="TopNav" id="123">
+              <area shape="rect" coords="554,1,599,25" href="http://www.nyc.gov/search" alt="Search"/>
+              <area shape="rect" coords="607,1,688,25" href="http://www.nyc.gov/portal/register.jsp" alt="Email Updates"/>
+              <area shape="rect" coords="698,1,762,25" href="http://www.nyc.gov/contact" alt="Contact Us"/>
+              <area shape="rect" coords="328,27,399,50" href="http://www.nyc.gov/residents" alt="Residents"/>
+              <area shape="rect" coords="408,27,471,50" href="http://www.nyc.gov/business" alt="Business"/>
+              <area shape="rect" coords="478,27,535,50" href="http://www.nyc.gov/visitors" alt="Visitors"/>
+              <area shape="rect" coords="544,27,628,50" href="http://www.nyc.gov/government" alt="Government"/>
+              <area shape="rect" coords="635,27,764,50" href="http://www.nyc.gov/mayor" alt="Office of the Mayor"/>
+              <area shape="rect" coords="3,3,49,48" href="http://www.nyc.gov/home.html" alt="NYC.gov always open"/>
+            </map>
+            <a id="ctl00_HomePageLink" title="Department of Finance" href="http://www.nyc.gov/html/dof/html/home/home.shtml"><img id="ctl00_HeaderImage" src="App_Themes/BlueTheme/Images/property_logo.jpg" alt="Department of Finance" style="border-width:0px;" /></a>
+        </div>
+        <div id="master_headerbottom">
+            <table width="100%">
+                <tr>
+                    <td width="35%">
+                        &nbsp;</td>                    
+                    <td valign="middle" align="right"><a onclick="popup('faqs.aspx','FAQs'); return false;" id="ctl00_lnkFAQ" title="Frequently Asked Questions" class="heading2" href="javascript:__doPostBack('ctl00$lnkFAQ','')" style="color:#5275AD;">FAQs</a></td>
+                    <td valign="middle" align="right"><a onclick="popup('glossary.aspx','Glossary'); return false;" id="ctl00_lnkGlossary" title="Definition of Terms" class="heading2" href="javascript:__doPostBack('ctl00$lnkGlossary','')" style="color:#5275AD;">Glossary</a></td>
+                    <td valign="middle" align="center"><a onclick="popup('calculations.aspx','Calculations'); return false;" id="ctl00_lnkCalc" title="View Calculation Methods" class="heading2" href="javascript:__doPostBack('ctl00$lnkCalc','')" style="color:#5275AD;">Calculations</a></td>
+                    <td valign="middle" align="right"><a onclick="popup('Help.aspx','Help'); return false;" id="ctl00_lnkHelp" title="Tips &amp; Shortcuts" class="heading2" href="javascript:__doPostBack('ctl00$lnkHelp','')" style="color:#5275AD;">Help</a></td>
+                    <td align="right" valign="middle" nowrap ><b>Change text size :</b></td>
+                    <td align="right" valign="middle">
+                        <div id="resize" style="white-space:nowrap;">
+                            <a class="increase" href="#" title="Keep clicking to increase text size">
+                            <img id="ctl00_Image2" src="fitLook/Images/txt_large.gif" style="border-width:0px;" /></a>
+                            <a class="reset" href="#" title="Click once to restore standard text size">
+                            <img id="ctl00_Image3" src="fitLook/Images/txt_medium_sel.gif" style="border-width:0px;" /></a>
+                            <a class="decrease" href="#" title="Keep clicking to decrease text size">
+                            <img id="ctl00_Image4" src="fitLook/Images/txt_small.gif" style="border-width:0px;" /></a>
+                        </div>
+                    </td>
+                    <td align="right"><b>Change color: <td>
+                        <table>
+                            <tr>
+                                <td style="background-color:Navy" title="Blue"><input type="radio" value="blue" name="grpStyle" onclick="setActiveStyleSheet('default'); return true;" id="rdBlue" /></td>
+                                <td style="background-color:Green" title="Green"><input type="radio" value="green" name="grpStyle" onclick="setActiveStyleSheet('green'); return true;" id="rdGreen" /></td>
+                                <td style="background-color:Red" title="Red"><input type="radio" value="red" name="grpStyle" onclick="setActiveStyleSheet('red'); return true;" id="rdRed" /></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>            
+            </table>
+        </div>
+    </div>
+    <div id="master_page">
+        <div id="ctl00_master_menu" class="master_menu">
+            <div class="sidebar">
+                <div class="sidebarheader">Finance</div>
+                <div id="master_sidebarSamples" class="sidebarcontent">
+                     
+                            <img id="ctl00_LeftNavLinks_ctl00_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl00_SamplesLink" href="http://www.nyc.gov/html/dof/html/home/home.shtml">Home</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl01_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl01_SamplesLink" href="http://www.nyc.gov/html/dof/html/property/property.shtml">Property</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl02_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl02_SamplesLink" href="http://www.nyc.gov/html/dof/html/parking/parking.shtml">Parking & Vehicles</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl03_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl03_SamplesLink" href="http://www.nyc.gov/html/dof/html/business/business_tax_business.shtml">Business Taxes</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl04_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl04_SamplesLink" href="http://www.nyc.gov/html/dof/html/services/services.shtml">Other Services</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl05_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl05_SamplesLink" href="http://www.nyc.gov/html/dof/html/pub/pub.shtml">Forms & Publications</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl06_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl06_SamplesLink" href="http://www.nyc.gov/html/dof/html/about/about.shtml">About Finance</a><br />
+                         
+                            <img id="ctl00_LeftNavLinks_ctl07_Image4" vspace="2" border="0" align="absmiddle" src="fitLook/Images/gray_arrow.gif" alt="gray arrow" style="height:9px;width:9px;border-width:0px;" />
+                            <a id="ctl00_LeftNavLinks_ctl07_SamplesLink" href="http://www.nyc.gov/html/dof/html/contact/contact.shtml">Contact Finance</a><br />
+                        
+                    
+                    <br />
+                    <div id="ctl00_Div_Survey" class="sidebar">
+                        <div class="sidebarcontent" style="text-align:center;">
+                              <a href="http://www.zoomerang.com/Survey/?p=WEB22A6P7TVPF6">Click to take Property<br />Tax Benefit survey</a>
+                        </div>
+                    </div>
+                    
+                    <br />
+                </div>
+                
+            </div>
+            <div id="ctl00_master_custservice" class="sidebar">
+                <div class="sidebarheader_multiline" style=""><div id="ctl00_alert_text">Alert for<br /> BBL : 3-01772-0074</div></div>
+                <!--<script type="text/javascript" language="javascript">Blink('alert_text');</script>-->
+                <div id="ctl00_blinkerA">
+	
+                    <script type="text/javascript" language="javascript">                        Blink('alert_text');</script>
+                
+</div>
+                <div id="Div2" class="glossarySidebarcontent" style="background-color:White;">
+                    <table>
+                        
+                                <tr>
+                                    <td class="AlertText">
+                                        <span id="ctl00_rptCustSvcAlert_ctl00_lblCustSvcAlertTxt">If this is your primary residence, you may be eligible for STAR and other personal exemptions. For further details, please <a href="http://nyc.gov/html/dof/html/property/property_tax_reduc_individual.shtml"> click here</a>.</span>                                    
+                                    </td>
+                                </tr>
+                            
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+       
+        <div id="master_content">
+            <div id="master_contentheader"></div>
+            <div id="master_contentplaceholder">
+            <span id="ctl00_smpBreadCrumb"><a href="#ctl00_smpBreadCrumb_SkipLink"><img alt="Skip Navigation Links" height="0" width="0" src="/WebResource.axd?d=c7d2M9RT-hsV82IzgcBpLg2&amp;t=633595192754539605" style="border-width:0px;" /></a><span>
+                    <a id="ctl00_smpBreadCrumb_ctl00_HyperLink1" href="http://www.nyc.gov/html/dof/html/home/home.shtml">Finance Home</a>
+                </span><span> &gt; </span><span>
+                    <a id="ctl00_smpBreadCrumb_ctl02_HyperLink2" href="/">Property Portal</a>
+                </span><span> &gt; </span><span>
+                    <a id="ctl00_smpBreadCrumb_ctl04_HyperLink2" href="/Default.aspx">Search Property</a>
+                </span><span> &gt; </span><span>
+                    <a id="ctl00_smpBreadCrumb_ctl06_lnkCurrentNode" style="background-color:#ffffcc;font-weight:bold;">Search Details</a>
+                    
+                </span><a id="ctl00_smpBreadCrumb_SkipLink"></a></span>
+            
+        
+        <script src="fitLook/includes/layerutils.js" type="text/javascript"></script>
+        <script type="text/javascript">
+
+            function XMLHTTPButton_onclick() 
+            {
+                //window.open("abatementsredirect.htm");
+                window.open('http://webapps.nyc.gov:8084/cics/cwba/dfhwbtta/abhq.com');
+            }        
+        
+            // in the code-behind, this gets wired up to onclick() for accordion panes
+            // consult AccordionBehavior.js in the AjaxToolkit to see functions for the
+            // AccordionBehavior javascript class.
+            function modifyLabel(evt, clickedPaneNumber) {
+                var behavior = $find('ctl00_SampleContent_MyAccordion' + '_AccordionExtender');
+                // get target of event- cross browser
+                var msg = " - Click here to see details.";
+                var target = (evt.target) ? evt.target : window.event.srcElement;
+                // alert(behavior._selectedIndex);
+                for (idx = 0; idx < behavior._panes.length; idx++) {
+                    var msgDiv = behavior._panes[idx].header.childNodes[2]; 
+                    if (behavior._panes[idx].header._index != clickedPaneNumber || // not clicked pane
+                        behavior._selectedIndex == clickedPaneNumber) { // closing an open pane
+                        if (msgDiv) msgDiv.innerHTML = msg;
+                    } else {
+                        if (msgDiv) msgDiv.innerHTML = ''; // this pane is getting opened
+                    }
+                }
+            } 
+
+            // gets triggered if jsPrintFlag is set to true to expand all accordion panes.
+            // Warning: must get called after all ajaxtoolkit javascript has run when page
+            // loads; do this by putting: Sys.Application.add_init(function() { expandAll(); });
+            // at the END of master page. "Sys.Application.add_init" is some toolkit function
+            // which calls javascript after the page has loaded, so it not enough to just
+            // call expandAll.
+            function expandAll() {
+                // following patched together by studying AccordionBehavior.js to get all panes to open
+                var behavior = $find('ctl00_SampleContent_MyAccordion' + '_AccordionExtender');
+                for (idx = 0; idx < behavior._panes.length; idx++) {
+                    var pan = behavior._panes[idx];
+                    var anim = behavior._getAnimation(pan); // instantiates anim if not defined!
+                    //alert(pan + ' header: ' + pan.header + ' animation: ' +  behavior._getAnimation(pan));
+                    behavior._startPaneChange(pan, true);
+                    //anim._fade.set_effect(AjaxControlToolkit.Animation.FadeEffect.FadeIn);
+                    anim.set_target(pan.content);
+                    anim.play();
+                }
+            }
+
+            
+            function showModalPopupViaClient_old(ev) {
+                //ev.preventDefault();
+                var modalPopupBehavior = $find('programmaticModalPopupBehavior');
+                modalPopupBehavior.show();
+            }
+            function showModalPopupViaClient() {
+                //ev.preventDefault();
+                var modalPopupBehavior = $find('programmaticModalPopupBehavior');
+                modalPopupBehavior.show();
+            }
+            
+            function hideModalPopupViaClient_old(ev) {
+                //ev.preventDefault();        
+                var modalPopupBehavior = $find('programmaticModalPopupBehavior');
+                modalPopupBehavior.hide();
+            }
+            function hideModalPopupViaClient() {
+                //ev.preventDefault();        
+                var modalPopupBehavior = $find('programmaticModalPopupBehavior');
+                modalPopupBehavior.hide();
+            }
+            
+            function showPanel(panelId){
+                document.getElementById(panelId).style.visibility="visible";
+                //document.getElementById(panelId).style.left=getPosition(event).x;
+                //document.getElementById(panelId).style.top=getPosition(event).y;
+            }
+            function hidePanel(panelId){
+                document.getElementById(panelId).style.visibility="hidden";
+            }
+            
+            function hideModalPopupViaClient(popupNm) {
+                //ev.preventDefault();        
+                //var modalPopupBehavior = $find('programmaticModalPopupBehavior');
+                var modalPopupBehavior = $find(popupNm);
+                modalPopupBehavior.hide();
+            }
+            function showPopup ( ){
+                showModalPopupViaClient();
+                setTimeout ( "hideModalPopupViaClient()", 3000 );
+            }
+            
+            // calls function on WestWind control to set an ajax callback.
+            // see http://www.west-wind.com/webconnection/docs/_1WD05RMR0.htm
+            // Ajax postbacks to this aspx's codebehind: "if (this.wwhHelp.IsCallback)", which
+            // invokes "DescProcessCallback()", which calls 
+            // "string itemDesc = CacheObject.GetCacheItem(itemId);" and
+            // retrieves description text from "CacheObject.GetCacheItem(itemId);".
+            function showDescription(event, id){
+                showPanel('pnlLoading');
+                wwhHelp.startCallback(event, "id=" + id.toString(),null, onError);
+                toggleAllDropDowns(true);
+                hidePanel('pnlLoading');
+            }
+            function hideDescription(){
+                wwhHelp.hide();
+                if(!isInCalcContext){
+                    toggleAllDropDowns(false);
+                }
+            }
+            
+          
+            var isInCalcContext = false;
+            function startWWAjaxCallToGetPopupContent(event, qrystr){
+                isInCalcContext = true;
+                showPanel('pnlLoading');
+                // important: this sets the AJAX call to the .cs file 
+                wwhCalc.callbackHandler = invokeWhenAjaxCallReturnsForCalc_callBack; 
+                wwhCalc.startCallback(event, qrystr.toString(),null, onError);
+                document.getElementById('ctl00_SampleContent_pnlBenefitAmtCalc').style.visibility="visible";
+                toggleAllDropDowns(true);
+            }
+            function invokeWhenAjaxCallReturnsForCalc_callBack(result){
+                var Panel = document.getElementById('divBenAmtCalcContent');  
+                //hideIEListboxes();
+                Panel.innerHTML = result;
+            }
+            function hideCalculation(){
+                isInCalcContext = false;
+                document.getElementById('ctl00_SampleContent_pnlBenefitAmtCalc').style.visibility="hidden";
+                toggleAllDropDowns(false);
+            }
+            function CalcDetail_Callback(result){
+                var Panel = document.getElementById('divBenAmtCalcContent');  
+                Panel.innerHTML = result;
+            }
+            function onError(){
+               
+            }
+
+            function getPosition(e) {
+                e = e || window.event;
+                var cursor = {x:0, y:0};
+                if (e.pageX || e.pageY) {
+                    cursor.x = e.pageX;
+                    cursor.y = e.pageY;
+                } 
+                else {
+                    var de = document.documentElement;
+                    var b = document.body;
+                    cursor.x = e.clientX + 
+                        (de.scrollLeft || b.scrollLeft) - (de.clientLeft || 0);
+                    cursor.y = e.clientY + 
+                        (de.scrollTop || b.scrollTop) - (de.clientTop || 0);
+                }
+                return cursor;
+            }
+            function setColors(tbody, color1, color2){
+                toggleAllDropDowns(false);
+                //collapse('lblParclBorough'); //to address the IE6 issue with dropdown list visible through layers issue.
+                var table = document.getElementsByName(tbody);
+                if(eval(table)!=null & table.length>0){
+                    var colors = [color1, color2];    
+                    for(var j=0;j<table.length;j++){
+                        var trs = table[j].getElementsByTagName('tr');    
+                        for(var i=0; i<trs.length; i++){        
+                            trs[i].className = colors[i % 2];    
+                        }
+                    }
+                }
+            }
+        </script>
+        
+        <table width="100%">
+            <tr>
+                <td></td>
+                <td align="right">
+                    <span>
+                        <a href="/searchdetails.aspx?&IsPrintVersion=true" id="ctl00_SampleContent_prtLink"><img id="ctl00_SampleContent_Image1" title="Printer-friendly version" src="fitLook/images/printer.png" style="border-width:0px;" /><span style="vertical-align:top" class="heading3"> Printer-friendly</span></a>
+                    
+                </span>
+            </td>
+        </tr>
+    </table>
+    <span id="ctl00_SampleContent_lblJsPrintFlag"><script>var jsPrintFlag=false; // set by Page_Load</script></span>
+    <div id="master_contenthelpmenu">
+        <div class="ContentTitleBar">
+            Property Tax Benefit Information&nbsp;&nbsp;&nbsp;
+            <img src="fitLook/images/question_mark.gif" class="helplink" style="vertical-align: inherit"
+                onmouseover="showDescription(event, 'propTaxBenInfo')" onmouseout="hideDescription()" /></div>
+    </div>
+    <input type="submit" name="ctl00$SampleContent$hiddenTargetControlForModalPopup" value="" id="ctl00_SampleContent_hiddenTargetControlForModalPopup" style="display: none" />
+    <div id="fixedtipdiv" style="visibility: hidden; width: 150px; background-color: #FFFFE7">
+    </div>
+    <div id="ctl00_SampleContent_pnlBenefitAmtCalc" class="modalPopup" style="width:500px;visibility: hidden">
+	
+        <div id="ctl00_SampleContent_pnlBenAmtCalcHeader" class="popupheaderlarge" style="height:25px;width:500px;vertical-align: middle">
+		
+            <div style="float: left; vertical-align: middle; padding-top: 5px; padding-left: 10px;">
+                Benefit Amount Calculations</div>
+            <div id="Div3" style="float: right; padding-top: 5px; padding-right: 10px;">
+                
+                <a onclick="hideCalculation(); return false;" id="ctl00_SampleContent_lnkCloseBtn" title="Close this window" href="javascript:__doPostBack('ctl00$SampleContent$lnkCloseBtn','')" style="color: White">close</a>
+                <a onclick="hideCalculation(); return false;" id="ctl00_SampleContent_lnkCloseImg" title="Close this window" href="javascript:__doPostBack('ctl00$SampleContent$lnkCloseImg','')" style="background-color: #666666;
+                    color: #FFFFFF; text-align: center; font-weight: bold; text-decoration: none;
+                    border: outset thin #FFFFFF; padding: 5px;">X</a>
+            </div>
+        
+	</div>
+        <div id="divBenAmtCalcContent" style="width: 500px; background-color: White;" class="HelpContent ContentText">
+        </div>
+    
+</div>
+    
+    
+    <div id="ctl00_SampleContent_PropertyInfoContainer">
+	
+            <div id="ctl00_SampleContent_pnlContent">
+		
+                <div id="ctl00_SampleContent_MyAccordion">
+			<input type="hidden" name="ctl00$SampleContent$MyAccordion_AccordionExtender_ClientState" id="ctl00_SampleContent_MyAccordion_AccordionExtender_ClientState" value="0" /><div class="accordionHeaderSelected" onclick="modifyLabel(event, 0);">
+				
+                                <a id="ctl00_SampleContent_ctl01_aclnkPropertyInfo" class="accordionLink">Property Information - (BBL : 3-01772-0074)</a>
+                                <div id="clickMsg" style="display: inline;">
+                                </div>
+                            
+			</div><div class="accordionContent" style="display:block;">
+				
+                                <div id="ctl00_SampleContent_ctl02_pnlPropertyDetails" class="mod_content color_3_1">
+					
+                                    <table id="tblProperty" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                        <tr class="color_3_1_o" valign="top">
+                                            <td class="contentDataHeaderElement" valign="top" style="width: 35%">
+                                                <span class="heading4bold">Owner Name(s)</span>
+                                            </td>
+                                            <td id="ctl00_SampleContent_ctl02_lblOwnerNames" class="contentDataElement">JOHN, ABIGALE
+<BR />JOHN, NIGEL
+<BR />RODERIQUE, HAZEL-ANN
+<BR />JOHN, DAVE
+<BR /><span style='color:red;'>* Only 4 owners are displayed.</span></td>
+					
+                                            </td>
+                                        </tr>
+                                        <tr class="color_3_1">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold">Address</span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblStreetAddress">157 PULASKI STREET</span>
+                                            </td>
+                                        </tr>
+                                        
+                                        <tr class="color_3_1">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold">Zip Code</span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblZip">11206</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="color_3_1_o">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold">Borough</span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblBorough">Brooklyn</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="color_3_1">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold">Year Built</span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblYearBuilt">1931</span>
+                                            </td>
+                                        </tr>
+                                           <tr class="color_3_1_o">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold">Number of Buildings</span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblNumberOfBuildings">1</span>
+                                            </td>
+                                        </tr>
+                                         <tr class="color_3_1">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold">
+                                                    <a href="#" class="helplink" onmouseover="showDescription(event, 'numberofstories')"
+                                                    onmouseout="hideDescription()" onclick="return false;">Number of Stories</a>                                                
+                                                </span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblNumberOfStories" Format="{0:N0} ">3 </span>
+                                            </td>
+                                        </tr>
+                                          <tr class="color_3_1_o">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold"><a href="#" class="helplink" onmouseover="showDescription(event, 'numberofunits')"
+                                                    onmouseout="hideDescription()" onclick="return false;">Number of Units</a></span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblNumberOfUnits">4</span>
+                                            </td>
+                                        </tr>
+                                            <tr class="color_3_1">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold">Building Dimensions</span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblBuildingFront" Format="{0:N2}">19.00</span> X 
+                                                <span id="ctl00_SampleContent_ctl02_lblBuildingDepth" Format="{0:N2}">45.00</span> (
+                                                <span id="ctl00_SampleContent_ctl02_lblBuildingSize" Format="{0:N0}">855</span> Square Feet)
+                                            </td>
+                                        </tr>
+                                           <tr class="color_3_1_o">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold">Lot Size</span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblLotFront" Format="{0:N2}">19.00</span> X 
+                                                <span id="ctl00_SampleContent_ctl02_lblLotDepth" Format="{0:N2}">100.00</span> (
+                                                <span id="ctl00_SampleContent_ctl02_lblLotSize" Format="{0:N0}">1,900</span> Square Feet)
+                                            </td>
+                                        </tr>
+                                          <tr class="color_3_1">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold">Corner</span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblCorner"></span>
+                                            </td>
+                                        </tr>
+                                        <tr class="color_3_1_o">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold">Building Area</span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblBuildingArea" Format="{0:N0}">2,993</span> Square Feet
+                                            </td>
+                                        </tr>
+                                        <tr class="color_3_1">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold"><a href="#" class="helplink" onmouseover="showDescription(event, 'taxYr')"
+                                                    onmouseout="hideDescription()" onclick="return false;">Current Tax Year</a></span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblCurrentTaxYear">From July 1, 2011 to June 30, 2012</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="color_3_1_o">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold"><a href="#" class="helplink" onmouseover="showDescription(event, 'buildingCls')"
+                                                    onmouseout="hideDescription()" onclick="return false;">Building Class</a></span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblBuildingClassCd">C3</span>
+                                                -
+                                                <span id="ctl00_SampleContent_ctl02_lblBuildingClassDesc">Walk-up apartments__FOUR FAMILIES</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="color_3_1">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold"><a href="#" class="helplink" onmouseover="showDescription(event, 'taxCls')"
+                                                    onmouseout="hideDescription()" onclick="return false;">Tax Class</a></span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblTaxClassCd">2A</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="color_3_1_o">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold"><a href="#" class="helplink" onmouseover="showDescription(event, 'taxrate')"
+                                                    onmouseout="hideDescription()" onclick="return false;">Tax Rate</a></span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblTaxRate">13.353 %</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="color_3_1">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold"><a href="#" class="helplink" onmouseover="showDescription(event, 'marketVal')"
+                                                    onmouseout="hideDescription()" onclick="return false;">Market Value</a></span>
+                                            </td>
+                                            <td class="contentDataElement">
+                                                <span id="ctl00_SampleContent_ctl02_lblMarketValue" Format="{0:C0}">$256,000</span>
+                                            </td>
+                                        </tr>
+                                        <tr class="color_3_1_o">
+                                            <td class="contentDataHeaderElement">
+                                                <span class="heading4bold"><a href="#" class="helplink" onmouseover="showDescription(event, 'av')"
+                                                    onmouseout="hideDescription()" onclick="return false;">Assessed Value</a></span>
+                                            </td>
+                                            <td class="contentDataElement" colspan="2">
+                                                <span id="ctl00_SampleContent_ctl02_lblAssessedValue" Format="{0:C0}">$20,761</span>
+                                            </td>
+                                        </tr>
+                                        
+                                        <div id="ctl00_SampleContent_ctl02_pnlCurrentLandAV">
+						
+                                            <tr class="color_3_1_o">
+                                                <td class="contentDataHeaderElement">
+                                                    <span class="heading4bold"><a href="#" onmouseover="showDescription(event, 'landav')"
+                                                        onmouseout="hideDescription()" onclick="return false;">Land Assessed Value</a></span>
+                                                </td>
+                                                <td class="contentDataElement" colspan="2">
+                                                    <span id="ctl00_SampleContent_ctl02_lblLandAssessedValue" Format="{0:C0}">$12,894</span>
+                                                </td>
+                                            </tr>
+                                        
+					</div>
+                                        
+                                    </table>
+                                
+				</div>
+                            
+			</div><div class="accordionHeader" onclick="modifyLabel(event, 1);">
+				This property is currently not receiving any benefits.
+			</div><div class="accordionContent" style="display:none;">
+
+			</div>
+		</div>
+                
+                <div id="pnlLoading" class="modalPopup" style="display: none;">
+                    <img src="fitLook/images/loading.gif" alt="Loading" />
+                    Loading... Please wait.
+                </div>
+                
+            
+	</div>
+        
+</div>
+    <div id="wwhHelp" onmouseover="wwhHelp.show();" onmouseout="wwhHelp.hide();" style="background-color:White;width:350px;background:white;display:none;filter:alpha(opacity='92.00');">
+	
+    
+</div>
+    <div id="wwhCalc" style="background-color:White;width:500px;background:white;display:none;filter:alpha(opacity='92.00');">
+	
+    
+</div>
+    <div id="ctl00_SampleContent_WwDragPanel1">
+	
+        
+        <div id="ctl00_SampleContent_Div2">
+        </div>
+        
+        <div>
+        </div>
+    
+</div>
+    
+    <br />
+    
+   
+<div id="ctl00_SampleContent_QuickBBLSearch1_PopupMenu" class="popupMenu">
+	
+    <table cellpadding='0' cellspacing='0' width='350px' class='popupcontent'>
+        <tr class='popupheader' valign='middle'>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;Help</td>
+        </tr>
+        <tr align='justify' style='background-color:White'>
+            <td class='HelpContent'><BR />&nbsp;&nbsp;&nbsp;&nbsp;<b>Quick Search -</b> Search for another property using Borough, Block and Lot. <BR /><BR /></td>
+        </tr>
+    </table>
+
+</div>    
+<table id="tblQuickSearch" border="0" cellpadding="0" cellspacing="0" class="controlContent" style="width:100%;height:25px;">
+    <tr valign="middle" align="left">
+        <td class="heading4bold"><strong><a href="controls/#" id="ctl00_SampleContent_QuickBBLSearch1_lnkQuickSearch" onclick="return false;">Quick Search:</a>&nbsp;&nbsp;</strong></td>    
+        <td>&nbsp;Borough</td>    
+        <td>
+            
+            <div id="ctl00_SampleContent_QuickBBLSearch1_lblParclBorough">
+	<input name="ctl00$SampleContent$QuickBBLSearch1$txtParclBorough" type="text" value="Â 1 Manhattan" id="ctl00_SampleContent_QuickBBLSearch1_txtParclBorough" style="height:13px;width:62px;border-right-style:hidden" /><img style="vertical-align:inherit" src="images/dropdownarrow.GIF" />
+</div>
+            <select name="ctl00$SampleContent$QuickBBLSearch1$ddlParclBorough" id="ctl00_SampleContent_QuickBBLSearch1_ddlParclBorough" style="width:100px;">
+	<option value="1">1 Manhattan</option>
+	<option value="2">2 Bronx</option>
+	<option value="3">3 Brooklyn</option>
+	<option value="4">4 Queens</option>
+	<option value="5">5 Staten Island</option>
+
+</select>
+        </td>    
+        <td>&nbsp;Block</td>    
+        <td>
+            <input name="ctl00$SampleContent$QuickBBLSearch1$txtBlock" type="text" id="ctl00_SampleContent_QuickBBLSearch1_txtBlock" style="width:30px;" />
+            <span id="ctl00_SampleContent_QuickBBLSearch1_rfvBlock" style="color:Red;display:none;"></span>
+            <span id="ctl00_SampleContent_QuickBBLSearch1_revBlock" style="color:Red;display:none;"></span>
+            
+            
+        </td>    
+        <td>&nbsp;Lot</td>
+        <td>
+            <input name="ctl00$SampleContent$QuickBBLSearch1$txtLot" type="text" id="ctl00_SampleContent_QuickBBLSearch1_txtLot" style="width:30px;" />
+            <span id="ctl00_SampleContent_QuickBBLSearch1_rfvLot" style="color:Red;display:none;"></span>
+            <span id="ctl00_SampleContent_QuickBBLSearch1_revLot" style="color:Red;display:none;"></span>
+            
+            
+       </td>
+        <td>
+            <table border="0" cellpadding="0" cellspacing="0" class="button_table">
+                <tr>
+                    <td class="button_left" onclick="document.getElementById('ctl00_SampleContent_QuickBBLSearch1_btnSearch').click();"></td>
+                    <td><input type="submit" name="ctl00$SampleContent$QuickBBLSearch1$btnSearch" value="Search" onclick="doWait(this, 'vgBBLE');WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$SampleContent$QuickBBLSearch1$btnSearch&quot;, &quot;&quot;, true, &quot;vgBBLE&quot;, &quot;&quot;, false, false))" id="ctl00_SampleContent_QuickBBLSearch1_btnSearch" class="button" /></td>
+                    <td class="button_search" onclick="document.getElementById('ctl00_SampleContent_QuickBBLSearch1_btnSearch').click();"></td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<span id="ctl00_SampleContent_QuickBBLSearch1_lblErrReason"></span>
+
+
+
+
+
+
+
+
+    <br />
+    <table class="button_table" cellpadding="0" cellspacing="0" border="0" align="right">
+        <tr>
+            <td class="button_back" onclick="document.getElementById('ctl00_SampleContent_btnBack').click();">
+            </td>
+            <td>
+                <input type="submit" name="ctl00$SampleContent$btnBack" value="Back" onclick="history.back();return false;WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$SampleContent$btnBack&quot;, &quot;&quot;, true, &quot;vgBBLE&quot;, &quot;&quot;, false, false))" id="ctl00_SampleContent_btnBack" class="button" />
+            </td>
+            <td class="button_right" onclick="document.getElementById('ctl00_SampleContent_btnBack').click();">
+            </td>
+        </tr>
+    </table>
+    <div id="ctl00_SampleContent_UpdateProgress1" style="visibility:hidden;display:block;">
+	
+            <img src="fitLook/images/loading.gif" alt="" />
+            Loading ...
+        
+</div>
+    <input type='hidden' id='hidBorough' name='hidBorough' value="3" />
+    <input type='hidden' id='hidBlock' name='hidBlock' value="01772" />
+    <input type='hidden' id='hidLot' name='hidLot' value="0074" />
+</div>
+            <br />
+        </div>
+        
+        
+    </div>
+
+<script type="text/javascript">
+//<![CDATA[
+var Page_Validators =  new Array(document.getElementById("ctl00_SampleContent_QuickBBLSearch1_rfvBlock"), document.getElementById("ctl00_SampleContent_QuickBBLSearch1_revBlock"), document.getElementById("ctl00_SampleContent_QuickBBLSearch1_rfvLot"), document.getElementById("ctl00_SampleContent_QuickBBLSearch1_revLot"));
+//]]>
+</script>
+
+<script type="text/javascript">
+//<![CDATA[
+var ctl00_SampleContent_QuickBBLSearch1_rfvBlock = document.all ? document.all["ctl00_SampleContent_QuickBBLSearch1_rfvBlock"] : document.getElementById("ctl00_SampleContent_QuickBBLSearch1_rfvBlock");
+ctl00_SampleContent_QuickBBLSearch1_rfvBlock.controltovalidate = "ctl00_SampleContent_QuickBBLSearch1_txtBlock";
+ctl00_SampleContent_QuickBBLSearch1_rfvBlock.errormessage = "Block number is required.";
+ctl00_SampleContent_QuickBBLSearch1_rfvBlock.display = "None";
+ctl00_SampleContent_QuickBBLSearch1_rfvBlock.validationGroup = "vgBBLE";
+ctl00_SampleContent_QuickBBLSearch1_rfvBlock.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ctl00_SampleContent_QuickBBLSearch1_rfvBlock.initialvalue = "";
+var ctl00_SampleContent_QuickBBLSearch1_revBlock = document.all ? document.all["ctl00_SampleContent_QuickBBLSearch1_revBlock"] : document.getElementById("ctl00_SampleContent_QuickBBLSearch1_revBlock");
+ctl00_SampleContent_QuickBBLSearch1_revBlock.controltovalidate = "ctl00_SampleContent_QuickBBLSearch1_txtBlock";
+ctl00_SampleContent_QuickBBLSearch1_revBlock.errormessage = "Block value must be numeric and maximum 5-digits.";
+ctl00_SampleContent_QuickBBLSearch1_revBlock.display = "None";
+ctl00_SampleContent_QuickBBLSearch1_revBlock.validationGroup = "vgBBLE";
+ctl00_SampleContent_QuickBBLSearch1_revBlock.evaluationfunction = "RegularExpressionValidatorEvaluateIsValid";
+ctl00_SampleContent_QuickBBLSearch1_revBlock.validationexpression = "(\\d{1,5})";
+var ctl00_SampleContent_QuickBBLSearch1_rfvLot = document.all ? document.all["ctl00_SampleContent_QuickBBLSearch1_rfvLot"] : document.getElementById("ctl00_SampleContent_QuickBBLSearch1_rfvLot");
+ctl00_SampleContent_QuickBBLSearch1_rfvLot.controltovalidate = "ctl00_SampleContent_QuickBBLSearch1_txtLot";
+ctl00_SampleContent_QuickBBLSearch1_rfvLot.errormessage = "Lot number is required.";
+ctl00_SampleContent_QuickBBLSearch1_rfvLot.display = "None";
+ctl00_SampleContent_QuickBBLSearch1_rfvLot.validationGroup = "vgBBLE";
+ctl00_SampleContent_QuickBBLSearch1_rfvLot.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ctl00_SampleContent_QuickBBLSearch1_rfvLot.initialvalue = "";
+var ctl00_SampleContent_QuickBBLSearch1_revLot = document.all ? document.all["ctl00_SampleContent_QuickBBLSearch1_revLot"] : document.getElementById("ctl00_SampleContent_QuickBBLSearch1_revLot");
+ctl00_SampleContent_QuickBBLSearch1_revLot.controltovalidate = "ctl00_SampleContent_QuickBBLSearch1_txtLot";
+ctl00_SampleContent_QuickBBLSearch1_revLot.errormessage = "Lot value must be numeric and max 4-digits.";
+ctl00_SampleContent_QuickBBLSearch1_revLot.display = "None";
+ctl00_SampleContent_QuickBBLSearch1_revLot.validationGroup = "vgBBLE";
+ctl00_SampleContent_QuickBBLSearch1_revLot.evaluationfunction = "RegularExpressionValidatorEvaluateIsValid";
+ctl00_SampleContent_QuickBBLSearch1_revLot.validationexpression = "(\\d{1,4})";
+//]]>
+</script>
+
+<script type='text/javascript'>setColors('tblBenContent','color_3_1_o','color_3_1');setColors('tblProperty','color_3_1_o','color_3_1');</script><script type='text/javascript'>toggleAllDropDowns(false);</script>
+<script type="text/javascript">
+//<![CDATA[
+function wwhHelp_GetHoverPanel() {
+    var Hover = new wwHoverPanel("wwhHelp","/searchdetails.aspx");
+    Hover.callbackHandler = null;
+    Hover.htmlTargetClientId = "wwhHelp";
+    Hover.postbackMode = "Post";
+    Hover.navigateDelay = 300;
+    Hover.adjustWindowPosition = true;
+    Hover.eventHandlerMode = "ShowHtmlAtMousePosition";
+    Hover.shadowOpacity = 0.15;
+    Hover.shadowOffset = 8;
+    Hover.hoverOffsetRight = 10;
+    Hover.hoverOffsetBottom = 10;
+    return Hover;
+}
+var wwhHelp = wwhHelp_GetHoverPanel();
+var wwhHelp_DragBehavior = new wwDragBehavior("wwhHelp","");
+wwhHelp_DragBehavior.windowObj.showShadow(0.15,8);
+function wwhCalc_GetHoverPanel() {
+    var Hover = new wwHoverPanel("wwhCalc","/searchdetails.aspx");
+    Hover.callbackHandler = invokeWhenAjaxCallReturnsForCalc_callBack;
+    Hover.htmlTargetClientId = "wwhCalc";
+    Hover.postbackMode = "Post";
+    Hover.navigateDelay = 300;
+    Hover.adjustWindowPosition = true;
+    Hover.eventHandlerMode = "GetHttpResponse";
+    Hover.shadowOpacity = 0.15;
+    Hover.shadowOffset = 8;
+    Hover.hoverOffsetRight = -350;
+    Hover.hoverOffsetBottom = -100;
+    return Hover;
+}
+var wwhCalc = wwhCalc_GetHoverPanel();
+var wwhCalc_DragBehavior = new wwDragBehavior("wwhCalc","");
+wwhCalc_DragBehavior.windowObj.showShadow(0.15,8);
+var ctl00_SampleContent_WwDragPanel1_DragBehavior = new wwDragBehavior("ctl00_SampleContent_WwDragPanel1","wwhHelp");
+
+var Page_ValidationActive = false;
+if (typeof(ValidatorOnLoad) == "function") {
+    ValidatorOnLoad();
+}
+
+function ValidatorOnSubmit() {
+    if (Page_ValidationActive) {
+        return ValidatorCommonOnSubmit();
+    }
+    else {
+        return true;
+    }
+}
+        Sys.Application.initialize();
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.FloatingBehavior, {"handle":$get("ctl00_SampleContent_pnlBenAmtCalcHeader"),"id":"ctl00_SampleContent_DPE1"}, null, null, $get("ctl00_SampleContent_pnlBenefitAmtCalc"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.AccordionBehavior, {"ClientStateFieldID":"ctl00_SampleContent_MyAccordion_AccordionExtender_ClientState","ContentCssClass":"accordionContent","FramesPerSecond":40,"HeaderCssClass":"accordionHeader","HeaderSelectedCssClass":"accordionHeaderSelected","id":"ctl00_SampleContent_MyAccordion_AccordionExtender","requireOpenedPane":false,"suppressHeaderPostbacks":true}, null, null, $get("ctl00_SampleContent_MyAccordion"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.HoverMenuBehavior, {"HoverCssClass":"popupHover","OffsetX":40,"OffsetY":10,"PopDelay":50,"PopupPosition":3,"dynamicServicePath":"/searchdetails.aspx","id":"ctl00_SampleContent_QuickBBLSearch1_hme2","popupElement":$get("ctl00_SampleContent_QuickBBLSearch1_PopupMenu")}, null, null, $get("ctl00_SampleContent_QuickBBLSearch1_lnkQuickSearch"));
+});
+
+document.getElementById('ctl00_SampleContent_QuickBBLSearch1_rfvBlock').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_SampleContent_QuickBBLSearch1_rfvBlock'));
+}
+
+document.getElementById('ctl00_SampleContent_QuickBBLSearch1_revBlock').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_SampleContent_QuickBBLSearch1_revBlock'));
+}
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.ValidatorCalloutBehavior, {"closeImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrPDH2sAYrZosUliDW7LQRRASS-slmoGSGOZICft8PX801&t=634153158160000000","highlightCssClass":"validatorCalloutHighlight","id":"ctl00_SampleContent_QuickBBLSearch1_NReqE","warningIconImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrupvo_qTrGAGI6LVxvFp26UmbsmRbMqscRMN19pKqnXk1&t=634153158160000000"}, null, null, $get("ctl00_SampleContent_QuickBBLSearch1_rfvBlock"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.ValidatorCalloutBehavior, {"closeImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrPDH2sAYrZosUliDW7LQRRASS-slmoGSGOZICft8PX801&t=634153158160000000","highlightCssClass":"validatorCalloutHighlight","id":"ctl00_SampleContent_QuickBBLSearch1_ValidatorCalloutExtender4","warningIconImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrupvo_qTrGAGI6LVxvFp26UmbsmRbMqscRMN19pKqnXk1&t=634153158160000000"}, null, null, $get("ctl00_SampleContent_QuickBBLSearch1_revBlock"));
+});
+
+document.getElementById('ctl00_SampleContent_QuickBBLSearch1_rfvLot').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_SampleContent_QuickBBLSearch1_rfvLot'));
+}
+
+document.getElementById('ctl00_SampleContent_QuickBBLSearch1_revLot').dispose = function() {
+    Array.remove(Page_Validators, document.getElementById('ctl00_SampleContent_QuickBBLSearch1_revLot'));
+}
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.ValidatorCalloutBehavior, {"closeImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrPDH2sAYrZosUliDW7LQRRASS-slmoGSGOZICft8PX801&t=634153158160000000","highlightCssClass":"validatorCalloutHighlight","id":"ctl00_SampleContent_QuickBBLSearch1_ValidatorCalloutExtender1","warningIconImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrupvo_qTrGAGI6LVxvFp26UmbsmRbMqscRMN19pKqnXk1&t=634153158160000000"}, null, null, $get("ctl00_SampleContent_QuickBBLSearch1_rfvLot"));
+});
+Sys.Application.add_init(function() {
+    $create(AjaxControlToolkit.ValidatorCalloutBehavior, {"closeImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrPDH2sAYrZosUliDW7LQRRASS-slmoGSGOZICft8PX801&t=634153158160000000","highlightCssClass":"validatorCalloutHighlight","id":"ctl00_SampleContent_QuickBBLSearch1_ValidatorCalloutExtender5","warningIconImageUrl":"/WebResource.axd?d=MQdJNTElU-CmYKbRjnH9dVCbpAkbDP_XBDmqcMrTnQAk0HVz_cekV2iMcHUN0QNrupvo_qTrGAGI6LVxvFp26UmbsmRbMqscRMN19pKqnXk1&t=634153158160000000"}, null, null, $get("ctl00_SampleContent_QuickBBLSearch1_revLot"));
+});
+Sys.Application.add_init(function() {
+    $create(Sys.UI._UpdateProgress, {"associatedUpdatePanelId":null,"displayAfter":500,"dynamicLayout":false}, null, null, $get("ctl00_SampleContent_UpdateProgress1"));
+});
+//]]>
+</script>
+</form>
+
+<script type="text/javascript" language="javascript">    // .why not just call expandAll()? 'cause structures for accordion get built AFTER this
+    // call, since they are invoked by add_init() (defined by ajaxtoolkit). So put it in add_init();
+    if (window.jsPrintFlag)
+        Sys.Application.add_init(function() { expandAll(); });
+</script> 
+</body>
+</html>
+	../test/fixtures/nyc-incentives.json#/then/0	0	../test/fixtures/nyc-incentives.json#/	0

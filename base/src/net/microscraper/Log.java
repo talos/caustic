@@ -11,7 +11,7 @@ public class Log {
 		loggers.addElement(logger);
 	}
 	public void e(Throwable e) {
-		e.printStackTrace(); // We print a stacktrace for errors no matter what.
+		//e.printStackTrace();
 		for(int i = 0; i < loggers.size(); i ++) {
 			((Logger) loggers.elementAt(i)).e(e);
 		}

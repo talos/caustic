@@ -1,0 +1,416 @@
+Wed Jul 27 17:09:57 EDT 2011 Info: Getting  https://a836-propertyportal.nyc.gov/Default.aspx...
+Wed Jul 27 17:09:57 EDT 2011 Info: Load speed from https://a836-propertyportal.nyc.gov/Default.aspx : 0.0
+Wed Jul 27 17:09:57 EDT 2011 Info: Browser loading URL 'https://a836-propertyportal.nyc.gov/Default.aspx'
+Wed Jul 27 17:09:57 EDT 2011 Info: Response code: 200
+Wed Jul 27 17:09:57 EDT 2011 Info: Storing cookie 'ASP.NET_SessionId' with value '1hv23q55dfdwjkmnibpesk55'
+Wed Jul 27 17:09:57 EDT 2011 Info: Response body: 
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="stylesheet" type="text/css" title="default" /><link rel="stylesheet" href="FitLook/css/mainstyle.css" type="t
+Wed Jul 27 17:09:57 EDT 2011 Info: Getting  https://a836-propertyportal.nyc.gov/searchdetails.aspx...
+Wed Jul 27 17:09:57 EDT 2011 Info: Load speed from https://a836-propertyportal.nyc.gov/searchdetails.aspx : 16967.0
+Wed Jul 27 17:09:57 EDT 2011 Info: Delaying load of "https://a836-propertyportal.nyc.gov/searchdetails.aspx", current KBPS "16967.0"
+Wed Jul 27 17:09:58 EDT 2011 Info: Browser loading URL 'https://a836-propertyportal.nyc.gov/searchdetails.aspx'
+Wed Jul 27 17:09:58 EDT 2011 Info: Using cookies: lot=74; ASP.NET_SessionId=1hv23q55dfdwjkmnibpesk55; style=default; block=1772; borough=3
+Wed Jul 27 17:10:00 EDT 2011 Info: Response code: 200
+Wed Jul 27 17:10:00 EDT 2011 Info: Response body: 
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="stylesheet" type="text/css" title="default" /><link rel="stylesheet" href="FitLook/css/mainstyle.css" type="t
+Wed Jul 27 17:10:00 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:00 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/3
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblOwnerNames">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="sty
+Wed Jul 27 17:10:01 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:01 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:01 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/9
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblNumberOfStories">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/11
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblBuildingFront">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/12
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblBuildingDepth">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/13
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblBuildingSize">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="s
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/14
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblLotFront">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="style
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/15
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblLotDepth">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="style
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/16
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblLotSize">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="styles
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/17
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblCorner">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="stylesh
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/18
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblBuildingArea">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="s
+Wed Jul 27 17:10:01 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:01 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/23
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblMarketValue">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="st
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/24
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblAssessedValue">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/25
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblLandAssessedValue">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" r
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/26
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblName">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="styleshee
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/27
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblBenefitAmt"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/28
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblExemptYear"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/29
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblYearsOfExempt"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" 
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/30
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblBenefitType"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" re
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/31
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblBenefitStartDt"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css"
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/32
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblBenefitEndDt"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" r
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/33
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblExcessCommPct"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" 
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/34
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblExcessResPct"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" r
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/35
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblGovtFinanced"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" r
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/36
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblProjectStartDt"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css"
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/37
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblBaseYear"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/38
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblBaseYrAV"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="
+Wed Jul 27 17:10:01 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/39
+Wed Jul 27 17:10:01 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblBenTaxYear"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel
+Wed Jul 27 17:10:01 EDT 2011 Info: Getting  https://a836-propertyportal.nyc.gov/Default.aspx...
+Wed Jul 27 17:10:01 EDT 2011 Info: Load speed from https://a836-propertyportal.nyc.gov/Default.aspx : 114.0
+Wed Jul 27 17:10:01 EDT 2011 Info: Delaying load of "https://a836-propertyportal.nyc.gov/Default.aspx", current KBPS "114.0"
+Wed Jul 27 17:10:01 EDT 2011 Info: Browser loading URL 'https://a836-propertyportal.nyc.gov/Default.aspx'
+Wed Jul 27 17:10:01 EDT 2011 Info: Using cookies: lot=74; ASP.NET_SessionId=1hv23q55dfdwjkmnibpesk55; style=default; block=1772; borough=3
+Wed Jul 27 17:10:01 EDT 2011 Info: Response code: 200
+Wed Jul 27 17:10:02 EDT 2011 Info: Response body: 
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="stylesheet" type="text/css" title="default" /><link rel="stylesheet" href="FitLook/css/mainstyle.css" type="t
+Wed Jul 27 17:10:02 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:02 EDT 2011 Info: Getting  https://a836-propertyportal.nyc.gov/searchdetails.aspx...
+Wed Jul 27 17:10:02 EDT 2011 Info: Load speed from https://a836-propertyportal.nyc.gov/searchdetails.aspx : 1542.0
+Wed Jul 27 17:10:02 EDT 2011 Info: Delaying load of "https://a836-propertyportal.nyc.gov/searchdetails.aspx", current KBPS "1542.0"
+Wed Jul 27 17:10:02 EDT 2011 Info: Browser loading URL 'https://a836-propertyportal.nyc.gov/searchdetails.aspx'
+Wed Jul 27 17:10:02 EDT 2011 Info: Using cookies: lot=63; ASP.NET_SessionId=1hv23q55dfdwjkmnibpesk55; style=default; block=1171; borough=1
+Wed Jul 27 17:10:05 EDT 2011 Info: Response code: 200
+Wed Jul 27 17:10:05 EDT 2011 Info: Response body: 
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="stylesheet" type="text/css" title="default" /><link rel="stylesheet" href="FitLook/css/mainstyle.css" type="t
+Wed Jul 27 17:10:05 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:05 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:05 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/3
+Wed Jul 27 17:10:05 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblOwnerNames">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="sty
+Wed Jul 27 17:10:05 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:05 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:05 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/9
+Wed Jul 27 17:10:05 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblNumberOfStories">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel
+Wed Jul 27 17:10:06 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/11
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblBuildingFront">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/12
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblBuildingDepth">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/13
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblBuildingSize">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="s
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/14
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblLotFront">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="style
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/15
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblLotDepth">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="style
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/16
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblLotSize">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="styles
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/18
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblBuildingArea">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="s
+Wed Jul 27 17:10:06 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:06 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/23
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblMarketValue">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="st
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/24
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblAssessedValue">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel="
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/25
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl02_lblLandAssessedValue">([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" r
+Wed Jul 27 17:10:06 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:06 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:06 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:06 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/34
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblExcessResPct"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" r
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/35
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblGovtFinanced"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" r
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/36
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblProjectStartDt"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css"
+Wed Jul 27 17:10:06 EDT 2011 Info: SQL Batch Count: 1, 1
+Wed Jul 27 17:10:06 EDT 2011 Info: Failure in Execution ../test/fixtures/nyc-incentives-simple-extended.json#/then/0/finds_one/39
+Wed Jul 27 17:10:06 EDT 2011 Error: Match "0" not found in the "0" matches of "<span\s+id="ctl00_SampleContent_ctl04_lblBenTaxYear"[^>]*>([^<]+)</span>" against "
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="ctl00_MasterHead"><meta http-equiv="content-type" content="text/html;charset=iso-8859-1" /><title>
+	Department of Finance - Property Benefits
+</title><link href="App_Themes/BlueTheme/StyleSheet.css" rel
+Wed Jul 27 17:10:06 EDT 2011 Info: SQL Batch Count: 1

@@ -30,7 +30,7 @@ public class FileLogInterface implements Logger {
 	public void e(Throwable e) {
 		Date now = new Date();
 		
-		e.printStackTrace(logWriter);
+		//e.printStackTrace(logWriter);
 		logWriter.print(now + " Error: " + Utils.truncate(e.getMessage(), MAX_ENTRY_LENGTH));
 		logWriter.println();
 	}

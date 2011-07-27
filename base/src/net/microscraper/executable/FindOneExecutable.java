@@ -50,55 +50,6 @@ public class FindOneExecutable extends FindExecutable {
 		return null;
 	}
 	
-	
-	/**
-	 * 
-	 * @param key A String, corresponds to the name of {@link FindOneExecutable}'s result
-	 * or the name of one of its children.
-	 * @return The value corresponding to this name, either in this {@link FindOneExecutable}
-	 * or one of its children.
-	 * @throws NullPointerException if the specified key is <code>null</code>.
-	 * @throws MissingVariableException if this {@link FindOneExecutable} and its children
-	 * contain no result for this key.
-	 */
-	/*public String get(String key) throws MissingVariableException {
-		if(isComplete()) {
-			Result result = getResults()[0];
-			
-			if(result.getName().equals(key))
-				return result.getValue();
-			
-			for(int i = 0 ; i < spawnedFindOneExecutables.length ; i ++) {
-				if(spawnedFindOneExecutables[i].containsKey(key))
-					return spawnedFindOneExecutables[i].get(key);
-			}
-		}
-		
-		return getVariables().get(key);
-	}*/
-
-	/**
-	 * Tests if the specified object is a key in this {@link FindOneExecutable} or
-	 * one of its children.
-	 * @param key The key to test. 
-	 * @return <code>true</code> if and only if the specified String is a key
-	 * in this {@link FindOneExecutable} or one of its children.
-	 * @throws NullPointerException if the key is <code>null</code>
-	 */
-	/*public boolean containsKey(String key) {
-		if(isComplete()) {
-			Result result = getResults()[0];
-			if(result.getName().equals(key))
-				return true;
-			
-			for(int i = 0 ; i < spawnedFindOneExecutables.length ; i ++) {
-				if(spawnedFindOneExecutables[i].containsKey(key))
-					return true;
-			}
-		}
-		return getVariables().containsKey(key);
-	}*/
-	
 	/**
 	 * A single {@link NameValuePair} {@link Result} for {@link FindOneExecutable}.
 	 */

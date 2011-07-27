@@ -76,8 +76,11 @@ public class MicroScraperConsole {
 	private static String INPUT_OPTION = "--input";
 	private static CSVReader input = null;
 	
+	private static String COLUMN_DELIMITER_OPTION = "--column-delimiter";
+	private static char columnDelimiter = ',';
+	
 	private static String LOG_FILE_OPTION = "--log-file";
-	private static File logFile = null;
+	private static FileLogInterface fileLog = null;
 	
 	private static String LOG_STDOUT_OPTION = "--log-stdout";
 	private static boolean logStdout = false;
@@ -130,7 +133,7 @@ public class MicroScraperConsole {
 			} catch(ClientException e) {
 				// Error scraping
 			} catch(IOException e) {
-				// Error reading input file
+				// Error reading input file or writing to output file (log or output)
 			}
 		} catch(IllegalArgumentException e) {
 			// Error with args provided
@@ -168,9 +171,14 @@ public class MicroScraperConsole {
 				if(arg.startsWith(DEFAULTS_OPTION)) {
 					defaults = Utils.formEncodedDataToNameValuePairs(value, ENCODING);
 				} else if(arg.startsWith(INPUT_OPTION)) {
-					input = new CSVReader(new FileReader(value));
+					input = new CSVReader(new FileReader(value), columnDelimiter);
+				} else if(arg.startsWith(COLUMN_DELIMITER_OPTION)) {
+					if(value.length() > 1) {
+						throw new IllegalArgumentException("Column delimiter must be a single character.");
+					}
+					columnDelimiter = value.charAt(0);
 				} else if(arg.startsWith(LOG_FILE_OPTION)) {
-					logFile = new File(value);
+					fileLog = new FileLogInterface(new File(value));
 				} else if(arg.startsWith(LOG_STDOUT_OPTION)) {
 					logStdout = true;
 				} else if(arg.startsWith(OUTPUT_FORMAT_OPTION)) {
@@ -197,8 +205,8 @@ public class MicroScraperConsole {
 		if(logStdout) {
 			log.register(new SystemLogInterface());
 		}
-		if(logFile != null) {
-			log.register(new FileLogInterface(logFile));
+		if(fileLog != null) {
+			log.register(fileLog);
 		}
 		
 		// Default output file name.
@@ -227,9 +235,10 @@ public class MicroScraperConsole {
 	}
 	
 	private static void scrape() throws ClientException, IOException {
+		fileLog.open();
 		if(input == null) {
 			client.scrape(instructionsLocation, defaults, publisher);
-		} else {
+		} else {			
 			String[] headers = input.readNext();
 			NameValuePair[] lineDefaults = Arrays.copyOf(defaults, defaults.length + headers.length);
 			
@@ -238,8 +247,8 @@ public class MicroScraperConsole {
 				for(int i = 0 ; i < values.length ; i ++) {
 					lineDefaults[i + defaults.length] = new DefaultNameValuePair(headers[i], values[i]);
 				}
+				client.scrape(instructionsLocation, lineDefaults, publisher);
 			}
-			client.scrape(instructionsLocation, lineDefaults, publisher);
 		}
 	}
 	
@@ -250,6 +259,9 @@ public class MicroScraperConsole {
 	private static void finish() throws IOException {
 		if(input != null) {
 			input.close();
+		}
+		if(fileLog != null) {
+			fileLog.close();
 		}
 	}
 	

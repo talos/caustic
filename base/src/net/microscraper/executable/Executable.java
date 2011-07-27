@@ -107,19 +107,5 @@ public interface Executable extends Runnable, Variables {
 	 * @see #isComplete()
 	 */
 	public abstract Executable[] getChildren() throws IllegalStateException;
-	
 
-	/**
-	 * 
-	 * @return The {@link Variables} instance accessible to this {@link Executable}.
-	 */
-	//public abstract Variables getVariables();
-	
-	
-	/**
-	 * 
-	 * @return The {@link ScraperExecutable} that contains this {@link Executable}.  May be 
-	 */
-	//public abstract ScraperExecutable getEnclosingScraper();
-	
 }

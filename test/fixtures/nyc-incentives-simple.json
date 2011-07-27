@@ -49,6 +49,6 @@
 			"name"    : "Base Year Assessed Value",
 			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblBaseYrAV\"[^>]*>([^<]+)</span>",
 			"replacement" : "$1"
-		}]
+		}
 	}]
 }

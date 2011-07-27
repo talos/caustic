@@ -84,7 +84,7 @@ public abstract class BasicExecutable implements Executable {
 	private void handleFailure(ExecutionFailure e) {
 		failure = e.getCause();
 		interfaces.getLog().i("Failure in " + toString());
-		interfaces.getLog().e(e);
+		interfaces.getLog().e(failure);
 	}
 	
 	/**
@@ -143,11 +143,8 @@ public abstract class BasicExecutable implements Executable {
 	public final Instruction getInstruction() {
 		return instruction;
 	}
-	/*
-	public Variables getVariables() {
-		return variables;
-	}
-	*/
+
+	
 	public final boolean hasSource() {
 		if(source != null) {
 			return true;
