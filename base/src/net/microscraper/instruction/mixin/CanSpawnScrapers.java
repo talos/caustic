@@ -64,29 +64,43 @@ public interface CanSpawnScrapers {
 				
 				private void load() throws JSONInterfaceException, IOException, DeserializationException {
 					if(jsonObject.has(KEY)) {
-						final JSONInterfaceArray array = jsonObject.getJSONArray(KEY);
-
-						Vector pages = new Vector();
-						Vector scrapers = new Vector();
 						
-						//scrapers = new Scraper[array.length()];
-						for(int i = 0 ; i < array.length() ; i ++) {
-							//scrapers[i] = new Scraper(array.getJSONObject(i));
-							JSONInterfaceObject obj = array.getJSONObject(i);
+						// If the key refers directly to an object, it is considered
+						// an array of 1.
+						if(jsonObject.isJSONObject(KEY)) {
+							JSONInterfaceObject obj = jsonObject.getJSONObject(KEY);
 							if(URL.isURL(obj) == true) {
-								pages.add(new Page(obj));
+								this.pages = new Page[] { new Page(obj) };
+								this.scrapers = new Scraper[] { };
 							} else {
-								scrapers.add(new Scraper(obj));
+								this.pages = new Page[] { };
+								this.scrapers = new Scraper[] { new Scraper(obj) };
 							}
-						}
-						this.scrapers = new Scraper[scrapers.size()];
-						this.pages = new Page[pages.size()];
-						scrapers.copyInto(this.scrapers);
-						pages.copyInto(this.pages);
+							
+						} else {
+							final JSONInterfaceArray array = jsonObject.getJSONArray(KEY);
+
+							Vector pages = new Vector();
+							Vector scrapers = new Vector();
+							
+							for(int i = 0 ; i < array.length() ; i ++) {
+								//scrapers[i] = new Scraper(array.getJSONObject(i));
+								JSONInterfaceObject obj = array.getJSONObject(i);
+								if(URL.isURL(obj) == true) {
+									pages.add(new Page(obj));
+								} else {
+									scrapers.add(new Scraper(obj));
+								}
+							}
+							this.scrapers = new Scraper[scrapers.size()];
+							this.pages = new Page[pages.size()];
+							scrapers.copyInto(this.scrapers);
+							pages.copyInto(this.pages);
+						}						
 
 					} else {
-						this.scrapers = new Scraper[0];
-						this.pages = new Page[0];
+						this.scrapers = new Scraper[] {};
+						this.pages    = new Page[] {};
 					}
 					
 				}

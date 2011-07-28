@@ -26,12 +26,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ScraperFixturesTest {
-	private JSONLocation fixturesFolder;
-	private JSONLocation simpleGoogle;
-	private JSONLocation nycPropertyOwner;
-	private JSONLocation nycIncentives;
-	private JSONLocation nycIncentivesSimple;
+public class ClientTest {
+	private JSONLocation fixturesFolder, simpleGoogle, nycPropertyOwner, nycIncentives,
+						nycIncentivesSimple, eventValidation, simpleGoogleSplit1, 
+						simpleGoogleSplit2;
 	
 	/**
 	 * The test {@link Client} instance.
@@ -48,7 +46,6 @@ public class ScraperFixturesTest {
 	 */
 	private Browser browser;
 	
-	
 	/**
 	 * Set up the {@link #client} before each test.
 	 * @throws Exception
@@ -58,16 +55,14 @@ public class ScraperFixturesTest {
 		fixturesFolder = new JavaNetJSONLocation(
 				new File(System.getProperty("user.dir")).toURI().resolve("fixtures/"));
 		
-		System.out.println(fixturesFolder.toString());
-		
-		
 		simpleGoogle = fixturesFolder.resolve("simple-google.json");
+		simpleGoogleSplit1 = fixturesFolder.resolve("simple-google-split-1.json");
+		simpleGoogleSplit2 = fixturesFolder.resolve("simple-google-split-2.json");
 		nycPropertyOwner = fixturesFolder.resolve("nyc-property-owner.json");
 		nycIncentives = fixturesFolder.resolve("nyc-incentives.json");
+		eventValidation = fixturesFolder.resolve("event-validation.json");
 		nycIncentivesSimple = fixturesFolder.resolve("nyc-incentives-simple.json");
 		
-		System.out.println(simpleGoogle.toString());
-
 		Log log = new Log();
 		log.register(new SystemLogInterface());
 
@@ -76,15 +71,6 @@ public class ScraperFixturesTest {
 				new JakartaRegexpCompiler(),
 				log, browser,
 				new JSONME(new IOFileLoader(), browser));
-	}
-	
-	/**
-	 * Destroy the {@link #client} and {@link #netInterface} after each test.
-	 * @throws Exception
-	 */
-	@After
-	public void TearDown() throws Exception {
-		client = null;
 	}
 	
 	/**
@@ -114,7 +100,7 @@ public class ScraperFixturesTest {
 				publisher.publishResult(
 						expectedPhrase,
 						anyString,
-						withEqual(simpleGoogle.resolve("#/finds_many/0")),
+						withEqual(simpleGoogle.resolve("#/finds_many")),
 						anyInt,
 						withEqual(simpleGoogle),
 						0); minTimes = 1;
@@ -122,6 +108,43 @@ public class ScraperFixturesTest {
 		};
 		
 		testScrape(simpleGoogle, extraVariables);
+	}
+
+	/**
+	 * Test fixture {@link #simpleGoogleSplit1} and {@link #simpleGoogleSplit2}.
+	 * @throws Exception
+	 */
+	@Test
+	public void testScrapeSimpleGoogleSplit() throws Exception {
+		final String expectedPhrase = "what do we say after hello?";
+
+		DefaultNameValuePair[] extraVariables = new DefaultNameValuePair[] {
+				new DefaultNameValuePair("query", "hello")
+		};
+		
+		new Expectations() {
+			{
+				// Download Google HTML.
+				publisher.publishResult(
+						(String) withNull(),
+						anyString,
+						withEqual(simpleGoogleSplit1),
+						0,
+						(JSONLocation) withNull(),
+						(Integer) withNull()); times = 1;
+				
+				// Pull out the words.
+				publisher.publishResult(
+						expectedPhrase,
+						anyString,
+						withEqual(simpleGoogleSplit2),
+						anyInt,
+						withEqual(simpleGoogleSplit1),
+						0); minTimes = 1;
+			}
+		};
+		
+		testScrape(simpleGoogleSplit1, extraVariables);
 	}
 	
 	@Test
@@ -203,7 +226,7 @@ public class ScraperFixturesTest {
 				publisher.publishResult(
 						"EVENTVALIDATION",
 						anyString,
-						withEqual(nycIncentives.resolve("#/finds_one/1")),
+						withEqual(eventValidation),
 						0,
 						withEqual(nycIncentives),
 						0);
@@ -212,7 +235,7 @@ public class ScraperFixturesTest {
 				publisher.publishResult(
 						(String) withNull(),
 						anyString,
-						withEqual(nycIncentives.resolve("#/then/0")),
+						withEqual(nycIncentives.resolve("#/then")),
 						0,
 						withEqual(nycIncentives),
 						0);
@@ -221,18 +244,18 @@ public class ScraperFixturesTest {
 				publisher.publishResult(
 						"Benefit Name",
 						"421A-Newly constructed Multiple Dwelling Residential Property",
-						withEqual(nycIncentives.resolve("#/then/0/finds_one/0")),
+						withEqual(nycIncentives.resolve("#/then/finds_one/0")),
 						0,
-						withEqual(nycIncentives.resolve("#/then/0")),
+						withEqual(nycIncentives.resolve("#/then")),
 						0);
 				$ = "Problem with Benefit Name result"; times = 1;
 				
 				publisher.publishResult(
 						"Benefit Amount",
 						withPrefix("$"),
-						withEqual(nycIncentives.resolve("#/then/0/finds_one/1")),
+						withEqual(nycIncentives.resolve("#/then/finds_one/1")),
 						0,
-						withEqual(nycIncentives.resolve("#/then/0")),
+						withEqual(nycIncentives.resolve("#/then")),
 						0);
 				$ = "Problem with Benefit Name result"; times = 1;
 				
@@ -240,54 +263,54 @@ public class ScraperFixturesTest {
 				publisher.publishResult(
 						"Current Benefit Year",
 						"16",
-						withEqual(nycIncentives.resolve("#/then/0/finds_one/2")),
+						withEqual(nycIncentives.resolve("#/then/finds_one/2")),
 						0,
-						withEqual(nycIncentives.resolve("#/then/0")),
+						withEqual(nycIncentives.resolve("#/then")),
 						0);
 				$ = "Problem with Benefit Year result"; times = 1;
 
 				publisher.publishResult(
 						"Number of Benefit Years",
 						"20",
-						withEqual(nycIncentives.resolve("#/then/0/finds_one/3")),
+						withEqual(nycIncentives.resolve("#/then/finds_one/3")),
 						0,
-						withEqual(nycIncentives.resolve("#/then/0")),
+						withEqual(nycIncentives.resolve("#/then")),
 						0);
 				$ = "Problem with Number of Benefit Years result"; times = 1;
 				
 				publisher.publishResult(
 						"Benefit Type",
 						"Completion",
-						withEqual(nycIncentives.resolve("#/then/0/finds_one/4")),
+						withEqual(nycIncentives.resolve("#/then/finds_one/4")),
 						0,
-						withEqual(nycIncentives.resolve("#/then/0")),
+						withEqual(nycIncentives.resolve("#/then")),
 						0);
 				$ = "Problem with Benefit Type result"; times = 1;
 
 				publisher.publishResult(
 						"Benefit Start Date",
 						"July 01, 1996",
-						withEqual(nycIncentives.resolve("#/then/0/finds_one/5")),
+						withEqual(nycIncentives.resolve("#/then/finds_one/5")),
 						0,
-						withEqual(nycIncentives.resolve("#/then/0")),
+						withEqual(nycIncentives.resolve("#/then")),
 						0);
 				$ = "Problem with Benefit Start Date result"; times = 1;
 
 				publisher.publishResult(
 						"Benefit End Date",
 						"June 30, 2016",
-						withEqual(nycIncentives.resolve("#/then/0/finds_one/6")),
+						withEqual(nycIncentives.resolve("#/then/finds_one/6")),
 						0,
-						withEqual(nycIncentives.resolve("#/then/0")),
+						withEqual(nycIncentives.resolve("#/then")),
 						0);
 				$ = "Problem with Benefit Start Date result"; times = 1;
 
 				publisher.publishResult(
 						"Ineligible Commercial %",
 						"00.0000%",
-						withEqual(nycIncentives.resolve("#/then/0/finds_one/7")),
+						withEqual(nycIncentives.resolve("#/then/finds_one/7")),
 						0,
-						withEqual(nycIncentives.resolve("#/then/0")),
+						withEqual(nycIncentives.resolve("#/then")),
 						0);
 				$ = "Problem with Ineligible Commercial % result"; times = 1;
 				
@@ -295,18 +318,18 @@ public class ScraperFixturesTest {
 				publisher.publishResult(
 						"Base Year",
 						"Year ending June 30, 1993",
-						withEqual(nycIncentives.resolve("#/then/0/finds_one/8")),
+						withEqual(nycIncentives.resolve("#/then/finds_one/8")),
 						0,
-						withEqual(nycIncentives.resolve("#/then/0")),
+						withEqual(nycIncentives.resolve("#/then")),
 						0);
 				$ = "Problem with Base Year result"; times = 1;
 
 				publisher.publishResult(
 						"Base Year Assessed Value",
 						"$5,500,000",
-						withEqual(nycIncentives.resolve("#/then/0/finds_one/9")),
+						withEqual(nycIncentives.resolve("#/then/finds_one/9")),
 						0,
-						withEqual(nycIncentives.resolve("#/then/0")),
+						withEqual(nycIncentives.resolve("#/then")),
 						0);
 				$ = "Problem with Base Year Assessed Value result"; times = 1;
 				
@@ -340,7 +363,7 @@ public class ScraperFixturesTest {
 				publisher.publishResult(
 						(String) withNull(),
 						anyString,
-						withEqual(nycIncentivesSimple.resolve("#/then/0")),
+						withEqual(nycIncentivesSimple.resolve("#/then")),
 						0,
 						withEqual(nycIncentivesSimple),
 						0);
@@ -349,72 +372,72 @@ public class ScraperFixturesTest {
 				publisher.publishResult(
 						"Benefit Name",
 						"421A-Newly constructed Multiple Dwelling Residential Property",
-						withEqual(nycIncentivesSimple.resolve("#/then/0/finds_one/0")),
+						withEqual(nycIncentivesSimple.resolve("#/then/finds_one/0")),
 						0,
-						withEqual(nycIncentivesSimple.resolve("#/then/0")),
+						withEqual(nycIncentivesSimple.resolve("#/then")),
 						0);
 				$ = "Problem with Benefit Name result"; times = 1;
 				
 				publisher.publishResult(
 						"Benefit Amount",
 						withPrefix("$"),
-						withEqual(nycIncentivesSimple.resolve("#/then/0/finds_one/1")),
+						withEqual(nycIncentivesSimple.resolve("#/then/finds_one/1")),
 						0,
-						withEqual(nycIncentivesSimple.resolve("#/then/0")),
+						withEqual(nycIncentivesSimple.resolve("#/then")),
 						0);
 				$ = "Problem with Benefit Amount result"; times = 1;
 
 				publisher.publishResult(
 						"Current Benefit Year",
 						"16",
-						withEqual(nycIncentivesSimple.resolve("#/then/0/finds_one/2")),
+						withEqual(nycIncentivesSimple.resolve("#/then/finds_one/2")),
 						0,
-						withEqual(nycIncentivesSimple.resolve("#/then/0")),
+						withEqual(nycIncentivesSimple.resolve("#/then")),
 						0);
 				$ = "Problem with Benefit Year result"; times = 1;
 
 				publisher.publishResult(
 						"Number of Benefit Years",
 						"20",
-						withEqual(nycIncentivesSimple.resolve("#/then/0/finds_one/3")),
+						withEqual(nycIncentivesSimple.resolve("#/then/finds_one/3")),
 						0,
-						withEqual(nycIncentivesSimple.resolve("#/then/0")),
+						withEqual(nycIncentivesSimple.resolve("#/then")),
 						0);
 				$ = "Problem with Number of Benefit Years result"; times = 1;
 				
 				publisher.publishResult(
 						"Benefit Type",
 						"Completion",
-						withEqual(nycIncentivesSimple.resolve("#/then/0/finds_one/4")),
+						withEqual(nycIncentivesSimple.resolve("#/then/finds_one/4")),
 						0,
-						withEqual(nycIncentivesSimple.resolve("#/then/0")),
+						withEqual(nycIncentivesSimple.resolve("#/then")),
 						0);
 				$ = "Problem with Benefit Type result"; times = 1;
 
 				publisher.publishResult(
 						"Benefit Start Date",
 						"July 01, 1996",
-						withEqual(nycIncentivesSimple.resolve("#/then/0/finds_one/5")),
+						withEqual(nycIncentivesSimple.resolve("#/then/finds_one/5")),
 						0,
-						withEqual(nycIncentivesSimple.resolve("#/then/0")),
+						withEqual(nycIncentivesSimple.resolve("#/then")),
 						0);
 				$ = "Problem with Benefit Start Date result"; times = 1;
 
 				publisher.publishResult(
 						"Benefit End Date",
 						"June 30, 2016",
-						withEqual(nycIncentivesSimple.resolve("#/then/0/finds_one/6")),
+						withEqual(nycIncentivesSimple.resolve("#/then/finds_one/6")),
 						0,
-						withEqual(nycIncentivesSimple.resolve("#/then/0")),
+						withEqual(nycIncentivesSimple.resolve("#/then")),
 						0);
 				$ = "Problem with Benefit Start Date result"; times = 1;
 
 				publisher.publishResult(
 						"Ineligible Commercial %",
 						"00.0000%",
-						withEqual(nycIncentivesSimple.resolve("#/then/0/finds_one/7")),
+						withEqual(nycIncentivesSimple.resolve("#/then/finds_one/7")),
 						0,
-						withEqual(nycIncentivesSimple.resolve("#/then/0")),
+						withEqual(nycIncentivesSimple.resolve("#/then")),
 						0);
 				$ = "Problem with Ineligible Commercial % result"; times = 1;
 				
@@ -422,18 +445,18 @@ public class ScraperFixturesTest {
 				publisher.publishResult(
 						"Base Year",
 						"Year ending June 30, 1993",
-						withEqual(nycIncentivesSimple.resolve("#/then/0/finds_one/8")),
+						withEqual(nycIncentivesSimple.resolve("#/then/finds_one/8")),
 						0,
-						withEqual(nycIncentivesSimple.resolve("#/then/0")),
+						withEqual(nycIncentivesSimple.resolve("#/then")),
 						0);
 				$ = "Problem with Base Year result"; times = 1;
 
 				publisher.publishResult(
 						"Base Year Assessed Value",
 						"$5,500,000",
-						withEqual(nycIncentivesSimple.resolve("#/then/0/finds_one/9")),
+						withEqual(nycIncentivesSimple.resolve("#/then/finds_one/9")),
 						0,
-						withEqual(nycIncentivesSimple.resolve("#/then/0")),
+						withEqual(nycIncentivesSimple.resolve("#/then")),
 						0);
 				$ = "Problem with Base Year Assessed Value result"; times = 1;
 			}

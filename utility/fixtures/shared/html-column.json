@@ -1,0 +1,6 @@
+
+{
+	"name" : "column",
+	"pattern" : "<\\s*td[^>]*>(.*?)</\\s*td\\s*>",
+	"replacement" : "$1"
+}

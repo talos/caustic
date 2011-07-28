@@ -1,0 +1,6 @@
+
+{
+	"name" : "EVENTVALIDATION",
+	"pattern" : "id=\"__EVENTVALIDATION\"\\s+value=\"([^\"]+)\"",
+	"replacement" : "$1"
+}

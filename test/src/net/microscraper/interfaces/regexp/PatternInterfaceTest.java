@@ -15,7 +15,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class PatternInterfaceTest {
-	private RegexpCompiler re;
+	private final RegexpCompiler re;
 	private PatternInterface pat;
 	private String testClass;
 

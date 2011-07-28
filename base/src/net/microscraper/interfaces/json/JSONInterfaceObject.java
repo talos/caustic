@@ -16,7 +16,16 @@ public interface JSONInterfaceObject {
 	 * not a JSON array.
 	 */
 	public abstract JSONInterfaceArray getJSONArray(String key) throws JSONInterfaceException;
-
+	
+	/**
+	 * Determine whether the specified <code>key</code> is a {@link JSONInterfaceArray}.
+	 * @param key The {@link String} key to check.
+	 * @return <code>true</code> if <code>key</code> is a {@link JSONInterfaceArray}, 
+	 * <code>false</code> otherwise.
+	 * @throws JSONInterfaceException If <code>key</code> does not exist.
+	 */
+	public abstract boolean isJSONArray(String key) throws JSONInterfaceException;
+	
 	/**
 	 * Retrieve a {@link JSONInterfaceObject} from the specified <code>key</code>.
 	 * @param key The {@link String} key to retrieve.
@@ -25,7 +34,16 @@ public interface JSONInterfaceObject {
 	 * not a JSON object.
 	 */
 	public abstract JSONInterfaceObject getJSONObject(String key) throws JSONInterfaceException;
-
+	
+	/**
+	 * Determine whether the specified <code>key</code> is a {@link JSONInterfaceObject}.
+	 * @param key The {@link String} key to check.
+	 * @return <code>true</code> if <code>key</code> is a {@link JSONInterfaceObject}, 
+	 * <code>false</code> otherwise.
+	 * @throws JSONInterfaceException If <code>key</code> does not exist.
+	 */
+	public abstract boolean isJSONObject(String key) throws JSONInterfaceException;
+	
 	/**
 	 * Retrieve a {@link String} from the specified <code>key</code>.
 	 * @param key The {@link String} key to retrieve.
@@ -36,6 +54,15 @@ public interface JSONInterfaceObject {
 	public abstract String getString(String key) throws JSONInterfaceException;
 
 	/**
+	 * Determine whether the specified <code>key</code> is a {@link String}.
+	 * @param key The {@link String} key to check.
+	 * @return <code>true</code> if <code>key</code> is a {@link String}, 
+	 * <code>false</code> otherwise.
+	 * @throws JSONInterfaceException If <code>key</code> does not exist.
+	 */
+	public abstract boolean isString(String key) throws JSONInterfaceException;
+	
+	/**
 	 * Retrieve a {@link int} from the specified <code>key</code>.
 	 * @param key The {@link String} key to retrieve.
 	 * @return A {@link JSONInterfaceObject}.
@@ -45,6 +72,15 @@ public interface JSONInterfaceObject {
 	public abstract int getInt(String key) throws JSONInterfaceException;
 
 	/**
+	 * Determine whether the specified <code>key</code> is a {@link int}.
+	 * @param key The {@link String} key to check.
+	 * @return <code>true</code> if <code>key</code> is a {@link int}, 
+	 * <code>false</code> otherwise.
+	 * @throws JSONInterfaceException If <code>key</code> does not exist.
+	 */
+	public abstract boolean isInt(String key) throws JSONInterfaceException;
+	
+	/**
 	 * Retrieve a {@link boolean} from the specified <code>key</code>.
 	 * @param key The {@link String} key to retrieve.
 	 * @return A {@link JSONInterfaceObject}.
@@ -53,6 +89,15 @@ public interface JSONInterfaceObject {
 	 */
 	public abstract boolean getBoolean(String key) throws JSONInterfaceException;
 
+	/**
+	 * Determine whether the specified <code>key</code> is a {@link boolean}.
+	 * @param key The {@link String} key to check.
+	 * @return <code>true</code> if <code>key</code> is a {@link boolean}, 
+	 * <code>false</code> otherwise.
+	 * @throws JSONInterfaceException If <code>key</code> does not exist.
+	 */
+	public abstract boolean isBoolean(String key) throws JSONInterfaceException;
+	
 	/**
 	 * Determines whether this {@link JSONInterfaceObject} contains a value for a <code>key</code>.
 	 * This is not the same as {@link #isNull}, which checks whether <code>key</code> is <code>

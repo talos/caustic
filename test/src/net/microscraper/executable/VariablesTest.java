@@ -17,6 +17,7 @@ import net.microscraper.impl.log.SystemLogInterface;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
 import net.microscraper.instruction.FindMany;
 import net.microscraper.instruction.FindOne;
+import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Page;
 import net.microscraper.instruction.Regexp;
 import net.microscraper.instruction.Scraper;
@@ -48,9 +49,15 @@ public class VariablesTest {
 		log.register(new SystemLogInterface());
 		
 		new NonStrictExpectations() {
+			@Mocked Instruction instruction;
+			@Mocked JSONLocation location;
+			
 			{
-				sourceResult.getName(); result = "";
-				setField(interfaces, "regexpCompiler", new JakartaRegexpCompiler());
+				sourceResult.getInstruction(); result = instruction;
+				instruction.getLocation(); result = location;
+				location.toString(); result = "";
+				
+				interfaces.getRegexpCompiler(); result = new JakartaRegexpCompiler();
 			}
 		};
 	}

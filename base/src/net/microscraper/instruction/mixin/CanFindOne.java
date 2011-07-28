@@ -3,6 +3,7 @@ package net.microscraper.instruction.mixin;
 import java.io.IOException;
 
 import net.microscraper.instruction.DeserializationException;
+import net.microscraper.instruction.FindMany;
 import net.microscraper.instruction.FindOne;
 import net.microscraper.interfaces.json.JSONInterfaceArray;
 import net.microscraper.interfaces.json.JSONInterfaceException;
@@ -46,12 +47,21 @@ public interface CanFindOne {
 					throws DeserializationException, IOException {
 			try {
 				final FindOne[] findOnes;
+				
 				if(jsonObject.has(KEY)) {
-					JSONInterfaceArray array = jsonObject.getJSONArray(KEY);
-					findOnes = new FindOne[array.length()];
-					for(int i = 0 ; i < findOnes.length ; i ++) {
-						findOnes[i] = new FindOne(array.getJSONObject(i));
-					}
+					// If the key refers directly to an object, it is considered
+					// an array of 1.
+					if(jsonObject.isJSONObject(KEY)) {
+						findOnes = new FindOne[] {
+								new FindOne(jsonObject.getJSONObject(KEY))
+						};
+					} else {
+						JSONInterfaceArray array = jsonObject.getJSONArray(KEY);
+						findOnes = new FindOne[array.length()];
+						for(int i = 0 ; i < findOnes.length ; i ++) {
+							findOnes[i] = new FindOne(array.getJSONObject(i));
+						}
+					}					
 				} else {
 					findOnes = new FindOne[0];
 				}

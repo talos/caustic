@@ -47,13 +47,21 @@ public interface CanFindMany {
 			try {
 				final FindMany[] findManys;
 				if(jsonObject.has(KEY)) {
-					JSONInterfaceArray array = jsonObject.getJSONArray(KEY);
-					findManys = new FindMany[array.length()];
-					for(int i = 0 ; i < findManys.length ; i ++) {
-						findManys[i] = new FindMany(array.getJSONObject(i));
+					// If the key refers directly to an object, it is considered
+					// an array of 1.
+					if(jsonObject.isJSONObject(KEY)) {
+						findManys = new FindMany[] {
+								new FindMany(jsonObject.getJSONObject(KEY))
+						};
+					} else {
+						JSONInterfaceArray array = jsonObject.getJSONArray(KEY);
+						findManys = new FindMany[array.length()];
+						for(int i = 0 ; i < findManys.length ; i ++) {
+							findManys[i] = new FindMany(array.getJSONObject(i));
+						}
 					}
 				} else {
-					findManys = new FindMany[0];
+					findManys = new FindMany[] {};
 				}
 				return new CanFindMany() {
 					public FindMany[] getFindManys() {

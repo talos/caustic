@@ -20,7 +20,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class JSONLocationTest {
 	
-	private Constructor<JSONLocation> constructor;
+	private final Constructor<JSONLocation> constructor;
 	
 	private static final String filePathWithFragment = "file:/path/to/file#path/to/obj";
 	private static final String pathWithoutFragment = "path/to/file";

@@ -134,6 +134,8 @@ public class JSONME implements JSONInterface {
 	
 	private class JSONMEObject implements JSONInterfaceObject {
 		private final JSONObject object;
+		//private final JSONInterfaceObject[] extensions;
+		
 		private final JSONLocation location;
 		
 		// ensures references are always followed.
@@ -147,8 +149,29 @@ public class JSONME implements JSONInterface {
 				location = location.resolve(object.getString(REFERENCE_KEY));
 				object = loadJSONObject(location);
 			}
+			
+			if(object.has(EXTENDS)) {
+				if(object.optJSONObject(EXTENDS) != null) {
+					merge(object.getJSONObject(EXTENDS));
+				} else if(object.optJSONArray(EXTENDS) != null) {
+					JSONArray extensions = object.getJSONArray(EXTENDS);
+					for(int i = 0 ; i < extensions.length() ; i ++) {
+						merge(extensions.getJSONObject(i));
+					}
+				} 
+			}
+			
 			this.object = object;
 			this.location = location;
+		}
+		
+		private void merge(JSONObject objToMerge) throws JSONException {
+			Enumeration enum = objToMerge.keys();
+			while(enum.hasMoreElements()) {
+				String key = (String) enum.nextElement();
+				Object value = objToMerge.get(key);
+				object.put(key, value);
+			}
 		}
 		
 		public JSONInterfaceArray getJSONArray(String name)
@@ -220,6 +243,68 @@ public class JSONME implements JSONInterface {
 
 		public JSONLocation getLocation() {
 			return this.location;
+		}
+
+		public boolean isJSONArray(String key) throws JSONInterfaceException {
+			if(object.optJSONArray(key) != null) {
+				return true;
+			} else {
+				if(object.has(key)) {
+					return false;
+				} else {
+					throw new JSONInterfaceException(new NullPointerException(key));
+				}
+			}
+		}
+
+		public boolean isJSONObject(String key) throws JSONInterfaceException {
+			if(object.optJSONObject(key) != null) {
+				return true;
+			} else {
+				if(object.has(key)) {
+					return false;
+				} else {
+					throw new JSONInterfaceException(new NullPointerException(key));
+				}
+			}
+		}
+		
+		public boolean isString(String key) throws JSONInterfaceException {
+			if(object.optString(key) != null) {
+				return true;
+			} else {
+				if(object.has(key)) {
+					return false;
+				} else {
+					throw new JSONInterfaceException(new NullPointerException(key));
+				}
+			}
+		}
+
+		public boolean isInt(String key) throws JSONInterfaceException {
+			try {
+				object.getInt(key);
+				return true;
+			} catch(JSONException e) {
+				if(object.has(key)) {
+					return false;
+				} else {
+					throw new JSONInterfaceException(e);
+				}
+			}
+		}
+
+		public boolean isBoolean(String key) throws JSONInterfaceException {
+			try {
+				object.getBoolean(key);
+				return true;
+			} catch(JSONException e) {
+				if(object.has(key)) {
+					return false;
+				} else {
+					throw new JSONInterfaceException(e);
+				}
+			}
 		}
 	}
 	
@@ -312,6 +397,69 @@ public class JSONME implements JSONInterface {
 
 		public JSONLocation getLocation() {
 			return this.location;
+		}
+
+		public boolean isJSONArray(int index) throws JSONInterfaceException {
+			if(array.optJSONArray(index) != null) {
+				return true;
+			} else {
+				if(array.length() > index) {
+					return false;
+				} else {
+					throw new JSONInterfaceException(new ArrayIndexOutOfBoundsException(index));
+				}
+			}
+		}
+
+		public boolean isJSONObject(int index) throws JSONInterfaceException {
+			if(array.optJSONObject(index) != null) {
+				return true;
+			} else {
+				if(array.length() > index) {
+					return false;
+				} else {
+					throw new JSONInterfaceException(new ArrayIndexOutOfBoundsException(index));
+				}
+			}
+		}
+
+		public boolean isString(int index) throws JSONInterfaceException {
+			if(array.optString(index) != null) {
+				return true;
+			} else {
+				if(array.length() > index) {
+					return false;
+				} else {
+					throw new JSONInterfaceException(new ArrayIndexOutOfBoundsException(index));
+				}
+			}
+		}
+
+		public boolean isInt(int index) throws JSONInterfaceException {
+			try {
+				array.getInt(index);
+				return true;
+			} catch(JSONException e) {
+				if(array.length() > index) {
+					return false;
+				} else {
+					throw new JSONInterfaceException(e);
+				}
+			}
+
+		}
+
+		public boolean isBoolean(int index) throws JSONInterfaceException {
+			try {
+				array.getBoolean(index);
+				return true;
+			} catch(JSONException e) {
+				if(array.length() > index) {
+					return false;
+				} else {
+					throw new JSONInterfaceException(e);
+				}
+			}
 		}
 		
 	}
