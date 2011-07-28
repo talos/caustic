@@ -1,14 +1,8 @@
 package net.microscraper.impl.publisher;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
-import net.microscraper.Utils;
-import net.microscraper.executable.Executable;
-import net.microscraper.executable.Result;
 import net.microscraper.impl.publisher.SQLInterface.PreparedStatement;
 import net.microscraper.impl.publisher.SQLInterface.SQLInterfaceException;
 import net.microscraper.interfaces.json.JSONLocation;
@@ -24,6 +18,14 @@ public class SQLPublisher implements Publisher {
 	private static final String NUMBER = "number";
 	private static final String SOURCE_URI = "source_uri";
 	private static final String SOURCE_NUMBER = "source_number";
+	
+	/*
+	 * Sensical indexes:
+	 * CREATE UNIQUE INDEX uri_number ON results (uri, number);
+	 * CREATE INDEX source_uri_source_number ON results (source_uri, source_number);
+	 * CREATE INDEX name ON results (name);
+	 * 
+	 */
 	
 	//private static final String EXECUTABLE_ID = "executable_id";
 	
