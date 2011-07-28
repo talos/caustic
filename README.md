@@ -10,26 +10,26 @@ Here's a simple one:
 
     {
      "url" : "http://www.google.com/search?q={{query}}",
-     "finds_many"  : [{
+     "finds_many"  : {
        "name"   : "what do we say after {{query}}?",
        "pattern"     : "{{query}}\\s+(\\w+)",
        "replacement" : "$1"
-     }]
+     }
     }
 
 Mapping <i>query</i> to "hello", the results look something like...
 
 <table>
-  <tr><th>name                        <th>value                   <th>uri                            <th>number  <th>source_uri         <th>source_number</tr>
-  <tr><td><i>null</i>                 <td><i>...Google HTML...</i><td>simple-google.json#            <td>0       <td><i>null</i>        <td><i>null</i>  </tr>
-  <tr><td>what do we say after hello? <td>project                 <td>simple-google.json#finds_many.0<td>0       <td>simple-google.json#<td>0            </tr>
-  <tr><td>what do we say after hello? <td>kitty                   <td>simple-google.json#finds_many.0<td>1       <td>simple-google.json#<td>0            </tr>
-  <tr><td>what do we say after hello? <td>lyrics                  <td>simple-google.json#finds_many.0<td>2       <td>simple-google.json#<td>0            </tr>
-  <tr><td>what do we say after hello? <td>lionel                  <td>simple-google.json#finds_many.0<td>3       <td>simple-google.json#<td>0            </tr>
-  <tr><td>what do we say after hello? <td>kitty                   <td>simple-google.json#finds_many.0<td>4       <td>simple-google.json#<td>0            </tr>
-  <tr><td>what do we say after hello? <td>beyonce                 <td>simple-google.json#finds_many.0<td>5       <td>simple-google.json#<td>0            </tr>
-  <tr><td>what do we say after hello? <td>beyonce                 <td>simple-google.json#finds_many.0<td>6       <td>simple-google.json#<td>0            </tr>
-  <tr><td>what do we say after hello? <td>glee                    <td>simple-google.json#finds_many.0<td>7       <td>simple-google.json#<td>0            </tr>
+  <tr><th>name                        <th>value                   <th>uri                            <th>number  <th>source_uri          <th>source_number</tr>
+  <tr><td><i>null</i>                 <td><i>...Google HTML...</i><td>simple-google.json#/           <td>0       <td><i>null</i>         <td><i>null</i>  </tr>
+  <tr><td>what do we say after hello? <td>project                 <td>simple-google.json#/finds_many <td>0       <td>simple-google.json#/<td>0            </tr>
+  <tr><td>what do we say after hello? <td>kitty                   <td>simple-google.json#/finds_many <td>1       <td>simple-google.json#/<td>0            </tr>
+  <tr><td>what do we say after hello? <td>lyrics                  <td>simple-google.json#/finds_many <td>2       <td>simple-google.json#/<td>0            </tr>
+  <tr><td>what do we say after hello? <td>lionel                  <td>simple-google.json#/finds_many <td>3       <td>simple-google.json#/<td>0            </tr>
+  <tr><td>what do we say after hello? <td>kitty                   <td>simple-google.json#/finds_many <td>4       <td>simple-google.json#/<td>0            </tr>
+  <tr><td>what do we say after hello? <td>beyonce                 <td>simple-google.json#/finds_many <td>5       <td>simple-google.json#/<td>0            </tr>
+  <tr><td>what do we say after hello? <td>beyonce                 <td>simple-google.json#/finds_many <td>6       <td>simple-google.json#/<td>0            </tr>
+  <tr><td>what do we say after hello? <td>glee                    <td>simple-google.json#/finds_many <td>7       <td>simple-google.json#/<td>0            </tr>
 </table>
 
 #### Why? ####
