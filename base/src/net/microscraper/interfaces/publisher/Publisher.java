@@ -2,7 +2,6 @@ package net.microscraper.interfaces.publisher;
 
 import net.microscraper.Client;
 import net.microscraper.executable.Executable;
-import net.microscraper.executable.FindManyExecutable;
 import net.microscraper.executable.Result;
 import net.microscraper.interfaces.json.JSONLocation;
 
@@ -15,44 +14,6 @@ import net.microscraper.interfaces.json.JSONLocation;
  *
  */
 public interface Publisher {
-
-
-	/*
-	 * This can be called multiple times on a single {@link Executable}.
-	 * {@link Executable}s <b>should not</b> be accessed outside of this method.
-	 * @param executable The {@link Executable} instance that may, or may not,
-	 * have changed.
-	 * @throws PublisherException If the publisher has experienced an exception.
-	 * @see FindManyExecutable
-	 */
-	//public void publish(Executable executable) throws PublisherException;
-	
-	
-	/*
-	 * @param sourceResourceLocation A String describing where the source {@link Resource} is.
-	 * @param sourceResultNumber The <b>resultNumber</b> of the source {@link Result}.
-	 * @param resourceLocation A String describing where the {@link Resource} is.
-	 * @param stuckOn The name of the tag that could not be found in {@link Variables}.
-	 * @throws PublisherException If the publisher has experienced an {@link Exception}.
-	 */
-	//public void publishStuck(String sourceResourceLocation, int sourceTryNumber,
-	//		String resourceLocation, String stuckOn) throws PublisherException;
-	
-	/*
-	 * @param sourceResultId The unique <code>int</code> ID of the {@link Result} that was the source.
-	 * @param executableId The <code>int</code> ID of the {@link Executable} that is being published.
-	 * @param failureBecause The {@link Throwable} that caused the {@link Executable} to fail.
-	 * @throws PublisherException If the publisher has experienced an {@link Exception}.
-	 */
-	//public void publishFailure(String sourceResourceLocation, int sourceTryNumber,
-	//		String resourceLocation, Throwable failureBecause) throws PublisherException;
-	
-	/*
-	 * @param sourceResultId The unique <code>int</code> ID of the {@link Result} that was the source.
-	 * @param executableId The <code>int</code> ID of the {@link Executable} that is being published.
-	 * @param results An array of {@link Result}s.
-	 * @throws PublisherException If the publisher has experienced an {@link Exception}.
-	 */
 	
 	/**
 	 * Publish a {@link Result} or equivalent.
@@ -74,23 +35,4 @@ public interface Publisher {
 			JSONLocation uri, int number, JSONLocation sourceUri, Integer sourceNumber)
 					throws PublisherException;
 
-	/**
-	 * This can be called multiple times on a single {@link FindManyExecutable}.
-	 * {@link FindManyExecutable}s <b>should not</b> be accessed outside of this method.
-	 * @param executable The {@link FindManyExecutable} instance that may, or may not,
-	 * have changed.
-	 * @throws PublisherException If the publisher has experienced an exception.
-	 * @see FindManyExecutable
-	 */
-	//public void publish(FindManyExecutable executable) throws PublisherException;
-	
-	/**
-	 * This can be called multiple times on a single {@link FindOneExecutable}.
-	 * {@link FindOneExecutable}s <b>should not</b> be accessed outside of this method.
-	 * @param executable The {@link FindOneExecutable} instance that may, or may not,
-	 * have changed.
-	 * @throws PublisherException If the publisher has experienced an exception.
-	 * @see FindManyExecutable
-	 */
-	//public void publish(FindOneExecutable findOneExecutable) throws PublisherException;
 }

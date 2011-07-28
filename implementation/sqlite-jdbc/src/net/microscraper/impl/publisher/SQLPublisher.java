@@ -52,17 +52,7 @@ public class SQLPublisher implements Publisher {
 		this.sql = sql;
 		this.batchSize = batchSize;
 		try {
-			/*createExecutionsTable =
-				sql.prepareStatement(
-						"CREATE TABLE `" + EXECUTABLES_TABLE + "` (" +
-					"`" + RESOURCE_LOCATION + "` " + sql.varcharColumnType() + ", " +
-					"`" + SOURCE_RESULT_ID + "` " + sql.intColumnType() + ", " +
-					"`" + ID + "` " + sql.intColumnType() + " " + sql.keyColumnDefinition() + ", " +
-					"`" + STUCK_ON + "` " + sql.varcharColumnType() + ", " +
-					"`" + FAILURE_BECAUSE + "` " + sql.varcharColumnType() + " )");
-			
-			createExecutionsTable.execute();*/
-			
+
 			createResultsTable = 
 				sql.prepareStatement(
 						"CREATE TABLE `" + RESULTS_TABLE + "` (" +
@@ -73,15 +63,7 @@ public class SQLPublisher implements Publisher {
 						"`" + SOURCE_URI   + "` " + sql.varcharColumnType() + ", " +
 						"`" + SOURCE_NUMBER+ "` " + sql.intColumnType()     + " )");						
 			createResultsTable.execute();
-			
-			/*checkExecutionsTable = 
-				sql.prepareStatement(
-						"SELECT `"+ RESOURCE_LOCATION + "`, " +
-								"`" + SOURCE_RESULT_ID + "`, " +
-								"`" + ID + "`, " +
-								"`" + STUCK_ON + "`, " +
-								"`" + FAILURE_BECAUSE + "` " +
-								"FROM " + EXECUTABLES_TABLE);*/
+
 			checkResultsTable = 
 				sql.prepareStatement(
 						"SELECT `"+ NAME + "`, " +
@@ -179,17 +161,6 @@ public class SQLPublisher implements Publisher {
 		batchResults.clear();
 		executionsSinceLastCommit = 0;
 	}
-	
-	/*
-	
-	private String truncateToVarchar(String stringToTruncate) {
-		return Utils.truncate(stringToTruncate, sql.defaultVarcharLength());
-	}
-	
-	private static String getResourceLocationString(Executable execution) {
-		return execution.getResource().getLocation().toString();
-	}
-	*/
 
 	@Override
 	public void publishResult(String name, String value, JSONLocation uri,

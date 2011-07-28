@@ -19,11 +19,11 @@ import net.microscraper.Log;
 import net.microscraper.NameValuePair;
 import net.microscraper.Utils;
 import net.microscraper.impl.browser.JavaNetBrowser;
-import net.microscraper.impl.file.IOFileLoader;
+import net.microscraper.impl.file.JavaIOFileLoader;
 import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.json.JavaNetJSONLocation;
-import net.microscraper.impl.log.FileLogInterface;
-import net.microscraper.impl.log.SystemLogInterface;
+import net.microscraper.impl.log.JavaIOFileLogger;
+import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.impl.publisher.JDBCSQLite;
 import net.microscraper.impl.publisher.SQLPublisher;
 import net.microscraper.impl.publisher.SQLInterface.SQLInterfaceException;
@@ -80,7 +80,7 @@ public class MicroScraperConsole {
 	private static char columnDelimiter = ',';
 	
 	private static String LOG_FILE_OPTION = "--log-file";
-	private static FileLogInterface fileLog = null;
+	private static JavaIOFileLogger fileLog = null;
 	
 	private static String LOG_STDOUT_OPTION = "--log-stdout";
 	private static boolean logStdout = false;
@@ -114,7 +114,7 @@ public class MicroScraperConsole {
 	
 	private static final Log log = new Log();
 	private static final Browser browser = new JavaNetBrowser(log, Browser.DEFAULT_MAX_KBPS_FROM_HOST, Browser.DEFAULT_SLEEP_TIME);
-	private static final FileLoader fileLoader = new IOFileLoader();
+	private static final FileLoader fileLoader = new JavaIOFileLoader();
 	private static final JSONInterface jsonInterface = new JSONME(fileLoader, browser);
 	private static final RegexpCompiler regexpCompiler = new JakartaRegexpCompiler();
 	private static SQLPublisher publisher;
@@ -178,7 +178,7 @@ public class MicroScraperConsole {
 					}
 					columnDelimiter = value.charAt(0);
 				} else if(arg.startsWith(LOG_FILE_OPTION)) {
-					fileLog = new FileLogInterface(new File(value));
+					fileLog = new JavaIOFileLogger(new File(value));
 				} else if(arg.startsWith(LOG_STDOUT_OPTION)) {
 					logStdout = true;
 				} else if(arg.startsWith(OUTPUT_FORMAT_OPTION)) {
@@ -203,7 +203,7 @@ public class MicroScraperConsole {
 			throw new IllegalArgumentException();
 		}
 		if(logStdout) {
-			log.register(new SystemLogInterface());
+			log.register(new SystemOutLogger());
 		}
 		if(fileLog != null) {
 			log.register(fileLog);

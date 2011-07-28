@@ -1,11 +1,22 @@
 package net.microscraper.instruction;
 
+import net.microscraper.ClientException;
 import net.microscraper.interfaces.json.JSONInterfaceArray;
-import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
 
-public class DeserializationException extends Exception {
+/**
+ * {@link DeserializationException} is thrown when there is a problem generating an
+ * {@link Executable} from a {@link JSONInterfaceObject}.
+ * @author talos
+ *
+ */
+public class DeserializationException extends ClientException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 131401908426100287L;
+	
 	public DeserializationException(Throwable e, JSONInterfaceObject jsonObject) {
 		super(e);
 	}

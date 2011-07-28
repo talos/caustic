@@ -13,7 +13,7 @@ import net.microscraper.executable.FindOneExecutable;
 import net.microscraper.executable.Result;
 import net.microscraper.executable.ScraperExecutable;
 import net.microscraper.executable.SpawnedScraperExecutable;
-import net.microscraper.impl.log.SystemLogInterface;
+import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
 import net.microscraper.instruction.FindMany;
 import net.microscraper.instruction.FindOne;
@@ -46,7 +46,7 @@ public class VariablesTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		log.register(new SystemLogInterface());
+		log.register(new SystemOutLogger());
 		
 		new NonStrictExpectations() {
 			@Mocked Instruction instruction;

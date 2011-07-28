@@ -6,7 +6,14 @@ import java.io.IOException;
 
 import net.microscraper.interfaces.file.FileLoader;
 
-public class IOFileLoader implements FileLoader {
+/**
+ * An implementation of {@link FileLoader} using {@link java.io.File}.
+ * @author talos
+ * @see FileLoader
+ * @see java.io.File
+ *
+ */
+public class JavaIOFileLoader implements FileLoader {
 
 	@Override
 	public String load(String path) throws IOException {

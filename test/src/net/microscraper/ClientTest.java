@@ -11,10 +11,10 @@ import net.microscraper.DefaultNameValuePair;
 import net.microscraper.Log;
 import net.microscraper.Variables;
 import net.microscraper.impl.browser.JavaNetBrowser;
-import net.microscraper.impl.file.IOFileLoader;
+import net.microscraper.impl.file.JavaIOFileLoader;
 import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.json.JavaNetJSONLocation;
-import net.microscraper.impl.log.SystemLogInterface;
+import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
@@ -64,13 +64,13 @@ public class ClientTest {
 		nycIncentivesSimple = fixturesFolder.resolve("nyc-incentives-simple.json");
 		
 		Log log = new Log();
-		log.register(new SystemLogInterface());
+		log.register(new SystemOutLogger());
 
 		browser = new JavaNetBrowser(log, 500, 1000);
 		client = new Client(
 				new JakartaRegexpCompiler(),
 				log, browser,
-				new JSONME(new IOFileLoader(), browser));
+				new JSONME(new JavaIOFileLoader(), browser));
 	}
 	
 	/**

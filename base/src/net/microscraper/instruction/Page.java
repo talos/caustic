@@ -62,12 +62,7 @@ public final class Page extends URL {
 		 */
 		private Method() {}
 	}
-	
-	/**
-	 * The {@link URL} {@link Resource} to use in constructing the {@link URLInterface} to load.
-	 */
-	//public final URL url;
-	
+		
 	private final Method method;
 	/**
 	 * @return The HTTP request type to use.  Either Post, Get, or Head.
@@ -135,11 +130,11 @@ public final class Page extends URL {
 			}
 			
 			this.cookies = jsonObject.has(COOKIES) ?
-					new NameValuePairs(jsonObject.getJSONObject(COOKIES)).pairs :
-					new MustacheNameValuePair[0];
+					NameValuePairs.deserialize(jsonObject.getJSONObject(COOKIES)) :
+					new MustacheNameValuePair[] {};
 			this.headers = jsonObject.has(HEADERS) ?
-					new NameValuePairs(jsonObject.getJSONObject(HEADERS)).pairs :
-					new MustacheNameValuePair[0];
+					NameValuePairs.deserialize(jsonObject.getJSONObject(HEADERS)) :
+					new MustacheNameValuePair[] {};
 					
 			if(jsonObject.has(PRELOAD)) {
 				JSONInterfaceArray preload = jsonObject.getJSONArray(PRELOAD);
@@ -162,8 +157,8 @@ public final class Page extends URL {
 			}
 			
 			this.posts = jsonObject.has(POSTS) ?
-					new NameValuePairs(jsonObject.getJSONObject(POSTS)).pairs :
-					new MustacheNameValuePair[0];
+					NameValuePairs.deserialize(jsonObject.getJSONObject(POSTS)) :
+					new MustacheNameValuePair[] {};
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
