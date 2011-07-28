@@ -1,22 +1,29 @@
 package net.microscraper;
 
+import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.interfaces.log.Logger;
 
-
-public class Log {
+/**
+ * A {@link Log} is an implementation of {@link Logger}
+ * to coordinate many {@link Logger}s simultaneously.
+ * <p>
+ * All {@link Logger}s that are registered will receive
+ * the same {@link Logger} methods.
+ * @author talos
+ *
+ */
+public final class Log implements Logger {
 	private final Vector loggers = new Vector();
 	public void register(Logger logger) {
 		loggers.addElement(logger);
 	}
 	public void e(Throwable e) {
-		//e.printStackTrace();
 		for(int i = 0; i < loggers.size(); i ++) {
 			((Logger) loggers.elementAt(i)).e(e);
 		}
 	}
-	// No stacktrace for warnings.
 	public void w(Throwable w) {
 		for(int i = 0; i < loggers.size(); i ++) {
 			((Logger) loggers.elementAt(i)).w(w);
@@ -26,5 +33,15 @@ public class Log {
 		for(int i = 0; i < loggers.size(); i ++) {
 			((Logger) loggers.elementAt(i)).i(infoText);
 		}
+	}
+	public void open() throws IOException {
+		for(int i = 0; i < loggers.size(); i ++) {
+			((Logger) loggers.elementAt(i)).open();
+		}		
+	}
+	public void close() throws IOException {
+		for(int i = 0; i < loggers.size(); i ++) {
+			((Logger) loggers.elementAt(i)).close();
+		}		
 	}
 }
