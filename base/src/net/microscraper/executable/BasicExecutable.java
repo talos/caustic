@@ -9,6 +9,8 @@ import net.microscraper.Utils;
 import net.microscraper.Variables;
 import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.Instruction;
+import net.microscraper.interfaces.database.Database;
+import net.microscraper.interfaces.database.DatabaseException;
 
 /**
  * {@link BasicExecutable} is a partial implementation of {@link Executable}.  It provides a framework
@@ -22,7 +24,6 @@ import net.microscraper.instruction.Instruction;
  */
 public abstract class BasicExecutable implements Executable {
 	private final Instruction instruction;
-
 	private final Result source;
 	private final Interfaces interfaces;
 	
@@ -58,7 +59,13 @@ public abstract class BasicExecutable implements Executable {
 			try {
 				// Only generate the result if we don't have one, and we have a resource.
 				if(results == null) {
-					results = generateResults();
+					String[] resultValues = generateResultValues();
+					results = new Result[resultValues.length];
+					for(int i = 0 ; i < resultValues.length ; i ++) {
+						results[i] = 
+								new Result(getInstruction(), getSource(), getName(),
+										resultValues[i], interfaces.getPublisher());
+					}
 				}
 				if(results != null) {
 					children = generateChildren(results);
@@ -72,6 +79,8 @@ public abstract class BasicExecutable implements Executable {
 			} catch(IOException e) {
 				handleFailure(new ExecutionFailure(e));
 			} catch(DeserializationException e) {
+				handleFailure(new ExecutionFailure(e));
+			} catch(DatabaseException e) {
 				handleFailure(new ExecutionFailure(e));
 			}
 		}
@@ -108,8 +117,8 @@ public abstract class BasicExecutable implements Executable {
 	
 	/**
 	 * Must be overriden by {@link BasicExecutable} subclass.
-	 * @return An array of {@link Result}s from executing this particular {@link Executable}.  Will be passed to
-	 * {@link generateChildren}
+	 * @return An array of {@link String}s from executing this particular {@link Executable}.  Will be passed to
+	 * {@link generateChildren}.
 	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
 	 * {@link Executable}'s {@link Variables}.
 	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
@@ -118,7 +127,7 @@ public abstract class BasicExecutable implements Executable {
 	 * @see #generateResource
 	 * @see #generateChildren
 	 */
-	protected abstract Result[] generateResults() throws
+	protected abstract String[] generateResultValues() throws
 			MissingVariableException, MustacheTemplateException, ExecutionFailure;
 	
 	/**
@@ -244,9 +253,27 @@ public abstract class BasicExecutable implements Executable {
 	 * @return A {@link Result} from this {@link Executable}.
 	 * @throws NullPointerException If <b>value</b> is <code>null</code>.
 	 */
-	protected Result generateResult(String name, String value) {
+	/*protected Result generateResult(String name, String value) {
 		if(value == null)
 			throw new NullPointerException("Result value cannot be null");
 		return new BasicResult(this, name, value);
+	}*/
+	
+	/**
+	 * 
+	 * @return The {@link Instruction#getName()}, compiled through
+	 * {@link Mustache}, if {@link Instruction#hasName()} is <code>true</code>.
+	 * Returns the {@link Instruction#getLocation()} as a {@link String} otherwise.
+	 * @throws MustacheTemplateException If {@link Instruction#getName()} is an invalid {@link MustacheTemplate}.
+	 * @throws MissingVariableException If the {@link Instruction#getName()}
+	 * cannot be compiled with {@link #getVariables()}.
+	 */
+	public String getName() throws MissingVariableException,
+			MustacheTemplateException {
+		if(getInstruction().hasName()) {
+			return getInstruction().getName().compile(this);
+		} else {
+			return getInstruction().getLocation().toString();
+		}
 	}
 }

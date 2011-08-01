@@ -38,11 +38,12 @@ public abstract class ScraperExecutable extends BasicExecutable {
 			}
 		}
 		if(hasSource()) {
-			if(getSource().hasName()) {
+			//TODO: access to variables via mustache'd URI.  yay or nay?
+			//if(getSource().hasName()) {
 				if(getSource().getName().equals(key)) {
 					return getSource().getValue();
 				}
-			}
+			//}
 		}
 		return extendedVariables.get(key);
 	}

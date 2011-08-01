@@ -5,10 +5,10 @@ package net.microscraper;
  * @author john
  *
  */
-public final class DefaultNameValuePair implements NameValuePair {
+public final class BasicNameValuePair implements NameValuePair {
 	private final String name;
 	private final String value;
-	public DefaultNameValuePair(String name, String value) {
+	public BasicNameValuePair(String name, String value) {
 		this.name = name;
 		this.value = value;
 	}

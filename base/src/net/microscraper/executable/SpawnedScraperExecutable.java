@@ -19,11 +19,11 @@ public class SpawnedScraperExecutable extends ScraperExecutable {
 	}
 
 	/**
-	 * Works as a pass-through for {@link #getSource()}.
+	 * Passes through the value of the source result.
 	 */
-	protected Result[] generateResults()
+	protected String[] generateResultValues()
 			throws MissingVariableException, MustacheTemplateException,
 			ExecutionFailure {
-		return new Result[] { getSource() };
+		return new String[] { getSource().getValue() };
 	}
 }

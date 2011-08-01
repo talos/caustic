@@ -16,7 +16,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import net.microscraper.DefaultNameValuePair;
+import net.microscraper.BasicNameValuePair;
 import net.microscraper.Log;
 import net.microscraper.NameValuePair;
 import net.microscraper.Utils;
@@ -181,10 +181,10 @@ public class JavaNetBrowser implements Browser {
 		HttpURLConnection conn = (HttpURLConnection) (new URL(url.toString())).openConnection();	
 		
 		// Add generic Headers.
-		addHeaderToConnection(conn, new DefaultNameValuePair(ACCEPT_HEADER_NAME, ACCEPT_HEADER_DEFAULT_VALUE));
-		addHeaderToConnection(conn, new DefaultNameValuePair(ACCEPT_LANGUAGE_HEADER_NAME, ACCEPT_LANGUAGE_HEADER_DEFAULT_VALUE));
-		addHeaderToConnection(conn, new DefaultNameValuePair(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER_DEFAULT_VALUE));
-		addHeaderToConnection(conn, new DefaultNameValuePair(REFERER_HEADER_NAME, url.toString())); // default to the current URL as referer.
+		addHeaderToConnection(conn, new BasicNameValuePair(ACCEPT_HEADER_NAME, ACCEPT_HEADER_DEFAULT_VALUE));
+		addHeaderToConnection(conn, new BasicNameValuePair(ACCEPT_LANGUAGE_HEADER_NAME, ACCEPT_LANGUAGE_HEADER_DEFAULT_VALUE));
+		addHeaderToConnection(conn, new BasicNameValuePair(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER_DEFAULT_VALUE));
+		addHeaderToConnection(conn, new BasicNameValuePair(REFERER_HEADER_NAME, url.toString())); // default to the current URL as referer.
 		if(headers != null) {
 			for(int i = 0 ; i < headers.length ; i++) {
 				addHeaderToConnection(conn, headers[i]);

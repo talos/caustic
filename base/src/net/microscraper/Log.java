@@ -10,8 +10,9 @@ import net.microscraper.interfaces.log.Logger;
  * to coordinate many {@link Logger}s simultaneously.
  * <p>
  * All {@link Logger}s that are registered will receive
- * the same {@link Logger} methods.
+ * the {@link Logger} methods called on the {@link Log}.
  * @author talos
+ * @see Logger
  *
  */
 public final class Log implements Logger {

@@ -3,21 +3,16 @@ package net.microscraper.executable;
 import java.io.IOException;
 import java.util.Vector;
 
-import net.microscraper.DefaultNameValuePair;
 import net.microscraper.Interfaces;
 import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplateException;
-import net.microscraper.NameValuePair;
-import net.microscraper.Variables;
 import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.FindMany;
 import net.microscraper.instruction.Page;
-import net.microscraper.instruction.Regexp;
 import net.microscraper.instruction.Scraper;
 import net.microscraper.interfaces.regexp.InvalidRangeException;
 import net.microscraper.interfaces.regexp.MissingGroupException;
 import net.microscraper.interfaces.regexp.NoMatchesException;
-import net.microscraper.interfaces.regexp.PatternInterface;
 
 public class FindManyExecutable extends FindExecutable {
 	public FindManyExecutable(Interfaces context, FindMany findMany, 
@@ -26,25 +21,20 @@ public class FindManyExecutable extends FindExecutable {
 	}
 	
 	/**
-	 * {@link FindManyExecutable} returns an array of {@link NameValuePair}s.
+	 * {@link FindManyExecutable} returns many strings.
 	 */
-	protected Result[] generateResults()
+	protected String[] generateResultValues()
 			throws MissingVariableException, ExecutionFailure {
 		try {
 			FindMany findMany = (FindMany) getInstruction();
 			
 			String replacement = getReplacement();
-			String name = getName();
-			String[] values = getPattern().allMatches(
+			return getPattern().allMatches(
 					getSource().getValue(),
 					replacement,
 					findMany.getMinMatch(),
 					findMany.getMaxMatch());
-			Result[] results = new Result[values.length];
-			for(int i = 0 ; i < results.length ; i++) {
-				results[i] = generateResult(name, values[i]);
-			}
-			return results;
+			
 		} catch(MustacheTemplateException e) {
 			throw new ExecutionFailure(e);
 		} catch (NoMatchesException e) {

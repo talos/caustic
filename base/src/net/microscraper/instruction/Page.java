@@ -164,12 +164,13 @@ public final class Page extends URL {
 		}
 	}
 
-	public Page(JSONLocation location, Page[] spawnPages, Scraper[] spawnScrapers,
+	public Page(JSONLocation location, MustacheTemplate name, 
+			Page[] spawnPages, Scraper[] spawnScrapers,
 			FindMany[] findManys, FindOne[] findOnes, MustacheTemplate urlTemplate,
 			Method method, MustacheNameValuePair[] headers,
 			MustacheNameValuePair[] posts, MustacheNameValuePair[] cookies,
 			Regexp[] stopBecause, Page[] preload) {
-		super(location, spawnPages, spawnScrapers, findManys, findOnes, urlTemplate);
+		super(location, name, spawnPages, spawnScrapers, findManys, findOnes, urlTemplate);
 		this.method = method;
 		this.headers = headers;
 		this.posts = posts;

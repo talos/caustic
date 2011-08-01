@@ -41,9 +41,10 @@ public class URL extends Scraper {
 		}
 	}
 	
-	public URL(JSONLocation location, Page[] spawnPages, Scraper[] spawnScrapers,
+	public URL(JSONLocation location, MustacheTemplate name,
+			Page[] spawnPages, Scraper[] spawnScrapers,
 			FindMany[] findManys, FindOne[] findOnes, MustacheTemplate urlTemplate) {
-		super(location, spawnPages, spawnScrapers, findManys, findOnes);
+		super(location, name, spawnPages, spawnScrapers, findManys, findOnes);
 		this.template = urlTemplate;
 	}
 	

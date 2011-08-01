@@ -8,35 +8,26 @@ import java.util.Hashtable;
  * @author realest
  *
  */
-public class DefaultVariables implements Variables {
+public class BasicVariables implements Variables {
 	
 	private final Hashtable defaults = new Hashtable();
 	//private Variables extendedVariables = null;
 	
 	/**
-	 * Initialize {@link DefaultVariables} without {@link NameValuePairs}s.
+	 * Initialize {@link BasicVariables} without {@link NameValuePairs}s.
 	 */
-	public DefaultVariables() { }
+	public BasicVariables() { }
 	
 	/**
 	 * 
 	 * @param nameValuePairs an array of {@link NameValuePair}s that will be in the 
-	 * {@link DefaultVariables} instance.
+	 * {@link BasicVariables} instance.
 	 */
-	public DefaultVariables(NameValuePair[] nameValuePairs) {
+	public BasicVariables(NameValuePair[] nameValuePairs) {
 		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
 			defaults.put(nameValuePairs[i].getName(), nameValuePairs[i].getValue());
 		}
 	}
-	
-	/**
-	 * 
-	 * @param extendedVariables A {@link Variables} instance that will be checked if there are no
-	 * matches found in this one.
-	 */
-	/*public DefaultVariables(Variables extendedVariables) {
-		this.extendedVariables = extendedVariables;
-	}*/
 	
 	public String get(String key) throws MissingVariableException {
 		Object value = defaults.get(key);

@@ -11,11 +11,11 @@ import net.microscraper.instruction.Page;
 import net.microscraper.instruction.Scraper;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
+import net.microscraper.interfaces.database.Database;
+import net.microscraper.interfaces.database.DatabaseException;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONLocation;
-import net.microscraper.interfaces.publisher.Publisher;
-import net.microscraper.interfaces.publisher.PublisherException;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
 
 /**
@@ -34,31 +34,32 @@ public final class Client {
 	 * @param browser A {@link Browser} to use for HTTP requests.
 	 * @param jsonInterface A {@link JSONInterface} to use when
 	 * loading {@link JSONInterfaceObject}s.
+	 * @param publisher the {@link Database} to send {@link Result}s to.
 	 */
 	public Client(RegexpCompiler regexpCompiler,
-			Log log, Browser browser, JSONInterface jsonInterface) {
+			Log log, Browser browser, JSONInterface jsonInterface,
+			Database publisher) {
 		this.interfaces = new Interfaces(log,
 				regexpCompiler, browser,
-				jsonInterface);
+				jsonInterface, publisher);
 	}
 	
 	/**
 	 * 
 	 * @param pageLocation A {@link JSONLocation} with the {@link Scraper}'s instructions.
 	 * @param extraVariables An array of {@link NameValuePair}s to use initially.
-	 * @param publisher A {@link Publisher} to send the results of {@link Executable}s to.
 	 * @throws BrowserException If a {@link Browser} problem prevented the {@link Scraper} from running.
 	 * @throws ClientException If the {@link Scraper} could not be run.
 	 */
-	public void scrape(JSONLocation pageLocation, NameValuePair[] extraVariables,
-			Publisher publisher) throws BrowserException, ClientException {
+	public void scrape(JSONLocation pageLocation, NameValuePair[] extraVariables)
+			throws BrowserException, ClientException {
 		try {
 			Page page = new Page(interfaces.getJSONInterface().load(pageLocation));
 			
 			Executable rootExecutable = new PageExecutable(interfaces,
-					page, new DefaultVariables(extraVariables), 
+					page, new BasicVariables(extraVariables), 
 					null);
-			execute(rootExecutable, publisher);
+			execute(rootExecutable);
 		} catch(IOException e) {
 			throw new ClientException(e);
 		} catch (DeserializationException e) {
@@ -71,10 +72,8 @@ public final class Client {
 	/**
 	 * {@link #execute} runs an {@link Executable} and its children, publishing them after each run.
 	 * @param rootExecutable The {@link Executable} to start with.
-	 * @param publisher The {@link Publisher} to publish to after each execution.
-	 * @throws PublisherException if the {@link Publisher} experienced an error.
 	 */
-	private void execute(Executable rootExecutable, Publisher publisher) throws PublisherException {
+	private void execute(Executable rootExecutable) {
 		Vector queue = new Vector();
 		queue.add(rootExecutable);
 		while(queue.size() > 0) {
@@ -86,10 +85,10 @@ public final class Client {
 			exc.run();
 			// If the execution is complete, add its children to the queue.
 			if(exc.isComplete()) {
-				Result[] results = exc.getResults();
-				for(int i = 0 ; i < results.length ; i++) {
+				//Result[] results = exc.getResults();
+				/*for(int i = 0 ; i < results.length ; i++) {
 					results[i].publishTo(publisher);
-				}
+				}*/
 				Executable[] children = exc.getChildren();
 				Utils.arrayIntoVector(children, queue);
 			} else if (exc.isStuck()) {

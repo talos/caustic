@@ -1,11 +1,13 @@
 package net.microscraper.executable;
 
+import net.microscraper.MissingVariableException;
+import net.microscraper.MustacheTemplateException;
 import net.microscraper.Variables;
 import net.microscraper.instruction.Instruction;
 
 /**
  * Implementations of {@link Executable} can be
- * published by a {@link net.microscraper.interfaces.publisher.Publisher}.
+ * published by a {@link net.microscraper.interfaces.database.Database}.
  * @author john
  *
  */
@@ -107,5 +109,8 @@ public interface Executable extends Runnable, Variables {
 	 * @see #isComplete()
 	 */
 	public abstract Executable[] getChildren() throws IllegalStateException;
+
+	public abstract String getName() throws MissingVariableException,
+			MustacheTemplateException;
 
 }

@@ -16,7 +16,7 @@ public class MustacheNameValuePair {
 	}
 	
 	public NameValuePair compile(Variables variables) throws MissingVariableException, MustacheTemplateException {
-		return new DefaultNameValuePair(name.compile(variables), value.compile(variables));
+		return new BasicNameValuePair(name.compile(variables), value.compile(variables));
 	}
 	
 	public static NameValuePair[] compile(MustacheNameValuePair[] nameValuePairs,

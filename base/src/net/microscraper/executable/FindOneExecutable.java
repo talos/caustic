@@ -51,16 +51,14 @@ public class FindOneExecutable extends FindExecutable {
 	}
 	
 	/**
-	 * A single {@link NameValuePair} {@link Result} for {@link FindOneExecutable}.
+	 * A single result for {@link FindOneExecutable}.
 	 */
-	protected Result[] generateResults() throws MissingVariableException,
+	protected String[] generateResultValues() throws MissingVariableException,
 				MustacheTemplateException, ExecutionFailure  {
 		try {
 			FindOne findOne = (FindOne) getInstruction();
 			String replacement = getReplacement();
-			String value = getPattern().match(getSource().getValue(), replacement, findOne.match);
-			String name = getName();
-			return new Result[] { generateResult(name, value) };
+			return new String[] { getPattern().match(getSource().getValue(), replacement, findOne.match) };
 		} catch (NoMatchesException e) {
 			throw new ExecutionFailure(e);
 		} catch (MissingGroupException e) {

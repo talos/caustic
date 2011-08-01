@@ -4,12 +4,16 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 
+import mockit.Capturing;
+import mockit.Delegate;
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.Verifications;
 import net.microscraper.Client;
-import net.microscraper.DefaultNameValuePair;
+import net.microscraper.BasicNameValuePair;
 import net.microscraper.Log;
 import net.microscraper.Variables;
+import net.microscraper.executable.Result;
 import net.microscraper.impl.browser.JavaNetBrowser;
 import net.microscraper.impl.file.JavaIOFileLoader;
 import net.microscraper.impl.json.JSONME;
@@ -18,15 +22,15 @@ import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
+import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONLocation;
-import net.microscraper.interfaces.publisher.Publisher;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ClientTest {
+public class PageExecutableTest {
 	private JSONLocation fixturesFolder, simpleGoogle, nycPropertyOwner, nycIncentives,
 						nycIncentivesSimple, eventValidation, simpleGoogleSplit1, 
 						simpleGoogleSplit2;
@@ -34,17 +38,19 @@ public class ClientTest {
 	/**
 	 * The test {@link Client} instance.
 	 */
-	private Client client;
-		
+	//private Client client;
+	
 	/**
-	 * The mock {@link Publisher}.
+	 * The mock {@link Database}.
 	 */
-	@Mocked Publisher publisher;
+	//@Mocked Database publisher;
 	
 	/**
 	 * The {@link Browser}.
 	 */
 	private Browser browser;
+	
+	
 	
 	/**
 	 * Set up the {@link #client} before each test.
@@ -67,10 +73,11 @@ public class ClientTest {
 		log.register(new SystemOutLogger());
 
 		browser = new JavaNetBrowser(log, 500, 1000);
-		client = new Client(
+		/*client = new Client(
 				new JakartaRegexpCompiler(),
 				log, browser,
-				new JSONME(new JavaIOFileLoader(), browser));
+				new JSONME(new JavaIOFileLoader(), browser),
+				publisher);*/
 	}
 	
 	/**
@@ -79,22 +86,28 @@ public class ClientTest {
 	 */
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {
+		final ConstructorDelegate delegate = new ConstructorDelegate();
+		
 		final String expectedPhrase = "what do we say after hello?";
 
-		DefaultNameValuePair[] extraVariables = new DefaultNameValuePair[] {
-				new DefaultNameValuePair("query", "hello")
+		BasicNameValuePair[] extraVariables = new BasicNameValuePair[] {
+				new BasicNameValuePair("query", "hello")
 		};
-		
+
 		new Expectations() {
+			@Mocked Result result1, result2;
+			
 			{
+				// mockResult1
 				// Download Google HTML.
-				publisher.publishResult(
+				/*publisher.publishResult(
 						(String) withNull(),
 						anyString,
 						withEqual(simpleGoogle),
 						0,
 						(JSONLocation) withNull(),
 						(Integer) withNull()); times = 1;
+				*/
 				
 				// Pull out the words.
 				publisher.publishResult(
@@ -118,8 +131,8 @@ public class ClientTest {
 	public void testScrapeSimpleGoogleSplit() throws Exception {
 		final String expectedPhrase = "what do we say after hello?";
 
-		DefaultNameValuePair[] extraVariables = new DefaultNameValuePair[] {
-				new DefaultNameValuePair("query", "hello")
+		BasicNameValuePair[] extraVariables = new BasicNameValuePair[] {
+				new BasicNameValuePair("query", "hello")
 		};
 		
 		new Expectations() {
@@ -152,11 +165,11 @@ public class ClientTest {
 		final String ownerName = "Owner Name";
 		final String expectedOwner0 = "373 ATLANTIC AVENUE C";
 		final String expectedOwner1 = "373 ATLANTIC AVENUE CORPORATION";
-		DefaultNameValuePair[] extraVariables = new DefaultNameValuePair[] {
-				new DefaultNameValuePair("House Number", "373"),
-				new DefaultNameValuePair("Street Name", "Atlantic Av"),
-				new DefaultNameValuePair("Borough Number", "3"),
-				new DefaultNameValuePair("Apartment Number", "")
+		BasicNameValuePair[] extraVariables = new BasicNameValuePair[] {
+				new BasicNameValuePair("House Number", "373"),
+				new BasicNameValuePair("Street Name", "Atlantic Av"),
+				new BasicNameValuePair("Borough Number", "3"),
+				new BasicNameValuePair("Apartment Number", "")
 		};
 		
 		new Expectations() {
@@ -194,16 +207,16 @@ public class ClientTest {
 		
 		testScrape(nycPropertyOwner, extraVariables);
 	}
-	
+		
 	@Test
 	public void testScrapeNYCIncentives() throws Exception {
-		DefaultNameValuePair[] extraVariables = new DefaultNameValuePair[] {
-				new DefaultNameValuePair("Borough Number", "1"),
-				new DefaultNameValuePair("Block", "1171"),
-				new DefaultNameValuePair("Lot", "63")
+		BasicNameValuePair[] extraVariables = new BasicNameValuePair[] {
+				new BasicNameValuePair("Borough Number", "1"),
+				new BasicNameValuePair("Block", "1171"),
+				new BasicNameValuePair("Lot", "63")
 		};
-		
 		new Expectations() {
+			
 			{
 				publisher.publishResult(
 						(String) withNull(),
@@ -337,15 +350,16 @@ public class ClientTest {
 		};
 		
 		testScrape(nycIncentives, extraVariables);
+		
 	}
 	
 
 	@Test
 	public void testScrapeNYCIncentivesSimple() throws Exception {
-		DefaultNameValuePair[] extraVariables = new DefaultNameValuePair[] {
-				new DefaultNameValuePair("Borough Number", "1"),
-				new DefaultNameValuePair("Block", "1171"),
-				new DefaultNameValuePair("Lot", "63")
+		BasicNameValuePair[] extraVariables = new BasicNameValuePair[] {
+				new BasicNameValuePair("Borough Number", "1"),
+				new BasicNameValuePair("Block", "1171"),
+				new BasicNameValuePair("Lot", "63")
 		};
 		
 		new Expectations() {
@@ -469,12 +483,12 @@ public class ClientTest {
 	 * Convenience method to test one Scraper with our mock publisher.
 	 * @param String {@link JSONLocation} location of the {@link Scraper}
 	 * instructions.
-	 * @param extraVariables Array of {@link DefaultNameValuePair}s to
+	 * @param extraVariables Array of {@link BasicNameValuePair}s to
 	 * use as extra {@link Variables}.
 	 * @throws Exception If the test failed.
 	 */
 	private void testScrape(JSONLocation location,
-			DefaultNameValuePair[] extraVariables) throws Exception {
+			BasicNameValuePair[] extraVariables) throws Exception {
 		try {
 			client.scrape(location, extraVariables, publisher);
 		} catch(BrowserException e) {

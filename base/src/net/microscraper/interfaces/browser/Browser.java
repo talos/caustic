@@ -33,7 +33,7 @@ public interface Browser {
 	 * from the Set-Cookie response header to the {@link Browser}'s cookie store.
 	 * @param useRateLimit Whether to avoid overburdening a host.
 	 * @param url the URL to HTTP Head.
-	 * @param headers Array of {@link DefaultNameValuePair} extra headers.  Can be <code>null</code> if there are none.
+	 * @param headers Array of {@link BasicNameValuePair} extra headers.  Can be <code>null</code> if there are none.
 	 * @param cookies Array of {@link EncodedNameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
@@ -44,7 +44,7 @@ public interface Browser {
 	 * Make an HTTP Get request.  This returns the body of the response, and adds cookies to the cookie jar.
 	 * @param useRateLimit Whether to avoid overburdening a host.
 	 * @param url the URL to HTTP Get.
-	 * @param headers Array of {@link DefaultNameValuePair} extra headers.  Can be <code>null</code> if there are none.
+	 * @param headers Array of {@link BasicNameValuePair} extra headers.  Can be <code>null</code> if there are none.
 	 * @param cookies Array of {@link EncodedNameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
 	 * @param terminates Array of {@link PatternInterface}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
 	 * @return The body of the response.
@@ -58,7 +58,7 @@ public interface Browser {
 	 * Make an HTTP Post request.  This returns the body of the response, and adds cookies to the cookie jar.
 	 * @param useRateLimit Whether to avoid overburdening a host.
 	 * @param url the URL to HTTP Get.
-	 * @param headers Array of {@link DefaultNameValuePair} extra headers.  Can be <code>null</code> if there are none.
+	 * @param headers Array of {@link BasicNameValuePair} extra headers.  Can be <code>null</code> if there are none.
 	 * @param cookies Array of {@link EncodedNameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
 	 * @param terminates Array of {@link PatternInterface}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
 	 * @param posts Array of {@link EncodedNameValuePair} post data.  Can be <code>null</code> if there are none.

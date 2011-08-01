@@ -14,7 +14,7 @@ import net.microscraper.interfaces.json.JSONLocation;
  *
  */
 public class Find extends Regexp {
-	private static final String NAME = "name";
+	
 	private static final String REPLACEMENT = "replacement";
 	
 	/**
@@ -43,27 +43,7 @@ public class Find extends Regexp {
 		return tests;
 	}
 	
-	private final MustacheTemplate name;
 
-	/**
-	 * @return A {@link MustacheTemplate} attached to this particular {@link Find} {@link Instruction}.
-	 * Is <code>null</code> if it has none.
-	 * @see {@link #hasName}
-	 */
-	public final MustacheTemplate getName() {
-		return name;
-	}
-	
-	/**
-	 * Whether this {@link Find} {@link Instruction} has a {@link #name}.
-	 * @see {@link #name}
-	 */
-	public final boolean hasName() {
-		if(getName() == null)
-			return false;
-		return true;
-	}
-	
 	/**
 	 * Deserialize a {@link Find} from a {@link JSONInterfaceObject}.
 	 * @param jsonObject Input {@link JSONInterfaceObject} object.
@@ -76,11 +56,7 @@ public class Find extends Regexp {
 	public Find(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		super(jsonObject);
 		try {
-			if(jsonObject.has(NAME)) {
-				name = new MustacheTemplate(jsonObject.getString(NAME));
-			} else {
-				name = null;
-			}
+			
 			if(jsonObject.has(TESTS)) {
 				JSONInterfaceArray tests = jsonObject.getJSONArray(TESTS);
 				this.tests = new Regexp[tests.length()];
@@ -100,8 +76,7 @@ public class Find extends Regexp {
 	
 	public Find(JSONLocation location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
 			MustacheTemplate name, Regexp[] tests, MustacheTemplate replacement) {
-		super(location, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline);
-		this.name = name;
+		super(location, name, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline);
 		this.tests = tests;
 		this.replacement = replacement;
 	}

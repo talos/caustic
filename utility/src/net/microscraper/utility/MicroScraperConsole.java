@@ -14,7 +14,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 import net.microscraper.Client;
 import net.microscraper.ClientException;
-import net.microscraper.DefaultNameValuePair;
+import net.microscraper.BasicNameValuePair;
 import net.microscraper.Log;
 import net.microscraper.NameValuePair;
 import net.microscraper.Utils;
@@ -24,16 +24,17 @@ import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.json.JavaNetJSONLocation;
 import net.microscraper.impl.log.JavaIOFileLogger;
 import net.microscraper.impl.log.SystemOutLogger;
-import net.microscraper.impl.publisher.JDBCSQLite;
-import net.microscraper.impl.publisher.SQLPublisher;
-import net.microscraper.impl.publisher.SQLInterface.SQLInterfaceException;
+import net.microscraper.impl.publisher.SQLDatabase;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
+import net.microscraper.impl.sql.JDBCSQLite;
 import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.file.FileLoader;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.json.JSONLocation;
 import net.microscraper.interfaces.json.JSONLocationException;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
+import net.microscraper.interfaces.sql.SQLConnectionException;
 
 public class MicroScraperConsole {
 	private static final String newline = System.getProperty("line.separator");
@@ -117,7 +118,7 @@ public class MicroScraperConsole {
 	private static final FileLoader fileLoader = new JavaIOFileLoader();
 	private static final JSONInterface jsonInterface = new JSONME(fileLoader, browser);
 	private static final RegexpCompiler regexpCompiler = new JakartaRegexpCompiler();
-	private static SQLPublisher publisher;
+	private static Database database;
 	private static Client client;
 	
 	public static void main (String[] args) {
@@ -127,7 +128,7 @@ public class MicroScraperConsole {
 				scrape();
 				try {
 					publish();
-				} catch(SQLInterfaceException e) {
+				} catch(SQLConnectionException e) {
 					
 				}
 			} catch(ClientException e) {
@@ -141,7 +142,7 @@ public class MicroScraperConsole {
 			print(usage);
 		} catch(FileNotFoundException e) {
 			// Could not find the input file
-		} catch(SQLInterfaceException e) {
+		} catch(SQLConnectionException e) {
 			// Could not open connection to SQL
 		} catch(UnsupportedEncodingException e) {
 			// Encoding not supported on this system.
@@ -156,7 +157,7 @@ public class MicroScraperConsole {
 	}
 	
 	private static void initialize(String[] args) throws IllegalArgumentException,
-					FileNotFoundException, SQLInterfaceException, JSONLocationException,
+					FileNotFoundException, SQLConnectionException, JSONLocationException,
 					UnsupportedEncodingException {
 		if(args.length == 0)
 			throw new IllegalArgumentException("You must specify the URI of scraper instructions.");
@@ -215,7 +216,7 @@ public class MicroScraperConsole {
 		}
 		
 		if(outputFormat.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
-			publisher = new SQLPublisher(
+			database = new SQLDatabase(
 					new JDBCSQLite(outputFile.getPath(), log),
 					sqlBatchSize);
 		} else if(outputFormat.equals(CSV_OUTPUT_FORMAT_VALUE)) {
@@ -231,13 +232,13 @@ public class MicroScraperConsole {
 		} else {
 			throw new IllegalArgumentException();
 		}
-		client = new Client(regexpCompiler,	log, browser, jsonInterface);
+		client = new Client(regexpCompiler,	log, browser, jsonInterface, database);
 	}
 	
 	private static void scrape() throws ClientException, IOException {
 		fileLog.open();
 		if(input == null) {
-			client.scrape(instructionsLocation, defaults, publisher);
+			client.scrape(instructionsLocation, defaults);
 		} else {			
 			String[] headers = input.readNext();
 			NameValuePair[] lineDefaults = Arrays.copyOf(defaults, defaults.length + headers.length);
@@ -245,15 +246,15 @@ public class MicroScraperConsole {
 			String[] values;
 			while((values = input.readNext()) != null) {
 				for(int i = 0 ; i < values.length ; i ++) {
-					lineDefaults[i + defaults.length] = new DefaultNameValuePair(headers[i], values[i]);
+					lineDefaults[i + defaults.length] = new BasicNameValuePair(headers[i], values[i]);
 				}
-				client.scrape(instructionsLocation, lineDefaults, publisher);
+				client.scrape(instructionsLocation, lineDefaults);
 			}
 		}
 	}
 	
-	private static void publish() throws SQLInterfaceException {
-		publisher.forceCommit();
+	private static void publish() throws SQLConnectionException {
+		//database.forceCommit();
 	}
 	
 	private static void finish() throws IOException {

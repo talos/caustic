@@ -67,8 +67,10 @@ public class Regexp extends Instruction {
 		}
 	}
 	
-	public Regexp(JSONLocation location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline) {
-		super(location);
+	public Regexp(JSONLocation location, MustacheTemplate name,
+			MustacheTemplate pattern, boolean isCaseSensitive,
+			boolean isMultiline, boolean doesDotMatchNewline) {
+		super(location, name);
 		this.pattern = pattern;
 		this.isCaseSensitive = isCaseSensitive;
 		this.isMultiline = isMultiline;

@@ -2,6 +2,7 @@ package net.microscraper.instruction;
 
 import java.io.IOException;
 
+import net.microscraper.MustacheTemplate;
 import net.microscraper.instruction.mixin.CanFindMany;
 import net.microscraper.instruction.mixin.CanFindOne;
 import net.microscraper.instruction.mixin.CanSpawnScrapers;
@@ -55,9 +56,10 @@ public class Scraper extends Instruction implements CanFindOne, CanFindMany,
 		this.findOnes  = canFindOne.getFindOnes();
 	}
 	
-	public Scraper(JSONLocation location, Page[] spawnPages, Scraper[] spawnScrapers,
+	public Scraper(JSONLocation location, MustacheTemplate name,
+			Page[] spawnPages, Scraper[] spawnScrapers,
 			FindMany[] findManys, FindOne[] findOnes) {
-		super(location);
+		super(location, name);
 		this.spawnPages = spawnPages;
 		this.spawnScrapers = spawnScrapers;
 		this.findManys = findManys;

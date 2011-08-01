@@ -72,8 +72,7 @@ public class PageExecutable extends ScraperExecutable {
 	 * {@link Page.Method.GET} or {@link Page.Method.POST}; <code>Null</code> if it is
 	 * {@link Page.Method.HEAD}.
 	 */
-	protected String doMethod(Page page)
-			throws MissingVariableException, ExecutionFailure {
+	protected String doMethod(Page page) throws MissingVariableException, ExecutionFailure {
 		try {
 			// Temporary executions to do before.  Not published, executed each time.
 			for(int i = 0 ; i < page.getPreload().length ; i ++) {
@@ -95,10 +94,10 @@ public class PageExecutable extends ScraperExecutable {
 			throw new ExecutionFailure(e);
 		}
 	}
-	protected Result[] generateResults() 
+	protected String[] generateResultValues() 
 			throws MissingVariableException, MustacheTemplateException,
 			ExecutionFailure {
 		Page page = (Page) getInstruction();
-		return new Result[] { generateResult(null, doMethod(page)) };
+		return new String[] { doMethod(page) };
 	}
 }

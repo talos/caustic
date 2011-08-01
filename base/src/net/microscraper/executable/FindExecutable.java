@@ -5,6 +5,7 @@ import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplateException;
 import net.microscraper.Variables;
 import net.microscraper.instruction.Find;
+import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Regexp;
 import net.microscraper.interfaces.regexp.PatternInterface;
 
@@ -51,23 +52,6 @@ public abstract class FindExecutable extends BasicExecutable {
 	
 	/**
 	 * 
-	 * @return The {@link Find} {@link net.microscraper.instruction.Instruction}'s {@link Find#name}, compiled through
-	 * {@link Mustache}.  Returns the {@link net.microscraper.instruction.Instruction#location} as a String if none is
-	 * specified.
-	 * @throws MustacheTemplateException If the {@link Find#name} is an invalid {@link MustacheTemplate}.
-	 * @throws MissingVariableException If the {@link Find#name} cannot be compiled with {@link #getVariables()}.
-	 */
-	protected String getName() throws MissingVariableException, MustacheTemplateException {
-		Find find = (Find) getInstruction();
-		if(find.hasName()) {
-			return find.getName().compile(this);
-		} else {
-			return find.getLocation().toString();
-		}
-	}
-	
-	/**
-	 * 
 	 * @return The {@link PatternInterface} that this {@link FindExecutable} can use to parse its
 	 * {@link #sourceResult}.
 	 * @throws MissingVariableException
@@ -85,12 +69,4 @@ public abstract class FindExecutable extends BasicExecutable {
 	public final boolean containsKey(String key) {
 		return enclosingScraperExecutable.containsKey(key);
 	}
-	
-	/**
-	 * 
-	 * @return The {@link ScraperExecutable} that this {@link FindExecutable} lives inside.
-	 */
-	/*protected final ScraperExecutable getScraperExecutable() {
-		return scraperExecutable;
-	}*/
 }

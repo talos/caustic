@@ -199,7 +199,7 @@ public class Utils {
 		NameValuePair[] pairs = new NameValuePair[splitByAmpersands.length];
 		for(int i = 0 ; i < splitByAmpersands.length; i++) {
 			String[] pair = Utils.split(splitByAmpersands[i], "=");
-			pairs[i] = new DefaultNameValuePair(
+			pairs[i] = new BasicNameValuePair(
 					URLDecoder.decode(pair[0], encoding),
 					URLDecoder.decode(pair[1], encoding));
 		}

@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import net.microscraper.DefaultVariables;
+import net.microscraper.BasicVariables;
 import net.microscraper.Interfaces;
 import net.microscraper.Log;
 import net.microscraper.MustacheTemplate;
@@ -85,7 +85,7 @@ public class VariablesTest {
 			}
 		};
 		
-		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new DefaultVariables(), sourceResult);
+		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new BasicVariables(), sourceResult);
 		TestUtils.recursiveRun(executable);
 		
 		assertEquals(false, executable.containsKey(erroneousName));
@@ -129,7 +129,7 @@ public class VariablesTest {
 			}
 		};
 		
-		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new DefaultVariables(), sourceResult);
+		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new BasicVariables(), sourceResult);
 		TestUtils.recursiveRun(executable);
 		
 		Executable[] allChildren = TestUtils.getAllChildren(executable);
@@ -178,7 +178,7 @@ public class VariablesTest {
 			}
 		};
 		
-		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new DefaultVariables(), sourceResult);
+		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new BasicVariables(), sourceResult);
 		TestUtils.recursiveRun(executable);
 		
 		assertEquals("ScraperExecutable has erroneous key.", false, executable.containsKey(erroneousName));
@@ -219,7 +219,7 @@ public class VariablesTest {
 			}
 		};
 		
-		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new DefaultVariables(), sourceResult);
+		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new BasicVariables(), sourceResult);
 		TestUtils.recursiveRun(executable);
 		
 		assertEquals("Scraper has access to FindMany value.", false, executable.containsKey(name));
@@ -250,7 +250,7 @@ public class VariablesTest {
 		};
 		
 		ScraperExecutable executable = new SpawnedScraperExecutable(
-				interfaces, parentScraper, new DefaultVariables(), sourceResult);
+				interfaces, parentScraper, new BasicVariables(), sourceResult);
 		TestUtils.recursiveRun(executable);
 		
 		Executable findManyExecutable = executable.getChildren()[0];
@@ -299,7 +299,7 @@ public class VariablesTest {
 		};
 		
 		ScraperExecutable executable = new SpawnedScraperExecutable(
-				interfaces, parentScraper, new DefaultVariables(), sourceResult);
+				interfaces, parentScraper, new BasicVariables(), sourceResult);
 		TestUtils.recursiveRun(executable);
 		
 		Executable findManyExecutable = executable.getChildren()[0];

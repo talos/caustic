@@ -1,42 +1,71 @@
 package net.microscraper;
 
 import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.json.JSONInterface;
+import net.microscraper.interfaces.log.Logger;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
 
 /**
- * This class holds interfaces needed to run {@link Executable}s.
+ * This class holds interfaces shared by {@link Executable}s.
  * @author john
  *
  */
 public final class Interfaces {
-	private final Log log;
-	public final Log getLog() {
-		return log;
+	private final Logger logger;
+	
+	/**
+	 * 
+	 * @return A shared {@link Logger}.
+	 */
+	public final Logger getLog() {
+		return logger;
 	}
 	
 	private final RegexpCompiler regexpCompiler;
+	
+	/**
+	 * 
+	 * @return A shared {@link RegexpCompiler}.
+	 */
 	public final RegexpCompiler getRegexpCompiler() {
 		return regexpCompiler;
 	}
 	
 	private final Browser browser;
+	/**
+	 * 
+	 * @return A shared {@link Browser}.
+	 */
 	public final Browser getBrowser() {
 		return browser;
 	}
 	
 	private final JSONInterface jsonInterface;
+	/**
+	 * 
+	 * @return A shared {@link JSONInterface}
+	 */
 	public final JSONInterface getJSONInterface() {
 		return jsonInterface;
 	}
 	
-	//public final String encoding;
-	public Interfaces(Log log, RegexpCompiler regexpInterface,
-			Browser browser, JSONInterface jsonInterface) {
-		this.log = log;
+	private final Database publisher;
+	/**
+	 * 
+	 * @return A shared {@link Database}.
+	 */
+	public final Database getPublisher() {
+		return publisher;
+	}
+	
+	public Interfaces(Logger logger, RegexpCompiler regexpInterface,
+			Browser browser, JSONInterface jsonInterface, Database publisher) {
+		this.logger = logger;
 		this.regexpCompiler = regexpInterface;
 		this.browser = browser;
 		this.jsonInterface = jsonInterface;
+		this.publisher = publisher;
 		//this.encoding = encoding;
 	}
 }

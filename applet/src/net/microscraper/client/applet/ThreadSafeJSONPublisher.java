@@ -8,11 +8,11 @@ import net.microscraper.Client;
 import net.microscraper.executable.SpawnedScraperExecutable;
 import net.microscraper.executable.Status;
 import net.microscraper.executable.SpawnedScraperExecutable.ExecutionProblem;
+import net.microscraper.interfaces.database.Database;
+import net.microscraper.interfaces.database.DatabaseException;
 import net.microscraper.interfaces.json.JSONInterface;
-import net.microscraper.interfaces.publisher.Publisher;
-import net.microscraper.interfaces.publisher.PublisherException;
 
-public class ThreadSafeJSONPublisher implements Publisher {
+public class ThreadSafeJSONPublisher implements Database {
 	private final List<JSONInterfaceStringer> executions = Collections.synchronizedList(new ArrayList<JSONInterfaceStringer>());
 	private Integer pos = -1;
 	private final JSONInterface json;
@@ -31,7 +31,7 @@ public class ThreadSafeJSONPublisher implements Publisher {
 	}
 	
 	@Override
-	public void publish(SpawnedScraperExecutable execution, Status status) throws PublisherException {
+	public void publish(SpawnedScraperExecutable execution, Status status) throws DatabaseException {
 		try {
 			JSONInterfaceStringer stringer = json.getStringer();
 			stringer.object()
@@ -65,7 +65,7 @@ public class ThreadSafeJSONPublisher implements Publisher {
 				executions.add(stringer);
 			}
 		} catch(JSONInterfaceException e) {
-			throw new PublisherException(e);
+			throw new DatabaseException(e);
 		}
 	}
 	public void resetIterator() {
