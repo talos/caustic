@@ -3,18 +3,19 @@ package net.microscraper.executable;
 import net.microscraper.NameValuePair;
 
 /**
- * {@link Result}s are {@link NameValuePair}s that store results from {@link Executable}s.
+ * {@link Result}s are {@link NameValuePair}s implementations with a {@link #getId()}.
  * @see NameValuePair
  * @author john
  *
  */
-public interface Result extends NameValuePair {
+public class Result implements NameValuePair {
 	/*
 	private final Result source;
+	*/
 	private final String name;
 	private final String value;
 	private final int id;
-	*/
+	
 	/**
 	 * Construct a {@link Result} with an explicit {@link String} {@link #getName()}.
 	 * @param source The {@link Result} source.  Should be <code>null</code> if there is no
@@ -24,12 +25,10 @@ public interface Result extends NameValuePair {
 	 * @param database The {@link Database} that will store this {@link Result}.
 	 * @throws DatabaseException if the {@link Database} encounters an exception.
 	 */
-	/*public Result(Result source, String name, String value, Database database) 
-			throws DatabaseException {
-		this.source = source;
+	public Result(int id, String name, String value)  {
 		this.name = name;	
 		this.value = value;
-		this.id = database.store(this);
+		this.id = id;
 	}
 	
 	public String getName() {
@@ -39,14 +38,14 @@ public interface Result extends NameValuePair {
 	public String getValue() {
 		return value;
 	}
-	*/
+	
 	/**
 	 * 
 	 * @return A unique <code>int</code> identifier for this {@link Result}.
 	 */
-	public int getId(); /*{
+	public int getId() {
 		return id;
-	}*/
+	}
 	
 	/**
 	 * 
@@ -69,25 +68,16 @@ public interface Result extends NameValuePair {
 	}*/
 	
 	/**
-	 * Two {@link Result}s are equal if their IDs, names, values and sources (or
-	 * lack of source) are the same.
+	 * Two {@link Result}s are equal if their IDs, names and values are the same.
 	 */
-	/*public boolean equals(Object obj) {
+	public boolean equals(Object obj) {
 		if(obj == this)
 			return true;
 		if(!(obj instanceof Result))
 			return false;
 		Result that = (Result) obj;
-		if(this.hasSource()) {
-			return this.getId() == that.getId() &&
-					this.getName().equals(that.getName()) &&
-					this.getValue().equals(that.getValue()) &&
-					this.getSource().equals(that.getSource());
-		} else {
-			return this.getId() == that.getId() &&
-					this.getName().equals(that.getName()) &&
-					this.getValue().equals(that.getValue()) &&
-					that.hasSource() == false;
-		}
-	}*/
+		return this.getId() == that.getId() &&
+				this.getName().equals(that.getName()) &&
+				this.getValue().equals(that.getValue());
+	}
 }

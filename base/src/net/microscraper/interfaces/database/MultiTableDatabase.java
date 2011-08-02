@@ -7,16 +7,17 @@ import net.microscraper.NameValuePair;
 import net.microscraper.executable.Result;
 
 /**
- * An abstract implementation of {@link Database} whose subclasses store
+ * An implementation of {@link Database} whose subclasses store
  * {@link Result}s into separate tables, based off of their source's name.
  * @author talos
  *
  */
-public abstract class MultiTableDatabase implements Database {
+public final class MultiTableDatabase implements Database {
 	
 	/**
 	 * String to prepend before table names to prevent collision
-	 * with {@link #ROOT_TABLE_NAME}.
+	 * with {@link #ROOT_TABLE_NAME}, and to prepend before column
+	 * names to prevent collision with anything in {@link #COLUMN_NAMES}.
 	 */
 	private static final char PREPEND = '_';
 	
@@ -28,30 +29,30 @@ public abstract class MultiTableDatabase implements Database {
 	/**
 	 * Column name for the ID of the source of a result row.
 	 */
-	private static final String SOURCE_ID = "source_id";
+	private static final String SOURCE_ID_COLUMN = "source_id";
 	
 	/**
 	 * Column name for the name of the table where the result row's source can be
 	 * found.
 	 */
-	private static final String SOURCE_NAME = "source_name";
+	private static final String SOURCE_NAME_COLUMN = "source_name";
 	
 	/**
 	 * Default column names for {@link Table}s in {@link MultiTableDatabase}.
 	 */
-	private static final String[] COLUMN_NAMES = new String[] { SOURCE_ID, SOURCE_NAME };
+	private static final String[] COLUMN_NAMES = new String[] { SOURCE_ID_COLUMN, SOURCE_NAME_COLUMN };
 	
 	/**
 	 * The {@link Table} that holds {@link Result}s that don't have
 	 * a source.  These would be from the first layer of
 	 * {@link Instruction}s.  This table has only one row.
 	 */
-	private Table rootTable;
+	private final Table rootTable;
 	
 	/**
 	 * The {@link int} ID for the only row of {@link #rootTable}.
 	 */
-	private int rootResultId;
+	private final int rootResultId;
 	
 	/**
 	 * A {@link Hashtable} of all the {@link ChildResultsTable}s in this 
@@ -61,17 +62,27 @@ public abstract class MultiTableDatabase implements Database {
 	private final Hashtable tables = new Hashtable();
 	
 	/**
+	 * A {@link Connection} to use when generating tables.
+	 */
+	private final Connection connection;
+	
+	/**
 	 * Create the root table with no values in it.
 	 * @throws DatabaseException If the root table cannot be created.
 	 */
-	public final void open() throws DatabaseException {
-		rootTable = getTable(ROOT_TABLE_NAME);
+	public MultiTableDatabase(Connection connection) throws DatabaseException {
+		this.connection = connection;
+		rootTable = this.connection.getTable(ROOT_TABLE_NAME, COLUMN_NAMES);
 		rootResultId = rootTable.insert(new NameValuePair[] {});
 	}
 	
 	public Result store(String name, String value) throws DatabaseException {
-		rootTable.update(name, value);
-		return generateResult(rootResultId, name, value);
+		updateTable(rootTable, rootResultId, name, value);
+		Table table = getResultTable(name);
+		return new Result(table.insert(new NameValuePair[] {
+				new BasicNameValuePair(SOURCE_NAME_COLUMN, ROOT_TABLE_NAME),
+				new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(rootResultId))
+		}), name, value);
 	}
 	
 	public Result store(Result source, String name, String value) throws DatabaseException {
@@ -80,57 +91,55 @@ public abstract class MultiTableDatabase implements Database {
 		if(tables.containsKey(sourceTableName)) {
 			sourceTable = (Table) tables.get(sourceTableName);
 		} else {
-			sourceTable = getTable(sourceTableName);
+			sourceTable = getResultTable(sourceTableName);
 			tables.put(sourceTableName, sourceTable);
 		}
-		sourceTable.update(source.getId(), new NameValuePair[] { new BasicNameValuePair(name, value) });
-		return generateResult(source, sourceTableName, value);
+		
+		updateTable(sourceTable, source.getId(), name, value);
+		Table table = getResultTable(name);
+		return new Result(table.insert(new NameValuePair[] {
+				new BasicNameValuePair(SOURCE_NAME_COLUMN, sourceTable.getName()),
+				new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(source.getId()))
+		}), name, value);
 	}
 	
-	private Result generateResult(Result sourceResult,
-			String name, String value) throws DatabaseException {
-		String tableName = PREPEND + name;
+	/**
+	 * Get a {@link Table} for a {@link Result} name.
+	 * @param resultName The {@link Result} name to get the {@link Table} for.
+	 * @return The {@link Table}.
+	 * @throws DatabaseException If there was an error generating the {@link Table}.
+	 */
+	private Table getResultTable(String resultName) throws DatabaseException {
+		String tableName = PREPEND + resultName;
 		Table table;
 		if(tables.containsKey(tableName)) {
 			table = (Table) tables.get(tableName);
 		} else {
-			table = getTable(tableName);
+			table = connection.getTable(tableName, COLUMN_NAMES);
 			tables.put(tableName, table);
 		}
 		
-		return new BasicResult(table.insert(new NameValuePair[] {}), name, value);
-	}
-	
-	private static final class BasicResult implements Result {
-		private final int id;
-		private final String name;
-		private final String value;
-		public BasicResult(int id, String name, String value) {
-			this.id = id;
-			this.name = name;
-			this.value = value;
-		}
-		public String getName() {
-			return name;
-		}
-
-		public String getValue() {
-			return value;
-		}
-
-		public int getId() {
-			return id;
-		}
+		return table;
 	}
 	
 	/**
-	 * Obtain {@link Table} for the {@link MultiTableDatabase}.
-	 * @param name The {@link String} name of the {@link Result} parent of
-	 * {@link ChildResultsTable}.
-	 * @return A {@link ChildResultsTable}.
-	 * @throws DatabaseException if the {@link Table} cannot be made.
+	 * Update a {@link Table} with a <code>name</code> and <code>value</code>,
+	 * using {@link #PREPEND} and adding a column if necessary.
+	 * @param table The {@link Table} to update.
+	 * @param id The {@link int} id of the row to update.
+	 * @param name The {@link String} name of the column to update, this will be
+	 * prepended with {@link #PREPEND} and added as a new column to <code>table</code>
+	 * if it is not yet there.
+	 * @param value The {@link String} value to update.
+	 * @throws DatabaseException If the {@link Table} cannot be updated.
 	 */
-	private final Table getTable(String name) throws DatabaseException {
-		return getTable(name, COLUMN_NAMES );
+	private void updateTable(Table table, int id, String name, String value) throws DatabaseException {
+		String columnName = PREPEND + name;
+		if(!table.hasColumn(columnName)) {
+			table.addColumn(columnName);
+		}
+		table.update(id, new NameValuePair[] {
+			new BasicNameValuePair(columnName, value) }
+		);
 	}
 }

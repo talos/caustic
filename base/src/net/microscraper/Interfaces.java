@@ -1,6 +1,7 @@
 package net.microscraper;
 
 import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.database.Connection;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.log.Logger;

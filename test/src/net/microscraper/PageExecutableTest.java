@@ -38,7 +38,7 @@ public class PageExecutableTest {
 	/**
 	 * The test {@link Client} instance.
 	 */
-	//private Client client;
+	private Client client;
 	
 	/**
 	 * The mock {@link Database}.
@@ -49,25 +49,6 @@ public class PageExecutableTest {
 	 * The {@link Browser}.
 	 */
 	private Browser browser;
-	
-	private static class CapturedResult implements Result, Delegate {
-		Result capturedResult;
-		void $init(Result result) { 
-			capturedResult = result;
-		}
-		@Override
-		public String getName() {
-			return capturedResult.getName();
-		}
-		@Override
-		public String getValue() {
-			return capturedResult.getValue();
-		}
-		@Override
-		public int getId() {
-			return capturedResult.getId();
-		}
-	}
 	
 	/**
 	 * Set up the {@link #client} before each test.
@@ -102,9 +83,7 @@ public class PageExecutableTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void testScrapeSimpleGoogle() throws Exception {
-		final CapturedResult capturedResult = new CapturedResult();
-		
+	public void testScrapeSimpleGoogle() throws Exception {		
 		final String expectedPhrase = "what do we say after hello?";
 
 		BasicNameValuePair[] extraVariables = new BasicNameValuePair[] {
@@ -112,9 +91,7 @@ public class PageExecutableTest {
 		};
 
 		new Expectations() {
-			//@Mocked Result result1, result2;
-			final CapturedResult captured = new CapturedResult();
-			
+			//@Mocked Result result1, result2;			
 			{
 				// mockResult1
 				// Download Google HTML.
@@ -126,17 +103,15 @@ public class PageExecutableTest {
 						(JSONLocation) withNull(),
 						(Integer) withNull()); times = 1;
 				*/
-				
-				database.store(simpleGoogle.toString(), anyString); returns(captured);
-				
+								
 				// Pull out the words.
-				publisher.publishResult(
+				/*publisher.publishResult(
 						expectedPhrase,
 						anyString,
 						withEqual(simpleGoogle.resolve("#/finds_many")),
 						anyInt,
 						withEqual(simpleGoogle),
-						0); minTimes = 1;
+						0); minTimes = 1;*/
 			}
 		};
 		
@@ -510,7 +485,7 @@ public class PageExecutableTest {
 	private void testScrape(JSONLocation location,
 			BasicNameValuePair[] extraVariables) throws Exception {
 		try {
-			client.scrape(location, extraVariables, publisher);
+			client.scrape(location, extraVariables);
 		} catch(BrowserException e) {
 			throw new Exception("Error loading the page.", e);
 		}

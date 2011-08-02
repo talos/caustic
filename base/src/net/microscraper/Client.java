@@ -5,14 +5,12 @@ import java.util.Vector;
 
 import net.microscraper.executable.Executable;
 import net.microscraper.executable.PageExecutable;
-import net.microscraper.executable.Result;
 import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.Page;
 import net.microscraper.instruction.Scraper;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.database.Database;
-import net.microscraper.interfaces.database.DatabaseException;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONLocation;
@@ -34,14 +32,14 @@ public final class Client {
 	 * @param browser A {@link Browser} to use for HTTP requests.
 	 * @param jsonInterface A {@link JSONInterface} to use when
 	 * loading {@link JSONInterfaceObject}s.
-	 * @param publisher the {@link Database} to send {@link Result}s to.
+	 * @param database the {@link Database} to use for storage.
 	 */
 	public Client(RegexpCompiler regexpCompiler,
 			Log log, Browser browser, JSONInterface jsonInterface,
-			Database publisher) {
+			Database database) {
 		this.interfaces = new Interfaces(log,
 				regexpCompiler, browser,
-				jsonInterface, publisher);
+				jsonInterface, database);
 	}
 	
 	/**

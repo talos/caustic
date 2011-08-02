@@ -24,17 +24,19 @@ import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.json.JavaNetJSONLocation;
 import net.microscraper.impl.log.JavaIOFileLogger;
 import net.microscraper.impl.log.SystemOutLogger;
-import net.microscraper.impl.publisher.SQLMultiTableDatabase;
+import net.microscraper.impl.publisher.JDBCSqliteConnection;
+import net.microscraper.impl.publisher.SQLConnectionException;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
-import net.microscraper.impl.sql.JDBCSQLite;
 import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.database.Connection;
 import net.microscraper.interfaces.database.Database;
+import net.microscraper.interfaces.database.DatabaseException;
+import net.microscraper.interfaces.database.MultiTableDatabase;
 import net.microscraper.interfaces.file.FileLoader;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.json.JSONLocation;
 import net.microscraper.interfaces.json.JSONLocationException;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
-import net.microscraper.interfaces.sql.SQLConnectionException;
 
 public class MicroScraperConsole {
 	private static final String newline = System.getProperty("line.separator");
@@ -108,9 +110,7 @@ public class MicroScraperConsole {
 	
 	private static String OUTPUT_STDOUT_OPTION = "--output-stdout";
 	private static boolean outputStdout = false;
-	
-	private static final int sqlBatchSize = 1;
-	
+		
 	private static JSONLocation instructionsLocation;
 	
 	private static final Log log = new Log();
@@ -118,6 +118,7 @@ public class MicroScraperConsole {
 	private static final FileLoader fileLoader = new JavaIOFileLoader();
 	private static final JSONInterface jsonInterface = new JSONME(fileLoader, browser);
 	private static final RegexpCompiler regexpCompiler = new JakartaRegexpCompiler();
+	private static Connection connection;
 	private static Database database;
 	private static Client client;
 	
@@ -144,6 +145,8 @@ public class MicroScraperConsole {
 			// Could not find the input file
 		} catch(SQLConnectionException e) {
 			// Could not open connection to SQL
+		} catch(DatabaseException e) {
+			// Could not set up database.
 		} catch(UnsupportedEncodingException e) {
 			// Encoding not supported on this system.
 		} catch(JSONLocationException e) {
@@ -158,6 +161,7 @@ public class MicroScraperConsole {
 	
 	private static void initialize(String[] args) throws IllegalArgumentException,
 					FileNotFoundException, SQLConnectionException, JSONLocationException,
+					DatabaseException,
 					UnsupportedEncodingException {
 		if(args.length == 0)
 			throw new IllegalArgumentException("You must specify the URI of scraper instructions.");
@@ -216,8 +220,10 @@ public class MicroScraperConsole {
 		}
 		
 		if(outputFormat.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
-			database = new SQLMultiTableDatabase(
-					new JDBCSQLite(outputFile.getPath(), log));
+			connection = new JDBCSqliteConnection(outputFile.getPath(), log);
+			/*database = new SQLMultiTableDatabase(
+					new JDBCSQLite(outputFile.getPath(), log));*/
+			
 		} else if(outputFormat.equals(CSV_OUTPUT_FORMAT_VALUE)) {
 			//publisher = new CSVPublisher();
 		} else if(outputFormat.equals(TAB_OUTPUT_FORMAT_VALUE)) {
@@ -225,6 +231,8 @@ public class MicroScraperConsole {
 		} else if(outputFormat.equals(FORM_ENCODED_OUTPUT_FORMAT_VALUE)) {
 			//publisher = new FormEncodedPublisher();
 		}
+		connection.open();
+		database = new MultiTableDatabase(connection);
 		
 		if(!args[0].startsWith("--")) {
 			instructionsLocation = new JavaNetJSONLocation(args[0]);
@@ -257,6 +265,11 @@ public class MicroScraperConsole {
 	}
 	
 	private static void finish() throws IOException {
+		try {
+			connection.close();
+		} catch(DatabaseException e) {
+			throw new IOException(e);
+		}
 		if(input != null) {
 			input.close();
 		}

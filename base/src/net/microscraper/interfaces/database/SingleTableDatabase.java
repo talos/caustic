@@ -1,14 +1,16 @@
 package net.microscraper.interfaces.database;
 
+import net.microscraper.BasicNameValuePair;
+import net.microscraper.NameValuePair;
 import net.microscraper.executable.Result;
 
 /**
- * An abstract implementation of {@link Database} whose subclasses store
+ * An implementation of {@link Database} whose subclasses store
  * all {@link Result}s in a single table.
  * @author talos
  *
  */
-public abstract class SingleTableDatabase implements Database {
+public final class SingleTableDatabase implements Database {
 	
 	/**
 	 * Name of the one {@link AllResultsTable} in {@link SingleTableDatabase}.
@@ -19,47 +21,52 @@ public abstract class SingleTableDatabase implements Database {
 	 * Name of column to hold value for {@link Result#getId()}
 	 * from {@link Result#getSource()}.
 	 */
-	private static final String SOURCE_ID = "source_id";
+	private static final String SOURCE_ID_COLUMN = "source_id";
 	
 	/**
 	 * Name of column to hold value for {@link Result#getName()}.
 	 */
-	private static final String NAME = "name";
+	private static final String NAME_COLUMN = "name";
 	
 	/**
 	 * Name of column to hold value for {@link Result#getValue()}.
 	 */
-	private static final String VALUE = "value";
+	private static final String VALUE_COLUMN = "value";
+	
+	/**
+	 * Names of columns in {@link Table}
+	 */
+	private static final String[] COLUMN_NAMES = new String[] {
+		SOURCE_ID_COLUMN, NAME_COLUMN, VALUE_COLUMN
+	};
 	
 	/**
 	 * The {@link AllResultsTable} used by this {@link SingleTableDatabase}.
 	 */
-	private AllResultsTable table;
-	/*
-	 * Sensical indexes:
-	 * CREATE UNIQUE INDEX uri_number ON results (uri, number);
-	 * CREATE INDEX source_uri_source_number ON results (source_uri, source_number);
-	 * CREATE INDEX name ON results (name);
-	 * 
-	 */
+	private Table table;
 	
-	/**
-	 * Create {@link #table} and generate its columns.
-	 * @throws DatabaseException If the {@link #table} cannot be created.
-	 */
-	public final void open() throws DatabaseException {
-		table = getAllResultsTable();
+	public SingleTableDatabase(Connection connection) throws DatabaseException {
+		table = connection.getTable(TABLE_NAME, COLUMN_NAMES);
 	}
 
 	public final Result store(String name, String value)
 			throws DatabaseException {
-		return table.insert(name, value);
+		return new Result(table.insert(
+				new NameValuePair[] {
+					new BasicNameValuePair(NAME_COLUMN, name),
+					new BasicNameValuePair(VALUE_COLUMN, value)
+				}),
+			name, value );
 	}
 	
 	public final Result store(Result source, String name, String value)
 			throws DatabaseException {
-		return table.insert(source, name, value);
+		return new Result(table.insert(
+				new NameValuePair[] {
+					new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(source.getId())),
+					new BasicNameValuePair(NAME_COLUMN, name),
+					new BasicNameValuePair(VALUE_COLUMN, value)
+				}),
+			name, value );
 	}
-	
-	protected abstract AllResultsTable getAllResultsTable();
 }

@@ -3,28 +3,13 @@ package net.microscraper.interfaces.database;
 import net.microscraper.executable.Result;
 
 /**
- * Implementations of {@link Database} receive and store {@link Result}s.
+ * Implementations of {@link Database} store the results of {@link Executable}s
+ * and generate {@link Result} objects.
  * @see Result
  * @author john
  *
  */
 public interface Database {
-	
-	/**
-	 * Open the {@link Database}.
-	 * @throws DatabaseException If there is a problem opening the {@link Database}.
-	 */
-	public void open() throws DatabaseException;
-	
-	/**
-	 * Obtain a new {@link Table} within this {@link Database}.
-	 * @param name The {@link String} name of the new {@link Table}.
-	 * @param textColumns An array of {@link String} columns to include in this 
-	 * {@link Table}.
-	 * @return A {@link Table}.
-	 * @throws DatabaseException if the {@link Table} cannot be created.
-	 */
-	public Table getTable(String name, String[] textColumns) throws DatabaseException;
 	
 	/**
 	 * Store a name and value without a source {@link Result} in the {@link Database}.
@@ -45,11 +30,5 @@ public interface Database {
 	 * @throws DatabaseException If the {@link Database} experiences an exception.
 	 */
 	public Result store(Result source, String name, String value) throws DatabaseException;
-	
-	/**
-	 * Close the {@link Database}.
-	 * @throws DatabaseException If there is a problem closing the {@link Database}.
-	 */
-	public void close() throws DatabaseException;
 	
 }
