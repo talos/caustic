@@ -50,22 +50,21 @@ public final class Interfaces {
 		return jsonInterface;
 	}
 	
-	private final Database publisher;
+	private final Database database;
 	/**
 	 * 
 	 * @return A shared {@link Database}.
 	 */
-	public final Database getPublisher() {
-		return publisher;
+	public final Database getDatabase() {
+		return database;
 	}
 	
 	public Interfaces(Logger logger, RegexpCompiler regexpInterface,
-			Browser browser, JSONInterface jsonInterface, Database publisher) {
+			Browser browser, JSONInterface jsonInterface, Database database) {
 		this.logger = logger;
 		this.regexpCompiler = regexpInterface;
 		this.browser = browser;
 		this.jsonInterface = jsonInterface;
-		this.publisher = publisher;
-		//this.encoding = encoding;
+		this.database = database;
 	}
 }

@@ -43,14 +43,31 @@ public class PageExecutableTest {
 	/**
 	 * The mock {@link Database}.
 	 */
-	//@Mocked Database publisher;
+	@Mocked Database database;
 	
 	/**
 	 * The {@link Browser}.
 	 */
 	private Browser browser;
 	
-	
+	private static class CapturedResult implements Result, Delegate {
+		Result capturedResult;
+		void $init(Result result) { 
+			capturedResult = result;
+		}
+		@Override
+		public String getName() {
+			return capturedResult.getName();
+		}
+		@Override
+		public String getValue() {
+			return capturedResult.getValue();
+		}
+		@Override
+		public int getId() {
+			return capturedResult.getId();
+		}
+	}
 	
 	/**
 	 * Set up the {@link #client} before each test.
@@ -86,7 +103,7 @@ public class PageExecutableTest {
 	 */
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {
-		final ConstructorDelegate delegate = new ConstructorDelegate();
+		final CapturedResult capturedResult = new CapturedResult();
 		
 		final String expectedPhrase = "what do we say after hello?";
 
@@ -95,7 +112,8 @@ public class PageExecutableTest {
 		};
 
 		new Expectations() {
-			@Mocked Result result1, result2;
+			//@Mocked Result result1, result2;
+			final CapturedResult captured = new CapturedResult();
 			
 			{
 				// mockResult1
@@ -108,6 +126,8 @@ public class PageExecutableTest {
 						(JSONLocation) withNull(),
 						(Integer) withNull()); times = 1;
 				*/
+				
+				database.store(simpleGoogle.toString(), anyString); returns(captured);
 				
 				// Pull out the words.
 				publisher.publishResult(

@@ -1,20 +1,29 @@
 package net.microscraper.impl.publisher;
 
 import net.microscraper.interfaces.database.DatabaseException;
+import net.microscraper.interfaces.database.MultiTableDatabase;
 import net.microscraper.interfaces.database.SingleTableDatabase;
 import net.microscraper.interfaces.database.AllResultsTable;
 import net.microscraper.interfaces.sql.SQLConnection;
 import net.microscraper.interfaces.sql.SQLConnectionException;
 import net.microscraper.interfaces.sql.SQLTable;
 
-public class SQLSingleTableDatabase extends SingleTableDatabase {
+/**
+ * A SQL implementation of {@link SingleTableDatabase}, using {@link SQLConnection}.
+ * @author talos
+ * @see Database
+ * @see SingleTableDatabase
+ * @see SQLConnection
+ *
+ */
+public final class SQLMultiTableDatabase extends MultiTableDatabase {
 	
 	/**
-	 * The {@link SQLConnection} used by this {@link SQLSingleTableDatabase}.
+	 * The {@link SQLConnection} used by this {@link SQLMultiTableDatabase}.
 	 */
 	private final SQLConnection connection;
-
-	public SQLSingleTableDatabase(SQLConnection connection, int batchSize) throws SQLConnectionException {
+	
+	public SQLMultiTableDatabase(SQLConnection connection) {
 		this.connection = connection;
 	}
 	
@@ -36,5 +45,4 @@ public class SQLSingleTableDatabase extends SingleTableDatabase {
 			throw new DatabaseException(e);
 		}
 	}
-	
 }

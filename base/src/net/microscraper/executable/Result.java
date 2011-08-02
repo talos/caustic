@@ -1,10 +1,6 @@
 package net.microscraper.executable;
 
 import net.microscraper.NameValuePair;
-import net.microscraper.instruction.Instruction;
-import net.microscraper.interfaces.database.Database;
-import net.microscraper.interfaces.database.DatabaseException;
-import net.microscraper.interfaces.json.JSONLocation;
 
 /**
  * {@link Result}s are {@link NameValuePair}s that store results from {@link Executable}s.
@@ -12,44 +8,28 @@ import net.microscraper.interfaces.json.JSONLocation;
  * @author john
  *
  */
-public final class Result implements NameValuePair {
-	
+public interface Result extends NameValuePair {
+	/*
 	private final Result source;
 	private final String name;
 	private final String value;
-	private final Instruction instruction;
 	private final int id;
-	
+	*/
 	/**
-	 * Construct a {@link Result}.
+	 * Construct a {@link Result} with an explicit {@link String} {@link #getName()}.
 	 * @param source The {@link Result} source.  Should be <code>null</code> if there is no
 	 * source for this {@link Result}.
-	 * @param name The String result name.  Used in {@link Variables}. If it is <code>null</code>, the
-	 * {@String} location of <code>instruction</code> will be used instead.
-	 * @param value The String result value.
-	 * @param instruction The {@link Instruction}
-	 * @param publisher The {@link Database} that will publish this {@link Result}.
+	 * @param name The {@link String} result name for {@link #getName()}.
+	 * @param value The {@link String} result value.
+	 * @param database The {@link Database} that will store this {@link Result}.
 	 * @throws DatabaseException if the {@link Database} encounters an exception.
 	 */
-	public Result(Instruction instruction, Result source, String name, String value, Database publisher) 
+	/*public Result(Result source, String name, String value, Database database) 
 			throws DatabaseException {
 		this.source = source;
-		if(name == null) {
-			this.name = instruction.getLocation().toString();
-		} else {
-			this.name = name;	
-		}
+		this.name = name;	
 		this.value = value;
-		this.instruction = instruction;
-		this.id = publisher.store(this);
-	}
-	
-	/**
-	 * 
-	 * @return The {@link Instruction} used for this {@link Result}.
-	 */
-	public Instruction getInstruction() {
-		return instruction;
+		this.id = database.store(this);
 	}
 	
 	public String getName() {
@@ -59,14 +39,14 @@ public final class Result implements NameValuePair {
 	public String getValue() {
 		return value;
 	}
-	
+	*/
 	/**
 	 * 
 	 * @return A unique <code>int</code> identifier for this {@link Result}.
 	 */
-	public int getId() {
+	public int getId(); /*{
 		return id;
-	}
+	}*/
 	
 	/**
 	 * 
@@ -74,9 +54,9 @@ public final class Result implements NameValuePair {
 	 * <code>false</code> otherwise.
 	 * @see #getSource()
 	 */
-	public boolean hasSource() {
+	/*public boolean hasSource() {
 		return source == null ? false : true;
-	}
+	}*/
 	
 	/**
 	 * 
@@ -84,15 +64,15 @@ public final class Result implements NameValuePair {
 	 * null</code> if this was not spawned from a {@link Result}.
 	 * @see #hasSource()
 	 */
-	public Result getSource() {
+	/*public Result getSource() {
 		return source;
-	}
+	}*/
 	
 	/**
 	 * Two {@link Result}s are equal if their IDs, names, values and sources (or
 	 * lack of source) are the same.
 	 */
-	public boolean equals(Object obj) {
+	/*public boolean equals(Object obj) {
 		if(obj == this)
 			return true;
 		if(!(obj instanceof Result))
@@ -109,5 +89,5 @@ public final class Result implements NameValuePair {
 					this.getValue().equals(that.getValue()) &&
 					that.hasSource() == false;
 		}
-	}
+	}*/
 }

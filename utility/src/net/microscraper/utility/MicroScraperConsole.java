@@ -24,7 +24,7 @@ import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.json.JavaNetJSONLocation;
 import net.microscraper.impl.log.JavaIOFileLogger;
 import net.microscraper.impl.log.SystemOutLogger;
-import net.microscraper.impl.publisher.SQLDatabase;
+import net.microscraper.impl.publisher.SQLMultiTableDatabase;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
 import net.microscraper.impl.sql.JDBCSQLite;
 import net.microscraper.interfaces.browser.Browser;
@@ -216,9 +216,8 @@ public class MicroScraperConsole {
 		}
 		
 		if(outputFormat.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
-			database = new SQLDatabase(
-					new JDBCSQLite(outputFile.getPath(), log),
-					sqlBatchSize);
+			database = new SQLMultiTableDatabase(
+					new JDBCSQLite(outputFile.getPath(), log));
 		} else if(outputFormat.equals(CSV_OUTPUT_FORMAT_VALUE)) {
 			//publisher = new CSVPublisher();
 		} else if(outputFormat.equals(TAB_OUTPUT_FORMAT_VALUE)) {
