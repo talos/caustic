@@ -2,6 +2,7 @@ package net.microscraper.interfaces.database;
 
 import java.util.Hashtable;
 
+import net.microscraper.BasicNameValuePair;
 import net.microscraper.NameValuePair;
 import net.microscraper.executable.Result;
 
@@ -25,17 +26,32 @@ public abstract class MultiTableDatabase implements Database {
 	private static final String ROOT_TABLE_NAME = "root";
 	
 	/**
-	 * The {@link ChildResultsTable} that holds {@link Result}s that don't have
-	 * a source.  These would be from the first layer of
-	 * {@link Instruction}s.  This table has only one row.
-	 * @see #rootTableRowId
+	 * Column name for the ID of the source of a result row.
 	 */
-	private RootResultsTable rootTable;
+	private static final String SOURCE_ID = "source_id";
 	
 	/**
-	 * The {@link Result} for the only row of {@link #rootTable}.
+	 * Column name for the name of the table where the result row's source can be
+	 * found.
 	 */
-	private Result rootResult;
+	private static final String SOURCE_NAME = "source_name";
+	
+	/**
+	 * Default column names for {@link Table}s in {@link MultiTableDatabase}.
+	 */
+	private static final String[] COLUMN_NAMES = new String[] { SOURCE_ID, SOURCE_NAME };
+	
+	/**
+	 * The {@link Table} that holds {@link Result}s that don't have
+	 * a source.  These would be from the first layer of
+	 * {@link Instruction}s.  This table has only one row.
+	 */
+	private Table rootTable;
+	
+	/**
+	 * The {@link int} ID for the only row of {@link #rootTable}.
+	 */
+	private int rootResultId;
 	
 	/**
 	 * A {@link Hashtable} of all the {@link ChildResultsTable}s in this 
@@ -49,40 +65,40 @@ public abstract class MultiTableDatabase implements Database {
 	 * @throws DatabaseException If the root table cannot be created.
 	 */
 	public final void open() throws DatabaseException {
-		rootTable = getRootResultsTable();
-		rootResult = rootTable.getRootResult();
+		rootTable = getTable(ROOT_TABLE_NAME);
+		rootResultId = rootTable.insert(new NameValuePair[] {});
 	}
 	
 	public Result store(String name, String value) throws DatabaseException {
 		rootTable.update(name, value);
-		return generateResult(rootResult, name, value);
+		return generateResult(rootResultId, name, value);
 	}
 	
 	public Result store(Result source, String name, String value) throws DatabaseException {
 		String sourceTableName = PREPEND + source.getName();
-		ChildResultsTable sourceTable;
+		Table sourceTable;
 		if(tables.containsKey(sourceTableName)) {
-			sourceTable = (ChildResultsTable) tables.get(sourceTableName);
+			sourceTable = (Table) tables.get(sourceTableName);
 		} else {
-			sourceTable = getChildResultsTable(sourceTableName);
+			sourceTable = getTable(sourceTableName);
 			tables.put(sourceTableName, sourceTable);
 		}
-		sourceTable.update(source, name, value);
+		sourceTable.update(source.getId(), new NameValuePair[] { new BasicNameValuePair(name, value) });
 		return generateResult(source, sourceTableName, value);
 	}
 	
 	private Result generateResult(Result sourceResult,
 			String name, String value) throws DatabaseException {
 		String tableName = PREPEND + name;
-		ChildResultsTable table;
+		Table table;
 		if(tables.containsKey(tableName)) {
-			table = (ChildResultsTable) tables.get(tableName);
+			table = (Table) tables.get(tableName);
 		} else {
-			table = getChildResultsTable(tableName);
+			table = getTable(tableName);
 			tables.put(tableName, table);
 		}
 		
-		return new BasicResult(table.insert(sourceResult), name, value);
+		return new BasicResult(table.insert(new NameValuePair[] {}), name, value);
 	}
 	
 	private static final class BasicResult implements Result {
@@ -112,8 +128,9 @@ public abstract class MultiTableDatabase implements Database {
 	 * @param name The {@link String} name of the {@link Result} parent of
 	 * {@link ChildResultsTable}.
 	 * @return A {@link ChildResultsTable}.
+	 * @throws DatabaseException if the {@link Table} cannot be made.
 	 */
-	private final Table getChildResultsTable(String name) {
-		return getTable(name, textColumns)
+	private final Table getTable(String name) throws DatabaseException {
+		return getTable(name, COLUMN_NAMES );
 	}
 }
