@@ -83,16 +83,12 @@ public final class Client {
 			exc.run();
 			// If the execution is complete, add its children to the queue.
 			if(exc.isComplete()) {
-				//Result[] results = exc.getResults();
-				/*for(int i = 0 ; i < results.length ; i++) {
-					results[i].publishTo(publisher);
-				}*/
 				Executable[] children = exc.getChildren();
 				Utils.arrayIntoVector(children, queue);
 			} else if (exc.isStuck()) {
-				//publisher.publishStuck(exc.getSource().getId(), exc.getId(), exc.stuckOn());
+				
 			} else if (exc.hasFailed()) {
-				//publisher.publishFailure(exc.getSource().getId(), exc.getId(), exc.failedBecause());
+				
 			// If the execution is not stuck and is not failed, add it back to the queue.
 			} else {
 				queue.addElement(exc);

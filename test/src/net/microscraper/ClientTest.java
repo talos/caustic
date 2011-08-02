@@ -5,24 +5,34 @@ import static org.junit.Assert.*;
 import java.io.File;
 
 import mockit.Capturing;
+import mockit.Cascading;
 import mockit.Delegate;
 import mockit.Expectations;
+import mockit.Injectable;
+import mockit.Mock;
 import mockit.Mocked;
+import mockit.NonStrictExpectations;
+import mockit.Tested;
 import mockit.Verifications;
+import mockit.VerificationsInOrder;
 import net.microscraper.Client;
 import net.microscraper.BasicNameValuePair;
 import net.microscraper.Log;
 import net.microscraper.Variables;
 import net.microscraper.executable.Result;
 import net.microscraper.impl.browser.JavaNetBrowser;
+import net.microscraper.impl.database.MultiTableDatabase;
 import net.microscraper.impl.file.JavaIOFileLoader;
 import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.json.JavaNetJSONLocation;
 import net.microscraper.impl.log.SystemOutLogger;
+import net.microscraper.impl.publisher.JDBCSqliteConnection;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
+import net.microscraper.interfaces.database.Connection;
 import net.microscraper.interfaces.database.Database;
+import net.microscraper.interfaces.database.Table;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONLocation;
 
@@ -30,7 +40,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class PageExecutableTest {
+public class ClientTest {
 	private JSONLocation fixturesFolder, simpleGoogle, nycPropertyOwner, nycIncentives,
 						nycIncentivesSimple, eventValidation, simpleGoogleSplit1, 
 						simpleGoogleSplit2;
@@ -38,17 +48,14 @@ public class PageExecutableTest {
 	/**
 	 * The test {@link Client} instance.
 	 */
-	private Client client;
+	@Tested private Client client;
+
+	Log log = new Log();
+	@Mocked final MultiTableDatabase db;
 	
-	/**
-	 * The mock {@link Database}.
-	 */
-	@Mocked Database database;
-	
-	/**
-	 * The {@link Browser}.
-	 */
-	private Browser browser;
+	public ClientTest() throws Exception {
+		db = new MultiTableDatabase(JDBCSqliteConnection.inMemory(log));
+	}
 	
 	/**
 	 * Set up the {@link #client} before each test.
@@ -67,15 +74,13 @@ public class PageExecutableTest {
 		eventValidation = fixturesFolder.resolve("event-validation.json");
 		nycIncentivesSimple = fixturesFolder.resolve("nyc-incentives-simple.json");
 		
-		Log log = new Log();
 		log.register(new SystemOutLogger());
-
-		browser = new JavaNetBrowser(log, 500, 1000);
-		/*client = new Client(
+		Browser browser = new JavaNetBrowser(log, 500, 1000);
+		client = new Client(
 				new JakartaRegexpCompiler(),
 				log, browser,
 				new JSONME(new JavaIOFileLoader(), browser),
-				publisher);*/
+				db);
 	}
 	
 	/**
@@ -83,16 +88,30 @@ public class PageExecutableTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void testScrapeSimpleGoogle() throws Exception {		
+	public void testScrapeSimpleGoogle() throws Exception {
 		final String expectedPhrase = "what do we say after hello?";
 
 		BasicNameValuePair[] extraVariables = new BasicNameValuePair[] {
 				new BasicNameValuePair("query", "hello")
 		};
 
-		new Expectations() {
-			//@Mocked Result result1, result2;			
+		testScrape(simpleGoogle, extraVariables);
+		
+		new Verifications() {
+			
 			{
+				//db.store((Result) any, (String) any, (String) any); times = 1;
+			}	
+		};
+		//new NonStrictExpectations() {
+			//MultiTableDatabase database;
+			//final Captured captured = new Captured();
+			//{
+				//new MultiTableDatabase((Connection) any);
+				//database.store((Result) any, (String) any, (String) any); times = 1;
+				//database.store(simpleGoogle.toString(), anyString); times = 1;
+				//database.store(simpleGoogle.toString(), anyString); // times = 1;
+				//database.store((Result) any, simpleGoogle.resolve("#/finds_many").toString(), anyString);
 				// mockResult1
 				// Download Google HTML.
 				/*publisher.publishResult(
@@ -103,7 +122,8 @@ public class PageExecutableTest {
 						(JSONLocation) withNull(),
 						(Integer) withNull()); times = 1;
 				*/
-								
+				
+				//database.store(captured.result, simpleGoogle.resolve("#/finds_many").toString(), anyString); minTimes = 1;
 				// Pull out the words.
 				/*publisher.publishResult(
 						expectedPhrase,
@@ -112,16 +132,18 @@ public class PageExecutableTest {
 						anyInt,
 						withEqual(simpleGoogle),
 						0); minTimes = 1;*/
-			}
-		};
+			//}
+		//};
+
+
 		
-		testScrape(simpleGoogle, extraVariables);
 	}
 
 	/**
 	 * Test fixture {@link #simpleGoogleSplit1} and {@link #simpleGoogleSplit2}.
 	 * @throws Exception
 	 */
+	/*
 	@Test
 	public void testScrapeSimpleGoogleSplit() throws Exception {
 		final String expectedPhrase = "what do we say after hello?";
@@ -473,7 +495,7 @@ public class PageExecutableTest {
 		
 		testScrape(nycIncentivesSimple, extraVariables);
 	}
-	
+	*/
 	/**
 	 * Convenience method to test one Scraper with our mock publisher.
 	 * @param String {@link JSONLocation} location of the {@link Scraper}

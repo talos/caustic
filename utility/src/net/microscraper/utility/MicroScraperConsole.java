@@ -19,6 +19,7 @@ import net.microscraper.Log;
 import net.microscraper.NameValuePair;
 import net.microscraper.Utils;
 import net.microscraper.impl.browser.JavaNetBrowser;
+import net.microscraper.impl.database.MultiTableDatabase;
 import net.microscraper.impl.file.JavaIOFileLoader;
 import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.json.JavaNetJSONLocation;
@@ -31,7 +32,6 @@ import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.database.Connection;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.database.DatabaseException;
-import net.microscraper.interfaces.database.MultiTableDatabase;
 import net.microscraper.interfaces.file.FileLoader;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.json.JSONLocation;
@@ -127,11 +127,6 @@ public class MicroScraperConsole {
 			initialize(args);
 			try {
 				scrape();
-				try {
-					publish();
-				} catch(SQLConnectionException e) {
-					
-				}
 			} catch(ClientException e) {
 				// Error scraping
 			} catch(IOException e) {
@@ -151,6 +146,8 @@ public class MicroScraperConsole {
 			// Encoding not supported on this system.
 		} catch(JSONLocationException e) {
 			// Invalid location for instructions.
+		} catch(IOException e) {
+			// Could not open log file
 		}
 		try {
 			finish();
@@ -161,48 +158,47 @@ public class MicroScraperConsole {
 	
 	private static void initialize(String[] args) throws IllegalArgumentException,
 					FileNotFoundException, SQLConnectionException, JSONLocationException,
-					DatabaseException,
+					DatabaseException, IOException,
 					UnsupportedEncodingException {
 		if(args.length == 0)
 			throw new IllegalArgumentException("You must specify the URI of scraper instructions.");
 		
-		for(int i = 0 ; i < args.length ; i ++) {
+		for(int i = 1 ; i < args.length ; i ++) {
 			String arg = args[i];
-			if(arg.startsWith("--")) {
-				String value = null;
-				if(arg.indexOf('=') > -1) {
-					value = arg.substring(arg.indexOf('=') + 1);
+			String value = null;
+			if(arg.indexOf('=') > -1) {
+				value = arg.substring(arg.indexOf('=') + 1);
+			}
+			if(arg.startsWith(DEFAULTS_OPTION)) {
+				defaults = Utils.formEncodedDataToNameValuePairs(value, ENCODING);
+			} else if(arg.startsWith(INPUT_OPTION)) {
+				input = new CSVReader(new FileReader(value), columnDelimiter);
+			} else if(arg.startsWith(COLUMN_DELIMITER_OPTION)) {
+				if(value.length() > 1) {
+					throw new IllegalArgumentException("Column delimiter must be a single character.");
 				}
-				if(arg.startsWith(DEFAULTS_OPTION)) {
-					defaults = Utils.formEncodedDataToNameValuePairs(value, ENCODING);
-				} else if(arg.startsWith(INPUT_OPTION)) {
-					input = new CSVReader(new FileReader(value), columnDelimiter);
-				} else if(arg.startsWith(COLUMN_DELIMITER_OPTION)) {
-					if(value.length() > 1) {
-						throw new IllegalArgumentException("Column delimiter must be a single character.");
-					}
-					columnDelimiter = value.charAt(0);
-				} else if(arg.startsWith(LOG_FILE_OPTION)) {
-					fileLog = new JavaIOFileLogger(new File(value));
-				} else if(arg.startsWith(LOG_STDOUT_OPTION)) {
-					logStdout = true;
-				} else if(arg.startsWith(OUTPUT_FORMAT_OPTION)) {
-					if(validOutputFormats.contains(value)) {
-						outputFormat = value;
-					} else {
-						throw new IllegalArgumentException(Utils.quote(value)
-								+ " is not a valid output format.");
-					}
-				} else if(arg.startsWith(OUTPUT_FILE_OPTION)) {
-					outputFile = new File(value);
-				} else if(arg.startsWith(NO_OUTPUT_FILE_OPTION)) {
-					noOutputFile = true;
-				} else if(arg.startsWith(OUTPUT_STDOUT_OPTION)) {
-					outputStdout = true;
+				columnDelimiter = value.charAt(0);
+			} else if(arg.startsWith(LOG_FILE_OPTION)) {
+				fileLog = new JavaIOFileLogger(new File(value));
+			} else if(arg.startsWith(LOG_STDOUT_OPTION)) {
+				logStdout = true;
+			} else if(arg.startsWith(OUTPUT_FORMAT_OPTION)) {
+				if(validOutputFormats.contains(value)) {
+					outputFormat = value;
+				} else {
+					throw new IllegalArgumentException(Utils.quote(value)
+							+ " is not a valid output format.");
 				}
+			} else if(arg.startsWith(OUTPUT_FILE_OPTION)) {
+				outputFile = new File(value);
+			} else if(arg.startsWith(NO_OUTPUT_FILE_OPTION)) {
+				noOutputFile = true;
+			} else if(arg.startsWith(OUTPUT_STDOUT_OPTION)) {
+				outputStdout = true;
+			} else {
+				throw new IllegalArgumentException(Utils.quote(arg) + " is not a valid parameter.");
 			}
 		}
-		
 		
 		if(outputStdout == true && outputFormat.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
 			throw new IllegalArgumentException();
@@ -212,6 +208,7 @@ public class MicroScraperConsole {
 		}
 		if(fileLog != null) {
 			log.register(fileLog);
+			fileLog.open();
 		}
 		
 		// Default output file name.
@@ -220,7 +217,7 @@ public class MicroScraperConsole {
 		}
 		
 		if(outputFormat.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
-			connection = new JDBCSqliteConnection(outputFile.getPath(), log);
+			connection = JDBCSqliteConnection.toFile(outputFile.getPath(), log);
 			/*database = new SQLMultiTableDatabase(
 					new JDBCSQLite(outputFile.getPath(), log));*/
 			
@@ -243,7 +240,6 @@ public class MicroScraperConsole {
 	}
 	
 	private static void scrape() throws ClientException, IOException {
-		fileLog.open();
 		if(input == null) {
 			client.scrape(instructionsLocation, defaults);
 		} else {			
@@ -260,13 +256,11 @@ public class MicroScraperConsole {
 		}
 	}
 	
-	private static void publish() throws SQLConnectionException {
-		//database.forceCommit();
-	}
-	
 	private static void finish() throws IOException {
 		try {
-			connection.close();
+			if(connection != null) {
+				connection.close();
+			}
 		} catch(DatabaseException e) {
 			throw new IOException(e);
 		}

@@ -21,6 +21,7 @@ import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Page;
 import net.microscraper.instruction.Regexp;
 import net.microscraper.instruction.Scraper;
+import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.json.JSONLocation;
 import net.microscraper.test.TestUtils;
 
@@ -39,7 +40,9 @@ public class VariablesTest {
 	@Mocked Result sourceResult;
 	
 	@Mocked private Interfaces interfaces;
+	@Mocked private Database database;
 	@Mocked private JSONLocation mockLocation;
+	@Mocked private MustacheTemplate mockName;
 	
 	/**
 	 * @throws Exception
@@ -53,11 +56,11 @@ public class VariablesTest {
 			@Mocked JSONLocation location;
 			
 			{
-				sourceResult.getInstruction(); result = instruction;
 				instruction.getLocation(); result = location;
 				location.toString(); result = "";
 				
 				interfaces.getRegexpCompiler(); result = new JakartaRegexpCompiler();
+				interfaces.getDatabase(); result = database;
 			}
 		};
 	}
@@ -71,10 +74,10 @@ public class VariablesTest {
 		final String name = TestUtils.makeRandomString(rndLength);
 		final String value = TestUtils.makeRandomString(rndLength);
 		
-		FindOne findOne = new FindOne(mockLocation, new MustacheTemplate(value),
-				false, false, false, new MustacheTemplate(name), new Regexp[] {},
+		FindOne findOne = new FindOne(mockLocation, new MustacheTemplate(name), new MustacheTemplate(value),
+				false, false, false, new Regexp[] {},
 				new MustacheTemplate("$0"), 0, new FindOne[] {}, new FindMany[] { });
-		final Scraper scraper = new Scraper(mockLocation,
+		final Scraper scraper = new Scraper(mockLocation, mockName,
 				new Page[] {},
 				new Scraper[] {},
 				new FindMany[] {},
@@ -111,13 +114,13 @@ public class VariablesTest {
 				pattern  = TestUtils.makeRandomString(rndLength);
 				children = new FindOne[]  { };
 			}
-			findOnes[i] = new FindOne(mockLocation, new MustacheTemplate(pattern), 
-					false, false, false, new MustacheTemplate(TestUtils.makeRandomString(rndLength)),
+			findOnes[i] = new FindOne(mockLocation, new MustacheTemplate(TestUtils.makeRandomString(rndLength)), 
+					new MustacheTemplate(pattern), false, false, false,
 					new Regexp[] {}, new MustacheTemplate("$0"), 0, children, 
 					new FindMany[] {});
 		}
 		final FindOne parentFindOne = findOnes[findOnes.length -1];
-		final Scraper scraper = new Scraper(mockLocation,
+		final Scraper scraper = new Scraper(mockLocation, mockName,
 				new Page[] {},
 				new Scraper[] {},
 				new FindMany[] {},
@@ -159,14 +162,14 @@ public class VariablesTest {
 		for(int i = 0 ; i < findOnes.length ; i ++ ) {
 			String pattern = TestUtils.makeRandomString(rndLength);
 			buildMockResultValue += pattern;
-			findOnes[i] = new FindOne(mockLocation, new MustacheTemplate(pattern), 
-					false, false, false, new MustacheTemplate(TestUtils.makeRandomString(rndLength)),
+			findOnes[i] = new FindOne(mockLocation, new MustacheTemplate(TestUtils.makeRandomString(rndLength)), 
+					new MustacheTemplate(pattern), false, false, false,
 					new Regexp[] {}, new MustacheTemplate("$0"), 0, new FindOne[] {}, 
 					new FindMany[] {});
 		}
 		final String mockResultValue = buildMockResultValue;
 		
-		final Scraper scraper = new Scraper(mockLocation,
+		final Scraper scraper = new Scraper(mockLocation, mockName,
 				new Page[] {},
 				new Scraper[] {},
 				new FindMany[] {},
@@ -207,10 +210,10 @@ public class VariablesTest {
 		final MustacheTemplate pattern = new MustacheTemplate(sourceString);
 		final String name = TestUtils.makeRandomString(rndLength);
 		final MustacheTemplate replacement = new MustacheTemplate("$0");
-		final FindMany findMany = new FindMany(mockLocation, pattern, false, false, false,
-				new MustacheTemplate(name), new Regexp[] {}, replacement, 0, -1,
+		final FindMany findMany = new FindMany(mockLocation, new MustacheTemplate(name), pattern, false, false,
+				false, new Regexp[] {}, replacement, 0, -1,
 				new Scraper [] {}, new Page [] {});
-		final Scraper scraper = new Scraper(mockLocation, new Page[] {}, 
+		final Scraper scraper = new Scraper(mockLocation, mockName, new Page[] {}, 
 				new Scraper[] {}, new FindMany[] { findMany }, new FindOne[] { } );
 		
 		new NonStrictExpectations() {
@@ -235,12 +238,12 @@ public class VariablesTest {
 		MustacheTemplate pattern = new MustacheTemplate("z.p");
 		String name = TestUtils.makeRandomString(rndLength);
 		MustacheTemplate replacement = new MustacheTemplate("$0");
-		Scraper childScraper = new Scraper(mockLocation, new Page[] {},
+		Scraper childScraper = new Scraper(mockLocation, mockName, new Page[] {},
 				new Scraper[] {}, new FindMany[] {}, new FindOne[] {} );
-		FindMany findMany = new FindMany(mockLocation, pattern, false, false, false,
-				new MustacheTemplate(name), new Regexp[] {}, replacement, 0, -1,
+		FindMany findMany = new FindMany(mockLocation, new MustacheTemplate(name), pattern, false, false,
+				false, new Regexp[] {}, replacement, 0, -1,
 				new Scraper [] { childScraper }, new Page [] {});
-		Scraper parentScraper = new Scraper(mockLocation, new Page[] {}, 
+		Scraper parentScraper = new Scraper(mockLocation, mockName, new Page[] {}, 
 				new Scraper[] {}, new FindMany[] { findMany }, new FindOne[] { } );
 		
 		new NonStrictExpectations() {
@@ -274,21 +277,21 @@ public class VariablesTest {
 		MustacheTemplate pattern = new MustacheTemplate("z.p");
 		String name = TestUtils.makeRandomString(rndLength);
 		MustacheTemplate replacement = new MustacheTemplate("$0");
-		Scraper childScraper = new Scraper(mockLocation, new Page[] {},
+		Scraper childScraper = new Scraper(mockLocation, mockName, new Page[] {},
 				new Scraper[] {}, new FindMany[] {}, new FindOne[] {} );
-		FindMany findMany = new FindMany(mockLocation, pattern, false, false, false,
-				new MustacheTemplate(name), new Regexp[] {}, replacement, 0, -1,
+		FindMany findMany = new FindMany(mockLocation, new MustacheTemplate(name), pattern, false, false,
+				false, new Regexp[] {}, replacement, 0, -1,
 				new Scraper [] { childScraper }, new Page [] {});
 		
 		FindOne[] findOnes = new FindOne[repetitions];
 		for(int i = 0 ; i < findOnes.length ; i ++) {
 			String findOnePattern = TestUtils.makeRandomString(rndLength);
 			sourceString += findOnePattern;
-			findOnes[i] = new FindOne(mockLocation, new MustacheTemplate(findOnePattern),
-					false, false, false, new MustacheTemplate(TestUtils.makeRandomString(rndLength)),
+			findOnes[i] = new FindOne(mockLocation, new MustacheTemplate(TestUtils.makeRandomString(rndLength)),
+					new MustacheTemplate(findOnePattern), false, false, false,
 					new Regexp[] {}, replacement, 0, new FindOne[] {}, new FindMany[] {} );
 		}
-		Scraper parentScraper = new Scraper(mockLocation, new Page[] {}, 
+		Scraper parentScraper = new Scraper(mockLocation, mockName, new Page[] {}, 
 				new Scraper[] {}, new FindMany[] { findMany }, findOnes );
 		
 		final String finalSourceString = sourceString;

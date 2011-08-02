@@ -74,8 +74,8 @@ public class Find extends Regexp {
 		}
 	}
 	
-	public Find(JSONLocation location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
-			MustacheTemplate name, Regexp[] tests, MustacheTemplate replacement) {
+	public Find(JSONLocation location, MustacheTemplate name, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline,
+			boolean doesDotMatchNewline, Regexp[] tests, MustacheTemplate replacement) {
 		super(location, name, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline);
 		this.tests = tests;
 		this.replacement = replacement;

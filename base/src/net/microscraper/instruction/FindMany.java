@@ -66,10 +66,10 @@ public class FindMany extends Find implements CanSpawnScrapers {
 		}
 	}
 	
-	public FindMany(JSONLocation location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
-			MustacheTemplate name, Regexp[] tests, MustacheTemplate replacement, int minMatch, int maxMatch,
+	public FindMany(JSONLocation location, MustacheTemplate name, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline,
+			boolean doesDotMatchNewline, Regexp[] tests, MustacheTemplate replacement, int minMatch, int maxMatch,
 			Scraper[] spawnsScrapers, Page[] spawnsPages) {
-		super(location, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline, name, tests, replacement);
+		super(location, name, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline, tests, replacement);
 		this.minMatch = minMatch;
 		this.maxMatch = maxMatch;
 		this.spawnsScrapers = spawnsScrapers;

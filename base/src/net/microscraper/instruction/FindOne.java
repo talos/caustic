@@ -52,9 +52,9 @@ public class FindOne extends Find implements CanFindMany, CanFindOne {
 		}
 	}
 	
-	public FindOne(JSONLocation location, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
-			MustacheTemplate name, Regexp[] tests, MustacheTemplate replacement, int match, FindOne[] findsOne, FindMany[] findsMany) {
-		super(location, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline, name, tests, replacement);
+	public FindOne(JSONLocation location, MustacheTemplate name, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline,
+			boolean doesDotMatchNewline, Regexp[] tests, MustacheTemplate replacement, int match, FindOne[] findsOne, FindMany[] findsMany) {
+		super(location, name, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline, tests, replacement);
 		this.match = match;
 		this.findOnes = findsOne;
 		this.findManys = findsMany;

@@ -1,10 +1,14 @@
-package net.microscraper.interfaces.database;
+package net.microscraper.impl.database;
 
 import java.util.Hashtable;
 
 import net.microscraper.BasicNameValuePair;
 import net.microscraper.NameValuePair;
 import net.microscraper.executable.Result;
+import net.microscraper.interfaces.database.Connection;
+import net.microscraper.interfaces.database.Database;
+import net.microscraper.interfaces.database.DatabaseException;
+import net.microscraper.interfaces.database.Table;
 
 /**
  * An implementation of {@link Database} whose subclasses store
@@ -19,28 +23,28 @@ public final class MultiTableDatabase implements Database {
 	 * with {@link #ROOT_TABLE_NAME}, and to prepend before column
 	 * names to prevent collision with anything in {@link #COLUMN_NAMES}.
 	 */
-	private static final char PREPEND = '_';
+	public static final char PREPEND = '_';
 	
 	/**
 	 * Name of {@link #rootTable}.
 	 */
-	private static final String ROOT_TABLE_NAME = "root";
+	public static final String ROOT_TABLE_NAME = "root";
 	
 	/**
 	 * Column name for the ID of the source of a result row.
 	 */
-	private static final String SOURCE_ID_COLUMN = "source_id";
+	public static final String SOURCE_ID_COLUMN = "source_id";
 	
 	/**
 	 * Column name for the name of the table where the result row's source can be
 	 * found.
 	 */
-	private static final String SOURCE_NAME_COLUMN = "source_name";
+	public static final String SOURCE_NAME_COLUMN = "source_name";
 	
 	/**
 	 * Default column names for {@link Table}s in {@link MultiTableDatabase}.
 	 */
-	private static final String[] COLUMN_NAMES = new String[] { SOURCE_ID_COLUMN, SOURCE_NAME_COLUMN };
+	public static final String[] COLUMN_NAMES = new String[] { SOURCE_ID_COLUMN, SOURCE_NAME_COLUMN };
 	
 	/**
 	 * The {@link Table} that holds {@link Result}s that don't have
