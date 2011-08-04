@@ -1,4 +1,4 @@
-package net.microscraper.executable;
+package net.microscraper;
 
 import static org.junit.Assert.*;
 
@@ -29,72 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class VariablesTest {
-	private static final int rndLength = 5;
-	private static final int repetitions = 8;
-	
-	// "-" not generated randomly, is never in randomly generated Variables
-	private static final String erroneousName = "-";
 
-	private final Log log = new Log();
-	
-	@Mocked Result sourceResult;
-	
-	@Mocked private Interfaces interfaces;
-	@Mocked private Database database;
-	@Mocked private JSONLocation mockLocation;
-	@Mocked private MustacheTemplate mockName;
-	
-	/**
-	 * @throws Exception
-	 */
-	@Before
-	public void setUp() throws Exception {
-		log.register(new SystemOutLogger());
-		
-		new NonStrictExpectations() {
-			@Mocked Instruction instruction;
-			@Mocked JSONLocation location;
-			
-			{
-				instruction.getLocation(); result = location;
-				location.toString(); result = "";
-				
-				interfaces.getRegexpCompiler(); result = new JakartaRegexpCompiler();
-				interfaces.getDatabase(); result = database;
-			}
-		};
-	}
-	
-	/**
-	 * {@link FindOneExecutable} returns its one value for its name.
-	 * @throws Exception
-	 */
-	@Test
-	public void testFindOneLocalValue() throws Exception {
-		final String name = TestUtils.makeRandomString(rndLength);
-		final String value = TestUtils.makeRandomString(rndLength);
-		
-		FindOne findOne = new FindOne(mockLocation, new MustacheTemplate(name), new MustacheTemplate(value),
-				false, false, false, new Regexp[] {},
-				new MustacheTemplate("$0"), 0, new FindOne[] {}, new FindMany[] { });
-		final Scraper scraper = new Scraper(mockLocation, mockName,
-				new Page[] {},
-				new Scraper[] {},
-				new FindMany[] {},
-				new FindOne[] { findOne } );
-		new NonStrictExpectations() {
-			{
-				sourceResult.getValue(); result = value;
-			}
-		};
-		
-		ScraperExecutable executable = new SpawnedScraperExecutable(interfaces, scraper, new BasicVariables(), sourceResult);
-		TestUtils.recursiveRun(executable);
-		
-		assertEquals(false, executable.containsKey(erroneousName));
-		assertEquals(true, executable.containsKey(name));
-		assertEquals(value, executable.get(name));
-	}
 	
 	
 	/**

@@ -131,10 +131,10 @@ public final class Page extends URL {
 			
 			this.cookies = jsonObject.has(COOKIES) ?
 					NameValuePairs.deserialize(jsonObject.getJSONObject(COOKIES)) :
-					new MustacheNameValuePair[] {};
+					DEFAULT_COOKIES;
 			this.headers = jsonObject.has(HEADERS) ?
 					NameValuePairs.deserialize(jsonObject.getJSONObject(HEADERS)) :
-					new MustacheNameValuePair[] {};
+					DEFAULT_HEADERS;
 					
 			if(jsonObject.has(PRELOAD)) {
 				JSONInterfaceArray preload = jsonObject.getJSONArray(PRELOAD);
@@ -143,7 +143,7 @@ public final class Page extends URL {
 					this.preload[i] = new Page(preload.getJSONObject(i));
 				}
 			} else {
-				this.preload = new Page[0];
+				this.preload = DEFAULT_PRELOAD;
 			}
 			
 			if(jsonObject.has(STOP_BECAUSE)) {
@@ -179,16 +179,63 @@ public final class Page extends URL {
 		this.preload = preload;
 	}
 	
-	private static final String METHOD = "method";
+	/**
+	 * Key for {@link #getMethod()} when deserializing. Default is {@link #DEFAULT_METHOD}.
+	 */
+	public static final String METHOD = "method";
 	
 	/**
 	 * The default {@link Method} is {@link Method#GET}.
 	 */
-	private static final Method DEFAULT_METHOD = Method.GET;
-	private static final String COOKIES = "cookies";
-	private static final String HEADERS = "headers";
-	private static final String PRELOAD = "preload";
-	private static final String STOP_BECAUSE = "stop_because";
-	private static final String POSTS = "posts";
+	public static final Method DEFAULT_METHOD = Method.GET;
 	
+	/**
+	 * Key for {@link #getCookies()} when deserializing. Default is {@link #DEFAULT_COOKIES}.
+	 */
+	public static final String COOKIES = "cookies";
+	
+	/**
+	 * Default value for {@link #getCookies()}.
+	 */
+	public static final MustacheNameValuePair[] DEFAULT_COOKIES = new MustacheNameValuePair[] {};
+	
+	/**
+	 * Key for {@link #getHeaders()} when deserializing. Default is {@link #DEFAULT_HEADERS}.
+	 */
+	public static final String HEADERS = "headers";
+
+	/**
+	 * Default value for {@link #getHeaders()}.
+	 */
+	public static final MustacheNameValuePair[] DEFAULT_HEADERS = new MustacheNameValuePair[] {};
+	
+	/**
+	 * Key for {@link #getPreload()} when deserializing. Default is {@link #DEFAULT_PRELOAD}.
+	 */
+	public static final String PRELOAD = "preload";
+
+	/**
+	 * Default value for {@link #getPreload()}.
+	 */
+	public static final Page[] DEFAULT_PRELOAD = new Page[] {};
+	
+	/**
+	 * Key for {@link #getStopBecause()} when deserializing. Default is {@link #DEFAULT_STOP_BECAUSE}.
+	 */
+	public static final String STOP_BECAUSE = "stop_because";
+	
+	/**
+	 * Default value for {@link #getStopBecause()}.
+	 */
+	public static final Regexp[] DEFAULT_STOP_BECAUSE = new Regexp[] {};
+	
+	/**
+	 * Key for {@link #getPosts()} when deserializing. Default is {@link #DEFAULT_POSTS}.
+	 */
+	public static final String POSTS = "posts";
+
+	/**
+	 * Default value for {@link #getPosts()}.
+	 */
+	public static final MustacheNameValuePair[] DEFAULT_POSTS = new MustacheNameValuePair[] {};
 }

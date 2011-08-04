@@ -17,9 +17,7 @@ import net.microscraper.interfaces.json.JSONLocation;
  * @author john
  *
  */
-public class FindMany extends Find implements CanSpawnScrapers {	
-	//private final CanSpawnScrapers spawnsScrapers;
-	
+public class FindMany extends Find implements CanSpawnScrapers {		
 	private final int minMatch;
 
 	/**
@@ -86,16 +84,23 @@ public class FindMany extends Find implements CanSpawnScrapers {
 		return spawnsPages;
 	}
 	
-	private static final String MIN_MATCH = "min";
-	private static final String MAX_MATCH = "max";
+	/**
+	 * Key for {@link #getMinMatch()} value when deserializing from JSON.
+	 */
+	public static final String MIN_MATCH = "min";
 	
 	/**
-	 * The first of any number of matches.
+	 * Key for {@link #getMaxMatch()} value when deserializing from JSON.
 	 */
-	private static final int DEFAULT_MIN_MATCH = 0;
+	public static final String MAX_MATCH = "max";
 	
 	/**
-	 * The last of any number of matches.
+	 * {@link #getMinMatch()} defaults to the first of any number of matches.
 	 */
-	private static final int DEFAULT_MAX_MATCH = -1;
+	public static final int DEFAULT_MIN_MATCH = 0;
+	
+	/**
+	 * {@link #getMaxMatch()} defaults to the last of any number of matches.
+	 */
+	public static final int DEFAULT_MAX_MATCH = -1;
 }

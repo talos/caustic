@@ -15,13 +15,21 @@ import net.microscraper.interfaces.json.JSONLocation;
  */
 public class Find extends Regexp {
 	
-	private static final String REPLACEMENT = "replacement";
+	/**
+	 * Key for {@link #getReplacement()} value deserializing from JSON.
+	 */
+	public static final String REPLACEMENT = "replacement";
 	
 	/**
-	 * By default, <code>$0</code>.  This pulls through the matched string unchanged.
+	 * Default value for {@link #getReplacement()} is <code>$0</code>
+	 *  This pulls through the matched string unchanged.
 	 */
-	private static final String DEFAULT_REPLACEMENT = "$0";
-	private static final String TESTS = "tests";
+	public static final String DEFAULT_REPLACEMENT = "$0";
+	
+	/**
+	 * Key for {@link #getTests()} value deserializing from JSON.
+	 */
+	public static final String TESTS = "tests";
 	
 	private final MustacheTemplate replacement;
 	
@@ -37,18 +45,22 @@ public class Find extends Regexp {
 	private final Regexp[] tests;
 	
 	/**
-	 * @return Patterns that test the sanity of the parser's output.
+	 * @return {@link Regexp}s that test the sanity of the parser's output.  Defaults to a 
+	 * {@link #DEFAULT_TESTS}.
 	 */
 	public final Regexp[] getTests() {
 		return tests;
 	}
 	
-
+	/**
+	 * By default, {@link getTests()} is a zero-length {@link Regexp} array.
+	 */
+	public static final Regexp[] DEFAULT_TESTS = new Regexp[] {};
+	
 	/**
 	 * Deserialize a {@link Find} from a {@link JSONInterfaceObject}.
 	 * @param jsonObject Input {@link JSONInterfaceObject} object.
 	 * @return A {@link Find} instance.
-	 * @throws IOException 
 	 * @throws DeserializationException If this is not a valid JSON serialization of a {@link Find},
 	 * or the location is invalid.
 	 * @throws IOException If there is an error loading one of the references.
@@ -64,7 +76,7 @@ public class Find extends Regexp {
 					this.tests[i] = new Regexp(tests.getJSONObject(i));
 				}
 			} else {
-				this.tests = new Regexp[0];
+				this.tests = DEFAULT_TESTS;
 			}
 			this.replacement = jsonObject.has(REPLACEMENT) ?
 					new MustacheTemplate(jsonObject.getString(REPLACEMENT)) :

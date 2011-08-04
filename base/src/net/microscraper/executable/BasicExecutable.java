@@ -251,19 +251,6 @@ public abstract class BasicExecutable implements Executable {
 	}
 	
 	/**
-	 * Convenience method to generate a {@link Result} for an {@link Executable}.
-	 * @param name The name to attach to the {@link Result}.  Can be <code>null</code>.
-	 * @param value The value to attach to the {@link Result}.  Cannot be <code>null</code>.
-	 * @return A {@link Result} from this {@link Executable}.
-	 * @throws NullPointerException If <b>value</b> is <code>null</code>.
-	 */
-	/*protected Result generateResult(String name, String value) {
-		if(value == null)
-			throw new NullPointerException("Result value cannot be null");
-		return new BasicResult(this, name, value);
-	}*/
-	
-	/**
 	 * 
 	 * @return The {@link Instruction#getName()}, compiled through
 	 * {@link Mustache}, if {@link Instruction#hasName()} is <code>true</code>.

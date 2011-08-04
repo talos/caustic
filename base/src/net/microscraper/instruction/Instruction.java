@@ -13,9 +13,10 @@ import net.microscraper.interfaces.json.JSONLocation;
 public class Instruction {
 	
 	/**
-	 * Key for <code>name</code> when deserializing from JSON.
+	 * Key for {@link #getName()} value when deserializing from JSON.
 	 */
-	private static final String NAME = "name";
+	public static final String NAME = "name";
+	
 	private final MustacheTemplate name;
 	private final JSONLocation location;
 	

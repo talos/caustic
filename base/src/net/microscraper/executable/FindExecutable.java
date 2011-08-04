@@ -26,14 +26,19 @@ public abstract class FindExecutable extends BasicExecutable {
 	/**
 	 * The {@link Regexp} {@link Instruction} that is used to parse.
 	 */
-	private final Regexp regexp;
+	//private final Regexp regexp;
+
+	/**
+	 * The {@link RegexpExecutable} that is used to parse.
+	 */
+	private final RegexpExecutable regexpExecutable;
 	
 	private final ScraperExecutable enclosingScraperExecutable;
 	
 	public FindExecutable(Interfaces context,
 			Find find, ScraperExecutable enclosingScraperExecutable, Result source) {
 		super(context, find, source);
-		this.regexp = find;
+		this.regexpExecutable = new RegexpExecutable(getInterfaces(), find, this);
 		this.enclosingScraperExecutable = enclosingScraperExecutable;
 	}
 	
@@ -58,7 +63,7 @@ public abstract class FindExecutable extends BasicExecutable {
 	 * @throws MustacheTemplateException
 	 */
 	protected final PatternInterface getPattern() throws MissingVariableException, MustacheTemplateException {
-		return new RegexpExecutable(getInterfaces(), regexp, this).getPattern();
+		return regexpExecutable.getPattern();
 	}
 	
 

@@ -9,14 +9,14 @@ import net.microscraper.interfaces.regexp.PatternInterface;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
 
 public class RegexpExecutable {
-	private final Regexp regexpResource;
+	private final Regexp regexpInstruction;
 	private final RegexpCompiler regexpCompiler;
 	private final Variables variables;
 	
-	protected RegexpExecutable(Interfaces interfaces, Regexp regexpResource,
+	protected RegexpExecutable(Interfaces interfaces, Regexp regexpInstruction,
 			Variables variables) {
 		this.regexpCompiler = interfaces.getRegexpCompiler();
-		this.regexpResource = regexpResource;
+		this.regexpInstruction = regexpInstruction;
 		this.variables = variables;
 	}
 
@@ -31,8 +31,8 @@ public class RegexpExecutable {
 	protected PatternInterface getPattern()
 			throws MissingVariableException, MustacheTemplateException {
 		return regexpCompiler.compile(
-				regexpResource.getPattern().compile(variables),
-				regexpResource.getIsCaseSensitive(),
-				regexpResource.getIsMultiline(), regexpResource.getDoesDotMatchNewline());
+				regexpInstruction.getPattern().compile(variables),
+				regexpInstruction.getIsCaseSensitive(),
+				regexpInstruction.getIsMultiline(), regexpInstruction.getDoesDotMatchNewline());
 	}
 }
