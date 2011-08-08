@@ -56,12 +56,16 @@ public class SQLTable implements Table {
 		}
 		String columnDefinition = Utils.join(columnDefinitions, ", ");
 		
-		SQLPreparedStatement createTable = 
-				this.connection.prepareStatement("CREATE TABLE `" + name + "` " +
-				" (`" + ID_COLUMN_NAME + "` " + connection.intColumnType() +
-				" " + connection.keyColumnDefinition() + ", " +
-				columnDefinition + ")");
-		createTable.execute();
+		if(connection.tableExists(name)) {
+			
+		} else {
+			SQLPreparedStatement createTable = 
+					this.connection.prepareStatement("CREATE TABLE `" + name + "` " +
+					" (`" + ID_COLUMN_NAME + "` " + connection.intColumnType() +
+					" " + connection.keyColumnDefinition() + ", " +
+					columnDefinition + ")");
+			createTable.execute();
+		}
 	}
 
 	@Override

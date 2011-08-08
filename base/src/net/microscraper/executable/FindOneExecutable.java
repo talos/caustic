@@ -58,7 +58,7 @@ public class FindOneExecutable extends FindExecutable {
 		try {
 			FindOne findOne = (FindOne) getInstruction();
 			String replacement = getReplacement();
-			return new String[] { getPattern().match(getSource().getValue(), replacement, findOne.match) };
+			return new String[] { getPattern().match(getSource().getValue(), replacement, findOne.getMatch()) };
 		} catch (NoMatchesException e) {
 			throw new ExecutionFailure(e);
 		} catch (MissingGroupException e) {

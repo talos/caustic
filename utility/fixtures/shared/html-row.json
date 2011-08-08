@@ -1,6 +1,0 @@
-
-{
-	"name" : "row",
-	"pattern" : "<\\s*tr[^>]*>(.*?)</\\s*tr\\s*>",
-	"replacement" : "$1"
-}

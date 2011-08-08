@@ -152,11 +152,11 @@ public class JSONME implements JSONInterface {
 			
 			if(object.has(EXTENDS)) {
 				if(object.optJSONObject(EXTENDS) != null) {
-					merge(object.getJSONObject(EXTENDS));
+					merge(object, new JSONMEObject(location, object.getJSONObject(EXTENDS)));
 				} else if(object.optJSONArray(EXTENDS) != null) {
 					JSONArray extensions = object.getJSONArray(EXTENDS);
 					for(int i = 0 ; i < extensions.length() ; i ++) {
-						merge(extensions.getJSONObject(i));
+						merge(object, new JSONMEObject(location, extensions.getJSONObject(i)));
 					}
 				} 
 			}
@@ -165,12 +165,13 @@ public class JSONME implements JSONInterface {
 			this.location = location;
 		}
 		
-		private void merge(JSONObject objToMerge) throws JSONException {
-			Enumeration enum = objToMerge.keys();
+		private void merge(JSONObject objToBeMerged, JSONMEObject objToMerge) throws JSONException {
+			Enumeration enum = objToMerge.object.keys();
 			while(enum.hasMoreElements()) {
 				String key = (String) enum.nextElement();
-				Object value = objToMerge.get(key);
-				object.put(key, value);
+				Object value = objToMerge.object.get(key);
+				
+				objToBeMerged.put(key, value);
 			}
 		}
 		

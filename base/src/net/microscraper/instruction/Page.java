@@ -65,11 +65,27 @@ public final class Page extends URL {
 		
 	private final Method method;
 	/**
-	 * @return The HTTP request type to use.  Either Post, Get, or Head.
+	 * @return The HTTP request type to use.  Either {@link Method#GET},
+	 * {@link Method#POST}, or {@link Method#HEAD}.
 	 * Defaults to {@link #DEFAULT_METHOD}
 	 */
 	public final Method getMethod() {
 		return method;
+	}
+	
+	/**
+	 * @return The default {@link Method} when one is not explicitly defined.
+	 * This is {@link Method#GET} if there is not a {@link #POSTS} key, and
+	 * {@link Method#POST} if there is.
+	 * @param jsonObject The {@link JSONInterfaceObject} being deserialized.
+	 * @return {@link Method#GET} or {@link Method#POST}.
+	 */
+	private final Method getDefaultMethod(JSONInterfaceObject jsonObject) {
+		if(jsonObject.has(POSTS)) {
+			return Method.POST;
+		} else {
+			return Method.GET;
+		}
 	}
 	
 	private final MustacheNameValuePair[] cookies;
@@ -124,7 +140,7 @@ public final class Page extends URL {
 		try {			
 			try {
 				this.method = jsonObject.has(METHOD) ?
-					Method.fromString(jsonObject.getString(METHOD)) : DEFAULT_METHOD;
+					Method.fromString(jsonObject.getString(METHOD)) : getDefaultMethod(jsonObject);
 			} catch(IllegalArgumentException e) {
 				throw new DeserializationException(e, jsonObject);
 			}
@@ -180,14 +196,14 @@ public final class Page extends URL {
 	}
 	
 	/**
-	 * Key for {@link #getMethod()} when deserializing. Default is {@link #DEFAULT_METHOD}.
+	 * Key for {@link #getMethod()} when deserializing. Default is {@link #DEFAULT_METHOD},
 	 */
 	public static final String METHOD = "method";
 	
 	/**
-	 * The default {@link Method} is {@link Method#GET}.
+	 * The default {@link Method} is {@link Method#GET}.  
 	 */
-	public static final Method DEFAULT_METHOD = Method.GET;
+	//public static final Method DEFAULT_METHOD = Method.GET;
 	
 	/**
 	 * Key for {@link #getCookies()} when deserializing. Default is {@link #DEFAULT_COOKIES}.

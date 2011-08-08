@@ -7,6 +7,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -38,6 +39,7 @@ public class JavaNetBrowser implements Browser {
 	private final HostMemory hostMemory = new HostMemory();
 	private final int maxKBPS;
 	private final int sleepTime;
+	private final int timeout;
 
 	/**
 	 * 
@@ -46,11 +48,13 @@ public class JavaNetBrowser implements Browser {
 	 * from a single host before another request is made.
 	 * @param sleepTime How many milliseconds to wait before making another request if the maxKBPS
 	 * threshold was exceeded when the last request was tried.
+	 * @param timeout How many milliseconds before giving up on a request.
 	 */
-	public JavaNetBrowser(Log log, int maxKBPS, int sleepTime) {
+	public JavaNetBrowser(Log log, int maxKBPS, int sleepTime, int timeout) {
 		this.log = log;
 		this.maxKBPS = maxKBPS;
 		this.sleepTime = sleepTime;
+		this.timeout = timeout;
 	}
 	
 	public void head(boolean useRateLimit, String url, NameValuePair[] headers, NameValuePair[] cookies)
@@ -113,6 +117,7 @@ public class JavaNetBrowser implements Browser {
 					throw new InterruptedException();
 				}
 				
+				log.i("Have read " + readBytes + " bytes from url.");
 				content.write(buffer, 0, readBytes);
 				responseBody = new String(content.toByteArray());
 				if(terminates != null) {
@@ -206,8 +211,8 @@ public class JavaNetBrowser implements Browser {
 		
 		conn.setDoOutput(true);
 		conn.setDoInput(true);
-		conn.setReadTimeout(TIMEOUT);
-		
+		conn.setReadTimeout(timeout);
+
 		if(method.equals("POST")) {
 
 			String post_data = "";
@@ -252,48 +257,54 @@ public class JavaNetBrowser implements Browser {
 				throws IOException {
 		HttpURLConnection conn = generateConnection(useRateLimit, method, url, posts, headers, cookies);
 		conn.setInstanceFollowRedirects(false);
-		conn.connect();
-		InputStream stream = conn.getInputStream();
-		int code = conn.getResponseCode();
+		try {
+			conn.connect();
+			InputStream stream = conn.getInputStream();
 		
-		log.i("Response code: " + Integer.toString(code));
-		
-		if(redirects_followed.size() <= MAX_REDIRECTS) {
-			updateCookieStoreFromResponse(conn);
-			if(code >= 300 && code < 400 ) {
-				String redirect_string = conn.getHeaderField(LOCATION_HEADER_NAME);
-				if(redirects_followed.contains(redirect_string)) {
-					throw new IOException("Not following circular redirect from " +
-							conn.getURL().toString() + " to " + redirect_string);
-				} else {
-					redirects_followed.addElement(redirect_string);
-				}
-				
-				log.i("Following redirect #"
-					+ Integer.toString(redirects_followed.size()) + " from " + conn.getURL().toString()
-					+ " to " + redirect_string);
-				
-				try {
-					stream.close();
-					conn.disconnect();
-					return connectHandlingRedirectCookies(useRateLimit, "GET",
-							new URI(url.toString()).resolve(redirect_string).toURL(), null,
-							headers, null, redirects_followed);
+			int code = conn.getResponseCode();
+			
+			log.i("Response code: " + Integer.toString(code));
+			
+			if(redirects_followed.size() <= MAX_REDIRECTS) {
+				updateCookieStoreFromResponse(conn);
+				if(code >= 300 && code < 400 ) {
+					String redirect_string = conn.getHeaderField(LOCATION_HEADER_NAME);
+					if(redirects_followed.contains(redirect_string)) {
+						throw new IOException("Not following circular redirect from " +
+								conn.getURL().toString() + " to " + redirect_string);
+					} else {
+						redirects_followed.addElement(redirect_string);
+					}
 					
-				} catch(Exception e) {
-					throw new IOException("Unable to parse redirect from " + conn.getURL().toString()
-							+ " to " + redirect_string + " (" + e.getMessage() + ")");
-				} finally {
-					stream.close();
-					conn.disconnect();
+					log.i("Following redirect #"
+						+ Integer.toString(redirects_followed.size()) + " from " + conn.getURL().toString()
+						+ " to " + redirect_string);
+					
+					try {
+						stream.close();
+						conn.disconnect();
+						return connectHandlingRedirectCookies(useRateLimit, "GET",
+								new URI(url.toString()).resolve(redirect_string).toURL(), null,
+								headers, null, redirects_followed);
+						
+					} catch(Exception e) {
+						throw new IOException("Unable to parse redirect from " + conn.getURL().toString()
+								+ " to " + redirect_string + " (" + e.getMessage() + ")");
+					} finally {
+						stream.close();
+						conn.disconnect();
+					}
+				} else if(code != SUCCESS_CODE) {
+					throw new IOException("Can't deal with this response code (" + code + ").");
 				}
-			} else if(code != SUCCESS_CODE) {
-				throw new IOException("Can't deal with this response code (" + code + ").");
+			} else {
+				throw new IOException("Max redirects exhausted.");
 			}
-		} else {
-			throw new IOException("Max redirects exhausted.");
+			return stream;
+		} catch(SocketTimeoutException e) {
+			throw new IOException("Socket timeout after " + conn.getReadTimeout() + " milliseconds " +
+					", " + e.bytesTransferred + " bytes read.");
 		}
-		return stream;
 	}
 	
 	/**

@@ -12,10 +12,11 @@ import java.util.Vector;
  */
 public class Utils {
 	/**
-	 * Join an array of strings with a joinString.
-	 * @param strings
-	 * @param joinString
-	 * @return The strings, joined by joinString.
+	 * Join an array of {@link String}s with another {@link String}.
+	 * @param strings The array of {@link String}s.
+	 * @param joinString The {@link String} to join <code>strings</code> with.
+	 * @return <code>strings</code> as a single {@link String} joined by
+	 * <code>joinString</code>.
 	 */
 	public static String join(String[] strings, String joinString) {
 		String joined = "";
@@ -96,19 +97,26 @@ public class Utils {
 		}	
 	}
 	
-	public static char quotation = '"';
+	/**
+	 * The quotation character used by {@link Utils}.
+	 * @see #quote(String)
+	 * @see #quote(int)
+	 */		
+	public final static char QUOTATION = '"';
 	
 	/**
-	 * Return the string with quotations around it. (ex.: a string => "a string")
-	 * @param stringToQuote The String to quote.
+	 * Return the string with {@link #QUOTATION} around it.
+	 * @param stringToQuote The {@link String} to quote.
 	 * @return The string, quoted.
+	 * @see #QUOTATION
 	 */
 	public static String quote(String stringToQuote) {
-		return quotation + stringToQuote + quotation;
+		return QUOTATION + stringToQuote + QUOTATION;
 	}
 
 	/**
-	 * Return the int as a String with quotations around it. (ex.: 8 => "8")
+	 * Return the int as a {@link String} with {@link #QUOTATION}
+	 * around it.
 	 * @param integerToQuote The int to quote.
 	 * @return The integer, as a quoted string.
 	 */
@@ -137,55 +145,7 @@ public class Utils {
 			vector.addElement(array[i]);
 		}
 	}
-
-	/**
-	 * Test to see if two arrays are equal.
-	 * @param array1 The first array.
-	 * @param array2 The second array.
-	 * @return True if array1 has all members of array2 and vice versa, regardless of order.
-	 */
-	/*
-	public static boolean arraysEqual(Object[] array1, Object[] array2) {
-		if(array1.length != array2.length)
-			return false;
-		Vector vector = new Vector();
-		Utils.arrayIntoVector(array1, vector);
-		for(int i = 0; i < array2.length; i ++) {
-			if(vector.contains(array2[i]))
-				return false;
-		}
-		return true;
-	}
-	*/
-	/**
-	 * Generates a hashcode based off an array of objects.  Each individual object should implement
-	 * hashCode().
-	 * @param array
-	 * @return
-	 */
-	/*
-	public static int arrayHashCode(Object[] array) {
-		int hashCode = 0;
-		for (int i = 0; i < array.length ; i ++) {
-			hashCode += array[i].hashCode();
-		}
-		return hashCode;
-	}*/
 	
-	/**
-	 * Copy one Hashtable into another. Preexisting keys in hashtable2 will be overwritten.
-	 * @param hashtable1
-	 * @param hashtable2
-	 *//*
-	public static final void hashtableIntoHashtable(Hashtable hashtable1, Hashtable hashtable2) {
-		Enumeration keys = hashtable1.keys();
-		while(keys.hasMoreElements()) {
-			Object key = keys.nextElement();
-			Object value = hashtable1.get(key);
-			hashtable2.put(key, value);
-		}
-	}
-	*/
 	/**
 	 * Turn Form-encoded data into an array of {@link NameValuePair}s.
 	 * @param formEncodedData A String of form data to convert.
@@ -204,5 +164,18 @@ public class Utils {
 					URLDecoder.decode(pair[1], encoding));
 		}
 		return pairs;
+	}
+	
+	/**
+	 * Preview an array of {@link NameValuePair}s as a {@link String}.
+	 * @param nameValuePairs The {@link NameValuePair}s to preview.
+	 * @return A {@link String} previewing <code>nameValuePairs</code>.
+	 */
+	public static String preview(NameValuePair[] nameValuePairs) {
+		String[] joined = new String[nameValuePairs.length];
+		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
+			joined[i] = nameValuePairs[i].getName() + ": " + nameValuePairs[i].getValue();
+		}
+		return join(joined, ", ");
 	}
 }

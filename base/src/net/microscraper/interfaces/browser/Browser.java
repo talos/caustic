@@ -7,10 +7,30 @@ import net.microscraper.interfaces.regexp.PatternInterface;
  * Implementations of the {@link Browser} interface can be used by to make HTTP requests and handle the responses.
  */
 public interface Browser {
+	/**
+	 * The default number of milliseconds to wait before timing out on a
+	 * request for {@link Browser} interfaces.
+	 */
 	public static final int TIMEOUT = 30000;
+	
+	/**
+	 * The default number of redirects {@link Browser} interfaces will follow.
+	 */
 	public static final int MAX_REDIRECTS = 50;
+	
 	public static final int SUCCESS_CODE = 200;
+	
+	/**
+	 * The default rate limit a {@link Browser} interface imposes upon itself for
+	 * a single host.
+	 */
 	public static final int DEFAULT_MAX_KBPS_FROM_HOST = 30;
+	
+	/**
+	 * How many milliseconds a {@link Browser} interface will sleep before
+	 * considering trying a host again, if when it last considered requesting
+	 * from a host it would have exceeded its rate limit.
+	 */
 	public static final int DEFAULT_SLEEP_TIME = 500;
 	
 	public static final String LOCATION_HEADER_NAME = "location";

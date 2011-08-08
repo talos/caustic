@@ -8,5 +8,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JSON ME Implementation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper Java IO File Implementation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JavaNet Implementation"/>
+	<classpathentry kind="src" path="/MicroScraper Java Util Regexp Implementation"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

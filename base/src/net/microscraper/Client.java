@@ -80,15 +80,16 @@ public final class Client {
 			}
 			Executable exc = (Executable) queue.elementAt(0);
 			queue.removeElementAt(0);
+			interfaces.getLog().i("Running " + exc.toString());
 			exc.run();
 			// If the execution is complete, add its children to the queue.
 			if(exc.isComplete()) {
 				Executable[] children = exc.getChildren();
 				Utils.arrayIntoVector(children, queue);
 			} else if (exc.isStuck()) {
-				
+				interfaces.getLog().i(exc.toString() + " is stuck on " + exc.stuckOn());
 			} else if (exc.hasFailed()) {
-				
+				interfaces.getLog().w(exc.failedBecause());
 			// If the execution is not stuck and is not failed, add it back to the queue.
 			} else {
 				queue.addElement(exc);

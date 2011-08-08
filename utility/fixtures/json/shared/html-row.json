@@ -1,0 +1,5 @@
+
+{
+	"pattern"     : "<\\s*font[^>]*>(.*?)</\\s*font\\s*>",
+	"replacement" : "$1"
+}

@@ -9,7 +9,7 @@ import net.microscraper.interfaces.json.JSONInterfaceObject;
 import net.microscraper.interfaces.json.JSONLocation;
 
 /**
- * A {@link Find} that can connect to other {@link Scraper} through {@link #getPipes},
+ * A {@link Find} that can connect to other {@link Scraper} through {@link #getScrapers()},
  * and is one-to-many (even if it only has one result.)
  * Its executions do not implement {@link Variables}, because {@link FindMany} can be one-to-many.
  * @see Find

@@ -22,7 +22,9 @@ public interface JSONInterface {
 	
 	/**
 	 * When the parser encounters this as a key in an object, it should append 
-	 * the key-value pairs of the value object into the containing object.
+	 * the key-value pairs of the value object into the containing object.  If
+	 * the value is an array, it should append all of the key-value pairs of
+	 * each array element into the original object.
 	 */
 	public static final String EXTENDS = "extends";
 	

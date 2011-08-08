@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# Run microscraper from command line without having to specify
+# java -jar.
+
+java -jar ./microscraper.jar $*

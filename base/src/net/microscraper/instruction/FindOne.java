@@ -23,15 +23,19 @@ public class FindOne extends Find implements CanFindMany, CanFindOne {
 	 */
 	public static final String KEY = "find_one";
 	
+	private final int match;
 	/**
-	 * A {@link FindOne} finds a single scraper match.
+	 * A {@link FindOne} finds a single scraper match. It is
 	 * 0-indexed, and negative numbers count backwards (-1 is last match.)
 	 * Defaults to {@link #DEFAULT_MATCH}.
+	 * @return This {@link FindOne}'s match number.
 	 * @see FindMany#minMatch
 	 * @see FindMany#maxMatch
 	 */
-	public final int match;
-
+	public int getMatch() {
+		return match;
+	}
+	
 	/**
 	 * Deserialize a {@link FindOne} from a {@link JSONInterfaceObject}.
 	 * @param jsonObject Input {@link JSONInterfaceObject} object.
@@ -69,7 +73,10 @@ public class FindOne extends Find implements CanFindMany, CanFindOne {
 	public FindMany[] getFindManys() {
 		return findManys;
 	}
-	
+
+	/**
+	 * Key for {@link #getMatch()} value when deserializing from JSON.
+	 */
 	private static final String MATCH = "match";
 	
 	/**

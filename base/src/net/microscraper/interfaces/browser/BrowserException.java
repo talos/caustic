@@ -9,11 +9,11 @@ import net.microscraper.ClientException;
  */
 public class BrowserException extends ClientException {
 	private final String url;
-	protected BrowserException(String url) {
+	/*protected BrowserException(String url) {
 		this.url = url;
-	}
+	}*/
 	public BrowserException(String url, Throwable e) {
-		super("Could not load " + url, e);
+		super("Could not load " + url + ": " + e.getMessage(), e);
 		this.url = url;
 	}
 	/**
