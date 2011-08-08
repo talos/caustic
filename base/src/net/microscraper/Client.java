@@ -7,7 +7,6 @@ import net.microscraper.executable.Executable;
 import net.microscraper.executable.PageExecutable;
 import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.Page;
-import net.microscraper.instruction.Scraper;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.database.Database;

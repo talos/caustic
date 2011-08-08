@@ -1,6 +1,7 @@
 package net.microscraper.executable;
 
 import java.io.IOException;
+import java.util.Vector;
 
 import net.microscraper.Interfaces;
 import net.microscraper.MissingVariableException;
@@ -8,8 +9,10 @@ import net.microscraper.MustacheTemplateException;
 import net.microscraper.Utils;
 import net.microscraper.Variables;
 import net.microscraper.instruction.DeserializationException;
+import net.microscraper.instruction.FindMany;
+import net.microscraper.instruction.FindOne;
 import net.microscraper.instruction.Instruction;
-import net.microscraper.interfaces.database.Database;
+import net.microscraper.instruction.Page;
 import net.microscraper.interfaces.database.DatabaseException;
 
 /**
@@ -29,6 +32,7 @@ public abstract class BasicExecutable implements Executable {
 	
 	private Result[] results = null;
 	private Executable[] children = null;
+	private FindOneExecutable[] findOneExecutableChildren = null;
 	
 	private Throwable failure = null; // has to be Throwable because that's what #getCause returns.
 	private String lastMissingVariable = null;
@@ -61,9 +65,12 @@ public abstract class BasicExecutable implements Executable {
 				if(results == null) {
 					String[] resultValues = generateResultValues();
 					results = new Result[resultValues.length];
+					getInterfaces().getLog()
+						.i(toString() + " has " + results.length + " results");
 					for(int i = 0 ; i < resultValues.length ; i ++) {
 						if(hasSource()) {
-							results[i] = interfaces.getDatabase().store(getSource(),
+							results[i] = interfaces.getDatabase().store(
+									getSource(),
 									getName(), resultValues[i]);
 						} else {
 							results[i] = interfaces.getDatabase().store(
@@ -150,8 +157,46 @@ public abstract class BasicExecutable implements Executable {
 	 * @see #generateResult
 	 * @see #getChildren
 	 */
-	protected abstract Executable[] generateChildren(Result[] results)
-			throws MissingVariableException, MustacheTemplateException, DeserializationException, IOException;
+	private final Executable[] generateChildren(Result[] results)
+				throws MissingVariableException, MustacheTemplateException, DeserializationException, IOException {
+		Vector children = new Vector();
+		Vector findOneExecutables = new Vector();
+		Instruction instruction = getInstruction();
+		FindOne[] findOnes = instruction.getFindOnes();
+		FindMany[] findManys = instruction.getFindManys();
+		Page[] pages = instruction.getPages();
+		
+		for(int i = 0; i < results.length ; i++) {
+			Result sourceResult = results[i];
+			for(int j = 0 ; j < findOnes.length ; j ++) {
+				FindOneExecutable findOneExecutable = new FindOneExecutable(
+						getInterfaces(),
+						findOnes[j], this, sourceResult);
+				findOneExecutables.add(findOneExecutable);
+				children.add(findOneExecutable);
+			}
+			for(int j = 0 ; j < findManys.length ; j ++) {
+				children.add(new FindManyExecutable(getInterfaces(), findManys[j],
+						this, sourceResult));
+			}
+			for(int j = 0 ; j < pages.length ; j ++) {
+				children.add(new PageExecutable(getInterfaces(), pages[j],
+						this, sourceResult));
+			}
+		}
+		
+		this.findOneExecutableChildren = new FindOneExecutable[findOneExecutables.size()];
+		findOneExecutables.copyInto(this.findOneExecutableChildren);
+		
+		Executable[] childrenAry = new Executable[children.size()];
+		children.copyInto(childrenAry);
+		return childrenAry;
+	}
+	
+	protected final FindOneExecutable[] getFindOneExecutableChildren() {
+		return this.findOneExecutableChildren;
+	}
+	
 	
 	public final Instruction getInstruction() {
 		return instruction;
@@ -267,4 +312,10 @@ public abstract class BasicExecutable implements Executable {
 			return getInstruction().getLocation().toString();
 		}
 	}
+	
+	/**
+	 * 
+	 * @return If this {@link BasicExecutable} generates multiple results.
+	 */
+	protected abstract boolean generatesManyResults();
 }

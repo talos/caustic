@@ -13,7 +13,7 @@ import net.microscraper.interfaces.json.JSONLocation;
  * @author john
  *
  */
-public class Find extends Regexp {
+public class Find extends Instruction {
 	
 	/**
 	 * Key for {@link #getReplacement()} value deserializing from JSON.
@@ -68,7 +68,7 @@ public class Find extends Regexp {
 	public Find(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		super(jsonObject);
 		try {
-			
+			regexp = new Regexp(jsonObject);
 			if(jsonObject.has(TESTS)) {
 				JSONInterfaceArray tests = jsonObject.getJSONArray(TESTS);
 				this.tests = new Regexp[tests.length()];
@@ -86,10 +86,22 @@ public class Find extends Regexp {
 		}
 	}
 	
-	public Find(JSONLocation location, MustacheTemplate name, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline,
-			boolean doesDotMatchNewline, Regexp[] tests, MustacheTemplate replacement) {
-		super(location, name, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline);
+	public Find(JSONLocation location, MustacheTemplate name,
+			FindOne[] findOnes, FindMany[] findManys,
+			Page[] spawnPages, Regexp regexp, Regexp[] tests,
+			MustacheTemplate replacement) {
+		super(location, name, findOnes, findManys, spawnPages);
+		this.regexp = regexp;
 		this.tests = tests;
 		this.replacement = replacement;
+	}
+	
+	private final Regexp regexp;
+	/**
+	 * 
+	 * @return The {@link Regexp} {@link Instruction} inside this {@link Find}.
+	 */
+	public Regexp getRegexp() {
+		return regexp;
 	}
 }

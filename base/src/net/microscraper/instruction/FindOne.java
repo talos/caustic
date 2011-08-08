@@ -3,8 +3,6 @@ package net.microscraper.instruction;
 import java.io.IOException;
 
 import net.microscraper.MustacheTemplate;
-import net.microscraper.instruction.mixin.CanFindMany;
-import net.microscraper.instruction.mixin.CanFindOne;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
 import net.microscraper.interfaces.json.JSONLocation;
@@ -16,7 +14,7 @@ import net.microscraper.interfaces.json.JSONLocation;
  * @author john
  *
  */
-public class FindOne extends Find implements CanFindMany, CanFindOne {
+public class FindOne extends Find {
 	
 	/**
 	 * The resource's identifier when deserializing.
@@ -47,33 +45,18 @@ public class FindOne extends Find implements CanFindMany, CanFindOne {
 		super(jsonObject);
 		try {
 			this.match = jsonObject.has(MATCH) ? jsonObject.getInt(MATCH) : DEFAULT_MATCH;
-			CanFindOne canFindOne = CanFindOne.Deserializer.deserialize(jsonObject);
-			CanFindMany canFindMany = CanFindMany.Deserializer.deserialize(jsonObject);
-			this.findOnes = canFindOne.getFindOnes();
-			this.findManys = canFindMany.getFindManys();
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
 	
-	public FindOne(JSONLocation location, MustacheTemplate name, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline,
-			boolean doesDotMatchNewline, Regexp[] tests, MustacheTemplate replacement, int match, FindOne[] findsOne, FindMany[] findsMany) {
-		super(location, name, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline, tests, replacement);
+	public FindOne(JSONLocation location, MustacheTemplate name, FindOne[] findOnes,
+			FindMany[] findManys, Page[] spawnPages,
+			Regexp regexp, Regexp[] tests, MustacheTemplate replacement, int match, FindOne[] findsOne, FindMany[] findsMany) {
+		super(location, name, findOnes, findManys, spawnPages, regexp, tests, replacement);
 		this.match = match;
-		this.findOnes = findsOne;
-		this.findManys = findsMany;
 	}
 	
-	private final FindOne[] findOnes;
-	public FindOne[] getFindOnes() {
-		return findOnes;
-	}
-	
-	private final FindMany[] findManys;
-	public FindMany[] getFindManys() {
-		return findManys;
-	}
-
 	/**
 	 * Key for {@link #getMatch()} value when deserializing from JSON.
 	 */

@@ -1,6 +1,11 @@
 package net.microscraper.instruction;
 
+import java.io.IOException;
+
 import net.microscraper.MustacheTemplate;
+import net.microscraper.instruction.mixin.CanFindMany;
+import net.microscraper.instruction.mixin.CanFindOne;
+import net.microscraper.instruction.mixin.CanSpawnPages;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
 import net.microscraper.interfaces.json.JSONLocation;
@@ -10,7 +15,7 @@ import net.microscraper.interfaces.json.JSONLocation;
  * @author realest
  *
  */
-public class Instruction {
+public class Instruction implements CanFindOne, CanFindMany, CanSpawnPages {
 	
 	/**
 	 * Key for {@link #getName()} value when deserializing from JSON.
@@ -53,17 +58,22 @@ public class Instruction {
 	 * @param name The {@link MustacheTemplate} to use as a name for this {@link Instruction}.
 	 * Can be <code>null</code>.
 	 */
-	public Instruction(JSONLocation location, MustacheTemplate name) {
+	public Instruction(JSONLocation location, MustacheTemplate name, FindOne[] findOnes,
+			FindMany[] findManys, Page[] spawnPages) {
 		this.location = location;
 		this.name = name;
+		this.findOnes = findOnes;
+		this.findManys = findManys;
+		this.spawnPages = spawnPages;
 	}
 
 	/**
 	 * {@link Instruction} can be initialized with a {@link JSONInterfaceObject}, which has a location.
 	 * @param obj The {@link JSONInterfaceObject} object to deserialize.
 	 * @throws DeserializationException If there is a problem deserializing <code>obj</code>
+	 * @throws IOException If there is an error loading one of the references.
 	 */
-	public Instruction(JSONInterfaceObject obj) throws DeserializationException {
+	public Instruction(JSONInterfaceObject obj) throws DeserializationException, IOException {
 		this.location = obj.getLocation();
 		try {
 			if(obj.has(NAME)) {
@@ -71,8 +81,30 @@ public class Instruction {
 			} else {
 				name = null;
 			}
+			CanFindMany canFindMany = CanFindMany.Deserializer.deserialize(obj);
+			CanFindOne  canFindOne = CanFindOne.Deserializer.deserialize(obj);
+			CanSpawnPages canSpawnPages = CanSpawnPages.Deserializer.deserialize(obj);
+			
+			this.spawnPages = canSpawnPages.getPages();
+			this.findManys = canFindMany.getFindManys();
+			this.findOnes  = canFindOne.getFindOnes();
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, obj);
 		}
+	}
+
+	private final FindMany[] findManys;
+	public FindMany[] getFindManys() {
+		return findManys;
+	}
+
+	private final FindOne[] findOnes;
+	public FindOne[] getFindOnes() {
+		return findOnes;
+	}
+
+	private final Page[] spawnPages;
+	public Page[] getPages() throws DeserializationException, IOException {
+		return spawnPages;
 	}
 }

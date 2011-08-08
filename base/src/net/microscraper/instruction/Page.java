@@ -14,7 +14,7 @@ import net.microscraper.interfaces.json.JSONLocation;
  * @author realest
  *
  */
-public final class Page extends URL {
+public final class Page extends Instruction {
 	/**
 	 * Static class defining HTTP methods.
 	 * @author realest
@@ -128,6 +128,15 @@ public final class Page extends URL {
 		return posts;
 	}
 	
+	private final MustacheTemplate url;
+	/**
+	 * @return A string that can be mustached and used as a URL.
+	 */
+	public final MustacheTemplate getTemplate() {
+		return url;
+	}
+	
+
 	/**
 	 * Deserialize a {@link Page} from a {@link JSONInterfaceObject}.
 	 * @param jsonObject Input {@link JSONInterfaceObject} object.
@@ -137,7 +146,12 @@ public final class Page extends URL {
 	 */
 	public Page(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		super(jsonObject);
-		try {			
+
+		try {
+
+			this.url = new MustacheTemplate(jsonObject.getString(URL));
+
+			
 			try {
 				this.method = jsonObject.has(METHOD) ?
 					Method.fromString(jsonObject.getString(METHOD)) : getDefaultMethod(jsonObject);
@@ -180,13 +194,15 @@ public final class Page extends URL {
 		}
 	}
 
+	
 	public Page(JSONLocation location, MustacheTemplate name, 
-			Page[] spawnPages, Scraper[] spawnScrapers,
+			MustacheTemplate url, Page[] spawnPages,
 			FindMany[] findManys, FindOne[] findOnes, MustacheTemplate urlTemplate,
 			Method method, MustacheNameValuePair[] headers,
 			MustacheNameValuePair[] posts, MustacheNameValuePair[] cookies,
 			Regexp[] stopBecause, Page[] preload) {
-		super(location, name, spawnPages, spawnScrapers, findManys, findOnes, urlTemplate);
+		super(location, name, findOnes, findManys, spawnPages);
+		this.url = url;
 		this.method = method;
 		this.headers = headers;
 		this.posts = posts;
@@ -199,11 +215,6 @@ public final class Page extends URL {
 	 * Key for {@link #getMethod()} when deserializing. Default is {@link #DEFAULT_METHOD},
 	 */
 	public static final String METHOD = "method";
-	
-	/**
-	 * The default {@link Method} is {@link Method#GET}.  
-	 */
-	//public static final Method DEFAULT_METHOD = Method.GET;
 	
 	/**
 	 * Key for {@link #getCookies()} when deserializing. Default is {@link #DEFAULT_COOKIES}.
@@ -249,6 +260,12 @@ public final class Page extends URL {
 	 * Key for {@link #getPosts()} when deserializing. Default is {@link #DEFAULT_POSTS}.
 	 */
 	public static final String POSTS = "posts";
+	
+
+	/**
+	 * Key for {@link #getPosts()} when deserializing. Default is {@link #DEFAULT_POSTS}.
+	 */
+	private static final String URL = "url";
 
 	/**
 	 * Default value for {@link #getPosts()}.

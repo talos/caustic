@@ -1,13 +1,9 @@
 package net.microscraper.executable;
 
-import java.util.Vector;
-
 import net.microscraper.Interfaces;
 import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplateException;
-import net.microscraper.NameValuePair;
 import net.microscraper.Variables;
-import net.microscraper.instruction.FindMany;
 import net.microscraper.instruction.FindOne;
 import net.microscraper.interfaces.regexp.MissingGroupException;
 import net.microscraper.interfaces.regexp.NoMatchesException;
@@ -20,20 +16,11 @@ import net.microscraper.interfaces.regexp.NoMatchesException;
  * @author john
  *
  */
-public class FindOneExecutable extends FindExecutable {
-	
-	/**
-	 * The {@link FindOneExecutable}s spawned by this {@link FindOneExecutable}.
-	 */
-	private FindOneExecutable[] spawnedFindOneExecutables;
-	
-	private final ScraperExecutable enclosingScraperExecutable;
-	
+public class FindOneExecutable extends FindExecutable {	
 	public FindOneExecutable(Interfaces context,
-			FindOne findOne, ScraperExecutable scraperExecutable,
+			FindOne findOne, Executable enclosingExecutable,
 			Result sourceResult) {
-		super(context, findOne, scraperExecutable, sourceResult);
-		this.enclosingScraperExecutable = scraperExecutable;
+		super(context, findOne, enclosingExecutable, sourceResult);
 	}
 	
 	protected String localGet(String key) {
@@ -41,8 +28,8 @@ public class FindOneExecutable extends FindExecutable {
 			Result result = getResults()[0];
 			if(result.getName().equals(key))
 				return result.getValue();
-			for(int i = 0 ; i < spawnedFindOneExecutables.length ; i ++) {
-				String spawnedValue = spawnedFindOneExecutables[i].localGet(key);
+			for(int i = 0 ; i < getFindOneExecutableChildren().length ; i ++) {
+				String spawnedValue = getFindOneExecutableChildren()[i].localGet(key);
 				if(spawnedValue != null)
 					return spawnedValue;
 			}
@@ -66,38 +53,4 @@ public class FindOneExecutable extends FindExecutable {
 		}
 	}
 	
-	/**
-	 * @return {@link FindManyExecutable}s and {@link FindOneExecutable}s.
-	 */
-	protected Executable[] generateChildren(Result[] results) {
-		FindOne findOne = (FindOne) getInstruction();
-		
-		FindOne[] childFindOnes = findOne.getFindOnes();
-		FindMany[] childFindManys = findOne.getFindManys();
-		Vector findOneExecutables = new Vector();
-		Vector findManyExecutables = new Vector();
-		
-		for(int i = 0 ; i < results.length ; i ++) {
-			Result sourceResult = results[i];
-			for(int j = 0 ; j < childFindOnes.length ; j ++) {
-				findOneExecutables.add(
-					new FindOneExecutable(getInterfaces(), childFindOnes[j], enclosingScraperExecutable, sourceResult));
-			}
-			for(int j = 0 ; j < childFindManys.length ; j ++) {
-				findManyExecutables.add(
-					new FindManyExecutable(getInterfaces(), childFindManys[j], enclosingScraperExecutable, sourceResult));
-			}
-		}
-		this.spawnedFindOneExecutables = new FindOneExecutable[findOneExecutables.size()];
-		findOneExecutables.copyInto(this.spawnedFindOneExecutables);
-		
-		Executable[] children = new Executable[this.spawnedFindOneExecutables.length + findManyExecutables.size()];
-		for(int i = 0 ; i < this.spawnedFindOneExecutables.length ; i++) {
-			children[i] = this.spawnedFindOneExecutables[i];
-		}
-		for(int i = 0 ; i < findManyExecutables.size() ; i ++) {
-			children[i + this.spawnedFindOneExecutables.length] = (FindManyExecutable) findManyExecutables.elementAt(i);
-		}
-		return children;
-	}
 }

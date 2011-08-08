@@ -1,16 +1,20 @@
 package net.microscraper.instruction;
 
+import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplate;
+import net.microscraper.MustacheTemplateException;
+import net.microscraper.Variables;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
-import net.microscraper.interfaces.json.JSONLocation;
+import net.microscraper.interfaces.regexp.PatternInterface;
+import net.microscraper.interfaces.regexp.RegexpCompiler;
 
 /**
  * A regular expression {@link Instruction}.
  * @author john
  *
  */
-public class Regexp extends Instruction {
+public class Regexp {
 	
 	private final MustacheTemplate pattern;
 	
@@ -56,7 +60,7 @@ public class Regexp extends Instruction {
 	 * or the location is invalid.
 	 */
 	public Regexp (JSONInterfaceObject jsonObject) throws DeserializationException {
-		super(jsonObject);
+		//super(jsonObject);
 		try {
 			pattern = new MustacheTemplate(jsonObject.getString(PATTERN));
 			isCaseSensitive = jsonObject.has(IS_CASE_SENSITIVE) ? jsonObject.getBoolean(IS_CASE_SENSITIVE) : IS_CASE_SENSITIVE_DEFAULT;
@@ -67,10 +71,8 @@ public class Regexp extends Instruction {
 		}
 	}
 	
-	public Regexp(JSONLocation location, MustacheTemplate name,
-			MustacheTemplate pattern, boolean isCaseSensitive,
+	public Regexp(MustacheTemplate pattern, boolean isCaseSensitive,
 			boolean isMultiline, boolean doesDotMatchNewline) {
-		super(location, name);
 		this.pattern = pattern;
 		this.isCaseSensitive = isCaseSensitive;
 		this.isMultiline = isMultiline;
@@ -87,4 +89,30 @@ public class Regexp extends Instruction {
 
 	private static final String DOES_DOT_MATCH_ALL = "dot_matches_all";
 	private static final boolean DOES_DOT_MATCH_ALL_DEFAULT = true;
+	
+
+	/**
+	 * 
+	 * @return The {@link RegexpExecutable}'s {@link PatternInterface}
+	 * to use when executing.
+	 * @throws MissingVariableException if a {@link Variable} is missing.
+	 * @throws MustacheTemplateException if the {@link MustacheTemplate} for
+	 * the pattern is invalid.
+	 */
+	/*
+	public PatternInterface getPattern(Variables variables)
+			throws MissingVariableException, MustacheTemplateException {
+		return regexpCompiler.compile(
+				regexpInstruction.getPattern().compile(variables),
+				regexpInstruction.getIsCaseSensitive(),
+				regexpInstruction.getIsMultiline(), regexpInstruction.getDoesDotMatchNewline());
+	}
+	*/
+	public PatternInterface compileWith(RegexpCompiler regexpCompiler,
+			Variables variables) throws MissingVariableException, MustacheTemplateException {
+		return regexpCompiler.compile(
+				getPattern().compile(variables),
+				getIsCaseSensitive(),
+				getIsMultiline(), getDoesDotMatchNewline());
+	}
 }

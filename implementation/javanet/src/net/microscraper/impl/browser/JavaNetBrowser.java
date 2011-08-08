@@ -111,13 +111,17 @@ public class JavaNetBrowser implements Browser {
 			// Pull response.
 			//InputStream stream = conn.getInputStream();
 			byte[] buffer = new byte[512];
+			int totalReadBytes = 0;
 			int readBytes;
 			loading: while((readBytes = stream.read(buffer)) != -1) {
 				if(Thread.interrupted()) {
 					throw new InterruptedException();
 				}
-				
-				log.i("Have read " + readBytes + " bytes from url.");
+
+				totalReadBytes += readBytes;
+				if(totalReadBytes % (buffer.length * 4) == 0) {
+					log.i("Have read " + totalReadBytes + " bytes from url.");
+				}
 				content.write(buffer, 0, readBytes);
 				responseBody = new String(content.toByteArray());
 				if(terminates != null) {

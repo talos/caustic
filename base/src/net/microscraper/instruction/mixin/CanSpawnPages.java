@@ -6,8 +6,6 @@ import java.util.Vector;
 import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.FindMany;
 import net.microscraper.instruction.Page;
-import net.microscraper.instruction.Scraper;
-import net.microscraper.instruction.URL;
 import net.microscraper.interfaces.json.JSONInterfaceArray;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
@@ -17,15 +15,7 @@ import net.microscraper.interfaces.json.JSONInterfaceObject;
  * @author john
  *
  */
-public interface CanSpawnScrapers {
-	
-	/**
-	 * 
-	 * @return An array of {@link Scraper}s.
-	 * @throws IOException 
-	 * @throws DeserializationException 
-	 */
-	public abstract Scraper[] getScrapers() throws DeserializationException, IOException;
+public interface CanSpawnPages {
 	
 	/**
 	 * 
@@ -38,7 +28,7 @@ public interface CanSpawnScrapers {
 
 	/**
 	 * A helper class to deserialize 
-	 * interfaces of {@link CanSpawnScrapers} using an inner constructor.
+	 * interfaces of {@link CanSpawnPages} using an inner constructor.
 	 * Should only be instantiated inside {@link FindMany} or {@link SpawnedScraperExecutable}.
 	 * @see FindMany
 	 * @see SpawnedScraperExecutable
@@ -49,17 +39,16 @@ public interface CanSpawnScrapers {
 		public static String KEY = "then";
 
 		/**
-		 * Deserialize a {@link CanSpawnScrapers} from a {@link JSONInterfaceObject}.
+		 * Deserialize a {@link CanSpawnPages} from a {@link JSONInterfaceObject}.
 		 * @param jsonObject Input {@link JSONInterfaceObject} object.
-		 * @return A {@link CanSpawnScrapers} instance.
+		 * @return A {@link CanSpawnPages} instance.
 		 * @throws DeserializationException If this is not a valid JSON serialization of
-		 * a {@link CanSpawnScrapers}.
+		 * a {@link CanSpawnPages}.
 		 * @throws IOException If there is an error loading one of the references.
 		 */
-		public static CanSpawnScrapers deserialize(final JSONInterfaceObject jsonObject)
+		public static CanSpawnPages deserialize(final JSONInterfaceObject jsonObject)
 					throws DeserializationException, IOException {
-			return new CanSpawnScrapers() {
-				private Scraper[] scrapers;
+			return new CanSpawnPages() {
 				private Page[] pages;
 				
 				private void load() throws JSONInterfaceException, IOException, DeserializationException {
@@ -69,49 +58,25 @@ public interface CanSpawnScrapers {
 						// an array of 1.
 						if(jsonObject.isJSONObject(KEY)) {
 							JSONInterfaceObject obj = jsonObject.getJSONObject(KEY);
-							if(URL.isURL(obj) == true) {
-								this.pages = new Page[] { new Page(obj) };
-								this.scrapers = new Scraper[] { };
-							} else {
-								this.pages = new Page[] { };
-								this.scrapers = new Scraper[] { new Scraper(obj) };
-							}
-							
+							this.pages = new Page[] { new Page(obj) };
 						} else {
 							final JSONInterfaceArray array = jsonObject.getJSONArray(KEY);
-
+							
 							Vector pages = new Vector();
-							Vector scrapers = new Vector();
 							
 							for(int i = 0 ; i < array.length() ; i ++) {
 								//scrapers[i] = new Scraper(array.getJSONObject(i));
 								JSONInterfaceObject obj = array.getJSONObject(i);
-								if(URL.isURL(obj) == true) {
-									pages.add(new Page(obj));
-								} else {
-									scrapers.add(new Scraper(obj));
-								}
+								pages.add(new Page(obj));
 							}
-							this.scrapers = new Scraper[scrapers.size()];
 							this.pages = new Page[pages.size()];
-							scrapers.copyInto(this.scrapers);
 							pages.copyInto(this.pages);
 						}						
 
 					} else {
-						this.scrapers = new Scraper[] {};
 						this.pages    = new Page[] {};
 					}
 					
-				}
-				public Scraper[] getScrapers() throws DeserializationException, IOException {
-					try {
-						if(scrapers == null)
-							load();
-						return scrapers;
-					} catch(JSONInterfaceException e) {
-						throw new DeserializationException(e, jsonObject);
-					}
 				}
 				public Page[] getPages() throws DeserializationException, IOException {
 					try {

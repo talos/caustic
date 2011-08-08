@@ -30,62 +30,9 @@
 		"pattern" : "<!--Table Begin!-->(.*?)<!--Table End-->",
 		"finds_many" : {
 			"extends" : { "$ref" : "shared/html-row.json" },
-			"then" : {
-				"name"      : "record",
-				"finds_one" : [{
-					"name"        : "Doc ID",
-					"pattern"     : "go_detail\('([^']+)'\)",
-					"replacement" : "$1"
-				},{
-					"extends" : { "$ref" : "shared/html-column.json" },
-					"name"    : "Reel/Pg/File",
-					"match"   : 1
-				},{
-					"extends" : { "$ref" : "shared/html-column.json" },
-					"name"    : "CRFN",
-					"match"   : 2
-				},{
-					"extends" : { "$ref" : "shared/html-column.json" },
-					"name"    : "Lot",
-					"match"   : 3
-				},{
-					"extends" : { "$ref" : "shared/html-column.json" },
-					"name"    : "Partial",
-					"match"   : 4
-				},{
-					"extends" : { "$ref" : "shared/html-column.json" },
-					"name"    : "Recorded / Filed",
-					"match"   : 5
-				},{
-					"extends" : { "$ref" : "shared/html-column.json" },
-					"name"    : "Document Type",
-					"match"   : 6
-				},{
-					"extends" : { "$ref" : "shared/html-column.json" },
-					"name"    : "Party1",
-					"match"   : 7
-				},{
-					"extends" : { "$ref" : "shared/html-column.json" },
-					"name"    : "Party2",
-					"match"   : 8
-				},{
-					"extends" : { "$ref" : "shared/html-column.json" },
-					"name"    : "Party 3/ Other",
-					"match"   : 9
-				},{
-					"extends" : { "$ref" : "shared/html-column.json" },
-					"name"    : "More Party 1/2 Names",
-					"match"   : 10
-				},{
-					"extends" : { "$ref" : "shared/html-column.json" },
-					"name"    : "Corrected/ Remarks",
-					"match"   : 11
-				},{
-					"extends" : { "$ref" : "shared/html-column.json" },
-					"name"    : "Doc Amount",
-					"match"   : 12
-				}]
-			}
+			"name"      : "record",
+			"min"  : 1,
+			"max"  : -1
 		}
 	}
 }

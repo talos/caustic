@@ -19,18 +19,23 @@ import net.microscraper.interfaces.regexp.PatternInterface;
  * @author john
  *
  */
-public class PageExecutable extends ScraperExecutable {
+public class PageExecutable extends BasicExecutable {
+	
+	private final Variables extendedVariables;
 	private final Browser browser;
+	
 	public PageExecutable(Interfaces interfaces,
-			Page page, Variables variables, Result source) {
-		super(interfaces, page, variables, source);
+			Page page, Variables extendedVariables, Result source) {
+		super(interfaces, page, source);
 		browser = interfaces.getBrowser();
+		this.extendedVariables = extendedVariables;
 	}
 	
 	private PatternInterface[] getStopBecause(Page page) throws MissingVariableException, MustacheTemplateException {
 		PatternInterface[] stopPatterns = new PatternInterface[page.getStopBecause().length];
 		for(int i  = 0 ; i < stopPatterns.length ; i++) {
-			stopPatterns[i] = new RegexpExecutable(getInterfaces(), page.getStopBecause()[i], this).getPattern();
+			stopPatterns[i] = page.getStopBecause()[i]
+					.compileWith(getInterfaces().getRegexpCompiler(), this);
 		}
 		return stopPatterns;
 	}
@@ -99,5 +104,35 @@ public class PageExecutable extends ScraperExecutable {
 			ExecutionFailure {
 		Page page = (Page) getInstruction();
 		return new String[] { doMethod(page) };
+	}
+
+	public final String get(String key) throws MissingVariableException {
+		if(isComplete()) {
+			//Executable[] children = getChildren();
+			for(int i = 0 ; i < getFindOneExecutableChildren().length ; i ++) {
+				String localValue = getFindOneExecutableChildren()[i].localGet(key);
+				if(localValue != null) {
+					return localValue;
+				}
+			}
+		}
+		if(hasSource()) {
+			//TODO: access to variables via mustache'd URI.  yay or nay?
+			//if(getSource().hasName()) {
+				if(getSource().getName().equals(key)) {
+					return getSource().getValue();
+				}
+			//}
+		}
+		return extendedVariables.get(key);
+	}
+	
+	public final boolean containsKey(String key) {
+		try {
+			get(key);
+			return true;
+		} catch(MissingVariableException e) {
+			return false;
+		}
 	}
 }

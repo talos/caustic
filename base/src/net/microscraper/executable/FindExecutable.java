@@ -3,9 +3,7 @@ package net.microscraper.executable;
 import net.microscraper.Interfaces;
 import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplateException;
-import net.microscraper.Variables;
 import net.microscraper.instruction.Find;
-import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Regexp;
 import net.microscraper.interfaces.regexp.PatternInterface;
 
@@ -23,23 +21,15 @@ import net.microscraper.interfaces.regexp.PatternInterface;
  */
 public abstract class FindExecutable extends BasicExecutable {
 	
-	/**
-	 * The {@link Regexp} {@link Instruction} that is used to parse.
-	 */
-	//private final Regexp regexp;
-
-	/**
-	 * The {@link RegexpExecutable} that is used to parse.
-	 */
-	private final RegexpExecutable regexpExecutable;
+	private final Regexp regexp;
 	
-	private final ScraperExecutable enclosingScraperExecutable;
+	private final Executable enclosingExecutable;
 	
 	public FindExecutable(Interfaces context,
-			Find find, ScraperExecutable enclosingScraperExecutable, Result source) {
+			Find find, Executable enclosingExecutable, Result source) {
 		super(context, find, source);
-		this.regexpExecutable = new RegexpExecutable(getInterfaces(), find, this);
-		this.enclosingScraperExecutable = enclosingScraperExecutable;
+		this.regexp = find.getRegexp();
+		this.enclosingExecutable = enclosingExecutable;
 	}
 	
 	/**
@@ -63,15 +53,14 @@ public abstract class FindExecutable extends BasicExecutable {
 	 * @throws MustacheTemplateException
 	 */
 	protected final PatternInterface getPattern() throws MissingVariableException, MustacheTemplateException {
-		return regexpExecutable.getPattern();
+		return regexp.compileWith(getInterfaces().getRegexpCompiler(), this);
 	}
-	
 
 	public final String get(String key) throws MissingVariableException {
-		return enclosingScraperExecutable.get(key);
+		return enclosingExecutable.get(key);
 	}
 	
 	public final boolean containsKey(String key) {
-		return enclosingScraperExecutable.containsKey(key);
+		return enclosingExecutable.containsKey(key);
 	}
 }

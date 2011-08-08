@@ -44,7 +44,9 @@ public final class MultiTableDatabase implements Database {
 	/**
 	 * Default column names for {@link Table}s in {@link MultiTableDatabase}.
 	 */
-	public static final String[] COLUMN_NAMES = new String[] { SOURCE_ID_COLUMN, SOURCE_NAME_COLUMN };
+	public static final String[] COLUMN_NAMES = new String[] {
+		SOURCE_ID_COLUMN,
+		SOURCE_NAME_COLUMN };
 	
 	/**
 	 * The {@link Table} that holds {@link Result}s that don't have

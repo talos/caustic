@@ -1,7 +1,5 @@
 package net.microscraper;
 
-import net.microscraper.instruction.URL;
-
 /**
  * A string where Mustache-style demarcation denotes where Variables are taken out.
  * @author john

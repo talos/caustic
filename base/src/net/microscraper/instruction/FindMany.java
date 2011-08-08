@@ -3,7 +3,7 @@ package net.microscraper.instruction;
 import java.io.IOException;
 
 import net.microscraper.MustacheTemplate;
-import net.microscraper.instruction.mixin.CanSpawnScrapers;
+import net.microscraper.instruction.mixin.CanSpawnPages;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
 import net.microscraper.interfaces.json.JSONLocation;
@@ -13,11 +13,11 @@ import net.microscraper.interfaces.json.JSONLocation;
  * and is one-to-many (even if it only has one result.)
  * Its executions do not implement {@link Variables}, because {@link FindMany} can be one-to-many.
  * @see Find
- * @see CanSpawnScrapers
+ * @see CanSpawnPages
  * @author john
  *
  */
-public class FindMany extends Find implements CanSpawnScrapers {		
+public class FindMany extends Find {		
 	private final int minMatch;
 
 	/**
@@ -55,33 +55,18 @@ public class FindMany extends Find implements CanSpawnScrapers {
 		try {
 			this.minMatch = jsonObject.has(MIN_MATCH) ? jsonObject.getInt(MIN_MATCH) : DEFAULT_MIN_MATCH;
 			this.maxMatch = jsonObject.has(MAX_MATCH) ? jsonObject.getInt(MAX_MATCH) : DEFAULT_MAX_MATCH;
-			
-			CanSpawnScrapers spawns = CanSpawnScrapers.Deserializer.deserialize(jsonObject);
-			this.spawnsScrapers = spawns.getScrapers();
-			this.spawnsPages = spawns.getPages();
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
 	
-	public FindMany(JSONLocation location, MustacheTemplate name, MustacheTemplate pattern, boolean isCaseSensitive, boolean isMultiline,
-			boolean doesDotMatchNewline, Regexp[] tests, MustacheTemplate replacement, int minMatch, int maxMatch,
-			Scraper[] spawnsScrapers, Page[] spawnsPages) {
-		super(location, name, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline, tests, replacement);
+	public FindMany(JSONLocation location, MustacheTemplate name, FindOne[] findOnes,
+			FindMany[] findManys, Page[] spawnPages,
+			Regexp regexp, Regexp[] tests, MustacheTemplate replacement, int minMatch, int maxMatch) {
+		super(location, name, findOnes, findManys,
+				spawnPages, regexp, tests, replacement);
 		this.minMatch = minMatch;
 		this.maxMatch = maxMatch;
-		this.spawnsScrapers = spawnsScrapers;
-		this.spawnsPages = spawnsPages;
-	}
-	
-	private final Scraper[] spawnsScrapers;
-	public Scraper[] getScrapers() throws DeserializationException, IOException {
-		return spawnsScrapers;
-	}
-	
-	private final Page[] spawnsPages;
-	public Page[] getPages() throws DeserializationException, IOException {
-		return spawnsPages;
 	}
 	
 	/**
