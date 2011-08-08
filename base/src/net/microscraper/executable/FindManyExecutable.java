@@ -39,4 +39,8 @@ public class FindManyExecutable extends FindExecutable {
 			throw new ExecutionFailure(e);
 		}
 	}
+
+	protected boolean generatesManyResults() {
+		return true;
+	}
 }

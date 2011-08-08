@@ -135,4 +135,8 @@ public class PageExecutable extends BasicExecutable {
 			return false;
 		}
 	}
+
+	protected boolean generatesManyResults() {
+		return false;
+	}
 }
