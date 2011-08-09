@@ -15,14 +15,39 @@ import net.microscraper.interfaces.json.JSONLocation;
  * @author realest
  *
  */
-public class Instruction implements CanFindOne, CanFindMany, CanSpawnPages {
+public abstract class Instruction implements CanFindOne, CanFindMany, CanSpawnPages {
 	
 	/**
 	 * Key for {@link #getName()} value when deserializing from JSON.
 	 */
 	public static final String NAME = "name";
 	
+	/**
+	 * Key for {@link #shouldSaveValue()} value when deserializing from JSON.
+	 */
+	public static final String SAVE = "save";
+	
 	private final MustacheTemplate name;
+	
+	private final boolean shouldSaveValue;
+	
+	/**
+	 * 
+	 * @return Whether values resulting from the execution of this {@link Instruction}
+	 * should be stored in the {@link Database}.
+	 * @see #defaultShouldSaveValue()
+	 */
+	public boolean shouldSaveValue() {
+		return shouldSaveValue;
+	}
+	/**
+	 * 
+	 * @return Whether {@link #shouldSaveValue()} should be <code>true</code>
+	 * or <code>false</code> by default.
+	 * @see #shouldSaveValue
+	 */
+	public abstract boolean defaultShouldSaveValue();
+	
 	private final JSONLocation location;
 	
 	/**
@@ -58,10 +83,11 @@ public class Instruction implements CanFindOne, CanFindMany, CanSpawnPages {
 	 * @param name The {@link MustacheTemplate} to use as a name for this {@link Instruction}.
 	 * Can be <code>null</code>.
 	 */
-	public Instruction(JSONLocation location, MustacheTemplate name, FindOne[] findOnes,
-			FindMany[] findManys, Page[] spawnPages) {
+	public Instruction(JSONLocation location, MustacheTemplate name, boolean shouldSaveValue,
+			FindOne[] findOnes, FindMany[] findManys, Page[] spawnPages) {
 		this.location = location;
 		this.name = name;
+		this.shouldSaveValue = shouldSaveValue;
 		this.findOnes = findOnes;
 		this.findManys = findManys;
 		this.spawnPages = spawnPages;
@@ -80,6 +106,11 @@ public class Instruction implements CanFindOne, CanFindMany, CanSpawnPages {
 				name = new MustacheTemplate(obj.getString(NAME));
 			} else {
 				name = null;
+			}
+			if(obj.has(SAVE)) {
+				shouldSaveValue = obj.getBoolean(SAVE);
+			} else {
+				shouldSaveValue = this.defaultShouldSaveValue();
 			}
 			CanFindMany canFindMany = CanFindMany.Deserializer.deserialize(obj);
 			CanFindOne  canFindOne = CanFindOne.Deserializer.deserialize(obj);

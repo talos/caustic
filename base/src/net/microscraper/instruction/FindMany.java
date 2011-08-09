@@ -61,9 +61,10 @@ public class FindMany extends Find {
 	}
 	
 	public FindMany(JSONLocation location, MustacheTemplate name, FindOne[] findOnes,
+			boolean shouldSaveValue,
 			FindMany[] findManys, Page[] spawnPages,
 			Regexp regexp, Regexp[] tests, MustacheTemplate replacement, int minMatch, int maxMatch) {
-		super(location, name, findOnes, findManys,
+		super(location, name, shouldSaveValue, findOnes, findManys,
 				spawnPages, regexp, tests, replacement);
 		this.minMatch = minMatch;
 		this.maxMatch = maxMatch;

@@ -196,12 +196,13 @@ public final class Page extends Instruction {
 
 	
 	public Page(JSONLocation location, MustacheTemplate name, 
+			boolean shouldSaveValue,
 			MustacheTemplate url, Page[] spawnPages,
 			FindMany[] findManys, FindOne[] findOnes, MustacheTemplate urlTemplate,
 			Method method, MustacheNameValuePair[] headers,
 			MustacheNameValuePair[] posts, MustacheNameValuePair[] cookies,
 			Regexp[] stopBecause, Page[] preload) {
-		super(location, name, findOnes, findManys, spawnPages);
+		super(location, name, shouldSaveValue, findOnes, findManys, spawnPages);
 		this.url = url;
 		this.method = method;
 		this.headers = headers;
@@ -271,4 +272,11 @@ public final class Page extends Instruction {
 	 * Default value for {@link #getPosts()}.
 	 */
 	public static final MustacheNameValuePair[] DEFAULT_POSTS = new MustacheNameValuePair[] {};
+	
+	/**
+	 * {@link Page} does not {@link #shouldSaveValue()} by default.
+	 */
+	public final boolean defaultShouldSaveValue() {
+		return false;
+	}
 }

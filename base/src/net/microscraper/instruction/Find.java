@@ -87,10 +87,11 @@ public class Find extends Instruction {
 	}
 	
 	public Find(JSONLocation location, MustacheTemplate name,
+			boolean shouldSaveValue,
 			FindOne[] findOnes, FindMany[] findManys,
 			Page[] spawnPages, Regexp regexp, Regexp[] tests,
 			MustacheTemplate replacement) {
-		super(location, name, findOnes, findManys, spawnPages);
+		super(location, name, shouldSaveValue, findOnes, findManys, spawnPages);
 		this.regexp = regexp;
 		this.tests = tests;
 		this.replacement = replacement;
@@ -103,5 +104,12 @@ public class Find extends Instruction {
 	 */
 	public Regexp getRegexp() {
 		return regexp;
+	}
+
+	/**
+	 * {@link Find} saves its value by default.
+	 */
+	public boolean defaultShouldSaveValue() {
+		return true;
 	}
 }

@@ -51,9 +51,9 @@ public class FindOne extends Find {
 	}
 	
 	public FindOne(JSONLocation location, MustacheTemplate name, FindOne[] findOnes,
-			FindMany[] findManys, Page[] spawnPages,
+			boolean shouldSaveValue, FindMany[] findManys, Page[] spawnPages,
 			Regexp regexp, Regexp[] tests, MustacheTemplate replacement, int match, FindOne[] findsOne, FindMany[] findsMany) {
-		super(location, name, findOnes, findManys, spawnPages, regexp, tests, replacement);
+		super(location, name, shouldSaveValue, findOnes, findManys, spawnPages, regexp, tests, replacement);
 		this.match = match;
 	}
 	

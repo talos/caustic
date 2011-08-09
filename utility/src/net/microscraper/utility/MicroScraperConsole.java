@@ -81,7 +81,7 @@ public class MicroScraperConsole {
 "		The rate limit, in KBPS, for loading from a single host." + newline +
 "		Defaults to " + Integer.toString(rateLimit) + " KBPS." +
 "	--timeout=<timeout>" + newline +
-"		How many milliseconds to wait before giving up on a request." +
+"		How many milliseconds to wait before giving up on a request." + newline + 
 "		Defaults to " + Integer.toString(timeout) + " milliseconds.";
 
 	private static final String TIMESTAMP = new SimpleDateFormat("yyyyMMddkkmmss").format(new Date());

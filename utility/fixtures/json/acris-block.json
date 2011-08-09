@@ -27,10 +27,12 @@
 	},
 	"finds_one" : {
 		"name" : "table",
+		"save" : false,
 		"pattern" : "<!--Table Begin!-->(.*?)<!--Table End-->",
 		"finds_many" : {
 			"extends" : { "$ref" : "shared/html-row.json" },
 			"name"      : "record",
+			"save"      : false,
 			"min"  : 1,
 			"max"  : -1,
 			"finds_one" : [{

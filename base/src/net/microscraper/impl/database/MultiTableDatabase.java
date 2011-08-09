@@ -82,8 +82,9 @@ public final class MultiTableDatabase implements Database {
 		rootResultId = rootTable.insert(new NameValuePair[] {});
 	}
 	
-	public Result store(String name, String value) throws DatabaseException {
-		updateTable(rootTable, rootResultId, name, value);
+	public Result store(String name, String value, int resultNum,
+			boolean shouldSaveValue) throws DatabaseException {
+		updateTable(rootTable, rootResultId, name, shouldSaveValue ? value : null, resultNum);
 		Table table = getResultTable(name);
 		return new Result(table.insert(new NameValuePair[] {
 				new BasicNameValuePair(SOURCE_NAME_COLUMN, ROOT_TABLE_NAME),
@@ -91,7 +92,8 @@ public final class MultiTableDatabase implements Database {
 		}), name, value);
 	}
 	
-	public Result store(Result source, String name, String value) throws DatabaseException {
+	public Result store(Result source, String name, String value, int resultNum,
+			boolean shouldSaveValue) throws DatabaseException {
 		String sourceTableName = PREPEND + source.getName();
 		Table sourceTable;
 		if(tables.containsKey(sourceTableName)) {
@@ -101,7 +103,7 @@ public final class MultiTableDatabase implements Database {
 			tables.put(sourceTableName, sourceTable);
 		}
 		
-		updateTable(sourceTable, source.getId(), name, value);
+		updateTable(sourceTable, source.getId(), name, shouldSaveValue ? value : null, resultNum);
 		Table table = getResultTable(name);
 		return new Result(table.insert(new NameValuePair[] {
 				new BasicNameValuePair(SOURCE_NAME_COLUMN, sourceTable.getName()),
@@ -137,10 +139,16 @@ public final class MultiTableDatabase implements Database {
 	 * prepended with {@link #PREPEND} and added as a new column to <code>table</code>
 	 * if it is not yet there.
 	 * @param value The {@link String} value to update.
+	 * @param the 0-based {@link int} index of this {@link Result} within its
+	 * {@link Executable}.
 	 * @throws DatabaseException If the {@link Table} cannot be updated.
 	 */
-	private void updateTable(Table table, int id, String name, String value) throws DatabaseException {
+	private void updateTable(Table table, int id, String name, String value,
+			int resultNum) throws DatabaseException {
 		String columnName = PREPEND + name;
+		if(resultNum > 0) {
+			columnName = Integer.toString(resultNum) + columnName;
+		}
 		if(!table.hasColumn(columnName)) {
 			table.addColumn(columnName);
 		}

@@ -53,23 +53,24 @@ public final class SingleTableDatabase implements Database {
 		table = connection.getTable(TABLE_NAME, COLUMN_NAMES);
 	}
 
-	public final Result store(String name, String value)
+	public final Result store(String name, String value, int resultNum, boolean shouldSaveValue)
 			throws DatabaseException {
 		return new Result(table.insert(
 				new NameValuePair[] {
 					new BasicNameValuePair(NAME_COLUMN, name),
-					new BasicNameValuePair(VALUE_COLUMN, value)
+					new BasicNameValuePair(VALUE_COLUMN, shouldSaveValue ? value : null)
 				}),
 			name, value );
 	}
 	
-	public final Result store(Result source, String name, String value)
+	public final Result store(Result source, String name, String value, int resultNum,
+				boolean shouldSaveValue)
 			throws DatabaseException {
 		return new Result(table.insert(
 				new NameValuePair[] {
 					new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(source.getId())),
 					new BasicNameValuePair(NAME_COLUMN, name),
-					new BasicNameValuePair(VALUE_COLUMN, value)
+					new BasicNameValuePair(VALUE_COLUMN, shouldSaveValue ? value : null)
 				}),
 			name, value );
 	}

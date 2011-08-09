@@ -65,16 +65,19 @@ public abstract class BasicExecutable implements Executable {
 				if(results == null) {
 					String[] resultValues = generateResultValues();
 					results = new Result[resultValues.length];
-					getInterfaces().getLog()
-						.i(toString() + " has " + results.length + " results");
+					//getInterfaces().getLog()
+					//	.i(toString() + " has " + results.length + " results");
 					for(int i = 0 ; i < resultValues.length ; i ++) {
 						if(hasSource()) {
 							results[i] = interfaces.getDatabase().store(
 									getSource(),
-									getName(), resultValues[i]);
+									getName(),
+									resultValues[i],
+									i, getInstruction().shouldSaveValue());
 						} else {
 							results[i] = interfaces.getDatabase().store(
-									getName(), resultValues[i]);							
+									getName(), resultValues[i], i,
+									getInstruction().shouldSaveValue());							
 						}
 					}
 				}

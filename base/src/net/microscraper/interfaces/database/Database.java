@@ -15,10 +15,16 @@ public interface Database {
 	 * Store a name and value without a source {@link Result} in the {@link Database}.
 	 * @param name A {@link String} name to store this value under.
 	 * @param value A {@link String} value.
+	 * @param resultNum The 0-based {@link int} index of this {@link Result} within its 
+	 * {@link Executable}.
+	 * @param shouldSaveValue Whether or not <code>value</code> should be saved in the 
+	 * {@link Database}.  It may be better to avoid saving the values of certain large,
+	 * redundant results -- entire pages, for example.
 	 * @return A {@link Result} for use as a source.
 	 * @throws DatabaseException If the {@link Database} experiences an exception.
 	 */
-	public Result store(String name, String value) throws DatabaseException;
+	public Result store(String name, String value,
+			int resultNum, boolean shouldSaveValue) throws DatabaseException;
 	
 	/**
 	 * Store a name and value with a source {@link Result} in the {@link Database}.
@@ -26,9 +32,15 @@ public interface Database {
 	 * value</code>.
 	 * @param name A {@link String} name to store this value under.
 	 * @param value A {@link String} value.
+	 * @param resultNum The 0-based {@link int} index of this {@link Result} within its 
+	 * {@link Executable}.
+	 * @param shouldSaveValue Whether or not <code>value</code> should be saved in the 
+	 * {@link Database}.  It may be better to avoid saving the values of certain large,
+	 * redundant results -- entire pages, for example.
 	 * @return A {@link Result} for use as a source.
 	 * @throws DatabaseException If the {@link Database} experiences an exception.
 	 */
-	public Result store(Result source, String name, String value) throws DatabaseException;
+	public Result store(Result source, String name, String value,
+			int resultNum, boolean shouldSaveValue) throws DatabaseException;
 	
 }
