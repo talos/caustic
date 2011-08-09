@@ -1,11 +1,14 @@
-package net.microscraper.impl.publisher;
+package net.microscraper.impl.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import net.microscraper.Utils;
 import net.microscraper.interfaces.database.DatabaseException;
 import net.microscraper.interfaces.database.Table;
 import net.microscraper.interfaces.log.Logger;
@@ -20,10 +23,17 @@ public class JDBCSqliteConnection implements SQLConnection {
 	private final Connection connection;
 	private final Logger logger;
 	private final SQLPreparedStatement checkTableExistence;
+	private final int batchSize;
 	
+	/**
+	 * Statements yet to be executed.
+	 */
+	private final List<PreparedStatement> batch = new ArrayList<PreparedStatement>();
 	
-	private JDBCSqliteConnection(String connectionPath, Logger logger) throws SQLConnectionException {
+	private JDBCSqliteConnection(String connectionPath, Logger logger, int batchSize)
+			throws SQLConnectionException {
 		this.logger = logger;
+		this.batchSize = batchSize;
 		try {
 			Class.forName("org.sqlite.JDBC"); // Make sure we have this class.
 			connection = DriverManager.getConnection(connectionPath);
@@ -40,19 +50,21 @@ public class JDBCSqliteConnection implements SQLConnection {
 	 * Produce a {@link JDBCSqliteConnection} using a path to a database.
 	 * @param pathToDB {@link String} path to database.
 	 * @param logger {@link Logger} to use for logs.
+	 * @param batchSize How many statements to make before committing.
 	 * @throws SQLConnectionException if the {@link JDBCSqliteConnection} could not be created.
 	 */
-	public static JDBCSqliteConnection toFile(String pathToDB, Logger logger) throws SQLConnectionException {
-		return new JDBCSqliteConnection("jdbc:sqlite:" + pathToDB, logger);
+	public static JDBCSqliteConnection toFile(String pathToDB, Logger logger, int batchSize) throws SQLConnectionException {
+		return new JDBCSqliteConnection("jdbc:sqlite:" + pathToDB, logger, batchSize);
 	}
 
 	/**
 	 * Produce a {@link JDBCSqliteConnection} in-memory.
 	 * @param logger {@link Logger} to use for logs.
+	 * @param batchSize How many statements to make before committing.
 	 * @throws SQLConnectionException if the {@link JDBCSqliteConnection} could not be created.
 	 */
-	public static JDBCSqliteConnection inMemory(Logger logger) throws SQLConnectionException {
-		return new JDBCSqliteConnection("jdbc:sqlite::memory:", logger);
+	public static JDBCSqliteConnection inMemory(Logger logger, int batchSize) throws SQLConnectionException {
+		return new JDBCSqliteConnection("jdbc:sqlite::memory:", logger, batchSize);
 	}
 	
 	private class JDBCSqliteStatement implements SQLPreparedStatement {
@@ -80,10 +92,10 @@ public class JDBCSqliteConnection implements SQLConnection {
 		}
 		@Override
 		public void execute() throws SQLConnectionException {
-			try {
-				statement.execute();
-			} catch(SQLException e) {
-				throw new SQLConnectionException(e);
+			batch.add(statement);
+			if(batch.size() >= batchSize) {
+				//statement.execute();
+				runBatch();
 			}
 		}
 
@@ -97,7 +109,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 				throw new SQLConnectionException(e);
 			}
 		}
-
+		/*
 		@Override
 		public void addBatch() throws SQLConnectionException {
 			try {
@@ -118,6 +130,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 				throw new SQLConnectionException(e);
 			}
 		}
+		*/
 	}
 	
 	private class JDBCSQLiteCursor implements SQLResultSet {
@@ -165,6 +178,18 @@ public class JDBCSqliteConnection implements SQLConnection {
 
 	}
 	
+	private void runBatch() throws SQLConnectionException {
+		try {
+			Iterator<PreparedStatement> iter = batch.iterator();
+			while(iter.hasNext()) {
+				iter.next().execute();
+			}
+			batch.clear();
+		} catch(SQLException e) {
+			throw new SQLConnectionException(e);
+		}
+	}
+	
 	@Override
 	public String keyColumnDefinition() {
 		return "PRIMARY KEY";
@@ -194,7 +219,8 @@ public class JDBCSqliteConnection implements SQLConnection {
 	public int defaultVarcharLength() {
 		return (int) Math.pow(10, 9);
 	}
-
+	
+	/*
 	@Override
 	public void disableAutoCommit() throws SQLConnectionException {
 		try {
@@ -221,7 +247,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 			throw new SQLConnectionException(e);
 		}
 	}
-
+	*/
 	@Override
 	public SQLPreparedStatement prepareStatement(String sql)
 			throws SQLConnectionException {
@@ -251,8 +277,10 @@ public class JDBCSqliteConnection implements SQLConnection {
 	@Override
 	public void close() throws DatabaseException {
 		try {
-			disableAutoCommit();
-			commit();
+			//disableAutoCommit();
+			//commit();
+			runBatch();
+
 		} catch(SQLConnectionException e) {
 			throw new DatabaseException(e);
 		}

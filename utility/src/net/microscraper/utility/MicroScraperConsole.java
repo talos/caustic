@@ -19,14 +19,14 @@ import net.microscraper.Log;
 import net.microscraper.NameValuePair;
 import net.microscraper.Utils;
 import net.microscraper.impl.browser.JavaNetBrowser;
+import net.microscraper.impl.database.JDBCSqliteConnection;
 import net.microscraper.impl.database.MultiTableDatabase;
+import net.microscraper.impl.database.SQLConnectionException;
 import net.microscraper.impl.file.JavaIOFileLoader;
 import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.json.JavaNetJSONLocation;
 import net.microscraper.impl.log.JavaIOFileLogger;
 import net.microscraper.impl.log.SystemOutLogger;
-import net.microscraper.impl.publisher.JDBCSqliteConnection;
-import net.microscraper.impl.publisher.SQLConnectionException;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
 import net.microscraper.impl.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.instruction.Find;
@@ -47,6 +47,7 @@ public class MicroScraperConsole {
 	
 	private static int rateLimit = Browser.DEFAULT_MAX_KBPS_FROM_HOST;
 	private static int timeout = Browser.TIMEOUT;
+	private static int batchSize = 20;
 	
 	private static final String usage = 
 "usage: microscraper <uri> [<options>]" + newline +
@@ -54,6 +55,9 @@ public class MicroScraperConsole {
 "uri" + newline +
 "	A URI that points to microscraper instructions." + newline +
 "options:" + newline +
+"   --batch-size=<batch-size>" + newline +
+"		If saving to SQL, assigns the batch size.  " +
+"		Defaults to " + Integer.toString(batchSize) + newline +
 "	--defaults=\"<defaults>\"" + newline +
 "		A form-encoded string of name value pairs to use as" + newline +
 "		defaults during execution." + newline +
@@ -86,6 +90,8 @@ public class MicroScraperConsole {
 
 	private static final String TIMESTAMP = new SimpleDateFormat("yyyyMMddkkmmss").format(new Date());
 	private static final String ENCODING = "UTF-8";
+	
+	private static String BATCH_SIZE_OPTION = "--batch-size";
 	
 	private static String DEFAULTS_OPTION = "--defaults";
 	private static NameValuePair[] defaults = new NameValuePair[0];
@@ -200,7 +206,9 @@ public class MicroScraperConsole {
 				if(arg.indexOf('=') > -1) {
 					value = arg.substring(arg.indexOf('=') + 1);
 				}
-				if(arg.startsWith(DEFAULTS_OPTION)) {
+				if(arg.startsWith(BATCH_SIZE_OPTION)) {
+					batchSize = Integer.parseInt(value);
+				} else if(arg.startsWith(DEFAULTS_OPTION)) {
 					// Quotations are optional.
 					if(value.startsWith("\"") && value.endsWith("\"")) {
 						value = value.substring(1, value.length() - 2);
@@ -265,7 +273,7 @@ public class MicroScraperConsole {
 		}
 		
 		if(outputFormat.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
-			connection = JDBCSqliteConnection.toFile(outputFile.getPath(), log);			
+			connection = JDBCSqliteConnection.toFile(outputFile.getPath(), log, batchSize);			
 		} else if(outputFormat.equals(CSV_OUTPUT_FORMAT_VALUE)) {
 			//publisher = new CSVPublisher();
 		} else if(outputFormat.equals(TAB_OUTPUT_FORMAT_VALUE)) {

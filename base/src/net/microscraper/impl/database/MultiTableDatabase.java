@@ -84,7 +84,10 @@ public final class MultiTableDatabase implements Database {
 	
 	public Result store(String name, String value, int resultNum,
 			boolean shouldSaveValue) throws DatabaseException {
-		updateTable(rootTable, rootResultId, name, shouldSaveValue ? value : null, resultNum);
+		
+		if(shouldSaveValue) {
+			updateTable(rootTable, rootResultId, name, value, resultNum);	
+		}
 		Table table = getResultTable(name);
 		return new Result(table.insert(new NameValuePair[] {
 				new BasicNameValuePair(SOURCE_NAME_COLUMN, ROOT_TABLE_NAME),
@@ -103,7 +106,9 @@ public final class MultiTableDatabase implements Database {
 			tables.put(sourceTableName, sourceTable);
 		}
 		
-		updateTable(sourceTable, source.getId(), name, shouldSaveValue ? value : null, resultNum);
+		if(shouldSaveValue == true) {
+			updateTable(sourceTable, source.getId(), name, value, resultNum);
+		}
 		Table table = getResultTable(name);
 		return new Result(table.insert(new NameValuePair[] {
 				new BasicNameValuePair(SOURCE_NAME_COLUMN, sourceTable.getName()),

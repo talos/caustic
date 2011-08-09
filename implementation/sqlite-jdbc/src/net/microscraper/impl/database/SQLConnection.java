@@ -1,4 +1,4 @@
-package net.microscraper.impl.publisher;
+package net.microscraper.impl.database;
 
 import net.microscraper.interfaces.database.Connection;
 
@@ -57,7 +57,7 @@ public interface SQLConnection extends Connection {
 	 * @see #enableAutoCommit()
 	 * @see #commit()
 	 */
-	public abstract void disableAutoCommit() throws SQLConnectionException;
+	//public abstract void disableAutoCommit() throws SQLConnectionException;
 	
 	/**
 	 * Enables auto-commit mode.  If auto-commit mode is on, each SQL statement
@@ -67,7 +67,7 @@ public interface SQLConnection extends Connection {
 	 * @throws SQLConnectionException if a database access error occurs.
 	 * @see #disableAutoCommit()
 	 */
-	public abstract void enableAutoCommit() throws SQLConnectionException;
+	//public abstract void enableAutoCommit() throws SQLConnectionException;
 	
 	/**
 	 * If auto-commit mode is off, this will execute all pending statements for this
@@ -77,7 +77,7 @@ public interface SQLConnection extends Connection {
 	 * auto-commit mode.
 	 * @see #disableAutoCommit()
 	 */
-	public abstract void commit() throws SQLConnectionException;
+	//public abstract void commit() throws SQLConnectionException;
 	
 	/**
 	 * 

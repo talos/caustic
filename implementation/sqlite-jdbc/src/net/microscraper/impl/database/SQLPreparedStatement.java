@@ -1,4 +1,4 @@
-package net.microscraper.impl.publisher;
+package net.microscraper.impl.database;
 
 /**
  * A precompiled SQL statement.  Obtained from {@link SQLConnection#prepareStatement(String)}.
@@ -22,9 +22,7 @@ public interface SQLPreparedStatement {
 	 * @throws SQLConnectionException if there is an error executing the {@link SQLPreparedStatement}.
 	 */
 	public abstract void execute() throws SQLConnectionException;
-	
-	//public abstract void setString(int index, String value) throws SQLInterfaceException;
-	
+		
 	/**
 	 * Bind an array of {@link String}s to the {@link SQLPreparedStatement}.  The first
 	 * element will replace the first <code>?</code>, the second the element the second
@@ -42,7 +40,7 @@ public interface SQLPreparedStatement {
 	 * @throws SQLConnectionException
 	 * @see #executeBatch()
 	 */
-	public abstract void addBatch() throws SQLConnectionException;
+	//public abstract void addBatch() throws SQLConnectionException;
 	
 	/**
 	 * Submits a batch of commands to the database for execution and if all commands
@@ -51,5 +49,5 @@ public interface SQLPreparedStatement {
 	 * @throws SQLConnectionException if there is a problem with {@link SQLConnection},
 	 * or if one of the statements in the batch fails.
 	 */
-	public abstract int[] executeBatch() throws SQLConnectionException;
+	//public abstract int[] executeBatch() throws SQLConnectionException;
 }

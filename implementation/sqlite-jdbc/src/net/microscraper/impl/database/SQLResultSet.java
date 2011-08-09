@@ -1,4 +1,4 @@
-package net.microscraper.impl.publisher;
+package net.microscraper.impl.database;
 
 
 /**

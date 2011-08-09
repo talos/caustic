@@ -9,6 +9,10 @@ package net.microscraper;
  *
  */
 public class MissingVariableException extends ClientException {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2395999108653919210L;
 	public final String name;
 	public MissingVariableException(Variables variables, String missingVariableName) {
 		this.name  = missingVariableName;
