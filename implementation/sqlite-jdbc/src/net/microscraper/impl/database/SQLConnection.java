@@ -80,6 +80,13 @@ public interface SQLConnection extends Connection {
 	//public abstract void commit() throws SQLConnectionException;
 	
 	/**
+	 * Immediately execute all {@link SQLPreparedStatement}s currently in the batch for this
+	 * {@link SQLConnection}.
+	 * @throws SQLConnectionException If there is a problem executing one of the statements.
+	 */
+	public abstract void runBatch() throws SQLConnectionException;
+	
+	/**
 	 * 
 	 * Generate a {@link SQLPreparedStatement} to execute upon this {@link SQLConnection}.
 	 * @param sql The SQL statement as a {@link String}.

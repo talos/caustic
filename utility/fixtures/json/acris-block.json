@@ -6,17 +6,17 @@
 		"JUMPPAGE" : "YES"
 	},
 	"posts" : {
-		"hid_borough" : "{{Borough Number}}",
+		"hid_borough" : "{{Borough}}",
 		"hid_borough_name" : "",
 		"hid_block" : "{{Block}}",
-		"hid_lot"   : "{{Lot}}",
-		"selectdate": "To Current Date",
-		"hid_datefromm" : "",
-		"hid_datefromd" : "",
-		"hid_datefromy" : "",
-		"hid_datetom" : "",
-		"hid_datetod" : "",
-		"hid_datetoy" : "",
+		"hid_lot"   : "0000",
+		"hid_selectdate": "DR",
+		"hid_datefromm" : "{{FromMonth}}",
+		"hid_datefromd" : "{{FromDay}}",
+		"hid_datefromy" : "{{FromYear}}",
+		"hid_datetom" : "{{ToMonth}}",
+		"hid_datetod" : "{{ToDay}}",
+		"hid_datetoy" : "{{ToYear}}",
 		"hid_doctype_name" : "All Document Classes",
 		"hid_max_rows" : "10000",
 		"hid_page" : "",
@@ -33,9 +33,17 @@
 			"extends" : { "$ref" : "shared/html-row.json" },
 			"name"      : "record",
 			"save"      : false,
-			"min"  : 1,
+			"min"  : 2,
 			"max"  : -1,
 			"finds_one" : [{
+				"name"        : "Borough",
+				"pattern"     : ".",
+				"replacement" : "{{Borough}}"
+			},{
+				"name"        : "Block",
+				"pattern"     : ".",
+				"replacement" : "{{Block}}"
+			},{
 				"name"        : "Doc ID",
 				"pattern"     : "go_detail\\('([^']+)'\\)",
 				"replacement" : "$1"
@@ -65,28 +73,32 @@
 				"match"   : 6
 			},{
 				"extends" : { "$ref" : "shared/acris-column.json" },
-				"name"    : "Party1",
+				"name"    : "Pages",
 				"match"   : 7
 			},{
 				"extends" : { "$ref" : "shared/acris-column.json" },
-				"name"    : "Party2",
+				"name"    : "Party1",
 				"match"   : 8
 			},{
 				"extends" : { "$ref" : "shared/acris-column.json" },
-				"name"    : "Party 3/ Other",
+				"name"    : "Party2",
 				"match"   : 9
 			},{
 				"extends" : { "$ref" : "shared/acris-column.json" },
-				"name"    : "More Party 1/2 Names",
+				"name"    : "Party 3/ Other",
 				"match"   : 10
 			},{
 				"extends" : { "$ref" : "shared/acris-column.json" },
-				"name"    : "Corrected/ Remarks",
+				"name"    : "More Party 1/2 Names",
 				"match"   : 11
 			},{
 				"extends" : { "$ref" : "shared/acris-column.json" },
-				"name"    : "Doc Amount",
+				"name"    : "Corrected/ Remarks",
 				"match"   : 12
+			},{
+				"extends" : { "$ref" : "shared/acris-column.json" },
+				"name"    : "Doc Amount",
+				"match"   : 13
 			}]
 		}
 	}

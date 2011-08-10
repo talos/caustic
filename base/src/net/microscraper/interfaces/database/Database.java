@@ -43,4 +43,11 @@ public interface Database {
 	public Result store(Result source, String name, String value,
 			int resultNum, boolean shouldSaveValue) throws DatabaseException;
 	
+	/**
+	 * Close up the {@link Database}, performing whatever cleaning actions should be performed
+	 * on it before the {@link Connection} is closed.
+	 * @throws DatabaseException If the {@link Database} experiences an exception.
+	 */
+	public void close() throws DatabaseException;
+	
 }

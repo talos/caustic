@@ -29,6 +29,12 @@ public interface Table {
 	 * @return <code>true</code> if the column exists, <code>false</code> otherwise.
 	 */
 	public abstract boolean hasColumn(String columnName);
+	
+	/**
+	 * 
+	 * @return A {@link String} array of the names of columns in the {@link Table}.
+	 */
+	public abstract String[] getColumnNames();
 
 	/**
 	 * Insert a new row into the {@link Table}.
@@ -49,5 +55,10 @@ public interface Table {
 	 */
 	public abstract void update(int id, NameValuePair[] nameValuePairs)
 			throws DatabaseException;
-
+	
+	/**
+	 * Delete this {@link Table}.
+	 * @throws DatabaseException If the {@link Table} could not be dropped.
+	 */
+	public void drop() throws DatabaseException;
 }

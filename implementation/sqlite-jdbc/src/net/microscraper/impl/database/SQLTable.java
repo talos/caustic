@@ -50,9 +50,12 @@ public class SQLTable implements Table {
 		this.connection = connection;
 		this.name = name;
 		
+		this.columns.add(ID_COLUMN_NAME);
+		
 		String[] columnDefinitions = new String[columns.length];
 		for(int i = 0 ; i < columns.length ; i ++) {
 			columnDefinitions[i] = columns[i] + " " + connection.textColumnType();
+			this.columns.add(columns[i]);
 		}
 		String columnDefinition = Utils.join(columnDefinitions, ", ");
 		
@@ -65,9 +68,10 @@ public class SQLTable implements Table {
 					" " + connection.keyColumnDefinition() + ", " +
 					columnDefinition + ")");
 			createTable.execute();
+			connection.runBatch();
 		}
 	}
-
+	
 	@Override
 	public void addColumn(String columnName) throws DatabaseException {
 		preventIllegalBacktick(columnName);
@@ -79,7 +83,7 @@ public class SQLTable implements Table {
 							" ADD COLUMN `" + columnName + "`" + 
 							connection.textColumnType());
 			alterTable.execute();
-			
+			connection.runBatch();
 			columns.add(columnName);
 		} catch(SQLConnectionException e) {
 			throw new DatabaseException(e);
@@ -164,5 +168,22 @@ public class SQLTable implements Table {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String[] getColumnNames() {
+		return columns.toArray(new String[0]);
+	}
+
+	@Override
+	public void drop() throws DatabaseException {
+		try {
+			SQLPreparedStatement drop = connection.prepareStatement(
+					"DROP TABLE `" + name + "`");
+			drop.execute();
+			connection.runBatch();
+		} catch(SQLConnectionException e) {
+			throw new DatabaseException(e);
+		}
 	}
 }

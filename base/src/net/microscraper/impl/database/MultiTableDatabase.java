@@ -1,9 +1,11 @@
 package net.microscraper.impl.database;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 import net.microscraper.BasicNameValuePair;
 import net.microscraper.NameValuePair;
+import net.microscraper.Utils;
 import net.microscraper.executable.Result;
 import net.microscraper.interfaces.database.Connection;
 import net.microscraper.interfaces.database.Database;
@@ -79,6 +81,7 @@ public final class MultiTableDatabase implements Database {
 	public MultiTableDatabase(Connection connection) throws DatabaseException {
 		this.connection = connection;
 		rootTable = this.connection.getTable(ROOT_TABLE_NAME, COLUMN_NAMES);
+		tables.put(ROOT_TABLE_NAME, rootTable);
 		rootResultId = rootTable.insert(new NameValuePair[] {});
 	}
 	
@@ -160,5 +163,20 @@ public final class MultiTableDatabase implements Database {
 		table.update(id, new NameValuePair[] {
 			new BasicNameValuePair(columnName, value) }
 		);
+	}
+	
+	/**
+	 * Drop tables that never had additional columns added -- they were from
+	 * {@link Instruction}s that were not saved.
+	 */
+	public void close() throws DatabaseException { 
+		Enumeration enumeration = tables.elements();
+		while(enumeration.hasMoreElements()) {
+			Table table = (Table) enumeration.nextElement();
+			if(table.getColumnNames().length == COLUMN_NAMES.length + 1) {
+				table.drop();
+			}
+		}
+		connection.close();
 	}
 }

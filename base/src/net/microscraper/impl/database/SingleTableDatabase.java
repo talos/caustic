@@ -49,7 +49,10 @@ public final class SingleTableDatabase implements Database {
 	 */
 	private Table table;
 	
+	private final Connection connection;
+	
 	public SingleTableDatabase(Connection connection) throws DatabaseException {
+		this.connection = connection;
 		table = connection.getTable(TABLE_NAME, COLUMN_NAMES);
 	}
 
@@ -73,5 +76,9 @@ public final class SingleTableDatabase implements Database {
 					new BasicNameValuePair(VALUE_COLUMN, shouldSaveValue ? value : null)
 				}),
 			name, value );
+	}
+	
+	public void close() throws DatabaseException {
+		connection.close();
 	}
 }

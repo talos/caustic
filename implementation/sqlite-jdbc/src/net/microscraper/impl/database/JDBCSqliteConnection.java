@@ -6,7 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import net.microscraper.interfaces.database.DatabaseException;
@@ -21,8 +20,8 @@ import net.microscraper.interfaces.log.Logger;
  */
 public class JDBCSqliteConnection implements SQLConnection {
 	private final Connection connection;
-	private final Logger logger;
-	private final SQLPreparedStatement checkTableExistence;
+	private final Logger log;
+	//private final SQLPreparedStatement checkTableExistence;
 	private final int batchSize;
 	
 	/**
@@ -30,15 +29,14 @@ public class JDBCSqliteConnection implements SQLConnection {
 	 */
 	private final List<PreparedStatement> batch = new ArrayList<PreparedStatement>();
 	
-	private JDBCSqliteConnection(String connectionPath, Logger logger, int batchSize)
+	private JDBCSqliteConnection(String connectionPath, Logger log, int batchSize)
 			throws SQLConnectionException {
-		this.logger = logger;
+		this.log = log;
 		this.batchSize = batchSize;
 		try {
 			Class.forName("org.sqlite.JDBC"); // Make sure we have this class.
 			connection = DriverManager.getConnection(connectionPath);
-			checkTableExistence =
-					prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=?;");
+			connection.setAutoCommit(false);
 		} catch(SQLException e) {
 			throw new SQLConnectionException(e);
 		} catch(ClassNotFoundException e) {
@@ -84,6 +82,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 		
 		@Override
 		public SQLResultSet executeQuery() throws SQLConnectionException {
+			runBatch(); // queries should be executed against updated data.
 			try {
 				return new JDBCSQLiteCursor(statement.executeQuery());
 			} catch(SQLException e) {
@@ -178,13 +177,12 @@ public class JDBCSqliteConnection implements SQLConnection {
 
 	}
 	
-	private void runBatch() throws SQLConnectionException {
+	public void runBatch() throws SQLConnectionException {
 		try {
-			Iterator<PreparedStatement> iter = batch.iterator();
-			while(iter.hasNext()) {
-				iter.next().execute();
+			while(batch.size() > 0) {
+				batch.remove(0).execute();
 			}
-			batch.clear();
+			connection.commit();
 		} catch(SQLException e) {
 			throw new SQLConnectionException(e);
 		}
@@ -220,34 +218,6 @@ public class JDBCSqliteConnection implements SQLConnection {
 		return (int) Math.pow(10, 9);
 	}
 	
-	/*
-	@Override
-	public void disableAutoCommit() throws SQLConnectionException {
-		try {
-			connection.setAutoCommit(false);
-		} catch (SQLException e) {
-			throw new SQLConnectionException(e);
-		}
-	}
-
-	@Override
-	public void enableAutoCommit() throws SQLConnectionException {
-		try {
-			connection.setAutoCommit(true);
-		} catch (SQLException e) {
-			throw new SQLConnectionException(e);
-		}
-	}
-
-	@Override
-	public void commit() throws SQLConnectionException {
-		try {
-			connection.commit();
-		} catch (SQLException e) {
-			throw new SQLConnectionException(e);
-		}
-	}
-	*/
 	@Override
 	public SQLPreparedStatement prepareStatement(String sql)
 			throws SQLConnectionException {
@@ -256,6 +226,9 @@ public class JDBCSqliteConnection implements SQLConnection {
 
 	@Override
 	public boolean tableExists(String tableName) throws SQLConnectionException {
+		SQLPreparedStatement checkTableExistence =
+				prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=?;");
+
 		checkTableExistence.bindStrings(new String[] { tableName });
 		SQLResultSet results = checkTableExistence.executeQuery();
 		return results.next();
@@ -263,12 +236,14 @@ public class JDBCSqliteConnection implements SQLConnection {
 
 	@Override
 	public void open() throws DatabaseException { }
-
+	
 	@Override
 	public Table getTable(String name, String[] textColumns)
 			throws DatabaseException {
 		try {
-			return new SQLTable(this, name, textColumns);
+			Table table = new SQLTable(this, name, textColumns);
+			runBatch();
+			return table;
 		} catch(SQLConnectionException e) {
 			throw new DatabaseException(e);
 		}
@@ -277,11 +252,11 @@ public class JDBCSqliteConnection implements SQLConnection {
 	@Override
 	public void close() throws DatabaseException {
 		try {
-			//disableAutoCommit();
-			//commit();
 			runBatch();
-
+			connection.commit();
 		} catch(SQLConnectionException e) {
+			throw new DatabaseException(e);
+		} catch(SQLException e) {
 			throw new DatabaseException(e);
 		}
 	}

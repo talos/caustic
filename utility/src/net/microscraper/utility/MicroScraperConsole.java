@@ -22,6 +22,7 @@ import net.microscraper.impl.browser.JavaNetBrowser;
 import net.microscraper.impl.database.JDBCSqliteConnection;
 import net.microscraper.impl.database.MultiTableDatabase;
 import net.microscraper.impl.database.SQLConnectionException;
+import net.microscraper.impl.database.SingleTableDatabase;
 import net.microscraper.impl.file.JavaIOFileLoader;
 import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.json.JavaNetJSONLocation;
@@ -29,9 +30,6 @@ import net.microscraper.impl.log.JavaIOFileLogger;
 import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
 import net.microscraper.impl.regexp.JavaUtilRegexpCompiler;
-import net.microscraper.instruction.Find;
-import net.microscraper.instruction.FindMany;
-import net.microscraper.instruction.FindOne;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.database.Connection;
 import net.microscraper.interfaces.database.Database;
@@ -47,7 +45,7 @@ public class MicroScraperConsole {
 	
 	private static int rateLimit = Browser.DEFAULT_MAX_KBPS_FROM_HOST;
 	private static int timeout = Browser.TIMEOUT;
-	private static int batchSize = 20;
+	private static int batchSize = 100;
 	
 	private static final String usage = 
 "usage: microscraper <uri> [<options>]" + newline +
@@ -55,8 +53,8 @@ public class MicroScraperConsole {
 "uri" + newline +
 "	A URI that points to microscraper instructions." + newline +
 "options:" + newline +
-"   --batch-size=<batch-size>" + newline +
-"		If saving to SQL, assigns the batch size.  " +
+"	--batch-size=<batch-size>" + newline +
+"		If saving to SQL, assigns the batch size.  " + newline +
 "		Defaults to " + Integer.toString(batchSize) + newline +
 "	--defaults=\"<defaults>\"" + newline +
 "		A form-encoded string of name value pairs to use as" + newline +
@@ -80,10 +78,13 @@ public class MicroScraperConsole {
 "		the current directory." + newline +
 "	--output-stdout" + newline +
 "		Pipe output to stdout.  This is not compatible with" + newline +
-"		sqlite." +
+"		sqlite." + newline +
 "	--rate-limit=<max-kbps>" + newline +
 "		The rate limit, in KBPS, for loading from a single host." + newline +
-"		Defaults to " + Integer.toString(rateLimit) + " KBPS." +
+"		Defaults to " + Integer.toString(rateLimit) + " KBPS." + newline +
+"	--single-table" + newline +
+"		Save all results to a single table, instead of creating a new " + newline +
+"		table for each set of children." + newline +
 "	--timeout=<timeout>" + newline +
 "		How many milliseconds to wait before giving up on a request." + newline + 
 "		Defaults to " + Integer.toString(timeout) + " milliseconds.";
@@ -91,30 +92,30 @@ public class MicroScraperConsole {
 	private static final String TIMESTAMP = new SimpleDateFormat("yyyyMMddkkmmss").format(new Date());
 	private static final String ENCODING = "UTF-8";
 	
-	private static String BATCH_SIZE_OPTION = "--batch-size";
+	private static final String BATCH_SIZE_OPTION = "--batch-size";
 	
-	private static String DEFAULTS_OPTION = "--defaults";
+	private static final String DEFAULTS_OPTION = "--defaults";
 	private static NameValuePair[] defaults = new NameValuePair[0];
 	
-	private static String INPUT_OPTION = "--input";
+	private static final String INPUT_OPTION = "--input";
 	private static String inputPath = null;
 	private static CSVReader input = null;
 	
-	private static String COLUMN_DELIMITER_OPTION = "--column-delimiter";
+	private static final String COLUMN_DELIMITER_OPTION = "--column-delimiter";
 	private static char columnDelimiter = ',';
 	
-	private static String LOG_FILE_OPTION = "--log-file";
+	private static final String LOG_FILE_OPTION = "--log-file";
 	private static String fileLogPath = null;
 	private static JavaIOFileLogger fileLog = null;
 	
 	private static String LOG_STDOUT_OPTION = "--log-stdout";
 	private static boolean logStdout = false;
 
-	private static String OUTPUT_FORMAT_OPTION = "--output-format";
-	private static String CSV_OUTPUT_FORMAT_VALUE = "csv";
-	private static String FORM_ENCODED_OUTPUT_FORMAT_VALUE = "formencoded";
-	private static String TAB_OUTPUT_FORMAT_VALUE = "tab";
-	private static String SQLITE_OUTPUT_FORMAT_VALUE = "sqlite";
+	private static final String OUTPUT_FORMAT_OPTION = "--output-format";
+	private static final String CSV_OUTPUT_FORMAT_VALUE = "csv";
+	private static final String FORM_ENCODED_OUTPUT_FORMAT_VALUE = "formencoded";
+	private static final String TAB_OUTPUT_FORMAT_VALUE = "tab";
+	private static final String SQLITE_OUTPUT_FORMAT_VALUE = "sqlite";
 	private static String outputFormat = SQLITE_OUTPUT_FORMAT_VALUE;
 	private static final List<String> validOutputFormats = Arrays.asList(
 			CSV_OUTPUT_FORMAT_VALUE,
@@ -123,19 +124,22 @@ public class MicroScraperConsole {
 			SQLITE_OUTPUT_FORMAT_VALUE
 			);
 	
-	private static String OUTPUT_FILE_OPTION = "--output-file";
+	private static final String OUTPUT_FILE_OPTION = "--output-file";
 	private static File outputFile = null;
 	//private static String outputFileName = null;
 	
-	private static String NO_OUTPUT_FILE_OPTION = "--no-output-file";
+	private static final String NO_OUTPUT_FILE_OPTION = "--no-output-file";
 	private static boolean noOutputFile = false;
 	
-	private static String OUTPUT_STDOUT_OPTION = "--output-stdout";
+	private static final String OUTPUT_STDOUT_OPTION = "--output-stdout";
 	private static boolean outputStdout = false;
 	
-	private static String RATE_LIMIT_OPTION = "--rate-limit";
+	private static final String RATE_LIMIT_OPTION = "--rate-limit";
 	
-	private static String TIMEOUT_OPTION = "--timeout";
+	private static final String SINGLE_TABLE_OPTION = "--single-table";
+	private static boolean singleTable = false;
+	
+	private static final String TIMEOUT_OPTION = "--timeout";
 		
 	private static JSONLocation instructionsLocation;
 	
@@ -246,6 +250,8 @@ public class MicroScraperConsole {
 					} catch(NumberFormatException e) {
 						
 					}
+				} else if(arg.startsWith(SINGLE_TABLE_OPTION)) {
+					singleTable = true;
 				} else if(arg.startsWith(TIMEOUT_OPTION)) {
 					timeout = Integer.parseInt(value);
 				} else {
@@ -282,7 +288,12 @@ public class MicroScraperConsole {
 			//publisher = new FormEncodedPublisher();
 		}
 		connection.open();
-		database = new MultiTableDatabase(connection);
+		
+		if(singleTable == true) {
+			database = new SingleTableDatabase(connection);
+		} else {
+			database = new MultiTableDatabase(connection);
+		}
 		
 		if(!args[0].startsWith("--")) {
 			instructionsLocation = new JavaNetJSONLocation(args[0]);
@@ -318,6 +329,9 @@ public class MicroScraperConsole {
 	
 	private static void finish() throws IOException {
 		try {
+			if(database != null) {
+				database.close();
+			}
 			if(connection != null) {
 				connection.close();
 			}
