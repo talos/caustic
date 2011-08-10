@@ -3,16 +3,16 @@ package net.microscraper.interfaces.database;
 import net.microscraper.NameValuePair;
 
 /**
- * A {@link Table} interface that supports adding columns and inserting & updating
+ * A {@link IOTable} interface that supports adding columns and inserting & updating
  * rows with a single {@link int} id.
  * @author talos
  *
  */
-public interface Table {
+public interface IOTable extends WritableTable {
 
 	/**
 	 * 
-	 * @return The {@link String} name of the {@link Table}.
+	 * @return The {@link String} name of the {@link IOTable}.
 	 */
 	public String getName();
 	
@@ -32,22 +32,12 @@ public interface Table {
 	
 	/**
 	 * 
-	 * @return A {@link String} array of the names of columns in the {@link Table}.
+	 * @return A {@link String} array of the names of columns in the {@link IOTable}.
 	 */
 	public abstract String[] getColumnNames();
 
 	/**
-	 * Insert a new row into the {@link Table}.
-	 * @param nameValuePairs An array of {@link NameValuePair}s mapping
-	 * columns to values to insert.
-	 * @return the {@link int} ID of the new row.
-	 * @throws DatabaseException if the row could not be inserted.
-	 */
-	public abstract int insert(NameValuePair[] nameValuePairs)
-			throws DatabaseException;
-
-	/**
-	 * Update an existing row in the {@link Table}.
+	 * Update an existing row in the {@link IOTable}.
 	 * @param id the {@link int} ID of the row to update.
 	 * @param nameValuePairs An array of {@link NameValuePair}s mapping
 	 * columns to new values.
@@ -57,8 +47,8 @@ public interface Table {
 			throws DatabaseException;
 	
 	/**
-	 * Delete this {@link Table}.
-	 * @throws DatabaseException If the {@link Table} could not be dropped.
+	 * Delete this {@link IOTable}.
+	 * @throws DatabaseException If the {@link IOTable} could not be dropped.
 	 */
 	public void drop() throws DatabaseException;
 }

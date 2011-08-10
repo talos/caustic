@@ -8,10 +8,10 @@ import net.microscraper.interfaces.regexp.PatternInterface;
  */
 public interface Browser {
 	/**
-	 * The default number of milliseconds to wait before timing out on a
+	 * The default number of seconds to wait before timing out on a
 	 * request for {@link Browser} interfaces.
 	 */
-	public static final int TIMEOUT = 30000;
+	public static final int TIMEOUT = 30;
 	
 	/**
 	 * The default number of redirects {@link Browser} interfaces will follow.
@@ -32,6 +32,12 @@ public interface Browser {
 	 * from a host it would have exceeded its rate limit.
 	 */
 	public static final int DEFAULT_SLEEP_TIME = 500;
+	
+	/**
+	 * How many kilobytes of a response a {@link Browser} should allow before 
+	 * automatically terminating the request.
+	 */
+	public static final int DEFAULT_MAX_RESPONSE_SIZE = 2 * 1024;
 	
 	public static final String LOCATION_HEADER_NAME = "location";
 	public static final String REFERER_HEADER_NAME = "Referer";

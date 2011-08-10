@@ -3,10 +3,12 @@ package net.microscraper.impl.database;
 import net.microscraper.BasicNameValuePair;
 import net.microscraper.NameValuePair;
 import net.microscraper.executable.Result;
-import net.microscraper.interfaces.database.Connection;
+import net.microscraper.interfaces.database.IOConnection;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.database.DatabaseException;
-import net.microscraper.interfaces.database.Table;
+import net.microscraper.interfaces.database.IOTable;
+import net.microscraper.interfaces.database.WritableConnection;
+import net.microscraper.interfaces.database.WritableTable;
 
 /**
  * An implementation of {@link Database} whose subclasses store
@@ -15,12 +17,7 @@ import net.microscraper.interfaces.database.Table;
  *
  */
 public final class SingleTableDatabase implements Database {
-	
-	/**
-	 * Name of the one {@link AllResultsTable} in {@link SingleTableDatabase}.
-	 */
-	private static final String TABLE_NAME = "results";
-	
+		
 	/**
 	 * Name of column to hold value for {@link Result#getId()}
 	 * from {@link Result#getSource()}.
@@ -38,28 +35,26 @@ public final class SingleTableDatabase implements Database {
 	private static final String VALUE_COLUMN = "value";
 	
 	/**
-	 * Names of columns in {@link Table}
+	 * Names of columns in {@link IOTable}
 	 */
 	private static final String[] COLUMN_NAMES = new String[] {
 		SOURCE_ID_COLUMN, NAME_COLUMN, VALUE_COLUMN
 	};
 	
 	/**
-	 * The {@link AllResultsTable} used by this {@link SingleTableDatabase}.
+	 * The {@link WritableTable} used by this {@link SingleTableDatabase}.
 	 */
-	private Table table;
-	
-	private final Connection connection;
-	
-	public SingleTableDatabase(Connection connection) throws DatabaseException {
-		this.connection = connection;
-		table = connection.getTable(TABLE_NAME, COLUMN_NAMES);
+	private WritableTable table;
+		
+	public SingleTableDatabase(WritableConnection connection) throws DatabaseException {
+		this.table = connection.getWritableTable(COLUMN_NAMES);
 	}
 
 	public final Result store(String name, String value, int resultNum, boolean shouldSaveValue)
 			throws DatabaseException {
 		return new Result(table.insert(
 				new NameValuePair[] {
+					new BasicNameValuePair(SOURCE_ID_COLUMN, null),
 					new BasicNameValuePair(NAME_COLUMN, name),
 					new BasicNameValuePair(VALUE_COLUMN, shouldSaveValue ? value : null)
 				}),
@@ -79,6 +74,6 @@ public final class SingleTableDatabase implements Database {
 	}
 	
 	public void close() throws DatabaseException {
-		connection.close();
+		//connection.close();
 	}
 }

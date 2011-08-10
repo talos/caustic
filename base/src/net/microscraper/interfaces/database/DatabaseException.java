@@ -13,6 +13,10 @@ public class DatabaseException extends ClientException {
 		super(e);
 	}
 	
+	public DatabaseException(String message) {
+		super(message);
+	}
+	
 	/**
 	 * 
 	 */

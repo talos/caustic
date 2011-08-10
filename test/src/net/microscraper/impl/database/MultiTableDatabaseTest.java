@@ -10,23 +10,23 @@ import mockit.Tested;
 import mockit.Verifications;
 import net.microscraper.NameValuePair;
 import net.microscraper.executable.Result;
-import net.microscraper.interfaces.database.Connection;
-import net.microscraper.interfaces.database.Table;
+import net.microscraper.interfaces.database.IOConnection;
+import net.microscraper.interfaces.database.IOTable;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class MultiTableDatabaseTest {
 
-	@Mocked Table rootTable, resultTable;
-	@Mocked Connection connection;
+	@Mocked IOTable rootTable, resultTable;
+	@Mocked IOConnection connection;
 	@Tested MultiTableDatabase db;
 	
 	@Before
 	public void setUp() throws Exception {
 		new NonStrictExpectations() {
 			{
-				connection.getTable(withEqual(MultiTableDatabase.ROOT_TABLE_NAME), (String[]) any);
+				connection.getIOTable(withEqual(MultiTableDatabase.ROOT_TABLE_NAME), (String[]) any);
 						result = rootTable;
 				rootTable.insert((NameValuePair[]) any); result = 0;
 				//connection.getTable(withNotEqual(MultiTableDatabase.ROOT_TABLE_NAME), (String[]) any);

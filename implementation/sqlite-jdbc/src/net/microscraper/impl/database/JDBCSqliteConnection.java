@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.microscraper.interfaces.database.DatabaseException;
-import net.microscraper.interfaces.database.Table;
+import net.microscraper.interfaces.database.IOTable;
+import net.microscraper.interfaces.database.WritableTable;
 import net.microscraper.interfaces.log.Logger;
 
 /**
@@ -23,6 +24,11 @@ public class JDBCSqliteConnection implements SQLConnection {
 	private final Logger log;
 	//private final SQLPreparedStatement checkTableExistence;
 	private final int batchSize;
+	
+	/**
+	 * The name of a single table for {@link #getWritableTable(String[])}.
+	 */
+	private static final String SINGLE_TABLE_NAME = "results";
 	
 	/**
 	 * Statements yet to be executed.
@@ -238,10 +244,10 @@ public class JDBCSqliteConnection implements SQLConnection {
 	public void open() throws DatabaseException { }
 	
 	@Override
-	public Table getTable(String name, String[] textColumns)
+	public IOTable getIOTable(String name, String[] textColumns)
 			throws DatabaseException {
 		try {
-			Table table = new SQLTable(this, name, textColumns);
+			IOTable table = new SQLTable(this, name, textColumns);
 			runBatch();
 			return table;
 		} catch(SQLConnectionException e) {
@@ -259,5 +265,11 @@ public class JDBCSqliteConnection implements SQLConnection {
 		} catch(SQLException e) {
 			throw new DatabaseException(e);
 		}
+	}
+
+	@Override
+	public WritableTable getWritableTable(String[] textColumns)
+			throws DatabaseException {
+		return getIOTable(SINGLE_TABLE_NAME, textColumns);
 	}
 }

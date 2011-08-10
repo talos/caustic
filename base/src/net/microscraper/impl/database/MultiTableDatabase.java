@@ -7,10 +7,11 @@ import net.microscraper.BasicNameValuePair;
 import net.microscraper.NameValuePair;
 import net.microscraper.Utils;
 import net.microscraper.executable.Result;
-import net.microscraper.interfaces.database.Connection;
+import net.microscraper.interfaces.database.IOConnection;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.database.DatabaseException;
-import net.microscraper.interfaces.database.Table;
+import net.microscraper.interfaces.database.IOTable;
+import net.microscraper.interfaces.database.WritableTable;
 
 /**
  * An implementation of {@link Database} whose subclasses store
@@ -44,18 +45,18 @@ public final class MultiTableDatabase implements Database {
 	public static final String SOURCE_NAME_COLUMN = "source_name";
 	
 	/**
-	 * Default column names for {@link Table}s in {@link MultiTableDatabase}.
+	 * Default column names for {@link IOTable}s in {@link MultiTableDatabase}.
 	 */
 	public static final String[] COLUMN_NAMES = new String[] {
 		SOURCE_ID_COLUMN,
 		SOURCE_NAME_COLUMN };
 	
 	/**
-	 * The {@link Table} that holds {@link Result}s that don't have
+	 * The {@link IOTable} that holds {@link Result}s that don't have
 	 * a source.  These would be from the first layer of
 	 * {@link Instruction}s.  This table has only one row.
 	 */
-	private final Table rootTable;
+	private final IOTable rootTable;
 	
 	/**
 	 * The {@link int} ID for the only row of {@link #rootTable}.
@@ -70,17 +71,17 @@ public final class MultiTableDatabase implements Database {
 	private final Hashtable tables = new Hashtable();
 	
 	/**
-	 * A {@link Connection} to use when generating tables.
+	 * A {@link IOConnection} to use when generating tables.
 	 */
-	private final Connection connection;
+	private final IOConnection connection;
 	
 	/**
 	 * Create the root table with no values in it.
 	 * @throws DatabaseException If the root table cannot be created.
 	 */
-	public MultiTableDatabase(Connection connection) throws DatabaseException {
+	public MultiTableDatabase(IOConnection connection) throws DatabaseException {
 		this.connection = connection;
-		rootTable = this.connection.getTable(ROOT_TABLE_NAME, COLUMN_NAMES);
+		rootTable = this.connection.getIOTable(ROOT_TABLE_NAME, COLUMN_NAMES);
 		tables.put(ROOT_TABLE_NAME, rootTable);
 		rootResultId = rootTable.insert(new NameValuePair[] {});
 	}
@@ -91,7 +92,7 @@ public final class MultiTableDatabase implements Database {
 		if(shouldSaveValue) {
 			updateTable(rootTable, rootResultId, name, value, resultNum);	
 		}
-		Table table = getResultTable(name);
+		WritableTable table = getResultTable(name);
 		return new Result(table.insert(new NameValuePair[] {
 				new BasicNameValuePair(SOURCE_NAME_COLUMN, ROOT_TABLE_NAME),
 				new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(rootResultId))
@@ -100,10 +101,10 @@ public final class MultiTableDatabase implements Database {
 	
 	public Result store(Result source, String name, String value, int resultNum,
 			boolean shouldSaveValue) throws DatabaseException {
-		String sourceTableName = PREPEND + source.getName();
-		Table sourceTable;
+		String sourceTableName = cleanTableName(source.getName());
+		IOTable sourceTable;
 		if(tables.containsKey(sourceTableName)) {
-			sourceTable = (Table) tables.get(sourceTableName);
+			sourceTable = (IOTable) tables.get(sourceTableName);
 		} else {
 			sourceTable = getResultTable(sourceTableName);
 			tables.put(sourceTableName, sourceTable);
@@ -112,26 +113,43 @@ public final class MultiTableDatabase implements Database {
 		if(shouldSaveValue == true) {
 			updateTable(sourceTable, source.getId(), name, value, resultNum);
 		}
-		Table table = getResultTable(name);
+		WritableTable table = getResultTable(name);
 		return new Result(table.insert(new NameValuePair[] {
 				new BasicNameValuePair(SOURCE_NAME_COLUMN, sourceTable.getName()),
 				new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(source.getId()))
 		}), name, value);
 	}
 	
-	/**
-	 * Get a {@link Table} for a {@link Result} name.
-	 * @param resultName The {@link Result} name to get the {@link Table} for.
-	 * @return The {@link Table}.
-	 * @throws DatabaseException If there was an error generating the {@link Table}.
-	 */
-	private Table getResultTable(String resultName) throws DatabaseException {
-		String tableName = PREPEND + resultName;
-		Table table;
-		if(tables.containsKey(tableName)) {
-			table = (Table) tables.get(tableName);
+	private String cleanColumnName(String columnName) {
+		for(int i = 0 ; i < COLUMN_NAMES.length ; i ++) {
+			if(columnName.equals(COLUMN_NAMES[i])) {
+				return PREPEND + columnName;
+			}
+		}
+		return columnName;
+	}
+	
+	private String cleanTableName(String tableName) {
+		if(tableName.equals(ROOT_TABLE_NAME)) {
+			return PREPEND + tableName;
 		} else {
-			table = connection.getTable(tableName, COLUMN_NAMES);
+			return tableName;
+		}
+	}
+	
+	/**
+	 * Get a {@link IOTable} for a {@link Result} name.
+	 * @param resultName The {@link Result} name to get the {@link IOTable} for.
+	 * @return The {@link IOTable}.
+	 * @throws DatabaseException If there was an error generating the {@link IOTable}.
+	 */
+	private IOTable getResultTable(String resultName) throws DatabaseException {
+		String tableName = cleanTableName(resultName);
+		IOTable table;
+		if(tables.containsKey(tableName)) {
+			table = (IOTable) tables.get(tableName);
+		} else {
+			table = connection.getIOTable(tableName, COLUMN_NAMES);
 			tables.put(tableName, table);
 		}
 		
@@ -139,9 +157,9 @@ public final class MultiTableDatabase implements Database {
 	}
 	
 	/**
-	 * Update a {@link Table} with a <code>name</code> and <code>value</code>,
+	 * Update a {@link IOTable} with a <code>name</code> and <code>value</code>,
 	 * using {@link #PREPEND} and adding a column if necessary.
-	 * @param table The {@link Table} to update.
+	 * @param table The {@link IOTable} to update.
 	 * @param id The {@link int} id of the row to update.
 	 * @param name The {@link String} name of the column to update, this will be
 	 * prepended with {@link #PREPEND} and added as a new column to <code>table</code>
@@ -149,11 +167,11 @@ public final class MultiTableDatabase implements Database {
 	 * @param value The {@link String} value to update.
 	 * @param the 0-based {@link int} index of this {@link Result} within its
 	 * {@link Executable}.
-	 * @throws DatabaseException If the {@link Table} cannot be updated.
+	 * @throws DatabaseException If the {@link IOTable} cannot be updated.
 	 */
-	private void updateTable(Table table, int id, String name, String value,
+	private void updateTable(IOTable table, int id, String name, String value,
 			int resultNum) throws DatabaseException {
-		String columnName = PREPEND + name;
+		String columnName = cleanColumnName(name);
 		if(resultNum > 0) {
 			columnName = Integer.toString(resultNum) + columnName;
 		}
@@ -172,7 +190,7 @@ public final class MultiTableDatabase implements Database {
 	public void close() throws DatabaseException { 
 		Enumeration enumeration = tables.elements();
 		while(enumeration.hasMoreElements()) {
-			Table table = (Table) enumeration.nextElement();
+			IOTable table = (IOTable) enumeration.nextElement();
 			if(table.getColumnNames().length == COLUMN_NAMES.length + 1) {
 				table.drop();
 			}

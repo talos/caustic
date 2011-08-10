@@ -6,21 +6,21 @@ import java.util.List;
 import net.microscraper.NameValuePair;
 import net.microscraper.Utils;
 import net.microscraper.interfaces.database.DatabaseException;
-import net.microscraper.interfaces.database.Table;
+import net.microscraper.interfaces.database.IOTable;
 
 /**
- * A SQL implementation of {@link Table} using {@link SQLConnection}.
+ * A SQL implementation of {@link IOTable} using {@link SQLConnection}.
  * 
  * @author talos
  *
  */
-public class SQLTable implements Table {
+public class SQLTable implements IOTable {
 
 	/**
 	 * Name of unique ID column.
 	 */
-	private static final String ID_COLUMN_NAME = "id";
-
+	private static final String ID_COLUMN_NAME = "_id";
+	
 	/**
 	 * {@link SQLConnection} used in this {@link SQLTable}.
 	 */
@@ -77,6 +77,10 @@ public class SQLTable implements Table {
 		preventIllegalBacktick(columnName);
 		
 		try {
+			if(columnName.equals(ID_COLUMN_NAME)) {
+				throw new SQLConnectionException(Utils.quote(columnName) + " is reserved as the " +
+							"ID column for the table.");
+			}
 			SQLPreparedStatement alterTable = 
 					connection.prepareStatement("" +
 							"ALTER TABLE `" + name + "` " +

@@ -38,23 +38,23 @@ public class JavaNetBrowser implements Browser {
 	private final Hashtable cookieStore = new Hashtable();
 	private final HostMemory hostMemory = new HostMemory();
 	private final int maxKBPS;
-	private final int sleepTime;
 	private final int timeout;
-
+	private final int maxResponseSize;
 	/**
 	 * 
 	 * @param log The {@link Log} to send messages to.
 	 * @param maxKBPS The maximum average number of kilobytes per second that can be loaded
 	 * from a single host before another request is made.
-	 * @param sleepTime How many milliseconds to wait before making another request if the maxKBPS
-	 * threshold was exceeded when the last request was tried.
-	 * @param timeout How many milliseconds before giving up on a request.
+	 * @param timeout How many seconds before giving up on a request.
+	 * @param maxResponseSize The maximum size of a response in KB that this {@link Browser}
+	 * will load before terminating.  Since responses are fed straight through to a regex
+	 * parser, it is wise not to deal with huge pages.
 	 */
-	public JavaNetBrowser(Log log, int maxKBPS, int sleepTime, int timeout) {
+	public JavaNetBrowser(Log log, int maxKBPS, int timeout, int maxResponseSize) {
 		this.log = log;
 		this.maxKBPS = maxKBPS;
-		this.sleepTime = sleepTime;
 		this.timeout = timeout;
+		this.maxResponseSize = maxResponseSize;
 	}
 	
 	public void head(boolean useRateLimit, String url, NameValuePair[] headers, NameValuePair[] cookies)
@@ -112,6 +112,7 @@ public class JavaNetBrowser implements Browser {
 			//InputStream stream = conn.getInputStream();
 			byte[] buffer = new byte[512];
 			int totalReadBytes = 0;
+			int lastTotalReadBytes = totalReadBytes;
 			int readBytes;
 			loading: while((readBytes = stream.read(buffer)) != -1) {
 				if(Thread.interrupted()) {
@@ -119,12 +120,17 @@ public class JavaNetBrowser implements Browser {
 				}
 
 				totalReadBytes += readBytes;
-				if(totalReadBytes % (buffer.length * 4) == 0) {
-					log.i("Have read " + totalReadBytes + " bytes from url.");
+				// log every 51.2 kB
+				if(totalReadBytes - lastTotalReadBytes > buffer.length * 100) { 
+					log.i("Have loaded " + totalReadBytes + " bytes from " + Utils.quote(url));
+					lastTotalReadBytes = totalReadBytes;
 				}
 				content.write(buffer, 0, readBytes);
 				responseBody = new String(content.toByteArray());
-				if(terminates != null) {
+				if(totalReadBytes > maxResponseSize * 1024) {
+					throw new IOException("Exceeded maximum response size of " + maxResponseSize + "KB.");
+				}
+				if(terminates != null && terminates.length > 0) {
 					for(int i = 0 ; i < terminates.length ; i++) {
 						if(terminates[i].matches(responseBody)){
 							log.i("Terminating " + url.toString() + " due to pattern " + terminates[i].toString());
@@ -134,11 +140,10 @@ public class JavaNetBrowser implements Browser {
 				}
 			}
 			stream.close();
-			//conn.disconnect();
 		} catch(IOException e) {
-			throw new BrowserException((url), e);
+			throw new BrowserException(url, e);
 		} catch(InterruptedException e) {
-			throw new BrowserException((url), e);
+			throw new BrowserException(url, e);
 		}
 		responseBody = content.toString();
 		try {
@@ -177,7 +182,7 @@ public class JavaNetBrowser implements Browser {
 							", current KBPS " +
 							Utils.quote(Float.toString(kbpsSinceLastLoad)));
 				try {
-					Thread.sleep(sleepTime);
+					Thread.sleep(Browser.DEFAULT_SLEEP_TIME);
 				} catch (InterruptedException e) {
 					log.e(e);
 					throw new IOException(e);
@@ -215,7 +220,7 @@ public class JavaNetBrowser implements Browser {
 		
 		conn.setDoOutput(true);
 		conn.setDoInput(true);
-		conn.setReadTimeout(timeout);
+		conn.setReadTimeout(timeout * 1000);
 
 		if(method.equals("POST")) {
 
@@ -264,7 +269,7 @@ public class JavaNetBrowser implements Browser {
 		try {
 			conn.connect();
 			InputStream stream = conn.getInputStream();
-		
+			
 			int code = conn.getResponseCode();
 			
 			log.i("Response code: " + Integer.toString(code));
@@ -306,7 +311,7 @@ public class JavaNetBrowser implements Browser {
 			}
 			return stream;
 		} catch(SocketTimeoutException e) {
-			throw new IOException("Socket timeout after " + conn.getReadTimeout() + " milliseconds " +
+			throw new IOException("Socket timeout after " + conn.getReadTimeout() + " seconds " +
 					", " + e.bytesTransferred + " bytes read.");
 		}
 	}
