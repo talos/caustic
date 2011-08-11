@@ -51,7 +51,7 @@ Here's a simple instruction, which is one of the [fixtures](microscraper-client/
 
 For microscraper to execute this instruction, it needs a value to substitute for *{{query}}*.  Run the following
 
-  $ utility/microscraper fixtures/json/simple-google.json --defaults="query=hello" --output-stdout
+    $ utility/microscraper fixtures/json/simple-google.json --defaults="query=hello" --output-stdout
 
 to replace *{{query}}* with *hello*.  We get the following
 
@@ -74,10 +74,65 @@ Here we see that *finds_many* will match against any number of pattern matches f
 
 We can use backreferences from *$0* to *$9* in  *replacement*.
 
+#### Advanced substitutions ####
+
 Substitutions are a powerful tool because they develop over the course of execution.  Any *name* that appears in 
 curlies will be substituted once a *value* has been found for it.
 
+This [fixture](microscraper-client/blob/master/utility/fixtures/json/complex-google.json)
 
+    {
+     "url" : "http://www.google.com/search?q={{query}}",
+     "finds_many"  : {
+       "name"   : "after",
+       "pattern"     : "{{query}}\\s+(\\w+)",
+       "replacement" : "$1",
+       "then" : {
+         "url" : "http://www.google.com/search?q={{after}}",
+	 "finds_many" : {
+	   "name"   : "what do you say after '{{after}}'?",
+           "pattern"     : "{{query}}\\s+(\\w+)",
+           "replacement" : "I say '$1'!"
+	 }
+       }
+     }
+    }
+
+takes advantage of dynamic substitution, along with the ability to make another url request inside *then*.  The
+"after" word is used to launch a whole new series of queries!
+
+Try it with
+
+    $ utility/microscraper fixtures/json/complex-google.json --defaults="query=hello" --output-stdout
+
+You'll see that this results in quite a few dozen rows, but here are some highlights:
+
+<table>
+  <tr><th>id     <th>source_id <th>name                       <th>value
+  <tr><td>48     <td>14  <td>what do you say after 'beyonce'? <td>I say 'wedding'!
+  <tr><td>49     <td>14  <td>what do you say after 'beyonce'? <td>I say 'songs'!
+  <tr><td>50     <td>14  <td>what do you say after 'beyonce'? <td>I say 'youtube'!
+  <tr><td>51     <td>14  <td>what do you say after 'beyonce'? <td>I say 'jay'!
+  <tr><td>52     <td>14  <td>what do you say after 'beyonce'? <td>I say 'diet'!
+  <tr><td>53     <td>14  <td>what do you say after 'beyonce'? <td>I say 'albums'!
+  <tr><td>54     <td>14  <td>what do you say after 'beyonce'? <td>I say 'biography'!
+  <tr><td>55     <td>14  <td>what do you say after 'beyonce'? <td>I say 'lyrics'!
+  <tr><td>56     <td>15  <td>what do you say after 'glee'?    <td>I say 'episodes'!
+  <tr><td>57     <td>15  <td>what do you say after 'glee'?    <td>I say 'tv'!
+  <tr><td>58     <td>15  <td>what do you say after 'glee'?    <td>I say 'spoilers'!
+  <tr><td>59     <td>15  <td>what do you say after 'glee'?    <td>I say 'songs'!
+  <tr><td>60     <td>15  <td>what do you say after 'glee'?    <td>I say 'soundtrack'!
+  <tr><td>61     <td>15  <td>what do you say after 'glee'?    <td>I say 'cast'!
+  <tr><td>62     <td>15  <td>what do you say after 'glee'?    <td>I say 'wiki'!
+  <tr><td>63     <td>16  <td>what do you say after 'movie'?   <td>I say 'download'!
+</table>
+
+Note that the *source_id* column links each *find_many* result back to its source *url*.
+
+#### References ####
+
+You probably noticed that interior portion of the last fixture was basically copy-and-pasted from the fixture
+before it.  Wouldn't it be nice if we could reuse instruction components?
 
 #### Why? ####
 
