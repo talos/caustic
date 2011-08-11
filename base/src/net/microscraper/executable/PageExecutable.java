@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 
 import net.microscraper.Interfaces;
 import net.microscraper.MissingVariableException;
+import net.microscraper.Mustache;
 import net.microscraper.MustacheNameValuePair;
 import net.microscraper.MustacheTemplateException;
 import net.microscraper.Variables;
@@ -41,7 +42,8 @@ public class PageExecutable extends BasicExecutable {
 	}
 	
 	private String getURLFor(Page page) throws MissingVariableException, MustacheTemplateException {
-		return page.getTemplate().compile(this);
+		//return page.getTemplate().compile(this);
+		return Mustache.compileEncoded(page.getTemplate().toString(), this, getInterfaces().getBrowser(), Browser.UTF_8);
 	}
 	
 	private void head(Page page) throws UnsupportedEncodingException,

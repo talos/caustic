@@ -173,7 +173,7 @@ public class JavaNetBrowser implements Browser {
 	private HttpURLConnection generateConnection(boolean useRateLimit, String method,
 			URL url, NameValuePair[] posts,
 			NameValuePair[] headers, NameValuePair[] cookies)
-				throws IOException {
+				throws IOException, BrowserException {
 		if(useRateLimit == true) {
 			float kbpsSinceLastLoad = hostMemory.kbpsSinceLastLoadFor(url);
 			log.i("Load speed from " + url.toString() + " : " + Float.toString(kbpsSinceLastLoad));
@@ -227,7 +227,7 @@ public class JavaNetBrowser implements Browser {
 			String post_data = "";
 			if(posts != null) {
 				for(int i = 0 ; i < posts.length ; i ++) {
-					post_data += encode(posts[i].getName()) + '=' + encode(posts[i].getValue()) + '&';
+					post_data += encode(posts[i].getName(), encoding) + '=' + encode(posts[i].getValue(), encoding) + '&';
 				}
 				post_data = post_data.substring(0, post_data.length() -1); // trim trailing ampersand
 				log.i("Using posts: " + post_data);
@@ -255,7 +255,7 @@ public class JavaNetBrowser implements Browser {
 	private InputStream connectHandlingRedirectCookies(boolean useRateLimit, String method, URL url,
 			NameValuePair[] posts,
 			NameValuePair[] headers, NameValuePair[] cookies)
-				throws IOException {
+				throws IOException, BrowserException {
 		return connectHandlingRedirectCookies(useRateLimit, method, url, posts, headers, cookies, new Vector());
 	}
 	
@@ -263,7 +263,7 @@ public class JavaNetBrowser implements Browser {
 	private InputStream connectHandlingRedirectCookies(boolean useRateLimit, String method, URL url,
 			NameValuePair[] posts,
 			NameValuePair[] headers, NameValuePair[] cookies, Vector redirects_followed)
-				throws IOException {
+				throws IOException, BrowserException {
 		HttpURLConnection conn = generateConnection(useRateLimit, method, url, posts, headers, cookies);
 		conn.setInstanceFollowRedirects(false);
 		try {
@@ -390,11 +390,17 @@ public class JavaNetBrowser implements Browser {
 		}
 	}
 	
-	private String encode(String string) throws UnsupportedEncodingException {
-		return URLEncoder.encode(string, encoding);
-	}
 
-	private String decode(String string) throws UnsupportedEncodingException {
+	/*private String decode(String string) throws UnsupportedEncodingException {
 		return URLDecoder.decode(string, encoding);
+	}*/
+
+	public String encode(String stringToEncode, String encoding)
+			throws BrowserException {
+		try {
+			return URLEncoder.encode(stringToEncode, encoding);
+		} catch (UnsupportedEncodingException e) {
+			throw new BrowserException(stringToEncode, e);
+		}
 	}
 }

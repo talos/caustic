@@ -59,8 +59,8 @@ public interface Browser {
 	 * from the Set-Cookie response header to the {@link Browser}'s cookie store.
 	 * @param useRateLimit Whether to avoid overburdening a host.
 	 * @param url the URL to HTTP Head.
-	 * @param headers Array of {@link BasicNameValuePair} extra headers.  Can be <code>null</code> if there are none.
-	 * @param cookies Array of {@link EncodedNameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
+	 * @param headers Array of {@link NameValuePair} extra headers.  Can be <code>null</code> if there are none.
+	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
 	public abstract void head(boolean useRateLimit, String url, NameValuePair[] headers, NameValuePair[] cookies)
@@ -70,8 +70,8 @@ public interface Browser {
 	 * Make an HTTP Get request.  This returns the body of the response, and adds cookies to the cookie jar.
 	 * @param useRateLimit Whether to avoid overburdening a host.
 	 * @param url the URL to HTTP Get.
-	 * @param headers Array of {@link BasicNameValuePair} extra headers.  Can be <code>null</code> if there are none.
-	 * @param cookies Array of {@link EncodedNameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
+	 * @param headers Array of {@link NameValuePair} extra headers.  Can be <code>null</code> if there are none.
+	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
 	 * @param terminates Array of {@link PatternInterface}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
 	 * @return The body of the response.
 	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host, if <code>useRateLimit</code> is <code>true</code>.
@@ -84,10 +84,10 @@ public interface Browser {
 	 * Make an HTTP Post request.  This returns the body of the response, and adds cookies to the cookie jar.
 	 * @param useRateLimit Whether to avoid overburdening a host.
 	 * @param url the URL to HTTP Get.
-	 * @param headers Array of {@link BasicNameValuePair} extra headers.  Can be <code>null</code> if there are none.
-	 * @param cookies Array of {@link EncodedNameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
+	 * @param headers Array of {@link NameValuePair} extra headers.  Can be <code>null</code> if there are none.
+	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
 	 * @param terminates Array of {@link PatternInterface}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
-	 * @param posts Array of {@link EncodedNameValuePair} post data.  Can be <code>null</code> if there are none.
+	 * @param posts Array of {@link NameValuePair} post data.  Can be <code>null</code> if there are none.
 	 * @return The body of the response.
 	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host, if <code>useRateLimit</code> is <code>true</code>.
 	 * @throws BrowserException if there is an exception requesting the page.
@@ -95,4 +95,14 @@ public interface Browser {
 	public abstract String post(boolean useRateLimit, String url, NameValuePair[] headers,
 			NameValuePair[] cookies, PatternInterface[] terminates, NameValuePair[] posts)
 			throws BrowserException;
+	
+	/**
+	 * Encode a {@link String} with <code>encoding</code>.
+	 * @param stringToEncode The {@link String} to encode.
+	 * @param encoding The {@link String} encoding to use, for example <code>UTF-8</code>.
+	 * @return The {@link String}, encoded.
+	 * @throws BrowserException if <code>stringToEncode</code> cannot be encoded, or if
+	 * <code>encoding</code> is not supported.
+	 */
+	public abstract String encode(String stringToEncode, String encoding) throws BrowserException;
 }
