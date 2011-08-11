@@ -1,0 +1,10 @@
+
+{
+	"url" : "http://www.google.com/search?q={{query}}",
+	"finds_many"  : {
+		"name"   : "query",
+		"pattern"     : "{{query}}\\s+(\\w+)",
+		"replacement" : "$1",
+		"then" : { "$ref" : "simple-google.json" }
+	}
+}
