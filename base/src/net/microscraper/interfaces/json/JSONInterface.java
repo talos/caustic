@@ -2,6 +2,9 @@ package net.microscraper.interfaces.json;
 
 import java.io.IOException;
 
+import net.microscraper.interfaces.uri.URIInterface;
+import net.microscraper.interfaces.uri.URIInterfaceException;
+
 /**
  * Implementations provide a fully-featured interface for microscraper to
  * handle JSON with references.  The format
@@ -29,30 +32,30 @@ public interface JSONInterface {
 	public static final String EXTENDS = "extends";
 	
 	/**
-	 * Load a {@link JSONInterfaceObject} from a {@link JSONLocation}.
-	 * @param location The {@link JSONLocation} to load.
+	 * Load a {@link JSONInterfaceObject} from a {@link URIInterface}.
+	 * @param location The {@link URIInterface} to load.
 	 * @return A {@link JSONInterfaceObject}.
 	 * @throws IOException If there is an error loading from <code>location</code>
 	 * or one of its references.
 	 * @throws JSONInterfaceException If there is an error generating
 	 * the {@link JSONInterfaceObject}.
-	 * @throws JSONLocationException if the {@link JSONLocation} could not be resolved.
+	 * @throws URIInterfaceException if the {@link URIInterface} could not be resolved.
 	 */
-	public abstract JSONInterfaceObject load(JSONLocation location) 
-			throws IOException, JSONInterfaceException, JSONLocationException;
+	public abstract JSONInterfaceObject load(URIInterface location) 
+			throws IOException, JSONInterfaceException, URIInterfaceException;
 	
 	/**
 	 * Compile a {@link JSONInterfaceObject} directly from a {@link String}.
-	 * @param dummyLocation The {@link JSONLocation} to use when resolving references in
-	 * {@link jsonString}.
+	 * @param location The {@link URIInterface} to use when resolving <code>jsonString</code>'s
+	 * references.
 	 * @param jsonString The {@link String} to parse.
 	 * @return A {@link JSONInterfaceObject}.
 	 * @throws IOException If there is an error loading from <code>location</code>
 	 * or one of its references.
 	 * @throws JSONInterfaceException If there is an error generating
 	 * the {@link JSONInterfaceObject}.
-	 * @throws JSONLocationException if the {@link JSONLocation} could not be resolved.
+	 * @throws URIInterfaceException if the {@link URIInterface} could not be resolved.
 	 */
-	public abstract JSONInterfaceObject parse(JSONLocation dummyLocation, String jsonString)
-			throws IOException, JSONInterfaceException, JSONLocationException;
+	public abstract JSONInterfaceObject parse(URIInterface location, String jsonString)
+			throws IOException, JSONInterfaceException, URIInterfaceException;
 }

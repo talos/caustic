@@ -15,41 +15,26 @@ import net.microscraper.interfaces.regexp.RegexpCompiler;
  *
  */
 public class Regexp {
-	
+
+	/**
+	 * @see net.microscraper.interfaces.json.JSONInterface#compile
+	 */
 	private final MustacheTemplate pattern;
 	
 	/**
 	 * @return The {@link Regexp}'s pattern.  Mustache compiled before it is used.
 	 */
-	public final MustacheTemplate getPattern() {
-		return pattern;
-	}
-	
 	private final boolean isCaseSensitive;
-	
+
 	/**
 	 * @see net.microscraper.interfaces.json.JSONInterface#compile
 	 */
-	public final boolean getIsCaseSensitive() {
-		return isCaseSensitive;
-	}
-
 	private final boolean isMultiline;
 
 	/**
 	 * @see net.microscraper.interfaces.json.JSONInterface#compile
 	 */
-	public final boolean getIsMultiline() {
-		return isMultiline;
-	}
-	
 	private final boolean doesDotMatchNewline;
-	/**
-	 * @see net.microscraper.interfaces.json.JSONInterface#compile
-	 */
-	public final boolean getDoesDotMatchNewline() {
-		return doesDotMatchNewline;
-	}
 	
 	/**
 	 * Deserialize a {@link Regexp} from a {@link JSONInterfaceObject}.
@@ -60,13 +45,14 @@ public class Regexp {
 	 * or the location is invalid.
 	 */
 	public Regexp (JSONInterfaceObject jsonObject) throws DeserializationException {
-		//super(jsonObject);
 		try {
 			pattern = new MustacheTemplate(jsonObject.getString(PATTERN));
 			isCaseSensitive = jsonObject.has(IS_CASE_SENSITIVE) ? jsonObject.getBoolean(IS_CASE_SENSITIVE) : IS_CASE_SENSITIVE_DEFAULT;
 			isMultiline = jsonObject.has(IS_MULTILINE) ? jsonObject.getBoolean(IS_MULTILINE) : IS_MULTILINE_DEFAULT;
 			doesDotMatchNewline = jsonObject.has(DOES_DOT_MATCH_ALL) ? jsonObject.getBoolean(DOES_DOT_MATCH_ALL) : DOES_DOT_MATCH_ALL_DEFAULT;
 		} catch(JSONInterfaceException e) {
+			throw new DeserializationException(e, jsonObject);
+		} catch(MustacheTemplateException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
@@ -92,27 +78,33 @@ public class Regexp {
 	
 
 	/**
-	 * 
-	 * @return The {@link RegexpExecutable}'s {@link PatternInterface}
-	 * to use when executing.
+	 * Compile a {@link Regexp} into a {@link PatternInterface}.
+	 * @param compiler The {@link RegexpCompiler} to use.
+	 * @param variables The {@link Variables} to use.
+	 * @return The {@link PatternInterface}.
 	 * @throws MissingVariableException if a {@link Variable} is missing.
-	 * @throws MustacheTemplateException if the {@link MustacheTemplate} for
-	 * the pattern is invalid.
 	 */
-	/*
-	public PatternInterface getPattern(Variables variables)
-			throws MissingVariableException, MustacheTemplateException {
-		return regexpCompiler.compile(
-				regexpInstruction.getPattern().compile(variables),
-				regexpInstruction.getIsCaseSensitive(),
-				regexpInstruction.getIsMultiline(), regexpInstruction.getDoesDotMatchNewline());
+	public PatternInterface compile(RegexpCompiler compiler, Variables variables)
+			throws MissingVariableException {
+		return compiler.compile(
+				pattern.compile(variables),
+				isCaseSensitive,
+				isMultiline, doesDotMatchNewline);
 	}
-	*/
-	public PatternInterface compileWith(RegexpCompiler regexpCompiler,
-			Variables variables) throws MissingVariableException, MustacheTemplateException {
-		return regexpCompiler.compile(
-				getPattern().compile(variables),
-				getIsCaseSensitive(),
-				getIsMultiline(), getDoesDotMatchNewline());
+	
+	/**
+	 * Compile an array of {@link Regexp}s into an array of {@link PatternInterface}s.
+	 * @param regexps The array of {@link Regexp}s to compile.
+	 * @param variables The {@link Variables} to use.
+	 * @return An array of {@link PatternInterface}.
+	 * @throws MissingVariableException if a {@link Variable} is missing.
+	 */
+	public static PatternInterface[] compile(Regexp[] regexps, RegexpCompiler compiler, Variables variables)
+			throws MissingVariableException {
+		PatternInterface[] patterns = new PatternInterface[regexps.length];
+		for(int i  = 0 ; i < regexps.length ; i++) {
+			patterns[i] = regexps[i].compile(compiler, variables);
+		}
+		return patterns;
 	}
 }

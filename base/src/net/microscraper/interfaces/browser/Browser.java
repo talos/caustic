@@ -57,18 +57,16 @@ public interface Browser {
 	/**
 	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies
 	 * from the Set-Cookie response header to the {@link Browser}'s cookie store.
-	 * @param useRateLimit Whether to avoid overburdening a host.
 	 * @param url the URL to HTTP Head.
 	 * @param headers Array of {@link NameValuePair} extra headers.  Can be <code>null</code> if there are none.
 	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
-	public abstract void head(boolean useRateLimit, String url, NameValuePair[] headers, NameValuePair[] cookies)
+	public abstract void head(String url, NameValuePair[] headers, NameValuePair[] cookies)
 			throws BrowserException;
 	
 	/**
 	 * Make an HTTP Get request.  This returns the body of the response, and adds cookies to the cookie jar.
-	 * @param useRateLimit Whether to avoid overburdening a host.
 	 * @param url the URL to HTTP Get.
 	 * @param headers Array of {@link NameValuePair} extra headers.  Can be <code>null</code> if there are none.
 	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
@@ -77,12 +75,12 @@ public interface Browser {
 	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host, if <code>useRateLimit</code> is <code>true</code>.
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
-	public abstract String get(boolean useRateLimit, String url, NameValuePair[] headers, NameValuePair[] cookies,
+	public abstract String get(String url, NameValuePair[] headers, NameValuePair[] cookies,
 			PatternInterface[] terminates) throws BrowserException;
 	
 	/**
-	 * Make an HTTP Post request.  This returns the body of the response, and adds cookies to the cookie jar.
-	 * @param useRateLimit Whether to avoid overburdening a host.
+	 * Make an HTTP Post request with an array of {@link NameValuePair}s to encode into post data.
+	 * This returns the body of the response, and adds cookies to the cookie jar.
 	 * @param url the URL to HTTP Get.
 	 * @param headers Array of {@link NameValuePair} extra headers.  Can be <code>null</code> if there are none.
 	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
@@ -92,8 +90,24 @@ public interface Browser {
 	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host, if <code>useRateLimit</code> is <code>true</code>.
 	 * @throws BrowserException if there is an exception requesting the page.
 	 */
-	public abstract String post(boolean useRateLimit, String url, NameValuePair[] headers,
+	public abstract String post(String url, NameValuePair[] headers,
 			NameValuePair[] cookies, PatternInterface[] terminates, NameValuePair[] posts)
+			throws BrowserException;
+
+	/**
+	 * Make an HTTP Post request with a {@link String} to encode into post data.
+	 * This returns the body of the response, and adds cookies to the cookie jar.
+	 * @param url the URL to HTTP Get.
+	 * @param headers Array of {@link NameValuePair} extra headers.  Can be <code>null</code> if there are none.
+	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
+	 * @param terminates Array of {@link PatternInterface}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
+	 * @param postData {@link String} of post data. be <code>null</code> if there is none.
+	 * @return The body of the response.
+	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host, if <code>useRateLimit</code> is <code>true</code>.
+	 * @throws BrowserException if there is an exception requesting the page.
+	 */
+	public abstract String post(String url, NameValuePair[] headers,
+			NameValuePair[] cookies, PatternInterface[] terminates, String postData)
 			throws BrowserException;
 	
 	/**
@@ -105,4 +119,39 @@ public interface Browser {
 	 * <code>encoding</code> is not supported.
 	 */
 	public abstract String encode(String stringToEncode, String encoding) throws BrowserException;
+	
+	/**
+	 * Set the rate limit for loading from a single host.  The {@link Browser} will wait until the rate is below
+	 * this threshold before making another request.
+	 * @param rateLimitKBPS The rate limit to set, in kilobytes per second.
+	 * @see #enableRateLimit()
+	 * @see #disableRateLimit()
+	 */
+	public abstract void setRateLimit(int rateLimitKBPS);
+	
+	/**
+	 * Disable the rate limit for loading from a single host.
+	 * @see #disableRateLimit()
+	 * @see #setRateLimit(int)
+	 */
+	public abstract void disableRateLimit();
+	
+	/**
+	 * Enable the rate limit for loading from a single host.
+	 * @see #disableRateLimit()
+	 * @see #setRateLimit(int)
+	 */
+	public abstract void enableRateLimit();
+	
+	/**
+	 * @param timeout How many seconds before giving up on a request.
+	 */
+	public abstract void setTimeout(int timeout);
+	
+	/**
+	 * @param maxResponseSize The maximum size of a response in kilobytes that this {@link Browser}
+	 * will load before terminating.  Since responses are fed straight through to a regex
+	 * parser, it is wise not to deal with huge pages.
+	 */
+	public abstract void setMaxResponseSize(int maxResponseSizeKB);
 }

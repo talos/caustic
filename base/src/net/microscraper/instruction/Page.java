@@ -2,12 +2,17 @@ package net.microscraper.instruction;
 
 import java.io.IOException;
 
+import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheNameValuePair;
 import net.microscraper.MustacheTemplate;
+import net.microscraper.MustacheTemplateException;
+import net.microscraper.Variables;
+import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.json.JSONInterfaceArray;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
-import net.microscraper.interfaces.json.JSONLocation;
+import net.microscraper.interfaces.regexp.RegexpCompiler;
 
 /**
  * A {@link Scraper} that load a web page.
@@ -62,16 +67,13 @@ public final class Page extends Instruction {
 		 */
 		private Method() {}
 	}
-		
-	private final Method method;
+
 	/**
-	 * @return The HTTP request type to use.  Either {@link Method#GET},
+	 * The HTTP request type to use.  Either {@link Method#GET},
 	 * {@link Method#POST}, or {@link Method#HEAD}.
 	 * Defaults to {@link #DEFAULT_METHOD}
 	 */
-	public final Method getMethod() {
-		return method;
-	}
+	private final Method method;
 	
 	/**
 	 * @return The default {@link Method} when one is not explicitly defined.
@@ -87,55 +89,41 @@ public final class Page extends Instruction {
 			return Method.GET;
 		}
 	}
-	
+
+	/**
+	 * {@link MustacheNameValuePair}s of cookies.
+	 */
 	private final MustacheNameValuePair[] cookies;
+
 	/**
-	 * @return {@link MustacheNameValuePair}s of cookies.
+	 * {@link MustacheNameValuePair}s of generic headers.
 	 */
-	public final MustacheNameValuePair[] getCookies() {
-		return cookies;
-	}
-	
 	private final MustacheNameValuePair[] headers;
+
 	/**
-	 * @return {@link MustacheNameValuePair}s of generic headers.
+	 * {@link Page} requests to make beforehand. No data is extracted from these pages.
 	 */
-	public final MustacheNameValuePair[] getHeaders() {
-		return headers;
-	}
-	
 	private final Page[] preload;
+
 	/**
-	 * @return {@link Page} requests to make beforehand. No data is extracted from these pages.
+	 * {@link Regexp}s that terminate the loading of this page's body.
 	 */
-	public final Page[] getPreload() {
-		return preload;
-	}
-	
 	private final Regexp[] stopBecause;
-	/**
-	 * @return {@link Regexp}s that terminate the loading of this page's body.
-	 */
-	public final Regexp[] getStopBecause() {
-		return stopBecause;
-	}
 	
-	private final MustacheNameValuePair[] posts;
 	/**
-	 * @return {@link MustacheNameValuePair}s of post data.
+	 * A {@link MustacheTemplate} of post data.  Exclusive of {@link #postNameValuePairs}.
 	 */
-	public final MustacheNameValuePair[] getPosts() {
-		return posts;
-	}
+	private final MustacheTemplate postData;
 	
+	/**
+	 * {@link MustacheNameValuePair}s of post data.  Exclusive of {@link #postData}.
+	 */
+	private final MustacheNameValuePair[] postNameValuePairs;
+
+	/**
+	 * A string that can be mustached and used as a URL.
+	 */
 	private final MustacheTemplate url;
-	/**
-	 * @return A string that can be mustached and used as a URL.
-	 */
-	public final MustacheTemplate getTemplate() {
-		return url;
-	}
-	
 
 	/**
 	 * Deserialize a {@link Page} from a {@link JSONInterfaceObject}.
@@ -150,7 +138,6 @@ public final class Page extends Instruction {
 		try {
 
 			this.url = new MustacheTemplate(jsonObject.getString(URL));
-
 			
 			try {
 				this.method = jsonObject.has(METHOD) ?
@@ -186,32 +173,25 @@ public final class Page extends Instruction {
 				this.stopBecause = new Regexp[] {};
 			}
 			
-			this.posts = jsonObject.has(POSTS) ?
-					NameValuePairs.deserialize(jsonObject.getJSONObject(POSTS)) :
-					new MustacheNameValuePair[] {};
+			if(jsonObject.has(POSTS)) {
+				if(jsonObject.isJSONObject(POSTS)) {
+					this.postData = null;
+					this.postNameValuePairs = NameValuePairs.deserialize(jsonObject.getJSONObject(POSTS));
+				} else {
+					this.postData = new MustacheTemplate(jsonObject.getString(POSTS));
+					this.postNameValuePairs = null;
+				}
+			} else {
+				this.postData = null;
+				this.postNameValuePairs = null;
+			}
 		} catch(JSONInterfaceException e) {
+			throw new DeserializationException(e, jsonObject);
+		} catch(MustacheTemplateException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
 
-	
-	public Page(JSONLocation location, MustacheTemplate name, 
-			boolean shouldSaveValue,
-			MustacheTemplate url, Page[] spawnPages,
-			FindMany[] findManys, FindOne[] findOnes, MustacheTemplate urlTemplate,
-			Method method, MustacheNameValuePair[] headers,
-			MustacheNameValuePair[] posts, MustacheNameValuePair[] cookies,
-			Regexp[] stopBecause, Page[] preload) {
-		super(location, name, shouldSaveValue, findOnes, findManys, spawnPages);
-		this.url = url;
-		this.method = method;
-		this.headers = headers;
-		this.posts = posts;
-		this.cookies = cookies;
-		this.stopBecause = stopBecause;
-		this.preload = preload;
-	}
-	
 	/**
 	 * Key for {@link #getMethod()} when deserializing. Default is {@link #DEFAULT_METHOD},
 	 */
@@ -278,5 +258,51 @@ public final class Page extends Instruction {
 	 */
 	public final boolean defaultShouldSaveValue() {
 		return false;
+	}
+	
+	private String getURL(Browser browser, Variables variables) throws MissingVariableException, MustacheTemplateException {
+		return url.compileEncoded(toString(), variables, browser, Browser.UTF_8);
+	}
+	
+	/**
+	 * Request this {@link Page}, and return the response.
+	 * @param browser The {@link Browser} to use when making the request.
+	 * @param compiler The {@link RegexpCompiler} to use.
+	 * @param variables The {@link Variables} to use when substituting.
+	 * @return The response to this request as a {@link String}.
+	 * @throws MissingVariableException If <code>variables</code> lacked a necessary element.
+	 * @throws MustacheTemplateException If a {@link MustacheTemplate} had an error.
+	 * @throws BrowserException If <code>browser</code> experienced an exception while loading the response.
+	 */
+	public String getResponse(Browser browser, RegexpCompiler compiler, Variables variables) throws MissingVariableException, BrowserException, MustacheTemplateException {
+		// Temporary executions to do before.  Not published, executed each time.
+		for(int i = 0 ; i < preload.length ; i ++) {
+			preload[i].getResponse(browser, compiler, variables);
+		}
+		if(method.equals(Method.GET)) {
+			return browser.get(getURL(browser, variables),
+					MustacheNameValuePair.compile(headers, variables),
+					MustacheNameValuePair.compile(cookies, variables),
+					Regexp.compile(stopBecause, compiler, variables));
+		} else if(method.equals(Method.POST)) {
+			if(postNameValuePairs == null) {
+				return browser.post(getURL(browser, variables),
+						MustacheNameValuePair.compile(headers, variables),
+						MustacheNameValuePair.compile(cookies, variables),
+						Regexp.compile(stopBecause, compiler, variables),
+						postData.compile(variables));
+			} else {
+				return browser.post(getURL(browser, variables),
+						MustacheNameValuePair.compile(headers, variables),
+						MustacheNameValuePair.compile(cookies, variables),
+						Regexp.compile(stopBecause, compiler, variables),
+						MustacheNameValuePair.compile(postNameValuePairs,variables));
+			}
+		} else if(method.equals(Method.HEAD)) {
+			browser.head(getURL(browser, variables), 
+					MustacheNameValuePair.compile(headers, variables),
+					MustacheNameValuePair.compile(cookies, variables));
+		}
+		return null;
 	}
 }

@@ -20,14 +20,7 @@ public class FindManyExecutable extends FindExecutable {
 	protected String[] generateResultValues()
 			throws MissingVariableException, ExecutionFailure {
 		try {
-			FindMany findMany = (FindMany) getInstruction();
-			
-			String replacement = getReplacement();
-			return getPattern().allMatches(
-					getSource().getValue(),
-					replacement,
-					findMany.getMinMatch(),
-					findMany.getMaxMatch());
+
 			
 		} catch(MustacheTemplateException e) {
 			throw new ExecutionFailure(e);

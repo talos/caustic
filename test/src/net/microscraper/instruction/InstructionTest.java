@@ -8,7 +8,7 @@ import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Tested;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
-import net.microscraper.interfaces.json.JSONLocation;
+import net.microscraper.interfaces.uri.URIInterface;
 
 import org.junit.Test;
 
@@ -21,7 +21,7 @@ public class InstructionTest {
 	public void testGetLocation() throws Exception {
 		final String locationString = "http://www.xyz.com/location";
 		new NonStrictExpectations() {
-			JSONLocation location;
+			URIInterface location;
 			{
 				obj.getLocation(); result = location;
 				location.toString(); result = locationString;

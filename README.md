@@ -6,7 +6,7 @@ cooperative scrapers for mobile apps
 
 The easiest way to try out microscraper is the precompiled utility. Run
 
-    $ utility/microscraper -e '{"url":"http://www.google.com","finds_one":{"pattern":"[\\w]*\\sLucky"}}' --output-stdout
+    $ utility/microscraper -e '{"url":"http://www.google.com","finds_one":{"pattern":"[\\w]*\\sLucky"}}'
 
 in the terminal of your choice.  This executes the inline (-e) JSON instruction
 
@@ -17,7 +17,7 @@ in the terminal of your choice.  This executes the inline (-e) JSON instruction
       }
     }
 
-and pipes the results to stdout (--output-stdout)
+and sends the results to stdout
 
 <table>
   <tr><th>id  <th>source_id <th>name                  <th>value
@@ -51,7 +51,7 @@ Here's a simple instruction, which is one of the [fixtures](microscraper-client/
 
 For microscraper to execute this instruction, it needs a value to substitute for *{{query}}*.  Run the following
 
-    $ utility/microscraper fixtures/json/simple-google.json --defaults="query=hello" --output-stdout
+    $ utility/microscraper fixtures/json/simple-google.json --defaults="query=hello"
 
 to replace *{{query}}* with *hello*.  We get the following
 
@@ -82,20 +82,20 @@ curlies will be substituted once a *value* has been found for it.
 This [fixture](microscraper-client/blob/master/utility/fixtures/json/complex-google.json)
 
     {
-     "url" : "http://www.google.com/search?q={{query}}",
-     "finds_many"  : {
-       "name"   : "after",
-       "pattern"     : "{{query}}\\s+(\\w+)",
-       "replacement" : "$1",
-       "then" : {
-         "url" : "http://www.google.com/search?q={{after}}",
-	 "finds_many" : {
-	   "name"   : "what do you say after '{{after}}'?",
-           "pattern"     : "{{query}}\\s+(\\w+)",
-           "replacement" : "I say '$1'!"
-	 }
-       }
-     }
+      "url" : "http://www.google.com/search?q={{query}}",
+      "finds_many"  : {
+        "name"   : "after",
+        "pattern"     : "{{query}}\\s+(\\w+)",
+        "replacement" : "$1",
+        "then" : {
+          "url" : "http://www.google.com/search?q={{after}}",
+          "finds_many" : {
+            "name"   : "what do you say after '{{after}}'?",
+            "pattern"     : "{{query}}\\s+(\\w+)",
+            "replacement" : "I say '$1'!"
+          }
+        }
+      }
     }
 
 takes advantage of dynamic substitution, along with the ability to make another url request inside *then*.  The
@@ -103,7 +103,7 @@ takes advantage of dynamic substitution, along with the ability to make another 
 
 Try it with
 
-    $ utility/microscraper fixtures/json/complex-google.json --defaults="query=hello" --output-stdout
+    $ utility/microscraper fixtures/json/complex-google.json --defaults="query=hello"
 
 You'll see that this results in quite a few dozen rows, but here are some highlights:
 
@@ -134,6 +134,27 @@ Note that the *source_id* column links each *find_many* result back to its sourc
 You probably noticed that interior portion of the last fixture was basically copy-and-pasted from the fixture
 before it.  Wouldn't it be nice if we could reuse instruction components?
 
+This [fixture](microscraper-client/blob/master/utility/fixtures/json/reference-google.json) does just that
+
+    {
+      "url" : "http://www.google.com/search?q={{query}}",
+      "finds_many"  : {
+        "name"   : "after",
+        "pattern"     : "{{query}}\\s+(\\w+)",
+        "replacement" : "$1",
+        "then" : { "$ref" : "simple-google.json" }
+      }
+    }
+
+Running
+
+    $ utility/microscraper fixtures/json/complex-google.json --defaults="query=hello"
+
+should give you the same results as before.
+
+Microscraper takes a page from [jsonschema](http://json-schema.org/), using *$ref* as the key to a URI to
+replace the enclosing object.
+
 #### Why? ####
 
-Microscraper is designed to give wider access to obscure public data.  The microscraper format makes it easy to quickly design and test a scraper that extracts a few pieces of information from behind several layers of obfuscation.  See [the examples](examples.md).
+Microscraper is designed to give wider access to obscure public data.  The microscraper format makes it easy to quickly design and test a scraper that extracts a few pieces of information from behind several layers of obfuscation.

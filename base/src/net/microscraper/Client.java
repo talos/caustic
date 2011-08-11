@@ -13,8 +13,8 @@ import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
-import net.microscraper.interfaces.json.JSONLocation;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
+import net.microscraper.interfaces.uri.URIInterface;
 
 /**
  * A microscraper {@link Client} can scrape a {@link Instruction}.

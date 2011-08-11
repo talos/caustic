@@ -52,9 +52,4 @@ public class FindOneExecutable extends FindExecutable {
 			throw new ExecutionFailure(e);
 		}
 	}
-
-	protected boolean generatesManyResults() {
-		return false;
-	}
-	
 }

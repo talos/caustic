@@ -11,12 +11,13 @@ import mockit.Mock;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.impl.json.JSONME;
-import net.microscraper.impl.json.JavaNetJSONLocation;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
 import net.microscraper.impl.regexp.JavaUtilRegexpCompiler;
+import net.microscraper.impl.uri.JavaNetURI;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.file.FileLoader;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
+import net.microscraper.interfaces.uri.URIInterface;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +30,7 @@ public class JSONInterfaceTest {
 	private final Class<JSONInterface> klass;
 	private JSONInterface jsonInterface;
 	
-	private @Mocked JSONLocation location1, location2;
+	private @Mocked URIInterface location1, location2;
 	private static final String path1 = "this/is/path/1";
 	private static final String path2 = "this/is/path/2";
 	

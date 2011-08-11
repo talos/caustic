@@ -21,15 +21,12 @@ import net.microscraper.interfaces.regexp.PatternInterface;
  */
 public abstract class FindExecutable extends BasicExecutable {
 	
-	private final Regexp regexp;
+	//private final Executable enclosingExecutable;
 	
-	private final Executable enclosingExecutable;
-	
-	public FindExecutable(Interfaces context,
-			Find find, Executable enclosingExecutable, Result source) {
-		super(context, find, source);
-		this.regexp = find.getRegexp();
-		this.enclosingExecutable = enclosingExecutable;
+	public FindExecutable(Find find, RegexpCompiler compiler, Browser browser,
+			Variables variables, Result source) {
+		super(find, compiler, browser, source);
+		//this.enclosingExecutable = enclosingExecutable;
 	}
 	
 	/**

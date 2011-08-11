@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.Interfaces;
+import net.microscraper.Log;
 import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplateException;
 import net.microscraper.Utils;
@@ -13,7 +14,10 @@ import net.microscraper.instruction.FindMany;
 import net.microscraper.instruction.FindOne;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Page;
+import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.database.DatabaseException;
+import net.microscraper.interfaces.regexp.RegexpCompiler;
 
 /**
  * {@link BasicExecutable} is a partial implementation of {@link Executable}.  It provides a framework
@@ -25,10 +29,13 @@ import net.microscraper.interfaces.database.DatabaseException;
  * @author john
  *
  */
-public abstract class BasicExecutable implements Executable {
+public abstract class BasicExecutable extends Log implements Executable {
 	private final Instruction instruction;
 	private final Result source;
-	private final Interfaces interfaces;
+	//private final Interfaces interfaces;
+	private final Browser browser;
+	private final RegexpCompiler compiler;
+	private final Database database;
 	
 	private Result[] results = null;
 	private Executable[] children = null;
@@ -43,17 +50,21 @@ public abstract class BasicExecutable implements Executable {
 	
 	/**
 	 * Construct a new {@link BasicExecutable}.
-	 * @param context The {@link Interfaces} to use.
 	 * @param instruction The {@link Instruction} with instructions for execution.
+	 * @param compiler the {@link RegexpCompiler} to use.
+	 * @param browser the {@link Browser} to use.
 	 * @param source The {@link Result} which is the source of this {@link Executable}.  Can
 	 * be <code>null</code> if there was none.
+	 * @param database The {@link Database} to use when storing {@link Result}s.
 	 * @see #run
 	 */
-	protected BasicExecutable(Interfaces context, Instruction instruction,
-			Result source) {
-		this.interfaces = context;
+	protected BasicExecutable(Instruction instruction, RegexpCompiler compiler,
+			Browser browser, Result source, Database database) {
 		this.instruction = instruction;
+		this.compiler = compiler;
+		this.browser = browser;
 		this.source = source;
+		this.database = database;
 	}
 	
 	public final void run() {
@@ -108,8 +119,8 @@ public abstract class BasicExecutable implements Executable {
 	 */
 	private void handleFailure(ExecutionFailure e) {
 		failure = e.getCause();
-		interfaces.getLog().i("Failure in " + toString());
-		interfaces.getLog().e(failure);
+		i("Failure in " + toString());
+		e(failure);
 	}
 	
 	/**
@@ -118,13 +129,13 @@ public abstract class BasicExecutable implements Executable {
 	 * @param e The {@link MissingVariableException}.
 	 */
 	private void handleMissingVariable(MissingVariableException e) {
-		interfaces.getLog().i("Missing " + Utils.quote(e.name) + " from " + toString());
+		i("Missing " + Utils.quote(e.name) + " from " + toString());
 		if(missingVariable != null) {
 			lastMissingVariable = new String(missingVariable);
 			missingVariable = e.name;
 			if(lastMissingVariable.equals(missingVariable)) {
 				isStuck = true;
-				interfaces.getLog().i("Stuck on " + Utils.quote(missingVariable) + " in " + toString());
+				i("Stuck on " + Utils.quote(missingVariable) + " in " + toString());
 			}
 		} else {
 			missingVariable = e.name;
@@ -146,57 +157,6 @@ public abstract class BasicExecutable implements Executable {
 	protected abstract String[] generateResultValues() throws
 			MissingVariableException, MustacheTemplateException, ExecutionFailure;
 	
-	/**
-	 * Must be overriden by {@link BasicExecutable} subclass.  Should return 0-length array if there are
-	 * no children.
-	 * @param results The {@link Result} array from {@link #generateResult}.
-	 * @return An array of {@link Execution[]}s whose parent is this execution.
-	 * Later accessible through {@link #getChildren}.
-	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
-	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
-	 * {@link Executable}'s {@link Variables}.
-	 * @throws IOException If there was an error loading the {@link Instruction} for one of the children.
-	 * @throws DeserializationException If there was an error deserializing the {@link Instruction} for one
-	 * of the children.
-	 * @see #generateResource
-	 * @see #generateResult
-	 * @see #getChildren
-	 */
-	private final Executable[] generateChildren(Result[] results)
-				throws MissingVariableException, MustacheTemplateException, DeserializationException, IOException {
-		Vector children = new Vector();
-		Vector findOneExecutables = new Vector();
-		Instruction instruction = getInstruction();
-		FindOne[] findOnes = instruction.getFindOnes();
-		FindMany[] findManys = instruction.getFindManys();
-		Page[] pages = instruction.getPages();
-		
-		for(int i = 0; i < results.length ; i++) {
-			Result sourceResult = results[i];
-			for(int j = 0 ; j < findOnes.length ; j ++) {
-				FindOneExecutable findOneExecutable = new FindOneExecutable(
-						getInterfaces(),
-						findOnes[j], this, sourceResult);
-				findOneExecutables.add(findOneExecutable);
-				children.add(findOneExecutable);
-			}
-			for(int j = 0 ; j < findManys.length ; j ++) {
-				children.add(new FindManyExecutable(getInterfaces(), findManys[j],
-						this, sourceResult));
-			}
-			for(int j = 0 ; j < pages.length ; j ++) {
-				children.add(new PageExecutable(getInterfaces(), pages[j],
-						this, sourceResult));
-			}
-		}
-		
-		this.findOneExecutableChildren = new FindOneExecutable[findOneExecutables.size()];
-		findOneExecutables.copyInto(this.findOneExecutableChildren);
-		
-		Executable[] childrenAry = new Executable[children.size()];
-		children.copyInto(childrenAry);
-		return childrenAry;
-	}
 	
 	protected final FindOneExecutable[] getFindOneExecutableChildren() {
 		return this.findOneExecutableChildren;
@@ -265,12 +225,8 @@ public abstract class BasicExecutable implements Executable {
 		return isComplete;
 	}
 	
-	/**
-	 * @return A String identifying this {@link BasicExecutable} in the following form:
-	 * <p><code>Execution {@link #getId()} {@link #getResourceLocation()}.toString()
-	 */
 	public final String toString() {
-		return "Execution " + getInstruction().getLocation();
+		return getInstruction().toString();
 	}
 	
 	public final Executable[] getChildren() throws IllegalStateException {
@@ -280,22 +236,14 @@ public abstract class BasicExecutable implements Executable {
 			throw new IllegalStateException();
 		}
 	}
-	
-	/**
-	 * 
-	 * @return The {@link Interfaces} for this {@link BasicExecutable}.
-	 */
-	public final Interfaces getInterfaces() {
-		return interfaces;
-	}
-	
+	/*
 	public Result[] getResults() throws IllegalStateException {
 		if(isComplete()) {
 			return results;
 		}
 		throw new IllegalStateException();
 	}
-	
+	*/
 	/**
 	 * 
 	 * @return The {@link Instruction#getName()}, compiled through

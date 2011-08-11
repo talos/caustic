@@ -18,7 +18,7 @@ import net.microscraper.instruction.Page;
 import net.microscraper.instruction.Regexp;
 import net.microscraper.instruction.Scraper;
 import net.microscraper.interfaces.database.Database;
-import net.microscraper.interfaces.json.JSONLocation;
+import net.microscraper.interfaces.uri.URIInterface;
 import net.microscraper.test.TestUtils;
 
 import org.junit.Before;

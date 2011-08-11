@@ -26,10 +26,10 @@ import net.microscraper.impl.database.SQLConnectionException;
 import net.microscraper.impl.database.SingleTableDatabase;
 import net.microscraper.impl.file.JavaIOFileLoader;
 import net.microscraper.impl.json.JSONME;
-import net.microscraper.impl.json.JavaNetJSONLocation;
 import net.microscraper.impl.log.JavaIOFileLogger;
 import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.impl.regexp.JavaUtilRegexpCompiler;
+import net.microscraper.impl.uri.JavaNetURI;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.database.DatabaseException;
@@ -38,8 +38,8 @@ import net.microscraper.interfaces.file.FileLoader;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
-import net.microscraper.interfaces.json.JSONLocationException;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
+import net.microscraper.interfaces.uri.URIInterfaceException;
 
 public class MicroScraperConsole {
 	private static final String newline = System.getProperty("line.separator");
@@ -90,11 +90,11 @@ public class MicroScraperConsole {
 	private static final char TAB_OUTPUT_COLUMN_DELIMITER = '\t';
 	private static final char CSV_OUTPUT_COLUMN_DELIMITER = ',';
 	
-	private static final String OUTPUT_LOCATION_OPTION = "--output-location";
+	private static final String OUTPUT_TO_FILE_OPTION = "--output-to-file";
 	private static String outputLocation = null;
 	
-	private static final String OUTPUT_STDOUT_OPTION = "--output-stdout";
-	private static boolean outputStdout = false;
+	//private static final String OUTPUT_STDOUT_OPTION = "--output-stdout";
+	//private static boolean outputStdout = false;
 	
 	private static final String RATE_LIMIT_OPTION = "--rate-limit";
 	
@@ -135,12 +135,9 @@ public class MicroScraperConsole {
 "	" + OUTPUT_FORMAT_OPTION + "=(" + Utils.join(validOutputFormats.toArray(new String[0]), "|") +")" + newline +
 "		How to format output.  Defaults to " + fileOutputFormat + " unless " + newline +
 "		--log-stdout is specified, in which case it defaults to " + stdoutOutputFormat + "." + newline +
-"	" + OUTPUT_LOCATION_OPTION + "[=<path>], " + newline +
+"	" + OUTPUT_TO_FILE_OPTION + "[=<path>], " + newline +
 "		Where to save the output.  Defaults to 'yyyyMMddkkmmss.<format>' in" + newline +
 "		the current directory output." + newline +
-"	" + OUTPUT_STDOUT_OPTION + newline +
-"		Pipe output to stdout.  This is not compatible with" + newline +
-"		sqlite." + newline +
 "	" + RATE_LIMIT_OPTION + "=<max-kbps>" + newline +
 "		The rate limit, in KBPS, for loading from a single host." + newline +
 "		Defaults to " + Integer.toString(rateLimit) + " KBPS." + newline +
@@ -186,7 +183,7 @@ public class MicroScraperConsole {
 			print("Could not set up database: " + e.getMessage());
 		} catch(UnsupportedEncodingException e) {
 			print("Unsupported encoding: " + e.getMessage());
-		} catch(JSONLocationException e) {
+		} catch(URIInterfaceException e) {
 			print("Could not locate instructions: " + e.getMessage());
 		} catch(IOException e) {
 			print("Could not open log file: " + e.getMessage());
@@ -210,7 +207,7 @@ public class MicroScraperConsole {
 	private static void initialize(String[] args) throws IllegalArgumentException,
 					FileNotFoundException, SQLConnectionException, JSONInterfaceException,
 					DatabaseException, IOException,
-					UnsupportedEncodingException, JSONLocationException {
+					UnsupportedEncodingException, URIInterfaceException {
 		if(args.length == 0) {
 			throw new IllegalArgumentException("You must specify the URI of scraper instructions.");
 		}
@@ -258,10 +255,12 @@ public class MicroScraperConsole {
 						throw new IllegalArgumentException(Utils.quote(value)
 								+ " is not a valid output format.");
 					}
-				} else if(arg.equals(OUTPUT_LOCATION_OPTION)) {
-					outputLocation = value;
-				} else if(arg.equals(OUTPUT_STDOUT_OPTION)) {
-					outputStdout = true;
+				} else if(arg.equals(OUTPUT_TO_FILE_OPTION)) {
+					if(value == null) {
+						outputLocation = TIMESTAMP + "." + fileOutputFormat;
+					} else {
+						outputLocation = value;
+					}
 				} else if(arg.equals(RATE_LIMIT_OPTION)) {
 					try {
 						rateLimit = Integer.parseInt(value);
@@ -289,9 +288,9 @@ public class MicroScraperConsole {
 		}
 		
 		if(args[0].equals(INLINE_SWITCH)) {
-			instructions = jsonInterface.parse(new JavaNetJSONLocation(""), args[1]);
+			instructions = jsonInterface.parse(new JavaNetURI(""), args[1]);
 		} else {
-			instructions = jsonInterface.load(new JavaNetJSONLocation(args[0]));
+			instructions = jsonInterface.load(new JavaNetURI(args[0]));
 		}
 		
 		if(stdoutOutputFormat.equals(CSV_OUTPUT_FORMAT_VALUE)) {
@@ -300,11 +299,7 @@ public class MicroScraperConsole {
 			outputColumnDelimiter = TAB_OUTPUT_COLUMN_DELIMITER;
 		}
 		
-		if(outputStdout == false) {
-			if(outputLocation == null) {
-				// Default output file name.
-				outputLocation = TIMESTAMP + "." + fileOutputFormat;				
-			}
+		if(outputLocation != null) {
 			if(fileOutputFormat.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
 				IOConnection connection = JDBCSqliteConnection.toFile(outputLocation, log, batchSize);
 				if(singleTable == true) {

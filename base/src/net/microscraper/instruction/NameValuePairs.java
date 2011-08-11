@@ -2,6 +2,7 @@ package net.microscraper.instruction;
 
 import net.microscraper.MustacheNameValuePair;
 import net.microscraper.MustacheTemplate;
+import net.microscraper.MustacheTemplateException;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceIterator;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
@@ -28,6 +29,8 @@ public class NameValuePairs {
 			}
 			return pairs;
 		} catch(JSONInterfaceException e) {
+			throw new DeserializationException(e, jsonObject);
+		} catch(MustacheTemplateException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}

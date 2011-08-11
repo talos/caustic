@@ -15,7 +15,7 @@ import net.microscraper.interfaces.log.Logger;
  * @see Logger
  *
  */
-public final class Log implements Logger {
+public class Log implements Logger {
 	private final Vector loggers = new Vector();
 	public void register(Logger logger) {
 		loggers.addElement(logger);

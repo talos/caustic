@@ -25,23 +25,23 @@ import net.microscraper.impl.database.JDBCSqliteConnection;
 import net.microscraper.impl.database.MultiTableDatabase;
 import net.microscraper.impl.file.JavaIOFileLoader;
 import net.microscraper.impl.json.JSONME;
-import net.microscraper.impl.json.JavaNetJSONLocation;
 import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
+import net.microscraper.impl.uri.JavaNetURI;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.database.IOConnection;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.database.IOTable;
 import net.microscraper.interfaces.json.JSONInterfaceException;
-import net.microscraper.interfaces.json.JSONLocation;
+import net.microscraper.interfaces.uri.URIInterface;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ClientTest {
-	private JSONLocation fixturesFolder, simpleGoogle, nycPropertyOwner, nycIncentives,
+	private URIInterface fixturesFolder, simpleGoogle, nycPropertyOwner, nycIncentives,
 						nycIncentivesSimple, eventValidation, simpleGoogleSplit1, 
 						simpleGoogleSplit2;
 	
@@ -63,7 +63,7 @@ public class ClientTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		fixturesFolder = new JavaNetJSONLocation(
+		fixturesFolder = new JavaNetURI(
 				new File(System.getProperty("user.dir")).toURI().resolve("fixtures/"));
 		
 		simpleGoogle = fixturesFolder.resolve("simple-google.json");
@@ -498,13 +498,13 @@ public class ClientTest {
 	*/
 	/**
 	 * Convenience method to test one Scraper with our mock publisher.
-	 * @param String {@link JSONLocation} location of the {@link Scraper}
+	 * @param String {@link URIInterface} location of the {@link Scraper}
 	 * instructions.
 	 * @param extraVariables Array of {@link BasicNameValuePair}s to
 	 * use as extra {@link Variables}.
 	 * @throws Exception If the test failed.
 	 */
-	private void testScrape(JSONLocation location,
+	private void testScrape(URIInterface location,
 			BasicNameValuePair[] extraVariables) throws Exception {
 		try {
 			client.scrape(location, extraVariables);

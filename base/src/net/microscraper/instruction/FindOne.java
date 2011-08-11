@@ -5,7 +5,7 @@ import java.io.IOException;
 import net.microscraper.MustacheTemplate;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
-import net.microscraper.interfaces.json.JSONLocation;
+import net.microscraper.interfaces.uri.URIInterface;
 
 /**
  * A one-to-one {@link Find} that can link to other {@link Find}s,
@@ -49,14 +49,6 @@ public class FindOne extends Find {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
-	
-	public FindOne(JSONLocation location, MustacheTemplate name, FindOne[] findOnes,
-			boolean shouldSaveValue, FindMany[] findManys, Page[] spawnPages,
-			Regexp regexp, Regexp[] tests, MustacheTemplate replacement, int match, FindOne[] findsOne, FindMany[] findsMany) {
-		super(location, name, shouldSaveValue, findOnes, findManys, spawnPages, regexp, tests, replacement);
-		this.match = match;
-	}
-	
 	/**
 	 * Key for {@link #getMatch()} value when deserializing from JSON.
 	 */

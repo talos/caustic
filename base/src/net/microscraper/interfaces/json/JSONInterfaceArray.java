@@ -118,5 +118,5 @@ public interface JSONInterfaceArray {
 	 * 
 	 * @return The {@link JSONInterfaceArray}'s {@link JSONLocation}.
 	 */
-	public abstract JSONLocation getLocation();
+	//public abstract JSONLocation getLocation();
 }

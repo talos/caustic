@@ -2,11 +2,14 @@ package net.microscraper.instruction;
 
 import java.io.IOException;
 
-import net.microscraper.MustacheTemplate;
-import net.microscraper.instruction.mixin.CanSpawnPages;
+import net.microscraper.MissingVariableException;
+import net.microscraper.Variables;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
-import net.microscraper.interfaces.json.JSONLocation;
+import net.microscraper.interfaces.regexp.InvalidRangeException;
+import net.microscraper.interfaces.regexp.MissingGroupException;
+import net.microscraper.interfaces.regexp.NoMatchesException;
+import net.microscraper.interfaces.regexp.RegexpCompiler;
 
 /**
  * A {@link Find} that can connect to other {@link Scraper} through {@link #getScrapers()},
@@ -18,7 +21,6 @@ import net.microscraper.interfaces.json.JSONLocation;
  *
  */
 public class FindMany extends Find {		
-	private final int minMatch;
 
 	/**
 	 * The first of the parser's matches to export.
@@ -27,20 +29,15 @@ public class FindMany extends Find {
 	 * @see #maxMatch
 	 * @see FindOne#match
 	 */
-	public final int getMinMatch() {
-		return minMatch;
-	}
-	
-	private final int maxMatch;
+	private final int minMatch;
+
 	/**
 	 * The last of the parser's matches to export.
 	 * Negative numbers count backwards, so <code>-1</code> is the last match.
 	 * @see #minMatch
 	 * @see FindOne#match
 	 */
-	public final int getMaxMatch() {
-		return maxMatch;
-	}
+	private final int maxMatch;
 	
 	/**
 	 * Deserialize a {@link FindMany} from a {@link JSONInterfaceObject}.
@@ -59,17 +56,6 @@ public class FindMany extends Find {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
-	
-	public FindMany(JSONLocation location, MustacheTemplate name, FindOne[] findOnes,
-			boolean shouldSaveValue,
-			FindMany[] findManys, Page[] spawnPages,
-			Regexp regexp, Regexp[] tests, MustacheTemplate replacement, int minMatch, int maxMatch) {
-		super(location, name, shouldSaveValue, findOnes, findManys,
-				spawnPages, regexp, tests, replacement);
-		this.minMatch = minMatch;
-		this.maxMatch = maxMatch;
-	}
-	
 	/**
 	 * Key for {@link #getMinMatch()} value when deserializing from JSON.
 	 */
@@ -89,4 +75,9 @@ public class FindMany extends Find {
 	 * {@link #getMaxMatch()} defaults to the last of any number of matches.
 	 */
 	public static final int DEFAULT_MAX_MATCH = -1;
+	
+	public String[] match(RegexpCompiler compiler, String source, Variables variables)
+			throws MissingGroupException, InvalidRangeException, MissingVariableException, NoMatchesException {
+		return matchMany(compiler, source, variables, minMatch, maxMatch);
+	}
 }

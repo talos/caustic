@@ -1,33 +1,60 @@
 package net.microscraper.instruction;
 
 import java.io.IOException;
+import java.util.Vector;
 
+import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplate;
-import net.microscraper.instruction.mixin.CanFindMany;
-import net.microscraper.instruction.mixin.CanFindOne;
-import net.microscraper.instruction.mixin.CanSpawnPages;
+import net.microscraper.MustacheTemplateException;
+import net.microscraper.Variables;
+import net.microscraper.executable.Executable;
+import net.microscraper.executable.FindManyExecutable;
+import net.microscraper.executable.FindOneExecutable;
+import net.microscraper.executable.PageExecutable;
+import net.microscraper.executable.Result;
+import net.microscraper.interfaces.json.JSONInterfaceArray;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
-import net.microscraper.interfaces.json.JSONLocation;
 
 /**
  * {@link Instruction}s hold instructions for {@link Executable}s.
  * @author realest
  *
  */
-public abstract class Instruction implements CanFindOne, CanFindMany, CanSpawnPages {
+public abstract class Instruction  {
 	
 	/**
-	 * Key for {@link #getName()} value when deserializing from JSON.
+	 * Key for {@link #findManys} when deserializing from JSON.
+	 */
+	public static final String FINDS_MANY = "finds_many";
+
+	/**
+	 * Key for {@link #findOnes} when deserializing from JSON.
+	 */
+	public static final String FINDS_ONE = "finds_one";
+
+	/**
+	 * Key for {@link #spawnPages} when deserializing from JSON.
+	 */
+	public static final String THEN = "then";
+	
+	/**
+	 * Key for {@link #name} value when deserializing from JSON.
 	 */
 	public static final String NAME = "name";
 	
 	/**
-	 * Key for {@link #shouldSaveValue()} value when deserializing from JSON.
+	 * Key for {@link #shouldSaveValue} value when deserializing from JSON.
 	 */
 	public static final String SAVE = "save";
 	
 	private final MustacheTemplate name;
+	
+	/**
+	 * The {@link JSONInterfaceObject} this {@link Instruction} was deserialized from,
+	 * as a formatted {@link String}.
+	 */
+	private final String formattedJSON;
 	
 	private final boolean shouldSaveValue;
 	
@@ -40,6 +67,7 @@ public abstract class Instruction implements CanFindOne, CanFindMany, CanSpawnPa
 	public boolean shouldSaveValue() {
 		return shouldSaveValue;
 	}
+	
 	/**
 	 * 
 	 * @return Whether {@link #shouldSaveValue()} should be <code>true</code>
@@ -47,16 +75,6 @@ public abstract class Instruction implements CanFindOne, CanFindMany, CanSpawnPa
 	 * @see #shouldSaveValue
 	 */
 	public abstract boolean defaultShouldSaveValue();
-	
-	private final JSONLocation location;
-	
-	/**
-	 * 
-	 * @return The {@link JSONLocation} where this {@link Instruction} is located.
-	 */
-	public final JSONLocation getLocation() {
-		return location;
-	}
 	
 	/**
 	 * @return A {@link MustacheTemplate} attached to this particular {@link Find} {@link Instruction}.
@@ -78,64 +96,149 @@ public abstract class Instruction implements CanFindOne, CanFindMany, CanSpawnPa
 	}
 
 	/**
-	 *
-	 * @param location A {@link JSONLocation} where this {@link Instruction} is located.
-	 * @param name The {@link MustacheTemplate} to use as a name for this {@link Instruction}.
-	 * Can be <code>null</code>.
-	 */
-	public Instruction(JSONLocation location, MustacheTemplate name, boolean shouldSaveValue,
-			FindOne[] findOnes, FindMany[] findManys, Page[] spawnPages) {
-		this.location = location;
-		this.name = name;
-		this.shouldSaveValue = shouldSaveValue;
-		this.findOnes = findOnes;
-		this.findManys = findManys;
-		this.spawnPages = spawnPages;
-	}
-
-	/**
 	 * {@link Instruction} can be initialized with a {@link JSONInterfaceObject}, which has a location.
-	 * @param obj The {@link JSONInterfaceObject} object to deserialize.
+	 * @param jsonObject The {@link JSONInterfaceObject} object to deserialize.
 	 * @throws DeserializationException If there is a problem deserializing <code>obj</code>
 	 * @throws IOException If there is an error loading one of the references.
 	 */
-	public Instruction(JSONInterfaceObject obj) throws DeserializationException, IOException {
-		this.location = obj.getLocation();
+	public Instruction(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
 		try {
-			if(obj.has(NAME)) {
-				name = new MustacheTemplate(obj.getString(NAME));
+			this.formattedJSON = jsonObject.toString();
+			
+			if(jsonObject.has(NAME)) {
+				name = new MustacheTemplate(jsonObject.getString(NAME));
 			} else {
 				name = null;
 			}
-			if(obj.has(SAVE)) {
-				shouldSaveValue = obj.getBoolean(SAVE);
+			if(jsonObject.has(SAVE)) {
+				shouldSaveValue = jsonObject.getBoolean(SAVE);
 			} else {
 				shouldSaveValue = this.defaultShouldSaveValue();
 			}
-			CanFindMany canFindMany = CanFindMany.Deserializer.deserialize(obj);
-			CanFindOne  canFindOne = CanFindOne.Deserializer.deserialize(obj);
-			CanSpawnPages canSpawnPages = CanSpawnPages.Deserializer.deserialize(obj);
 			
-			this.spawnPages = canSpawnPages.getPages();
-			this.findManys = canFindMany.getFindManys();
-			this.findOnes  = canFindOne.getFindOnes();
+			if(jsonObject.has(FINDS_MANY)) {
+				// If the key refers directly to an object, it is considered
+				// an array of 1.
+				if(jsonObject.isJSONObject(FINDS_MANY)) {
+					findManys = new FindMany[] {
+							new FindMany(jsonObject.getJSONObject(FINDS_MANY))
+					};
+				} else {
+					JSONInterfaceArray array = jsonObject.getJSONArray(FINDS_MANY);
+					findManys = new FindMany[array.length()];
+					for(int i = 0 ; i < findManys.length ; i ++) {
+						findManys[i] = new FindMany(array.getJSONObject(i));
+					}
+				}
+			} else {
+				findManys = new FindMany[] {};
+			}
+			
+			if(jsonObject.has(FINDS_ONE)) {
+				// If the key refers directly to an object, it is considered
+				// an array of 1.
+				if(jsonObject.isJSONObject(FINDS_ONE)) {
+					findOnes = new FindOne[] {
+							new FindOne(jsonObject.getJSONObject(FINDS_ONE))
+					};
+				} else {
+					JSONInterfaceArray array = jsonObject.getJSONArray(FINDS_ONE);
+					findOnes = new FindOne[array.length()];
+					for(int i = 0 ; i < findOnes.length ; i ++) {
+						findOnes[i] = new FindOne(array.getJSONObject(i));
+					}
+				}					
+			} else {
+				findOnes = new FindOne[0];
+			}
+			
+			if(jsonObject.has(THEN)) {
+				
+				// If the key refers directly to an object, it is considered
+				// an array of 1.
+				if(jsonObject.isJSONObject(THEN)) {
+					JSONInterfaceObject obj = jsonObject.getJSONObject(THEN);
+					this.spawnPages = new Page[] { new Page(obj) };
+				} else {
+					final JSONInterfaceArray array = jsonObject.getJSONArray(THEN);
+					
+					Vector pages = new Vector();
+					
+					for(int i = 0 ; i < array.length() ; i ++) {
+						//scrapers[i] = new Scraper(array.getJSONObject(i));
+						JSONInterfaceObject obj = array.getJSONObject(i);
+						pages.add(new Page(obj));
+					}
+					this.spawnPages = new Page[pages.size()];
+					pages.copyInto(this.spawnPages);
+				}						
+
+			} else {
+				this.spawnPages = new Page[] {};
+			}
+			
 		} catch(JSONInterfaceException e) {
-			throw new DeserializationException(e, obj);
+			throw new DeserializationException(e, jsonObject);
+		} catch(MustacheTemplateException e) {
+			throw new DeserializationException(e, jsonObject);
 		}
 	}
 
 	private final FindMany[] findManys;
-	public FindMany[] getFindManys() {
-		return findManys;
-	}
-
 	private final FindOne[] findOnes;
-	public FindOne[] getFindOnes() {
-		return findOnes;
-	}
-
 	private final Page[] spawnPages;
-	public Page[] getPages() throws DeserializationException, IOException {
-		return spawnPages;
+	
+	/**
+	 * @return {@link #formattedJSON}
+	 */
+	public String toString() {
+		return formattedJSON;
+	}
+	
+
+	/**
+	 * @param results The {@link Result} array from {@link #generateResult}.
+	 * @return An array of {@link Execution[]}s whose parent is this execution.
+	 * Later accessible through {@link #getChildren}.
+	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
+	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
+	 * {@link Executable}'s {@link Variables}.
+	 * @throws IOException If there was an error loading the {@link Instruction} for one of the children.
+	 * @throws DeserializationException If there was an error deserializing the {@link Instruction} for one
+	 * of the children.
+	 * @see #generateResource
+	 * @see #generateResult
+	 * @see #getChildren
+	 */
+	public final Executable[] generateChildren(Result[] results, Variables variables)
+				throws MissingVariableException, MustacheTemplateException, DeserializationException, IOException {
+		Vector children = new Vector();
+		Vector findOneExecutables = new Vector();
+		
+		for(int i = 0; i < results.length ; i++) {
+			Result sourceResult = results[i];
+			for(int j = 0 ; j < findOnes.length ; j ++) {
+				FindOneExecutable findOneExecutable = new FindOneExecutable(
+						getInterfaces(),
+						findOnes[j], this, sourceResult);
+				findOneExecutables.add(findOneExecutable);
+				children.add(findOneExecutable);
+			}
+			for(int j = 0 ; j < findManys.length ; j ++) {
+				children.add(new FindManyExecutable(getInterfaces(), findManys[j],
+						this, sourceResult));
+			}
+			for(int j = 0 ; j < pages.length ; j ++) {
+				children.add(new PageExecutable(getInterfaces(), pages[j],
+						this, sourceResult));
+			}
+		}
+		
+		this.findOneExecutableChildren = new FindOneExecutable[findOneExecutables.size()];
+		findOneExecutables.copyInto(this.findOneExecutableChildren);
+		
+		Executable[] childrenAry = new Executable[children.size()];
+		children.copyInto(childrenAry);
+		return childrenAry;
 	}
 }

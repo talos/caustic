@@ -13,6 +13,7 @@ import net.microscraper.impl.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.file.FileLoader;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
+import net.microscraper.interfaces.uri.URIInterface;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +28,7 @@ public class JSONInterfaceObjectTest {
 	
 	private @Mocked FileLoader fileLoader;
 	private @Mocked Browser browser;
-	private @Mocked JSONLocation location;
+	private @Mocked URIInterface location;
 	private String path = "path";
 	
 	private static final String jsonStringSimpleObject = 

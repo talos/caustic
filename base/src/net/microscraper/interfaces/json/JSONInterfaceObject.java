@@ -1,9 +1,11 @@
 package net.microscraper.interfaces.json;
 
+import net.microscraper.interfaces.uri.URIInterface;
+
 /**
- * Interface to a JSON object.  Should be initialized by {@link JSONInterface#load(JSONLocation)}.
+ * Interface to a JSON object.  Should be initialized by {@link JSONInterface#load(URIInterface)}.
  * @see JSONInterface 
- * @see JSONLocation
+ * @see URIInterface
  * @author realest
  *
  */
@@ -137,5 +139,5 @@ public interface JSONInterfaceObject {
 	 * 
 	 * @return The {@link JSONInterfaceObject}'s {@link JSONLocation}.
 	 */
-	public abstract JSONLocation getLocation();
+	//public abstract JSONLocation getLocation();
 }
