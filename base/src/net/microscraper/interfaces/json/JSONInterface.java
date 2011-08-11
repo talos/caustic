@@ -29,15 +29,30 @@ public interface JSONInterface {
 	public static final String EXTENDS = "extends";
 	
 	/**
-	 * Load a {@link JSONInterfaceObject} from a {@link JSONLocation jsonLocation}
+	 * Load a {@link JSONInterfaceObject} from a {@link JSONLocation}.
 	 * @param location The {@link JSONLocation} to load.
 	 * @return A {@link JSONInterfaceObject}.
 	 * @throws IOException If there is an error loading from <code>location</code>
 	 * or one of its references.
 	 * @throws JSONInterfaceException If there is an error generating
 	 * the {@link JSONInterfaceObject}.
-	 * @throws JSONLocationException 
+	 * @throws JSONLocationException if the {@link JSONLocation} could not be resolved.
 	 */
 	public abstract JSONInterfaceObject load(JSONLocation location) 
+			throws IOException, JSONInterfaceException, JSONLocationException;
+	
+	/**
+	 * Compile a {@link JSONInterfaceObject} directly from a {@link String}.
+	 * @param dummyLocation The {@link JSONLocation} to use when resolving references in
+	 * {@link jsonString}.
+	 * @param jsonString The {@link String} to parse.
+	 * @return A {@link JSONInterfaceObject}.
+	 * @throws IOException If there is an error loading from <code>location</code>
+	 * or one of its references.
+	 * @throws JSONInterfaceException If there is an error generating
+	 * the {@link JSONInterfaceObject}.
+	 * @throws JSONLocationException if the {@link JSONLocation} could not be resolved.
+	 */
+	public abstract JSONInterfaceObject parse(JSONLocation dummyLocation, String jsonString)
 			throws IOException, JSONInterfaceException, JSONLocationException;
 }

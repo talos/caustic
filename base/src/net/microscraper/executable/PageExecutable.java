@@ -41,15 +41,16 @@ public class PageExecutable extends BasicExecutable {
 		return stopPatterns;
 	}
 	
-	private String getURLFor(Page page) throws MissingVariableException, MustacheTemplateException {
+	private String getURL() throws MissingVariableException, MustacheTemplateException {
 		//return page.getTemplate().compile(this);
+		Page page = (Page) getInstruction();
 		return Mustache.compileEncoded(page.getTemplate().toString(), this, getInterfaces().getBrowser(), Browser.UTF_8);
 	}
 	
 	private void head(Page page) throws UnsupportedEncodingException,
 				MissingVariableException,
 				BrowserException, MustacheTemplateException {
-		browser.head(true, getURLFor(page), 
+		browser.head(true, getURL(), 
 				MustacheNameValuePair.compile(page.getHeaders(), this),
 				MustacheNameValuePair.compile(page.getCookies(), this));
 	}
@@ -57,7 +58,7 @@ public class PageExecutable extends BasicExecutable {
 	private String get(Page page) throws UnsupportedEncodingException,
 				MissingVariableException,
 				BrowserException, MustacheTemplateException {
-		return browser.get(true, getURLFor(page),
+		return browser.get(true, getURL(),
 				MustacheNameValuePair.compile(page.getHeaders(), this),
 				MustacheNameValuePair.compile(page.getCookies(), this),
 				getStopBecause(page));
@@ -66,7 +67,7 @@ public class PageExecutable extends BasicExecutable {
 	private String post(Page page) throws UnsupportedEncodingException,
 				MissingVariableException,
 				BrowserException, MustacheTemplateException {	
-		return browser.post(true, getURLFor(page),
+		return browser.post(true, getURL(),
 				MustacheNameValuePair.compile(page.getHeaders(), this),
 				MustacheNameValuePair.compile(page.getCookies(), this),
 				getStopBecause(page),
@@ -140,5 +141,10 @@ public class PageExecutable extends BasicExecutable {
 
 	protected boolean generatesManyResults() {
 		return false;
+	}
+
+	protected String getDefaultName() throws MustacheTemplateException,
+			MissingVariableException {
+		return getURL();
 	}
 }

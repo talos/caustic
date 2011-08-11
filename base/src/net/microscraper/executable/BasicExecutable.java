@@ -39,6 +39,7 @@ public abstract class BasicExecutable implements Executable {
 	private String missingVariable = null;
 	
 	private boolean isStuck = false;
+	private boolean isComplete = false;
 	
 	/**
 	 * Construct a new {@link BasicExecutable}.
@@ -83,6 +84,7 @@ public abstract class BasicExecutable implements Executable {
 				}
 				if(results != null) {
 					children = generateChildren(results);
+					isComplete = true;
 				}
 			} catch(ExecutionFailure e) {
 				handleFailure(e);
@@ -260,11 +262,7 @@ public abstract class BasicExecutable implements Executable {
 	}
 
 	public final boolean isComplete() {
-		if(results == null) {
-			return false;
-		} else {
-			return true;
-		}
+		return isComplete;
 	}
 	
 	/**
@@ -312,13 +310,17 @@ public abstract class BasicExecutable implements Executable {
 		if(getInstruction().hasName()) {
 			return getInstruction().getName().compile(this);
 		} else {
-			return getInstruction().getLocation().toString();
+			//return getInstruction().getLocation().toString();
+			return getDefaultName();
 		}
 	}
 	
 	/**
 	 * 
-	 * @return If this {@link BasicExecutable} generates multiple results.
+	 * @return The default {@link #getName()} for an {@link Executable}.
+	 * @throws MustacheTemplateException If the default name has an invalid template.
+	 * @throws MissingVariableException If the available {@link Variables} cannot
+	 * compile the default name.
 	 */
-	protected abstract boolean generatesManyResults();
+	protected abstract String getDefaultName() throws MustacheTemplateException, MissingVariableException;
 }

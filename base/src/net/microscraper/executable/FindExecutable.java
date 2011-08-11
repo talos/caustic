@@ -63,4 +63,8 @@ public abstract class FindExecutable extends BasicExecutable {
 	public final boolean containsKey(String key) {
 		return enclosingExecutable.containsKey(key);
 	}
+	
+	protected String getDefaultName() throws MissingVariableException, MustacheTemplateException {
+		return getPattern().toString();
+	}
 }

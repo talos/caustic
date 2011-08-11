@@ -12,6 +12,7 @@ import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.json.JSONInterfaceException;
+import net.microscraper.interfaces.json.JSONInterfaceObject;
 import net.microscraper.interfaces.json.JSONLocation;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
 
@@ -41,27 +42,41 @@ public final class Client {
 				jsonInterface, database);
 	}
 	
+	private void scrape(Page page, NameValuePair[] extraVariables)
+			throws ClientException {
+		PageExecutable pageExecutable = new PageExecutable(interfaces,
+				page, new BasicVariables(extraVariables), 
+				null);
+		execute(pageExecutable);
+	}
+	
 	/**
 	 * 
-	 * @param pageLocation A {@link JSONLocation} with the {@link Scraper}'s instructions.
+	 * @param pageLocation A {@link JSONLocation} with the {@link Page}'s instructions.
 	 * @param extraVariables An array of {@link NameValuePair}s to use initially.
-	 * @throws BrowserException If a {@link Browser} problem prevented the {@link Scraper} from running.
-	 * @throws ClientException If the {@link Scraper} could not be run.
+	 * @throws ClientException If the {@link Page} could not be run.
 	 */
-	public void scrape(JSONLocation pageLocation, NameValuePair[] extraVariables)
-			throws BrowserException, ClientException {
+	/*public void scrape(JSONLocation pageLocation, NameValuePair[] extraVariables)
+			throws ClientException {
 		try {
 			Page page = new Page(interfaces.getJSONInterface().load(pageLocation));
-			
-			Executable rootExecutable = new PageExecutable(interfaces,
-					page, new BasicVariables(extraVariables), 
-					null);
-			execute(rootExecutable);
+			scrape(page, extraVariables);
 		} catch(IOException e) {
 			throw new ClientException(e);
-		} catch (DeserializationException e) {
-			throw new ClientException(e);
-		} catch (JSONInterfaceException e) {
+		}
+	}*/
+
+	/**
+	 * 
+	 * @param pageInstructionJSON A {@link JSONInterfaceObject} with the {@link Page}'s instructions.
+	 * @param extraVariables An array of {@link NameValuePair}s to use initially.
+	 * @throws ClientException If the {@link Page} could not be run.
+	 */
+	public void scrape(JSONInterfaceObject pageInstructionJSON, NameValuePair[] extraVariables)
+			throws ClientException {
+		try {
+			scrape(new Page(pageInstructionJSON), extraVariables);
+		} catch (IOException e) {
 			throw new ClientException(e);
 		}
 	}

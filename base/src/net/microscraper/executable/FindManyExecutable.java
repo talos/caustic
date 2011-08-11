@@ -40,7 +40,4 @@ public class FindManyExecutable extends FindExecutable {
 		}
 	}
 
-	protected boolean generatesManyResults() {
-		return true;
-	}
 }

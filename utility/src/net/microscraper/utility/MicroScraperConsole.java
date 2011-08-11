@@ -10,8 +10,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import sun.rmi.log.LogOutputStream;
-
 import au.com.bytecode.opencsv.CSVReader;
 
 import net.microscraper.Client;
@@ -38,7 +36,8 @@ import net.microscraper.interfaces.database.DatabaseException;
 import net.microscraper.interfaces.database.IOConnection;
 import net.microscraper.interfaces.file.FileLoader;
 import net.microscraper.interfaces.json.JSONInterface;
-import net.microscraper.interfaces.json.JSONLocation;
+import net.microscraper.interfaces.json.JSONInterfaceException;
+import net.microscraper.interfaces.json.JSONInterfaceObject;
 import net.microscraper.interfaces.json.JSONLocationException;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
 
@@ -49,7 +48,8 @@ public class MicroScraperConsole {
 	private static int timeout = Browser.TIMEOUT;
 	private static int batchSize = 100;
 	
-
+	private static final String INLINE_SWITCH = "-e";
+	
 	private static final String TIMESTAMP = new SimpleDateFormat("yyyyMMddkkmmss").format(new Date());
 	private static final String ENCODING = "UTF-8";
 	
@@ -105,9 +105,12 @@ public class MicroScraperConsole {
 		
 	private static final String usage = 
 "usage: microscraper <uri> [<options>]" + newline +
+"		microscraper -e \"<json>\" [<options>]" + newline +
 "" + newline +
 "uri" + newline +
-"	A URI that points to microscraper instructions." + newline +
+"	A URI that points to microscraper instruction JSON." + newline +
+"json" + newline +
+"	Microscraper instruction JSON." + newline +
 "options:" + newline +
 "	" + BATCH_SIZE_OPTION + "=<batch-size>" + newline +
 "		If saving to SQL, assigns the batch size.  " + newline +
@@ -147,7 +150,9 @@ public class MicroScraperConsole {
 "		How many seconds to wait before giving up on a request." + newline + 
 "		Defaults to " + Integer.toString(timeout) + " seconds.";
 
-	private static JSONLocation instructionsLocation;
+	//private static JSONLocation instructionsLocation;
+	//private static String instructionsString;
+	private static JSONInterfaceObject instructions;
 	
 	private static final Log log = new Log();
 	private static Browser browser;
@@ -203,13 +208,19 @@ public class MicroScraperConsole {
 	}
 	
 	private static void initialize(String[] args) throws IllegalArgumentException,
-					FileNotFoundException, SQLConnectionException, JSONLocationException,
+					FileNotFoundException, SQLConnectionException, JSONInterfaceException,
 					DatabaseException, IOException,
-					UnsupportedEncodingException {
-		if(args.length == 0)
+					UnsupportedEncodingException, JSONLocationException {
+		if(args.length == 0) {
 			throw new IllegalArgumentException("You must specify the URI of scraper instructions.");
+		}
 		
-		for(int i = 1 ; i < args.length ; i ++) {
+		int argStartIndex = 1;
+		if(args[0].equals(INLINE_SWITCH)) {
+			argStartIndex = 2;
+		}
+		
+		for(int i = argStartIndex ; i < args.length ; i ++) {
 			try {
 				String arg = args[i];
 				String value = null;
@@ -277,6 +288,12 @@ public class MicroScraperConsole {
 			fileLog.open();
 		}
 		
+		if(args[0].equals(INLINE_SWITCH)) {
+			instructions = jsonInterface.parse(new JavaNetJSONLocation(""), args[1]);
+		} else {
+			instructions = jsonInterface.load(new JavaNetJSONLocation(args[0]));
+		}
+		
 		if(stdoutOutputFormat.equals(CSV_OUTPUT_FORMAT_VALUE)) {
 			outputColumnDelimiter = CSV_OUTPUT_COLUMN_DELIMITER;
 		} else if(stdoutOutputFormat.equals(TAB_OUTPUT_FORMAT_VALUE)) {
@@ -307,19 +324,19 @@ public class MicroScraperConsole {
 			}
 		}
 		
-		instructionsLocation = new JavaNetJSONLocation(args[0]);
+		
 		browser = new JavaNetBrowser(log, rateLimit, timeout, maxResponseSize);
 		client = new Client(regexpCompiler,	log, browser, jsonInterface, database);
 	}
 	
 	private static void scrape() throws ClientException, IOException {
 		if(input == null) {
-			log.i("Scraping using instructions from " + Utils.quote(instructionsLocation.toString()) +
+			log.i("Scraping using instructions " + Utils.quote(instructions.toString()) +
 					" and defaults " + Utils.quote(Utils.preview(defaults)));
-			client.scrape(instructionsLocation, defaults);
+			client.scrape(instructions, defaults);
 		} else {			
 			log.i("Scraping each row of " + Utils.quote(inputPath) + 
-					" using instructions from " + Utils.quote(instructionsLocation.toString())  +
+					" using instructions " + Utils.quote(instructions.toString())  +
 					" and defaults " + Utils.quote(Utils.preview(defaults)));
 			String[] headers = input.readNext();
 			NameValuePair[] lineDefaults = Arrays.copyOf(defaults, defaults.length + headers.length);
@@ -329,10 +346,9 @@ public class MicroScraperConsole {
 				for(int i = 0 ; i < values.length ; i ++) {
 					lineDefaults[i + defaults.length] = new BasicNameValuePair(headers[i], values[i]);
 				}
-				client.scrape(instructionsLocation, lineDefaults);
+				client.scrape(instructions, lineDefaults);
 			}
 		}
-		log.i("Finished scraping from " + Utils.quote(instructionsLocation.toString()));
 	}
 	
 	private static void finish() throws IOException {

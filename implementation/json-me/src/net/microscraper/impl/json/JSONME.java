@@ -40,7 +40,16 @@ public class JSONME implements JSONInterface {
 	public JSONInterfaceObject load(JSONLocation jsonLocation)
 			throws JSONInterfaceException, IOException, JSONLocationException {
 		try {
-			return new JSONMEObject(jsonLocation, loadJSONObject(jsonLocation));
+			return new JSONMEObject(jsonLocation, new JSONObject(loadRawJSONString(jsonLocation)));
+		} catch(JSONException e) {
+			throw new JSONInterfaceException(e);
+		}
+	}
+	
+	public JSONInterfaceObject parse(JSONLocation dummyLocation, String jsonString)
+			throws JSONInterfaceException, JSONLocationException, IOException {
+		try {
+			return new JSONMEObject(dummyLocation, new JSONObject(jsonString));
 		} catch(JSONException e) {
 			throw new JSONInterfaceException(e);
 		}
@@ -60,8 +69,8 @@ public class JSONME implements JSONInterface {
 		}
 	}
 	
-	private JSONObject loadJSONObject(JSONLocation jsonLocation) throws IOException, JSONInterfaceException {
-		String jsonString = loadRawJSONString(jsonLocation);
+	private JSONObject loadJSONObject(JSONLocation jsonLocation, String jsonString) throws IOException, JSONInterfaceException {
+		//String jsonString = loadRawJSONString(jsonLocation);
 		try {
 			JSONObject obj = (JSONObject) new JSONTokener(jsonString).nextValue();
 			String[] jsonPath = jsonLocation.explodeJSONPath();
@@ -139,15 +148,14 @@ public class JSONME implements JSONInterface {
 		private final JSONLocation location;
 		
 		// ensures references are always followed.
-		public JSONMEObject(JSONLocation initialLocation, JSONObject initialJSONObject)
+		public JSONMEObject(JSONLocation initialLocation, JSONObject object)
 				throws JSONLocationException, JSONInterfaceException,
 				JSONException, IOException {
-			JSONObject object = initialJSONObject;
 			JSONLocation location = initialLocation;
 			
 			while(object.has(REFERENCE_KEY)) {
 				location = location.resolve(object.getString(REFERENCE_KEY));
-				object = loadJSONObject(location);
+				object = loadJSONObject(location, object.toString());
 			}
 			
 			if(object.has(EXTENDS)) {
@@ -305,6 +313,14 @@ public class JSONME implements JSONInterface {
 				} else {
 					throw new JSONInterfaceException(e);
 				}
+			}
+		}
+		
+		public String toString() {
+			try {
+				return object.toString(2);
+			} catch(JSONException e) {
+				return object.toString();
 			}
 		}
 	}

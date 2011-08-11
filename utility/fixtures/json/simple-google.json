@@ -3,8 +3,8 @@
     "url" : "http://www.google.com/search?q={{query}}",
     "finds_many"  :
     	{
-    		 "name"   : "what do we say after {{query}}?",
+    		 "name"   : "what do you say after '{{query}}'?",
     		 "pattern"     : "{{query}}\\s+(\\w+)",
-    		 "replacement" : "$1"
+    		 "replacement" : "I say '$1'!"
     	 }
 }
