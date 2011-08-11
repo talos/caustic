@@ -4,9 +4,9 @@ cooperative scrapers for mobile apps
 
 #### The format ####
 
-Microscrapers are ultra lightweight, logic-free JSON objects that provide templated instructions for scraping data.
+Microscrapers are ultra lightweight, logic-free JSON objects that provide very dynamic templated instructions for scraping data.
 
-Here's a simple one:
+Here's a [simple one](microscraper-client/utility/fixtures/simple-google.json):
 
     {
      "url" : "http://www.google.com/search?q={{query}}",
@@ -17,19 +17,19 @@ Here's a simple one:
      }
     }
 
-Mapping <i>query</i> to "hello", the results look something like...
+For microscraper to execute this instruction, it needs a value to substitute for <i>{{query}}</i>.  Given "hello", the results look like...
 
 <table>
-  <tr><th>name                        <th>value                   <th>uri                            <th>number  <th>source_uri          <th>source_number</tr>
-  <tr><td><i>null</i>                 <td><i>...Google HTML...</i><td>simple-google.json#/           <td>0       <td><i>null</i>         <td><i>null</i>  </tr>
-  <tr><td>what do we say after hello? <td>project                 <td>simple-google.json#/finds_many <td>0       <td>simple-google.json#/<td>0            </tr>
-  <tr><td>what do we say after hello? <td>kitty                   <td>simple-google.json#/finds_many <td>1       <td>simple-google.json#/<td>0            </tr>
-  <tr><td>what do we say after hello? <td>lyrics                  <td>simple-google.json#/finds_many <td>2       <td>simple-google.json#/<td>0            </tr>
-  <tr><td>what do we say after hello? <td>lionel                  <td>simple-google.json#/finds_many <td>3       <td>simple-google.json#/<td>0            </tr>
-  <tr><td>what do we say after hello? <td>kitty                   <td>simple-google.json#/finds_many <td>4       <td>simple-google.json#/<td>0            </tr>
-  <tr><td>what do we say after hello? <td>beyonce                 <td>simple-google.json#/finds_many <td>5       <td>simple-google.json#/<td>0            </tr>
-  <tr><td>what do we say after hello? <td>beyonce                 <td>simple-google.json#/finds_many <td>6       <td>simple-google.json#/<td>0            </tr>
-  <tr><td>what do we say after hello? <td>glee                    <td>simple-google.json#/finds_many <td>7       <td>simple-google.json#/<td>0            </tr>
+  <tr><th>id<th>source_id<th>name<th>value</tr>
+  <tr><td>0 <td> <td>fixtures/json/simple-google.json#/<td>       </tr>
+  <tr><td>1 <td>0<td>what do we say after hello?       <td>kitty  </tr>
+  <tr><td>2 <td>0<td>what do we say after hello?       <td>lyrics </tr>
+  <tr><td>3 <td>0<td>what do we say after hello?       <td>lionel </tr>
+  <tr><td>4 <td>0<td>what do we say after hello?       <td>kitty  </tr>
+  <tr><td>5 <td>0<td>what do we say after hello?       <td>beyonce</tr>
+  <tr><td>6 <td>0<td>what do we say after hello?       <td>beyonce</tr>
+  <tr><td>7 <td>0<td>what do we say after hello?       <td>glee   </tr>
+  <tr><td>8 <td>0<td>what do we say after hello?       <td>movie  </tr>
 </table>
 
 #### Why? ####

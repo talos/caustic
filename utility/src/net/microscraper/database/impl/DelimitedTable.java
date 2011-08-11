@@ -26,6 +26,8 @@ public class DelimitedTable implements WritableTable {
 		this.columns = new ArrayList<String>(Arrays.asList(columns));
 		// Prepend ID to the array of column names.
 		this.columns.add(0, ID_COLUMN_NAME);
+		
+		writer.writeNext(this.columns.toArray(new String[0]));
 	}
 	
 	@Override
