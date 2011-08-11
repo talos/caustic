@@ -6,7 +6,7 @@ cooperative scrapers for mobile apps
 
 Microscrapers are ultra lightweight, logic-free JSON objects that provide very dynamic templated instructions for scraping data.
 
-Here's a [simple one](microscraper-client/utility/fixtures/simple-google.json):
+Here's a [simple one](microscraper-client/blob/master/utility/fixtures/simple-google.json):
 
     {
      "url" : "http://www.google.com/search?q={{query}}",
