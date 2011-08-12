@@ -260,7 +260,7 @@ public final class Page extends Instruction {
 		return false;
 	}
 	
-	private String getURL(Browser browser, Variables variables) throws MissingVariableException, MustacheTemplateException {
+	private String getURL(Browser browser, Variables variables) throws MissingVariableException {
 		return url.compileEncoded(toString(), variables, browser, Browser.UTF_8);
 	}
 	
@@ -274,25 +274,29 @@ public final class Page extends Instruction {
 	 * @throws MustacheTemplateException If a {@link MustacheTemplate} had an error.
 	 * @throws BrowserException If <code>browser</code> experienced an exception while loading the response.
 	 */
-	public String getResponse(Browser browser, RegexpCompiler compiler, Variables variables) throws MissingVariableException, BrowserException, MustacheTemplateException {
+	public String[] generateResultValues(RegexpCompiler compiler, Browser browser, Variables variables, String source)
+			throws MissingVariableException, BrowserException {
+		browser.enableRateLimit();
+		
 		// Temporary executions to do before.  Not published, executed each time.
 		for(int i = 0 ; i < preload.length ; i ++) {
-			preload[i].getResponse(browser, compiler, variables);
+			preload[i].generateResultValues(compiler, browser, variables, source);
 		}
+		String response = null;
 		if(method.equals(Method.GET)) {
-			return browser.get(getURL(browser, variables),
+			response = browser.get(getURL(browser, variables),
 					MustacheNameValuePair.compile(headers, variables),
 					MustacheNameValuePair.compile(cookies, variables),
 					Regexp.compile(stopBecause, compiler, variables));
 		} else if(method.equals(Method.POST)) {
 			if(postNameValuePairs == null) {
-				return browser.post(getURL(browser, variables),
+				response = browser.post(getURL(browser, variables),
 						MustacheNameValuePair.compile(headers, variables),
 						MustacheNameValuePair.compile(cookies, variables),
 						Regexp.compile(stopBecause, compiler, variables),
 						postData.compile(variables));
 			} else {
-				return browser.post(getURL(browser, variables),
+				response = browser.post(getURL(browser, variables),
 						MustacheNameValuePair.compile(headers, variables),
 						MustacheNameValuePair.compile(cookies, variables),
 						Regexp.compile(stopBecause, compiler, variables),
@@ -303,6 +307,12 @@ public final class Page extends Instruction {
 					MustacheNameValuePair.compile(headers, variables),
 					MustacheNameValuePair.compile(cookies, variables));
 		}
-		return null;
+		return new String[] { response };
+	}
+	
+
+	protected String getDefaultName(Variables variables, RegexpCompiler compiler, Browser browser)
+			throws MissingVariableException {
+		return getURL(browser, variables);
 	}
 }

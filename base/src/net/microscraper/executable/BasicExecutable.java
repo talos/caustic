@@ -1,23 +1,18 @@
 package net.microscraper.executable;
 
 import java.io.IOException;
-import java.util.Vector;
 
-import net.microscraper.Interfaces;
 import net.microscraper.Log;
 import net.microscraper.MissingVariableException;
-import net.microscraper.MustacheTemplateException;
 import net.microscraper.Utils;
-import net.microscraper.Variables;
 import net.microscraper.instruction.DeserializationException;
-import net.microscraper.instruction.FindMany;
-import net.microscraper.instruction.FindOne;
 import net.microscraper.instruction.Instruction;
-import net.microscraper.instruction.Page;
 import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.database.DatabaseException;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
+import net.microscraper.interfaces.regexp.RegexpException;
 
 /**
  * {@link BasicExecutable} is a partial implementation of {@link Executable}.  It provides a framework
@@ -38,6 +33,7 @@ public abstract class BasicExecutable extends Log implements Executable {
 	private final Database database;
 	
 	private Result[] results = null;
+	//private boolean generatedResults = false;
 	private Executable[] children = null;
 	private FindOneExecutable[] findOneExecutableChildren = null;
 	
@@ -75,36 +71,20 @@ public abstract class BasicExecutable extends Log implements Executable {
 			try {
 				// Only generate the result if we don't have one, and we have a resource.
 				if(results == null) {
-					String[] resultValues = generateResultValues();
-					results = new Result[resultValues.length];
-					//getInterfaces().getLog()
-					//	.i(toString() + " has " + results.length + " results");
-					for(int i = 0 ; i < resultValues.length ; i ++) {
-						if(hasSource()) {
-							results[i] = interfaces.getDatabase().store(
-									getSource(),
-									getName(),
-									resultValues[i],
-									i, getInstruction().shouldSaveValue());
-						} else {
-							results[i] = interfaces.getDatabase().store(
-									getName(), resultValues[i], i,
-									getInstruction().shouldSaveValue());							
-						}
-					}
+					results = instruction.execute(compiler, browser, this, source, database);
 				}
 				if(results != null) {
-					children = generateChildren(results);
+					children = instruction.generateChildren(compiler, browser, this, results, database);
 					isComplete = true;
 				}
-			} catch(ExecutionFailure e) {
-				handleFailure(e);
-			} catch(MustacheTemplateException e) {
+			} catch(RegexpException e) {
 				handleFailure(new ExecutionFailure(e));
 			} catch(MissingVariableException e) {
 				handleMissingVariable(e);
-			} catch(IOException e) {
+			} catch(BrowserException e) {
 				handleFailure(new ExecutionFailure(e));
+			} catch(IOException e) {
+				handleFailure(new ExecutionFailure(e));				
 			} catch(DeserializationException e) {
 				handleFailure(new ExecutionFailure(e));
 			} catch(DatabaseException e) {
@@ -139,48 +119,6 @@ public abstract class BasicExecutable extends Log implements Executable {
 			}
 		} else {
 			missingVariable = e.name;
-		}
-	}
-	
-	/**
-	 * Must be overriden by {@link BasicExecutable} subclass.
-	 * @return An array of {@link String}s from executing this particular {@link Executable}.  Will be passed to
-	 * {@link generateChildren}.
-	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
-	 * {@link Executable}'s {@link Variables}.
-	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
-	 * @throws ExecutionFailure If there is some other exception that prevents this {@link Executable} from
-	 * running successfully.  Use {@link ExecutionFailure#getCause} to determine why.
-	 * @see #generateResource
-	 * @see #generateChildren
-	 */
-	protected abstract String[] generateResultValues() throws
-			MissingVariableException, MustacheTemplateException, ExecutionFailure;
-	
-	
-	protected final FindOneExecutable[] getFindOneExecutableChildren() {
-		return this.findOneExecutableChildren;
-	}
-	
-	
-	public final Instruction getInstruction() {
-		return instruction;
-	}
-
-	
-	public final boolean hasSource() {
-		if(source != null) {
-			return true;
-		}
-		return false;
-	}
-	
-	
-	public final Result getSource() {
-		if(hasSource()) {
-			return source;
-		} else {
-			throw new NullPointerException();
 		}
 	}
 	
@@ -226,7 +164,7 @@ public abstract class BasicExecutable extends Log implements Executable {
 	}
 	
 	public final String toString() {
-		return getInstruction().toString();
+		return instruction.toString();
 	}
 	
 	public final Executable[] getChildren() throws IllegalStateException {
@@ -253,15 +191,15 @@ public abstract class BasicExecutable extends Log implements Executable {
 	 * @throws MissingVariableException If the {@link Instruction#getName()}
 	 * cannot be compiled with {@link #getVariables()}.
 	 */
-	public String getName() throws MissingVariableException,
+	/*public String getName() throws MissingVariableException,
 			MustacheTemplateException {
-		if(getInstruction().hasName()) {
+		if(instruction.hasName()) {
 			return getInstruction().getName().compile(this);
 		} else {
 			//return getInstruction().getLocation().toString();
 			return getDefaultName();
 		}
-	}
+	}*/
 	
 	/**
 	 * 
@@ -270,5 +208,5 @@ public abstract class BasicExecutable extends Log implements Executable {
 	 * @throws MissingVariableException If the available {@link Variables} cannot
 	 * compile the default name.
 	 */
-	protected abstract String getDefaultName() throws MustacheTemplateException, MissingVariableException;
+	//protected abstract String getDefaultName() throws MustacheTemplateException, MissingVariableException;
 }

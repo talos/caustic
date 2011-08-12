@@ -2,9 +2,7 @@ package net.microscraper.executable;
 
 import java.io.UnsupportedEncodingException;
 
-import net.microscraper.Interfaces;
 import net.microscraper.MissingVariableException;
-import net.microscraper.Mustache;
 import net.microscraper.MustacheNameValuePair;
 import net.microscraper.MustacheTemplateException;
 import net.microscraper.Variables;
@@ -12,7 +10,9 @@ import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Page;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
+import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.regexp.PatternInterface;
+import net.microscraper.interfaces.regexp.RegexpCompiler;
 
 /**
  * When {@link #run}, {@link PageExecutable} makes an HTTP request according to
@@ -22,31 +22,12 @@ import net.microscraper.interfaces.regexp.PatternInterface;
  */
 public class PageExecutable extends BasicExecutable {
 	
-	private final Variables extendedVariables;
-	private final Browser browser;
+	private final Variables variables;
 	
-	public PageExecutable(Interfaces interfaces,
-			Page page, Variables extendedVariables, Result source) {
-		super(interfaces, page, source);
-		browser = interfaces.getBrowser();
-		this.extendedVariables = extendedVariables;
-	}
-	/**
-	 * @param page The {@link Page} {@link Instruction} whose {@link Page#method} should be executed.
-	 * @return The body of the page, if the {@link PageExecutable}'s {@link Page.method} is
-	 * {@link Page.Method.GET} or {@link Page.Method.POST}; <code>Null</code> if it is
-	 * {@link Page.Method.HEAD}.
-	 */
-	/*private String doMethod(Page page) throws MissingVariableException, ExecutionFailure {
-		
-	}*/
-	
-	protected String[] generateResultValues() 
-			throws MissingVariableException, MustacheTemplateException,
-			ExecutionFailure {
-		Page page = (Page) getInstruction();
-		browser.enableRateLimit();
-		return new String[] { page.getResponse(browser, this) };
+	public PageExecutable(Page page, RegexpCompiler compiler, Browser browser,
+			Variables variables, Result source, Database database) {
+		super(page, compiler, browser, source, database);
+		this.variables = variables;
 	}
 
 	public final String get(String key) throws MissingVariableException {
@@ -64,7 +45,7 @@ public class PageExecutable extends BasicExecutable {
 				return getSource().getValue();
 			}
 		}
-		return extendedVariables.get(key);
+		return variables.get(key);
 	}
 	
 	public final boolean containsKey(String key) {
@@ -75,13 +56,5 @@ public class PageExecutable extends BasicExecutable {
 			return false;
 		}
 	}
-
-	protected boolean generatesManyResults() {
-		return false;
-	}
 	
-	protected String getDefaultName() throws MustacheTemplateException,
-			MissingVariableException {
-		return getURL();
-	}
 }

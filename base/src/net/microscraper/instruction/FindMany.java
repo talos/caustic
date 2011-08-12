@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import net.microscraper.MissingVariableException;
 import net.microscraper.Variables;
+import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
 import net.microscraper.interfaces.regexp.InvalidRangeException;
@@ -75,9 +77,11 @@ public class FindMany extends Find {
 	 * {@link #getMaxMatch()} defaults to the last of any number of matches.
 	 */
 	public static final int DEFAULT_MAX_MATCH = -1;
-	
-	public String[] match(RegexpCompiler compiler, String source, Variables variables)
-			throws MissingGroupException, InvalidRangeException, MissingVariableException, NoMatchesException {
+
+	protected String[] generateResultValues(RegexpCompiler compiler,
+			Browser browser, Variables variables, String source)
+			throws MissingVariableException, BrowserException, NoMatchesException,
+			MissingGroupException, InvalidRangeException {
 		return matchMany(compiler, source, variables, minMatch, maxMatch);
 	}
 }

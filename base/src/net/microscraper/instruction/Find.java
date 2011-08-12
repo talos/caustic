@@ -6,6 +6,7 @@ import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplate;
 import net.microscraper.MustacheTemplateException;
 import net.microscraper.Variables;
+import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.json.JSONInterfaceArray;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
@@ -13,6 +14,7 @@ import net.microscraper.interfaces.regexp.InvalidRangeException;
 import net.microscraper.interfaces.regexp.MissingGroupException;
 import net.microscraper.interfaces.regexp.NoMatchesException;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
+import net.microscraper.interfaces.regexp.RegexpException;
 import net.microscraper.interfaces.uri.URIInterface;
 
 /**
@@ -20,7 +22,7 @@ import net.microscraper.interfaces.uri.URIInterface;
  * @author john
  *
  */
-public class Find extends Instruction {
+public abstract class Find extends Instruction {
 	
 	/**
 	 * Key for {@link #getReplacement()} value deserializing from JSON.
@@ -114,5 +116,10 @@ public class Find extends Instruction {
 				source,
 				replacement.compile(variables),
 				match);
+	}
+	
+	public String getDefaultName(Variables variables, RegexpCompiler compiler, Browser browser)
+			throws MissingVariableException, RegexpException {
+		return regexp.compile(compiler, variables).toString();
 	}
 }

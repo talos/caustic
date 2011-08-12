@@ -29,7 +29,6 @@ import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.log.JavaIOFileLogger;
 import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.impl.regexp.JavaUtilRegexpCompiler;
-import net.microscraper.impl.uri.JavaNetURI;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.database.DatabaseException;
@@ -320,8 +319,8 @@ public class MicroScraperConsole {
 		}
 		
 		
-		browser = new JavaNetBrowser(log, rateLimit, timeout, maxResponseSize);
-		client = new Client(regexpCompiler,	log, browser, jsonInterface, database);
+		browser = new JavaNetBrowser();
+		client = new Client(regexpCompiler, browser, database);
 	}
 	
 	private static void scrape() throws ClientException, IOException {

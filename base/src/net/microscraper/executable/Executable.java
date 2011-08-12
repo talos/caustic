@@ -26,14 +26,14 @@ public interface Executable extends Runnable, Variables {
 	 * Can be called before the {@link Executable} is {@link #run}.
 	 * @return The {@link Instruction} with the {@link Executable}'s instructions.
 	 */
-	public abstract Instruction getInstruction();
+	//public abstract Instruction getInstruction();
 	
 	/**
 	 * Can be called before the {@link Executable} is {@link #run}.
 	 * @return Whether this {@link Executable} was spawned by a {@link Result}.
 	 * @see {@link #getSource()}
 	 */
-	public abstract boolean hasSource();
+	//public abstract boolean hasSource();
 	
 	/**
 	 * Can be called before the {@link Executable} is {@link #run}.
@@ -41,7 +41,7 @@ public interface Executable extends Runnable, Variables {
 	 * @see {@link #hasSource()}
 	 * @throws NullPointerException if {@link #hasSource()} is <code>false</code>.
 	 */
-	public abstract Result getSource();
+	//public abstract Result getSource();
 
 	/**
 	 * 
@@ -110,7 +110,7 @@ public interface Executable extends Runnable, Variables {
 	 */
 	public abstract Executable[] getChildren() throws IllegalStateException;
 
-	public abstract String getName() throws MissingVariableException,
-			MustacheTemplateException;
+	//public abstract String getName() throws MissingVariableException,
+	//		MustacheTemplateException;
 
 }

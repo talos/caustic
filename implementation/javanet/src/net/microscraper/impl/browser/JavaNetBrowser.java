@@ -22,7 +22,6 @@ import net.microscraper.NameValuePair;
 import net.microscraper.Utils;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
-import net.microscraper.interfaces.log.Logger;
 import net.microscraper.interfaces.regexp.PatternInterface;
 
 /**
@@ -40,14 +39,6 @@ public class JavaNetBrowser extends Log implements Browser {
 	private int timeout = Browser.TIMEOUT;
 	private int maxResponseSize = Browser.DEFAULT_MAX_RESPONSE_SIZE;
 	private boolean useRateLimit = true;
-	
-	/**
-	 * 
-	 * @param log The {@link Logger} to send messages to.
-	 */
-	public JavaNetBrowser(Logger logger) {
-		register(logger);
-	}
 	
 	public void head(String url, NameValuePair[] headers, NameValuePair[] cookies)
 			throws BrowserException {

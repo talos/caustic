@@ -15,13 +15,13 @@ public class MustacheNameValuePair {
 		this.value = value;
 	}
 	
-	public NameValuePair compile(Variables variables) throws MissingVariableException, MustacheTemplateException {
+	public NameValuePair compile(Variables variables) throws MissingVariableException {
 		return new BasicNameValuePair(name.compile(variables), value.compile(variables));
 	}
 	
 	public static NameValuePair[] compile(MustacheNameValuePair[] nameValuePairs,
 				Variables variables)
-		throws MissingVariableException, MustacheTemplateException {
+		throws MissingVariableException {
 		NameValuePair[] encodedNameValuePairs = 
 			new NameValuePair[nameValuePairs.length];
 		for(int i = 0; i < nameValuePairs.length ; i ++) {

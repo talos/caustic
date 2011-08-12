@@ -1,11 +1,14 @@
 package net.microscraper.executable;
 
-import net.microscraper.Interfaces;
 import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplateException;
+import net.microscraper.Variables;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Regexp;
+import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.regexp.PatternInterface;
+import net.microscraper.interfaces.regexp.RegexpCompiler;
 
 /**
  * {@link FindExecutable}s are the {@link BasicExecutable} implementation of {@link Find}s, and are contained inside
@@ -24,44 +27,9 @@ public abstract class FindExecutable extends BasicExecutable {
 	//private final Executable enclosingExecutable;
 	
 	public FindExecutable(Find find, RegexpCompiler compiler, Browser browser,
-			Variables variables, Result source) {
-		super(find, compiler, browser, source);
+			Result source, Database database) {
+		super(find, compiler, browser, source, database);
 		//this.enclosingExecutable = enclosingExecutable;
 	}
 	
-	/**
-	 * 
-	 * @return The String replacement to use when executing.
-	 * @throws MissingVariableException if a {@link Variable} is missing.
-	 * @throws MustacheTemplateException if the {@link MustacheTemplate} for
-	 * the pattern is invalid.
-	 */
-	protected String getReplacement()
-			throws MissingVariableException, MustacheTemplateException {
-		Find find = (Find) getInstruction();
-		return find.getReplacement().compile(this);
-	}
-	
-	/**
-	 * 
-	 * @return The {@link PatternInterface} that this {@link FindExecutable} can use to parse its
-	 * {@link #sourceResult}.
-	 * @throws MissingVariableException
-	 * @throws MustacheTemplateException
-	 */
-	protected final PatternInterface getPattern() throws MissingVariableException, MustacheTemplateException {
-		return regexp.compileWith(getInterfaces().getRegexpCompiler(), this);
-	}
-
-	public final String get(String key) throws MissingVariableException {
-		return enclosingExecutable.get(key);
-	}
-	
-	public final boolean containsKey(String key) {
-		return enclosingExecutable.containsKey(key);
-	}
-	
-	protected String getDefaultName() throws MissingVariableException, MustacheTemplateException {
-		return getPattern().toString();
-	}
 }

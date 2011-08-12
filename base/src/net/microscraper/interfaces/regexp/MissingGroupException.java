@@ -6,10 +6,10 @@ package net.microscraper.interfaces.regexp;
  * @author john
  *
  */
-public class MissingGroupException extends RegexpCompilerException {
+public class MissingGroupException extends RegexpException {
 	private final int missingGroup;
 	public MissingGroupException(PatternInterface pattern, int missingGroup) {
-		super(pattern);
+		super(pattern, "Backreference group " + missingGroup + " not in pattern.");
 		this.missingGroup = missingGroup;
 	}
 	/**

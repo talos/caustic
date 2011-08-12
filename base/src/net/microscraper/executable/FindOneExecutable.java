@@ -1,12 +1,14 @@
 package net.microscraper.executable;
 
-import net.microscraper.Interfaces;
 import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplateException;
 import net.microscraper.Variables;
 import net.microscraper.instruction.FindOne;
+import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.regexp.MissingGroupException;
 import net.microscraper.interfaces.regexp.NoMatchesException;
+import net.microscraper.interfaces.regexp.RegexpCompiler;
 
 /**
  * {@link FindOneExecutable} is the {@link Executable} spawned by a {@link FindOne}.
@@ -17,10 +19,11 @@ import net.microscraper.interfaces.regexp.NoMatchesException;
  *
  */
 public class FindOneExecutable extends FindExecutable {	
-	public FindOneExecutable(Interfaces context,
-			FindOne findOne, Executable enclosingExecutable,
-			Result sourceResult) {
-		super(context, findOne, enclosingExecutable, sourceResult);
+	public FindOneExecutable(
+			FindOne findOne, RegexpCompiler compiler,
+			Browser browser, Variables variables,
+			Result source, Database database) {
+		super(findOne, compiler, browser, source, database);
 	}
 	
 	protected String localGet(String key) {
@@ -35,21 +38,5 @@ public class FindOneExecutable extends FindExecutable {
 			}
 		}
 		return null;
-	}
-	
-	/**
-	 * A single result for {@link FindOneExecutable}.
-	 */
-	protected String[] generateResultValues() throws MissingVariableException,
-				MustacheTemplateException, ExecutionFailure  {
-		try {
-			FindOne findOne = (FindOne) getInstruction();
-			String replacement = getReplacement();
-			return new String[] { getPattern().match(getSource().getValue(), replacement, findOne.getMatch()) };
-		} catch (NoMatchesException e) {
-			throw new ExecutionFailure(e);
-		} catch (MissingGroupException e) {
-			throw new ExecutionFailure(e);
-		}
 	}
 }

@@ -2,9 +2,15 @@ package net.microscraper.instruction;
 
 import java.io.IOException;
 
+import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplate;
+import net.microscraper.Variables;
+import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
+import net.microscraper.interfaces.regexp.RegexpCompiler;
+import net.microscraper.interfaces.regexp.RegexpException;
 import net.microscraper.interfaces.uri.URIInterface;
 
 /**
@@ -20,19 +26,15 @@ public class FindOne extends Find {
 	 * The resource's identifier when deserializing.
 	 */
 	public static final String KEY = "find_one";
-	
-	private final int match;
+
 	/**
 	 * A {@link FindOne} finds a single scraper match. It is
 	 * 0-indexed, and negative numbers count backwards (-1 is last match.)
 	 * Defaults to {@link #DEFAULT_MATCH}.
-	 * @return This {@link FindOne}'s match number.
 	 * @see FindMany#minMatch
 	 * @see FindMany#maxMatch
 	 */
-	public int getMatch() {
-		return match;
-	}
+	private final int match;
 	
 	/**
 	 * Deserialize a {@link FindOne} from a {@link JSONInterfaceObject}.
@@ -58,4 +60,10 @@ public class FindOne extends Find {
 	 * Defaults to <code>0</code>, the first match.
 	 */
 	private static final int DEFAULT_MATCH = 0;
+	
+	protected String[] generateResultValues(RegexpCompiler compiler,
+			Browser browser, Variables variables, String source)
+			throws MissingVariableException, BrowserException, RegexpException {
+		return new String[] { matchOne(compiler, source, variables, match) };
+	}
 }

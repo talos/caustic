@@ -5,48 +5,42 @@ import java.util.Vector;
 
 import net.microscraper.executable.Executable;
 import net.microscraper.executable.PageExecutable;
-import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.Page;
 import net.microscraper.interfaces.browser.Browser;
-import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.json.JSONInterface;
-import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
-import net.microscraper.interfaces.uri.URIInterface;
 
 /**
  * A microscraper {@link Client} can scrape a {@link Instruction}.
  * @author john
  *
  */
-public final class Client {
+public final class Client extends Log {
 	private static final int LARGE_QUEUE = 1000000; // TODO: handle this warning differently
-	private final Interfaces interfaces;
+	
+	private final RegexpCompiler compiler;
+	private final Browser browser;
+	private final Database database;
 	
 	/**
-	 * @param regexpCompiler The {@link RegexpCompiler} to use when compiling regular
+	 * @param compiler The {@link RegexpCompiler} to use when compiling regular
 	 * expressions.
-	 * @param log The {@link Log} this {@link Client} should use.
 	 * @param browser A {@link Browser} to use for HTTP requests.
-	 * @param jsonInterface A {@link JSONInterface} to use when
-	 * loading {@link JSONInterfaceObject}s.
 	 * @param database the {@link Database} to use for storage.
 	 */
-	public Client(RegexpCompiler regexpCompiler,
-			Log log, Browser browser, JSONInterface jsonInterface,
-			Database database) {
-		this.interfaces = new Interfaces(log,
-				regexpCompiler, browser,
-				jsonInterface, database);
+	public Client(RegexpCompiler compiler, Browser browser, Database database) {
+		this.compiler = compiler;
+		this.browser = browser;
+		this.database = database;
 	}
 	
 	private void scrape(Page page, NameValuePair[] extraVariables)
 			throws ClientException {
-		PageExecutable pageExecutable = new PageExecutable(interfaces,
-				page, new BasicVariables(extraVariables), 
-				null);
+		PageExecutable pageExecutable = new PageExecutable(
+				page, compiler, browser, new BasicVariables(extraVariables), 
+				null, database);
 		execute(pageExecutable);
 	}
 	
@@ -90,20 +84,20 @@ public final class Client {
 		queue.add(rootExecutable);
 		while(queue.size() > 0) {
 			if(queue.size() > LARGE_QUEUE) {
-				interfaces.getLog().i("Large execution queue: " + Utils.quote(queue.size()));
+				i("Large execution queue: " + Utils.quote(queue.size()));
 			}
 			Executable exc = (Executable) queue.elementAt(0);
 			queue.removeElementAt(0);
-			interfaces.getLog().i("Running " + exc.toString());
+			i("Running " + exc.toString());
 			exc.run();
 			// If the execution is complete, add its children to the queue.
 			if(exc.isComplete()) {
 				Executable[] children = exc.getChildren();
 				Utils.arrayIntoVector(children, queue);
 			} else if (exc.isStuck()) {
-				interfaces.getLog().i(exc.toString() + " is stuck on " + exc.stuckOn());
+				i(exc.toString() + " is stuck on " + exc.stuckOn());
 			} else if (exc.hasFailed()) {
-				interfaces.getLog().w(exc.failedBecause());
+				w(exc.failedBecause());
 			// If the execution is not stuck and is not failed, add it back to the queue.
 			} else {
 				queue.addElement(exc);

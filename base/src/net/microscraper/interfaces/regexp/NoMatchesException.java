@@ -7,7 +7,7 @@ import net.microscraper.Utils;
  * @author john
  *
  */
-public class NoMatchesException extends Exception {
+public class NoMatchesException extends RegexpException {
 	private static final String MATCH = "Match ";
 	private static final String MATCHES_BETWEEN = "Matches between ";
 	private static final String AND = " and ";
@@ -15,13 +15,13 @@ public class NoMatchesException extends Exception {
 	private static final String MATCHES_OF = " matches of ";
 	private static final String AGAINST = " against ";
 	public NoMatchesException(PatternInterface pattern, int numFound, int match, String string) {
-		super(MATCH + Utils.quote(match) + NOT_FOUND +
+		super(pattern, MATCH + Utils.quote(match) + NOT_FOUND +
 				Utils.quote(numFound) + MATCHES_OF +
 				Utils.quote(pattern.toString()) + AGAINST +
 				Utils.quote(string));
 	}
 	public NoMatchesException(PatternInterface pattern, int numFound, int min, int max, String string) {
-		super(MATCHES_BETWEEN + Utils.quote(min) + AND +
+		super(pattern, MATCHES_BETWEEN + Utils.quote(min) + AND +
 				Utils.quote(max) + NOT_FOUND +
 				Utils.quote(numFound) + MATCHES_OF +
 				Utils.quote(pattern.toString()) + AGAINST +

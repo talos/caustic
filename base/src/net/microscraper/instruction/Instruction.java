@@ -12,9 +12,15 @@ import net.microscraper.executable.FindManyExecutable;
 import net.microscraper.executable.FindOneExecutable;
 import net.microscraper.executable.PageExecutable;
 import net.microscraper.executable.Result;
+import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.browser.BrowserException;
+import net.microscraper.interfaces.database.Database;
+import net.microscraper.interfaces.database.DatabaseException;
 import net.microscraper.interfaces.json.JSONInterfaceArray;
 import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
+import net.microscraper.interfaces.regexp.RegexpCompiler;
+import net.microscraper.interfaces.regexp.RegexpException;
 
 /**
  * {@link Instruction}s hold instructions for {@link Executable}s.
@@ -64,9 +70,9 @@ public abstract class Instruction  {
 	 * should be stored in the {@link Database}.
 	 * @see #defaultShouldSaveValue()
 	 */
-	public boolean shouldSaveValue() {
+	/*public boolean shouldSaveValue() {
 		return shouldSaveValue;
-	}
+	}*/
 	
 	/**
 	 * 
@@ -81,19 +87,19 @@ public abstract class Instruction  {
 	 * Is <code>null</code> if it has none.
 	 * @see {@link #hasName}
 	 */
-	public final MustacheTemplate getName() {
+	/*public final MustacheTemplate getName() {
 		return name;
-	}
+	}*/
 
 	/**
 	 * Whether this {@link Find} {@link Instruction} has a {@link #name}.
 	 * @see {@link #name}
 	 */
-	public final boolean hasName() {
+	/*public final boolean hasName() {
 		if(getName() == null)
 			return false;
 		return true;
-	}
+	}*/
 
 	/**
 	 * {@link Instruction} can be initialized with a {@link JSONInterfaceObject}, which has a location.
@@ -197,8 +203,8 @@ public abstract class Instruction  {
 	
 
 	/**
-	 * @param results The {@link Result} array from {@link #generateResult}.
-	 * @return An array of {@link Execution[]}s whose parent is this execution.
+	 * @param sources The {@link Result} array from which to generate children.
+	 * @return An array of {@link Executable[]}s whose parent is this execution.
 	 * Later accessible through {@link #getChildren}.
 	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
 	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
@@ -210,35 +216,70 @@ public abstract class Instruction  {
 	 * @see #generateResult
 	 * @see #getChildren
 	 */
-	public final Executable[] generateChildren(Result[] results, Variables variables)
-				throws MissingVariableException, MustacheTemplateException, DeserializationException, IOException {
+	public final Executable[] generateChildren(RegexpCompiler compiler, Browser browser,
+			Variables variables, Result[] sources, Database database)
+				throws MissingVariableException, DeserializationException, IOException {
 		Vector children = new Vector();
-		Vector findOneExecutables = new Vector();
+		//Vector findOneExecutables = new Vector();
 		
-		for(int i = 0; i < results.length ; i++) {
-			Result sourceResult = results[i];
+		for(int i = 0; i < sources.length ; i++) {
+			Result source = sources[i];
 			for(int j = 0 ; j < findOnes.length ; j ++) {
 				FindOneExecutable findOneExecutable = new FindOneExecutable(
-						getInterfaces(),
-						findOnes[j], this, sourceResult);
-				findOneExecutables.add(findOneExecutable);
+						findOnes[j], compiler, browser, variables, source, database);
+				//findOneExecutables.add(findOneExecutable);
 				children.add(findOneExecutable);
 			}
 			for(int j = 0 ; j < findManys.length ; j ++) {
-				children.add(new FindManyExecutable(getInterfaces(), findManys[j],
-						this, sourceResult));
+				children.add(new FindManyExecutable(findManys[j], compiler,
+						browser, variables, source, database));
 			}
-			for(int j = 0 ; j < pages.length ; j ++) {
-				children.add(new PageExecutable(getInterfaces(), pages[j],
-						this, sourceResult));
+			for(int j = 0 ; j < spawnPages.length ; j ++) {
+				children.add(new PageExecutable(spawnPages[j], compiler,
+						browser, variables, source, database));
 			}
 		}
 		
-		this.findOneExecutableChildren = new FindOneExecutable[findOneExecutables.size()];
-		findOneExecutables.copyInto(this.findOneExecutableChildren);
+		//this.findOneExecutableChildren = new FindOneExecutable[findOneExecutables.size()];
+		//findOneExecutables.copyInto(this.findOneExecutableChildren);
 		
 		Executable[] childrenAry = new Executable[children.size()];
 		children.copyInto(childrenAry);
 		return childrenAry;
 	}
+
+	/**
+	 * @param compiler The {@link RegexpCompiler} to parse with.
+	 * @param browser The {@link Browser} to load with.
+	 * @param variables The {@link Variables} to execute using.
+	 * @param source The {@link String} to use as a source.  Can be <code>null</code>.
+	 * @return An array of {@link String}s from executing this particular {@link Instruction}.  Will be passed to
+	 * {@link generateChildren}.
+	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
+	 * {@link Executable}'s {@link Variables}.
+	 * @throws BrowserException
+	 * @throws RegexpException
+	 * @throws DatabaseException
+	 */
+	public Result[] execute(RegexpCompiler compiler, Browser browser,
+			Variables variables, Result source, Database database) throws MissingVariableException,
+			BrowserException, RegexpException, DatabaseException {
+		String[] resultValues = generateResultValues(compiler, browser, variables, source.getValue());
+		Result[] results = new Result[resultValues.length];
+		for(int i = 0 ; i < resultValues.length ; i ++) {
+			if(source == null) {
+				results[i] = database.store(name.compile(variables), resultValues[i], i, shouldSaveValue);	
+			} else {
+				results[i] = database.store(source, name.compile(variables), resultValues[i], i, shouldSaveValue);
+			}
+		}
+		return results;
+	}
+	
+	protected abstract String[] generateResultValues(RegexpCompiler compiler, Browser browser,
+			Variables variables, String source) throws MissingVariableException,
+			BrowserException, RegexpException;
+	
+	protected abstract String getDefaultName(Variables variables, RegexpCompiler compiler,
+			Browser browser) throws MissingVariableException, RegexpException;
 }

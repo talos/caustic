@@ -5,9 +5,10 @@ package net.microscraper.interfaces.regexp;
  * @author realest
  *
  */
-public abstract class RegexpCompilerException extends Exception {
+public abstract class RegexpException extends Exception {
 	private final PatternInterface pattern;
-	public RegexpCompilerException(PatternInterface pattern) {
+	public RegexpException(PatternInterface pattern, String message) {
+		super(message);
 		this.pattern = pattern;
 	}
 }
