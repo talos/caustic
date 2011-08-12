@@ -5,6 +5,7 @@ import java.io.IOException;
 import net.microscraper.Log;
 import net.microscraper.MissingVariableException;
 import net.microscraper.Utils;
+import net.microscraper.Variables;
 import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.interfaces.browser.Browser;
@@ -24,18 +25,19 @@ import net.microscraper.interfaces.regexp.RegexpException;
  * @author john
  *
  */
-public abstract class BasicExecutable extends Log implements Executable {
+public final class BasicExecutable extends Log implements Executable {
 	private final Instruction instruction;
 	private final Result source;
 	//private final Interfaces interfaces;
 	private final Browser browser;
 	private final RegexpCompiler compiler;
 	private final Database database;
+	private final Variables variables;
 	
 	private Result[] results = null;
 	//private boolean generatedResults = false;
+	
 	private Executable[] children = null;
-	private FindOneExecutable[] findOneExecutableChildren = null;
 	
 	private Throwable failure = null; // has to be Throwable because that's what #getCause returns.
 	private String lastMissingVariable = null;
@@ -49,16 +51,18 @@ public abstract class BasicExecutable extends Log implements Executable {
 	 * @param instruction The {@link Instruction} with instructions for execution.
 	 * @param compiler the {@link RegexpCompiler} to use.
 	 * @param browser the {@link Browser} to use.
+	 * @param variables the {@link Variables} surrounding this {@link BasicExecutable}.
 	 * @param source The {@link Result} which is the source of this {@link Executable}.  Can
 	 * be <code>null</code> if there was none.
 	 * @param database The {@link Database} to use when storing {@link Result}s.
 	 * @see #run
 	 */
-	protected BasicExecutable(Instruction instruction, RegexpCompiler compiler,
-			Browser browser, Result source, Database database) {
+	public BasicExecutable(Instruction instruction, RegexpCompiler compiler,
+			Browser browser, Variables variables, Result source, Database database) {
 		this.instruction = instruction;
 		this.compiler = compiler;
 		this.browser = browser;
+		this.variables = variables;
 		this.source = source;
 		this.database = database;
 	}
@@ -174,39 +178,76 @@ public abstract class BasicExecutable extends Log implements Executable {
 			throw new IllegalStateException();
 		}
 	}
-	/*
-	public Result[] getResults() throws IllegalStateException {
-		if(isComplete()) {
-			return results;
-		}
-		throw new IllegalStateException();
+	public String get(String key) throws MissingVariableException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public boolean containsKey(String key) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+/*
+   // FindMany
+	public final String get(String key) throws MissingVariableException {
+		return variables.get(key);
+	}
+	
+	public final boolean containsKey(String key) {
+		return variables.containsKey(key);
 	}
 	*/
-	/**
+	/*
+	 * FindOne
 	 * 
-	 * @return The {@link Instruction#getName()}, compiled through
-	 * {@link Mustache}, if {@link Instruction#hasName()} is <code>true</code>.
-	 * Returns the {@link Instruction#getLocation()} as a {@link String} otherwise.
-	 * @throws MustacheTemplateException If {@link Instruction#getName()} is an invalid {@link MustacheTemplate}.
-	 * @throws MissingVariableException If the {@link Instruction#getName()}
-	 * cannot be compiled with {@link #getVariables()}.
-	 */
-	/*public String getName() throws MissingVariableException,
-			MustacheTemplateException {
-		if(instruction.hasName()) {
-			return getInstruction().getName().compile(this);
-		} else {
-			//return getInstruction().getLocation().toString();
-			return getDefaultName();
+	 * 
+	 * 
+	protected String localGet(String key) {
+		if(isComplete()) {
+			Result result = getResults()[0];
+			if(result.getName().equals(key))
+				return result.getValue();
+			for(int i = 0 ; i < getFindOneExecutableChildren().length ; i ++) {
+				String spawnedValue = getFindOneExecutableChildren()[i].localGet(key);
+				if(spawnedValue != null)
+					return spawnedValue;
+			}
 		}
-	}*/
+		return null;
+	}
+	*/
 	
-	/**
+	/*
 	 * 
-	 * @return The default {@link #getName()} for an {@link Executable}.
-	 * @throws MustacheTemplateException If the default name has an invalid template.
-	 * @throws MissingVariableException If the available {@link Variables} cannot
-	 * compile the default name.
-	 */
-	//protected abstract String getDefaultName() throws MustacheTemplateException, MissingVariableException;
+	 * Page
+	 * 
+	 * 
+	public final String get(String key) throws MissingVariableException {
+		if(isComplete()) {
+			//Executable[] children = getChildren();
+			for(int i = 0 ; i < getFindOneExecutableChildren().length ; i ++) {
+				String localValue = getFindOneExecutableChildren()[i].localGet(key);
+				if(localValue != null) {
+					return localValue;
+				}
+			}
+		}
+		if(hasSource()) {
+			if(getSource().getName().equals(key)) {
+				return getSource().getValue();
+			}
+		}
+		return variables.get(key);
+	}
+	
+	public final boolean containsKey(String key) {
+		try {
+			get(key);
+			return true;
+		} catch(MissingVariableException e) {
+			return false;
+		}
+	}
+	*/
 }

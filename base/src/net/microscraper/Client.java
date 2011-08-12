@@ -3,6 +3,7 @@ package net.microscraper;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.microscraper.executable.BasicExecutable;
 import net.microscraper.executable.Executable;
 import net.microscraper.executable.PageExecutable;
 import net.microscraper.instruction.Page;
@@ -38,9 +39,9 @@ public final class Client extends Log {
 	
 	private void scrape(Page page, NameValuePair[] extraVariables)
 			throws ClientException {
-		PageExecutable pageExecutable = new PageExecutable(
+		Executable pageExecutable = new BasicExecutable(
 				page, compiler, browser, new BasicVariables(extraVariables), 
-				null, database);
+				 database);
 		execute(pageExecutable);
 	}
 	

@@ -1,9 +1,6 @@
 package net.microscraper.executable;
 
-import net.microscraper.MissingVariableException;
-import net.microscraper.MustacheTemplateException;
 import net.microscraper.Variables;
-import net.microscraper.instruction.Instruction;
 
 /**
  * Implementations of {@link Executable} can be
@@ -22,27 +19,6 @@ public interface Executable extends Runnable, Variables {
 	 */
 	public abstract void run();
 	
-	/**
-	 * Can be called before the {@link Executable} is {@link #run}.
-	 * @return The {@link Instruction} with the {@link Executable}'s instructions.
-	 */
-	//public abstract Instruction getInstruction();
-	
-	/**
-	 * Can be called before the {@link Executable} is {@link #run}.
-	 * @return Whether this {@link Executable} was spawned by a {@link Result}.
-	 * @see {@link #getSource()}
-	 */
-	//public abstract boolean hasSource();
-	
-	/**
-	 * Can be called before the {@link Executable} is {@link #run}.
-	 * @return The {@link Result} that spawned this {@link Executable}.
-	 * @see {@link #hasSource()}
-	 * @throws NullPointerException if {@link #hasSource()} is <code>false</code>.
-	 */
-	//public abstract Result getSource();
-
 	/**
 	 * 
 	 * @return <code>True</code> if the {@link Executable} has not {@link #run} successfully, and will not do so
@@ -91,15 +67,6 @@ public interface Executable extends Runnable, Variables {
 	 */
 	public abstract boolean isComplete();
 	
-
-	/**
-	 * 
-	 * @return An array of {@link Result}s generated from a successful {@link #run}.
-	 * May be a 0-length array.
-	 * @throws IllegalStateException If {@link #isComplete} is <code>false</code>.
-	 * @see {@link #isComplete()}
-	 */
-	public abstract Result[] getResults() throws IllegalStateException;
 	
 	/**
 	 * 

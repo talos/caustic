@@ -7,10 +7,8 @@ import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplate;
 import net.microscraper.MustacheTemplateException;
 import net.microscraper.Variables;
+import net.microscraper.executable.BasicExecutable;
 import net.microscraper.executable.Executable;
-import net.microscraper.executable.FindManyExecutable;
-import net.microscraper.executable.FindOneExecutable;
-import net.microscraper.executable.PageExecutable;
 import net.microscraper.executable.Result;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
@@ -66,41 +64,12 @@ public abstract class Instruction  {
 	
 	/**
 	 * 
-	 * @return Whether values resulting from the execution of this {@link Instruction}
-	 * should be stored in the {@link Database}.
-	 * @see #defaultShouldSaveValue()
-	 */
-	/*public boolean shouldSaveValue() {
-		return shouldSaveValue;
-	}*/
-	
-	/**
-	 * 
 	 * @return Whether {@link #shouldSaveValue()} should be <code>true</code>
 	 * or <code>false</code> by default.
 	 * @see #shouldSaveValue
 	 */
 	public abstract boolean defaultShouldSaveValue();
 	
-	/**
-	 * @return A {@link MustacheTemplate} attached to this particular {@link Find} {@link Instruction}.
-	 * Is <code>null</code> if it has none.
-	 * @see {@link #hasName}
-	 */
-	/*public final MustacheTemplate getName() {
-		return name;
-	}*/
-
-	/**
-	 * Whether this {@link Find} {@link Instruction} has a {@link #name}.
-	 * @see {@link #name}
-	 */
-	/*public final boolean hasName() {
-		if(getName() == null)
-			return false;
-		return true;
-	}*/
-
 	/**
 	 * {@link Instruction} can be initialized with a {@link JSONInterfaceObject}, which has a location.
 	 * @param jsonObject The {@link JSONInterfaceObject} object to deserialize.
@@ -122,66 +91,47 @@ public abstract class Instruction  {
 				shouldSaveValue = this.defaultShouldSaveValue();
 			}
 			
+			Vector children = new Vector();
 			if(jsonObject.has(FINDS_MANY)) {
 				// If the key refers directly to an object, it is considered
 				// an array of 1.
 				if(jsonObject.isJSONObject(FINDS_MANY)) {
-					findManys = new FindMany[] {
-							new FindMany(jsonObject.getJSONObject(FINDS_MANY))
-					};
+					children.add(new FindMany(jsonObject.getJSONObject(FINDS_MANY)));
 				} else {
 					JSONInterfaceArray array = jsonObject.getJSONArray(FINDS_MANY);
-					findManys = new FindMany[array.length()];
-					for(int i = 0 ; i < findManys.length ; i ++) {
-						findManys[i] = new FindMany(array.getJSONObject(i));
+					for(int i = 0 ; i < array.length() ; i ++) {
+						children.add(new FindMany(array.getJSONObject(i)));
 					}
 				}
-			} else {
-				findManys = new FindMany[] {};
 			}
 			
 			if(jsonObject.has(FINDS_ONE)) {
 				// If the key refers directly to an object, it is considered
 				// an array of 1.
 				if(jsonObject.isJSONObject(FINDS_ONE)) {
-					findOnes = new FindOne[] {
-							new FindOne(jsonObject.getJSONObject(FINDS_ONE))
-					};
+					children.add(new FindOne(jsonObject.getJSONObject(FINDS_ONE)));
 				} else {
 					JSONInterfaceArray array = jsonObject.getJSONArray(FINDS_ONE);
-					findOnes = new FindOne[array.length()];
-					for(int i = 0 ; i < findOnes.length ; i ++) {
-						findOnes[i] = new FindOne(array.getJSONObject(i));
+					for(int i = 0 ; i < array.length() ; i ++) {
+						children.add(new FindOne(array.getJSONObject(i)));
 					}
 				}					
-			} else {
-				findOnes = new FindOne[0];
 			}
 			
 			if(jsonObject.has(THEN)) {
-				
 				// If the key refers directly to an object, it is considered
 				// an array of 1.
 				if(jsonObject.isJSONObject(THEN)) {
-					JSONInterfaceObject obj = jsonObject.getJSONObject(THEN);
-					this.spawnPages = new Page[] { new Page(obj) };
+					children.add(new Page(jsonObject.getJSONObject(THEN)));
 				} else {
-					final JSONInterfaceArray array = jsonObject.getJSONArray(THEN);
-					
-					Vector pages = new Vector();
-					
+					JSONInterfaceArray array = jsonObject.getJSONArray(THEN);
 					for(int i = 0 ; i < array.length() ; i ++) {
-						//scrapers[i] = new Scraper(array.getJSONObject(i));
-						JSONInterfaceObject obj = array.getJSONObject(i);
-						pages.add(new Page(obj));
+						children.add(new Page(array.getJSONObject(i)));
 					}
-					this.spawnPages = new Page[pages.size()];
-					pages.copyInto(this.spawnPages);
-				}						
-
-			} else {
-				this.spawnPages = new Page[] {};
+				}
 			}
+			this.children = new Instruction[children.size()];
+			children.copyInto(this.children);
 			
 		} catch(JSONInterfaceException e) {
 			throw new DeserializationException(e, jsonObject);
@@ -189,10 +139,8 @@ public abstract class Instruction  {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
-
-	private final FindMany[] findManys;
-	private final FindOne[] findOnes;
-	private final Page[] spawnPages;
+	
+	private final Instruction[] children;
 	
 	/**
 	 * @return {@link #formattedJSON}
@@ -219,33 +167,17 @@ public abstract class Instruction  {
 	public final Executable[] generateChildren(RegexpCompiler compiler, Browser browser,
 			Variables variables, Result[] sources, Database database)
 				throws MissingVariableException, DeserializationException, IOException {
-		Vector children = new Vector();
-		//Vector findOneExecutables = new Vector();
+		Executable[] childExecutables = new Executable[sources.length * children.length];
 		
 		for(int i = 0; i < sources.length ; i++) {
 			Result source = sources[i];
-			for(int j = 0 ; j < findOnes.length ; j ++) {
-				FindOneExecutable findOneExecutable = new FindOneExecutable(
-						findOnes[j], compiler, browser, variables, source, database);
-				//findOneExecutables.add(findOneExecutable);
-				children.add(findOneExecutable);
-			}
-			for(int j = 0 ; j < findManys.length ; j ++) {
-				children.add(new FindManyExecutable(findManys[j], compiler,
-						browser, variables, source, database));
-			}
-			for(int j = 0 ; j < spawnPages.length ; j ++) {
-				children.add(new PageExecutable(spawnPages[j], compiler,
-						browser, variables, source, database));
+			for(int j = 0 ; j < this.children.length ; j++) {
+				childExecutables[i * j + i] =
+						new BasicExecutable(this.children[j], compiler, browser, source, database);
 			}
 		}
 		
-		//this.findOneExecutableChildren = new FindOneExecutable[findOneExecutables.size()];
-		//findOneExecutables.copyInto(this.findOneExecutableChildren);
-		
-		Executable[] childrenAry = new Executable[children.size()];
-		children.copyInto(childrenAry);
-		return childrenAry;
+		return childExecutables;
 	}
 
 	/**
