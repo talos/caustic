@@ -151,7 +151,7 @@ public class MicroScraperConsole {
 	//private static String instructionsString;
 	private static JSONInterfaceObject instructions;
 	
-	private static final Log log = new Log();
+	//private static final Log log = new Log();
 	private static Browser browser;
 	private static final FileLoader fileLoader = new JavaIOFileLoader();
 	private static final JSONInterface jsonInterface = new JSONME(fileLoader, browser);
@@ -191,10 +191,10 @@ public class MicroScraperConsole {
 			print("Unhandled exception scraping: " + e.getClass().getName());
 			print("Stack trace is in the log.");
 			
-			log.e(e);
+			client.e(e);
 			StackTraceElement[] trace = e.getStackTrace();
 			for(int i = 0 ; i < trace.length ; i ++) {
-				log.i(trace[i].toString());
+				client.i(trace[i].toString());
 			}
 		}
 		try {
@@ -280,10 +280,10 @@ public class MicroScraperConsole {
 		}
 		
 		if(logStdout) {
-			log.register(new SystemOutLogger());
+			client.register(new SystemOutLogger());
 		}
 		if(fileLog != null) {
-			log.register(fileLog);
+			client.register(fileLog);
 			fileLog.open();
 		}
 		
@@ -301,7 +301,7 @@ public class MicroScraperConsole {
 		
 		if(outputLocation != null) {
 			if(fileOutputFormat.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
-				IOConnection connection = JDBCSqliteConnection.toFile(outputLocation, log, batchSize);
+				IOConnection connection = JDBCSqliteConnection.toFile(outputLocation, client, batchSize);
 				if(singleTable == true) {
 					database = new SingleTableDatabase(connection);
 				} else {
@@ -326,11 +326,11 @@ public class MicroScraperConsole {
 	
 	private static void scrape() throws ClientException, IOException {
 		if(input == null) {
-			log.i("Scraping using instructions " + Utils.quote(instructions.toString()) +
+			client.i("Scraping using instructions " + Utils.quote(instructions.toString()) +
 					" and defaults " + Utils.quote(Utils.preview(defaults)));
 			client.scrape(instructions, defaults);
 		} else {			
-			log.i("Scraping each row of " + Utils.quote(inputPath) + 
+			client.i("Scraping each row of " + Utils.quote(inputPath) + 
 					" using instructions " + Utils.quote(instructions.toString())  +
 					" and defaults " + Utils.quote(Utils.preview(defaults)));
 			String[] headers = input.readNext();
