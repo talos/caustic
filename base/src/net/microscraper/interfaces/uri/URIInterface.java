@@ -1,5 +1,7 @@
 package net.microscraper.interfaces.uri;
 
+import java.io.IOException;
+
 /**
  * A {@link URIInterface} provides an interface for a URI.
  * @author realest
@@ -33,6 +35,15 @@ public interface URIInterface {
 	public URIInterface resolve(String uri) throws URIInterfaceException;
 	
 	/**
+	 * Load the {@link String} this {@link URIInterface} points to.
+	 * @return The {@link String}.
+	 * @throws IOException If there was a problem loading.
+	 * @throws URIInterfaceException If this {@link URIInterface} does not refer to
+	 * an HTTP or File resource.
+	 */
+	public String load() throws IOException, URIInterfaceException;
+	
+	/**
 	 * Constructs a new {@link JSONLocation} 
 	 * by resolving the given string as a path
 	 * against this {@link JSONLocation}'s fragment.
@@ -59,35 +70,35 @@ public interface URIInterface {
 	 * @return <code>True</code> if the {@link URIInterface} is in the local
 	 * filesystem, <code>false</code> otherwise.
 	 */
-	public boolean isFile();
+	//public boolean isFile();
 	
 	/**
 	 * 
 	 * @return <code>True</code> if the {@link URIInterface} is on a server
 	 * accessible by HTTP request, <code>false</code> otherwise.
 	 */
-	public boolean isHttp();
+	//public boolean isHttp();
 	
 	/**
 	 * 
 	 * @return The scheme segment of the {@link URIInterface}'s URI.
 	 * @see java.net.URI#getScheme()
 	 */
-	public String getScheme();
+	//public String getScheme();
 	
 	/**
 	 * 
 	 * @return The scheme specific part of the {@link URIInterface}'s URI.
 	 * @see java.net.URI#getSchemeSpecificPart()
 	 */
-	public String getSchemeSpecificPart();
+	//public String getSchemeSpecificPart();
 
 	/**
 	 * 
 	 * @return The fragment part of the {@link URIInterface}'s URI.
 	 * @see java.net.URI#getFragment()
 	 */
-	public String getFragment();
+	//public String getFragment();
 	
 	/**
 	 * Tells whether or not this {@link URIInterface} is absolute.
@@ -96,7 +107,7 @@ public interface URIInterface {
 	 * @return <code>true</code> if, and only if, this {@link URIInterface} is absolute
 	 * @see java.net.URI#isAbsolute()
 	 */
-	public boolean isAbsolute();
+	//public boolean isAbsolute();
 
 	/**
 	 * 

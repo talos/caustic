@@ -1,16 +1,16 @@
 package net.microscraper.interfaces.uri;
 
-import net.microscraper.ClientException;
+import net.microscraper.MicroscraperException;
 
 /**
  * {@link URIInterfaceException} is thrown when something has gone wrong with
  * a {@link URIInterface}.
  * @see URIInterface
- * @see ClientException
+ * @see MicroscraperException
  * @author realest
  *
  */
-public class URIInterfaceException extends ClientException {
+public class URIInterfaceException extends MicroscraperException {
 
 	/**
 	 * 

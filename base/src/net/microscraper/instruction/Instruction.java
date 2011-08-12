@@ -228,10 +228,11 @@ public abstract class Instruction  {
 		}
 		Result[] results = new Result[resultValues.length];
 		for(int i = 0 ; i < resultValues.length ; i ++) {
+			String resultValue = shouldSaveValue ? resultValues[i] : null; 
 			if(source == null) {
-				results[i] = database.store(getName(variables, browser, compiler), resultValues[i], i, shouldSaveValue);	
+				results[i] = database.store(getName(variables, browser, compiler), resultValue, i);	
 			} else {
-				results[i] = database.store(source, getName(variables, browser, compiler), resultValues[i], i, shouldSaveValue);
+				results[i] = database.store(source, getName(variables, browser, compiler), resultValue, i);
 			}
 		}
 		return results;

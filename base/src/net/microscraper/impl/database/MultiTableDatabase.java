@@ -86,10 +86,9 @@ public final class MultiTableDatabase implements Database {
 		rootResultId = rootTable.insert(new NameValuePair[] {});
 	}
 	
-	public Result store(String name, String value, int resultNum,
-			boolean shouldSaveValue) throws DatabaseException {
+	public Result store(String name, String value, int resultNum) throws DatabaseException {
 		
-		if(shouldSaveValue) {
+		if(value != null) {
 			updateTable(rootTable, rootResultId, name, value, resultNum);	
 		}
 		WritableTable table = getResultTable(name);
@@ -99,8 +98,7 @@ public final class MultiTableDatabase implements Database {
 		}), name, value);
 	}
 	
-	public Result store(Result source, String name, String value, int resultNum,
-			boolean shouldSaveValue) throws DatabaseException {
+	public Result store(Result source, String name, String value, int resultNum) throws DatabaseException {
 		String sourceTableName = cleanTableName(source.getName());
 		IOTable sourceTable;
 		if(tables.containsKey(sourceTableName)) {
@@ -110,7 +108,7 @@ public final class MultiTableDatabase implements Database {
 			tables.put(sourceTableName, sourceTable);
 		}
 		
-		if(shouldSaveValue == true) {
+		if(value != null) {
 			updateTable(sourceTable, source.getId(), name, value, resultNum);
 		}
 		WritableTable table = getResultTable(name);
@@ -164,7 +162,8 @@ public final class MultiTableDatabase implements Database {
 	 * @param name The {@link String} name of the column to update, this will be
 	 * prepended with {@link #PREPEND} and added as a new column to <code>table</code>
 	 * if it is not yet there.
-	 * @param value The {@link String} value to update.
+	 * @param value The {@link String} value to update.  Should <b>not</b> be <code>
+	 * null</code>.
 	 * @param the 0-based {@link int} index of this {@link Result} within its
 	 * {@link Executable}.
 	 * @throws DatabaseException If the {@link IOTable} cannot be updated.

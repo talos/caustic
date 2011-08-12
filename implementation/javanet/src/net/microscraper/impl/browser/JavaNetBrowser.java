@@ -10,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Enumeration;
@@ -20,6 +21,7 @@ import net.microscraper.BasicNameValuePair;
 import net.microscraper.Log;
 import net.microscraper.NameValuePair;
 import net.microscraper.Utils;
+import net.microscraper.Variables;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.regexp.PatternInterface;
@@ -35,10 +37,9 @@ public class JavaNetBrowser extends Log implements Browser {
 	private static final String encoding = UTF_8;
 	private final Hashtable cookieStore = new Hashtable();
 	private final HostMemory hostMemory = new HostMemory();
-	private int rateLimitKBPS = Browser.DEFAULT_MAX_KBPS_FROM_HOST;
+	private int rateLimitKBPS = Browser.DEFAULT_RATE_LIMIT;
 	private int timeout = Browser.TIMEOUT;
 	private int maxResponseSize = Browser.DEFAULT_MAX_RESPONSE_SIZE;
-	private boolean useRateLimit = true;
 	
 	public void head(String url, NameValuePair[] headers, NameValuePair[] cookies)
 			throws BrowserException {
@@ -177,7 +178,7 @@ public class JavaNetBrowser extends Log implements Browser {
 			URL url, String postData,
 			NameValuePair[] headers, NameValuePair[] cookies)
 				throws IOException, BrowserException {
-		if(useRateLimit == true) {
+		if(rateLimitKBPS > 0) {
 			float kbpsSinceLastLoad = hostMemory.kbpsSinceLastLoadFor(url);
 			i("Load speed from " + url.toString() + " : " + Float.toString(kbpsSinceLastLoad));
 			if(kbpsSinceLastLoad > rateLimitKBPS) {
@@ -394,18 +395,23 @@ public class JavaNetBrowser extends Log implements Browser {
 		}
 	}
 	
+	public String decode(String stringToDecode, String encoding) 
+			throws BrowserException {
+		try {
+			return URLDecoder.decode(stringToDecode, encoding);
+		} catch (UnsupportedEncodingException e) {
+			throw new BrowserException(stringToDecode, e);
+		}
+	}
+	
 	public void setRateLimit(int rateLimitKBPS) {
 		this.rateLimitKBPS = rateLimitKBPS;
 	}
 
-	public void disableRateLimit() {
-		useRateLimit = false;
+	public int getRateLimit() {
+		return rateLimitKBPS;
 	}
-
-	public void enableRateLimit() {
-		useRateLimit = true;
-	}
-
+	
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
 	}

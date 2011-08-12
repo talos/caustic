@@ -8,7 +8,7 @@ package net.microscraper;
  * @see Mustache
  *
  */
-public class MissingVariableException extends ClientException {
+public class MissingVariableException extends MicroscraperException {
 	/**
 	 * 
 	 */

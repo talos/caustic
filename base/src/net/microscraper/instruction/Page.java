@@ -275,9 +275,7 @@ public final class Page extends Instruction {
 	 * @throws BrowserException If <code>browser</code> experienced an exception while loading the response.
 	 */
 	public String[] generateResultValues(RegexpCompiler compiler, Browser browser, Variables variables, String source)
-			throws MissingVariableException, BrowserException {
-		browser.enableRateLimit();
-		
+			throws MissingVariableException, BrowserException {		
 		// Temporary executions to do before.  Not published, executed each time.
 		for(int i = 0 ; i < preload.length ; i ++) {
 			preload[i].generateResultValues(compiler, browser, variables, source);

@@ -1,8 +1,12 @@
 package net.microscraper.impl.uri;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.browser.BrowserException;
+import net.microscraper.interfaces.file.FileLoader;
 import net.microscraper.interfaces.uri.URIInterface;
 import net.microscraper.interfaces.uri.URIInterfaceException;
 
@@ -12,94 +16,62 @@ public class JavaNetURI implements URIInterface {
 	private static final String FILE_SCHEME = "file";
 	
 	private final URI uri;
+	private final Browser browser;
+	private final FileLoader fileLoader;
 	
-	public JavaNetURI(String uriString) throws URIInterfaceException {
+	public JavaNetURI(String uriString, Browser browser, FileLoader fileLoader) throws URIInterfaceException {
 		try {
-			uri = new URI(uriString);
-
+			this.uri = new URI(uriString);
+			this.browser = browser;
+			this.fileLoader = fileLoader;
 		} catch(URISyntaxException e) {
 			throw new URIInterfaceException(e);
 		}
 	}
 	
-	public JavaNetURI(URI uri) {
+	public JavaNetURI(URI uri, Browser browser, FileLoader fileLoader) {
 		this.uri = uri;
+		this.browser = browser;
+		this.fileLoader = fileLoader;
 	}
 	
 	public URIInterface resolve(URIInterface otherLocation) {
-			return new JavaNetURI( uri.resolve(otherLocation.toString()) );
+			return new JavaNetURI( uri.resolve(otherLocation.toString()), browser, fileLoader );
 	}
 	
 	public URIInterface resolve(String path) throws URIInterfaceException {
-		return resolve(new JavaNetURI(path));
+		return resolve(new JavaNetURI(path, browser, fileLoader));
 	}
 
-	public boolean isAbsolute() {
-		return getScheme() != null;
-	}
-	
-	public String getScheme() {
-		return uri.getScheme();
-	}
-	
-	public String getSchemeSpecificPart() {
-		return uri.getSchemeSpecificPart();
-	}
-	
-	public String getFragment() {
-		return uri.getFragment();
-	}
-	
 	public String toString() {
 		return uri.toString();
 	}
-
-	public boolean isFile() {
-		if(getScheme() == null) // assumes could be path
-			return true;
-		return getScheme().equalsIgnoreCase(FILE_SCHEME);
-	}
-
-	public boolean isHttp() {
-		if(getScheme() == null)
-			return false;
-		return getScheme().equalsIgnoreCase(HTTP_SCHEME);
-	}
-
+	
 	public boolean equals(Object obj) {
 		if(obj == this)
 			return true;
 		if(obj instanceof URIInterface) {
-			URIInterface that = (URIInterface) obj;
-			boolean schemesMatch, sspMatch, fragMatch;
-			
-			if(this.getScheme() == null && that.getScheme() == null) {
-				schemesMatch = true;
-			} else if(this.getScheme() == null) {
-				return false;
-			} else {
-				schemesMatch = this.getScheme().equals(that.getScheme());
-			}
-
-			if(this.getSchemeSpecificPart() == null && that.getSchemeSpecificPart() == null) {
-				sspMatch = true;
-			} else if(this.getSchemeSpecificPart() == null) {
-				return false;
-			} else {
-				sspMatch = this.getSchemeSpecificPart().equals(that.getSchemeSpecificPart());
-			}
-			
-			if(this.getFragment() == null && that.getFragment() == null) {
-				fragMatch = true;
-			} else if(this.getFragment() == null) {
-				return false;
-			} else {
-				fragMatch = this.getFragment().equals(that.getFragment());
-			}
-			
-			return schemesMatch && sspMatch && fragMatch;
+			return this.toString().equals(obj.toString());
 		}
 		return false;
 	}
 
+	public String load() throws IOException, URIInterfaceException {
+		if(uri.getScheme().equals(FILE_SCHEME)) {
+			return fileLoader.load(this);
+		} else if(uri.getScheme().equals(HTTP_SCHEME)) {
+			int prevRateLimit = browser.getRateLimit();
+			try {
+				browser.setRateLimit(0);
+				String response = browser.get(this.toString(), null, null, null);
+				return response;
+			} catch(BrowserException e) {
+				throw new IOException(e);
+			} finally {
+				browser.setRateLimit(prevRateLimit);
+			}
+		} else {
+			throw new URIInterfaceException("Cannot load scheme " + uri.getScheme());
+		}
+	}
 }

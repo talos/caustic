@@ -28,16 +28,6 @@ public class Utils {
 		return joined;
 	}
 	
-	/*public static String join(Object[] objects, String joinString) {
-		String joined = "";
-		for(int i = 0; i < objects.length; i++) {
-			joined += objects[i].toString();
-			if(i < objects.length -1)
-				joined += joinString;
-		}
-		return joined;
-	}*/
-	
 	public static String join(int[] integers, String joinString) {
 		String joined = "";
 		for(int i = 0; i < integers.length; i++) {
@@ -144,26 +134,6 @@ public class Utils {
 		for(int i = 0; i < array.length; i++) {
 			vector.addElement(array[i]);
 		}
-	}
-	
-	/**
-	 * Turn Form-encoded data into an array of {@link NameValuePair}s.
-	 * @param formEncodedData A String of form data to convert.
-	 * @param encoding The encoding to use.  "UTF-8" recommended.
-	 * @return An array of {@link NameValuePair}s
-	 * @throws UnsupportedEncodingException If the encoding is not supported.
-	 */
-	public static NameValuePair[] formEncodedDataToNameValuePairs(String formEncodedData,
-				String encoding) throws UnsupportedEncodingException {
-		String[] splitByAmpersands = Utils.split(formEncodedData, "&");
-		NameValuePair[] pairs = new NameValuePair[splitByAmpersands.length];
-		for(int i = 0 ; i < splitByAmpersands.length; i++) {
-			String[] pair = Utils.split(splitByAmpersands[i], "=");
-			pairs[i] = new BasicNameValuePair(
-					URLDecoder.decode(pair[0], encoding),
-					URLDecoder.decode(pair[1], encoding));
-		}
-		return pairs;
 	}
 	
 	/**

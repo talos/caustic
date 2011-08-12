@@ -13,24 +13,25 @@ import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
 import net.microscraper.interfaces.regexp.PatternInterface;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
+import net.microscraper.test.TestUtils;
 
 import org.junit.Test;
 
 public class PageTest {
-
+	
+	private final static int LENGTH = 10;
+	
 	@Mocked JSONInterfaceObject obj;
 	@Mocked Database database;
 	@Mocked Browser browser;
 	@Mocked RegexpCompiler compiler;
-	//@Tested Page page;
-	
 
 	@Test
 	public void testByDefaultDoesntSaveValue() throws Exception {
-		final String google = "http://www.google.com";
+		final String url = TestUtils.makeRandomString(LENGTH);
 		new NonStrictExpectations() {
 			{
-				obj.getString(Page.URL); result = google;
+				obj.getString(Page.URL); result = url;
 			}
 		};
 		Page page = new Page(obj);
@@ -38,22 +39,21 @@ public class PageTest {
 		
 		new Verifications() {
 			{
-				database.store(anyString, anyString, 0, false);
+				database.store(anyString, (String) withNull(), 0); $ = "Stored page response in database by default.";
 			}
 		};
 	}
 	
-
 	@Test
-	public void testCanSaveValue() throws Exception {
-		final String google = "http://www.google.com";
-		final String content = "Google!";
+	public void testSavesValue() throws Exception {
+		final String url = TestUtils.makeRandomString(LENGTH);
+		final String content = TestUtils.makeRandomString(LENGTH);
 		new NonStrictExpectations() {
 			{
-				obj.getString(Page.URL); result = google;
+				obj.getString(Page.URL); result = url;
 				obj.has(Instruction.SAVE); result = true; 
 				obj.getBoolean(Instruction.SAVE); result = true;
-				browser.get(google, (NameValuePair[]) any, (NameValuePair[]) any, (PatternInterface[]) any); result = content;
+				browser.get(url, (NameValuePair[]) any, (NameValuePair[]) any, (PatternInterface[]) any); result = content;
 			}
 		};
 		Page page = new Page(obj);
@@ -61,7 +61,7 @@ public class PageTest {
 		
 		new Verifications() {
 			{
-				database.store(anyString, anyString, 0, true);
+				database.store(anyString, content, 0); $ = "Did not store page response in database.";
 			}
 		};
 	}

@@ -1,53 +1,29 @@
 package net.microscraper.client.applet;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import net.microscraper.Utils;
+import net.microscraper.impl.log.BasicLogger;
 import net.microscraper.interfaces.json.JSONInterface;
+import net.microscraper.interfaces.json.JSONInterfaceException;
+import net.microscraper.interfaces.json.JSONInterfaceStringer;
 import net.microscraper.interfaces.log.Logger;
 
-public class ThreadSafeJSONLogger implements Logger {
+public class ThreadSafeJSONLogger extends BasicLogger {
 	private final List<JSONInterfaceStringer> logList = Collections.synchronizedList(new ArrayList<JSONInterfaceStringer>());
 	private Integer pos = 0;
-	private final JSONInterface json;
-	private static final int STACK_TRACE_DEPTH = 10;
+	private final JSONInterface jsonInterface;
 	
-	public ThreadSafeJSONLogger(JSONInterface _json) {
-		json = _json;
-	}
-	
-	@Override
-	public void e(Throwable e) {
-		List<JSONInterfaceStringer> list = stackTraceList(e);
-		list.add(buildJSON("error", Utils.truncate(e.toString(), MAX_ENTRY_LENGTH)));
-		addToList(list);
-	}
-	
-	@Override
-	public void w(Throwable w) {
-		List<JSONInterfaceStringer> list = stackTraceList(w);
-		list.add(buildJSON("warning", Utils.truncate(w.toString(), MAX_ENTRY_LENGTH)));
-		addToList(list);
-	}
-
-	@Override
-	public void i(String infoText) {
-		List<JSONInterfaceStringer> list = new ArrayList<JSONInterfaceStringer>();
-		list.add(buildJSON("info", Utils.truncate(infoText, MAX_ENTRY_LENGTH)));
-		addToList(list);
-	}
-	
-	private void addToList(List<JSONInterfaceStringer> newEntries) {
-		synchronized(logList) {
-			logList.addAll(newEntries);
-		}
+	public ThreadSafeJSONLogger(JSONInterface jsonInterface) {
+		this.jsonInterface = jsonInterface;
 	}
 	
 	private JSONInterfaceStringer buildJSON(String key, String value) {
 		try {
-			JSONInterfaceStringer stringer = json.getStringer();
+			JSONInterfaceStringer stringer = jsonInterface.getStringer();
 			stringer.object().key(key).value(value).endObject();
 			return stringer;
 		} catch (JSONInterfaceException e) {
@@ -56,17 +32,6 @@ public class ThreadSafeJSONLogger implements Logger {
 		}
 	}
 	
-	// Run the traces backwards so that they appear in correct order when unshifted.
-	private List<JSONInterfaceStringer> stackTraceList(Throwable t) {
-		StackTraceElement[] traces = t.getStackTrace();
-		List<JSONInterfaceStringer> list = new ArrayList<JSONInterfaceStringer>();
-		int depth = traces.length < STACK_TRACE_DEPTH ? traces.length : STACK_TRACE_DEPTH;
-		for( int i = depth - 1 ; i >= 0; i--) {
-			list.add(buildJSON("trace", traces[i].toString()));
-		}
-		return list;
-	}
-
 	public boolean hasNext() {
 		synchronized(logList) {
 			synchronized(pos) {
@@ -81,6 +46,25 @@ public class ThreadSafeJSONLogger implements Logger {
 				pos++;
 				return logList.get(pos);
 			}
+		}
+	}
+
+	@Override
+	public void open() throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void close() throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void write(String text) throws IllegalStateException {
+		synchronized(logList) {
+			logList.addAll(newEntries);
 		}
 	}
 }

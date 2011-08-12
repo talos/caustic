@@ -2,8 +2,11 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/MicroScraper Regexp Implementation"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/MicroScraper JSON Implementation"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/MicroScraper Base"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Microscraper Base"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper Java IO File Implementation"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper Java Util Regexp Implementation"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JavaNet Implementation"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JSON ME Implementation"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper Utility"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

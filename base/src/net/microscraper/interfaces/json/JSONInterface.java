@@ -1,7 +1,5 @@
 package net.microscraper.interfaces.json;
 
-import java.io.IOException;
-
 import net.microscraper.interfaces.uri.URIInterface;
 import net.microscraper.interfaces.uri.URIInterfaceException;
 
@@ -33,29 +31,24 @@ public interface JSONInterface {
 	
 	/**
 	 * Load a {@link JSONInterfaceObject} from a {@link URIInterface}.
-	 * @param location The {@link URIInterface} to load.
+	 * @param location The {@link URIInterface} URI to load.
 	 * @return A {@link JSONInterfaceObject}.
-	 * @throws IOException If there is an error loading from <code>location</code>
-	 * or one of its references.
 	 * @throws JSONInterfaceException If there is an error generating
 	 * the {@link JSONInterfaceObject}.
 	 * @throws URIInterfaceException if the {@link URIInterface} could not be resolved.
 	 */
 	public abstract JSONInterfaceObject load(URIInterface location) 
-			throws IOException, JSONInterfaceException, URIInterfaceException;
+			throws JSONInterfaceException, URIInterfaceException;
 	
 	/**
 	 * Compile a {@link JSONInterfaceObject} directly from a {@link String}.
-	 * @param location The {@link URIInterface} to use when resolving <code>jsonString</code>'s
-	 * references.
+	 * @param location The {@link URIInterface} URI to use when resolving <code>jsonString</code>'s references.
 	 * @param jsonString The {@link String} to parse.
 	 * @return A {@link JSONInterfaceObject}.
-	 * @throws IOException If there is an error loading from <code>location</code>
-	 * or one of its references.
 	 * @throws JSONInterfaceException If there is an error generating
 	 * the {@link JSONInterfaceObject}.
 	 * @throws URIInterfaceException if the {@link URIInterface} could not be resolved.
 	 */
 	public abstract JSONInterfaceObject parse(URIInterface location, String jsonString)
-			throws IOException, JSONInterfaceException, URIInterfaceException;
+			throws JSONInterfaceException, URIInterfaceException;
 }

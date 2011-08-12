@@ -5,10 +5,9 @@ import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import net.microscraper.Client;
-import net.microscraper.impl.JSONME;
-import net.microscraper.impl.JavaNetBrowser;
-import net.microscraper.impl.JavaUtilRegexInterface;
+import net.microscraper.BasicMicroscraper;
+import net.microscraper.Microscraper;
+import net.microscraper.impl.json.JSONME;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.log.Logger;
 
@@ -24,7 +23,7 @@ public class MicroScraperApplet extends Applet {
 	
 	public static final String encoding = "UTF-8";
 	
-	private ThreadSafeJSONPublisher publisher;
+	//private ThreadSafeJSONPublisher database;
 	private ThreadSafeJSONLogger logger = new ThreadSafeJSONLogger(json);
 	private Thread current_thread;
 	//private Iterator<Stringer> publisherIterator;
@@ -53,21 +52,15 @@ public class MicroScraperApplet extends Applet {
 	 * @param url
 	 * @param params_string
 	 */
-	public void start(String url, String model, String full_name, String params_string) {
+	public void start(String instructionURI, String formEncodedDefaults) {
 		try {
 			if(!isAlive()) {
 				// Reset the log and publisher with each execution.
-				publisher = new ThreadSafeJSONPublisher(json);
+				database = new ThreadSafeJSONDatabase(json);
 				logger = new ThreadSafeJSONLogger(json);
 				//logIterator = logger.getIterator();
 				//publisherIterator = publisher.getIterator();
-				Client.initialize(
-						new JavaNetBrowser(),
-						new JavaUtilRegexInterface(), json,
-						new Logger[] { logger },
-						publisher
-					);
-				Thread thread = new Thread(new ScrapeRunnable(url, model, full_name, params_string));
+				Thread thread = new Thread(new ScrapeRunnable());
 				thread.start();
 				current_thread = thread;
 			} else {
@@ -81,7 +74,7 @@ public class MicroScraperApplet extends Applet {
 	public void stop() {
 		try {
 			current_thread.interrupt();
-			Client.reset();
+			Microscraper.reset();
 			logger.i("Killed test.");
 		} catch(Throwable e) {
 			e.printStackTrace();
@@ -103,7 +96,7 @@ public class MicroScraperApplet extends Applet {
 	
 	public void resetExecutionsIterator() {
 		try {
-			publisher.resetIterator();
+			database.resetIterator();
 		} catch(Throwable e) {
 			e.printStackTrace();
 		}
@@ -111,7 +104,7 @@ public class MicroScraperApplet extends Applet {
 	
 	public boolean hasMoreExecutions() {
 		try {
-			return publisher.hasNext();
+			return database.hasNext();
 		} catch(Throwable e) {
 			e.printStackTrace();
 		}
@@ -120,7 +113,7 @@ public class MicroScraperApplet extends Applet {
 	
 	public String getNextExecution() {
 		try {
-			return publisher.next().toString();
+			return database.next().toString();
 		} catch(Throwable e) {
 			e.printStackTrace();
 		}

@@ -1,13 +1,13 @@
 package net.microscraper.interfaces.browser;
 
-import net.microscraper.ClientException;
+import net.microscraper.MicroscraperException;
 
 /**
  * This is thrown when the {@link Browser} experiences an {@link Exception}.
  * @author john
  *
  */
-public class BrowserException extends ClientException {
+public class BrowserException extends MicroscraperException {
 	private final String url;
 	/*protected BrowserException(String url) {
 		this.url = url;

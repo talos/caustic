@@ -5,7 +5,7 @@ package net.microscraper;
  * @author john
  *
  */
-public class MustacheTemplateException extends ClientException {
+public class MustacheTemplateException extends MicroscraperException {
 
 	/**
 	 * 

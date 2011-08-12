@@ -8,7 +8,7 @@ package net.microscraper;
  * @author john
  *
  */
-public class ExecutionFailure extends ClientException {
+public class ExecutionFailure extends MicroscraperException {
 	/**
 	 * 
 	 */

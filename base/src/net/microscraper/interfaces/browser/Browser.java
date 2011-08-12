@@ -1,6 +1,7 @@
 package net.microscraper.interfaces.browser;
 
 import net.microscraper.NameValuePair;
+import net.microscraper.Variables;
 import net.microscraper.interfaces.regexp.PatternInterface;
 
 /**
@@ -11,7 +12,7 @@ public interface Browser {
 	 * The default number of seconds to wait before timing out on a
 	 * request for {@link Browser} interfaces.
 	 */
-	public static final int TIMEOUT = 30;
+	public static final int DEFAULT_TIMEOUT = 30;
 	
 	/**
 	 * The default number of redirects {@link Browser} interfaces will follow.
@@ -24,7 +25,7 @@ public interface Browser {
 	 * The default rate limit a {@link Browser} interface imposes upon itself for
 	 * a single host.
 	 */
-	public static final int DEFAULT_MAX_KBPS_FROM_HOST = 30;
+	public static final int DEFAULT_RATE_LIMIT = 30;
 	
 	/**
 	 * How many milliseconds a {@link Browser} interface will sleep before
@@ -119,29 +120,32 @@ public interface Browser {
 	 * <code>encoding</code> is not supported.
 	 */
 	public abstract String encode(String stringToEncode, String encoding) throws BrowserException;
+
+	/**
+	 * Decode a {@link String} with <code>encoding</code>.
+	 * @param stringToDecode The {@link String} to decode.
+	 * @param encoding The {@link String} encoding to use, for example <code>UTF-8</code>.
+	 * @return The {@link String}, decoded.
+	 * @throws BrowserException if <code>stringToDecode</code> cannot be encoded, or if
+	 * <code>encoding</code> is not supported.
+	 */
+	public abstract String decode(String stringToDecode, String encoding) throws BrowserException;
 	
 	/**
 	 * Set the rate limit for loading from a single host.  The {@link Browser} will wait until the rate is below
-	 * this threshold before making another request.
+	 * this threshold before making another request.  Set this to <code>0</code> to disable rate limiting.
 	 * @param rateLimitKBPS The rate limit to set, in kilobytes per second.
-	 * @see #enableRateLimit()
-	 * @see #disableRateLimit()
+	 * @see #getRateLimit()
 	 */
 	public abstract void setRateLimit(int rateLimitKBPS);
 	
 	/**
-	 * Disable the rate limit for loading from a single host.
-	 * @see #disableRateLimit()
+	 * Get the current rate limit for loading from a single host.  The {@link Browser} will wait until the rate is below
+	 * this threshold before making another request.  If it is <code>0</code>, rate limiting is disabled.
+	 * @return The current {@link int} rate limit in kilobytes per second, or <code>0</code> if it is disabled.
 	 * @see #setRateLimit(int)
 	 */
-	public abstract void disableRateLimit();
-	
-	/**
-	 * Enable the rate limit for loading from a single host.
-	 * @see #disableRateLimit()
-	 * @see #setRateLimit(int)
-	 */
-	public abstract void enableRateLimit();
+	public abstract int getRateLimit();
 	
 	/**
 	 * @param timeout How many seconds before giving up on a request.
@@ -149,7 +153,7 @@ public interface Browser {
 	public abstract void setTimeout(int timeout);
 	
 	/**
-	 * @param maxResponseSize The maximum size of a response in kilobytes that this {@link Browser}
+	 * @param maxResponseSizeKB The maximum size of a response in kilobytes that this {@link Browser}
 	 * will load before terminating.  Since responses are fed straight through to a regex
 	 * parser, it is wise not to deal with huge pages.
 	 */

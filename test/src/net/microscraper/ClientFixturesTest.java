@@ -15,7 +15,7 @@ import mockit.NonStrictExpectations;
 import mockit.Tested;
 import mockit.Verifications;
 import mockit.VerificationsInOrder;
-import net.microscraper.Client;
+import net.microscraper.Microscraper;
 import net.microscraper.BasicNameValuePair;
 import net.microscraper.Log;
 import net.microscraper.Variables;
@@ -26,35 +26,50 @@ import net.microscraper.impl.file.JavaIOFileLoader;
 import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.impl.regexp.JakartaRegexpCompiler;
+import net.microscraper.impl.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.impl.uri.JavaNetURI;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.database.IOConnection;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.database.IOTable;
+import net.microscraper.interfaces.file.FileLoader;
+import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.json.JSONInterfaceException;
+import net.microscraper.interfaces.regexp.RegexpCompiler;
 import net.microscraper.interfaces.uri.URIInterface;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ClientTest {
-	private URIInterface fixturesFolder, simpleGoogle, nycPropertyOwner, nycIncentives,
+/**
+ * Test {@link Microscraper} using fixtures, with a live {@link Browser}, {@link
+ * RegexpCompiler}, {@link JSONInterface}, and {@link FileLoader}.
+ * @author realest
+ *
+ */
+public class ClientFixturesTest {
+	private URIInterface simpleGoogle, nycPropertyOwner, nycIncentives,
 						nycIncentivesSimple, eventValidation, simpleGoogleSplit1, 
 						simpleGoogleSplit2;
 	
-	/**
-	 * The test {@link Client} instance.
-	 */
-	@Tested private Client client;
-
-	Log log = new Log();
-	@Mocked final MultiTableDatabase db;
+	private static final String PATH_TO_FIXTURES = "../fixtures/";
 	
-	public ClientTest() throws Exception {
-		db = new MultiTableDatabase(JDBCSqliteConnection.inMemory(log));
-	}
+	/**
+	 * The mocked {@link Database}.
+	 */
+	@Mocked private Database database;
+	
+	/**
+	 * The test {@link Microscraper} instance.
+	 */
+	private Microscraper client;
+	
+	/**
+	 * The {@link JSONInterface} to use for loading fixtures.
+	 */
+	private JSONInterface jsonInterface;
 	
 	/**
 	 * Set up the {@link #client} before each test.
@@ -62,24 +77,19 @@ public class ClientTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		fixturesFolder = new JavaNetURI(
-				new File(System.getProperty("user.dir")).toURI().resolve("fixtures/"));
+		URIInterface fixtures = new JavaNetURI(System.getProperty("user.dir")).resolve(PATH_TO_FIXTURES);
 		
-		simpleGoogle = fixturesFolder.resolve("simple-google.json");
-		simpleGoogleSplit1 = fixturesFolder.resolve("simple-google-split-1.json");
-		simpleGoogleSplit2 = fixturesFolder.resolve("simple-google-split-2.json");
-		nycPropertyOwner = fixturesFolder.resolve("nyc-property-owner.json");
-		nycIncentives = fixturesFolder.resolve("nyc-incentives.json");
-		eventValidation = fixturesFolder.resolve("event-validation.json");
-		nycIncentivesSimple = fixturesFolder.resolve("nyc-incentives-simple.json");
+		simpleGoogle =       fixtures.resolve("simple-google.json");
+		simpleGoogleSplit1 = fixtures.resolve("simple-google-split-1.json");
+		simpleGoogleSplit2 = fixtures.resolve("simple-google-split-2.json");
+		nycPropertyOwner =   fixtures.resolve("nyc-property-owner.json");
+		nycIncentives =      fixtures.resolve("nyc-incentives.json");
+		eventValidation =     fixtures.resolve("event-validation.json");
+		nycIncentivesSimple = fixtures.resolve("nyc-incentives-simple.json");
 		
-		log.register(new SystemOutLogger());
-		Browser browser = new JavaNetBrowser(log, 500, 1000);
-		client = new Client(
-				new JakartaRegexpCompiler(),
-				log, browser,
-				new JSONME(new JavaIOFileLoader(), browser),
-				db);
+		Browser browser = new JavaNetBrowser();
+		jsonInterface = new JSONME();
+		client = new Microscraper(new JavaUtilRegexpCompiler(), browser, database);
 	}
 	
 	/**
@@ -93,8 +103,8 @@ public class ClientTest {
 		BasicNameValuePair[] extraVariables = new BasicNameValuePair[] {
 				new BasicNameValuePair("query", "hello")
 		};
-
-		testScrape(simpleGoogle, extraVariables);
+		
+		client.scrape(simpleGoogle, extraVariables);
 		
 		new Verifications() {
 			
@@ -133,11 +143,8 @@ public class ClientTest {
 						0); minTimes = 1;*/
 			//}
 		//};
-
-
-		
 	}
-
+	
 	/**
 	 * Test fixture {@link #simpleGoogleSplit1} and {@link #simpleGoogleSplit2}.
 	 * @throws Exception
@@ -503,12 +510,12 @@ public class ClientTest {
 	 * use as extra {@link Variables}.
 	 * @throws Exception If the test failed.
 	 */
-	private void testScrape(URIInterface location,
+	/*private void testScrape(URIInterface location,
 			BasicNameValuePair[] extraVariables) throws Exception {
 		try {
 			client.scrape(location, extraVariables);
 		} catch(BrowserException e) {
 			throw new Exception("Error loading the page.", e);
 		}
-	}
+	}*/
 }

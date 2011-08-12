@@ -1,6 +1,10 @@
 package net.microscraper;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
+
+import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.browser.BrowserException;
 
 /**
  * An implementation of {@link Variables} optionally initialized with
@@ -8,32 +12,76 @@ import java.util.Hashtable;
  * @author realest
  *
  */
-public class BasicVariables implements Variables {
+public final class BasicVariables implements Variables {
 	
-	private final Hashtable defaults = new Hashtable();
-	//private Variables extendedVariables = null;
+	private final Hashtable hashtable = new Hashtable();
 	
-	/**
-	 * Initialize {@link BasicVariables} without {@link NameValuePairs}s.
-	 */
-	public BasicVariables() { }
+	private BasicVariables() { }
 	
 	/**
-	 * 
-	 * @param nameValuePairs an array of {@link NameValuePair}s that will be in the 
-	 * {@link BasicVariables} instance.
+	 * Extend a {@link BasicVariables} with mappings from a {@link Hashtable}.  Modifies
+	 * the original.
+	 * @param withHashtable The {@link Hashtable} to use.
+	 * @throws IllegalArgumentException if one of the <code>withHashtable</code> elements
+	 * has a non-{@link String} key or value.
+	 * @return The original {@link BasicVariables}, modified.
 	 */
-	public BasicVariables(NameValuePair[] nameValuePairs) {
-		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
-			defaults.put(nameValuePairs[i].getName(), nameValuePairs[i].getValue());
+	public BasicVariables extend(Hashtable withHashtable) {
+		Enumeration enum = withHashtable.keys();
+		while(enum.hasMoreElements()) {
+			Object key = enum.nextElement();
+			Object value = withHashtable.get(key);
+			if(key instanceof String && value instanceof String) {
+				hashtable.put(key, value);
+			} else {
+				throw new IllegalArgumentException();
+			}
 		}
+		return this;
+	}
+
+	/**
+	 * Initialize an empty {@link BasicVariables}.
+	 */
+	public static BasicVariables empty() {
+		return new BasicVariables();
+	}
+	
+	/**
+	 * Turn a form-encoded {@link String} into {@link Variables}.
+	 * @param browser The {@link Browser} to use for decoding.
+	 * @param formEncodedData A {@link String} of form-encoded data to convert.
+	 * @param encoding The encoding to use.  <code>UTF-8</code> recommended.
+	 * @return A {@link Variables}.
+	 * @throws IllegalArgumentException If the encoding is not supported.
+	 */
+	public static BasicVariables fromFormEncoded(Browser browser, String formEncodedData, String encoding) throws BrowserException {
+		String[] splitByAmpersands = Utils.split(formEncodedData, "&");
+		Hashtable hashtable = new Hashtable();
+		for(int i = 0 ; i < splitByAmpersands.length; i++) {
+			String[] pair = Utils.split(splitByAmpersands[i], "=");
+			try {
+				hashtable.put(browser.decode(pair[0], encoding),
+						browser.decode(pair[1], encoding));
+			} catch(BrowserException e) {
+				throw new IllegalArgumentException(encoding);
+			}
+		}
+		return fromHashtable(hashtable);
+	}
+	
+	/**
+	 * Initialize {@link BasicVariables} values from a {@link Hashtable}.
+	 * @param initialHashtable Initial {@link Hashtable} whose mappings should stock {@link Variables}.
+	 * @throws IllegalArgumentException if one of the <code>initialHashtable</code> elements
+	 * has a non-{@link String} key or value.
+	 */
+	public static BasicVariables fromHashtable(Hashtable initialHashtable) {
+		return empty().extend(initialHashtable);
 	}
 	
 	public String get(String key) throws MissingVariableException {
-		Object value = defaults.get(key);
-		/*if(extendedVariables != null) {
-			return extendedVariables.get(key);
-		}*/
+		Object value = hashtable.get(key);
 		if(value == null) {
 			throw new MissingVariableException(this, key);
 		}
@@ -41,11 +89,6 @@ public class BasicVariables implements Variables {
 	}
 
 	public boolean containsKey(String key) {
-		try {
-			get(key);
-			return true;
-		} catch(MissingVariableException e) {
-			return false;
-		}
+		return hashtable.containsKey(key);
 	}
 }

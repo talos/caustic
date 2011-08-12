@@ -1,6 +1,6 @@
 package net.microscraper.impl.database;
 
-import net.microscraper.ClientException;
+import net.microscraper.MicroscraperException;
 
 /**
  * {@link Exception} class for exceptions arising from {@link SQLConnection}.
@@ -8,7 +8,7 @@ import net.microscraper.ClientException;
  * @see SQLConnection
  *
  */
-public final class SQLConnectionException extends ClientException {
+public final class SQLConnectionException extends MicroscraperException {
 	private static final long serialVersionUID = 1L;
 	public SQLConnectionException(String message) { super(message); }
 	public SQLConnectionException(Throwable e) { super(e); }

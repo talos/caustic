@@ -50,25 +50,24 @@ public final class SingleTableDatabase implements Database {
 		this.table = connection.getWritableTable(COLUMN_NAMES);
 	}
 
-	public final Result store(String name, String value, int resultNum, boolean shouldSaveValue)
+	public final Result store(String name, String value, int resultNum)
 			throws DatabaseException {
 		return new Result(table.insert(
 				new NameValuePair[] {
 					new BasicNameValuePair(SOURCE_ID_COLUMN, null),
 					new BasicNameValuePair(NAME_COLUMN, name),
-					new BasicNameValuePair(VALUE_COLUMN, shouldSaveValue ? value : null)
+					new BasicNameValuePair(VALUE_COLUMN, value)
 				}),
 			name, value );
 	}
 	
-	public final Result store(Result source, String name, String value, int resultNum,
-				boolean shouldSaveValue)
+	public final Result store(Result source, String name, String value, int resultNum)
 			throws DatabaseException {
 		return new Result(table.insert(
 				new NameValuePair[] {
 					new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(source.getId())),
 					new BasicNameValuePair(NAME_COLUMN, name),
-					new BasicNameValuePair(VALUE_COLUMN, shouldSaveValue ? value : null)
+					new BasicNameValuePair(VALUE_COLUMN, value)
 				}),
 			name, value );
 	}

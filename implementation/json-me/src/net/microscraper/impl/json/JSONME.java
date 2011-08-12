@@ -2,12 +2,7 @@ package net.microscraper.impl.json;
 
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.Vector;
 
-import net.microscraper.Utils;
-import net.microscraper.interfaces.browser.Browser;
-import net.microscraper.interfaces.browser.BrowserException;
-import net.microscraper.interfaces.file.FileLoader;
 import net.microscraper.interfaces.json.JSONInterface;
 import net.microscraper.interfaces.json.JSONInterfaceArray;
 import net.microscraper.interfaces.json.JSONInterfaceException;
@@ -20,64 +15,33 @@ import net.microscraper.interfaces.uri.URIInterfaceException;
 import org.json.me.JSONArray;
 import org.json.me.JSONException;
 import org.json.me.JSONObject;
-import org.json.me.JSONTokener;
 import org.json.me.JSONWriter;
 import org.json.me.StringWriter;
 
 public class JSONME implements JSONInterface {
-	private final FileLoader fileLoader;
-	private final Browser browser;
-	
-	public JSONME(FileLoader fileLoader, Browser browser) {
-		this.fileLoader = fileLoader;
-		this.browser = browser;
-	}
 	
 	public JSONInterfaceStringer getStringer() throws JSONInterfaceException {
 		return new JSONMEStringer();
 	}
 	
 	public JSONInterfaceObject load(URIInterface uri)
-			throws JSONInterfaceException, IOException, URIInterfaceException {
+			throws JSONInterfaceException, URIInterfaceException {
 		try {
-			return new JSONMEObject(uri, loadRaw(uri));
+			return new JSONMEObject(uri, new JSONObject(uri.load()));
 		} catch(JSONException e) {
+			throw new JSONInterfaceException(e);
+		} catch(IOException e) {
 			throw new JSONInterfaceException(e);
 		}
 	}
 	
 	public JSONInterfaceObject parse(URIInterface uri, String jsonString)
-			throws JSONInterfaceException, URIInterfaceException, IOException {
+			throws JSONInterfaceException, URIInterfaceException {
 		try {
 			return new JSONMEObject(null, new JSONObject(jsonString));
 		} catch(JSONException e) {
 			throw new JSONInterfaceException(e);
-		}
-	}
-	
-	/**
-	 * Private method to load a {@link JSONObject} from a {@link URIInterface} -- as opposed to
-	 * a {@link JSONInterfaceObject}.
-	 * @param jsonLocation Where to load the {@link JSONObject} from.
-	 * @return A {@link JSONObject}.
-	 * @throws IOException If there was an error loading.
-	 * @throws JSONInterfaceException If there was an error creating the {@link JSONObject}.
-	 */
-	private JSONObject loadRaw(URIInterface jsonLocation)  throws IOException, JSONInterfaceException {
-		try {
-			String jsonString;
-			if(jsonLocation.isFile()) {
-				jsonString = fileLoader.load(jsonLocation.getSchemeSpecificPart());
-			} else if(jsonLocation.isHttp()) {
-				browser.disableRateLimit();
-				jsonString = browser.get(jsonLocation.toString(), null, null, null);
-			} else {
-				throw new IOException("JSON can only be loaded from local filesystem or HTTP.");
-			}
-			return new JSONObject(jsonString);
-		} catch(BrowserException e) {
-			throw new IOException(e);
-		} catch(JSONException e) {
+		} catch(IOException e) {
 			throw new JSONInterfaceException(e);
 		}
 	}
@@ -98,7 +62,7 @@ public class JSONME implements JSONInterface {
 			while(object.has(REFERENCE_KEY)) {
 				uri = uri.resolve(object.getString(REFERENCE_KEY));
 				//object = loadJSONObject(location, object.toString());
-				object = loadRaw(uri);
+				object = new JSONObject(uri.load());
 			}
 			
 			if(object.has(EXTENDS)) {

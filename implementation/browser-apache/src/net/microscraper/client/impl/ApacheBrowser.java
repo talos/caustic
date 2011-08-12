@@ -11,7 +11,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.microscraper.Client;
+import net.microscraper.Microscraper;
 import net.microscraper.Result;
 import net.microscraper.Mustache.MissingVariable;
 import net.microscraper.Mustache.TemplateException;
@@ -82,7 +82,7 @@ public class ApacheBrowser implements Browser {
 		try {
 			URI uri = new URI(url);
 			
-			Client.context().log.i("Browser loading URL '" + uri.toString() + "'");
+			Microscraper.context().log.i("Browser loading URL '" + uri.toString() + "'");
 			
 			// Set up our HttpClient
 			DefaultHttpClient http_client = new DefaultHttpClient();
@@ -122,15 +122,15 @@ public class ApacheBrowser implements Browser {
 			// Set up patterns
 			PatternInterface[] patterns = new PatternInterface[terminates.length];
 			for(int i = 0; i < terminates.length; i++) {
-				patterns[i] = Client.context().regexp.compile(terminates[i].getValue(caller)[0].value);
+				patterns[i] = Microscraper.context().regexp.compile(terminates[i].getValue(caller)[0].value);
 			}
 
-			Client.context().log.i("Waiting for response from " + uri.toString() + "...");
+			Microscraper.context().log.i("Waiting for response from " + uri.toString() + "...");
 			HttpResponse response = http_client.execute(http_request);
 			
 			StatusLine status = response.getStatusLine();
 			
-			Client.context().log.i("Loading " + uri.toString() + "...");
+			Microscraper.context().log.i("Loading " + uri.toString() + "...");
 			// Convert the stream into a string.
 			if(status.getStatusCode() == 200) {
 				HttpEntity entity = response.getEntity();
@@ -151,7 +151,7 @@ public class ApacheBrowser implements Browser {
 					content_string = new String(content.toByteArray());
 					for(int i = 0 ; i < patterns.length ; i ++) {
 						if(patterns[i].matches(content_string)){
-							Client.context().log.i("Terminating " + uri.toString() + " due to pattern " + terminates[i].toString());
+							Microscraper.context().log.i("Terminating " + uri.toString() + " due to pattern " + terminates[i].toString());
 							entity.consumeContent();
 							break loading;
 						}

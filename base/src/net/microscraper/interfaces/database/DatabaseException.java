@@ -1,13 +1,13 @@
 package net.microscraper.interfaces.database;
 
-import net.microscraper.ClientException;
+import net.microscraper.MicroscraperException;
 
 /**
  * Parent class for all exceptions with {@link Database}.
  * @author talos
  *
  */
-public class DatabaseException extends ClientException {
+public class DatabaseException extends MicroscraperException {
 
 	public DatabaseException(Throwable e) {
 		super(e);
