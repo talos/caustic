@@ -2,8 +2,6 @@ package net.microscraper;
 
 import java.util.Hashtable;
 
-import net.microscraper.executable.FindOneExecutable;
-
 /**
  * A {@link Hashtable} wrapper with String keys and values.
  * @author john

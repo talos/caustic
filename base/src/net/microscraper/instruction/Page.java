@@ -261,7 +261,7 @@ public final class Page extends Instruction {
 	}
 	
 	private String getURL(Browser browser, Variables variables) throws MissingVariableException {
-		return url.compileEncoded(toString(), variables, browser, Browser.UTF_8);
+		return url.compileEncoded(variables, browser, Browser.UTF_8);
 	}
 	
 	/**

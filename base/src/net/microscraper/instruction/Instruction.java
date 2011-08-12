@@ -7,7 +7,6 @@ import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplate;
 import net.microscraper.MustacheTemplateException;
 import net.microscraper.Variables;
-import net.microscraper.executable.BasicExecutable;
 import net.microscraper.executable.Executable;
 import net.microscraper.executable.Result;
 import net.microscraper.interfaces.browser.Browser;
@@ -52,13 +51,40 @@ public abstract class Instruction  {
 	 */
 	public static final String SAVE = "save";
 	
+	/**
+	 * The {@link MustacheTemplate} name for this {@link Instruction}.  Can be <code>null</code>.
+	 * Name should therefore be retrieved through {@link #getName(Variables, Browser, RegexpCompiler)}.
+	 * @see #getName(Variables, Browser, RegexpCompiler)
+	 */
 	private final MustacheTemplate name;
+	
+	/**
+	 * Get the name for this {@link Instruction}.  Will return {@link #name}, compiled, unless it is
+	 * <code>null</code>. In that case, it will return {@link #getDefaultName(Variables, RegexpCompiler, Browser)}
+	 * instead.
+	 * @param variables {@link Variables} for Mustache substitution.
+	 * @param browser A {@link Browser} to use for encoding.
+	 * @param compiler A {@link RegexpCompiler}.
+	 * @return The {@link String}.
+	 * @throws MissingVariableException if a {@link MustacheTemplate} name could not be compiled.
+	 * @throws RegexpException
+	 */
+	private String getName(Variables variables, Browser browser, RegexpCompiler compiler)
+			throws MissingVariableException, RegexpException {
+		return name != null ? name.compile(variables) : getDefaultName(variables, compiler, browser);
+	}
 	
 	/**
 	 * The {@link JSONInterfaceObject} this {@link Instruction} was deserialized from,
 	 * as a formatted {@link String}.
 	 */
 	private final String formattedJSON;
+
+	/**
+	 * An array of {@link Instruction}s to be turned into {@link Executable}s after
+	 * this {@link Execution} is executed.
+	 */
+	private final Instruction[] children;
 	
 	private final boolean shouldSaveValue;
 	
@@ -140,8 +166,6 @@ public abstract class Instruction  {
 		}
 	}
 	
-	private final Instruction[] children;
-	
 	/**
 	 * @return {@link #formattedJSON}
 	 */
@@ -173,7 +197,7 @@ public abstract class Instruction  {
 			Result source = sources[i];
 			for(int j = 0 ; j < this.children.length ; j++) {
 				childExecutables[i * j + i] =
-						new BasicExecutable(this.children[j], compiler, browser, source, database);
+						new Executable(this.children[j], compiler, browser, variables, source, database);
 			}
 		}
 		
@@ -196,13 +220,18 @@ public abstract class Instruction  {
 	public Result[] execute(RegexpCompiler compiler, Browser browser,
 			Variables variables, Result source, Database database) throws MissingVariableException,
 			BrowserException, RegexpException, DatabaseException {
-		String[] resultValues = generateResultValues(compiler, browser, variables, source.getValue());
+		String[] resultValues;
+		if(source == null) {
+			resultValues = generateResultValues(compiler, browser, variables, null);
+		} else {
+			resultValues = generateResultValues(compiler, browser, variables, source.getValue());
+		}
 		Result[] results = new Result[resultValues.length];
 		for(int i = 0 ; i < resultValues.length ; i ++) {
 			if(source == null) {
-				results[i] = database.store(name.compile(variables), resultValues[i], i, shouldSaveValue);	
+				results[i] = database.store(getName(variables, browser, compiler), resultValues[i], i, shouldSaveValue);	
 			} else {
-				results[i] = database.store(source, name.compile(variables), resultValues[i], i, shouldSaveValue);
+				results[i] = database.store(source, getName(variables, browser, compiler), resultValues[i], i, shouldSaveValue);
 			}
 		}
 		return results;

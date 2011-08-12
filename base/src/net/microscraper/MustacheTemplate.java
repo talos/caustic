@@ -10,16 +10,29 @@ import net.microscraper.interfaces.browser.BrowserException;
  *
  */
 public final class MustacheTemplate {
-	private final String string;
+	private final String template;
 	
 	/**
 	 * 
-	 * @param string The String from which Mustache tags will substituted by Variables.
+	 * @param template The String from which Mustache tags will substituted by Variables.
 	 * @throws MustacheTemplateException If <code>string</code> cannot be turned into a
 	 * {@link MustacheTemplate}.
 	 */
-	public MustacheTemplate(String string) throws MustacheTemplateException {
-		this.string = string;
+	public MustacheTemplate(String template) throws MustacheTemplateException {
+		this.template = template;
+		
+		if(template == null) {
+			throw new MustacheTemplateException("Cannot compile null string in mustache.");
+		}
+		int close_tag_end_pos = 0;
+		int open_tag_start_pos;
+		while((open_tag_start_pos = template.indexOf(open_tag, close_tag_end_pos)) != -1) {
+						
+			int close_tag_start_pos = template.indexOf(close_tag, open_tag_start_pos);
+			if(close_tag_start_pos == -1)
+				throw new MustacheTemplateException("No close tag for opening tag at position " + open_tag_start_pos + " in Mustache template " + template);			
+			close_tag_end_pos = close_tag_start_pos + close_tag.length();
+		}
 	}
 	
 	/**
@@ -29,7 +42,7 @@ public final class MustacheTemplate {
 	 * @throws MissingVariableException If {@link Variables} was missing a key.
 	 */
 	public String compile(Variables variables) throws MissingVariableException {
-		return compile(string, variables, null, null);
+		return compile(variables, null, null);
 	}
 
 	/**
@@ -41,38 +54,35 @@ public final class MustacheTemplate {
 	 * @return The string, with tags substituted using the variables.
 	 * @throws MissingVariableException The Variables instance was was missing one of the tags.
 	 */
-	public String compileEncoded(String template, Variables variables, Browser browser, String encoding)
+	public String compileEncoded(Variables variables, Browser browser, String encoding)
 		throws MissingVariableException {
-		return compile(template, variables, browser, encoding);
+		return compile(variables, browser, encoding);
 	}
 	
 	/**
 	 * @return The raw, uncompiled {@link String} for this {@link MustacheTemplate}.
 	 */
 	public String toString() {
-		return string;
+		return template;
 	}
 	
 
 	public static final String open_tag = "{{";
 	public static final String close_tag = "}}";
 	
-	private String compile(String template, Variables variables, Browser browser, String encoding)
+	private String compile(Variables variables, Browser browser, String encoding)
 		throws MissingVariableException {
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
 		String result = "";
-		if(template == null) {
-			throw new MustacheTemplateException("Cannot compile null string in mustache.");
-		}
 		while((open_tag_start_pos = template.indexOf(open_tag, close_tag_end_pos)) != -1) {
 			
 			// Pass unmodified text from the end of the last closed tag to the start of the current open tag.
 			result += template.substring(close_tag_end_pos, open_tag_start_pos);
 			
 			int close_tag_start_pos = template.indexOf(close_tag, open_tag_start_pos);
-			if(close_tag_start_pos == -1)
-				throw new MustacheTemplateException("No close tag for opening tag at position " + open_tag_start_pos + " in Mustache template " + template);
+			//if(close_tag_start_pos == -1)
+			//	throw new IllegalStateException("No close tag for opening tag at position " + open_tag_start_pos + " in Mustache template " + template);
 			
 			String tag = template.substring(open_tag_start_pos + open_tag.length(), close_tag_start_pos);
 			
@@ -82,7 +92,7 @@ public final class MustacheTemplate {
 					try {
 						result += browser.encode(variables.get(tag), encoding);
 					} catch(BrowserException e) {
-						throw new MustacheTemplateException
+						throw new IllegalStateException
 								("Could not encode " + Utils.quote(variables.get(tag)) + " with " + encoding);
 					}
 				} else {

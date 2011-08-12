@@ -29,6 +29,7 @@ import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.log.JavaIOFileLogger;
 import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.impl.regexp.JavaUtilRegexpCompiler;
+import net.microscraper.impl.uri.JavaNetURI;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.database.DatabaseException;
