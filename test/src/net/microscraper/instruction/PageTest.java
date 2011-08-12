@@ -5,89 +5,64 @@ import static org.junit.Assert.*;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Tested;
+import mockit.Verifications;
+import net.microscraper.BasicVariables;
+import net.microscraper.NameValuePair;
+import net.microscraper.interfaces.browser.Browser;
+import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.json.JSONInterfaceObject;
+import net.microscraper.interfaces.regexp.PatternInterface;
+import net.microscraper.interfaces.regexp.RegexpCompiler;
 
 import org.junit.Test;
 
 public class PageTest {
 
 	@Mocked JSONInterfaceObject obj;
-	@Tested Page page;
+	@Mocked Database database;
+	@Mocked Browser browser;
+	@Mocked RegexpCompiler compiler;
+	//@Tested Page page;
 	
-	@Test
-	public void testGetMethodDefault() throws Exception {
-		page = new Page(obj);
-		assertEquals(Page.DEFAULT_METHOD, page.getMethod());
-	}
-	
-	@Test
-	public void testGetMethodGet() throws Exception {
-		new NonStrictExpectations() {{
-			obj.getString(Page.METHOD); result = "get";
-			obj.has(Page.METHOD); result = true;
-		}};
-		page = new Page(obj);
-		assertEquals(Page.Method.GET, page.getMethod());
-	}
 
 	@Test
-	public void testGetMethodPost() throws Exception {
-		new NonStrictExpectations() {{
-			obj.getString(Page.METHOD); result = "post";
-			obj.has(Page.METHOD); result = true;
-		}};
-		page = new Page(obj);
-		assertEquals(Page.Method.POST, page.getMethod());
-	}
-	
-	@Test
-	public void testGetMethodHead() throws Exception {
-		new NonStrictExpectations() {{
-			obj.getString(Page.METHOD); result = "head";
-			obj.has(Page.METHOD); result = true;
-		}};
-		page = new Page(obj);
-		assertEquals(Page.Method.HEAD, page.getMethod());
+	public void testByDefaultDoesntSaveValue() throws Exception {
+		final String google = "http://www.google.com";
+		new NonStrictExpectations() {
+			{
+				obj.getString(Page.URL); result = google;
+			}
+		};
+		Page page = new Page(obj);
+		page.execute(compiler, browser, new BasicVariables(), null, database);
+		
+		new Verifications() {
+			{
+				database.store(anyString, anyString, 0, false);
+			}
+		};
 	}
 	
 
-	@Test(expected=DeserializationException.class)
-	public void testGetMethodInvalid() throws Exception {
-		new NonStrictExpectations() {{
-			obj.getString(Page.METHOD); result = "not a method";
-			obj.has(Page.METHOD); result = true;
-		}};
-		page = new Page(obj);
-	}
-	
 	@Test
-	public void testGetCookiesDefault() throws Exception {
-		page = new Page(obj);
-		assertArrayEquals(Page.DEFAULT_COOKIES, page.getCookies());
+	public void testCanSaveValue() throws Exception {
+		final String google = "http://www.google.com";
+		final String content = "Google!";
+		new NonStrictExpectations() {
+			{
+				obj.getString(Page.URL); result = google;
+				obj.has(Instruction.SAVE); result = true; 
+				obj.getBoolean(Instruction.SAVE); result = true;
+				browser.get(google, (NameValuePair[]) any, (NameValuePair[]) any, (PatternInterface[]) any); result = content;
+			}
+		};
+		Page page = new Page(obj);
+		page.execute(compiler, browser, new BasicVariables(), null, database);
+		
+		new Verifications() {
+			{
+				database.store(anyString, anyString, 0, true);
+			}
+		};
 	}
-
-	@Test
-	public void testGetHeadersDefault() throws Exception {
-		page = new Page(obj);
-		assertArrayEquals(Page.DEFAULT_HEADERS, page.getHeaders());
-	}
-
-	@Test
-	public void testGetPreloadDefault() throws Exception {
-		page = new Page(obj);
-		assertArrayEquals(Page.DEFAULT_PRELOAD, page.getPreload());
-	}
-
-	@Test
-	public void testGetStopBecauseDefault() throws Exception {
-		page = new Page(obj);
-		assertArrayEquals(Page.DEFAULT_STOP_BECAUSE, page.getStopBecause());
-	}
-
-	@Test
-	public void testGetPostsDefault() throws Exception {
-		page = new Page(obj);
-		assertArrayEquals(Page.DEFAULT_POSTS, page.getPosts());
-	}
-
 }

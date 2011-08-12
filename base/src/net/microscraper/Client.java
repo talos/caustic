@@ -3,8 +3,6 @@ package net.microscraper;
 import java.io.IOException;
 import java.util.Vector;
 
-import net.microscraper.executable.Executable;
-import net.microscraper.executable.Executable;
 import net.microscraper.instruction.Page;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.database.Database;

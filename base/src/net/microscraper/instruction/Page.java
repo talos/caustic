@@ -246,7 +246,7 @@ public final class Page extends Instruction {
 	/**
 	 * Key for {@link #getPosts()} when deserializing. Default is {@link #DEFAULT_POSTS}.
 	 */
-	private static final String URL = "url";
+	public static final String URL = "url";
 
 	/**
 	 * Default value for {@link #getPosts()}.

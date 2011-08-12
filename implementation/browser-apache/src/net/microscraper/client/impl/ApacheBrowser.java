@@ -12,11 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.microscraper.Client;
+import net.microscraper.Result;
 import net.microscraper.Mustache.MissingVariable;
 import net.microscraper.Mustache.TemplateException;
 import net.microscraper.executable.AbstractResource;
 import net.microscraper.executable.AbstractResult;
-import net.microscraper.executable.Result;
 import net.microscraper.executable.DatabaseException.ResourceNotFoundException;
 import net.microscraper.instruction.AbstractHeader;
 import net.microscraper.interfaces.browser.Browser;

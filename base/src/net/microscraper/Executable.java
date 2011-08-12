@@ -1,11 +1,7 @@
-package net.microscraper.executable;
+package net.microscraper;
 
 import java.io.IOException;
 
-import net.microscraper.Log;
-import net.microscraper.MissingVariableException;
-import net.microscraper.Utils;
-import net.microscraper.Variables;
 import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.interfaces.browser.Browser;
@@ -16,26 +12,20 @@ import net.microscraper.interfaces.regexp.RegexpCompiler;
 import net.microscraper.interfaces.regexp.RegexpException;
 
 /**
- * {@link Executable} is a partial implementation of {@link Executable}.  It provides a framework
- * for implementing all of its interfaces except {@link Executable#hasName()},
- * {@link Executable#getName()}, {@link Executable#hasValue()},
- * and {@link Executable#getValue()}.
- * <p>Subclasses must provide implementations of {@link #generateResource}, {@link #generateResult},
- * and {@link #generateChildren}.
+ * {@link Executable}s provide a way to retry individual {@link Instruction#execute}
+ * runs.
  * @author john
  *
  */
 public final class Executable extends Log implements Variables {
 	private final Instruction instruction;
 	private final Result source;
-	//private final Interfaces interfaces;
 	private final Browser browser;
 	private final RegexpCompiler compiler;
 	private final Database database;
 	private final Variables variables;
 	
 	private Result[] results = null;
-	//private boolean generatedResults = false;
 	
 	private Executable[] children = null;
 	
@@ -66,7 +56,6 @@ public final class Executable extends Log implements Variables {
 		this.source = source;
 		this.database = database;
 	}
-	
 
 	/**
 	 * 

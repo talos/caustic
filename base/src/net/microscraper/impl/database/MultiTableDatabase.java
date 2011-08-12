@@ -5,8 +5,8 @@ import java.util.Hashtable;
 
 import net.microscraper.BasicNameValuePair;
 import net.microscraper.NameValuePair;
+import net.microscraper.Result;
 import net.microscraper.Utils;
-import net.microscraper.executable.Result;
 import net.microscraper.interfaces.database.IOConnection;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.database.DatabaseException;

@@ -56,9 +56,11 @@ public interface JSONInterfaceObject {
 	public abstract String getString(String key) throws JSONInterfaceException;
 
 	/**
-	 * Determine whether the specified <code>key</code> is a {@link String}.
+	 * Determine whether the specified <code>key</code>'s value could be a {@link String}.
+	 * Will still return <code>true</code> if the value is a {@link int} or {@link
+	 * boolean}, as they can be expressed as a {@link String}.
 	 * @param key The {@link String} key to check.
-	 * @return <code>true</code> if <code>key</code> is a {@link String}, 
+	 * @return <code>true</code> if <code>key</code> could be a {@link String}, 
 	 * <code>false</code> otherwise.
 	 * @throws JSONInterfaceException If <code>key</code> does not exist.
 	 */

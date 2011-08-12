@@ -2,14 +2,12 @@ package net.microscraper.impl.database;
 
 import static org.junit.Assert.*;
 
-import mockit.Cascading;
-import mockit.Input;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Tested;
 import mockit.Verifications;
 import net.microscraper.NameValuePair;
-import net.microscraper.executable.Result;
+import net.microscraper.Result;
 import net.microscraper.interfaces.database.IOConnection;
 import net.microscraper.interfaces.database.IOTable;
 
@@ -45,7 +43,7 @@ public class MultiTableDatabaseTest {
 	
 	@Test
 	public void testStoreStringString() throws Exception {
-		Result result = db.store("name", "value");
+		Result result = db.store("name", "value", 0, true);
 		assertEquals("name", result.getName());
 		assertEquals("value", result.getValue());
 				
@@ -58,8 +56,8 @@ public class MultiTableDatabaseTest {
 
 	@Test
 	public void testStoreResultStringString() throws Exception {
-		Result parentResult = db.store("parentName", "parentValue");
-		db.store(parentResult, "childName", "childValue");
+		Result parentResult = db.store("parentName", "parentValue", 0, true);
+		db.store(parentResult, "childName", "childValue", 0, true);
 		
 		new Verifications() {{
 			//table.insert((NameValuePair[]) any); times = 3;

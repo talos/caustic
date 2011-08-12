@@ -1,6 +1,5 @@
-package net.microscraper.executable;
+package net.microscraper;
 
-import net.microscraper.ClientException;
 
 /**
  * An {@link Exception} that indicates an {@link Executable}

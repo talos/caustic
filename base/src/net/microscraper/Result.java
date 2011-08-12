@@ -1,6 +1,5 @@
-package net.microscraper.executable;
+package net.microscraper;
 
-import net.microscraper.NameValuePair;
 
 /**
  * {@link Result}s are {@link NameValuePair}s implementations with a {@link #getId()}.

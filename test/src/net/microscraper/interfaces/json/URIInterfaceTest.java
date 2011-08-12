@@ -6,32 +6,28 @@ import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Collection;
 
-import net.microscraper.impl.regexp.JakartaRegexpCompiler;
-import net.microscraper.impl.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.impl.uri.JavaNetURI;
-import net.microscraper.interfaces.regexp.RegexpCompiler;
 import net.microscraper.interfaces.uri.URIInterface;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class JSONLocationTest {
+public class URIInterfaceTest {
 	
 	private final Constructor<URIInterface> constructor;
 	
-	private static final String filePathWithFragment = "file:/path/to/file#path/to/obj";
+	private static final String filePathWithFragment = "file:/path/to/file#fragment";
 	private static final String pathWithoutFragment = "path/to/file";
-	private static final String httpWithFragment = "http://www.site.com/#1/2/3/4";
+	private static final String httpWithFragment = "http://www.site.com/#fragment";
 	
 	private URIInterface newLocation(String uriOrPath) throws Exception {
 		return constructor.newInstance(uriOrPath);
 	}
 	
-	public JSONLocationTest(final Class<URIInterface> klass) throws Exception {
+	public URIInterfaceTest(final Class<URIInterface> klass) throws Exception {
 		constructor = klass.getConstructor(String.class);
 	}
 	
@@ -46,12 +42,12 @@ public class JSONLocationTest {
 	public void testResolveJSONLocation() throws Exception {
 		assertEquals(newLocation("file:/path/to/path/to/file"),
 				newLocation(filePathWithFragment).resolve(newLocation(pathWithoutFragment)));
-		assertEquals(newLocation("file:/path/to/file#path/to/obj"),
+		assertEquals(newLocation("file:/path/to/file#fragment"),
 				newLocation(pathWithoutFragment).resolve(newLocation(filePathWithFragment)));
 		
 		assertEquals(newLocation("http://www.site.com/path/to/file"),
 				newLocation(httpWithFragment).resolve(newLocation(pathWithoutFragment)));
-		assertEquals(newLocation("http://www.site.com/#1/2/3/4"),
+		assertEquals(newLocation("http://www.site.com/#fragment"),
 				newLocation(pathWithoutFragment).resolve(newLocation(httpWithFragment)));
 	}
 
@@ -59,37 +55,13 @@ public class JSONLocationTest {
 	public void testResolveString() throws Exception {
 		assertEquals(newLocation("file:/path/to/path/to/file"),
 				newLocation(filePathWithFragment).resolve(pathWithoutFragment));
-		assertEquals(newLocation("file:/path/to/file#path/to/obj"),
+		assertEquals(newLocation("file:/path/to/file#fragment"),
 				newLocation(pathWithoutFragment).resolve(filePathWithFragment));
 		
 		assertEquals(newLocation("http://www.site.com/path/to/file"),
 				newLocation(httpWithFragment).resolve(pathWithoutFragment));
-		assertEquals(newLocation("http://www.site.com/#1/2/3/4"),
+		assertEquals(newLocation("http://www.site.com/#fragment"),
 				newLocation(pathWithoutFragment).resolve(httpWithFragment));
-	}
-	
-	@Test
-	public void testResolveFragmentString() throws Exception {
-		assertEquals(newLocation("file:/path/to/file#/path/to/obj/more/path"),
-				newLocation(filePathWithFragment).resolveFragment("more/path"));
-		
-		assertEquals(newLocation("http://www.site.com/#/1/2/3/4/more/path"),
-				newLocation(httpWithFragment).resolveFragment("more/path"));
-		
-		assertEquals(newLocation("http://www.site.com/#/1/2/alternate"),
-				newLocation(httpWithFragment).resolveFragment("../../alternate"));
-		
-		assertEquals(newLocation("http://www.site.com/#/other/path"),
-				newLocation(httpWithFragment).resolveFragment("/other/path"));
-	}
-	
-	@Test
-	public void testResolveFragmentInteger() throws Exception {
-		assertEquals(newLocation("file:/path/to/file#path/to/obj/5"),
-				newLocation(filePathWithFragment).resolveFragment(5));
-		
-		assertEquals(newLocation("http://www.site.com/#1/2/3/4/5"),
-				newLocation(httpWithFragment).resolveFragment(5));
 	}
 	
 	@Test
@@ -122,29 +94,16 @@ public class JSONLocationTest {
 
 	@Test
 	public void testGetFragment() throws Exception {
-		assertEquals("/path/to/obj", newLocation(filePathWithFragment).getFragment());
-		assertEquals("/", newLocation(pathWithoutFragment).getFragment());
-		assertEquals("/1/2/3/4", newLocation(httpWithFragment).getFragment());
+		assertEquals("fragment", newLocation(filePathWithFragment).getFragment());
+		assertEquals(null, newLocation(pathWithoutFragment).getFragment());
+		assertEquals("fragment", newLocation(httpWithFragment).getFragment());
 	}
-
-	@Test
-	public void testExplodeJSONPath() throws Exception {
-		assertArrayEquals(
-				new String[] {"path", "to", "obj"},
-				newLocation(filePathWithFragment).explodeJSONPath());
-		assertArrayEquals(
-				new String[] {},
-				newLocation(pathWithoutFragment).explodeJSONPath());
-		assertArrayEquals(
-				new String[] { "1", "2", "3", "4" },
-				newLocation(httpWithFragment).explodeJSONPath());
-	}
-
+	
 	@Test
 	public void testToString() throws Exception {
-		assertEquals("file:/path/to/file#/path/to/obj", newLocation(filePathWithFragment).toString());
-		assertEquals("path/to/file#/", newLocation(pathWithoutFragment).toString());
-		assertEquals("http://www.site.com/#/1/2/3/4", newLocation(httpWithFragment).toString());
+		assertEquals("file:/path/to/file#fragment", newLocation(filePathWithFragment).toString());
+		assertEquals("path/to/file", newLocation(pathWithoutFragment).toString());
+		assertEquals("http://www.site.com/#fragment", newLocation(httpWithFragment).toString());
 	}
 
 	@Test

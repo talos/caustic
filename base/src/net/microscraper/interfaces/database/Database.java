@@ -1,6 +1,6 @@
 package net.microscraper.interfaces.database;
 
-import net.microscraper.executable.Result;
+import net.microscraper.Result;
 
 /**
  * Implementations of {@link Database} store the results of {@link Executable}s

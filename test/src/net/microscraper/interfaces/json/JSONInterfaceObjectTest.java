@@ -99,8 +99,8 @@ public class JSONInterfaceObjectTest {
 	@Test
 	public void testIsString() throws Exception {
 		assertTrue(getObject(jsonStringSimpleObject).isString("string"));
-		assertFalse(getObject(jsonStringSimpleObject).isString("int"));
-		assertFalse(getObject(jsonStringSimpleObject).isString("boolean"));
+		assertTrue(getObject(jsonStringSimpleObject).isString("int"));
+		assertTrue(getObject(jsonStringSimpleObject).isString("boolean"));
 	}
 
 	@Test
@@ -143,20 +143,9 @@ public class JSONInterfaceObjectTest {
 		assertTrue(getObject(jsonStringSimpleObject).isNull("null"));
 	}
 
-	/*@Test
-	public void testKeys() throws Exception {
-		assertArrayEquals(new String[] { "string", "int", "boolean", "null" },
-				getObject(jsonStringSimpleObject).keys().);
-	}*/
-
 	@Test
 	public void testLength() throws Exception {
 		assertEquals(4, getObject(jsonStringSimpleObject).length());
-	}
-
-	@Test
-	public void testGetLocation() throws Exception {
-		assertSame(location, getObject(jsonStringSimpleObject).getLocation());
 	}
 
 }

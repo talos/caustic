@@ -19,7 +19,6 @@ import net.microscraper.Client;
 import net.microscraper.BasicNameValuePair;
 import net.microscraper.Log;
 import net.microscraper.Variables;
-import net.microscraper.executable.Result;
 import net.microscraper.impl.browser.JavaNetBrowser;
 import net.microscraper.impl.database.JDBCSqliteConnection;
 import net.microscraper.impl.database.MultiTableDatabase;

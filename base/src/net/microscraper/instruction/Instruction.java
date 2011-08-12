@@ -3,12 +3,12 @@ package net.microscraper.instruction;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.microscraper.Executable;
 import net.microscraper.MissingVariableException;
 import net.microscraper.MustacheTemplate;
 import net.microscraper.MustacheTemplateException;
+import net.microscraper.Result;
 import net.microscraper.Variables;
-import net.microscraper.executable.Executable;
-import net.microscraper.executable.Result;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.database.Database;

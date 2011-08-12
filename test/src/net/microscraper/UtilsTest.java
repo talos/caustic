@@ -71,15 +71,15 @@ public class UtilsTest {
 	@Test
 	public void testQuoteString() {
 		String quoted = Utils.quote(TestUtils.makeRandomString(strLen));
-		assertEquals(true, quoted.startsWith(new String(new char[] { Utils.quotation })));
-		assertEquals(true, quoted.endsWith(new String(new char[] { Utils.quotation })));
+		assertEquals(true, quoted.startsWith(new String(new char[] { Utils.QUOTATION })));
+		assertEquals(true, quoted.endsWith(new String(new char[] { Utils.QUOTATION })));
 	}
 
 	@Test
 	public void testQuoteInt() {
 		String quoted = Utils.quote(TestUtils.getRandomInt(strLen));
-		assertEquals(true, quoted.startsWith(new String(new char[] { Utils.quotation })));
-		assertEquals(true, quoted.endsWith(new String(new char[] { Utils.quotation })));
+		assertEquals(true, quoted.startsWith(new String(new char[] { Utils.QUOTATION })));
+		assertEquals(true, quoted.endsWith(new String(new char[] { Utils.QUOTATION })));
 	}
 
 	@Test

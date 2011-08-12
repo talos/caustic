@@ -3,8 +3,8 @@ package net.microscraper.test;
 import java.util.Random;
 import java.util.Vector;
 
+import net.microscraper.Executable;
 import net.microscraper.Utils;
-import net.microscraper.executable.Executable;
 
 public class TestUtils {
 	
