@@ -228,6 +228,11 @@ public final class Executable extends Log implements Variables {
 				}
 			}
 		}
+		if(source != null) {
+			if(source.getName().equals(key)) {
+				return source.getValue();
+			}
+		}
 		if(children != null) {
 			for(int i = 0 ; i < children.length ; i++) {
 				String localValue = children[i].localGet(key);
@@ -240,7 +245,6 @@ public final class Executable extends Log implements Variables {
 	}
 	
 	public String get(String key) throws MissingVariableException {
-		System.out.println("looking for " + key);
 		String localValue = localGet(key);
 		if(localValue != null) {
 			return localValue;

@@ -1,41 +1,26 @@
 package net.microscraper.utility;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Hashtable;
-import java.util.List;
-
-import au.com.bytecode.opencsv.CSVReader;
+import java.util.Map;
 
 import net.microscraper.Microscraper;
 import net.microscraper.MicroscraperException;
-import net.microscraper.Utils;
-import net.microscraper.database.impl.DelimitedConnection;
-import net.microscraper.impl.database.JDBCSqliteConnection;
-import net.microscraper.impl.database.MultiTableDatabase;
 import net.microscraper.impl.database.SQLConnectionException;
-import net.microscraper.impl.database.SingleTableDatabase;
-import net.microscraper.impl.log.JavaIOFileLogger;
-import net.microscraper.impl.log.SystemOutLogger;
-import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.database.Database;
 import net.microscraper.interfaces.database.DatabaseException;
-import net.microscraper.interfaces.database.IOConnection;
-import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.uri.URIInterfaceException;
 
 public class MicroScraperConsole {
 	public static void main (String[] args) {
 		try {
-			initialize(args);
+			Map<String, String> arguments = CommandLine.getArguments(args);
+			Database database = CommandLine.getDatabase(arguments);
+			Microscraper scraper = CommandLine.getScraper(arguments, database);
+			
 			try {
-				scrape();
+				CommandLine.runScraper(arguments, scraper);
 			} catch(MicroscraperException e) {
 				print("Error scraping: " + e.getMessage());
 			} catch(IOException e) {
@@ -44,7 +29,7 @@ public class MicroScraperConsole {
 		} catch(IllegalArgumentException e) {
 			// Error with args provided
 			print(e.getMessage());
-			print(usage);
+			print(CommandLine.USAGE);
 		} catch(FileNotFoundException e) {
 			print("Could not find the input file: " + e.getMessage());
 		} catch(SQLConnectionException e) {
@@ -61,17 +46,21 @@ public class MicroScraperConsole {
 			print("Unhandled exception scraping: " + e.getClass().getName());
 			print("Stack trace is in the log.");
 			
-			client.e(e);
+			//client.e(e);
 			StackTraceElement[] trace = e.getStackTrace();
 			for(int i = 0 ; i < trace.length ; i ++) {
-				client.i(trace[i].toString());
+				//client.i(trace[i].toString());
 			}
 		}
-		try {
-			finish();
+		/*(try {
+			//finish();
 		} catch(IOException e) {
 			print("Could not close file: " + e.getMessage());
-		}
+		}*/
 	}
-	
+
+	private static void print(String text) {
+		System.out.print(text);
+		System.out.println();
+	}
 }

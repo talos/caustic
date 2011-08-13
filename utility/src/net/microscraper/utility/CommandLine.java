@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -37,7 +36,9 @@ public class CommandLine {
 
 	private static final String newline = System.getProperty("line.separator");
 	
-	public static final String INLINE_SWITCH = "-e";
+	public static final String URI_INSTRUCTION_OPTION = "--uri";
+	public static final String JSON_INSTRUCTION_OPTION = "--json";
+	
 	public static final String TIMESTAMP = new SimpleDateFormat("yyyyMMddkkmmss").format(new Date());
 	
 	public static final String BATCH_SIZE_OPTION = "--batch-size";
@@ -80,9 +81,9 @@ public class CommandLine {
 	public static final String TIMEOUT_OPTION = "--timeout";
 	public static final int DEFAULT_TIMEOUT = Browser.DEFAULT_TIMEOUT;
 		
-	public static final String usage = 
+	public static final String USAGE = 
 "usage: microscraper <uri> [<options>]" + newline +
-"		microscraper -e \"<json>\" [<options>]" + newline +
+"		microscraper (" + JSON_INSTRUCTION_OPTION + "=\"<json>\"|" + URI_INSTRUCTION_OPTION + "<uri>) [<options>]" + newline +
 "" + newline +
 "uri" + newline +
 "	A URI that points to microscraper instruction JSON." + newline +
@@ -124,7 +125,7 @@ public class CommandLine {
 "		How many seconds to wait before giving up on a request." + newline + 
 "		Defaults to " + Integer.toString(DEFAULT_TIMEOUT) + " seconds.";
 	
-	private static Map<String, String> getArguments(String[] args) throws IllegalArgumentException,
+	public static Map<String, String> getArguments(String[] args) throws IllegalArgumentException,
 					FileNotFoundException, SQLConnectionException, JSONInterfaceException,
 					DatabaseException, IOException,
 					UnsupportedEncodingException, URIInterfaceException {
@@ -132,18 +133,14 @@ public class CommandLine {
 			throw new IllegalArgumentException("You must specify the URI of scraper instructions.");
 		}
 		
-		boolean isInline;
-		String instruction;
-		int argStartIndex = 1;
+		//boolean isInline;
+		//String instruction;
+		int argStartIndex = 0;
 		Map<String, String> arguments = new HashMap<String, String>();
 		
-		if(args[0].equals(INLINE_SWITCH)) {
-			argStartIndex = 2;
-			isInline = true;
-			instruction = args[1];
-		} else {
-			isInline = false;
-			instruction = args[0];
+		if(!args[0].equals(JSON_INSTRUCTION_OPTION) && !args[0].equals(URI_INSTRUCTION_OPTION)) {
+			argStartIndex = 1;
+			arguments.put(URI_INSTRUCTION_OPTION, args[0]);
 		}
 		
 		for(int i = argStartIndex ; i < args.length ; i ++) {
@@ -161,7 +158,7 @@ public class CommandLine {
 	}
 	
 	
-	private static Database getDatabase(Map<String, String> arguments)
+	public static Database getDatabase(Map<String, String> arguments)
 			throws SQLConnectionException, DatabaseException, IOException {
 
 		// Determine format.
@@ -225,7 +222,7 @@ public class CommandLine {
 	 * @param database The {@link Database} to use.
 	 * @return A {@link Microscraper}.
 	 */
-	private static Microscraper getScraper(Map<String, String> arguments, Database database) {
+	public static Microscraper getScraper(Map<String, String> arguments, Database database) {
 		
 		Microscraper scraper = BasicMicroscraper.to(database);
 
@@ -262,14 +259,12 @@ public class CommandLine {
 		return scraper;
 	}
 	
-	private static void runScraper(Map<String, String> arguments, Microscraper scraper,
-			boolean isInline, String instruction) throws MicroscraperException, IOException { 
-		// Set default values.
-		String formEncodedDefaults = "";
+	public static void runScraper(Map<String, String> arguments, Microscraper scraper) throws MicroscraperException, IOException { 
+		// Fix quotations on default values.
 		if(arguments.containsKey(DEFAULTS_OPTION)) {
-			formEncodedDefaults = arguments.get(DEFAULTS_OPTION);
-			if(formEncodedDefaults.startsWith("\"") && formEncodedDefaults.endsWith("\"")) {
-				formEncodedDefaults = formEncodedDefaults.substring(1, formEncodedDefaults.length() - 2);
+			String possiblyQuotedDefaults = arguments.get(DEFAULTS_OPTION);
+			if(possiblyQuotedDefaults.startsWith("\"") && possiblyQuotedDefaults.endsWith("\"")) {
+				arguments.put(DEFAULTS_OPTION, possiblyQuotedDefaults.substring(1, possiblyQuotedDefaults.length() - 2));
 			}
 		}
 		
@@ -294,24 +289,18 @@ public class CommandLine {
 				for(int i = 0 ; i < values.length ; i ++) {
 					lineDefaults.put(headers[i], values[i]);
 				}
-				scrape(scraper, isInline, instruction, formEncodedDefaults, lineDefaults);
+				scrape(arguments, scraper, lineDefaults);
 			}
 		} else {
-			scrape(scraper, isInline, instruction, formEncodedDefaults, new Hashtable<String, String>());
+			scrape(arguments, scraper, new Hashtable<String, String>());
 		}	
 	}
 	
-	private static void scrape(Microscraper scraper, boolean isInline, String instruction,
-			String formEncodedDefaults, Hashtable<String, String> extraDefaults) throws MicroscraperException {
-		if(isInline) {
-			scraper.scrapeWithJSON(instruction, formEncodedDefaults, extraDefaults);
-		} else {
-			scraper.scrapeWithURI(instruction, formEncodedDefaults, extraDefaults);
+	private static void scrape(Map<String, String> arguments, Microscraper scraper, Hashtable<String, String> extraDefaults) throws MicroscraperException {
+		if(arguments.containsKey(JSON_INSTRUCTION_OPTION)) {
+			scraper.scrapeWithJSON(arguments.get(JSON_INSTRUCTION_OPTION), arguments.get(DEFAULTS_OPTION), extraDefaults);
+		} else if(arguments.containsKey(URI_INSTRUCTION_OPTION)) {
+			scraper.scrapeWithURI(arguments.get(URI_INSTRUCTION_OPTION), arguments.get(DEFAULTS_OPTION), extraDefaults);
 		}
 	}
-	/*
-	private static void print(String text) {
-		System.out.print(text);
-		System.out.println();
-	}*/
 }
