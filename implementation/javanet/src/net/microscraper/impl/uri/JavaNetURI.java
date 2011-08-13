@@ -57,7 +57,9 @@ public class JavaNetURI implements URIInterface {
 	}
 
 	public String load() throws IOException, URIInterfaceException {
-		if(uri.getScheme().equals(FILE_SCHEME)) {
+		if(uri.getScheme() == null) {
+			return fileLoader.load(this);
+		} else if(uri.getScheme().equals(FILE_SCHEME)) {
 			return fileLoader.load(this);
 		} else if(uri.getScheme().equals(HTTP_SCHEME)) {
 			int prevRateLimit = browser.getRateLimit();

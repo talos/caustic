@@ -240,6 +240,7 @@ public final class Executable extends Log implements Variables {
 	}
 	
 	public String get(String key) throws MissingVariableException {
+		System.out.println("looking for " + key);
 		String localValue = localGet(key);
 		if(localValue != null) {
 			return localValue;

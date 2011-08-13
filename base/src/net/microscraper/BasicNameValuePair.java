@@ -6,7 +6,7 @@ package net.microscraper;
  * @author john
  *
  */
-public final class BasicNameValuePair implements NameValuePair {
+public class BasicNameValuePair implements NameValuePair {
 	private final String name;
 	private final String value;
 	
@@ -27,18 +27,4 @@ public final class BasicNameValuePair implements NameValuePair {
 	public String getValue() {
 		return value;
 	}
-	/*
-	public boolean equals(Object obj) {
-		if(obj == this)
-			return true;
-		if(!(obj instanceof NameValuePair))
-			return false;
-		NameValuePair that = (NameValuePair) obj;
-		try {
-			return this.getValue().equals(that.getValue()) &&
-					this.getValue().equals(that.getValue());
-		} catch(NullPointerException e) {
-			return false;
-		}
-	}*/
 }

@@ -86,20 +86,20 @@ public final class MultiTableDatabase implements Database {
 		rootResultId = rootTable.insert(new NameValuePair[] {});
 	}
 	
-	public Result store(String name, String value, int resultNum) throws DatabaseException {
+	public int store(String name, String value, int resultNum) throws DatabaseException {
 		
 		if(value != null) {
 			updateTable(rootTable, rootResultId, name, value, resultNum);	
 		}
 		WritableTable table = getResultTable(name);
-		return new Result(table.insert(new NameValuePair[] {
+		return table.insert(new NameValuePair[] {
 				new BasicNameValuePair(SOURCE_NAME_COLUMN, ROOT_TABLE_NAME),
 				new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(rootResultId))
-		}), name, value);
+		});
 	}
 	
-	public Result store(Result source, String name, String value, int resultNum) throws DatabaseException {
-		String sourceTableName = cleanTableName(source.getName());
+	public int store(String sourceName, int sourceId, String name, String value, int resultNum) throws DatabaseException {
+		String sourceTableName = cleanTableName(sourceName);
 		IOTable sourceTable;
 		if(tables.containsKey(sourceTableName)) {
 			sourceTable = (IOTable) tables.get(sourceTableName);
@@ -109,13 +109,13 @@ public final class MultiTableDatabase implements Database {
 		}
 		
 		if(value != null) {
-			updateTable(sourceTable, source.getId(), name, value, resultNum);
+			updateTable(sourceTable, sourceId, name, value, resultNum);
 		}
 		WritableTable table = getResultTable(name);
-		return new Result(table.insert(new NameValuePair[] {
+		return table.insert(new NameValuePair[] {
 				new BasicNameValuePair(SOURCE_NAME_COLUMN, sourceTable.getName()),
-				new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(source.getId()))
-		}), name, value);
+				new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(sourceId))
+		});
 	}
 	
 	private String cleanColumnName(String columnName) {

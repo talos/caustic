@@ -7,11 +7,14 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
+import net.microscraper.BasicMicroscraper;
 import net.microscraper.Microscraper;
 import net.microscraper.MicroscraperException;
 import net.microscraper.Utils;
@@ -34,63 +37,50 @@ public class CommandLine {
 
 	private static final String newline = System.getProperty("line.separator");
 	
-	private static final String INLINE_SWITCH = "-e";
+	public static final String INLINE_SWITCH = "-e";
+	public static final String TIMESTAMP = new SimpleDateFormat("yyyyMMddkkmmss").format(new Date());
 	
-	private static final String TIMESTAMP = new SimpleDateFormat("yyyyMMddkkmmss").format(new Date());
+	public static final String BATCH_SIZE_OPTION = "--batch-size";
+	public static final int DEFAULT_BATCH_SIZE = 100;
 	
-	private static final String BATCH_SIZE_OPTION = "--batch-size";
-	private final int DEFAULT_BATCH_SIZE = 100;
+	public static final String DEFAULTS_OPTION = "--defaults";
 	
-	private static final String DEFAULTS_OPTION = "--defaults";
-	private final String defaults;
+	public static final String INPUT_OPTION = "--input";
 	
-	private static final String INPUT_OPTION = "--input";
-	private final String inputPath;
-	private final CSVReader input;
+	public static final String INPUT_COLUMN_DELIMITER = "--column-delimiter";
+	public static final char DEFAULT_INPUT_COLUMN_DELIMITER = ',';
 	
-	private static final String INPUT_COLUMN_DELIMITER = "--column-delimiter";
-	private static final char DEFAULT_INPUT_COLUMN_DELIMITER = ',';
-	
-	private static final String LOG_FILE_OPTION = "--log-file";
-	private final JavaIOFileLogger fileLog;
-	
-	private static final String LOG_STDOUT_OPTION = "--log-stdout";
+	public static final String LOG_FILE_OPTION = "--log-file";	
+	public static final String LOG_STDOUT_OPTION = "--log-stdout";
 
-	private static String MAX_RESPONSE_SIZE_OPTION = "--max-response-size";
-	private static int DEFAULT_MAX_RESPONSE_SIZE = Browser.DEFAULT_MAX_RESPONSE_SIZE;
+	public static String MAX_RESPONSE_SIZE_OPTION = "--max-response-size";
+	public static int DEFAULT_MAX_RESPONSE_SIZE = Browser.DEFAULT_MAX_RESPONSE_SIZE;
 	
-	private static final String OUTPUT_FORMAT_OPTION = "--output-format";
-	private static final String CSV_OUTPUT_FORMAT_VALUE = "csv";
-	private static final String TAB_OUTPUT_FORMAT_VALUE = "tab";
-	private static final String SQLITE_OUTPUT_FORMAT_VALUE = "sqlite";
-	private static final String DEFAULT_FILE_OUTPUT_FORMAT = SQLITE_OUTPUT_FORMAT_VALUE;
-	private static final String DEFAULT_STDOUT_OUTPUT_FORMAT = TAB_OUTPUT_FORMAT_VALUE;
-	private static final List<String> validOutputFormats = Arrays.asList(
+	public static final String OUTPUT_FORMAT_OPTION = "--output-format";
+	public static final String CSV_OUTPUT_FORMAT_VALUE = "csv";
+	public static final String TAB_OUTPUT_FORMAT_VALUE = "tab";
+	public static final String SQLITE_OUTPUT_FORMAT_VALUE = "sqlite";
+	public static final String DEFAULT_FILE_OUTPUT_FORMAT = SQLITE_OUTPUT_FORMAT_VALUE;
+	public static final String DEFAULT_STDOUT_OUTPUT_FORMAT = TAB_OUTPUT_FORMAT_VALUE;
+	public static final List<String> validOutputFormats = Arrays.asList(
 			CSV_OUTPUT_FORMAT_VALUE,
 			TAB_OUTPUT_FORMAT_VALUE,
 			SQLITE_OUTPUT_FORMAT_VALUE
 			);
-	private final char outputColumnDelimiter;
-	private static final char TAB_OUTPUT_COLUMN_DELIMITER = '\t';
-	private static final char CSV_OUTPUT_COLUMN_DELIMITER = ',';
+	public static final char TAB_OUTPUT_COLUMN_DELIMITER = '\t';
+	public static final char CSV_OUTPUT_COLUMN_DELIMITER = ',';
 	
-	private static final String OUTPUT_TO_FILE_OPTION = "--output-to-file";
+	public static final String OUTPUT_TO_FILE_OPTION = "--output-to-file";
 		
-	private static final String RATE_LIMIT_OPTION = "--rate-limit";
-	private final int DEFAULT_RATE_LIMIT = Browser.DEFAULT_RATE_LIMIT;
+	public static final String RATE_LIMIT_OPTION = "--rate-limit";
+	public static final int DEFAULT_RATE_LIMIT = Browser.DEFAULT_RATE_LIMIT;
 	
-	private static final String SINGLE_TABLE_OPTION = "--single-table";
+	public static final String SINGLE_TABLE_OPTION = "--single-table";
 	
-	private static final String TIMEOUT_OPTION = "--timeout";
-	private final int DEFAULT_TIMEOUT = Browser.DEFAULT_TIMEOUT;
-
-	private final String instructionURI;
-	private final String instructionJSON;
-	
-	private final Database database;
-	private final Microscraper client;
-	
-	private final String usage = 
+	public static final String TIMEOUT_OPTION = "--timeout";
+	public static final int DEFAULT_TIMEOUT = Browser.DEFAULT_TIMEOUT;
+		
+	public static final String usage = 
 "usage: microscraper <uri> [<options>]" + newline +
 "		microscraper -e \"<json>\" [<options>]" + newline +
 "" + newline +
@@ -134,8 +124,7 @@ public class CommandLine {
 "		How many seconds to wait before giving up on a request." + newline + 
 "		Defaults to " + Integer.toString(DEFAULT_TIMEOUT) + " seconds.";
 	
-	
-	public CommandLine(String[] args) throws IllegalArgumentException,
+	private static Map<String, String> getArguments(String[] args) throws IllegalArgumentException,
 					FileNotFoundException, SQLConnectionException, JSONInterfaceException,
 					DatabaseException, IOException,
 					UnsupportedEncodingException, URIInterfaceException {
@@ -143,12 +132,20 @@ public class CommandLine {
 			throw new IllegalArgumentException("You must specify the URI of scraper instructions.");
 		}
 		
+		boolean isInline;
+		String instruction;
 		int argStartIndex = 1;
+		Map<String, String> arguments = new HashMap<String, String>();
+		
 		if(args[0].equals(INLINE_SWITCH)) {
 			argStartIndex = 2;
+			isInline = true;
+			instruction = args[1];
+		} else {
+			isInline = false;
+			instruction = args[0];
 		}
 		
-		HashMap<String, String> argsMap = new HashMap<String, String> ();
 		for(int i = argStartIndex ; i < args.length ; i ++) {
 			String arg = args[i];
 			String value = null;
@@ -156,94 +153,42 @@ public class CommandLine {
 				value = arg.substring(arg.indexOf('=') + 1);
 				arg = arg.substring(0, arg.indexOf('='));
 			}
-			argsMap.put(arg, value);
+			arguments.put(arg, value);
 		}
-		
-		
-		if(argsMap.containsKey(DEFAULTS_OPTION)) {
-			String value = argsMap.get(DEFAULTS_OPTION);
-			if(value.startsWith("\"") && value.endsWith("\"")) {
-				value = value.substring(1, value.length() - 2);
-			}
-			defaults = value;
-		} else {
-			defaults = "";
-		}
+		return arguments;
+		//Database database = getDatabase(arguments);
+		//Microscraper scraper = getScraper(arguments, database);
+	}
+	
+	
+	private static Database getDatabase(Map<String, String> arguments)
+			throws SQLConnectionException, DatabaseException, IOException {
 
-		if(argsMap.containsKey(INPUT_COLUMN_DELIMITER)) {
-			String delim = argsMap.get(INPUT_COLUMN_DELIMITER);
-			if(delim.length() > 1) {
-				throw new IllegalArgumentException("Column delimiter must be a single character.");
+		// Determine format.
+		String format;
+		if(arguments.containsKey(OUTPUT_FORMAT_OPTION)) {
+			format = arguments.get(OUTPUT_FORMAT_OPTION);
+			if(validOutputFormats.contains(format)) {
+				throw new IllegalArgumentException(Utils.quote(format)
+						+ " is not a valid output format.");
 			}
-			inputColumnDelimiter = delim.charAt(0);
+		} else if(arguments.containsKey(OUTPUT_TO_FILE_OPTION)) {
+			format = DEFAULT_FILE_OUTPUT_FORMAT;
 		} else {
-			inputColumnDelimiter = DEFAULT_INPUT_COLUMN_DELIMITER;
+			format = DEFAULT_STDOUT_OUTPUT_FORMAT;
 		}
 		
-		if(argsMap.containsKey(INPUT_OPTION)) {
-			inputPath = argsMap.get(INPUT_OPTION);
-			input = new CSVReader(new FileReader(inputPath), inputColumnDelimiter);
-		} else {
-			inputPath = null;
-			input = null;
+		// Determine delimiter.
+		char delimiter;
+		if(format.equals(CSV_OUTPUT_FORMAT_VALUE)) {
+			delimiter = CSV_OUTPUT_COLUMN_DELIMITER;
+		} else { // (format.equals(TAB_OUTPUT_COLUMN_DELIMITER)) {
+			delimiter = TAB_OUTPUT_COLUMN_DELIMITER;
 		}
 		
-		if(argsMap.containsKey(LOG_FILE_OPTION)) {
-			fileLogPath = argsMap.get(LOG_FILE_OPTION);
-			fileLog = new JavaIOFileLogger(new File(fileLogPath));
-		}
-		
-		if(argsMap.containsKey(LOG_STDOUT_OPTION)) {
-			logStdout = true;
-		} else {
-			logStdout = false;
-		}
-		
-		
-		if(argsMap.containsKey(RATE_LIMIT_OPTION)) {
-			rateLimit = Integer.parseInt(argsMap.get(RATE_LIMIT_OPTION));
-		} else {
-			rateLimit = DEFAULT_RATE_LIMIT;
-		}
-		
-		if(argsMap.containsKey(TIMEOUT_OPTION)) {
-			timeout = Integer.parseInt(argsMap.get(TIMEOUT_OPTION));
-		} else {
-			timeout = DEFAULT_TIMEOUT;
-		}
-		
-		if(logStdout) {
-			client.register(new SystemOutLogger());
-		}
-		if(fileLog != null) {
-			client.register(fileLog);
-			fileLog.open();
-		}
-		
-		if(args[0].equals(INLINE_SWITCH)) {
-			instructionJSON = args[1];
-			instructionURI = null;
-		} else {
-			instructionJSON = null;
-			instructionURI = args[0];
-		}
-		
-		
-		
-		if(argsMap.containsKey(OUTPUT_TO_FILE_OPTION)) {
-			
-			String format;
-			if(argsMap.containsKey(OUTPUT_FORMAT_OPTION)) {
-				format = argsMap.get(OUTPUT_FORMAT_OPTION);
-				if(validOutputFormats.contains(format)) {
-					throw new IllegalArgumentException(Utils.quote(format)
-							+ " is not a valid output format.");
-				}
-			} else {
-				format = DEFAULT_FILE_OUTPUT_FORMAT;
-			}
-
-			String outputLocation = argsMap.get(OUTPUT_TO_FILE_OPTION);
+		// Set up output and databases.
+		if(arguments.containsKey(OUTPUT_TO_FILE_OPTION)) {
+			String outputLocation = arguments.get(OUTPUT_TO_FILE_OPTION);
 			if(outputLocation == null) {
 				outputLocation = TIMESTAMP + "." + format;
 			}
@@ -251,78 +196,122 @@ public class CommandLine {
 			if(format.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
 				
 				int batchSize;
-				if(argsMap.containsKey(BATCH_SIZE_OPTION)) {
-					batchSize = Integer.parseInt(argsMap.get(BATCH_SIZE_OPTION));
+				if(arguments.containsKey(BATCH_SIZE_OPTION)) {
+					batchSize = Integer.parseInt(arguments.get(BATCH_SIZE_OPTION));
 				} else {
 					batchSize = DEFAULT_BATCH_SIZE;
 				}
 				
-				IOConnection connection = JDBCSqliteConnection.toFile(outputLocation, client, batchSize);
+				IOConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
 
-				if(argsMap.containsKey(SINGLE_TABLE_OPTION)) {
-					database = new SingleTableDatabase(connection);
+				if(arguments.containsKey(SINGLE_TABLE_OPTION)) {
+					return new SingleTableDatabase(connection);
 				} else {
-					database = new MultiTableDatabase(connection);
+					return new MultiTableDatabase(connection);
 				}
 				
-			} else if(format.equals(TAB_OUTPUT_FORMAT_VALUE) || format.equals(CSV_OUTPUT_FORMAT_VALUE)) {
-				database = new SingleTableDatabase(DelimitedConnection.toFile(outputLocation, outputColumnDelimiter));
+			} else {
+				return new SingleTableDatabase(DelimitedConnection.toFile(outputLocation, delimiter));
 			}
 			
 		} else { // output to STDOUT
-			database = new SingleTableDatabase(DelimitedConnection.toStdOut(outputColumnDelimiter));
+			return new SingleTableDatabase(DelimitedConnection.toStdOut(delimiter));
+		}
+	}
+	
+	/**
+	 * Initialize a {@link Microscraper}.
+	 * @param arguments A {@link Map} of arguments for the scraper.
+	 * @param database The {@link Database} to use.
+	 * @return A {@link Microscraper}.
+	 */
+	private static Microscraper getScraper(Map<String, String> arguments, Database database) {
+		
+		Microscraper scraper = BasicMicroscraper.to(database);
+
+		// Register logs.
+		if(arguments.containsKey(LOG_FILE_OPTION)) {
+			scraper.register(new JavaIOFileLogger(new File(arguments.get(LOG_FILE_OPTION))));
+		}
+		if(arguments.containsKey(LOG_STDOUT_OPTION)) {
+			scraper.register(new SystemOutLogger());
 		}
 		
-		if(stdoutOutputFormat.equals(CSV_OUTPUT_FORMAT_VALUE)) {
-			outputColumnDelimiter = CSV_OUTPUT_COLUMN_DELIMITER;
-		} else if(stdoutOutputFormat.equals(TAB_OUTPUT_FORMAT_VALUE)) {
-			outputColumnDelimiter = TAB_OUTPUT_COLUMN_DELIMITER;
+		// Set rate limit.
+		if(arguments.containsKey(RATE_LIMIT_OPTION)) {
+			try {
+				scraper.setRateLimit(Integer.parseInt(arguments.get(RATE_LIMIT_OPTION)));
+			} catch(NumberFormatException e) {
+				throw new IllegalArgumentException(RATE_LIMIT_OPTION + " must be an integer");
+			}
+		} else {
+			scraper.setRateLimit(DEFAULT_RATE_LIMIT);
 		}
 		
-	}
-	
-	public void scrape(String urlEncodedDefaults, Hashtable extraDefaults) throws MicroscraperException {
-		if(instructionJSON != null) {
-			client.scrapeWithJSON(instructionJSON, defaults);
-		} else if(instructionURI != null) {
-			client.scrapeWithURI(instructionURI, defaults);
-		}
-	}
-	
-	public void scrapeInputFile(CSVReader input, String urlEncodedDefaults) throws MicroscraperException, IOException {
-		String[] headers = input.readNext();
-		String[] values;
-		while((values = input.readNext()) != null) {
-			Hashtable<String, String> lineDefaults = new Hashtable<String, String>();
-			for(int i = 0 ; i < values.length ; i ++) {
-				lineDefaults.put(headers[i], values[i]);
+		// Set timeout.
+		if(arguments.containsKey(TIMEOUT_OPTION)) {
+			try {
+				scraper.setTimeout(Integer.parseInt(arguments.get(TIMEOUT_OPTION)));
+			} catch(NumberFormatException e) {
+				throw new IllegalArgumentException(TIMEOUT_OPTION + " must be an integer");
 			}
-			scrape(urlEncodedDefaults, lineDefaults);
+		} else {
+			scraper.setTimeout(DEFAULT_TIMEOUT);
 		}
+		
+		return scraper;
 	}
 	
-	public void finish() throws IOException {
-		try {
-			if(database != null) {
-				database.close();
+	private static void runScraper(Map<String, String> arguments, Microscraper scraper,
+			boolean isInline, String instruction) throws MicroscraperException, IOException { 
+		// Set default values.
+		String formEncodedDefaults = "";
+		if(arguments.containsKey(DEFAULTS_OPTION)) {
+			formEncodedDefaults = arguments.get(DEFAULTS_OPTION);
+			if(formEncodedDefaults.startsWith("\"") && formEncodedDefaults.endsWith("\"")) {
+				formEncodedDefaults = formEncodedDefaults.substring(1, formEncodedDefaults.length() - 2);
 			}
-		} catch(DatabaseException e) {
-			throw new IOException(e);
 		}
-		if(input != null) {
-			input.close();
-		}
-		if(fileLog != null) {
-			fileLog.close();
-			print("Log saved to " + Utils.quote(fileLogPath));
-		}
-		if(outputLocation != null) {
-			print("Output saved to " + Utils.quote(outputLocation));
-		}
+		
+		// Run (handle inputs)
+		if(arguments.containsKey(INPUT_OPTION)) {
+			char inputColumnDelimiter;
+			if(arguments.containsKey(INPUT_COLUMN_DELIMITER)) {
+				String delim = arguments.get(INPUT_COLUMN_DELIMITER);
+				if(delim.length() > 1) {
+					throw new IllegalArgumentException(INPUT_COLUMN_DELIMITER + " must be a single character.");
+				}
+				inputColumnDelimiter = delim.charAt(0);
+			} else {
+				inputColumnDelimiter = DEFAULT_INPUT_COLUMN_DELIMITER;
+			}
+			CSVReader input = new CSVReader(new FileReader(arguments.get(INPUT_OPTION)), inputColumnDelimiter);
+			
+			String[] headers = input.readNext();
+			String[] values;
+			while((values = input.readNext()) != null) {
+				Hashtable<String, String> lineDefaults = new Hashtable<String, String>();
+				for(int i = 0 ; i < values.length ; i ++) {
+					lineDefaults.put(headers[i], values[i]);
+				}
+				scrape(scraper, isInline, instruction, formEncodedDefaults, lineDefaults);
+			}
+		} else {
+			scrape(scraper, isInline, instruction, formEncodedDefaults, new Hashtable<String, String>());
+		}	
 	}
 	
+	private static void scrape(Microscraper scraper, boolean isInline, String instruction,
+			String formEncodedDefaults, Hashtable<String, String> extraDefaults) throws MicroscraperException {
+		if(isInline) {
+			scraper.scrapeWithJSON(instruction, formEncodedDefaults, extraDefaults);
+		} else {
+			scraper.scrapeWithURI(instruction, formEncodedDefaults, extraDefaults);
+		}
+	}
+	/*
 	private static void print(String text) {
 		System.out.print(text);
 		System.out.println();
-	}
+	}*/
 }

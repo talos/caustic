@@ -21,7 +21,6 @@ import net.microscraper.BasicNameValuePair;
 import net.microscraper.Log;
 import net.microscraper.NameValuePair;
 import net.microscraper.Utils;
-import net.microscraper.Variables;
 import net.microscraper.interfaces.browser.Browser;
 import net.microscraper.interfaces.browser.BrowserException;
 import net.microscraper.interfaces.regexp.PatternInterface;
@@ -38,7 +37,7 @@ public class JavaNetBrowser extends Log implements Browser {
 	private final Hashtable cookieStore = new Hashtable();
 	private final HostMemory hostMemory = new HostMemory();
 	private int rateLimitKBPS = Browser.DEFAULT_RATE_LIMIT;
-	private int timeout = Browser.TIMEOUT;
+	private int timeout = Browser.DEFAULT_TIMEOUT;
 	private int maxResponseSize = Browser.DEFAULT_MAX_RESPONSE_SIZE;
 	
 	public void head(String url, NameValuePair[] headers, NameValuePair[] cookies)

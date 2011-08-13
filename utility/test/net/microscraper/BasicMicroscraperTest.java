@@ -2,44 +2,19 @@ package net.microscraper;
 
 import static org.junit.Assert.*;
 
-import java.io.File;
+import java.net.URI;
 
-import mockit.Capturing;
-import mockit.Cascading;
-import mockit.Delegate;
 import mockit.Expectations;
-import mockit.Injectable;
-import mockit.Mock;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
-import mockit.Tested;
 import mockit.Verifications;
-import mockit.VerificationsInOrder;
 import net.microscraper.Microscraper;
-import net.microscraper.BasicNameValuePair;
-import net.microscraper.Log;
-import net.microscraper.Variables;
-import net.microscraper.impl.browser.JavaNetBrowser;
-import net.microscraper.impl.database.JDBCSqliteConnection;
-import net.microscraper.impl.database.MultiTableDatabase;
-import net.microscraper.impl.file.JavaIOFileLoader;
-import net.microscraper.impl.json.JSONME;
 import net.microscraper.impl.log.SystemOutLogger;
-import net.microscraper.impl.regexp.JakartaRegexpCompiler;
-import net.microscraper.impl.regexp.JavaUtilRegexpCompiler;
-import net.microscraper.impl.uri.JavaNetURI;
 import net.microscraper.interfaces.browser.Browser;
-import net.microscraper.interfaces.browser.BrowserException;
-import net.microscraper.interfaces.database.IOConnection;
 import net.microscraper.interfaces.database.Database;
-import net.microscraper.interfaces.database.IOTable;
 import net.microscraper.interfaces.file.FileLoader;
 import net.microscraper.interfaces.json.JSONInterface;
-import net.microscraper.interfaces.json.JSONInterfaceException;
 import net.microscraper.interfaces.regexp.RegexpCompiler;
-import net.microscraper.interfaces.uri.URIInterface;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -49,12 +24,15 @@ import org.junit.Test;
  * @author realest
  *
  */
-public class ClientFixturesTest {
-	private URIInterface simpleGoogle, nycPropertyOwner, nycIncentives,
+public class BasicMicroscraperTest {
+	private String simpleGoogle, complexGoogle, 
+	
+	
+		nycPropertyOwner, nycIncentives,
 						nycIncentivesSimple, eventValidation, simpleGoogleSplit1, 
 						simpleGoogleSplit2;
 	
-	private static final String PATH_TO_FIXTURES = "../fixtures/";
+	private static final String PATH_TO_FIXTURES = "fixtures/json/";
 	
 	/**
 	 * The mocked {@link Database}.
@@ -62,34 +40,30 @@ public class ClientFixturesTest {
 	@Mocked private Database database;
 	
 	/**
-	 * The test {@link Microscraper} instance.
+	 * The tested {@link Microscraper} instance.
 	 */
-	private Microscraper client;
-	
-	/**
-	 * The {@link JSONInterface} to use for loading fixtures.
-	 */
-	private JSONInterface jsonInterface;
-	
+	private Microscraper scraper;
+		
 	/**
 	 * Set up the {@link #client} before each test.
 	 * @throws Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
-		URIInterface fixtures = new JavaNetURI(System.getProperty("user.dir")).resolve(PATH_TO_FIXTURES);
+		URI fixtures = new URI(System.getProperty("user.dir")).resolve(PATH_TO_FIXTURES);
 		
-		simpleGoogle =       fixtures.resolve("simple-google.json");
-		simpleGoogleSplit1 = fixtures.resolve("simple-google-split-1.json");
-		simpleGoogleSplit2 = fixtures.resolve("simple-google-split-2.json");
-		nycPropertyOwner =   fixtures.resolve("nyc-property-owner.json");
-		nycIncentives =      fixtures.resolve("nyc-incentives.json");
-		eventValidation =     fixtures.resolve("event-validation.json");
-		nycIncentivesSimple = fixtures.resolve("nyc-incentives-simple.json");
+		simpleGoogle =       fixtures.resolve("simple-google.json").toString();
+		complexGoogle =      fixtures.resolve("complex-google.json").toString();
 		
-		Browser browser = new JavaNetBrowser();
-		jsonInterface = new JSONME();
-		client = new Microscraper(new JavaUtilRegexpCompiler(), browser, database);
+		simpleGoogleSplit1 = fixtures.resolve("simple-google-split-1.json").toString();
+		simpleGoogleSplit2 = fixtures.resolve("simple-google-split-2.json").toString();
+		nycPropertyOwner =   fixtures.resolve("nyc-property-owner.json").toString();
+		nycIncentives =      fixtures.resolve("nyc-incentives.json").toString();
+		eventValidation =     fixtures.resolve("event-validation.json").toString();
+		nycIncentivesSimple = fixtures.resolve("nyc-incentives-simple.json").toString();
+		
+		scraper = BasicMicroscraper.to(database);
+		scraper.register(new SystemOutLogger());
 	}
 	
 	/**
@@ -97,52 +71,44 @@ public class ClientFixturesTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void testScrapeSimpleGoogle() throws Exception {
-		final String expectedPhrase = "what do we say after hello?";
-
-		BasicNameValuePair[] extraVariables = new BasicNameValuePair[] {
-				new BasicNameValuePair("query", "hello")
-		};
+	public void testScrapeSimpleGoogle() throws Exception {		
+		new Expectations() {{
+			database.store("http://www.google.com/search?q=hello", (String) withNull(), 0);
+			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 0);
+			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 1);
+			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 2);
+			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 3);
+			// etc.
+			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), anyInt); minTimes = 1;
+		}};
 		
-		client.scrape(simpleGoogle, extraVariables);
-		
-		new Verifications() {
+		scraper.scrapeWithURI(simpleGoogle, "query=hello");
+	}
+	
+	@Test
+	public void testScrapeComplexGoogle() throws Exception {
+		new Expectations() {{
+			database.store("http://www.google.com/search?q=hello", (String) withNull(), 0);
+			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 0);
+			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 1);
+			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 2);
+			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 3);
+			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, anyInt); minTimes = 1;
 			
-			{
-				//db.store((Result) any, (String) any, (String) any); times = 1;
-			}	
-		};
-		//new NonStrictExpectations() {
-			//MultiTableDatabase database;
-			//final Captured captured = new Captured();
-			//{
-				//new MultiTableDatabase((Connection) any);
-				//database.store((Result) any, (String) any, (String) any); times = 1;
-				//database.store(simpleGoogle.toString(), anyString); times = 1;
-				//database.store(simpleGoogle.toString(), anyString); // times = 1;
-				//database.store((Result) any, simpleGoogle.resolve("#/finds_many").toString(), anyString);
-				// mockResult1
-				// Download Google HTML.
-				/*publisher.publishResult(
-						(String) withNull(),
-						anyString,
-						withEqual(simpleGoogle),
-						0,
-						(JSONLocation) withNull(),
-						(Integer) withNull()); times = 1;
-				*/
-				
-				//database.store(captured.result, simpleGoogle.resolve("#/finds_many").toString(), anyString); minTimes = 1;
-				// Pull out the words.
-				/*publisher.publishResult(
-						expectedPhrase,
-						anyString,
-						withEqual(simpleGoogle.resolve("#/finds_many")),
-						anyInt,
-						withEqual(simpleGoogle),
-						0); minTimes = 1;*/
-			//}
-		//};
+			database.store("after", 1, withPrefix("what do you say after"), anyString, 0);
+			database.store("after", 1, withPrefix("what do you say after"), anyString, 1);
+			database.store("after", 1, withPrefix("what do you say after"), anyString, 2);
+			database.store("after", 1, withPrefix("what do you say after"), anyString, 3);
+			database.store("after", 1, withPrefix("what do you say after"), anyString, anyInt); minTimes = 1;
+			
+			database.store("after", 2, withPrefix("what do you say after"), anyString, 0);
+			database.store("after", 2, withPrefix("what do you say after"), anyString, 1);
+			database.store("after", 2, withPrefix("what do you say after"), anyString, 2);
+			database.store("after", 2, withPrefix("what do you say after"), anyString, 3);
+			database.store("after", 2, withPrefix("what do you say after"), anyString, anyInt); minTimes = 1;
+		}};
+		
+		scraper.scrapeWithURI(complexGoogle, "query=hello");
 	}
 	
 	/**

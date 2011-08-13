@@ -18,23 +18,23 @@ public interface Database {
 	 * @param resultNum The 0-based {@link int} index of this {@link Result} within its 
 	 * {@link Executable}.
 	 * redundant results -- entire pages, for example.
-	 * @return A {@link Result} for use as a source.
+	 * @return A unique {@link int} identifier.
 	 * @throws DatabaseException If the {@link Database} experiences an exception.
 	 */
-	public Result store(String name, String value, int resultNum) throws DatabaseException;
+	public int store(String name, String value, int resultNum) throws DatabaseException;
 	
 	/**
 	 * Store a name and value with a source {@link Result} in the {@link Database}.
-	 * @param source The {@link Result} source for the stored <code>name</code> and <code>
-	 * value</code>.
+	 * @param sourceId The {@link String} name of the source {@link Result}.
+	 * @param sourceId The {@link int} ID of the source {@link Result}.
 	 * @param name A {@link String} name to store this value under.  Cannot be <code>null</code>.
 	 * @param value A {@link String} value.  Can be <code>null</code>.
 	 * @param resultNum The 0-based {@link int} index of this {@link Result} within its 
 	 * {@link Executable}.
-	 * @return A {@link Result} for use as a source.
+	 * @return A unique {@link int} identifier.
 	 * @throws DatabaseException If the {@link Database} experiences an exception.
 	 */
-	public Result store(Result source, String name, String value, int resultNum) throws DatabaseException;
+	public int store(String sourceName, int sourceId, String name, String value, int resultNum) throws DatabaseException;
 	
 	/**
 	 * Close up the {@link Database}, performing whatever cleaning actions should be performed

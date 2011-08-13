@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.microscraper.Log;
 import net.microscraper.interfaces.database.DatabaseException;
 import net.microscraper.interfaces.database.IOTable;
 import net.microscraper.interfaces.database.WritableTable;
@@ -21,8 +22,6 @@ import net.microscraper.interfaces.log.Logger;
  */
 public class JDBCSqliteConnection implements SQLConnection {
 	private final Connection connection;
-	private final Logger log;
-	//private final SQLPreparedStatement checkTableExistence;
 	private final int batchSize;
 	
 	/**
@@ -35,9 +34,8 @@ public class JDBCSqliteConnection implements SQLConnection {
 	 */
 	private final List<PreparedStatement> batch = new ArrayList<PreparedStatement>();
 	
-	private JDBCSqliteConnection(String connectionPath, Logger log, int batchSize)
+	private JDBCSqliteConnection(String connectionPath, int batchSize)
 			throws SQLConnectionException {
-		this.log = log;
 		this.batchSize = batchSize;
 		try {
 			Class.forName("org.sqlite.JDBC"); // Make sure we have this class.
@@ -53,22 +51,20 @@ public class JDBCSqliteConnection implements SQLConnection {
 	/**
 	 * Produce a {@link JDBCSqliteConnection} using a path to a database.
 	 * @param pathToDB {@link String} path to database.
-	 * @param logger {@link Logger} to use for logs.
 	 * @param batchSize How many statements to make before committing.
 	 * @throws SQLConnectionException if the {@link JDBCSqliteConnection} could not be created.
 	 */
-	public static JDBCSqliteConnection toFile(String pathToDB, Logger logger, int batchSize) throws SQLConnectionException {
-		return new JDBCSqliteConnection("jdbc:sqlite:" + pathToDB, logger, batchSize);
+	public static JDBCSqliteConnection toFile(String pathToDB, int batchSize) throws SQLConnectionException {
+		return new JDBCSqliteConnection("jdbc:sqlite:" + pathToDB, batchSize);
 	}
 
 	/**
 	 * Produce a {@link JDBCSqliteConnection} in-memory.
-	 * @param logger {@link Logger} to use for logs.
 	 * @param batchSize How many statements to make before committing.
 	 * @throws SQLConnectionException if the {@link JDBCSqliteConnection} could not be created.
 	 */
-	public static JDBCSqliteConnection inMemory(Logger logger, int batchSize) throws SQLConnectionException {
-		return new JDBCSqliteConnection("jdbc:sqlite::memory:", logger, batchSize);
+	public static JDBCSqliteConnection inMemory(int batchSize) throws SQLConnectionException {
+		return new JDBCSqliteConnection("jdbc:sqlite::memory:", batchSize);
 	}
 	
 	private class JDBCSqliteStatement implements SQLPreparedStatement {
@@ -114,28 +110,6 @@ public class JDBCSqliteConnection implements SQLConnection {
 				throw new SQLConnectionException(e);
 			}
 		}
-		/*
-		@Override
-		public void addBatch() throws SQLConnectionException {
-			try {
-				statement.addBatch();
-				
-			} catch (SQLException e) {
-				throw new SQLConnectionException(e);
-			}
-		}
-
-		@Override
-		public int[] executeBatch() throws SQLConnectionException {
-			try {
-				int[] rowCounts = statement.executeBatch();
-				logger.i("SQL Batch Count: " + Utils.join(rowCounts, ", "));
-				return rowCounts;
-			}  catch (SQLException e) {
-				throw new SQLConnectionException(e);
-			}
-		}
-		*/
 	}
 	
 	private class JDBCSQLiteCursor implements SQLResultSet {
@@ -266,7 +240,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 			throw new DatabaseException(e);
 		}
 	}
-
+	
 	@Override
 	public WritableTable getWritableTable(String[] textColumns)
 			throws DatabaseException {

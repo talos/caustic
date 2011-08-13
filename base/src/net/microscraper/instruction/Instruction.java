@@ -189,7 +189,7 @@ public abstract class Instruction  {
 	 * @see #getChildren
 	 */
 	public final Executable[] generateChildren(RegexpCompiler compiler, Browser browser,
-			Variables variables, Result[] sources, Database database)
+			Executable parent, Result[] sources, Database database)
 				throws MissingVariableException, DeserializationException, IOException {
 		Executable[] childExecutables = new Executable[sources.length * children.length];
 		
@@ -197,7 +197,7 @@ public abstract class Instruction  {
 			Result source = sources[i];
 			for(int j = 0 ; j < this.children.length ; j++) {
 				childExecutables[i * j + i] =
-						new Executable(this.children[j], compiler, browser, variables, source, database);
+					new Executable(this.children[j], compiler, browser, parent, source, database);
 			}
 		}
 		
@@ -213,9 +213,9 @@ public abstract class Instruction  {
 	 * {@link generateChildren}.
 	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
 	 * {@link Executable}'s {@link Variables}.
-	 * @throws BrowserException
-	 * @throws RegexpException
-	 * @throws DatabaseException
+	 * @throws BrowserException If the {@link Browser} experienced an exception loading.
+	 * @throws RegexpException If there was a problem matching with {@link RegexpCompiler}.
+	 * @throws DatabaseException If there was a problem storing data in {@link Database}.
 	 */
 	public Result[] execute(RegexpCompiler compiler, Browser browser,
 			Variables variables, Result source, Database database) throws MissingVariableException,
@@ -228,12 +228,14 @@ public abstract class Instruction  {
 		}
 		Result[] results = new Result[resultValues.length];
 		for(int i = 0 ; i < resultValues.length ; i ++) {
-			String resultValue = shouldSaveValue ? resultValues[i] : null; 
+			String name = getName(variables, browser, compiler);
+			int id;
 			if(source == null) {
-				results[i] = database.store(getName(variables, browser, compiler), resultValue, i);	
+				id = database.store(name, shouldSaveValue ? resultValues[i] : null, i);
 			} else {
-				results[i] = database.store(source, getName(variables, browser, compiler), resultValue, i);
+				id = database.store(source.getName(), source.getId(), name, shouldSaveValue ? resultValues[i] : null, i);
 			}
+			results[i] = new Result(id, name, resultValues[i]);
 		}
 		return results;
 	}

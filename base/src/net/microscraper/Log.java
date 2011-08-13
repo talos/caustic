@@ -43,6 +43,6 @@ public class Log implements Logger {
 	public void close() throws IOException {
 		for(int i = 0; i < loggers.size(); i ++) {
 			((Logger) loggers.elementAt(i)).close();
-		}		
+		}
 	}
 }

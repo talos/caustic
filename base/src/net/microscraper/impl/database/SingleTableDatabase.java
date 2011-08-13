@@ -50,26 +50,24 @@ public final class SingleTableDatabase implements Database {
 		this.table = connection.getWritableTable(COLUMN_NAMES);
 	}
 
-	public final Result store(String name, String value, int resultNum)
+	public final int store(String name, String value, int resultNum)
 			throws DatabaseException {
-		return new Result(table.insert(
+		return table.insert(
 				new NameValuePair[] {
 					new BasicNameValuePair(SOURCE_ID_COLUMN, null),
 					new BasicNameValuePair(NAME_COLUMN, name),
 					new BasicNameValuePair(VALUE_COLUMN, value)
-				}),
-			name, value );
+				});
 	}
 	
-	public final Result store(Result source, String name, String value, int resultNum)
+	public final int store(String sourceName, int sourceId, String name, String value, int resultNum)
 			throws DatabaseException {
-		return new Result(table.insert(
+		return table.insert(
 				new NameValuePair[] {
-					new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(source.getId())),
+					new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(sourceId)),
 					new BasicNameValuePair(NAME_COLUMN, name),
 					new BasicNameValuePair(VALUE_COLUMN, value)
-				}),
-			name, value );
+				});
 	}
 	
 	public void close() throws DatabaseException {
