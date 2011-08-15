@@ -1,6 +1,6 @@
 package net.microscraper.impl.log;
 
-import net.microscraper.interfaces.log.Logger;
+import net.microscraper.client.Logger;
 
 /**
  * An implementation of {@link BasicLogger} using {@link System.out}.

@@ -2,17 +2,16 @@ package net.microscraper.instruction;
 
 import java.io.IOException;
 
-import net.microscraper.MissingVariableException;
-import net.microscraper.MustacheNameValuePair;
-import net.microscraper.MustacheTemplate;
-import net.microscraper.MustacheTemplateException;
-import net.microscraper.Variables;
-import net.microscraper.interfaces.browser.Browser;
-import net.microscraper.interfaces.browser.BrowserException;
-import net.microscraper.interfaces.json.JSONInterfaceArray;
-import net.microscraper.interfaces.json.JSONInterfaceException;
-import net.microscraper.interfaces.json.JSONInterfaceObject;
-import net.microscraper.interfaces.regexp.RegexpCompiler;
+import net.microscraper.client.Browser;
+import net.microscraper.client.BrowserException;
+import net.microscraper.json.JSONArrayInterface;
+import net.microscraper.json.JSONParserException;
+import net.microscraper.json.JSONObjectInterface;
+import net.microscraper.mustache.MustacheNameValuePair;
+import net.microscraper.mustache.MustacheTemplate;
+import net.microscraper.mustache.MustacheTemplateException;
+import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.util.Variables;
 
 /**
  * A {@link Scraper} that load a web page.
@@ -79,10 +78,10 @@ public final class Page extends Instruction {
 	 * @return The default {@link Method} when one is not explicitly defined.
 	 * This is {@link Method#GET} if there is not a {@link #POSTS} key, and
 	 * {@link Method#POST} if there is.
-	 * @param jsonObject The {@link JSONInterfaceObject} being deserialized.
+	 * @param jsonObject The {@link JSONObjectInterface} being deserialized.
 	 * @return {@link Method#GET} or {@link Method#POST}.
 	 */
-	private final Method getDefaultMethod(JSONInterfaceObject jsonObject) {
+	private final Method getDefaultMethod(JSONObjectInterface jsonObject) {
 		if(jsonObject.has(POSTS)) {
 			return Method.POST;
 		} else {
@@ -126,13 +125,13 @@ public final class Page extends Instruction {
 	private final MustacheTemplate url;
 
 	/**
-	 * Deserialize a {@link Page} from a {@link JSONInterfaceObject}.
-	 * @param jsonObject Input {@link JSONInterfaceObject} object.
+	 * Deserialize a {@link Page} from a {@link JSONObjectInterface}.
+	 * @param jsonObject Input {@link JSONObjectInterface} object.
 	 * @return A {@link Page} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of a {@link Page}.
 	 * @throws IOException If there is an error loading one of the references.
 	 */
-	public Page(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
+	public Page(JSONObjectInterface jsonObject) throws DeserializationException, IOException {
 		super(jsonObject);
 
 		try {
@@ -152,9 +151,9 @@ public final class Page extends Instruction {
 			this.headers = jsonObject.has(HEADERS) ?
 					NameValuePairs.deserialize(jsonObject.getJSONObject(HEADERS)) :
 					DEFAULT_HEADERS;
-					
+			
 			if(jsonObject.has(PRELOAD)) {
-				JSONInterfaceArray preload = jsonObject.getJSONArray(PRELOAD);
+				JSONArrayInterface preload = jsonObject.getJSONArray(PRELOAD);
 				this.preload = new Page[preload.length()];
 				for(int i = 0 ; i < this.preload.length ; i++) {
 					this.preload[i] = new Page(preload.getJSONObject(i));
@@ -164,7 +163,7 @@ public final class Page extends Instruction {
 			}
 			
 			if(jsonObject.has(STOP_BECAUSE)) {
-				JSONInterfaceArray stopBecause = jsonObject.getJSONArray(STOP_BECAUSE);
+				JSONArrayInterface stopBecause = jsonObject.getJSONArray(STOP_BECAUSE);
 				this.stopBecause = new Regexp[stopBecause.length()];
 				for(int i = 0 ; i < this.stopBecause.length ; i++) {
 					this.stopBecause[i] = new Regexp(stopBecause.getJSONObject(i));
@@ -185,7 +184,7 @@ public final class Page extends Instruction {
 				this.postData = null;
 				this.postNameValuePairs = null;
 			}
-		} catch(JSONInterfaceException e) {
+		} catch(JSONParserException e) {
 			throw new DeserializationException(e, jsonObject);
 		} catch(MustacheTemplateException e) {
 			throw new DeserializationException(e, jsonObject);
@@ -308,7 +307,6 @@ public final class Page extends Instruction {
 		return new String[] { response };
 	}
 	
-
 	protected String getDefaultName(Variables variables, RegexpCompiler compiler, Browser browser)
 			throws MissingVariableException {
 		return getURL(browser, variables);

@@ -2,8 +2,8 @@ package net.microscraper.impl.log;
 
 import java.util.Date;
 
-import net.microscraper.Utils;
-import net.microscraper.interfaces.log.Logger;
+import net.microscraper.client.Logger;
+import net.microscraper.util.Utils;
 
 /**
  * An abstract implementation of {@link Logger} that truncates entries and

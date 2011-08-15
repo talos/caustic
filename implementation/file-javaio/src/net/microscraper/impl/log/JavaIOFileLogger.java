@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import net.microscraper.interfaces.log.Logger;
+import net.microscraper.client.Logger;
 
 /**
  * An implementation of {@link BasicLogger} using {@link java.io.File}.

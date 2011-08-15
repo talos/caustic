@@ -5,12 +5,12 @@ import static org.junit.Assert.*;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Tested;
-import net.microscraper.interfaces.json.JSONInterfaceObject;
+import net.microscraper.json.JSONObjectInterface;
 
 import org.junit.Test;
 
 public class FindManyTest {
-	@Mocked JSONInterfaceObject obj;
+	@Mocked JSONObjectInterface obj;
 	@Tested FindMany findMany;
 	
 	private static final int NON_DEFAULT = 10;

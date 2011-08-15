@@ -3,21 +3,18 @@ package net.microscraper.instruction;
 import java.io.IOException;
 import java.util.Vector;
 
-import net.microscraper.Executable;
-import net.microscraper.MissingVariableException;
-import net.microscraper.MustacheTemplate;
-import net.microscraper.MustacheTemplateException;
-import net.microscraper.Result;
-import net.microscraper.Variables;
-import net.microscraper.interfaces.browser.Browser;
-import net.microscraper.interfaces.browser.BrowserException;
-import net.microscraper.interfaces.database.Database;
-import net.microscraper.interfaces.database.DatabaseException;
-import net.microscraper.interfaces.json.JSONInterfaceArray;
-import net.microscraper.interfaces.json.JSONInterfaceException;
-import net.microscraper.interfaces.json.JSONInterfaceObject;
-import net.microscraper.interfaces.regexp.RegexpCompiler;
-import net.microscraper.interfaces.regexp.RegexpException;
+import net.microscraper.client.Browser;
+import net.microscraper.client.BrowserException;
+import net.microscraper.database.Database;
+import net.microscraper.database.DatabaseException;
+import net.microscraper.json.JSONArrayInterface;
+import net.microscraper.json.JSONParserException;
+import net.microscraper.json.JSONObjectInterface;
+import net.microscraper.mustache.MustacheTemplate;
+import net.microscraper.mustache.MustacheTemplateException;
+import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.regexp.RegexpException;
+import net.microscraper.util.Variables;
 
 /**
  * {@link Instruction}s hold instructions for {@link Executable}s.
@@ -75,7 +72,7 @@ public abstract class Instruction  {
 	}
 	
 	/**
-	 * The {@link JSONInterfaceObject} this {@link Instruction} was deserialized from,
+	 * The {@link JSONObjectInterface} this {@link Instruction} was deserialized from,
 	 * as a formatted {@link String}.
 	 */
 	private final String formattedJSON;
@@ -97,12 +94,12 @@ public abstract class Instruction  {
 	public abstract boolean defaultShouldSaveValue();
 	
 	/**
-	 * {@link Instruction} can be initialized with a {@link JSONInterfaceObject}, which has a location.
-	 * @param jsonObject The {@link JSONInterfaceObject} object to deserialize.
+	 * {@link Instruction} can be initialized with a {@link JSONObjectInterface}, which has a location.
+	 * @param jsonObject The {@link JSONObjectInterface} object to deserialize.
 	 * @throws DeserializationException If there is a problem deserializing <code>obj</code>
 	 * @throws IOException If there is an error loading one of the references.
 	 */
-	public Instruction(JSONInterfaceObject jsonObject) throws DeserializationException, IOException {
+	public Instruction(JSONObjectInterface jsonObject) throws DeserializationException, IOException {
 		try {
 			this.formattedJSON = jsonObject.toString();
 			
@@ -124,7 +121,7 @@ public abstract class Instruction  {
 				if(jsonObject.isJSONObject(FINDS_MANY)) {
 					children.add(new FindMany(jsonObject.getJSONObject(FINDS_MANY)));
 				} else {
-					JSONInterfaceArray array = jsonObject.getJSONArray(FINDS_MANY);
+					JSONArrayInterface array = jsonObject.getJSONArray(FINDS_MANY);
 					for(int i = 0 ; i < array.length() ; i ++) {
 						children.add(new FindMany(array.getJSONObject(i)));
 					}
@@ -137,7 +134,7 @@ public abstract class Instruction  {
 				if(jsonObject.isJSONObject(FINDS_ONE)) {
 					children.add(new FindOne(jsonObject.getJSONObject(FINDS_ONE)));
 				} else {
-					JSONInterfaceArray array = jsonObject.getJSONArray(FINDS_ONE);
+					JSONArrayInterface array = jsonObject.getJSONArray(FINDS_ONE);
 					for(int i = 0 ; i < array.length() ; i ++) {
 						children.add(new FindOne(array.getJSONObject(i)));
 					}
@@ -150,7 +147,7 @@ public abstract class Instruction  {
 				if(jsonObject.isJSONObject(THEN)) {
 					children.add(new Page(jsonObject.getJSONObject(THEN)));
 				} else {
-					JSONInterfaceArray array = jsonObject.getJSONArray(THEN);
+					JSONArrayInterface array = jsonObject.getJSONArray(THEN);
 					for(int i = 0 ; i < array.length() ; i ++) {
 						children.add(new Page(array.getJSONObject(i)));
 					}
@@ -159,7 +156,7 @@ public abstract class Instruction  {
 			this.children = new Instruction[children.size()];
 			children.copyInto(this.children);
 			
-		} catch(JSONInterfaceException e) {
+		} catch(JSONParserException e) {
 			throw new DeserializationException(e, jsonObject);
 		} catch(MustacheTemplateException e) {
 			throw new DeserializationException(e, jsonObject);

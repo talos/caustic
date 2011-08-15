@@ -4,17 +4,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.microscraper.Microscraper;
-import net.microscraper.interfaces.database.Database;
-import net.microscraper.interfaces.database.DatabaseException;
-import net.microscraper.interfaces.json.JSONInterface;
-import net.microscraper.interfaces.json.JSONInterfaceStringer;
+import net.microscraper.client.Microscraper;
+import net.microscraper.client.impl.commandline.json.JSONStringerInterface;
+import net.microscraper.database.Database;
+import net.microscraper.database.DatabaseException;
+import net.microscraper.json.JSONParser;
 
 public class ThreadSafeJSONDatabase implements Database {
-	private final List<JSONInterfaceStringer> executions = Collections.synchronizedList(new ArrayList<JSONInterfaceStringer>());
+	private final List<JSONStringerInterface> executions = Collections.synchronizedList(new ArrayList<JSONStringerInterface>());
 	private Integer pos = -1;
-	private final JSONInterface json;
-	public ThreadSafeJSONDatabase(JSONInterface json) {
+	private final JSONParser json;
+	public ThreadSafeJSONDatabase(JSONParser json) {
 		this.json = json;
 	}
 	public void resetIterator() {
@@ -29,7 +29,7 @@ public class ThreadSafeJSONDatabase implements Database {
 			}
 		}
 	}
-	public JSONInterfaceStringer next() {
+	public JSONStringerInterface next() {
 		synchronized(executions) {
 			synchronized(pos) {
 				pos++;

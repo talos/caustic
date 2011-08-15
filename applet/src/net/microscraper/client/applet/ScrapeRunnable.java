@@ -3,7 +3,7 @@ package net.microscraper.client.applet;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import net.microscraper.Microscraper;
+import net.microscraper.client.Microscraper;
 
 public class ScrapeRunnable implements Runnable {
 	private final Microscraper client;

@@ -5,28 +5,28 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.microscraper.Utils;
+import net.microscraper.client.Logger;
+import net.microscraper.client.impl.commandline.json.JSONStringerInterface;
 import net.microscraper.impl.log.BasicLogger;
-import net.microscraper.interfaces.json.JSONInterface;
-import net.microscraper.interfaces.json.JSONInterfaceException;
-import net.microscraper.interfaces.json.JSONInterfaceStringer;
-import net.microscraper.interfaces.log.Logger;
+import net.microscraper.json.JSONParser;
+import net.microscraper.json.JSONParserException;
+import net.microscraper.util.Utils;
 
 public class ThreadSafeJSONLogger extends BasicLogger {
-	private final List<JSONInterfaceStringer> logList = Collections.synchronizedList(new ArrayList<JSONInterfaceStringer>());
+	private final List<JSONStringerInterface> logList = Collections.synchronizedList(new ArrayList<JSONStringerInterface>());
 	private Integer pos = 0;
-	private final JSONInterface jsonInterface;
+	private final JSONParser jsonInterface;
 	
-	public ThreadSafeJSONLogger(JSONInterface jsonInterface) {
+	public ThreadSafeJSONLogger(JSONParser jsonInterface) {
 		this.jsonInterface = jsonInterface;
 	}
 	
-	private JSONInterfaceStringer buildJSON(String key, String value) {
+	private JSONStringerInterface buildJSON(String key, String value) {
 		try {
-			JSONInterfaceStringer stringer = jsonInterface.getStringer();
+			JSONStringerInterface stringer = jsonInterface.getStringer();
 			stringer.object().key(key).value(value).endObject();
 			return stringer;
-		} catch (JSONInterfaceException e) {
+		} catch (JSONParserException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
@@ -40,7 +40,7 @@ public class ThreadSafeJSONLogger extends BasicLogger {
 		}
 	}
 	
-	public JSONInterfaceStringer next() {
+	public JSONStringerInterface next() {
 		synchronized(logList) {
 			synchronized(pos) {
 				pos++;

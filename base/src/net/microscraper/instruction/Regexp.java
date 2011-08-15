@@ -1,13 +1,12 @@
 package net.microscraper.instruction;
 
-import net.microscraper.MissingVariableException;
-import net.microscraper.MustacheTemplate;
-import net.microscraper.MustacheTemplateException;
-import net.microscraper.Variables;
-import net.microscraper.interfaces.json.JSONInterfaceException;
-import net.microscraper.interfaces.json.JSONInterfaceObject;
-import net.microscraper.interfaces.regexp.PatternInterface;
-import net.microscraper.interfaces.regexp.RegexpCompiler;
+import net.microscraper.json.JSONParserException;
+import net.microscraper.json.JSONObjectInterface;
+import net.microscraper.mustache.MustacheTemplate;
+import net.microscraper.mustache.MustacheTemplateException;
+import net.microscraper.regexp.Pattern;
+import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.util.Variables;
 
 /**
  * A regular expression {@link Instruction}.
@@ -17,7 +16,7 @@ import net.microscraper.interfaces.regexp.RegexpCompiler;
 public class Regexp {
 
 	/**
-	 * @see net.microscraper.interfaces.json.JSONInterface#compile
+	 * @see net.microscraper.json.JSONParser#compile
 	 */
 	private final MustacheTemplate pattern;
 	
@@ -27,30 +26,30 @@ public class Regexp {
 	private final boolean isCaseSensitive;
 
 	/**
-	 * @see net.microscraper.interfaces.json.JSONInterface#compile
+	 * @see net.microscraper.json.JSONParser#compile
 	 */
 	private final boolean isMultiline;
 
 	/**
-	 * @see net.microscraper.interfaces.json.JSONInterface#compile
+	 * @see net.microscraper.json.JSONParser#compile
 	 */
 	private final boolean doesDotMatchNewline;
 	
 	/**
-	 * Deserialize a {@link Regexp} from a {@link JSONInterfaceObject}.
-	 * @param jsonObject Input {@link JSONInterfaceObject} object.
+	 * Deserialize a {@link Regexp} from a {@link JSONObjectInterface}.
+	 * @param jsonObject Input {@link JSONObjectInterface} object.
 	 * @return A {@link Regexp} instance.
 	 * @throws DeserializationException If this is not a valid JSON serialization of a
 	 * {@link Regexp},
 	 * or the location is invalid.
 	 */
-	public Regexp (JSONInterfaceObject jsonObject) throws DeserializationException {
+	public Regexp (JSONObjectInterface jsonObject) throws DeserializationException {
 		try {
 			pattern = new MustacheTemplate(jsonObject.getString(PATTERN));
 			isCaseSensitive = jsonObject.has(IS_CASE_SENSITIVE) ? jsonObject.getBoolean(IS_CASE_SENSITIVE) : IS_CASE_SENSITIVE_DEFAULT;
 			isMultiline = jsonObject.has(IS_MULTILINE) ? jsonObject.getBoolean(IS_MULTILINE) : IS_MULTILINE_DEFAULT;
 			doesDotMatchNewline = jsonObject.has(DOES_DOT_MATCH_ALL) ? jsonObject.getBoolean(DOES_DOT_MATCH_ALL) : DOES_DOT_MATCH_ALL_DEFAULT;
-		} catch(JSONInterfaceException e) {
+		} catch(JSONParserException e) {
 			throw new DeserializationException(e, jsonObject);
 		} catch(MustacheTemplateException e) {
 			throw new DeserializationException(e, jsonObject);
@@ -78,13 +77,13 @@ public class Regexp {
 	
 
 	/**
-	 * Compile a {@link Regexp} into a {@link PatternInterface}.
+	 * Compile a {@link Regexp} into a {@link Pattern}.
 	 * @param compiler The {@link RegexpCompiler} to use.
 	 * @param variables The {@link Variables} to use.
-	 * @return The {@link PatternInterface}.
+	 * @return The {@link Pattern}.
 	 * @throws MissingVariableException if a {@link Variable} is missing.
 	 */
-	public PatternInterface compile(RegexpCompiler compiler, Variables variables)
+	public Pattern compile(RegexpCompiler compiler, Variables variables)
 			throws MissingVariableException {
 		return compiler.compile(
 				pattern.compile(variables),
@@ -93,15 +92,15 @@ public class Regexp {
 	}
 	
 	/**
-	 * Compile an array of {@link Regexp}s into an array of {@link PatternInterface}s.
+	 * Compile an array of {@link Regexp}s into an array of {@link Pattern}s.
 	 * @param regexps The array of {@link Regexp}s to compile.
 	 * @param variables The {@link Variables} to use.
-	 * @return An array of {@link PatternInterface}.
+	 * @return An array of {@link Pattern}.
 	 * @throws MissingVariableException if a {@link Variable} is missing.
 	 */
-	public static PatternInterface[] compile(Regexp[] regexps, RegexpCompiler compiler, Variables variables)
+	public static Pattern[] compile(Regexp[] regexps, RegexpCompiler compiler, Variables variables)
 			throws MissingVariableException {
-		PatternInterface[] patterns = new PatternInterface[regexps.length];
+		Pattern[] patterns = new Pattern[regexps.length];
 		for(int i  = 0 ; i < regexps.length ; i++) {
 			patterns[i] = regexps[i].compile(compiler, variables);
 		}

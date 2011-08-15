@@ -5,11 +5,11 @@ import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import net.microscraper.BasicMicroscraper;
-import net.microscraper.Microscraper;
-import net.microscraper.impl.json.JSONME;
-import net.microscraper.interfaces.json.JSONInterface;
-import net.microscraper.interfaces.log.Logger;
+import net.microscraper.client.BasicMicroscraper;
+import net.microscraper.client.Logger;
+import net.microscraper.client.Microscraper;
+import net.microscraper.json.JSONParser;
+import net.microscraper.json.JSONMEParser;
 
 /**
  * Provides interface between browser and scraper applet through public methods.
@@ -19,7 +19,7 @@ import net.microscraper.interfaces.log.Logger;
 public class MicroScraperApplet extends Applet {
 	private static final long serialVersionUID = 2768937336583253219L;
 	
-	private static final JSONInterface json = new JSONME();
+	private static final JSONParser json = new JSONMEParser();
 	
 	public static final String encoding = "UTF-8";
 	
