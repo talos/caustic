@@ -38,7 +38,7 @@ is stored in *value*.
 Microscrapers instructions are logic-free JSON objects that provide very dynamic templated instructions for scraping data.
 Substitutions are done for text inside double-curlies *{{}}*, kind of like [mustache](http://mustache.github.com/).
 
-Here's a simple instruction, which is one of the [fixtures](microscraper-client/blob/master/utility/fixtures/json/simple-google.json):
+Here's a simple instruction, which is one of the [fixtures](microscraper-client/blob/master/fixtures/json/simple-google.json):
 
     {
      "url" : "http://www.google.com/search?q={{query}}",
@@ -79,7 +79,7 @@ We can use backreferences from *$0* to *$9* in  *replacement*.
 Substitutions are a powerful tool because they develop over the course of execution.  Any *name* that appears in 
 curlies will be substituted once a *value* has been found for it.
 
-This [fixture](microscraper-client/blob/master/utility/fixtures/json/complex-google.json)
+This [fixture](microscraper-client/blob/master/fixtures/json/complex-google.json)
 
     {
       "url" : "http://www.google.com/search?q={{query}}",
