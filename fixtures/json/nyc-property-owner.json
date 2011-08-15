@@ -3,15 +3,16 @@
 	"url" : "http://webapps.nyc.gov:8084/CICS/fin1/find001I",
 	"method" : "post",
 	"posts" : {
-		"FHOUSENUM" : "{{House Number}}",
-		"FSTNAME"   : "{{Street Name}}",
-		"FBORO"     : "{{Borough Number}}",
-		"FAPTNUM"   : "{{Apartment Number}}"
+		"FHOUSENUM" : "{{Number}}",
+		"FSTNAME"   : "{{Street}}",
+		"FBORO"     : "{{Borough}}",
+		"FAPTNUM"   : "{{Apt}}"
 	},
-	"finds_many" :
+	"find" :
 		[{
 			"name" : "Owner Name",
 			"pattern" : "<input\\s+type=\"hidden\"\\s+name=\"ownerName\\d?\"\\s+value=\"\\s*(\\w[^\"]*?)\\s*\"",
-			"replacement" : "$1"
+			"replacement" : "$1",
+			"match"       : 0
 		}]
 }

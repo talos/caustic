@@ -1,16 +1,17 @@
 package net.microscraper.instruction;
 
 import java.io.IOException;
+import java.util.Vector;
 
 import net.microscraper.client.Browser;
 import net.microscraper.client.BrowserException;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
-import net.microscraper.impl.log.Log;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpException;
 import net.microscraper.util.StringUtils;
 import net.microscraper.util.Variables;
+import net.microscraper.util.VectorUtils;
 
 /**
  * {@link Executable}s provide a way to retry individual {@link Instruction#execute}
@@ -18,7 +19,7 @@ import net.microscraper.util.Variables;
  * @author john
  *
  */
-public final class Executable extends Log implements Variables {
+public final class Executable implements Variables {
 	private final Instruction instruction;
 	private final Result source;
 	private final Browser browser;
@@ -71,14 +72,15 @@ public final class Executable extends Log implements Variables {
 		// Only allow #run if this is not yet complete or failed.
 		if(!isComplete() && !hasFailed()) {
 			try {
-				// Only generate the result if we don't have one, and we have a resource.
-				if(results == null) {
-					results = instruction.execute(compiler, browser, this, source, database);
+				// Only generate results if we don't have any.
+				if(results == null && children == null) {
+					results = instruction.generateResults(compiler, browser, this, source, database);
 				}
-				if(results != null) {
-					children = instruction.generateChildren(compiler, browser, this, results, database);
+				// Only generate children if we don't have any, but we have results.
+				if(results != null && children == null) {
+					children = instruction.generateChildExecutables(compiler, browser, this, results, database);
 					isComplete = true;
-				}
+				}	
 			} catch(RegexpException e) {
 				handleFailure(new ExecutionFailure(e));
 			} catch(MissingVariableException e) {
@@ -96,13 +98,11 @@ public final class Executable extends Log implements Variables {
 	}
 	
 	/**
-	 * Catch-all failures.  Sets the state of the {@link Executable} to failed.
+	 * Catch-all failures.  Sets {@link #failure} to {@link ExecutionFailure#getCause()} from <code>executionFaiure</code>.
 	 * @param e The {@link ExecutionFailure}.
 	 */
-	private void handleFailure(ExecutionFailure e) {
-		failure = e.getCause();
-		i("Failure in " + toString());
-		e(failure);
+	private void handleFailure(ExecutionFailure executionFailure) {
+		failure = executionFailure.getCause();
 	}
 	
 	/**
@@ -110,17 +110,16 @@ public final class Executable extends Log implements Variables {
 	 * was called, change the state of the {@link Executable} to 'stuck'.
 	 * @param e The {@link MissingVariableException}.
 	 */
-	private void handleMissingVariable(MissingVariableException e) {
-		i("Missing " + StringUtils.quote(e.name) + " from " + toString());
+	private void handleMissingVariable(MissingVariableException e) {		
 		if(missingVariable != null) {
-			lastMissingVariable = new String(missingVariable);
-			missingVariable = e.name;
+			lastMissingVariable = new String(missingVariable); // copy the string
+			missingVariable = e.getName();
+						
 			if(lastMissingVariable.equals(missingVariable)) {
 				isStuck = true;
-				i("Stuck on " + StringUtils.quote(missingVariable) + " in " + toString());
 			}
 		} else {
-			missingVariable = e.name;
+			missingVariable = e.getName();
 		}
 	}
 
@@ -194,6 +193,10 @@ public final class Executable extends Log implements Variables {
 		return isComplete;
 	}
 	
+	
+	/**
+	 * Returns {@link #instruction} as  {@link String}.
+	 */
 	public final String toString() {
 		return instruction.toString();
 	}
@@ -222,16 +225,17 @@ public final class Executable extends Log implements Variables {
 	 * is not mapped.
 	 */
 	private String localGet(String key) {
+		
+		if(source != null) {
+			if(source.getName().equals(key)) {
+				return source.getValue();
+			}
+		}
 		if(results != null) {
 			if(results.length == 1) {
 				if(results[0].getName().equals(key)) {
 					return results[0].getValue();
 				}
-			}
-		}
-		if(source != null) {
-			if(source.getName().equals(key)) {
-				return source.getValue();
 			}
 		}
 		if(children != null) {

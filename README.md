@@ -6,13 +6,13 @@ cooperative scrapers for mobile apps
 
 The easiest way to try out microscraper is the precompiled utility. Run
 
-    $ utility/microscraper --json='{"url":"http://www.google.com","finds_one":{"pattern":"[\\w]*\\sLucky"}}'
+    $ utility/microscraper --json='{"url":"http://www.google.com","find":{"pattern":"[\\w]*\\sLucky"}}'
 
 in the terminal of your choice.  This executes the JSON instruction
 
     {
-      "url" : "http://www.google.com",
-      "finds_one" : {
+      "url"  : "http://www.google.com",
+      "find" : {
         "pattern" : "[\\w]*\\sLucky"
       }
     }
@@ -42,7 +42,7 @@ Here's a simple instruction, which is one of the [fixtures](microscraper-client/
 
     {
      "url" : "http://www.google.com/search?q={{query}}",
-     "finds_many"  : {
+     "find"  : {
        "name"   : "what do you say after '{{query}}'?",
        "pattern"     : "{{query}}\\s+(\\w+)",
        "replacement" : "I say '$1'!"
@@ -68,9 +68,9 @@ to replace *{{query}}* with *hello*.  We get the following
   <tr><td>8 <td>0        <td>what do you say after 'hello'?          <td>I say 'movie'!  
 </table>
 
-Not only is google queried for *hello*, but the substitution affects the *name* and *replacement* of *finds_many*.
+Not only is google queried for *hello*, but the substitution affects the *name* and *replacement* of *find*.
 
-Here we see that *finds_many* will match against any number of pattern matches from the *url*.
+Here we see that *find* will match against any number of pattern matches from the *url*.
 
 We can use backreferences from *$0* to *$9* in  *replacement*.
 
@@ -83,13 +83,13 @@ This [fixture](microscraper-client/blob/master/fixtures/json/complex-google.json
 
     {
       "url" : "http://www.google.com/search?q={{query}}",
-      "finds_many"  : {
-        "name"   : "after",
+      "find"  : {
+        "name"        : "after",
         "pattern"     : "{{query}}\\s+(\\w+)",
         "replacement" : "$1",
-        "then" : {
+        "load" : {
           "url" : "http://www.google.com/search?q={{after}}",
-          "finds_many" : {
+          "find" : {
             "name"   : "what do you say after '{{after}}'?",
             "pattern"     : "{{query}}\\s+(\\w+)",
             "replacement" : "I say '$1'!"
@@ -98,7 +98,7 @@ This [fixture](microscraper-client/blob/master/fixtures/json/complex-google.json
       }
     }
 
-takes advantage of dynamic substitution, along with the ability to make another url request inside *then*.  The
+takes advantage of dynamic substitution, along with the ability to make another url request inside *load*.  The
 "after" word is used to launch a whole new series of queries!
 
 Try it with
@@ -127,7 +127,7 @@ You'll see that this results in quite a few dozen rows, but here are some highli
   <tr><td>63     <td>16  <td>what do you say after 'movie'?   <td>I say 'download'!
 </table>
 
-Note that the *source_id* column links each *find_many* result back to its source *url*.
+Note that the *source_id* column links each *find* result back to its source *url*.
 
 #### References ####
 
@@ -138,11 +138,11 @@ This [fixture](microscraper-client/blob/master/fixtures/json/reference-google.js
 
     {
       "url" : "http://www.google.com/search?q={{query}}",
-      "finds_many"  : {
+      "find"  : {
         "name"   : "after",
         "pattern"     : "{{query}}\\s+(\\w+)",
         "replacement" : "$1",
-        "then" : { "$ref" : "simple-google.json" }
+        "load" : { "$ref" : "simple-google.json" }
       }
     }
 

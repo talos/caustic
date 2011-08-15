@@ -2,16 +2,15 @@ package net.microscraper.client;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.net.URI;
 
 import mockit.Expectations;
 import mockit.Mocked;
-import mockit.Verifications;
 import net.microscraper.client.Browser;
 import net.microscraper.client.Microscraper;
 import net.microscraper.database.Database;
 import net.microscraper.file.FileLoader;
-import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.json.JSONParser;
 import net.microscraper.regexp.RegexpCompiler;
 
@@ -27,11 +26,9 @@ import org.junit.Test;
 public abstract class MicroscraperImplementationTest {
 	private String simpleGoogle, complexGoogle, 
 	
-		nycPropertyOwner, nycIncentives,
-						nycIncentivesSimple, eventValidation, simpleGoogleSplit1, 
-						simpleGoogleSplit2;
+		nycPropertyOwner, nycIncentives, eventValidation;
 	
-	private static final String PATH_TO_FIXTURES = "fixtures/json/";
+	private static final String PATH_TO_FIXTURES = "../fixtures/json/";
 	
 	/**
 	 * The mocked {@link Database}.
@@ -51,21 +48,16 @@ public abstract class MicroscraperImplementationTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		URI fixtures = new URI(System.getProperty("user.dir")).resolve(PATH_TO_FIXTURES);
+		URI fixtures = new File(System.getProperty("user.dir")).toURI().resolve(PATH_TO_FIXTURES);
 		
 		simpleGoogle =       fixtures.resolve("simple-google.json").toString();
 		complexGoogle =      fixtures.resolve("complex-google.json").toString();
 		
-		simpleGoogleSplit1 = fixtures.resolve("simple-google-split-1.json").toString();
-		simpleGoogleSplit2 = fixtures.resolve("simple-google-split-2.json").toString();
 		nycPropertyOwner =   fixtures.resolve("nyc-property-owner.json").toString();
 		nycIncentives =      fixtures.resolve("nyc-incentives.json").toString();
 		eventValidation =     fixtures.resolve("event-validation.json").toString();
-		nycIncentivesSimple = fixtures.resolve("nyc-incentives-simple.json").toString();
 		
-		//scraper = new BasicMicroscraper(database);
 		scraper = getScraperToTest(database);
-		scraper.register(new SystemOutLogger());
 	}
 	
 	/**
@@ -75,13 +67,13 @@ public abstract class MicroscraperImplementationTest {
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {		
 		new Expectations() {{
-			database.store("http://www.google.com/search?q=hello", (String) withNull(), 0);
-			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 0);
-			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 1);
-			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 2);
-			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 3);
+			database.store("http://www.google.com/search?q=hello", (String) withNull(), 0); result = 0;
+			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 0); result = 1;
+			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 1); result = 2;
+			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 2); result = 3;
 			// etc.
-			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), anyInt); minTimes = 1;
+			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), anyInt);
+					minTimes = 1;
 		}};
 		
 		scraper.scrapeWithURI(simpleGoogle, "query=hello");
@@ -91,23 +83,22 @@ public abstract class MicroscraperImplementationTest {
 	public void testScrapeComplexGoogle() throws Exception {
 		new Expectations() {{
 			database.store("http://www.google.com/search?q=hello", (String) withNull(), 0);
-			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 0);
-			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 1);
-			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 2);
-			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 3);
+			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 0); result = 1;
+			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 1); result = 2;
+			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 2); result = 3;
 			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, anyInt); minTimes = 1;
 			
-			database.store("after", 1, withPrefix("what do you say after"), anyString, 0);
-			database.store("after", 1, withPrefix("what do you say after"), anyString, 1);
-			database.store("after", 1, withPrefix("what do you say after"), anyString, 2);
-			database.store("after", 1, withPrefix("what do you say after"), anyString, 3);
-			database.store("after", 1, withPrefix("what do you say after"), anyString, anyInt); minTimes = 1;
+			database.store("after", 1, withPrefix("http://www.google.com/search?q="), (String) withNull(), 0); result = 4;
+			database.store("after", 2, withPrefix("http://www.google.com/search?q="), (String) withNull(), 0); result = 5;
+			database.store("after", 3, withPrefix("http://www.google.com/search?q="), (String) withNull(), 0); result = 6;
+			database.store("after", anyInt, withPrefix("http://www.google.com/search?q="), (String) withNull(), 0); minTimes = 1;
 			
-			database.store("after", 2, withPrefix("what do you say after"), anyString, 0);
-			database.store("after", 2, withPrefix("what do you say after"), anyString, 1);
-			database.store("after", 2, withPrefix("what do you say after"), anyString, 2);
-			database.store("after", 2, withPrefix("what do you say after"), anyString, 3);
-			database.store("after", 2, withPrefix("what do you say after"), anyString, anyInt); minTimes = 1;
+			database.store(withPrefix("http://www.google.com/search?q="), 4, withPrefix("what do you say after"), withPrefix("I say"), 0);
+			database.store(withPrefix("http://www.google.com/search?q="), 4, withPrefix("what do you say after"), withPrefix("I say"), 1);
+			database.store(withPrefix("http://www.google.com/search?q="), 4, withPrefix("what do you say after"), withPrefix("I say"), 2);
+			database.store(withPrefix("http://www.google.com/search?q="), 4, withPrefix("what do you say after"), withPrefix("I say"), anyInt); minTimes = 1;
+			
+			database.store(withPrefix("http://www.google.com/search?q="), anyInt, withPrefix("what do you say after"), withPrefix("I say"), anyInt); minTimes = 1;
 		}};
 		
 		scraper.scrapeWithURI(complexGoogle, "query=hello");

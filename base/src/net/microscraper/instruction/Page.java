@@ -50,14 +50,14 @@ public final class Page extends Instruction {
 		 */
 		public static final Method fromString(String method)
 				throws IllegalArgumentException {
-			if(method.equals("get")) {
+			if(method.equalsIgnoreCase("get")) {
 				return GET;
-			} else if (method.equals("post")) {
+			} else if (method.equalsIgnoreCase("post")) {
 				return POST;
-			} else if (method.equals("head")) {
+			} else if (method.equalsIgnoreCase("head")) {
 				return HEAD;
 			} else {
-				throw new IllegalArgumentException("Method '" + method + "' is not recognized, should use 'post', 'cookie', or 'header'.");
+				throw new IllegalArgumentException("Method '" + method + "' is not recognized, should use 'post', 'head', or 'get'.");
 			}
 		}
 		
@@ -173,6 +173,9 @@ public final class Page extends Instruction {
 			}
 			
 			if(jsonObject.has(POSTS)) {
+				if(!method.equals(Method.POST)) {
+					throw new DeserializationException("Cannot define post data with non-post method.", jsonObject);
+				}
 				if(jsonObject.isJSONObject(POSTS)) {
 					this.postData = null;
 					this.postNameValuePairs = NameValuePairs.deserialize(jsonObject.getJSONObject(POSTS));

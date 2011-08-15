@@ -42,7 +42,7 @@ public class PageTest {
 	@Test
 	public void testByDefaultDoesntSaveValue() throws Exception {
 		Page page = new Page(obj);
-		page.execute(compiler, browser, variables, null, database);
+		page.generateResults(compiler, browser, variables, null, database);
 		
 		new Verifications() {{
 			database.store(anyString, (String) withNull(), 0); $ = "Stored page response in database by default.";
@@ -58,7 +58,7 @@ public class PageTest {
 			browser.get(url, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any); result = content;
 		}};
 		Page page = new Page(obj);
-		page.execute(compiler, browser, variables, null, database);
+		page.generateResults(compiler, browser, variables, null, database);
 		
 		new Verifications() {
 			{
@@ -100,7 +100,7 @@ public class PageTest {
 			}
 		};
 		Page page = new Page(obj);
-		page.execute(compiler, browser, variables, null, database);
+		page.generateResults(compiler, browser, variables, null, database);
 
 		new Verifications() {{
 			browser.get(preloadUrl1, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any);
@@ -111,7 +111,7 @@ public class PageTest {
 	@Test
 	public void testPageNameDefaultsToUrl() throws Exception {
 		Page page = new Page(obj);
-		page.execute(compiler, browser, variables, null, database);
+		page.generateResults(compiler, browser, variables, null, database);
 		
 		new Verifications() {{
 			database.store(url, anyString, 0);
@@ -135,8 +135,49 @@ public class PageTest {
 		page.execute(compiler, browser, variables, null, database);
 		
 		new Verifications() {{
-			database.store(substitutedUrl, null, 0);
-			browser.get(substitutedUrl, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any);
+			database.store(substitutedUrl, null, 0); times = 1;
+			browser.get(substitutedUrl, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any); times = 1;
 		}};
+	}
+	
+	@Test
+	public void testSendsPostIfPostDataDefined() throws Exception {
+		final String postData = randomString();
+		new NonStrictExpectations() {{
+			obj.has(POSTS); result = true;
+			obj.getString(POSTS); result = postData;
+		}};
+		
+		new Page(obj).execute(compiler, browser, variables, null, database);
+		
+		new Verifications() {{
+			browser.post(url, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any, postData); times =1;
+		}};
+	}
+	
+	@Test(expected = DeserializationException.class)
+	public void testDeserializationExceptionIfHeadMethodWithPostData() throws Exception {
+		final String postData = randomString();
+		new NonStrictExpectations() {{
+			obj.has(POSTS); result = true;
+			obj.getString(POSTS); result = postData;
+			obj.has(METHOD); result = true;
+			obj.getString(METHOD); result = "head";
+		}};
+		
+		new Page(obj);
+	}
+	
+	@Test(expected = DeserializationException.class)
+	public void testDeserializationExceptionIfGetMethodWithPostData() throws Exception {
+		final String postData = randomString();
+		new NonStrictExpectations() {{
+			obj.has(POSTS); result = true;
+			obj.getString(POSTS); result = postData;
+			obj.has(METHOD); result = true;
+			obj.getString(METHOD); result = "get";
+		}};
+		
+		new Page(obj);
 	}
 }

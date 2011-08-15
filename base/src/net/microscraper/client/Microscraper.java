@@ -2,11 +2,9 @@ package net.microscraper.client;
 
 import java.io.IOException;
 import java.util.Hashtable;
-import java.util.Vector;
 
 import net.microscraper.database.Database;
-import net.microscraper.impl.log.Log;
-import net.microscraper.instruction.Executable;
+import net.microscraper.impl.log.BasicLog;
 import net.microscraper.instruction.Page;
 import net.microscraper.json.JSONParser;
 import net.microscraper.json.JSONObjectInterface;
@@ -14,8 +12,6 @@ import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.uri.URIFactory;
 import net.microscraper.uri.URIInterface;
 import net.microscraper.util.BasicVariables;
-import net.microscraper.util.StringUtils;
-import net.microscraper.util.VectorUtils;
 
 /**
  * A {@link Microscraper} can scrape an {@link Instruction}.
@@ -28,15 +24,14 @@ import net.microscraper.util.VectorUtils;
  * @see #scrapeWithURI(String, String, Hashtable)
  *
  */
-public class Microscraper extends Log {
-	private static final int LARGE_QUEUE = 1000000; // TODO: handle this warning differently
-	
+public class Microscraper implements Loggable {	
 	private final String userDir;
 	private final RegexpCompiler compiler;
 	private final Browser browser;
 	private final URIFactory uriFactory;
 	private final Database database;
 	private final JSONParser jsonInterface;
+	private final BasicLog log = new BasicLog();
 	
 	/**
 	 * @param compiler The {@link RegexpCompiler} to use when compiling regular
@@ -54,6 +49,7 @@ public class Microscraper extends Log {
 		this.database = database;
 		this.uriFactory = uriFactory;
 		this.userDir = System.getProperty("user.dir");
+		this.browser.register(log);
 	}
 	
 	private void scrape(JSONObjectInterface pageJson, String urlEncodedDefaults, Hashtable extraDefaults) throws MicroscraperException {
@@ -68,34 +64,7 @@ public class Microscraper extends Log {
 			if(extraDefaults != null) {
 				variables.extend(extraDefaults);
 			}
-			
-			// Create & initially stock queue.
-			Vector queue = new Vector();
-			queue.add(new Executable(page, compiler,
-					browser, variables, null, database));
-			
-			// Run queue.
-			while(queue.size() > 0) {
-				if(queue.size() > LARGE_QUEUE) {
-					i("Large execution queue: " + StringUtils.quote(queue.size()));
-				}
-				Executable exc = (Executable) queue.elementAt(0);
-				queue.removeElementAt(0);
-				i("Running " + exc.toString());
-				exc.run();
-				// If the execution is complete, add its children to the queue.
-				if(exc.isComplete()) {
-					Executable[] children = exc.getChildren();
-					VectorUtils.arrayIntoVector(children, queue);
-				} else if (exc.isStuck()) {
-					i(StringUtils.quote(exc.toString()) + " is stuck on " + StringUtils.quote(exc.stuckOn()));
-				} else if (exc.hasFailed()) {
-					w(exc.failedBecause());
-				// If the execution is not stuck and is not failed, return it to the end queue.
-				} else {
-					queue.addElement(exc);
-				}
-			}
+			page.execute(compiler, browser, variables, null, database, log);
 		} catch(IOException e) {
 			throw new MicroscraperException(e);
 		}
@@ -193,5 +162,9 @@ public class Microscraper extends Log {
 	 */
 	public void setMaxResponseSize(int maxResponseSizeKB) {
 		browser.setMaxResponseSize(maxResponseSizeKB);
+	}
+
+	public void register(Logger logger) {
+		log.register(logger);
 	}
 }

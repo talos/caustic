@@ -12,7 +12,7 @@ import net.microscraper.client.Logger;
 import net.microscraper.database.DatabaseException;
 import net.microscraper.database.IOTable;
 import net.microscraper.database.WritableTable;
-import net.microscraper.impl.log.Log;
+import net.microscraper.impl.log.BasicLog;
 
 /**
  * An implementation of {@link SQLConnection} for org.sqlite.JDBC

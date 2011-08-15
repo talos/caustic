@@ -42,7 +42,11 @@ public class JavaNetURI implements URIInterface {
 	public URIInterface resolve(String path) throws URIInterfaceException {
 		return resolve(new JavaNetURI(path, browser, fileLoader));
 	}
-
+	
+	public String getSchemeSpecificPart() {
+		return uri.getSchemeSpecificPart();
+	}
+	
 	public String toString() {
 		return uri.toString();
 	}

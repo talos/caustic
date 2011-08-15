@@ -6,7 +6,7 @@ import net.microscraper.util.NameValuePair;
 /**
  * Implementations of the {@link Browser} interface can be used by to make HTTP requests and handle the responses.
  */
-public interface Browser {
+public interface Browser extends Loggable {
 	/**
 	 * The default number of seconds to wait before timing out on a
 	 * request for {@link Browser} interfaces.

@@ -26,28 +26,32 @@
 		"hid_ISIntranet" : "N",
 		"hid_EmployeeID" : ""
 	},
-	"finds_one" : {
+	"find" : {
 		"name" : "table",
 		"save" : false,
 		"pattern" : "<!--Table Begin!-->(.*?)<!--Table End-->",
-		"finds_many" : {
+		"match" : 0,
+		"find" : {
 			"extends" : { "$ref" : "shared/html-row.json" },
 			"name"      : "record",
 			"save"      : false,
 			"min"  : 2,
 			"max"  : -1,
-			"finds_one" : [{
+			"find" : [{
 				"name"        : "Borough",
 				"pattern"     : ".",
-				"replacement" : "{{Borough}}"
+				"replacement" : "{{Borough}}",
+                                "match"       : 0
 			},{
 				"name"        : "Block",
 				"pattern"     : ".",
-				"replacement" : "{{Block}}"
+				"replacement" : "{{Block}}",
+                                "match"       : 0
 			},{
 				"name"        : "Doc ID",
 				"pattern"     : "go_detail\\('([^']+)'\\)",
-				"replacement" : "$1"
+				"replacement" : "$1",
+                                "match"       : 0
 			},{
 				"extends" : { "$ref" : "shared/acris-column.json" },
 				"name"    : "Reel/Pg/File",

@@ -18,7 +18,7 @@ public class JavaIOFileLoader implements FileLoader {
 
 	@Override
 	public String load(URIInterface path) throws IOException {
-		File file = new File(path.toString());
+		File file = new File(path.getSchemeSpecificPart());
 		FileInputStream fileInputStream = new FileInputStream(file);
 		byte[] buffer = new byte[(int) file.length()];  
 		fileInputStream.read(buffer);

@@ -59,19 +59,19 @@ public class PatternInterfaceTest {
 	public void testMatch() throws Exception {
 		pat = re.compile("((\\w+ ){3})", false, false, false);
 		
-		assertEquals(testClass + " didn't match the initial whole pattern.", "The quick brown ", pat.match(quickBrownFox, "$0", 0));
-		assertEquals(testClass + " didn't match initial parent backreference.", "The quick brown ", pat.match(quickBrownFox, "$1", 0));
+		assertEquals(testClass + " didn't match the initial whole pattern.", "The quick brown ", pat.match(quickBrownFox, "$0", 0,0)[0]);
+		assertEquals(testClass + " didn't match initial parent backreference.", "The quick brown ", pat.match(quickBrownFox, "$1", 0,0)[0]);
 
-		assertEquals(testClass + " didn't match the second whole pattern.", "fox jumped over ", pat.match(quickBrownFox, "$0", 1));
-		assertEquals(testClass + " didn't match second parent backreference.", "fox jumped over ", pat.match(quickBrownFox, "$1", 1));
+		assertEquals(testClass + " didn't match the second whole pattern.", "fox jumped over ", pat.match(quickBrownFox, "$0", 1,1)[0]);
+		assertEquals(testClass + " didn't match second parent backreference.", "fox jumped over ", pat.match(quickBrownFox, "$1",1, 1)[0]);
 	}
 	
 	@Test
 	public void testMatchNestedBackreferences() throws Exception {
 		pat = re.compile("((\\w+ ){3})", false, false, false);
 		
-		assertEquals(testClass + " didn't match initial nested backreference.", "brown ", pat.match(quickBrownFox, "$2", 0));
-		assertEquals(testClass + " didn't match second nested backreference.", "over ", pat.match(quickBrownFox, "$2", 1));
+		assertEquals(testClass + " didn't match initial nested backreference.", "brown ", pat.match(quickBrownFox, "$2",0, 0)[0]);
+		assertEquals(testClass + " didn't match second nested backreference.", "over ", pat.match(quickBrownFox, "$2", 1,1)[0]);
 	}
 
 	@Test
@@ -131,13 +131,13 @@ public class PatternInterfaceTest {
 		pat = re.compile("b\\w+s", false, false, false);
 		String sub = "$0";
 		
-		String firstMatch = pat.match(input, sub, 0);
-		String secondMatch = pat.match(input, sub, 1);
-		String thirdMatch = pat.match(input, sub, 2);
+		String firstMatch = pat.match(input, sub, 0,0)[0];
+		String secondMatch = pat.match(input, sub, 1,1)[0];
+		String thirdMatch = pat.match(input, sub, 2,2)[0];
 		
-		String lastMatch  = pat.match(input, sub, -1);
-		String secondToLastMatch = pat.match(input, sub, -2);
-		String thirdToLastMatch = pat.match(input, sub, -3);
+		String lastMatch  = pat.match(input, sub, -1, -1)[0];
+		String secondToLastMatch = pat.match(input, sub, -2,-2)[0];
+		String thirdToLastMatch = pat.match(input, sub, -3,-3)[0];
 		
 		assertEquals(firstMatch, "briskets");
 		assertEquals(secondMatch, "bicycles");
@@ -163,7 +163,7 @@ public class PatternInterfaceTest {
 		pat = re.compile("b\\w+s", false, false, false);
 		String sub = "$0";
 		
-		pat.match(input, sub, 4);
+		pat.match(input, sub, 4, 4);
 	}
 	
 	@Test()
@@ -172,7 +172,7 @@ public class PatternInterfaceTest {
 		pat = re.compile("<table[^>]*>(.*)</table>", false, false, false);
 		String sub = "$1";
 		
-		String match = pat.match(input, sub, 0);
+		String match = pat.match(input, sub, 0, 0)[0];
 		
 		assertEquals("<tr><td>cell</td></tr>", match);
 	}
@@ -184,7 +184,7 @@ public class PatternInterfaceTest {
 		pat = re.compile("td>([^<]*?)<", false, false, false);
 		String sub = "$1";
 		
-		String match = pat.match(input, sub, 0);
+		String match = pat.match(input, sub, 0, 0)[0];
 		
 		assertEquals("cell", match);
 	}

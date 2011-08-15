@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import net.microscraper.client.Browser;
 import net.microscraper.client.BrowserException;
+import net.microscraper.client.Logger;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
 import net.microscraper.json.JSONArrayInterface;
@@ -12,9 +13,12 @@ import net.microscraper.json.JSONParserException;
 import net.microscraper.json.JSONObjectInterface;
 import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.mustache.MustacheTemplateException;
+import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpException;
+import net.microscraper.util.StringUtils;
 import net.microscraper.util.Variables;
+import net.microscraper.util.VectorUtils;
 
 /**
  * {@link Instruction}s hold instructions for {@link Executable}s.
@@ -26,7 +30,7 @@ public abstract class Instruction  {
 	/**
 	 * Key for {@link Find} children when deserializing from JSON.
 	 */
-	public static final String FINDS = "finds";
+	public static final String FIND = "find";
 
 	/**
 	 * Key for {@link Page} children when deserializing from JSON.
@@ -110,13 +114,13 @@ public abstract class Instruction  {
 			}
 			
 			Vector children = new Vector();
-			if(jsonObject.has(FINDS)) {
+			if(jsonObject.has(FIND)) {
 				// If the key refers directly to an object, it is considered
 				// an array of 1.
-				if(jsonObject.isJSONObject(FINDS)) {
-					children.add(new Find(jsonObject.getJSONObject(FINDS)));
+				if(jsonObject.isJSONObject(FIND)) {
+					children.add(new Find(jsonObject.getJSONObject(FIND)));
 				} else {
-					JSONArrayInterface array = jsonObject.getJSONArray(FINDS);
+					JSONArrayInterface array = jsonObject.getJSONArray(FIND);
 					for(int i = 0 ; i < array.length() ; i ++) {
 						children.add(new Find(array.getJSONObject(i)));
 					}
@@ -151,9 +155,66 @@ public abstract class Instruction  {
 	public String toString() {
 		return formattedJSON;
 	}
-	
 
 	/**
+	 * Execute this {@link Instruction}, including all its children.
+	 * @see #execute(RegexpCompiler, Browser, Variables, Result, Database)
+	 */
+	public void execute(RegexpCompiler compiler, Browser browser,
+			Variables variables, Result source, Database database,
+			Logger log) {
+		// Create & initially stock queue.
+		Vector queue = new Vector();
+		queue.add(new Executable(this, compiler,
+				browser, variables, source, database));
+		
+		// Run queue.
+		while(queue.size() > 0) {
+			Executable exc = (Executable) queue.elementAt(0);
+			queue.removeElementAt(0);
+			
+			if(log != null) {
+				log.i("Running " + exc.toString());
+			}
+			exc.run();
+			
+			// If the execution is complete, add its children to the queue.
+			if(exc.isComplete()) {
+				VectorUtils.arrayIntoVector(exc.getChildren(), queue);
+			} else if (exc.isStuck()) {
+				if(log != null) {
+					log.i(StringUtils.quote(exc.toString()) + " is stuck on " + StringUtils.quote(exc.stuckOn()));
+				}
+			} else if (exc.hasFailed()) {
+				if(log != null) {
+					log.w(exc.failedBecause());
+				}
+			// If the execution is not stuck and is not failed, return it to the end queue.
+			} else {
+				queue.addElement(exc);
+			}
+			
+			if(!exc.isComplete() && !exc.isStuck() && !exc.hasFailed()) {
+				queue.addElement(exc);
+			}
+		}
+	}
+	/**
+	 * Execute this {@link Instruction}, including all its children.
+	 * @param compiler The {@link RegexpCompiler} to use when compiling {@link Pattern}
+	 * @param browser The {@link Browser] to use when loading {@link Page}s.
+	 * @param variables The {@link Variables} to use when compiling {@link MustacheTemplate}s.
+	 * @param source The {@link Result} source for this execution.  Can be <code>null</code>.
+	 * @param database The {@link Database} to save results to.
+	 */
+	public void execute(RegexpCompiler compiler, Browser browser,
+			Variables variables, Result source, Database database) {
+		execute(compiler, browser, variables, source, database, null);
+	}
+	
+	/**
+	 * Generate the children of this {@link Instruction} during execution.  There will be as many children
+	 * as the product of <code>sources</code> and {@link #children}.
 	 * @param sources The {@link Result} array from which to generate children.
 	 * @return An array of {@link Executable[]}s whose parent is this execution.
 	 * Later accessible through {@link #getChildren}.
@@ -167,7 +228,7 @@ public abstract class Instruction  {
 	 * @see #generateResult
 	 * @see #getChildren
 	 */
-	public final Executable[] generateChildren(RegexpCompiler compiler, Browser browser,
+	public Executable[] generateChildExecutables(RegexpCompiler compiler, Browser browser,
 			Executable parent, Result[] sources, Database database)
 				throws MissingVariableException, DeserializationException, IOException {
 		Executable[] childExecutables = new Executable[sources.length * children.length];
@@ -179,15 +240,6 @@ public abstract class Instruction  {
 					new Executable(children[j], compiler, browser, parent, source, database);
 			}
 		}
-		
-		for(int i = 0 ; i < childExecutables.length ; i ++) {
-			if(childExecutables[i] == null) {
-				throw new IllegalArgumentException("ChildExecutable " + i + " of " +
-						(sources.length * children.length) + 
-						" is null in " + toString());
-			}
-		}
-		
 		return childExecutables;
 	}
 
@@ -204,7 +256,7 @@ public abstract class Instruction  {
 	 * @throws RegexpException If there was a problem matching with {@link RegexpCompiler}.
 	 * @throws DatabaseException If there was a problem storing data in {@link Database}.
 	 */
-	public Result[] execute(RegexpCompiler compiler, Browser browser,
+	public final Result[] generateResults(RegexpCompiler compiler, Browser browser,
 			Variables variables, Result source, Database database) throws MissingVariableException,
 			BrowserException, RegexpException, DatabaseException {
 		String[] resultValues;

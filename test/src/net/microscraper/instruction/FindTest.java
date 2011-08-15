@@ -70,7 +70,7 @@ public class FindTest {
 	}
 	
 	@Test
-	public void testDefaultsToFirstMatch(@Mocked final Pattern pattern) throws Exception {
+	public void testDefaultsToAllMatches(@Mocked final Pattern pattern) throws Exception {
 		final String stringSource = randomString();
 		final String patternString = randomString();
 		
@@ -80,10 +80,10 @@ public class FindTest {
 				compiler.compile(patternString, anyBoolean, anyBoolean, anyBoolean); result = pattern;
 		}};
 		
-		new Find(obj).execute(compiler, browser, variables, source, database);
+		new Find(obj).generateResults(compiler, browser, variables, source, database);
 		
 		new Verifications() {{
-			pattern.match(stringSource, anyString, FIRST_MATCH, FIRST_MATCH);
+			pattern.match(stringSource, anyString, FIRST_MATCH, LAST_MATCH);
 		}};
 	}
 
@@ -117,19 +117,17 @@ public class FindTest {
 	}
 	
 	@Test
-	public void testMatchAllDefaultsToFullRange(@Mocked final Pattern pattern) throws Exception {
+	public void testMatchDefaultsToFullRange(@Mocked final Pattern pattern) throws Exception {
 		final String stringSource = randomString();
 		final String patternString = randomString();
 		
 		new NonStrictExpectations() {{
 				source.getValue(); result = stringSource;
 				obj.getString(Regexp.PATTERN); result = patternString;
-				obj.has(MATCH); result = true;
-				obj.getString(MATCH); result = MATCH_ALL_VALUE;
 				compiler.compile(patternString, anyBoolean, anyBoolean, anyBoolean); result = pattern;
 		}};
 		
-		new Find(obj).execute(compiler, browser, variables, source, database);
+		new Find(obj).generateResults(compiler, browser, variables, source, database);
 		
 		new Verifications() {{
 			pattern.match(stringSource, anyString, FIRST_MATCH, LAST_MATCH);

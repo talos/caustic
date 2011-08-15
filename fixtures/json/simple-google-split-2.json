@@ -1,6 +1,0 @@
-
-{
-	 "name"   : "what do we say after {{query}}?",
-	 "pattern"     : "{{query}}\\s+(\\w+)",
-	 "replacement" : "$1"
- }

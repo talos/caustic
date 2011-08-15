@@ -91,7 +91,7 @@ public interface URIInterface {
 	 * @return The scheme specific part of the {@link URIInterface}'s URI.
 	 * @see java.net.URI#getSchemeSpecificPart()
 	 */
-	//public String getSchemeSpecificPart();
+	public String getSchemeSpecificPart();
 
 	/**
 	 * 

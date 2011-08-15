@@ -86,16 +86,11 @@ public class Find extends Instruction {
 				if(jsonObject.has(MIN_MATCH) || jsonObject.has(MAX_MATCH)) {
 					throw new DeserializationException("Cannot define max or min when defining a match." , jsonObject);
 				}
-				if(jsonObject.getString(MATCH).equals(MATCH_ALL_VALUE)) {
-					minMatch = FIRST_MATCH;
-					maxMatch = LAST_MATCH;
-				} else {
-					minMatch = jsonObject.getInt(MATCH);
-					maxMatch = jsonObject.getInt(MATCH);
-				}
+				minMatch = jsonObject.getInt(MATCH);
+				maxMatch = jsonObject.getInt(MATCH);
 			} else {
 				minMatch = jsonObject.has(MIN_MATCH) ? jsonObject.getInt(MIN_MATCH) : FIRST_MATCH;
-				maxMatch = jsonObject.has(MAX_MATCH) ? jsonObject.getInt(MAX_MATCH) : FIRST_MATCH;
+				maxMatch = jsonObject.has(MAX_MATCH) ? jsonObject.getInt(MAX_MATCH) : LAST_MATCH;
 			}
 			
 			if(!RegexpUtils.isValidRange(minMatch, maxMatch)) {
@@ -144,7 +139,7 @@ public class Find extends Instruction {
 	 * The last of the parser's matches to export.
 	 * Negative numbers count backwards, so <code>-1</code> is the last match.
 	 * <p>
-	 * Defaults to {@link #LAST_MATCH} if {@link #MATCH} is {@link #MATCH_ALL_VALUE}.
+	 * Defaults to {@link #LAST_MATCH}.
 	 * @see #minMatch
 	 * @see #generateResultValues(RegexpCompiler, Browser, Variables, String)
 	 */
@@ -183,19 +178,6 @@ public class Find extends Instruction {
 	/**
 	 * If this maps to an {@link int}, then {@link #maxMatch} and {@link #minMatch} are that
 	 * value.<p>
-	 * If it maps to {@link #MATCH_ALL_VALUE}, then {@link #minMatch} and
-	 * {@link #maxMatch} are ({@link #FIRST_MATCH} and
-	 * {@link #LAST_MATCH}).<p>
-	 * If it is blank, then {@link #minMatch} and {@link #maxMatch} will both default to
-	 * {@link #FIRST_MATCH}.
 	 */
 	public static final String MATCH = "match";
-	
-	/**
-	 * If {@link #MATCH} maps to this value, then {@link #minMatch}
-	 * and {@link #maxMatch} are first ({@link #FIRST_MATCH}) and 
-	 * last ({@link #LAST_MATCH}) instead of both being first
-	 * {@link #FIRST_MATCH}.
-	 */
-	public static final String MATCH_ALL_VALUE = "all";
 }

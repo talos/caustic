@@ -1,40 +1,120 @@
 
 {
 	"url" : "https://a836-propertyportal.nyc.gov/Default.aspx",
-	"finds_one" : [{
-		"name" : "VIEWSTATE",
-		"pattern" : "id=\"__VIEWSTATE\"\\s+value=\"([^\"]+)\"",
-		"replacement" : "$1"
-	},
-	{
-		"$ref" : "event-validation.json"
-	}],
-	"then": {
-		"url" : "https://a836-propertyportal.nyc.gov/Default.aspx",
-		"method" : "post",
-		"posts" : {
-			"ctl00_ScriptManager1_HiddenField" : ";;AjaxControlToolkit, Version=3.0.11119.25904, Culture=neutral, PublicKeyToken=28f01b0e84b6d53e:en-US:f48478dd-9360-4d50-94c1-5c5fa55bd379:865923e8:411fea1c:e7c87f07:91bd373d:1d58b08c:8e72a662:acd642d2:596d588c:77c58d20:14b56adc:269a19ae:bbfda34c:30a78ec5:5430d994",
-			"ctl00$SampleContent$MyAccordion_AccordionExtender_ClientState" : "0",
-			"ctl00$SampleContent$ctl01$TextBox1" :  "%A01 Manhattan",
-			"ctl00$SampleContent$ctl01$ddlParclBorough" : "{{Borough Number}}",
-			"ctl00$SampleContent$ctl01$txtBlock" : "{{Block}}",
-			"ctl00$SampleContent$ctl01$txtLot"   : "{{Lot}}",
-			"ctl00$SampleContent$ctl01$btnSearchBBL": "Please Wait...",
-			"ctl00$SampleContent$ctl03$TextBox2"    : "%A01 Manhattan",
-			"ctl00$SampleContent$ctl03$ddlParclBoroughPropAddr" : "{{Borough Number}}",
-			"ctl00$SampleContent$ctl03$txtHouseNbr" : "",
-			"ctl00$SampleContent$ctl03$txtStreetNm" : "",
-			"ctl00$SampleContent$ctl03$txtAptNbr"   : "",
-			"__VIEWSTATE"                        : "{{VIEWSTATE}}",
-			"__EVENTVALIDATION"					 : "{{EVENTVALIDATION}}",
-			"__EVENTTARGET" : "",
-			"__EVENTARGUMENT" : "",
-			"grpStyle" : "blue"
-		},
+	"then": [{
+		"url" : "https://a836-propertyportal.nyc.gov/searchdetails.aspx",
 		"cookies" : {
-			"style" : "default"
+			"style"   : "default",
+			"borough" : "{{Borough Number}}",
+			"block"   : "{{Block}}",
+			"lot"     : "{{Lot}}"
 		},
-		"finds_one" : [{
+		"finds_one" : [
+		{
+			"name"    : "Borough Number",
+			"pattern" : ".",
+			"replacement" : "{{Borough Number}}"
+		},{
+			"name"    : "Block",
+			"pattern" : ".",
+			"replacement" : "{{Block}}"
+		},{
+			"name"    : "Lot",
+			"pattern" : ".",
+			"replacement" : "{{Lot}}"
+		},{
+			"name"    : "Owner Name(s)",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblOwnerNames\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Address",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblStreetAddress\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Zip Code",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblZip\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Borough",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBorough\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Year Built",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblYearBuilt\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Number of Buildings",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblNumberOfBuildings\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Number of Stories",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblNumberOfStories\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Number of Units",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblNumberOfUnits\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Building Dimensions Front",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingFront\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Building Dimensions Depth",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingDepth\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Building Dimensions Size",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingSize\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Lot Size Front",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblLotFront\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Lot Size Depth",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblLotDepth\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Lot Size Size",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblLotSize\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Corner",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblCorner\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Building Area",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingArea\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Current Tax Year",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblCurrentTaxYear\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Building Class",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingClassDesc\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Tax Class",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblTaxClassCd\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Tax Rate",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblTaxRate\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Market Value",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblMarketValue\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Assessed Value",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblAssessedValue\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Land Assessed Value",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblLandAssessedValue\">([^<]+)</span>",
+			"replacement" : "$1"
+		},{
 			"name"    : "Benefit Name",
 			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblName\">([^<]+)</span>",
 			"replacement" : "$1"
@@ -67,6 +147,18 @@
 			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblExcessCommPct\"[^>]*>([^<]+)</span>",
 			"replacement" : "$1"
 		},{
+			"name"    : "Ineligible Residential %",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblExcessResPct\"[^>]*>([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Government Financed",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblGovtFinanced\"[^>]*>([^<]+)</span>",
+			"replacement" : "$1"
+		},{
+			"name"    : "Project Start Date",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblProjectStartDt\"[^>]*>([^<]+)</span>",
+			"replacement" : "$1"
+		},{
 			"name"    : "Base Year",
 			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblBaseYear\"[^>]*>([^<]+)</span>",
 			"replacement" : "$1"
@@ -74,6 +166,10 @@
 			"name"    : "Base Year Assessed Value",
 			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblBaseYrAV\"[^>]*>([^<]+)</span>",
 			"replacement" : "$1"
+		},{
+			"name"    : "Benefit for Tax Year",
+			"pattern" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblBenTaxYear\"[^>]*>([^<]+)</span>",
+			"replacement" : "$1"
 		}]
-	}
+	}]
 }
