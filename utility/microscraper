@@ -2,5 +2,8 @@
 #
 # Run microscraper from command line without having to specify
 # java -jar.
+#
+# DIR function is from http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
 
-java -jar ./microscraper.jar $*
+DIR="$( cd "$( dirname "$0" )" && pwd )"
+java -jar $DIR/microscraper.jar $*

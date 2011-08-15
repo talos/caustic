@@ -6,9 +6,9 @@ cooperative scrapers for mobile apps
 
 The easiest way to try out microscraper is the precompiled utility. Run
 
-    $ utility/microscraper -e '{"url":"http://www.google.com","finds_one":{"pattern":"[\\w]*\\sLucky"}}'
+    $ utility/microscraper --json='{"url":"http://www.google.com","finds_one":{"pattern":"[\\w]*\\sLucky"}}'
 
-in the terminal of your choice.  This executes the inline (-e) JSON instruction
+in the terminal of your choice.  This executes the JSON instruction
 
     {
       "url" : "http://www.google.com",
