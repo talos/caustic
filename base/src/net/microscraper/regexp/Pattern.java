@@ -32,7 +32,7 @@ public interface Pattern {
 	 * @throws NoMatchesException There was no match at the match number for this pattern.
 	 * @throws MissingGroupException The substitution referred to a backreference group not in the pattern.
 	 */
-	public abstract String match(String input, String substitution, int matchNumber) throws NoMatchesException, MissingGroupException;
+	//public abstract String match(String input, String substitution, int matchNumber) throws NoMatchesException, MissingGroupException;
 	
 	/**
 	 * Returns an array of Strings of the substitution, one for each match.
@@ -45,5 +45,5 @@ public interface Pattern {
 	 * @throws MissingGroupException The substitution referred to a backreference group not in the pattern.
 	 * @throws InvalidRangeException The range referred to a positive maximum less than a positive minimum, or a negative maximum less than a negative minimum.
 	 */
-	public abstract String[] allMatches(String input, String substitution, int minMatch, int maxMatch) throws NoMatchesException, MissingGroupException, InvalidRangeException;
+	public abstract String[] match(String input, String substitution, int minMatch, int maxMatch) throws NoMatchesException, MissingGroupException, InvalidRangeException;
 }

@@ -24,19 +24,14 @@ import net.microscraper.util.Variables;
 public abstract class Instruction  {
 	
 	/**
-	 * Key for {@link #findManys} when deserializing from JSON.
+	 * Key for {@link Find} children when deserializing from JSON.
 	 */
-	public static final String FINDS_MANY = "finds_many";
+	public static final String FINDS = "finds";
 
 	/**
-	 * Key for {@link #findOnes} when deserializing from JSON.
+	 * Key for {@link Page} children when deserializing from JSON.
 	 */
-	public static final String FINDS_ONE = "finds_one";
-
-	/**
-	 * Key for {@link #spawnPages} when deserializing from JSON.
-	 */
-	public static final String THEN = "then";
+	public static final String LOAD = "load";
 	
 	/**
 	 * Key for {@link #name} value when deserializing from JSON.
@@ -115,39 +110,26 @@ public abstract class Instruction  {
 			}
 			
 			Vector children = new Vector();
-			if(jsonObject.has(FINDS_MANY)) {
+			if(jsonObject.has(FINDS)) {
 				// If the key refers directly to an object, it is considered
 				// an array of 1.
-				if(jsonObject.isJSONObject(FINDS_MANY)) {
-					children.add(new FindMany(jsonObject.getJSONObject(FINDS_MANY)));
+				if(jsonObject.isJSONObject(FINDS)) {
+					children.add(new Find(jsonObject.getJSONObject(FINDS)));
 				} else {
-					JSONArrayInterface array = jsonObject.getJSONArray(FINDS_MANY);
+					JSONArrayInterface array = jsonObject.getJSONArray(FINDS);
 					for(int i = 0 ; i < array.length() ; i ++) {
-						children.add(new FindMany(array.getJSONObject(i)));
+						children.add(new Find(array.getJSONObject(i)));
 					}
 				}
 			}
 			
-			if(jsonObject.has(FINDS_ONE)) {
+			if(jsonObject.has(LOAD)) {
 				// If the key refers directly to an object, it is considered
 				// an array of 1.
-				if(jsonObject.isJSONObject(FINDS_ONE)) {
-					children.add(new FindOne(jsonObject.getJSONObject(FINDS_ONE)));
+				if(jsonObject.isJSONObject(LOAD)) {
+					children.add(new Page(jsonObject.getJSONObject(LOAD)));
 				} else {
-					JSONArrayInterface array = jsonObject.getJSONArray(FINDS_ONE);
-					for(int i = 0 ; i < array.length() ; i ++) {
-						children.add(new FindOne(array.getJSONObject(i)));
-					}
-				}					
-			}
-			
-			if(jsonObject.has(THEN)) {
-				// If the key refers directly to an object, it is considered
-				// an array of 1.
-				if(jsonObject.isJSONObject(THEN)) {
-					children.add(new Page(jsonObject.getJSONObject(THEN)));
-				} else {
-					JSONArrayInterface array = jsonObject.getJSONArray(THEN);
+					JSONArrayInterface array = jsonObject.getJSONArray(LOAD);
 					for(int i = 0 ; i < array.length() ; i ++) {
 						children.add(new Page(array.getJSONObject(i)));
 					}

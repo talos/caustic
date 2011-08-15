@@ -6,17 +6,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
-import javax.swing.plaf.basic.BasicViewportUI;
-
 import mockit.Mock;
 import mockit.MockClass;
-import mockit.MockUp;
-import mockit.Mocked;
 import mockit.Mockit;
-import mockit.NonStrictExpectations;
 import net.microscraper.client.Browser;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class BasicVariablesTest {

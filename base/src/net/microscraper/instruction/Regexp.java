@@ -64,15 +64,30 @@ public class Regexp {
 		this.doesDotMatchNewline = doesDotMatchNewline;
 	}
 		
-	private static final String PATTERN = "pattern";
+	/**
+	 * Key for deserializing {@link #pattern}.
+	 */
+	public static final String PATTERN = "pattern";
 	
-	private static final String IS_CASE_SENSITIVE = "case_sensitive";
+	/**
+	 * Key for deserializing {@link #isCaseSensitive}.
+	 */
+	public static final String IS_CASE_SENSITIVE = "case_sensitive";
+	
 	private static final boolean IS_CASE_SENSITIVE_DEFAULT = false;
 	
-	private static final String IS_MULTILINE = "multiline";
+	/**
+	 * Key for deserializing {@link #isMultiline}.
+	 */
+	public static final String IS_MULTILINE = "multiline";
+	
 	private static final boolean IS_MULTILINE_DEFAULT = false;
-
-	private static final String DOES_DOT_MATCH_ALL = "dot_matches_all";
+	
+	/** 
+	 * Key for deserializing {@link #doesDotMatchNewline}.
+	 */
+	public static final String DOES_DOT_MATCH_ALL = "dot_matches_all";
+	
 	private static final boolean DOES_DOT_MATCH_ALL_DEFAULT = true;
 	
 

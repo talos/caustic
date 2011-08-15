@@ -74,7 +74,7 @@ public class JakartaRegexpCompiler implements RegexpCompiler {
 			throw new NoMatchesException(this, curMatch, matchNumber, input);
 		}
 		
-		public String[] allMatches(String input, String substitution, int minMatch, int maxMatch)
+		public String[] match(String input, String substitution, int minMatch, int maxMatch)
 					throws InvalidRangeException, NoMatchesException, MissingGroupException {
 			if((maxMatch >= 0 && minMatch >= 0 && maxMatch < minMatch) ||
 					(maxMatch < 0 && minMatch < 0 && maxMatch < minMatch))

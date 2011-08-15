@@ -52,8 +52,16 @@ public class JavaUtilRegexpCompiler implements RegexpCompiler {
 			return matcher.replaceFirst(substitution);
 		}
 		
-		@Override
-		public String match(String input, String substitution, int matchNumber) throws NoMatchesException, MissingGroupException {			
+		/**
+		 * Faster match for a 
+		 * @param input
+		 * @param substitution
+		 * @param matchNumber
+		 * @return
+		 * @throws NoMatchesException
+		 * @throws MissingGroupException
+		 */
+		/*private String match(String input, String substitution, int matchNumber) throws NoMatchesException, MissingGroupException {			
 			Matcher matcher = pattern.matcher(input);
 			List<String> backwardsMemory = new ArrayList<String>();
 			int i = 0;
@@ -71,14 +79,14 @@ public class JavaUtilRegexpCompiler implements RegexpCompiler {
 				return backwardsMemory.get(backwardsMemory.size() + matchNumber);
 			}
 			throw new NoMatchesException(this, i, matchNumber, input);
-		}
+		}*/
 		
 		@Override
-		public String[] allMatches(String input, String substitution, int minMatch, int maxMatch)
+		public String[] match(String input, String substitution, int minMatch, int maxMatch)
 					throws InvalidRangeException, NoMatchesException, MissingGroupException {
-			if((maxMatch >= 0 && minMatch >= 0 && maxMatch < minMatch) ||
-					(maxMatch < 0 && minMatch < 0 && maxMatch < minMatch))
+			if(!RegexpUtils.isValidRange(minMatch, maxMatch)) {
 				throw new InvalidRangeException(this, minMatch, maxMatch);
+			}
 			
 			Matcher matcher = pattern.matcher(input);
 			

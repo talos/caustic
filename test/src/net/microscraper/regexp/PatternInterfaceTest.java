@@ -80,7 +80,7 @@ public class PatternInterfaceTest {
 		pat = re.compile("fine", false, false, false);
 		String substitution = "$0 penguin";
 		
-		String[] allMatches = pat.allMatches(input, substitution, 0, -1);
+		String[] allMatches = pat.match(input, substitution, 0, -1);
 		
 		for(int i = 0 ; i < allMatches.length ; i ++) {
 			assertEquals(testClass + " didn't substitute match correctly.", "fine penguin", allMatches[i]);
@@ -106,20 +106,20 @@ public class PatternInterfaceTest {
 		pat = re.compile("b\\w+s", false, false, false);
 		String sub = "$0";
 		
-		String[] allMatches = pat.allMatches(input, sub, 0, -1);
+		String[] allMatches = pat.match(input, sub, 0, -1);
 		assertEquals(3, allMatches.length);
 		assertEquals("boleros", allMatches[allMatches.length - 1]);
 		
-		String[] middleMatch = pat.allMatches(input, sub, 1, -2);
+		String[] middleMatch = pat.match(input, sub, 1, -2);
 		assertEquals(1, middleMatch.length);
 		assertEquals("bicycles", middleMatch[0]);
 		
-		String[] firstTwo = pat.allMatches(input, sub, 0, 1);
+		String[] firstTwo = pat.match(input, sub, 0, 1);
 		assertEquals(2, firstTwo.length);
 		assertEquals("briskets", firstTwo[0]);
 		assertEquals("bicycles", firstTwo[1]);
 		
-		String[] lastTwo = pat.allMatches(input, sub, -2, -1);
+		String[] lastTwo = pat.match(input, sub, -2, -1);
 		assertEquals(2, lastTwo.length);
 		assertEquals("bicycles", lastTwo[0]);
 		assertEquals("boleros", lastTwo[1]);
@@ -154,7 +154,7 @@ public class PatternInterfaceTest {
 		pat = re.compile("b\\w+s", false, false, false);
 		String sub = "$0";
 
-		pat.allMatches(input, sub, -1, -2);
+		pat.match(input, sub, -1, -2);
 	}
 	
 	@Test(expected=NoMatchesException.class)

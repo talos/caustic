@@ -2,7 +2,6 @@ package net.microscraper.instruction;
 
 import static org.junit.Assert.*;
 
-import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
@@ -130,7 +129,6 @@ public class PageTest {
 			variables.containsKey(key); result = true;
 			variables.get(key); result = value;
 			browser.encode(value, anyString); result = value;
-			//browser.get(anyString, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any); result = "";
 		}};
 		
 		Page page = new Page(objWithSubstitutableUrl);

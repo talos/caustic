@@ -13,7 +13,8 @@ import net.microscraper.regexp.MissingGroupException;
 import net.microscraper.regexp.NoMatchesException;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpException;
-import net.microscraper.uri.URIInterface;
+import net.microscraper.regexp.RegexpUtils;
+import net.microscraper.util.StringUtils;
 import net.microscraper.util.Variables;
 
 /**
@@ -21,18 +22,17 @@ import net.microscraper.util.Variables;
  * @author john
  *
  */
-public abstract class Find extends Instruction {
+public class Find extends Instruction {
 	
 	/**
-	 * Key for {@link #getReplacement()} value deserializing from JSON.
+	 * Key for {@link #replacement} value deserializing from JSON.
 	 */
 	public static final String REPLACEMENT = "replacement";
 	
 	/**
-	 * Default value for {@link #getReplacement()} is <code>$0</code>
-	 *  This pulls through the matched string unchanged.
+	 * Default value for {@link #replacement} is the entire match.
 	 */
-	public static final String DEFAULT_REPLACEMENT = "$0";
+	public static final String ENTIRE_MATCH = "$0";
 	
 	/**
 	 * Key for {@link #getTests()} value deserializing from JSON.
@@ -41,21 +41,21 @@ public abstract class Find extends Instruction {
 
 	/**
 	 * The {@link String} that should be mustached and evaluated for backreferences,
-	 * then returned once for each match.
-	 * Defaults to {@link #DEFAULT_REPLACEMENT}.
+	 * then returned once for each match.<p>
+	 * Defaults to {@link #ENTIRE_MATCH}.
 	 */
 	private final MustacheTemplate replacement;
 
 	/**
-	 * {@link Regexp}s that test the sanity of the parser's output.  Defaults to a 
-	 * {@link #DEFAULT_TESTS}.
+	 * {@link Regexp}s that test the sanity of the parser's output.  Defaults to 
+	 * {@link #NO_TESTS}.
 	 */
 	private final Regexp[] tests;
 	
 	/**
-	 * By default, {@link getTests()} is a zero-length {@link Regexp} array.
+	 * By default, {@link #tests} is a zero-length {@link Regexp} array.
 	 */
-	public static final Regexp[] DEFAULT_TESTS = new Regexp[] {};
+	public static final Regexp[] NO_TESTS = new Regexp[] {};
 	
 	/**
 	 * Deserialize a {@link Find} from a {@link JSONObjectInterface}.
@@ -76,11 +76,32 @@ public abstract class Find extends Instruction {
 					this.tests[i] = new Regexp(tests.getJSONObject(i));
 				}
 			} else {
-				this.tests = DEFAULT_TESTS;
+				this.tests = NO_TESTS;
 			}
 			this.replacement = jsonObject.has(REPLACEMENT) ?
 					new MustacheTemplate(jsonObject.getString(REPLACEMENT)) :
-					new MustacheTemplate(DEFAULT_REPLACEMENT);
+					new MustacheTemplate(ENTIRE_MATCH);
+			
+			if(jsonObject.has(MATCH)) {
+				if(jsonObject.has(MIN_MATCH) || jsonObject.has(MAX_MATCH)) {
+					throw new DeserializationException("Cannot define max or min when defining a match." , jsonObject);
+				}
+				if(jsonObject.getString(MATCH).equals(MATCH_ALL_VALUE)) {
+					minMatch = FIRST_MATCH;
+					maxMatch = LAST_MATCH;
+				} else {
+					minMatch = jsonObject.getInt(MATCH);
+					maxMatch = jsonObject.getInt(MATCH);
+				}
+			} else {
+				minMatch = jsonObject.has(MIN_MATCH) ? jsonObject.getInt(MIN_MATCH) : FIRST_MATCH;
+				maxMatch = jsonObject.has(MAX_MATCH) ? jsonObject.getInt(MAX_MATCH) : FIRST_MATCH;
+			}
+			
+			if(!RegexpUtils.isValidRange(minMatch, maxMatch)) {
+				throw new DeserializationException(StringUtils.quote(minMatch) + " and " + StringUtils.quote(maxMatch) +
+						" form invalid range.", jsonObject);
+			}
 		} catch(JSONParserException e) {
 			throw new DeserializationException(e, jsonObject);
 		} catch(MustacheTemplateException e) {
@@ -90,7 +111,7 @@ public abstract class Find extends Instruction {
 
 	/**
 	 * 
-	 * The {@link Regexp} {@link Instruction} inside this {@link Find}.
+	 * The {@link Regexp} inside this {@link Find}.
 	 */
 	private final Regexp regexp;
 	
@@ -101,24 +122,80 @@ public abstract class Find extends Instruction {
 		return true;
 	}
 	
-	protected String[] matchMany(RegexpCompiler compiler, String source, Variables variables, int minMatch, int maxMatch)
-			throws MissingGroupException, InvalidRangeException, MissingVariableException, NoMatchesException {		
-		return regexp.compile(compiler, variables).allMatches(
+	/**
+	 * {@link Find}'s name is a {@link Mustache} compiled version of its {@link #regexp}.
+	 */
+	public String getDefaultName(Variables variables, RegexpCompiler compiler, Browser browser)
+			throws MissingVariableException, RegexpException {
+		return regexp.compile(compiler, variables).toString();
+	}
+	
+	/**
+	 * The first of the parser's matches to export.
+	 * This is 0-indexed, so <code>0</code> is the first match.
+	 * <p>
+	 * Defaults to {@link  #FIRST_MATCH}.
+	 * @see #maxMatch
+	 * @see #generateResultValues(RegexpCompiler, Browser, Variables, String)
+	 */
+	private final int minMatch;
+
+	/**
+	 * The last of the parser's matches to export.
+	 * Negative numbers count backwards, so <code>-1</code> is the last match.
+	 * <p>
+	 * Defaults to {@link #LAST_MATCH} if {@link #MATCH} is {@link #MATCH_ALL_VALUE}.
+	 * @see #minMatch
+	 * @see #generateResultValues(RegexpCompiler, Browser, Variables, String)
+	 */
+	private final int maxMatch;
+	
+	/**
+	 * Key for {@link #minMatch} value when deserializing from JSON.
+	 */
+	public static final String MIN_MATCH = "min";
+	
+	/**
+	 * Key for {@link #maxMatch} value when deserializing from JSON.
+	 */
+	public static final String MAX_MATCH = "max";
+	
+	/**
+	 * {@link #minMatch} defaults to the first of any number of matches.
+	 */
+	public static final int FIRST_MATCH = 0;
+	
+	/**
+	 * {@link #getMaxMatch()} defaults to the last of any number of matches.
+	 */
+	public static final int LAST_MATCH = -1;
+	
+	public String[] generateResultValues(RegexpCompiler compiler,
+			Browser browser, Variables variables, String source)
+					throws NoMatchesException, MissingGroupException,
+					InvalidRangeException, MissingVariableException {
+		return regexp.compile(compiler, variables).match(
 				source,
 				replacement.compile(variables),
 				minMatch, maxMatch);
 	}
 	
-	protected String matchOne(RegexpCompiler compiler, String source, Variables variables, int match)
-			throws MissingGroupException, InvalidRangeException, MissingVariableException, NoMatchesException {		
-		return regexp.compile(compiler, variables).match(
-				source,
-				replacement.compile(variables),
-				match);
-	}
+	/**
+	 * If this maps to an {@link int}, then {@link #maxMatch} and {@link #minMatch} are that
+	 * value.<p>
+	 * If it maps to {@link #MATCH_ALL_VALUE}, then {@link #minMatch} and
+	 * {@link #maxMatch} are ({@link #FIRST_MATCH} and
+	 * {@link #LAST_MATCH}).<p>
+	 * If it is blank, then {@link #minMatch} and {@link #maxMatch} will both default to
+	 * {@link #FIRST_MATCH}.
+	 */
+	public static final String MATCH = "match";
 	
-	public String getDefaultName(Variables variables, RegexpCompiler compiler, Browser browser)
-			throws MissingVariableException, RegexpException {
-		return regexp.compile(compiler, variables).toString();
-	}
+	/**
+	 * If {@link #MATCH} maps to this value, then {@link #minMatch}
+	 * and {@link #maxMatch} are first ({@link #FIRST_MATCH}) and 
+	 * last ({@link #LAST_MATCH}) instead of both being first
+	 * {@link #FIRST_MATCH}.
+	 */
+	public static final String MATCH_ALL_VALUE = "all";
 }

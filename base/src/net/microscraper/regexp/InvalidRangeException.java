@@ -6,6 +6,10 @@ package net.microscraper.regexp;
  *
  */
 public class InvalidRangeException extends RegexpException {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8792952974978095125L;
 	private final int minMatch;
 	private final int maxMatch;
 	public InvalidRangeException(Pattern pattern, int minMatch, int maxMatch) {
