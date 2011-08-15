@@ -134,7 +134,7 @@ Note that the *source_id* column links each *find_many* result back to its sourc
 You probably noticed that interior portion of the last fixture was basically copy-and-pasted from the fixture
 before it.  Wouldn't it be nice if we could reuse instruction components?
 
-This [fixture](microscraper-client/blob/master/utility/fixtures/json/reference-google.json) does just that
+This [fixture](microscraper-client/blob/master/fixtures/json/reference-google.json) does just that
 
     {
       "url" : "http://www.google.com/search?q={{query}}",
