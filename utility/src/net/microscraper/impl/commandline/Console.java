@@ -8,7 +8,7 @@ import net.microscraper.client.MicroscraperException;
 import net.microscraper.database.DatabaseException;
 import net.microscraper.database.SQLConnectionException;
 
-public class MicroScraperConsole {
+public class Console {
 	public static void main (String[] stringArgs) {
 		Arguments arguments = getArguments(stringArgs);
 		if(arguments != null) {
@@ -25,13 +25,16 @@ public class MicroScraperConsole {
 		} catch(IllegalArgumentException e) {
 			print(e.getMessage());
 			print(Arguments.USAGE);
-			return null;
 		}
+		return null;
 	}
 	
 	private static ArgumentsMicroscraper getScraper(Arguments arguments) {	
 		try {
 			return new ArgumentsMicroscraper(arguments);
+		} catch(IllegalArgumentException e) {
+			print(e.getMessage());
+			print(Arguments.USAGE);
 		} catch(FileNotFoundException e) {
 			print("Could not find the input file: " + e.getMessage());
 		} catch(SQLConnectionException e) {
@@ -42,10 +45,10 @@ public class MicroScraperConsole {
 			print("Unsupported encoding: " + e.getMessage());
 		} catch(IOException e) {
 			print("Could not open log file: " + e.getMessage());
-		} catch(Throwable e) {
-			print("Unhandled exception scraping: " + e.getClass().getName());
+		} /*catch(Throwable e) {
+			print("Unhandled exception c: " + e.getClass().getName());
 			print("Stack trace is in the log.");
-		}
+		}*/
 		return null;
 	}
 	

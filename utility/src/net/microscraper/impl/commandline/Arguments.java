@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.microscraper.client.Browser;
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
 
 public final class Arguments {
 	private static final Map<String, Option> validOptions = new HashMap<String, Option>();
@@ -112,7 +112,7 @@ public final class Arguments {
 "	" + MAX_RESPONSE_SIZE + newline +
 "		How many KB of a response to load from a single request before " + newline +
 "		cutting off the response.  Defaults to " + MAX_RESPONSE_SIZE.getDefault() + "KB." + newline +
-"	" + OUTPUT_FORMAT_OPTION + "=(" + Utils.join(validOutputFormats.toArray(new String[0]), "|") +")" + newline +
+"	" + OUTPUT_FORMAT_OPTION + "=(" + StringUtils.join(validOutputFormats.toArray(new String[0]), "|") +")" + newline +
 "		How to format output.  Defaults to " + OUTPUT_FORMAT_OPTION.getDefault() + "." + newline +
 "	" + OUTPUT_TO_FILE + "[=<path>], " + newline +
 "		Where to save the output.  Defaults to 'yyyyMMddkkmmss.<format>' in" + newline +

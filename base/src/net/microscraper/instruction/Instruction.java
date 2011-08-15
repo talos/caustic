@@ -192,9 +192,17 @@ public abstract class Instruction  {
 		
 		for(int i = 0; i < sources.length ; i++) {
 			Result source = sources[i];
-			for(int j = 0 ; j < this.children.length ; j++) {
-				childExecutables[i * j + i] =
-					new Executable(this.children[j], compiler, browser, parent, source, database);
+			for(int j = 0 ; j < children.length ; j++) {
+				childExecutables[(i * children.length) + j] =
+					new Executable(children[j], compiler, browser, parent, source, database);
+			}
+		}
+		
+		for(int i = 0 ; i < childExecutables.length ; i ++) {
+			if(childExecutables[i] == null) {
+				throw new IllegalArgumentException("ChildExecutable " + i + " of " +
+						(sources.length * children.length) + 
+						" is null in " + toString());
 			}
 		}
 		

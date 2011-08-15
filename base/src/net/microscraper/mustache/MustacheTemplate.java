@@ -3,7 +3,7 @@ package net.microscraper.mustache;
 import net.microscraper.client.Browser;
 import net.microscraper.client.BrowserException;
 import net.microscraper.instruction.MissingVariableException;
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
 import net.microscraper.util.Variables;
 
 /**
@@ -96,7 +96,7 @@ public final class MustacheTemplate {
 						result += browser.encode(variables.get(tag), encoding);
 					} catch(BrowserException e) {
 						throw new IllegalStateException
-								("Could not encode " + Utils.quote(variables.get(tag)) + " with " + encoding);
+								("Could not encode " + StringUtils.quote(variables.get(tag)) + " with " + encoding);
 					}
 				} else {
 					result += variables.get(tag);

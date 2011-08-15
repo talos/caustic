@@ -27,4 +27,16 @@ public class BasicNameValuePair implements NameValuePair {
 	public String getValue() {
 		return value;
 	}
+	/**
+	 * Preview an array of {@link NameValuePair}s as a {@link String}.
+	 * @param nameValuePairs The {@link NameValuePair}s to preview.
+	 * @return A {@link String} previewing <code>nameValuePairs</code>.
+	 */
+	public static String preview(NameValuePair[] nameValuePairs) {
+		String[] joined = new String[nameValuePairs.length];
+		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
+			joined[i] = nameValuePairs[i].getName() + ": " + nameValuePairs[i].getValue();
+		}
+		return StringUtils.join(joined, ", ");
+	}
 }

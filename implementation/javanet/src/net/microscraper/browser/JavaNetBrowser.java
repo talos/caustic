@@ -23,7 +23,7 @@ import net.microscraper.impl.log.Log;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
 
 /**
  * This is a very lightweight {@link Browser}.  It will add headers & posts, and does <b>very</b>
@@ -124,7 +124,7 @@ public class JavaNetBrowser extends Log implements Browser {
 				totalReadBytes += readBytes;
 				// log every 51.2 kB
 				if(totalReadBytes - lastTotalReadBytes > buffer.length * 100) { 
-					i("Have loaded " + totalReadBytes + " bytes from " + Utils.quote(url));
+					i("Have loaded " + totalReadBytes + " bytes from " + StringUtils.quote(url));
 					lastTotalReadBytes = totalReadBytes;
 				}
 				content.write(buffer, 0, readBytes);
@@ -181,9 +181,9 @@ public class JavaNetBrowser extends Log implements Browser {
 			float kbpsSinceLastLoad = hostMemory.kbpsSinceLastLoadFor(url);
 			i("Load speed from " + url.toString() + " : " + Float.toString(kbpsSinceLastLoad));
 			if(kbpsSinceLastLoad > rateLimitKBPS) {
-				i("Delaying load of " + Utils.quote(url.toString()) +
+				i("Delaying load of " + StringUtils.quote(url.toString()) +
 							", current KBPS " +
-							Utils.quote(Float.toString(kbpsSinceLastLoad)));
+							StringUtils.quote(Float.toString(kbpsSinceLastLoad)));
 				try {
 					Thread.sleep(Browser.DEFAULT_SLEEP_TIME);
 				} catch (InterruptedException e) {
@@ -324,7 +324,7 @@ public class JavaNetBrowser extends Log implements Browser {
 				int equals_loc = header_value.indexOf('=');
 				if(equals_loc != -1) {
 					String name = header_value.substring(0, equals_loc);
-					String payload[] = Utils.split(header_value.substring(equals_loc + 1), "; ");
+					String payload[] = StringUtils.split(header_value.substring(equals_loc + 1), "; ");
 					String value = payload[0];
 					
 					i("Storing cookie '" + name + "' with value '" + value + "'");
@@ -348,7 +348,7 @@ public class JavaNetBrowser extends Log implements Browser {
 			cookieAry[i] = name + '=' + (String) cookieStore.get(name);// + "; ";
 			i++;
 		}
-		String cookieString = Utils.join(cookieAry, "; ");
+		String cookieString = StringUtils.join(cookieAry, "; ");
 		i("Using cookies: " + cookieString);
 		conn.setRequestProperty("Cookie", cookieString);
 	}

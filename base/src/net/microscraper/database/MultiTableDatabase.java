@@ -6,7 +6,7 @@ import java.util.Hashtable;
 import net.microscraper.instruction.Result;
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
 
 /**
  * An implementation of {@link Database} whose subclasses store

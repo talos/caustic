@@ -9,7 +9,7 @@ import net.microscraper.database.DatabaseException;
 import net.microscraper.database.WritableTable;
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
 
 public class DelimitedTable implements WritableTable {
 	
@@ -38,8 +38,8 @@ public class DelimitedTable implements WritableTable {
 		nameValuePairs[nameValuePairs.length -1] = new BasicNameValuePair(ID_COLUMN_NAME, Integer.toString(curId));
 		
 		if(nameValuePairs.length != columns.size()) {
-			throw new DatabaseException(Utils.preview(nameValuePairs) + " does not fit in " +
-					Utils.join(columns.toArray(new String[0]), ", "));
+			throw new DatabaseException(BasicNameValuePair.preview(nameValuePairs) + " does not fit in " +
+					StringUtils.join(columns.toArray(new String[0]), ", "));
 		}
 		
 		String[] valuesInOrder = new String[nameValuePairs.length];
@@ -49,7 +49,7 @@ public class DelimitedTable implements WritableTable {
 				valuesInOrder[index] = nameValuePairs[i].getValue();
 			} else {
 				throw new DatabaseException(nameValuePairs[i].getName() + " is not a column in " +
-						Utils.join(columns.toArray(new String[0]), ", "));
+						StringUtils.join(columns.toArray(new String[0]), ", "));
 			}
 		}
 		writer.writeNext(valuesInOrder);

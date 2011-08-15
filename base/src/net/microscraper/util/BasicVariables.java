@@ -54,18 +54,20 @@ public final class BasicVariables implements Variables {
 	 * @param formEncodedData A {@link String} of form-encoded data to convert.
 	 * @param encoding The encoding to use.  <code>UTF-8</code> recommended.
 	 * @return A {@link Variables}.
-	 * @throws IllegalArgumentException If the encoding is not supported.
+	 * @throws IllegalArgumentException If the encoding is not supported or if the pairs
+	 * do not match up.
 	 */
-	public static BasicVariables fromFormEncoded(Browser browser, String formEncodedData, String encoding) throws BrowserException {
-		String[] splitByAmpersands = Utils.split(formEncodedData, "&");
+	public static BasicVariables fromFormEncoded(Browser browser, String formEncodedData, String encoding)
+			throws BrowserException {
+		String[] splitByAmpersands = StringUtils.split(formEncodedData, "&");
 		Hashtable hashtable = new Hashtable();
 		for(int i = 0 ; i < splitByAmpersands.length; i++) {
-			String[] pair = Utils.split(splitByAmpersands[i], "=");
-			try {
+			String[] pair = StringUtils.split(splitByAmpersands[i], "=");
+			if(pair.length == 2) {
 				hashtable.put(browser.decode(pair[0], encoding),
 						browser.decode(pair[1], encoding));
-			} catch(BrowserException e) {
-				throw new IllegalArgumentException(encoding);
+			} else {
+				throw new IllegalArgumentException(StringUtils.quote(splitByAmpersands[i]) + " is not a valid name-value pair.");
 			}
 		}
 		return fromHashtable(hashtable);

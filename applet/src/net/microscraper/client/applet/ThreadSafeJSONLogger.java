@@ -10,7 +10,7 @@ import net.microscraper.client.impl.commandline.json.JSONStringerInterface;
 import net.microscraper.impl.log.BasicLogger;
 import net.microscraper.json.JSONParser;
 import net.microscraper.json.JSONParserException;
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
 
 public class ThreadSafeJSONLogger extends BasicLogger {
 	private final List<JSONStringerInterface> logList = Collections.synchronizedList(new ArrayList<JSONStringerInterface>());

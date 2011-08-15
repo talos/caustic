@@ -5,12 +5,11 @@
     <target name="create_run_jar">
         <jar destfile="../utility/microscraper.jar" filesetmanifest="mergewithoutmain">
             <manifest>
-                <attribute name="Main-Class" value="net.microscraper.utility.MicroScraperConsole"/>
+                <attribute name="Main-Class" value="net.microscraper.impl.commandline.Console"/>
                 <attribute name="Class-Path" value="."/>
             </manifest>
             <fileset dir="../utility/bin"/>
             <fileset dir="../base/build/classes"/>
-            <fileset dir="../implementation/regexp-jakarta/bin"/>
             <fileset dir="../implementation/regexp-javautil/bin"/>
             <fileset dir="../implementation/sqlite-jdbc/bin"/>
             <zipfileset excludes="META-INF/*.SF" src="../implementation/sqlite-jdbc/lib/sqlitejdbc-v056/sqlitejdbc-v056.jar"/>

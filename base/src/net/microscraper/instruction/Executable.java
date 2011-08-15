@@ -9,7 +9,7 @@ import net.microscraper.database.DatabaseException;
 import net.microscraper.impl.log.Log;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpException;
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
 import net.microscraper.util.Variables;
 
 /**
@@ -111,13 +111,13 @@ public final class Executable extends Log implements Variables {
 	 * @param e The {@link MissingVariableException}.
 	 */
 	private void handleMissingVariable(MissingVariableException e) {
-		i("Missing " + Utils.quote(e.name) + " from " + toString());
+		i("Missing " + StringUtils.quote(e.name) + " from " + toString());
 		if(missingVariable != null) {
 			lastMissingVariable = new String(missingVariable);
 			missingVariable = e.name;
 			if(lastMissingVariable.equals(missingVariable)) {
 				isStuck = true;
-				i("Stuck on " + Utils.quote(missingVariable) + " in " + toString());
+				i("Stuck on " + StringUtils.quote(missingVariable) + " in " + toString());
 			}
 		} else {
 			missingVariable = e.name;

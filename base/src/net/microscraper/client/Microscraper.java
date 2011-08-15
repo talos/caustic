@@ -14,7 +14,8 @@ import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.uri.URIFactory;
 import net.microscraper.uri.URIInterface;
 import net.microscraper.util.BasicVariables;
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
+import net.microscraper.util.VectorUtils;
 
 /**
  * A {@link Microscraper} can scrape an {@link Instruction}.
@@ -76,7 +77,7 @@ public class Microscraper extends Log {
 			// Run queue.
 			while(queue.size() > 0) {
 				if(queue.size() > LARGE_QUEUE) {
-					i("Large execution queue: " + Utils.quote(queue.size()));
+					i("Large execution queue: " + StringUtils.quote(queue.size()));
 				}
 				Executable exc = (Executable) queue.elementAt(0);
 				queue.removeElementAt(0);
@@ -85,9 +86,9 @@ public class Microscraper extends Log {
 				// If the execution is complete, add its children to the queue.
 				if(exc.isComplete()) {
 					Executable[] children = exc.getChildren();
-					Utils.arrayIntoVector(children, queue);
+					VectorUtils.arrayIntoVector(children, queue);
 				} else if (exc.isStuck()) {
-					i(Utils.quote(exc.toString()) + " is stuck on " + Utils.quote(exc.stuckOn()));
+					i(StringUtils.quote(exc.toString()) + " is stuck on " + StringUtils.quote(exc.stuckOn()));
 				} else if (exc.hasFailed()) {
 					w(exc.failedBecause());
 				// If the execution is not stuck and is not failed, return it to the end queue.

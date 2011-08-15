@@ -6,7 +6,7 @@ import java.util.List;
 import net.microscraper.database.DatabaseException;
 import net.microscraper.database.IOTable;
 import net.microscraper.util.NameValuePair;
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
 
 /**
  * A SQL implementation of {@link IOTable} using {@link SQLConnection}.
@@ -57,7 +57,7 @@ public class SQLTable implements IOTable {
 			columnDefinitions[i] = columns[i] + " " + connection.textColumnType();
 			this.columns.add(columns[i]);
 		}
-		String columnDefinition = Utils.join(columnDefinitions, ", ");
+		String columnDefinition = StringUtils.join(columnDefinitions, ", ");
 		
 		if(connection.tableExists(name)) {
 			
@@ -78,7 +78,7 @@ public class SQLTable implements IOTable {
 		
 		try {
 			if(columnName.equals(ID_COLUMN_NAME)) {
-				throw new SQLConnectionException(Utils.quote(columnName) + " is reserved as the " +
+				throw new SQLConnectionException(StringUtils.quote(columnName) + " is reserved as the " +
 							"ID column for the table.");
 			}
 			SQLPreparedStatement alterTable = 
@@ -104,7 +104,7 @@ public class SQLTable implements IOTable {
 	private void preventIllegalBacktick(String stringToCheck) throws IllegalArgumentException {
 		if(stringToCheck.indexOf('`') != -1 ) {
 			throw new IllegalArgumentException("Illegal name for SQL " +
-					Utils.quote(stringToCheck) +
+					StringUtils.quote(stringToCheck) +
 					" to  because it contains a backtick at index " +
 				Integer.toString(stringToCheck.indexOf('`')));
 		}
@@ -134,8 +134,8 @@ public class SQLTable implements IOTable {
 		try {
 			SQLPreparedStatement insert = connection.prepareStatement(
 					"INSERT INTO `" + name + "` " +
-							"(" + Utils.join(columnNames, ", ") + ") " +
-							"VALUES (" + Utils.join(parameters, ", ") + ")");
+							"(" + StringUtils.join(columnNames, ", ") + ") " +
+							"VALUES (" + StringUtils.join(parameters, ", ") + ")");
 			insert.bindStrings(columnValues);
 			insert.execute();
 			id++;
@@ -156,7 +156,7 @@ public class SQLTable implements IOTable {
 			values[i] = nameValuePairs[i].getValue();
 		}
 		
-		String set = " SET " + Utils.join(setStatements, ", ");
+		String set = " SET " + StringUtils.join(setStatements, ", ");
 		
 		try {
 			SQLPreparedStatement update = connection.prepareStatement(

@@ -6,7 +6,7 @@ import java.util.Vector;
 
 import static net.microscraper.test.TestUtils.*;
 import net.microscraper.util.NameValuePair;
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
 
 import org.junit.Test;
 
@@ -21,7 +21,7 @@ public class UtilsTest {
 		};
 		String joinString = " ";
 		
-		String joinedString = Utils.join(stringsToJoin, joinString);
+		String joinedString = StringUtils.join(stringsToJoin, joinString);
 		assertEquals("Error joining array of strings.", "the quick brown fox", joinedString);
 	}
 
@@ -32,7 +32,7 @@ public class UtilsTest {
 		};
 		String joinString = "-";
 		
-		String joinedString = Utils.join(intsToJoin, joinString);
+		String joinedString = StringUtils.join(intsToJoin, joinString);
 		assertEquals("Error joining array of ints.", "1-2-3-4", joinedString);
 	}
 
@@ -41,7 +41,7 @@ public class UtilsTest {
 		int originalLength = 1000;
 		int truncatedLength = 500;
 		
-		assertEquals("Error truncating string.", truncatedLength, Utils.truncate(randomString(originalLength), truncatedLength).length());
+		assertEquals("Error truncating string.", truncatedLength, StringUtils.truncate(randomString(originalLength), truncatedLength).length());
 	}
 
 	@Test
@@ -58,7 +58,7 @@ public class UtilsTest {
 				componentStrings[i] = randomString(randomInt(strLen));
 				stringToSplit += componentStrings[i] + splitBy; // stuck with trailing splitter, should be extra blank element at end.
 			}
-			String[] splitString = Utils.split(stringToSplit, splitBy);
+			String[] splitString = StringUtils.split(stringToSplit, splitBy);
 			
 			assertEquals("String '" + stringToSplit + "' split by '" + splitBy + "' is wrong length", componentStrings.length + 1, splitString.length);
 			assertEquals("Missing trailing empty string", "", splitString[splitString.length - 1]);
@@ -70,16 +70,16 @@ public class UtilsTest {
 
 	@Test
 	public void testQuoteString() {
-		String quoted = Utils.quote(randomString(strLen));
-		assertEquals(true, quoted.startsWith(new String(new char[] { Utils.QUOTATION })));
-		assertEquals(true, quoted.endsWith(new String(new char[] { Utils.QUOTATION })));
+		String quoted = StringUtils.quote(randomString(strLen));
+		assertEquals(true, quoted.startsWith(new String(new char[] { StringUtils.QUOTATION })));
+		assertEquals(true, quoted.endsWith(new String(new char[] { StringUtils.QUOTATION })));
 	}
 
 	@Test
 	public void testQuoteInt() {
-		String quoted = Utils.quote(randomInt(strLen));
-		assertEquals(true, quoted.startsWith(new String(new char[] { Utils.QUOTATION })));
-		assertEquals(true, quoted.endsWith(new String(new char[] { Utils.QUOTATION })));
+		String quoted = StringUtils.quote(randomInt(strLen));
+		assertEquals(true, quoted.startsWith(new String(new char[] { StringUtils.QUOTATION })));
+		assertEquals(true, quoted.endsWith(new String(new char[] { StringUtils.QUOTATION })));
 	}
 
 	@Test
@@ -101,7 +101,7 @@ public class UtilsTest {
 			Vector<String> vector2copy = new Vector<String>();
 			vector2copy.addAll(vector2);
 			
-			Utils.vectorIntoVector(vector1, vector2);
+			StringUtils.vectorIntoVector(vector1, vector2);
 			
 			assertEquals("Combined vector not same size as components.", vector1length + vector2length, vector2.size());
 			assertTrue("Combined vector does not contain all original elements.", vector2.containsAll(vector2copy));
@@ -128,7 +128,7 @@ public class UtilsTest {
 			Vector<String> vectorCopy = new Vector<String>();
 			vectorCopy.addAll(vector);
 			
-			Utils.arrayIntoVector(array, vector);
+			StringUtils.arrayIntoVector(array, vector);
 			
 			assertEquals("Combined vector not same size as components.", vectorLength + arrayLength, vector.size());
 			assertTrue("Combined vector does not contain all original vector elements.", vector.containsAll(vectorCopy));

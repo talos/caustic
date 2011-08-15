@@ -4,7 +4,7 @@ import java.util.Random;
 import java.util.Vector;
 
 import net.microscraper.instruction.Executable;
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
 
 /**
  * Static methods for testing.

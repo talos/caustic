@@ -1,6 +1,6 @@
 package net.microscraper.regexp;
 
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
 
 /**
  * Exception to indicate that the pattern did not match against its input string.
@@ -15,17 +15,17 @@ public class NoMatchesException extends RegexpException {
 	private static final String MATCHES_OF = " matches of ";
 	private static final String AGAINST = " against ";
 	public NoMatchesException(Pattern pattern, int numFound, int match, String string) {
-		super(pattern, MATCH + Utils.quote(match) + NOT_FOUND +
-				Utils.quote(numFound) + MATCHES_OF +
-				Utils.quote(pattern.toString()) + AGAINST +
-				Utils.quote(string));
+		super(pattern, MATCH + StringUtils.quote(match) + NOT_FOUND +
+				StringUtils.quote(numFound) + MATCHES_OF +
+				StringUtils.quote(pattern.toString()) + AGAINST +
+				StringUtils.quote(string));
 	}
 	public NoMatchesException(Pattern pattern, int numFound, int min, int max, String string) {
-		super(pattern, MATCHES_BETWEEN + Utils.quote(min) + AND +
-				Utils.quote(max) + NOT_FOUND +
-				Utils.quote(numFound) + MATCHES_OF +
-				Utils.quote(pattern.toString()) + AGAINST +
-				Utils.quote(string));
+		super(pattern, MATCHES_BETWEEN + StringUtils.quote(min) + AND +
+				StringUtils.quote(max) + NOT_FOUND +
+				StringUtils.quote(numFound) + MATCHES_OF +
+				StringUtils.quote(pattern.toString()) + AGAINST +
+				StringUtils.quote(string));
 	}
 	/**
 	 * 

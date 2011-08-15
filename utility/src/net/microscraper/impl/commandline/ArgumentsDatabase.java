@@ -10,7 +10,7 @@ import net.microscraper.database.JDBCSqliteConnection;
 import net.microscraper.database.MultiTableDatabase;
 import net.microscraper.database.SQLConnectionException;
 import net.microscraper.database.SingleTableDatabase;
-import net.microscraper.util.Utils;
+import net.microscraper.util.StringUtils;
 
 import static net.microscraper.impl.commandline.Arguments.*;
 
@@ -23,8 +23,8 @@ public class ArgumentsDatabase implements Database {
 		// Determine format.
 		String format;
 		format = args.get(OUTPUT_FORMAT_OPTION);
-		if(validOutputFormats.contains(format)) {
-			throw new IllegalArgumentException(Utils.quote(format)
+		if(!validOutputFormats.contains(format)) {
+			throw new IllegalArgumentException(StringUtils.quote(format)
 					+ " is not a valid output format.");
 		}
 			
