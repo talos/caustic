@@ -1,7 +1,6 @@
 package net.microscraper.instruction;
 
 import java.io.IOException;
-import java.util.Vector;
 
 import net.microscraper.client.Browser;
 import net.microscraper.client.BrowserException;
@@ -9,9 +8,7 @@ import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpException;
-import net.microscraper.util.StringUtils;
 import net.microscraper.util.Variables;
-import net.microscraper.util.VectorUtils;
 
 /**
  * {@link Executable}s provide a way to retry individual {@link Instruction#execute}

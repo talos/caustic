@@ -6,10 +6,12 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.client.Browser;
+import net.microscraper.client.BrowserException;
 import net.microscraper.database.Database;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.test.TestUtils;
 import static net.microscraper.test.TestUtils.*;
+import net.microscraper.util.BasicVariables;
 import net.microscraper.util.Variables;
 
 import org.junit.Before;
@@ -20,7 +22,8 @@ public class ExecutableTest {
 	@Mocked private RegexpCompiler compiler;
 	@Mocked private Browser browser;
 	@Mocked private Database database;
-	@Mocked private Variables variables;
+	//@Mocked private Variables variables;
+	private final Variables variables = BasicVariables.empty();
 	
 	private Executable exc;
 	
@@ -92,8 +95,13 @@ public class ExecutableTest {
 	}
 
 	@Test
-	public void testFailedBecause() {
-		fail("Not yet implemented");
+	public void testFailedBecause(@Mocked final BrowserException exception) throws Exception {
+		new NonStrictExpectations() {{
+			instruction.generateResults(compiler, browser, exc, null, database); result = exception;
+		}};
+		exc.run();
+		assertTrue(exc.hasFailed());
+		assertEquals(exception, exc.failedBecause());
 	}
 
 	@Test
@@ -156,19 +164,61 @@ public class ExecutableTest {
 	}
 	
 	@Test
-	public void testGetDeepChildren() throws Exception {
+	public void testContainsSomeKeysNotOthers() throws Exception {
+		final String key = randomString();
+		final String notAKey = randomString(key.length() + 1);
+		new NonStrictExpectations() {{
+			instruction.generateResults(compiler, browser, variables, null, database);
+				result = new Result[] { new Result(0, key, randomString())};
+		}};
+		exc.run();
+		assertTrue("Does not contain a key it should.", exc.containsKey(key));
+		assertFalse("Contains a key it should not.", exc.containsKey(notAKey));
+	}
+	
+	@Test
+	public void testGetDeepChildren(
+			@Mocked final Instruction childInstruction,
+			@Mocked final Instruction grandchildInstruction) throws Exception {
+		final String key = randomString();
+		final String value = randomString();
 		final String childKey = randomString();
 		final String childValue = randomString();
 		final String grandchildKey = randomString();
 		final String grandchildValue = randomString(); 
+		
+		final Executable child = new Executable(childInstruction, compiler, browser, variables, null, database);
+		final Executable grandchild = new Executable(grandchildInstruction, compiler, browser, variables, null, database);
 		new NonStrictExpectations() {
-			Executable child, grandchild;
+			//Executable child, grandchild;
 			{
-				instruction.generateChildExecutables(compiler, browser, exc, null, database);
+				onInstance(instruction).generateChildExecutables(compiler, browser, exc, null, database);
+					result = new Executable[] { child };
+				onInstance(childInstruction).generateChildExecutables(compiler, browser, child, null, database);
+					result = new Executable[] { grandchild };
+					
+				onInstance(instruction).generateResults(compiler, browser, exc, null, database);
+					result = new Result[] { new Result(0, key, value) };
+				onInstance(childInstruction).generateResults(compiler, browser, exc, null, database);
+					result = new Result[] { new Result(0, childKey, childValue) };
+				onInstance(grandchildInstruction).generateResults(compiler, browser, child, null, database);
+					result = new Result[] { new Result(0, grandchildKey, grandchildValue) };
 			}
 		};
 		
 		exc.run();
+		child.run();
+		grandchild.run();
+		
+		assertTrue(exc.containsKey(key));
+		assertTrue(exc.containsKey(childKey));
+		assertTrue(exc.containsKey(grandchildKey));
+		assertTrue(child.containsKey(key));
+		assertTrue(child.containsKey(childKey));
+		assertTrue(child.containsKey(grandchildKey));
+		assertTrue(grandchild.containsKey(key));
+		assertTrue(grandchild.containsKey(childKey));
+		assertTrue(grandchild.containsKey(grandchildKey));
 	}
 
 	@Test
