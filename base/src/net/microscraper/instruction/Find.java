@@ -7,7 +7,7 @@ import net.microscraper.json.JSONArrayInterface;
 import net.microscraper.json.JSONParserException;
 import net.microscraper.json.JSONObjectInterface;
 import net.microscraper.mustache.MustacheTemplate;
-import net.microscraper.mustache.MustacheTemplateException;
+import net.microscraper.mustache.MustacheCompilationException;
 import net.microscraper.regexp.InvalidRangeException;
 import net.microscraper.regexp.MissingGroupException;
 import net.microscraper.regexp.NoMatchesException;
@@ -99,7 +99,7 @@ public class Find extends Instruction {
 			}
 		} catch(JSONParserException e) {
 			throw new DeserializationException(e, jsonObject);
-		} catch(MustacheTemplateException e) {
+		} catch(MustacheCompilationException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
@@ -171,7 +171,7 @@ public class Find extends Instruction {
 					InvalidRangeException, MissingVariableException {
 		return regexp.compile(compiler, variables).match(
 				source,
-				replacement.compile(variables),
+				replacement.sub(variables),
 				minMatch, maxMatch);
 	}
 	

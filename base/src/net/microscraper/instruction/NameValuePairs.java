@@ -5,7 +5,7 @@ import net.microscraper.json.JSONIterator;
 import net.microscraper.json.JSONObjectInterface;
 import net.microscraper.mustache.MustacheNameValuePair;
 import net.microscraper.mustache.MustacheTemplate;
-import net.microscraper.mustache.MustacheTemplateException;
+import net.microscraper.mustache.MustacheCompilationException;
 
 public class NameValuePairs {
 	/**
@@ -30,7 +30,7 @@ public class NameValuePairs {
 			return pairs;
 		} catch(JSONParserException e) {
 			throw new DeserializationException(e, jsonObject);
-		} catch(MustacheTemplateException e) {
+		} catch(MustacheCompilationException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}

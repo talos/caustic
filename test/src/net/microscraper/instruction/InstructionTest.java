@@ -11,14 +11,14 @@ import net.microscraper.database.Database;
 import net.microscraper.json.JSONArrayInterface;
 import net.microscraper.json.JSONObjectInterface;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.test.TestUtils;
+import static net.microscraper.test.TestUtils.*;
 import net.microscraper.util.Variables;
 import static net.microscraper.instruction.Instruction.*;
 
 import org.junit.Before;
 import org.junit.Test;
 
-public class InstructionTest {	
+public abstract class InstructionTest {	
 	@Mocked private JSONObjectInterface jsonObject;
 	@Mocked private RegexpCompiler compiler;
 	@Mocked private Browser browser;
@@ -26,7 +26,9 @@ public class InstructionTest {
 	@Mocked private Variables variables;
 	//@Tested private Instruction instruction;
 	//@Mocked private Instruction instruction;
-	@Mocked() private Instruction instruction;
+	//@Mocked() private Instruction instruction;
+	
+	protected abstract Instruction getInstruction(JSONObjectInterface obj) throws Exception;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -67,7 +69,8 @@ public class InstructionTest {
 			}
 		};//instruction.generateChildExecutables.generateChildExecutables(compiler, browser, parent, sources, database)
 		*/
-		instruction.execute(compiler, browser, variables, null, database);
+		Instruction instruction = getInstruction(jsonObject);
+		instruction.execute(compiler, browser, variables, null, database, null);
 		
 		new Verifications() {
 			Executable exc;
@@ -85,5 +88,15 @@ public class InstructionTest {
 	public void testGetDefaultName() {
 		fail("Not yet implemented");
 	}
-
+	
+	@Test
+	public void testToStringIsName() throws Exception {
+		final String name = randomString();
+		new NonStrictExpectations() {{
+			jsonObject.has(NAME); result = true;
+			jsonObject.getString(NAME); result = name;
+		}};
+		Instruction instruction = getInstruction(jsonObject);
+		assertEquals(name, instruction.toString());
+	}
 }

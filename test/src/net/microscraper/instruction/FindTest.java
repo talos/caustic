@@ -16,14 +16,23 @@ import net.microscraper.util.Variables;
 import org.junit.Before;
 import org.junit.Test;
 
-public class FindTest {	
+public class FindTest extends InstructionTest {	
 	@Mocked JSONObjectInterface obj;
 	@Mocked Database database;
 	@Mocked Browser browser;
 	@Mocked RegexpCompiler compiler;
 	@Mocked Variables variables;
 	@Mocked Result source;
-		
+	
+	@Override
+	public Find getInstruction(final JSONObjectInterface obj) throws Exception {
+		final String pattern = randomString();
+		new NonStrictExpectations() {{
+			onInstance(obj).getString(Regexp.PATTERN); result = pattern;
+		}};
+		return new Find(obj);
+	}
+	
 	@Before
 	public void setup() throws Exception {
 		/*new NonStrictExpectations() {{

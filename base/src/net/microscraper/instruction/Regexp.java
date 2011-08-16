@@ -3,7 +3,7 @@ package net.microscraper.instruction;
 import net.microscraper.json.JSONParserException;
 import net.microscraper.json.JSONObjectInterface;
 import net.microscraper.mustache.MustacheTemplate;
-import net.microscraper.mustache.MustacheTemplateException;
+import net.microscraper.mustache.MustacheCompilationException;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.util.Variables;
@@ -51,7 +51,7 @@ public class Regexp {
 			doesDotMatchNewline = jsonObject.has(DOES_DOT_MATCH_ALL) ? jsonObject.getBoolean(DOES_DOT_MATCH_ALL) : DOES_DOT_MATCH_ALL_DEFAULT;
 		} catch(JSONParserException e) {
 			throw new DeserializationException(e, jsonObject);
-		} catch(MustacheTemplateException e) {
+		} catch(MustacheCompilationException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
@@ -101,7 +101,7 @@ public class Regexp {
 	public Pattern compile(RegexpCompiler compiler, Variables variables)
 			throws MissingVariableException {
 		return compiler.compile(
-				pattern.compile(variables),
+				pattern.sub(variables),
 				isCaseSensitive,
 				isMultiline, doesDotMatchNewline);
 	}

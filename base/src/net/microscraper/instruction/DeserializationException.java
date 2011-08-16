@@ -1,6 +1,5 @@
 package net.microscraper.instruction;
 
-import net.microscraper.client.MicroscraperException;
 import net.microscraper.json.JSONArrayInterface;
 import net.microscraper.json.JSONObjectInterface;
 
@@ -10,7 +9,7 @@ import net.microscraper.json.JSONObjectInterface;
  * @author talos
  *
  */
-public class DeserializationException extends MicroscraperException {
+public class DeserializationException extends Exception {
 
 	/**
 	 * 

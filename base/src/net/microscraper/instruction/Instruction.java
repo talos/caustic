@@ -12,7 +12,7 @@ import net.microscraper.json.JSONArrayInterface;
 import net.microscraper.json.JSONParserException;
 import net.microscraper.json.JSONObjectInterface;
 import net.microscraper.mustache.MustacheTemplate;
-import net.microscraper.mustache.MustacheTemplateException;
+import net.microscraper.mustache.MustacheCompilationException;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpException;
@@ -49,7 +49,7 @@ public abstract class Instruction  {
 	
 	/**
 	 * The {@link MustacheTemplate} name for this {@link Instruction}.  Can be <code>null</code>.
-	 * Name should therefore be retrieved through {@link #getName(Variables, Browser, RegexpCompiler)}.
+	 * Name should therefore be retrieved through {@link #getName(Variables)}.
 	 * @see #getName(Variables, Browser, RegexpCompiler)
 	 */
 	private final MustacheTemplate name;
@@ -59,22 +59,21 @@ public abstract class Instruction  {
 	 * <code>null</code>. In that case, it will return {@link #getDefaultName(Variables, RegexpCompiler, Browser)}
 	 * instead.
 	 * @param variables {@link Variables} for Mustache substitution.
-	 * @param browser A {@link Browser} to use for encoding.
-	 * @param compiler A {@link RegexpCompiler}.
 	 * @return The {@link String}.
 	 * @throws MissingVariableException if a {@link MustacheTemplate} name could not be compiled.
 	 * @throws RegexpException
 	 */
-	private String getName(Variables variables, Browser browser, RegexpCompiler compiler)
-			throws MissingVariableException, RegexpException {
-		return name != null ? name.compile(variables) : getDefaultName(variables, compiler, browser);
-	}
+	//private String getName(Variables variables, Browser browser, RegexpCompiler compiler)
+	//		throws MissingVariableException, RegexpException {
+	/*private String getName(Variables variables) throws MissingVariableException, RegexpException {
+		return name != null ? name.compile(variables) : getDefaultName(variables);
+	}*/
 	
 	/**
 	 * The {@link JSONObjectInterface} this {@link Instruction} was deserialized from,
 	 * as a formatted {@link String}.
 	 */
-	private final String formattedJSON;
+	//private final String formattedJSON;
 
 	/**
 	 * An array of {@link Instruction}s to be turned into {@link Executable}s after
@@ -90,27 +89,69 @@ public abstract class Instruction  {
 	 * or <code>false</code> by default.
 	 * @see #shouldSaveValue
 	 */
-	public abstract boolean defaultShouldSaveValue();
+	//public abstract boolean defaultShouldSaveValue();
 	
 	/**
-	 * {@link Instruction} can be initialized with a {@link JSONObjectInterface}, which has a location.
-	 * @param jsonObject The {@link JSONObjectInterface} object to deserialize.
-	 * @throws DeserializationException If there is a problem deserializing <code>obj</code>
-	 * @throws IOException If there is an error loading one of the references.
+	 * The {@link RegexpCompiler} used to compile {@link Pattern}s during the execution of this
+	 * {@link Instruction}.
 	 */
-	public Instruction(JSONObjectInterface jsonObject) throws DeserializationException, IOException {
-		try {
-			this.formattedJSON = jsonObject.toString();
-			
+	private final RegexpCompiler compiler;
+	
+	/**
+	 * The {@link Browser} used to compile {@link Page}s and during the execution of this
+	 * {@link Instruction}.
+	 */
+	private final Browser browser;
+	
+	/**
+	 * The {@link Database} in which this {@link Instruction}'s {@link Result}s will be stored.
+	 */
+	private final Database database;
+	
+	/**
+	 * The {@link Logger} to this {@link Instruction} sends log messages to.
+	 */
+	private final Logger log;
+	
+	/**
+	 * 
+	 * @param compiler The {@link RegexpCompiler} to use when compiling {@link Pattern}
+	 * @param browser The {@link Browser] to use when loading {@link Page}s.
+	 * @param database The {@link Database} to save results to.
+	 * @param log The {@link Log} to log progress to.  <code>Null</code> to disable logging for this
+	 * execution.
+	 * @param shouldSaveValue Whether this {@link Instruction}'s results' values should be
+	 * saved. <code>True</code> if they should be, <code>false</code> otherwise.
+	 * @param name The {@link MustacheTemplate} that will be compiled and used as the name of this
+	 * {@link Instruction}'s {@link Result}s. 
+	 * @param children An array of {@link Instruction}s to be executed after the execution of
+	 * this {@link Instruction}.
+	 */
+	public Instruction(RegexpCompiler compiler, Browser browser,
+			Database database, Logger log, boolean shouldSaveValue,
+			MustacheTemplate name, Instruction[] children) {
+		this.compiler = compiler;
+		this.browser = browser;
+		this.database = database;
+		this.log = log;
+		this.shouldSaveValue = shouldSaveValue;
+		this.name = name;
+		this.children = children;
+	}
+	
+	public Instruction fromJSON(JSONObjectInterface jsonObject,
+			boolean defaultShouldSaveValue, MustacheTemplate defaultName)
+				throws DeserializationException, IOException {
+		try {			
 			if(jsonObject.has(NAME)) {
 				name = new MustacheTemplate(jsonObject.getString(NAME));
 			} else {
-				name = null;
+				name = defaultName;
 			}
 			if(jsonObject.has(SAVE)) {
 				shouldSaveValue = jsonObject.getBoolean(SAVE);
 			} else {
-				shouldSaveValue = this.defaultShouldSaveValue();
+				shouldSaveValue = defaultShouldSaveValue;
 			}
 			
 			Vector children = new Vector();
@@ -142,23 +183,35 @@ public abstract class Instruction  {
 			this.children = new Instruction[children.size()];
 			children.copyInto(this.children);
 			
+			return new Instruction();
 		} catch(JSONParserException e) {
 			throw new DeserializationException(e, jsonObject);
-		} catch(MustacheTemplateException e) {
+		} catch(MustacheCompilationException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
 	
 	/**
-	 * @return {@link #formattedJSON}
+	 * {@link Instruction} can be initialized with a {@link JSONObjectInterface}, which has a location.
+	 * @param jsonObject The {@link JSONObjectInterface} object to deserialize.
+	 * @throws DeserializationException If there is a problem deserializing <code>obj</code>
+	 * @throws IOException If there is an error loading one of the references.
+	 */
+	/*public Instruction(JSONObjectInterface jsonObject) throws DeserializationException, IOException {
+		
+	}*/
+	
+	/**
+	 * @return The raw {@link MustacheTemplate} string of this {@link Instruction}'s {@link #name}.
 	 */
 	public String toString() {
-		return formattedJSON;
+		return name.toString();
 	}
 
 	/**
 	 * Execute this {@link Instruction}, including all its children.
-	 * @see #execute(RegexpCompiler, Browser, Variables, Result, Database)
+	 * @param variables The {@link Variables} to use when compiling {@link MustacheTemplate}s.
+	 * @param source The {@link Result} source for this execution.  Can be <code>null</code>.
 	 */
 	public void execute(RegexpCompiler compiler, Browser browser,
 			Variables variables, Result source, Database database,
@@ -199,18 +252,6 @@ public abstract class Instruction  {
 			}
 		}
 	}
-	/**
-	 * Execute this {@link Instruction}, including all its children.
-	 * @param compiler The {@link RegexpCompiler} to use when compiling {@link Pattern}
-	 * @param browser The {@link Browser] to use when loading {@link Page}s.
-	 * @param variables The {@link Variables} to use when compiling {@link MustacheTemplate}s.
-	 * @param source The {@link Result} source for this execution.  Can be <code>null</code>.
-	 * @param database The {@link Database} to save results to.
-	 */
-	public void execute(RegexpCompiler compiler, Browser browser,
-			Variables variables, Result source, Database database) {
-		execute(compiler, browser, variables, source, database, null);
-	}
 	
 	/**
 	 * Generate the children of this {@link Instruction} during execution.  There will be as many children
@@ -218,7 +259,7 @@ public abstract class Instruction  {
 	 * @param sources The {@link Result} array from which to generate children.
 	 * @return An array of {@link Executable[]}s whose parent is this execution.
 	 * Later accessible through {@link #getChildren}.
-	 * @throws MustacheTemplateException If a {@link MustacheTemplate} cannot be parsed.
+	 * @throws MustacheCompilationException If a {@link MustacheTemplate} cannot be parsed.
 	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
 	 * {@link Executable}'s {@link Variables}.
 	 * @throws IOException If there was an error loading the {@link Instruction} for one of the children.
@@ -267,7 +308,7 @@ public abstract class Instruction  {
 		}
 		Result[] results = new Result[resultValues.length];
 		for(int i = 0 ; i < resultValues.length ; i ++) {
-			String name = getName(variables, browser, compiler);
+			//String name = getName(variables, browser, compiler);
 			int id;
 			if(source == null) {
 				id = database.store(name, shouldSaveValue ? resultValues[i] : null, i);
@@ -283,6 +324,6 @@ public abstract class Instruction  {
 			Variables variables, String source) throws MissingVariableException,
 			BrowserException, RegexpException;
 	
-	protected abstract String getDefaultName(Variables variables, RegexpCompiler compiler,
-			Browser browser) throws MissingVariableException, RegexpException;
+	//protected abstract String getDefaultName(Variables variables, RegexpCompiler compiler,
+	//		Browser browser) throws MissingVariableException, RegexpException;
 }

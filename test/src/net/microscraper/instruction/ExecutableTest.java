@@ -2,12 +2,15 @@ package net.microscraper.instruction;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.client.Browser;
 import net.microscraper.client.BrowserException;
 import net.microscraper.database.Database;
+import net.microscraper.json.JSONObjectInterface;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.test.TestUtils;
 import static net.microscraper.test.TestUtils.*;
@@ -17,7 +20,7 @@ import net.microscraper.util.Variables;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ExecutableTest {
+public class ExecutableTest extends InstructionTest {
 	@Mocked private Instruction instruction;
 	@Mocked private RegexpCompiler compiler;
 	@Mocked private Browser browser;
@@ -26,6 +29,11 @@ public class ExecutableTest {
 	private final Variables variables = BasicVariables.empty();
 	
 	private Executable exc;
+
+	@Override
+	protected Instruction getInstruction(JSONObjectInterface obj) throws Exception {
+		return new Page(obj);
+	}
 	
 	@Before
 	public void setUp() throws Exception {
@@ -127,7 +135,7 @@ public class ExecutableTest {
 		}};
 		assertEquals(instruction.toString(), exc.toString());
 	}
-
+	
 	@Test(expected = IllegalStateException.class)
 	public void testGetChildrenThrowsIllegalStateBeforeComplete() {
 		exc.getChildren();

@@ -19,7 +19,7 @@ import net.microscraper.util.Variables;
 import org.junit.Before;
 import org.junit.Test;
 
-public class PageTest {
+public class PageTest extends InstructionTest {
 	
 	@Mocked JSONObjectInterface obj;
 	@Mocked Database database;
@@ -29,6 +29,15 @@ public class PageTest {
 
 	String url = randomString();
 
+	@Override
+	public Page getInstruction(final JSONObjectInterface obj) throws Exception {
+		final String url = randomString();
+		new NonStrictExpectations() {{
+			onInstance(obj).getString(URL); result = url;
+		}};
+		return new Page(obj);
+	}
+	
 	/**
 	 * Assign {@link #obj} the URL {@link #url} for each test.
 	 */
@@ -132,7 +141,7 @@ public class PageTest {
 		}};
 		
 		Page page = new Page(objWithSubstitutableUrl);
-		page.execute(compiler, browser, variables, null, database);
+		page.execute(compiler, browser, variables, null, database, null);
 		
 		new Verifications() {{
 			database.store(substitutedUrl, null, 0); times = 1;
@@ -148,7 +157,7 @@ public class PageTest {
 			obj.getString(POSTS); result = postData;
 		}};
 		
-		new Page(obj).execute(compiler, browser, variables, null, database);
+		new Page(obj).execute(compiler, browser, variables, null, database, null);
 		
 		new Verifications() {{
 			browser.post(url, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any, postData); times =1;

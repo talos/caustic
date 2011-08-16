@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.util.Hashtable;
 
 import net.microscraper.database.Database;
+import net.microscraper.database.DatabaseException;
 import net.microscraper.impl.log.BasicLog;
+import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.Page;
 import net.microscraper.json.JSONParser;
 import net.microscraper.json.JSONObjectInterface;
+import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.uri.URIFactory;
 import net.microscraper.uri.URIInterface;
@@ -52,87 +55,77 @@ public class Microscraper implements Loggable {
 		this.browser.register(log);
 	}
 	
-	private void scrape(JSONObjectInterface pageJson, String urlEncodedDefaults, Hashtable extraDefaults) throws MicroscraperException {
-		try {
-			Page page = new Page(pageJson);
-			BasicVariables variables;
-			if(urlEncodedDefaults != null) {
-				variables = BasicVariables.fromFormEncoded(browser, urlEncodedDefaults, Browser.UTF_8);
-			} else {
-				variables = BasicVariables.empty();
-			}
-			if(extraDefaults != null) {
-				variables.extend(extraDefaults);
-			}
-			page.execute(compiler, browser, variables, null, database, log);
-		} catch(IOException e) {
-			throw new MicroscraperException(e);
+	private void scrape(JSONObjectInterface pageJson, Hashtable[] defaultsHash)
+			throws DeserializationException, IOException, DatabaseException {
+		for(int i = 0 ; i < defaultsHash.length ; i ++) {
+			new Page(pageJson).execute(compiler, browser, BasicVariables.fromHashtable(defaultsHash[i]), null, database, log);
 		}
 	}
 	
 	/**
 	 * Scrape from a {@link Page} in a JSON String.
 	 * @param pageInstructionJSON A {@link String} with a {@link Page} serialized in JSON.
-	 * @throws MicroscraperException If there was an error scraping.
 	 */
-	public void scrapeWithJSON(String pageInstructionJSON) throws MicroscraperException {
+	public void scrapeFromJson(String pageInstructionJSON)
+			throws DeserializationException, IOException, DatabaseException {
 		JSONObjectInterface json = jsonInterface.parse(uriFactory.fromString(userDir), pageInstructionJSON);
-		scrape(json, null, null);
+		scrape(json, new Hashtable[] { new Hashtable() });
 	}
 	
 	/**
 	 * Scrape from a {@link Page} in a JSON String.
 	 * @param pageInstructionJSON A {@link String} with a {@link Page} serialized in JSON.
-	 * @param urlEncodedDefaults A URL encoded {@link String} of default values to use when scraping.
-	 * @throws MicroscraperException If there was an error scraping.
+	 * @param defaults A {@link Hashtable} mapping {@link String}s to {@link String}s to substitute in 
+	 * <code>pageInstructionJSON</code> {@link MustacheTemplate} tags.
 	 */
-	public void scrapeWithJSON(String pageInstructionJSON, String urlEncodedDefaults) throws MicroscraperException {
+	public void scrapeFromJson(String pageInstructionJSON, Hashtable defaults)
+			throws DeserializationException, IOException, DatabaseException {
 		JSONObjectInterface json = jsonInterface.parse(uriFactory.fromString(userDir), pageInstructionJSON);
-		scrape(json, urlEncodedDefaults, null);
+		scrape(json, new Hashtable[] { defaults } );
 	}
 	
 	/**
-	 * Scrape from a {@link Page} in a JSON String.
+	 * Scrape from a {@link Page} in a JSON String for each member of <code>defaultsArray</code>.
 	 * @param pageInstructionJSON A {@link String} with a {@link Page} serialized in JSON.
-	 * @param urlEncodedDefaults A URL encoded {@link String} of default values to use when scraping.
-	 * @param extraDefaults A {@link Hashtable} of values to add to <code>urlEncodedDefaults</code>.
-	 * @throws MicroscraperException If there was an error scraping.
+	 * @param defaultsArray An array of {@link Hashtable}s.  Each maps {@link String}s to {@link String}s to substitute in 
+	 * <code>pageInstructionJSON</code> {@link MustacheTemplate} tags.
 	 */
-	public void scrapeWithJSON(String pageInstructionJSON, String urlEncodedDefaults, Hashtable extraDefaults) throws MicroscraperException {
+	public void scrapeFromJson(String pageInstructionJSON, Hashtable[] defaultsArray)
+			throws DeserializationException, IOException, DatabaseException {
 		JSONObjectInterface json = jsonInterface.parse(uriFactory.fromString(userDir), pageInstructionJSON);
-		scrape(json, urlEncodedDefaults, extraDefaults);
+		scrape(json, defaultsArray);
 	}
 
 	/**
 	 * Scrape from a {@link Page} loaded from a URI.
 	 * @param uri A {@link String} with the URI location of a {@link Page} serialized in JSON.
-	 * @throws MicroscraperException If there was an error scraping.
 	 */
-	public void scrapeWithURI(String uri) throws MicroscraperException {
+	public void scrapeFromUri(String uri)
+			throws DeserializationException, IOException, DatabaseException {
 		JSONObjectInterface json = jsonInterface.load(this.uriFactory.fromString(uri));
-		scrape(json, null, null);
+		scrape(json, new Hashtable[] { new Hashtable() });
 	}
 	/**
 	 * Scrape from a {@link Page} in a JSON String.
 	 * @param uri A {@link String} with the URI location of a {@link Page} serialized in JSON.
-	 * @param urlEncodedDefaults A URL encoded {@link String} of default values to use when scraping.
-	 * @throws MicroscraperException If there was an error scraping.
+	 * @param defaults A {@link Hashtable} mapping {@link String}s to {@link String}s to substitute in 
 	 */
-	public void scrapeWithURI(String uri, String urlEncodedDefaults) throws MicroscraperException {
+	public void scrapeFromUri(String uri, Hashtable defaults)
+			throws DeserializationException, IOException, DatabaseException {
 		JSONObjectInterface json = jsonInterface.load(this.uriFactory.fromString(uri));
-		scrape(json, urlEncodedDefaults, null);
+		scrape(json, new Hashtable[] { defaults } );
 	}
 
 	/**
 	 * Scrape from a {@link Page} in a JSON String.
 	 * @param uri A {@link String} with the URI location of a {@link Page} serialized in JSON.
-	 * @param urlEncodedDefaults A URL encoded {@link String} of default values to use when scraping.
-	 * @param extraDefaults A {@link Hashtable} of values to add to <code>urlEncodedDefaults</code>.
-	 * @throws MicroscraperException If there was an error scraping.
+	 * @param defaultsArray An array of {@link Hashtable}s.  Each maps {@link String}s to {@link String}s to substitute in 
+	 * <code>pageInstructionJSON</code> {@link MustacheTemplate} tags.
 	 */
-	public void scrapeWithURI(String uri, String urlEncodedDefaults, Hashtable extraDefaults) throws MicroscraperException {
+	public void scrapeFromUri(String uri, Hashtable[] defaultsArray)
+			throws DeserializationException, IOException, DatabaseException {
 		JSONObjectInterface json = jsonInterface.load(this.uriFactory.fromString(uri));
-		scrape(json, urlEncodedDefaults, extraDefaults);
+		scrape(json, defaultsArray);
 	}
 
 	/**

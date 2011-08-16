@@ -9,7 +9,7 @@ import net.microscraper.json.JSONParserException;
 import net.microscraper.json.JSONObjectInterface;
 import net.microscraper.mustache.MustacheNameValuePair;
 import net.microscraper.mustache.MustacheTemplate;
-import net.microscraper.mustache.MustacheTemplateException;
+import net.microscraper.mustache.MustacheCompilationException;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.util.Variables;
 
@@ -189,7 +189,7 @@ public final class Page extends Instruction {
 			}
 		} catch(JSONParserException e) {
 			throw new DeserializationException(e, jsonObject);
-		} catch(MustacheTemplateException e) {
+		} catch(MustacheCompilationException e) {
 			throw new DeserializationException(e, jsonObject);
 		}
 	}
@@ -263,7 +263,7 @@ public final class Page extends Instruction {
 	}
 	
 	private String getURL(Browser browser, Variables variables) throws MissingVariableException {
-		return url.compileEncoded(variables, browser, Browser.UTF_8);
+		return url.subEncoded(variables, browser, Browser.UTF_8);
 	}
 	
 	/**
@@ -273,7 +273,7 @@ public final class Page extends Instruction {
 	 * @param variables The {@link Variables} to use when substituting.
 	 * @return The response to this request as a {@link String}.
 	 * @throws MissingVariableException If <code>variables</code> lacked a necessary element.
-	 * @throws MustacheTemplateException If a {@link MustacheTemplate} had an error.
+	 * @throws MustacheCompilationException If a {@link MustacheTemplate} had an error.
 	 * @throws BrowserException If <code>browser</code> experienced an exception while loading the response.
 	 */
 	public String[] generateResultValues(RegexpCompiler compiler, Browser browser, Variables variables, String source)
@@ -294,7 +294,7 @@ public final class Page extends Instruction {
 						MustacheNameValuePair.compile(headers, variables),
 						MustacheNameValuePair.compile(cookies, variables),
 						Regexp.compile(stopBecause, compiler, variables),
-						postData.compile(variables));
+						postData.sub(variables));
 			} else {
 				response = browser.post(getURL(browser, variables),
 						MustacheNameValuePair.compile(headers, variables),

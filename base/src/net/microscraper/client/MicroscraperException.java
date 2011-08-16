@@ -5,10 +5,9 @@ package net.microscraper.client;
  * @author john
  *
  */
+/*
 public class MicroscraperException extends Exception {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8899853760225376402L;
 
 	public MicroscraperException() { super(); }
@@ -16,3 +15,4 @@ public class MicroscraperException extends Exception {
 	public MicroscraperException(Throwable cause) { super(cause); }
 	public MicroscraperException(String message, Throwable cause) { super(message, cause); }
 }
+*/
