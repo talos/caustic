@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.client.Browser;
-import net.microscraper.client.BrowserException;
 import net.microscraper.client.Logger;
 import net.microscraper.database.Database;
-import net.microscraper.database.DatabaseException;
 import net.microscraper.json.JSONArrayInterface;
 import net.microscraper.json.JSONParserException;
 import net.microscraper.json.JSONObjectInterface;
@@ -25,7 +23,7 @@ import net.microscraper.util.VectorUtils;
  * @author realest
  *
  */
-public abstract class Instruction  {
+public final class Instruction  {
 	
 	/**
 	 * Key for {@link Find} children when deserializing from JSON.
@@ -142,9 +140,12 @@ public abstract class Instruction  {
 	public Instruction fromJSON(JSONObjectInterface jsonObject,
 			boolean defaultShouldSaveValue, MustacheTemplate defaultName)
 				throws DeserializationException, IOException {
-		try {			
+		try {
+			
+			MustacheTemplate name;
+			
 			if(jsonObject.has(NAME)) {
-				name = new MustacheTemplate(jsonObject.getString(NAME));
+				name = MustacheTemplate.compile(jsonObject.getString(NAME));
 			} else {
 				name = defaultName;
 			}
@@ -185,9 +186,9 @@ public abstract class Instruction  {
 			
 			return new Instruction();
 		} catch(JSONParserException e) {
-			throw new DeserializationException(e, jsonObject);
+			throw new DeserializationException(e);
 		} catch(MustacheCompilationException e) {
-			throw new DeserializationException(e, jsonObject);
+			throw new DeserializationException(e);
 		}
 	}
 	
@@ -260,8 +261,6 @@ public abstract class Instruction  {
 	 * @return An array of {@link Executable[]}s whose parent is this execution.
 	 * Later accessible through {@link #getChildren}.
 	 * @throws MustacheCompilationException If a {@link MustacheTemplate} cannot be parsed.
-	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
-	 * {@link Executable}'s {@link Variables}.
 	 * @throws IOException If there was an error loading the {@link Instruction} for one of the children.
 	 * @throws DeserializationException If there was an error deserializing the {@link Instruction} for one
 	 * of the children.
@@ -271,7 +270,7 @@ public abstract class Instruction  {
 	 */
 	public Executable[] generateChildExecutables(RegexpCompiler compiler, Browser browser,
 			Executable parent, Result[] sources, Database database)
-				throws MissingVariableException, DeserializationException, IOException {
+				throws DeserializationException, IOException {
 		Executable[] childExecutables = new Executable[sources.length * children.length];
 		
 		for(int i = 0; i < sources.length ; i++) {
@@ -298,8 +297,7 @@ public abstract class Instruction  {
 	 * @throws DatabaseException If there was a problem storing data in {@link Database}.
 	 */
 	public final Result[] generateResults(RegexpCompiler compiler, Browser browser,
-			Variables variables, Result source, Database database) throws MissingVariableException,
-			BrowserException, RegexpException, DatabaseException {
+			Variables variables, Result source, Database database) throws RegexpException {
 		String[] resultValues;
 		if(source == null) {
 			resultValues = generateResultValues(compiler, browser, variables, null);
@@ -320,9 +318,8 @@ public abstract class Instruction  {
 		return results;
 	}
 	
-	protected abstract String[] generateResultValues(RegexpCompiler compiler, Browser browser,
-			Variables variables, String source) throws MissingVariableException,
-			BrowserException, RegexpException;
+	//protected abstract String[] generateResultValues(RegexpCompiler compiler, Browser browser,
+	//		Variables variables, String source) throws RegexpException;
 	
 	//protected abstract String getDefaultName(Variables variables, RegexpCompiler compiler,
 	//		Browser browser) throws MissingVariableException, RegexpException;

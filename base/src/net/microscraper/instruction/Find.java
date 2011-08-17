@@ -79,12 +79,12 @@ public class Find extends Instruction {
 				this.tests = NO_TESTS;
 			}
 			this.replacement = jsonObject.has(REPLACEMENT) ?
-					new MustacheTemplate(jsonObject.getString(REPLACEMENT)) :
-					new MustacheTemplate(ENTIRE_MATCH);
+					MustacheTemplate.compile(jsonObject.getString(REPLACEMENT)) :
+					MustacheTemplate.compile(ENTIRE_MATCH);
 			
 			if(jsonObject.has(MATCH)) {
 				if(jsonObject.has(MIN_MATCH) || jsonObject.has(MAX_MATCH)) {
-					throw new DeserializationException("Cannot define max or min when defining a match." , jsonObject);
+					throw new DeserializationException("Cannot define max or min when defining a match.");
 				}
 				minMatch = jsonObject.getInt(MATCH);
 				maxMatch = jsonObject.getInt(MATCH);
@@ -95,12 +95,12 @@ public class Find extends Instruction {
 			
 			if(!RegexpUtils.isValidRange(minMatch, maxMatch)) {
 				throw new DeserializationException(StringUtils.quote(minMatch) + " and " + StringUtils.quote(maxMatch) +
-						" form invalid range.", jsonObject);
+						" form invalid range.");
 			}
 		} catch(JSONParserException e) {
-			throw new DeserializationException(e, jsonObject);
+			throw new DeserializationException(e);
 		} catch(MustacheCompilationException e) {
-			throw new DeserializationException(e, jsonObject);
+			throw new DeserializationException(e);
 		}
 	}
 
@@ -121,7 +121,7 @@ public class Find extends Instruction {
 	 * {@link Find}'s name is a {@link Mustache} compiled version of its {@link #regexp}.
 	 */
 	public String getDefaultName(Variables variables, RegexpCompiler compiler, Browser browser)
-			throws MissingVariableException, RegexpException {
+			throws RegexpException {
 		return regexp.compile(compiler, variables).toString();
 	}
 	

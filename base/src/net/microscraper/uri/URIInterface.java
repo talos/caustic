@@ -20,9 +20,8 @@ public interface URIInterface {
 	 * this {@link URIInterface}
 	 * @param jsonLocation The {@link URIInterface} to resolve.
 	 * @return The resulting {@link URIInterface}.
-	 * @throws URIInterfaceException if there is an error resolving.
 	 */
-	public URIInterface resolve(URIInterface jsonLocation) throws URIInterfaceException;
+	public URIInterface resolve(URIInterface jsonLocation);
 	
 	/**
 	 * Constructs a new {@link URIInterface}
@@ -30,18 +29,17 @@ public interface URIInterface {
 	 * {@link URIInterface}. 
 	 * @param uri A {@link String} to parse as a URI.
 	 * @return The resulting {@link URIInterface}.
-	 * @throws URIInterfaceException if there is an error resolving.
+	 * @throws MalformedURIInterfaceException if <code>uri</code> is not a valid
+	 * {@link URIInterface} and therefore cannot be resolved.
 	 */
-	public URIInterface resolve(String uri) throws URIInterfaceException;
+	public URIInterface resolve(String uri) throws MalformedURIInterfaceException;
 	
 	/**
-	 * Load the {@link String} this {@link URIInterface} points to.
-	 * @return The {@link String}.
-	 * @throws IOException If there was a problem loading.
-	 * @throws URIInterfaceException If this {@link URIInterface} does not refer to
-	 * an HTTP or File resource.
+	 * Load the resource this {@link URIInterface} refers to as a {@link String}.
+	 * @return The resource as a {@link String}.
+	 * @throws IOException If there was a problem loading the resource.
 	 */
-	public String load() throws IOException, URIInterfaceException;
+	public String load() throws IOException;
 	
 	/**
 	 * Constructs a new {@link JSONLocation} 

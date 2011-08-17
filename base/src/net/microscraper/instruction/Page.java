@@ -8,9 +8,11 @@ import net.microscraper.json.JSONArrayInterface;
 import net.microscraper.json.JSONParserException;
 import net.microscraper.json.JSONObjectInterface;
 import net.microscraper.mustache.MustacheNameValuePair;
+import net.microscraper.mustache.MustacheSubstitution;
 import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.mustache.MustacheCompilationException;
 import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.util.Encoder;
 import net.microscraper.util.Variables;
 
 /**
@@ -136,13 +138,13 @@ public final class Page extends Instruction {
 
 		try {
 
-			this.url = new MustacheTemplate(jsonObject.getString(URL));
+			this.url = MustacheTemplate.compile(jsonObject.getString(URL));
 			
 			try {
 				this.method = jsonObject.has(METHOD) ?
 					Method.fromString(jsonObject.getString(METHOD)) : getDefaultMethod(jsonObject);
 			} catch(IllegalArgumentException e) {
-				throw new DeserializationException(e, jsonObject);
+				throw new DeserializationException(e);
 			}
 			
 			this.cookies = jsonObject.has(COOKIES) ?
@@ -166,7 +168,7 @@ public final class Page extends Instruction {
 				JSONArrayInterface stopBecause = jsonObject.getJSONArray(STOP_BECAUSE);
 				this.stopBecause = new Regexp[stopBecause.length()];
 				for(int i = 0 ; i < this.stopBecause.length ; i++) {
-					this.stopBecause[i] = new Regexp(stopBecause.getJSONObject(i));
+					this.stopBecause[i] = Regexp.fromJson(stopBecause.getJSONObject(i));
 				}
 			} else {
 				this.stopBecause = new Regexp[] {};
@@ -174,13 +176,13 @@ public final class Page extends Instruction {
 			
 			if(jsonObject.has(POSTS)) {
 				if(!method.equals(Method.POST)) {
-					throw new DeserializationException("Cannot define post data with non-post method.", jsonObject);
+					throw new DeserializationException("Cannot define post data with non-post method.");
 				}
 				if(jsonObject.isJSONObject(POSTS)) {
 					this.postData = null;
 					this.postNameValuePairs = NameValuePairs.deserialize(jsonObject.getJSONObject(POSTS));
 				} else {
-					this.postData = new MustacheTemplate(jsonObject.getString(POSTS));
+					this.postData = MustacheTemplate.compile(jsonObject.getString(POSTS));
 					this.postNameValuePairs = null;
 				}
 			} else {
@@ -188,9 +190,9 @@ public final class Page extends Instruction {
 				this.postNameValuePairs = null;
 			}
 		} catch(JSONParserException e) {
-			throw new DeserializationException(e, jsonObject);
+			throw new DeserializationException(e);
 		} catch(MustacheCompilationException e) {
-			throw new DeserializationException(e, jsonObject);
+			throw new DeserializationException(e);
 		}
 	}
 
@@ -262,8 +264,8 @@ public final class Page extends Instruction {
 		return false;
 	}
 	
-	private String getURL(Browser browser, Variables variables) throws MissingVariableException {
-		return url.subEncoded(variables, browser, Browser.UTF_8);
+	private MustacheSubstitution getUrl(Variables variables, Encoder encoder) {
+		return url.sub(variables, encoder, Browser.UTF_8);
 	}
 	
 	/**
@@ -272,40 +274,47 @@ public final class Page extends Instruction {
 	 * @param compiler The {@link RegexpCompiler} to use.
 	 * @param variables The {@link Variables} to use when substituting.
 	 * @return The response to this request as a {@link String}.
-	 * @throws MissingVariableException If <code>variables</code> lacked a necessary element.
 	 * @throws MustacheCompilationException If a {@link MustacheTemplate} had an error.
-	 * @throws BrowserException If <code>browser</code> experienced an exception while loading the response.
+	 * @throws IOException If a resource could not be loaded.
+	 * @throws InterruptedException If the user interrupted the execution of this instruction.
 	 */
 	public String[] generateResultValues(RegexpCompiler compiler, Browser browser, Variables variables, String source)
-			throws MissingVariableException, BrowserException {		
+			throws IOException, InterruptedException {		
 		// Temporary executions to do before.  Not published, executed each time.
 		for(int i = 0 ; i < preload.length ; i ++) {
 			preload[i].generateResultValues(compiler, browser, variables, source);
 		}
 		String response = null;
-		if(method.equals(Method.GET)) {
-			response = browser.get(getURL(browser, variables),
-					MustacheNameValuePair.compile(headers, variables),
-					MustacheNameValuePair.compile(cookies, variables),
-					Regexp.compile(stopBecause, compiler, variables));
-		} else if(method.equals(Method.POST)) {
-			if(postNameValuePairs == null) {
-				response = browser.post(getURL(browser, variables),
+		
+		MustacheSubstitution urlSub = getUrl(browser, variables);
+		if(!urlSub.isSuccessful()) {
+			// TODO handle unsuccessful sub
+		} else {
+			String url = urlSub.getSubbed();
+			if(method.equals(Method.GET)) {
+				response = browser.get(getURL(browser, variables),
 						MustacheNameValuePair.compile(headers, variables),
 						MustacheNameValuePair.compile(cookies, variables),
-						Regexp.compile(stopBecause, compiler, variables),
-						postData.sub(variables));
-			} else {
-				response = browser.post(getURL(browser, variables),
+						Regexp.compile(stopBecause, compiler, variables));
+			} else if(method.equals(Method.POST)) {
+				if(postNameValuePairs == null) {
+					response = browser.post(getURL(browser, variables),
+							MustacheNameValuePair.compile(headers, variables),
+							MustacheNameValuePair.compile(cookies, variables),
+							Regexp.compile(stopBecause, compiler, variables),
+							postData.sub(variables));
+				} else {
+					response = browser.post(getURL(browser, variables),
+							MustacheNameValuePair.compile(headers, variables),
+							MustacheNameValuePair.compile(cookies, variables),
+							Regexp.compile(stopBecause, compiler, variables),
+							MustacheNameValuePair.compile(postNameValuePairs,variables));
+				}
+			} else if(method.equals(Method.HEAD)) {
+				browser.head(getURL(browser, variables), 
 						MustacheNameValuePair.compile(headers, variables),
-						MustacheNameValuePair.compile(cookies, variables),
-						Regexp.compile(stopBecause, compiler, variables),
-						MustacheNameValuePair.compile(postNameValuePairs,variables));
+						MustacheNameValuePair.compile(cookies, variables));
 			}
-		} else if(method.equals(Method.HEAD)) {
-			browser.head(getURL(browser, variables), 
-					MustacheNameValuePair.compile(headers, variables),
-					MustacheNameValuePair.compile(cookies, variables));
 		}
 		return new String[] { response };
 	}

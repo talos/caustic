@@ -15,9 +15,15 @@ public interface WritableTable {
 	 * @param nameValuePairs An array of {@link NameValuePair}s mapping
 	 * columns to values to insert.
 	 * @return the {@link int} ID of the new row.
-	 * @throws DatabaseException if the row could not be inserted.
+	 * @throws TableManipulationException if the row could not be inserted.
 	 */
 	public abstract int insert(NameValuePair[] nameValuePairs)
-			throws DatabaseException;
+			throws TableManipulationException;
+	
+	/**
+	 * 
+	 * @return The ID of the last inserted row.
+	 */
+	public abstract int getLastId();
 
 }

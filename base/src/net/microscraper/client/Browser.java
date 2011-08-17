@@ -1,12 +1,16 @@
 package net.microscraper.client;
 
+import java.io.IOException;
+
 import net.microscraper.regexp.Pattern;
+import net.microscraper.util.Decoder;
+import net.microscraper.util.Encoder;
 import net.microscraper.util.NameValuePair;
 
 /**
  * Implementations of the {@link Browser} interface can be used by to make HTTP requests and handle the responses.
  */
-public interface Browser extends Loggable {
+public interface Browser extends Loggable, Decoder, Encoder {
 	/**
 	 * The default number of seconds to wait before timing out on a
 	 * request for {@link Browser} interfaces.
@@ -60,10 +64,11 @@ public interface Browser extends Loggable {
 	 * @param url the URL to HTTP Head.
 	 * @param headers Array of {@link NameValuePair} extra headers.  Can be <code>null</code> if there are none.
 	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
-	 * @throws BrowserException if there is an exception requesting the page.
+	 * @throws IOException If there was an exception requesting the page.
+	 * @throws InterruptedException If the user interrupted the request.
 	 */
 	public abstract void head(String url, NameValuePair[] headers, NameValuePair[] cookies)
-			throws BrowserException;
+			throws IOException, InterruptedException;
 	
 	/**
 	 * Make an HTTP Get request.  This returns the body of the response, and adds cookies to the cookie jar.
@@ -72,11 +77,11 @@ public interface Browser extends Loggable {
 	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
 	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
 	 * @return The body of the response.
-	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host, if <code>useRateLimit</code> is <code>true</code>.
-	 * @throws BrowserException if there is an exception requesting the page.
+	 * @throws IOException If there was an exception making or during the request.
+	 * @throws InterruptedException If the user interrupted the request.
 	 */
 	public abstract String get(String url, NameValuePair[] headers, NameValuePair[] cookies,
-			Pattern[] terminates) throws BrowserException;
+			Pattern[] terminates) throws IOException, InterruptedException;
 	
 	/**
 	 * Make an HTTP Post request with an array of {@link NameValuePair}s to encode into post data.
@@ -87,12 +92,12 @@ public interface Browser extends Loggable {
 	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
 	 * @param posts Array of {@link NameValuePair} post data.  Can be <code>null</code> if there are none.
 	 * @return The body of the response.
-	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host, if <code>useRateLimit</code> is <code>true</code>.
-	 * @throws BrowserException if there is an exception requesting the page.
+	 * @throws IOException If there was an exception making or during the request.
+	 * @throws InterruptedException If the user interrupted the request.
 	 */
 	public abstract String post(String url, NameValuePair[] headers,
 			NameValuePair[] cookies, Pattern[] terminates, NameValuePair[] posts)
-			throws BrowserException;
+			throws IOException, InterruptedException;
 
 	/**
 	 * Make an HTTP Post request with a {@link String} to encode into post data.
@@ -103,33 +108,13 @@ public interface Browser extends Loggable {
 	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
 	 * @param postData {@link String} of post data. be <code>null</code> if there is none.
 	 * @return The body of the response.
-	 * @throws BrowserDelayException if the request should be made again later to avoid overburdening the host, if <code>useRateLimit</code> is <code>true</code>.
-	 * @throws BrowserException if there is an exception requesting the page.
+	 * @throws IOException If there was an exception making or during the request.
+	 * @throws InterruptedException If the user interrupted the request.
 	 */
 	public abstract String post(String url, NameValuePair[] headers,
 			NameValuePair[] cookies, Pattern[] terminates, String postData)
-			throws BrowserException;
-	
-	/**
-	 * Encode a {@link String} with <code>encoding</code>.
-	 * @param stringToEncode The {@link String} to encode.
-	 * @param encoding The {@link String} encoding to use, for example <code>UTF-8</code>.
-	 * @return The {@link String}, encoded.
-	 * @throws BrowserException if <code>stringToEncode</code> cannot be encoded, or if
-	 * <code>encoding</code> is not supported.
-	 */
-	public abstract String encode(String stringToEncode, String encoding) throws BrowserException;
-
-	/**
-	 * Decode a {@link String} with <code>encoding</code>.
-	 * @param stringToDecode The {@link String} to decode.
-	 * @param encoding The {@link String} encoding to use, for example <code>UTF-8</code>.
-	 * @return The {@link String}, decoded.
-	 * @throws BrowserException if <code>stringToDecode</code> cannot be encoded, or if
-	 * <code>encoding</code> is not supported.
-	 */
-	public abstract String decode(String stringToDecode, String encoding) throws BrowserException;
-	
+			throws IOException, InterruptedException;
+		
 	/**
 	 * Set the rate limit for loading from a single host.  The {@link Browser} will wait until the rate is below
 	 * this threshold before making another request.  Set this to <code>0</code> to disable rate limiting.

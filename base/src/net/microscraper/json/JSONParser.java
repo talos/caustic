@@ -1,9 +1,10 @@
 package net.microscraper.json;
 
+import java.io.IOException;
 import java.util.Hashtable;
 
+import net.microscraper.uri.MalformedURIInterfaceException;
 import net.microscraper.uri.URIInterface;
-import net.microscraper.uri.URIInterfaceException;
 
 /**
  * Implementations provide a fully-featured interface for microscraper to
@@ -37,10 +38,12 @@ public interface JSONParser {
 	 * @return A {@link JSONObjectInterface}.
 	 * @throws JSONParserException If there is an error generating
 	 * the {@link JSONObjectInterface}.
-	 * @throws URIInterfaceException if the {@link URIInterface} could not be resolved.
+	 * @throws IOException if the <code>location</code> could not be loaded, or one
+	 * of the {@link JSONObjectInterface}'s references could not be.
+	 * @throws MalformedURIInterfaceException if a reference could not be resolved.
 	 */
 	public abstract JSONObjectInterface load(URIInterface location) 
-			throws JSONParserException, URIInterfaceException;
+			throws JSONParserException, IOException, MalformedURIInterfaceException;
 	
 	/**
 	 * Compile a {@link JSONObjectInterface} directly from a {@link String}.
@@ -49,18 +52,18 @@ public interface JSONParser {
 	 * @return A {@link JSONObjectInterface}.
 	 * @throws JSONParserException If there is an error generating
 	 * the {@link JSONObjectInterface}.
-	 * @throws URIInterfaceException if the {@link URIInterface} could not be resolved.
+	 * @throws IOException if one of the {@link JSONObjectInterface}'s references could not
+	 * be loaded.
+	 * @throws MalformedURIInterfaceException if a reference could not be resolved.
 	 */
 	public abstract JSONObjectInterface parse(URIInterface location, String jsonString)
-			throws JSONParserException, URIInterfaceException;
+			throws JSONParserException, IOException, MalformedURIInterfaceException;
 	
 	/**
 	 * Compile a flat {@link JSONObjectInterface} from a {@link Hashtable} of
 	 * {@link String} to {@link String} mappings.
 	 * @param map A {@link Hashtable} of {@link String} to {@link String} mappings.
 	 * @return A flat {@link JSONObjectInterface} with the same mappings as <code>hash</code>.
-	 * @throws JSONParserException if <code>hash</code> could not be converted into a flat
-	 * {@link JSONObjectInterface}.
 	 */
 	public abstract JSONObjectInterface generate(Hashtable map) throws JSONParserException;
 }

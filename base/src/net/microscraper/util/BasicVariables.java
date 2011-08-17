@@ -1,11 +1,9 @@
 package net.microscraper.util;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import net.microscraper.client.Browser;
-import net.microscraper.client.BrowserException;
-import net.microscraper.instruction.MissingVariableException;
 
 /**
  * An implementation of {@link Variables} optionally initialized with
@@ -50,22 +48,21 @@ public final class BasicVariables implements Variables {
 	
 	/**
 	 * Turn a form-encoded {@link String} into {@link Variables}.
-	 * @param browser The {@link Browser} to use for decoding.
+	 * @param decoder The {@link Decoder} to use for decoding.
 	 * @param formEncodedData A {@link String} of form-encoded data to convert.
 	 * @param encoding The encoding to use.  <code>UTF-8</code> recommended.
 	 * @return A {@link Variables}.
-	 * @throws IllegalArgumentException If the encoding is not supported or if the pairs
-	 * do not match up.
+	 * @throws UnsupportedEncodingException If the encoding is not supported.
 	 */
-	public static BasicVariables fromFormEncoded(Browser browser, String formEncodedData, String encoding)
-			throws BrowserException {
+	public static BasicVariables fromFormEncoded(Decoder decoder, String formEncodedData, String encoding)
+			throws UnsupportedEncodingException {
 		String[] splitByAmpersands = StringUtils.split(formEncodedData, "&");
 		Hashtable hashtable = new Hashtable();
 		for(int i = 0 ; i < splitByAmpersands.length; i++) {
 			String[] pair = StringUtils.split(splitByAmpersands[i], "=");
 			if(pair.length == 2) {
-				hashtable.put(browser.decode(pair[0], encoding),
-						browser.decode(pair[1], encoding));
+				hashtable.put(decoder.decode(pair[0], encoding),
+						decoder.decode(pair[1], encoding));
 			} else {
 				throw new IllegalArgumentException(StringUtils.quote(splitByAmpersands[i]) + " is not a valid name-value pair.");
 			}
@@ -83,12 +80,8 @@ public final class BasicVariables implements Variables {
 		return empty().extend(initialHashtable);
 	}
 	
-	public String get(String key) throws MissingVariableException {
-		Object value = hashtable.get(key);
-		if(value == null) {
-			throw new MissingVariableException(this, key);
-		}
-		return (String) value;
+	public String get(String key) {
+		return (String) hashtable.get(key);
 	}
 
 	public boolean containsKey(String key) {

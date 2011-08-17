@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Hashtable;
 
 import net.microscraper.database.Database;
-import net.microscraper.database.DatabaseException;
 import net.microscraper.impl.log.BasicLog;
 import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.Page;
@@ -12,9 +11,11 @@ import net.microscraper.json.JSONParser;
 import net.microscraper.json.JSONObjectInterface;
 import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.uri.MalformedURIInterfaceException;
 import net.microscraper.uri.URIFactory;
 import net.microscraper.uri.URIInterface;
 import net.microscraper.util.BasicVariables;
+import net.microscraper.util.StringUtils;
 
 /**
  * A {@link Microscraper} can scrape an {@link Instruction}.
@@ -28,7 +29,7 @@ import net.microscraper.util.BasicVariables;
  *
  */
 public class Microscraper implements Loggable {	
-	private final String userDir;
+	private final URIInterface userDir;
 	private final RegexpCompiler compiler;
 	private final Browser browser;
 	private final URIFactory uriFactory;
@@ -51,12 +52,16 @@ public class Microscraper implements Loggable {
 		this.jsonInterface = jsonInterface;
 		this.database = database;
 		this.uriFactory = uriFactory;
-		this.userDir = System.getProperty("user.dir");
+		try {
+			this.userDir = uriFactory.fromString(System.getProperty("user.dir"));
+		} catch(MalformedURIInterfaceException e) {
+			throw new RuntimeException(StringUtils.quote(System.getProperty("user.dir")) + " could not be converted to URI.");
+		}
 		this.browser.register(log);
 	}
 	
 	private void scrape(JSONObjectInterface pageJson, Hashtable[] defaultsHash)
-			throws DeserializationException, IOException, DatabaseException {
+			throws DeserializationException, IOException {
 		for(int i = 0 ; i < defaultsHash.length ; i ++) {
 			new Page(pageJson).execute(compiler, browser, BasicVariables.fromHashtable(defaultsHash[i]), null, database, log);
 		}
@@ -67,8 +72,8 @@ public class Microscraper implements Loggable {
 	 * @param pageInstructionJSON A {@link String} with a {@link Page} serialized in JSON.
 	 */
 	public void scrapeFromJson(String pageInstructionJSON)
-			throws DeserializationException, IOException, DatabaseException {
-		JSONObjectInterface json = jsonInterface.parse(uriFactory.fromString(userDir), pageInstructionJSON);
+			throws DeserializationException, IOException {
+		JSONObjectInterface json = jsonInterface.parse(userDir, pageInstructionJSON);
 		scrape(json, new Hashtable[] { new Hashtable() });
 	}
 	
@@ -79,7 +84,7 @@ public class Microscraper implements Loggable {
 	 * <code>pageInstructionJSON</code> {@link MustacheTemplate} tags.
 	 */
 	public void scrapeFromJson(String pageInstructionJSON, Hashtable defaults)
-			throws DeserializationException, IOException, DatabaseException {
+			throws DeserializationException, IOException, InterruptedException {
 		JSONObjectInterface json = jsonInterface.parse(uriFactory.fromString(userDir), pageInstructionJSON);
 		scrape(json, new Hashtable[] { defaults } );
 	}
@@ -91,7 +96,7 @@ public class Microscraper implements Loggable {
 	 * <code>pageInstructionJSON</code> {@link MustacheTemplate} tags.
 	 */
 	public void scrapeFromJson(String pageInstructionJSON, Hashtable[] defaultsArray)
-			throws DeserializationException, IOException, DatabaseException {
+			throws DeserializationException, IOException, InterruptedException {
 		JSONObjectInterface json = jsonInterface.parse(uriFactory.fromString(userDir), pageInstructionJSON);
 		scrape(json, defaultsArray);
 	}
@@ -101,7 +106,7 @@ public class Microscraper implements Loggable {
 	 * @param uri A {@link String} with the URI location of a {@link Page} serialized in JSON.
 	 */
 	public void scrapeFromUri(String uri)
-			throws DeserializationException, IOException, DatabaseException {
+			throws DeserializationException, IOException, InterruptedException {
 		JSONObjectInterface json = jsonInterface.load(this.uriFactory.fromString(uri));
 		scrape(json, new Hashtable[] { new Hashtable() });
 	}
@@ -111,7 +116,7 @@ public class Microscraper implements Loggable {
 	 * @param defaults A {@link Hashtable} mapping {@link String}s to {@link String}s to substitute in 
 	 */
 	public void scrapeFromUri(String uri, Hashtable defaults)
-			throws DeserializationException, IOException, DatabaseException {
+			throws DeserializationException, IOException, InterruptedException {
 		JSONObjectInterface json = jsonInterface.load(this.uriFactory.fromString(uri));
 		scrape(json, new Hashtable[] { defaults } );
 	}
@@ -123,7 +128,7 @@ public class Microscraper implements Loggable {
 	 * <code>pageInstructionJSON</code> {@link MustacheTemplate} tags.
 	 */
 	public void scrapeFromUri(String uri, Hashtable[] defaultsArray)
-			throws DeserializationException, IOException, DatabaseException {
+			throws DeserializationException, IOException, InterruptedException {
 		JSONObjectInterface json = jsonInterface.load(this.uriFactory.fromString(uri));
 		scrape(json, defaultsArray);
 	}

@@ -43,16 +43,17 @@ public class Regexp {
 	 * {@link Regexp},
 	 * or the location is invalid.
 	 */
-	public Regexp (JSONObjectInterface jsonObject) throws DeserializationException {
+	public static Regexp fromJson(JSONObjectInterface jsonObject) throws DeserializationException {
 		try {
-			pattern = new MustacheTemplate(jsonObject.getString(PATTERN));
-			isCaseSensitive = jsonObject.has(IS_CASE_SENSITIVE) ? jsonObject.getBoolean(IS_CASE_SENSITIVE) : IS_CASE_SENSITIVE_DEFAULT;
-			isMultiline = jsonObject.has(IS_MULTILINE) ? jsonObject.getBoolean(IS_MULTILINE) : IS_MULTILINE_DEFAULT;
-			doesDotMatchNewline = jsonObject.has(DOES_DOT_MATCH_ALL) ? jsonObject.getBoolean(DOES_DOT_MATCH_ALL) : DOES_DOT_MATCH_ALL_DEFAULT;
+			MustacheTemplate pattern = MustacheTemplate.compile(jsonObject.getString(PATTERN));
+			boolean isCaseSensitive = jsonObject.has(IS_CASE_SENSITIVE) ? jsonObject.getBoolean(IS_CASE_SENSITIVE) : IS_CASE_SENSITIVE_DEFAULT;
+			boolean isMultiline = jsonObject.has(IS_MULTILINE) ? jsonObject.getBoolean(IS_MULTILINE) : IS_MULTILINE_DEFAULT;
+			boolean doesDotMatchNewline = jsonObject.has(DOES_DOT_MATCH_ALL) ? jsonObject.getBoolean(DOES_DOT_MATCH_ALL) : DOES_DOT_MATCH_ALL_DEFAULT;
+			return new Regexp(pattern, isCaseSensitive, isMultiline, doesDotMatchNewline);
 		} catch(JSONParserException e) {
-			throw new DeserializationException(e, jsonObject);
+			throw new DeserializationException(e);
 		} catch(MustacheCompilationException e) {
-			throw new DeserializationException(e, jsonObject);
+			throw new DeserializationException(e);
 		}
 	}
 	
@@ -96,10 +97,8 @@ public class Regexp {
 	 * @param compiler The {@link RegexpCompiler} to use.
 	 * @param variables The {@link Variables} to use.
 	 * @return The {@link Pattern}.
-	 * @throws MissingVariableException if a {@link Variable} is missing.
 	 */
-	public Pattern compile(RegexpCompiler compiler, Variables variables)
-			throws MissingVariableException {
+	public Pattern compile(RegexpCompiler compiler, Variables variables) {
 		return compiler.compile(
 				pattern.sub(variables),
 				isCaseSensitive,
@@ -111,10 +110,8 @@ public class Regexp {
 	 * @param regexps The array of {@link Regexp}s to compile.
 	 * @param variables The {@link Variables} to use.
 	 * @return An array of {@link Pattern}.
-	 * @throws MissingVariableException if a {@link Variable} is missing.
 	 */
-	public static Pattern[] compile(Regexp[] regexps, RegexpCompiler compiler, Variables variables)
-			throws MissingVariableException {
+	public static Pattern[] compile(Regexp[] regexps, RegexpCompiler compiler, Variables variables) {
 		Pattern[] patterns = new Pattern[regexps.length];
 		for(int i  = 0 ; i < regexps.length ; i++) {
 			patterns[i] = regexps[i].compile(compiler, variables);

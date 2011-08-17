@@ -1,5 +1,7 @@
 package net.microscraper.database;
 
+import java.io.IOException;
+
 import net.microscraper.instruction.Result;
 
 /**
@@ -19,9 +21,10 @@ public interface Database {
 	 * {@link Executable}.
 	 * redundant results -- entire pages, for example.
 	 * @return A unique {@link int} identifier.
-	 * @throws DatabaseException If the {@link Database} experiences an exception.
+	 * @throws IOException
+	 * @throws TableManipulationException.
 	 */
-	public int store(String name, String value, int resultNum) throws DatabaseException;
+	public int store(String name, String value, int resultNum) throws IOException, TableManipulationException;
 	
 	/**
 	 * Store a name and value with a source {@link Result} in the {@link Database}.
@@ -34,13 +37,21 @@ public interface Database {
 	 * @return A unique {@link int} identifier.
 	 * @throws DatabaseException If the {@link Database} experiences an exception.
 	 */
-	public int store(String sourceName, int sourceId, String name, String value, int resultNum) throws DatabaseException;
+	public int store(String sourceName, int sourceId, String name, String value, int resultNum)
+				throws IOException, TableManipulationException;
 	
+
 	/**
-	 * Close up the {@link Database}, performing whatever cleaning actions should be performed
-	 * on it before the {@link IOConnection} is closed.
-	 * @throws DatabaseException If the {@link Database} experiences an exception.
+	 * Clean up the {@link Database}, preparing the tables for closing.  Does not {@link #close()}
+	 * the {@link Database}.
+	 * @throws TableManipulationException if there is a problem manipulating tables during cleaning.
 	 */
-	public void close() throws DatabaseException;
+	public void clean() throws TableManipulationException;
+
+	/**
+	 * Close up the {@link Database}.  {@link #clean()} should be performed beforehand.
+	 * @throws IOException If the {@link Database} experiences an exception while closing.
+	 */
+	public void close() throws IOException;
 	
 }

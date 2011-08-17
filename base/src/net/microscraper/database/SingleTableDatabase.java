@@ -1,5 +1,7 @@
 package net.microscraper.database;
 
+import java.io.IOException;
+
 import net.microscraper.instruction.Result;
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
@@ -39,13 +41,13 @@ public final class SingleTableDatabase implements Database {
 	 * The {@link WritableTable} used by this {@link SingleTableDatabase}.
 	 */
 	private WritableTable table;
-		
-	public SingleTableDatabase(WritableConnection connection) throws DatabaseException {
+			
+	public SingleTableDatabase(WritableConnection connection) throws IOException {
 		this.table = connection.getWritableTable(COLUMN_NAMES);
 	}
 
 	public final int store(String name, String value, int resultNum)
-			throws DatabaseException {
+			throws TableManipulationException {
 		return table.insert(
 				new NameValuePair[] {
 					new BasicNameValuePair(SOURCE_ID_COLUMN, null),
@@ -55,7 +57,7 @@ public final class SingleTableDatabase implements Database {
 	}
 	
 	public final int store(String sourceName, int sourceId, String name, String value, int resultNum)
-			throws DatabaseException {
+			throws TableManipulationException {
 		return table.insert(
 				new NameValuePair[] {
 					new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(sourceId)),
@@ -64,7 +66,7 @@ public final class SingleTableDatabase implements Database {
 				});
 	}
 	
-	public void close() throws DatabaseException {
-		//connection.close();
-	}
+	public void close() throws IOException { }
+
+	public void clean() throws TableManipulationException { }
 }

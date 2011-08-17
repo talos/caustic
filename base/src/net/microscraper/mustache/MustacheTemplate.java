@@ -1,8 +1,8 @@
 package net.microscraper.mustache;
 
-import net.microscraper.client.Browser;
-import net.microscraper.client.BrowserException;
-import net.microscraper.util.StringUtils;
+import java.io.UnsupportedEncodingException;
+
+import net.microscraper.util.Encoder;
 import net.microscraper.util.Variables;
 
 /**
@@ -12,46 +12,15 @@ import net.microscraper.util.Variables;
  *
  */
 public final class MustacheTemplate {
-
-	/**
-	 * 
-	 * @param template The {@link String} to convert into a {@link MustacheTemplate}.
-	 * @return A {@link MustacheTemplate}.
-	 * @throws MustacheCompilationException If <code>template</code> cannot be turned into a
-	 * {@link MustacheTemplate}.
-	 */
-	public static MustacheTemplate compile(String template)
-			throws MustacheCompilationException {
-		return new MustacheTemplate(template, null);
-	}
-
-	/**
-	 * 
-	 * @param template The {@link String} to convert into a {@link MustacheTemplate}.
-	 * @return A {@link MustacheTemplate}.
-	 * @throws MustacheCompilationException If <code>template</code> cannot be turned into a
-	 * {@link MustacheTemplate}.
-	 */
-	public static MustacheTemplate compile(String template, Encoder encoder)
-			throws MustacheCompilationException {
-		return new MustacheTemplate(template, encoder);
-	}
-	
 	private final String template;
-	private final Encoder encoder;
 	
-	
-	/**
-	 * Mustache-compile this {@link MustacheTemplate}.
-	 * @param variables A {@link Variables} instance to compile with.
-	 * @return The {@link URL}'s compiled url as a {@link java.net.url}.
-	 */
-	private MustacheSubstitution(String template, Encoder encoder) throws MustacheCompilationException {
+	private MustacheTemplate(String template) throws MustacheCompilationException {
 		this.template = template;
-		this.encoder = encoder;
 		
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
+		
+		// Test for validity.
 		while((open_tag_start_pos = template.indexOf(open_tag, close_tag_end_pos)) != -1) {
 						
 			int close_tag_start_pos = template.indexOf(close_tag, open_tag_start_pos);
@@ -61,18 +30,48 @@ public final class MustacheTemplate {
 		}
 	}
 	
-	/**
-	 * @return The raw, uncompiled {@link String} for this {@link MustacheTemplate}.
-	 */
-	public String toString() {
-		return template;
-	}
-	
+
 
 	public static final String open_tag = "{{";
 	public static final String close_tag = "}}";
 	
+	/**
+	 * Compile a {@link MustacheTemplate} from a {@link String}.
+	 * @param template The {@link String} to convert into a {@link MustacheTemplate}.
+	 * @return A {@link MustacheTemplate}.
+	 * @throws MustacheCompilationException If <code>template</code> cannot be turned into a
+	 * {@link MustacheTemplate}.
+	 */
+	public static MustacheTemplate compile(String template)
+			throws MustacheCompilationException {
+		return new MustacheTemplate(template);
+	}
+	
+
+	/**
+	 * Substitute the values from a {@link Variables} into the {@link MustacheTemplate}.
+	 * @param variables The {@link Variables} to use in the substitution.
+	 * @return A {@link MustacheSubstitution} with the results of the substitution.
+	 */
 	public MustacheSubstitution sub(Variables variables) {
+		try {
+			return sub(variables, null, null);
+		} catch(UnsupportedEncodingException e) {
+			throw new RuntimeException(e); // should be impossible
+		};
+	}
+	
+
+	/**
+	 * Substitute the values from a {@link Variables} into the {@link MustacheTemplate},
+	 * and encode each value upon inserting it.
+	 * @param variables The {@link Variables} to use in the substitution.
+	 * @param encoder The {@link Encoder} to use when encoding values.
+	 * @param encoding The {@link String} encoding for <code>encoder</code> to use.
+	 * @return A {@link MustacheSubstitution} with the results of the substitution.
+	 * @throws UnsupportedEncodingException if <code>encoding</code> is not supported.
+	 */
+	public MustacheSubstitution sub(Variables variables, Encoder encoder, String encoding) throws UnsupportedEncodingException {
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
 		String result = "";
@@ -90,15 +89,24 @@ public final class MustacheTemplate {
 			close_tag_end_pos = close_tag_start_pos + close_tag.length();
 			if(variables.containsKey(tag)) {
 				if(encoder != null) {
-					result += encoder.encode(variables.get(tag));	
+					result += encoder.encode(variables.get(tag), encoding);	
 				} else {
 					result += variables.get(tag);
 				}
 			} else {
-				return MustacheSubstitution.failed(tag);
+				return MustacheSubstitution.fail(tag);
 			}
 		}
 		return MustacheSubstitution.success(result + template.substring(close_tag_end_pos));
+		
+		
+	}
+	
+	/**
+	 * @return The raw, uncompiled {@link String} for this {@link MustacheTemplate}.
+	 */
+	public String toString() {
+		return template;
 	}
 	
 }

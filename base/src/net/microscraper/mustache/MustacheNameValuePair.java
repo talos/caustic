@@ -1,6 +1,5 @@
 package net.microscraper.mustache;
 
-import net.microscraper.instruction.MissingVariableException;
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
 import net.microscraper.util.Variables;
@@ -14,19 +13,34 @@ import net.microscraper.util.Variables;
 public class MustacheNameValuePair {
 	public final MustacheTemplate name;
 	public final MustacheTemplate value;
+		
+	private MustacheNameValuePair(NameValuePair nameValuePair) throws MustacheCompilationException {
+		this.name = MustacheTemplate.compile(nameValuePair.getName());
+		this.value = MustacheTemplate.compile(nameValuePair.getValue());
+	}
 	
-	public MustacheNameValuePair(MustacheTemplate name, MustacheTemplate value) {
+	/**
+	 * Compile a {@link MustacheNameValuePair} from a {@link NameValuePair}.
+	 * @param nameValuePair The {@link NameValuePair} to convert into a {@link MustacheNameValuePair}.
+	 * @return A {@link MustacheNameValuePair}.
+	 * @throws MustacheCompilationException If <code>nameValuePair</code> cannot be turned into a
+	 * {@link MustacheTemplate}.
+	 */
+	public static MustacheNameValuePair compile(NameValuePair nameValuePair)
+			throws MustacheCompilationException {
+		return new MustacheNameValuePair(nameValuePair);
+	}
+	
+	
+	private MustacheNameValuePair(MustacheTemplate name, MustacheTemplate value) {
 		this.name = name;
 		this.value = value;
 	}
 	
-	public NameValuePair compile(Variables variables) throws MissingVariableException {
-		return new BasicNameValuePair(name.sub(variables), value.sub(variables));
-	}
+	public MustacheSubstitution
 	
 	public static NameValuePair[] compile(MustacheNameValuePair[] nameValuePairs,
-				Variables variables)
-		throws MissingVariableException {
+				Variables variables) {
 		NameValuePair[] encodedNameValuePairs = 
 			new NameValuePair[nameValuePairs.length];
 		for(int i = 0; i < nameValuePairs.length ; i ++) {

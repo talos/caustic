@@ -1,11 +1,8 @@
 package net.microscraper.instruction;
 
-import net.microscraper.json.JSONArrayInterface;
-import net.microscraper.json.JSONObjectInterface;
-
 /**
  * {@link DeserializationException} is thrown when there is a problem generating an
- * {@link Executable} from a {@link JSONObjectInterface}.
+ * {@link Instruction} from serialized form.
  * @author talos
  *
  */
@@ -16,13 +13,10 @@ public class DeserializationException extends Exception {
 	 */
 	private static final long serialVersionUID = 131401908426100287L;
 	
-	public DeserializationException(Throwable e, JSONObjectInterface jsonObject) {
+	public DeserializationException(Throwable e) {
 		super(e);
 	}
-	public DeserializationException(Throwable e, JSONArrayInterface jsonArray, int index) {
-		super(e);
-	}
-	public DeserializationException(String msg, JSONObjectInterface jsonObject) {
+	public DeserializationException(String msg) {
 		super(msg);
 	}
 }

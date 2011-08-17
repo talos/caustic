@@ -21,7 +21,7 @@ public interface IOTable extends WritableTable {
 	 * @param columnName The {@link String} name of column to add.
 	 * @throws DatabaseException if the column could not be added.
 	 */
-	public abstract void addColumn(String columnName) throws DatabaseException;
+	public abstract void addColumn(String columnName) throws TableManipulationException;
 
 	/**
 	 * Check whether a column exists already.
@@ -44,11 +44,11 @@ public interface IOTable extends WritableTable {
 	 * @throws DatabaseException if the row could not be updated.
 	 */
 	public abstract void update(int id, NameValuePair[] nameValuePairs)
-			throws DatabaseException;
+			throws TableManipulationException;
 	
 	/**
 	 * Delete this {@link IOTable}.
 	 * @throws DatabaseException If the {@link IOTable} could not be dropped.
 	 */
-	public void drop() throws DatabaseException;
+	public void drop() throws TableManipulationException;
 }

@@ -34,20 +34,4 @@ public interface SQLPreparedStatement {
 	 */
 	public abstract void bindStrings(String[] strings) throws SQLConnectionException;
 	
-	/**
-	 * Add the current set of parameters to this {@link SQLPreparedStatement}'s batch 
-	 * for execution.
-	 * @throws SQLConnectionException
-	 * @see #executeBatch()
-	 */
-	//public abstract void addBatch() throws SQLConnectionException;
-	
-	/**
-	 * Submits a batch of commands to the database for execution and if all commands
-	 * execute successfully, returns an array of update counts.
-	 * @return An {@link int} array of update counts.
-	 * @throws SQLConnectionException if there is a problem with {@link SQLConnection},
-	 * or if one of the statements in the batch fails.
-	 */
-	//public abstract int[] executeBatch() throws SQLConnectionException;
 }

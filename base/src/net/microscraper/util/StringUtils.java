@@ -96,13 +96,16 @@ public class StringUtils {
 	public final static char QUOTATION = '"';
 	
 	/**
-	 * Return the string with {@link #QUOTATION} around it.
-	 * @param stringToQuote The {@link String} to quote.
-	 * @return The string, quoted.
+	 * Return the {@link Object} with {@link #QUOTATION}s around it.
+	 * @param objToQuote The {@link Object} to quote.  Uses the 
+	 * {@link String#valueOf(Object)} method.
+	 * @return The object as a quoted string.
 	 * @see #QUOTATION
+	 * @see String#valueOf(Object)
+	 * @see #quote(int)
 	 */
-	public static String quote(String stringToQuote) {
-		return QUOTATION + stringToQuote + QUOTATION;
+	public static String quote(Object objToQuote) {
+		return QUOTATION + String.valueOf(objToQuote) + QUOTATION;
 	}
 
 	/**
@@ -110,6 +113,7 @@ public class StringUtils {
 	 * around it.
 	 * @param integerToQuote The int to quote.
 	 * @return The integer, as a quoted string.
+	 * @see #quote(Object)
 	 */
 	public static String quote(int integerToQuote) {
 		return quote(Integer.toString(integerToQuote));

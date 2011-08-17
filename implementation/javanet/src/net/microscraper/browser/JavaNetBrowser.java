@@ -18,7 +18,6 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.client.Browser;
-import net.microscraper.client.BrowserException;
 import net.microscraper.client.Loggable;
 import net.microscraper.client.Logger;
 import net.microscraper.impl.log.BasicLog;
@@ -44,58 +43,42 @@ public class JavaNetBrowser implements Browser, Loggable {
 	private final BasicLog log = new BasicLog();
 	
 	public void head(String url, NameValuePair[] headers, NameValuePair[] cookies)
-			throws BrowserException {
-		log.i("Retrieving Head from  " + url.toString() + "...");
-		try {
-			connectHandlingRedirectCookies("HEAD", new URL(url.toString()), null, headers, cookies);
-		} catch (IOException e) {
-			throw new BrowserException(url, e);
-		}
+			throws IOException, InterruptedException {
+		log.i("Retrieving Head from  " + StringUtils.quote(url.toString()) + "...");
+		connectHandlingRedirectCookies("HEAD", new URL(url.toString()), null, headers, cookies);
 	}
 
 	public String get(String url, NameValuePair[] headers,
 			NameValuePair[] cookies, Pattern[] terminates) throws
-			BrowserException {
+			IOException, InterruptedException {
 		log.i("Getting  " + url.toString() + "...");
-		try {
-			InputStream stream = connectHandlingRedirectCookies("GET", new URL(url.toString()), null, headers, cookies);
-			return pullResponse(url, stream, terminates);
-		} catch(IOException e) {
-			throw new BrowserException(url, e);
-		}
+		InputStream stream = connectHandlingRedirectCookies("GET", new URL(url.toString()), null, headers, cookies);
+		return pullResponse(url, stream, terminates);
 	}
 
 	public String post(String url, NameValuePair[] headers, NameValuePair[] cookies,
 			Pattern[] terminates, NameValuePair[] posts)
-				throws BrowserException {
+				throws IOException, InterruptedException {
 		log.i("Posting to  " + url.toString() + "...");
-		try {
 
-			String postData = "";
-			if(posts != null) {
-				for(int i = 0 ; i < posts.length ; i ++) {
-					postData += encode(posts[i].getName(), encoding) + '=' + encode(posts[i].getValue(), encoding) + '&';
-				}
-				postData = postData.substring(0, postData.length() -1); // trim trailing ampersand
+		String postData = "";
+		if(posts != null) {
+			for(int i = 0 ; i < posts.length ; i ++) {
+				postData += encode(posts[i].getName(), encoding) + '=' + encode(posts[i].getValue(), encoding) + '&';
 			}
-			
-			InputStream stream = connectHandlingRedirectCookies("POST", new URL(url.toString()), postData, headers, cookies);
-			return pullResponse(url, stream, terminates);
-		} catch(IOException e) {
-			throw new BrowserException(url, e);
+			postData = postData.substring(0, postData.length() -1); // trim trailing ampersand
 		}
+		
+		InputStream stream = connectHandlingRedirectCookies("POST", new URL(url.toString()), postData, headers, cookies);
+		return pullResponse(url, stream, terminates);
 	}
 
 	public String post(String url, NameValuePair[] headers, NameValuePair[] cookies,
 			Pattern[] terminates, String postData)
-				throws BrowserException {
+				throws IOException, InterruptedException {
 		log.i("Posting to  " + url.toString() + "...");
-		try {			
-			InputStream stream = connectHandlingRedirectCookies("POST", new URL(url.toString()), postData, headers, cookies);
-			return pullResponse(url, stream, terminates);
-		} catch(IOException e) {
-			throw new BrowserException(url, e);
-		}
+		InputStream stream = connectHandlingRedirectCookies("POST", new URL(url.toString()), postData, headers, cookies);
+		return pullResponse(url, stream, terminates);
 	}
 	
 	/**
@@ -104,57 +87,54 @@ public class JavaNetBrowser implements Browser, Loggable {
 	 * @param conn a connection ready for {@link java.net.URLConnection#getInputStream}.
 	 * @param terminates array of {@link Pattern}s to interrupt the load. Can be <code>null</code>.
 	 * @return the response body.
-	 * @throws BrowserException if there was an exception loading, including user interrupt.
+	 * @throws IOException if there was an exception requesting.
+	 * @throws InterruptedException if the user interrupted the load.
 	 */
 	private String pullResponse(String url, InputStream stream, Pattern[] terminates)
-			throws BrowserException {
+			throws IOException, InterruptedException {
 
 		//URL url = conn.getURL();
 		String responseBody;
 		ByteArrayOutputStream content = new ByteArrayOutputStream();
-		try {
-			// Pull response.
-			//InputStream stream = conn.getInputStream();
-			byte[] buffer = new byte[512];
-			int totalReadBytes = 0;
-			int lastTotalReadBytes = totalReadBytes;
-			int readBytes;
-			loading: while((readBytes = stream.read(buffer)) != -1) {
-				if(Thread.interrupted()) {
-					throw new InterruptedException();
-				}
 
-				totalReadBytes += readBytes;
-				// log every 51.2 kB
-				if(totalReadBytes - lastTotalReadBytes > buffer.length * 100) { 
-					log.i("Have loaded " + totalReadBytes + " bytes from " + StringUtils.quote(url));
-					lastTotalReadBytes = totalReadBytes;
-				}
-				content.write(buffer, 0, readBytes);
-				responseBody = new String(content.toByteArray());
-				if(totalReadBytes > maxResponseSize * 1024) {
-					throw new IOException("Exceeded maximum response size of " + maxResponseSize + "KB.");
-				}
-				if(terminates != null && terminates.length > 0) {
-					for(int i = 0 ; i < terminates.length ; i++) {
-						if(terminates[i].matches(responseBody)){
-							log.i("Terminating " + url.toString() + " due to pattern " + terminates[i].toString());
-							break loading;
-						}
+		// Pull response.
+		//InputStream stream = conn.getInputStream();
+		byte[] buffer = new byte[512];
+		int totalReadBytes = 0;
+		int lastTotalReadBytes = totalReadBytes;
+		int readBytes;
+		loading: while((readBytes = stream.read(buffer)) != -1) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+
+			totalReadBytes += readBytes;
+			// log every 51.2 kB
+			if(totalReadBytes - lastTotalReadBytes > buffer.length * 100) { 
+				log.i("Have loaded " + totalReadBytes + " bytes from " + StringUtils.quote(url));
+				lastTotalReadBytes = totalReadBytes;
+			}
+			content.write(buffer, 0, readBytes);
+			responseBody = new String(content.toByteArray());
+			if(totalReadBytes > maxResponseSize * 1024) {
+				throw new IOException("Exceeded maximum response size of " + maxResponseSize + "KB.");
+			}
+			if(terminates != null && terminates.length > 0) {
+				for(int i = 0 ; i < terminates.length ; i++) {
+					if(terminates[i].matches(responseBody)){
+						log.i("Terminating " + url.toString() + " due to pattern " + terminates[i].toString());
+						break loading;
 					}
 				}
 			}
-			stream.close();
-		} catch(IOException e) {
-			throw new BrowserException(url, e);
-		} catch(InterruptedException e) {
-			throw new BrowserException(url, e);
 		}
+		stream.close();
+
 		responseBody = content.toString();
 		try {
 			hostMemory.add(new URL(url.toString()), responseBody.length());
 		} catch (MalformedURLException e) {
-			throw new BrowserException(url, e);
+			hostMemory.add(url.toString(), responseBody.length());
 		}
 		log.i("Response body: " + responseBody);
 		return responseBody;
@@ -173,13 +153,12 @@ public class JavaNetBrowser implements Browser, Loggable {
 	 * @param cookies An array of {@link NameValuePair}s, can be <code>null</code>
 	 * @return A {@link java.net.HttpURLConnection}
 	 * @throws IOException If there was an error generating the {@link java.net.HttpURLConnection}.
-	 * @throws BrowserDelayException If this {@link Browser} is averaging more kilobytes per second from this
-	 * host than allowed at instantiation.
+	 * @throws InterruptedException If the user interrupted the request.
 	 */
 	private HttpURLConnection generateConnection(String method,
 			URL url, String postData,
 			NameValuePair[] headers, NameValuePair[] cookies)
-				throws IOException, BrowserException {
+				throws IOException, InterruptedException {
 		if(rateLimitKBPS > 0) {
 			float kbpsSinceLastLoad = hostMemory.kbpsSinceLastLoadFor(url);
 			log.i("Load speed from " + url.toString() + " : " + Float.toString(kbpsSinceLastLoad));
@@ -253,7 +232,7 @@ public class JavaNetBrowser implements Browser, Loggable {
 	private InputStream connectHandlingRedirectCookies(String method, URL url,
 			String postData,
 			NameValuePair[] headers, NameValuePair[] cookies)
-				throws IOException, BrowserException {
+				throws IOException, InterruptedException {
 		return connectHandlingRedirectCookies(method, url, postData, headers, cookies, new Vector());
 	}
 	
@@ -261,7 +240,7 @@ public class JavaNetBrowser implements Browser, Loggable {
 	private InputStream connectHandlingRedirectCookies(String method, URL url,
 			String postData,
 			NameValuePair[] headers, NameValuePair[] cookies, Vector redirects_followed)
-				throws IOException, BrowserException {
+				throws IOException, InterruptedException {
 		HttpURLConnection conn = generateConnection(method, url, postData, headers, cookies);
 		conn.setInstanceFollowRedirects(false);
 		try {
@@ -362,9 +341,9 @@ public class JavaNetBrowser implements Browser, Loggable {
 			public final String host;
 			public final Date timestamp;
 			public final int bytesLoaded;
-			public LoadedFromHost(URL url, int bytesLoaded) {
+			public LoadedFromHost(String host, int bytesLoaded) {
 				this.timestamp = new Date();
-				this.host = url.getHost();
+				this.host = host;
 				this.bytesLoaded = bytesLoaded;
 			}
 		}
@@ -372,7 +351,12 @@ public class JavaNetBrowser implements Browser, Loggable {
 		private final Hashtable hostMemory = new Hashtable();
 		public void add(URL url, int bytesLoaded) {
 			LoadedFromHost loadedFromHost = new LoadedFromHost(
-					url, bytesLoaded);
+					url.getHost(), bytesLoaded);
+			hostMemory.put(loadedFromHost.host, loadedFromHost);
+		}
+		public void add(String host, int bytesLoaded) {
+			LoadedFromHost loadedFromHost = new LoadedFromHost(
+					host, bytesLoaded);
 			hostMemory.put(loadedFromHost.host, loadedFromHost);
 		}
 		public float kbpsSinceLastLoadFor(URL url) {
@@ -389,21 +373,13 @@ public class JavaNetBrowser implements Browser, Loggable {
 	}
 	
 	public String encode(String stringToEncode, String encoding)
-			throws BrowserException {
-		try {
-			return URLEncoder.encode(stringToEncode, encoding);
-		} catch (UnsupportedEncodingException e) {
-			throw new BrowserException(stringToEncode, e);
-		}
+			throws UnsupportedEncodingException {
+		return URLEncoder.encode(stringToEncode, encoding);
 	}
 	
 	public String decode(String stringToDecode, String encoding) 
-			throws BrowserException {
-		try {
-			return URLDecoder.decode(stringToDecode, encoding);
-		} catch (UnsupportedEncodingException e) {
-			throw new BrowserException(stringToDecode, e);
-		}
+			throws UnsupportedEncodingException {
+		return URLDecoder.decode(stringToDecode, encoding);
 	}
 	
 	public void setRateLimit(int rateLimitKBPS) {

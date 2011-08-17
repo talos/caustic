@@ -1,12 +1,12 @@
 package net.microscraper.database;
 
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
 import net.microscraper.instruction.Result;
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
-import net.microscraper.util.StringUtils;
 
 /**
  * An implementation of {@link Database} whose subclasses store
@@ -72,16 +72,17 @@ public final class MultiTableDatabase implements Database {
 	
 	/**
 	 * Create the root table with no values in it.
-	 * @throws DatabaseException If the root table cannot be created.
+	 * @throws IOException If the root table cannot be created.
 	 */
-	public MultiTableDatabase(IOConnection connection) throws DatabaseException {
+	public MultiTableDatabase(IOConnection connection) throws IOException {
 		this.connection = connection;
 		rootTable = this.connection.getIOTable(ROOT_TABLE_NAME, COLUMN_NAMES);
 		tables.put(ROOT_TABLE_NAME, rootTable);
-		rootResultId = rootTable.insert(new NameValuePair[] {});
+		rootResultId = rootTable.getLastId();
 	}
 	
-	public int store(String name, String value, int resultNum) throws DatabaseException {
+	public int store(String name, String value, int resultNum) throws IOException,
+				TableManipulationException {
 		
 		if(value != null) {
 			updateTable(rootTable, rootResultId, name, value, resultNum);	
@@ -93,7 +94,8 @@ public final class MultiTableDatabase implements Database {
 		});
 	}
 	
-	public int store(String sourceName, int sourceId, String name, String value, int resultNum) throws DatabaseException {
+	public int store(String sourceName, int sourceId, String name, String value, int resultNum)
+				throws IOException, TableManipulationException {
 		String sourceTableName = cleanTableName(sourceName);
 		IOTable sourceTable;
 		if(tables.containsKey(sourceTableName)) {
@@ -134,9 +136,9 @@ public final class MultiTableDatabase implements Database {
 	 * Get a {@link IOTable} for a {@link Result} name.
 	 * @param resultName The {@link Result} name to get the {@link IOTable} for.
 	 * @return The {@link IOTable}.
-	 * @throws DatabaseException If there was an error generating the {@link IOTable}.
+	 * @throws IOException If there was an error generating the {@link IOTable}.
 	 */
-	private IOTable getResultTable(String resultName) throws DatabaseException {
+	private IOTable getResultTable(String resultName) throws IOException {
 		String tableName = cleanTableName(resultName);
 		IOTable table;
 		if(tables.containsKey(tableName)) {
@@ -161,10 +163,10 @@ public final class MultiTableDatabase implements Database {
 	 * null</code>.
 	 * @param the 0-based {@link int} index of this {@link Result} within its
 	 * {@link Executable}.
-	 * @throws DatabaseException If the {@link IOTable} cannot be updated.
+	 * @throws TableManipulationException If the {@link IOTable} cannot be updated.
 	 */
 	private void updateTable(IOTable table, int id, String name, String value,
-			int resultNum) throws DatabaseException {
+			int resultNum) throws TableManipulationException {
 		String columnName = cleanColumnName(name);
 		if(resultNum > 0) {
 			columnName = Integer.toString(resultNum) + columnName;
@@ -181,7 +183,7 @@ public final class MultiTableDatabase implements Database {
 	 * Drop tables that never had additional columns added -- they were from
 	 * {@link Instruction}s that were not saved.
 	 */
-	public void close() throws DatabaseException { 
+	public void clean() throws TableManipulationException { 
 		Enumeration enumeration = tables.elements();
 		while(enumeration.hasMoreElements()) {
 			IOTable table = (IOTable) enumeration.nextElement();
@@ -189,6 +191,9 @@ public final class MultiTableDatabase implements Database {
 				table.drop();
 			}
 		}
+	}
+
+	public void close() throws IOException {
 		connection.close();
 	}
 }
