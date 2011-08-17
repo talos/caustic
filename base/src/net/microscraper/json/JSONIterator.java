@@ -1,13 +1,13 @@
 package net.microscraper.json;
 
 /**
- * An iterator interface for the {@link String} keys of a {@link JSONObjectInterface}.
+ * An iterator interface for the {@link String} keys of a {@link JsonObject}.
  * @author realest
- * @see JSONObjectInterface
- * @see JSONObjectInterface#keys()
+ * @see JsonObject
+ * @see JsonObject#keys()
  *
  */
-public interface JSONIterator {
+public interface JsonIterator {
 	/**
 	 * 
 	 * @return <code>true</code> if there is another key, <code>false</code> otherwise.

@@ -7,12 +7,12 @@ import mockit.NonStrictExpectations;
 import mockit.Verifications;
 import net.microscraper.client.Browser;
 import net.microscraper.database.Database;
-import net.microscraper.json.JSONArrayInterface;
-import net.microscraper.json.JSONObjectInterface;
+import net.microscraper.json.JsonArray;
+import net.microscraper.json.JsonObject;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import static net.microscraper.test.TestUtils.*;
-import static net.microscraper.instruction.Page.*;
+import static net.microscraper.instruction.Load.*;
 import net.microscraper.util.NameValuePair;
 import net.microscraper.util.Variables;
 
@@ -21,7 +21,7 @@ import org.junit.Test;
 
 public class PageTest extends InstructionTest {
 	
-	@Mocked JSONObjectInterface obj;
+	@Mocked JsonObject obj;
 	@Mocked Database database;
 	@Mocked Browser browser;
 	@Mocked RegexpCompiler compiler;
@@ -30,12 +30,12 @@ public class PageTest extends InstructionTest {
 	String url = randomString();
 
 	@Override
-	public Page getInstruction(final JSONObjectInterface obj) throws Exception {
+	public Load getInstruction(final JsonObject obj) throws Exception {
 		final String url = randomString();
 		new NonStrictExpectations() {{
 			onInstance(obj).getString(URL); result = url;
 		}};
-		return new Page(obj);
+		return new Load(obj);
 	}
 	
 	/**
@@ -50,7 +50,7 @@ public class PageTest extends InstructionTest {
 	
 	@Test
 	public void testByDefaultDoesntSaveValue() throws Exception {
-		Page page = new Page(obj);
+		Load page = new Load(obj);
 		page.generateResults(compiler, browser, variables, null, database);
 		
 		new Verifications() {{
@@ -66,7 +66,7 @@ public class PageTest extends InstructionTest {
 			obj.getBoolean(SAVE); result = true;
 			browser.get(url, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any); result = content;
 		}};
-		Page page = new Page(obj);
+		Load page = new Load(obj);
 		page.generateResults(compiler, browser, variables, null, database);
 		
 		new Verifications() {
@@ -77,8 +77,8 @@ public class PageTest extends InstructionTest {
 	}
 
 	@Test(expected = DeserializationException.class)
-	public void testCannotDeserializeWithoutUrl(@Mocked final JSONObjectInterface objWithoutUrl) throws Exception {
-		new Page(objWithoutUrl);
+	public void testCannotDeserializeWithoutUrl(@Mocked final JsonObject objWithoutUrl) throws Exception {
+		new Load(objWithoutUrl);
 	}
 
 	@Test(expected = DeserializationException.class)
@@ -87,7 +87,7 @@ public class PageTest extends InstructionTest {
 			obj.has(METHOD); result = true;
 			obj.getString(METHOD); result = "not a method";
 		}};
-		new Page(obj);
+		new Load(obj);
 	}
 	
 	@Test
@@ -96,19 +96,19 @@ public class PageTest extends InstructionTest {
 		final String preloadUrl2 = randomString();
 		
 		new NonStrictExpectations() {
-			JSONArrayInterface preloadPages;
-			JSONObjectInterface preload1, preload2;
+			JsonArray preloadPages;
+			JsonObject preload1, preload2;
 			{
 				preloadPages.length(); result = 2;
 				preload1.getString(URL); result = preloadUrl1;
 				preload2.getString(URL); result = preloadUrl2;
-				preloadPages.getJSONObject(0); result = preload1;
-				preloadPages.getJSONObject(1); result = preload2;
+				preloadPages.getJsonObject(0); result = preload1;
+				preloadPages.getJsonObject(1); result = preload2;
 				obj.has(PRELOAD); result = true;
-				obj.getJSONArray(PRELOAD); result = preloadPages;
+				obj.getJsonArray(PRELOAD); result = preloadPages;
 			}
 		};
-		Page page = new Page(obj);
+		Load page = new Load(obj);
 		page.generateResults(compiler, browser, variables, null, database);
 
 		new Verifications() {{
@@ -119,7 +119,7 @@ public class PageTest extends InstructionTest {
 	
 	@Test
 	public void testPageNameDefaultsToUrl() throws Exception {
-		Page page = new Page(obj);
+		Load page = new Load(obj);
 		page.generateResults(compiler, browser, variables, null, database);
 		
 		new Verifications() {{
@@ -128,7 +128,7 @@ public class PageTest extends InstructionTest {
 	}
 	
 	@Test
-	public void testPageSubstitutions(@Mocked final JSONObjectInterface objWithSubstitutableUrl) throws Exception {
+	public void testPageSubstitutions(@Mocked final JsonObject objWithSubstitutableUrl) throws Exception {
 		final String key = "anything";
 		final String value = "google";
 		final String substitutableUrl = "http://www.{{" + key + "}}.com/";
@@ -140,7 +140,7 @@ public class PageTest extends InstructionTest {
 			browser.encode(value, anyString); result = value;
 		}};
 		
-		Page page = new Page(objWithSubstitutableUrl);
+		Load page = new Load(objWithSubstitutableUrl);
 		page.execute(compiler, browser, variables, null, database, null);
 		
 		new Verifications() {{
@@ -157,7 +157,7 @@ public class PageTest extends InstructionTest {
 			obj.getString(POSTS); result = postData;
 		}};
 		
-		new Page(obj).execute(compiler, browser, variables, null, database, null);
+		new Load(obj).execute(compiler, browser, variables, null, database, null);
 		
 		new Verifications() {{
 			browser.post(url, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any, postData); times =1;
@@ -174,7 +174,7 @@ public class PageTest extends InstructionTest {
 			obj.getString(METHOD); result = "head";
 		}};
 		
-		new Page(obj);
+		new Load(obj);
 	}
 	
 	@Test(expected = DeserializationException.class)
@@ -187,6 +187,6 @@ public class PageTest extends InstructionTest {
 			obj.getString(METHOD); result = "get";
 		}};
 		
-		new Page(obj);
+		new Load(obj);
 	}
 }

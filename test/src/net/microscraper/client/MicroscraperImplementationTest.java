@@ -11,7 +11,7 @@ import net.microscraper.client.Browser;
 import net.microscraper.client.Microscraper;
 import net.microscraper.database.Database;
 import net.microscraper.file.FileLoader;
-import net.microscraper.json.JSONParser;
+import net.microscraper.json.JsonParser;
 import net.microscraper.regexp.RegexpCompiler;
 
 import org.junit.Before;
@@ -19,7 +19,7 @@ import org.junit.Test;
 
 /**
  * Test {@link Microscraper} using fixtures, with a live {@link Browser}, {@link
- * RegexpCompiler}, {@link JSONParser}, and {@link FileLoader}.
+ * RegexpCompiler}, {@link JsonParser}, and {@link FileLoader}.
  * @author realest
  *
  */

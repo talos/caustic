@@ -6,9 +6,9 @@ import java.util.Vector;
 import net.microscraper.client.Browser;
 import net.microscraper.client.Logger;
 import net.microscraper.database.Database;
-import net.microscraper.json.JSONArrayInterface;
-import net.microscraper.json.JSONParserException;
-import net.microscraper.json.JSONObjectInterface;
+import net.microscraper.json.JsonArray;
+import net.microscraper.json.JsonException;
+import net.microscraper.json.JsonObject;
 import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.mustache.MustacheCompilationException;
 import net.microscraper.regexp.Pattern;
@@ -19,31 +19,22 @@ import net.microscraper.util.Variables;
 import net.microscraper.util.VectorUtils;
 
 /**
- * {@link Instruction}s hold instructions for {@link Executable}s.
+ * {@link Instruction}s hold instructions for {@link Execution}s.
  * @author realest
  *
  */
 public final class Instruction  {
 	
-	/**
-	 * Key for {@link Find} children when deserializing from JSON.
-	 */
-	public static final String FIND = "find";
 
 	/**
-	 * Key for {@link Page} children when deserializing from JSON.
+	 * Key for {@link #minMatch} value when deserializing from JSON.
 	 */
-	public static final String LOAD = "load";
+	public static final String MIN_MATCH = "min";
 	
 	/**
-	 * Key for {@link #name} value when deserializing from JSON.
+	 * Key for {@link #maxMatch} value when deserializing from JSON.
 	 */
-	public static final String NAME = "name";
-	
-	/**
-	 * Key for {@link #shouldSaveValue} value when deserializing from JSON.
-	 */
-	public static final String SAVE = "save";
+	public static final String MAX_MATCH = "max";
 	
 	/**
 	 * The {@link MustacheTemplate} name for this {@link Instruction}.  Can be <code>null</code>.
@@ -53,154 +44,36 @@ public final class Instruction  {
 	private final MustacheTemplate name;
 	
 	/**
-	 * Get the name for this {@link Instruction}.  Will return {@link #name}, compiled, unless it is
-	 * <code>null</code>. In that case, it will return {@link #getDefaultName(Variables, RegexpCompiler, Browser)}
-	 * instead.
-	 * @param variables {@link Variables} for Mustache substitution.
-	 * @return The {@link String}.
-	 * @throws MissingVariableException if a {@link MustacheTemplate} name could not be compiled.
-	 * @throws RegexpException
+	 * An array of {@link Find}s dependent upon this {@link Instruction}.
 	 */
-	//private String getName(Variables variables, Browser browser, RegexpCompiler compiler)
-	//		throws MissingVariableException, RegexpException {
-	/*private String getName(Variables variables) throws MissingVariableException, RegexpException {
-		return name != null ? name.compile(variables) : getDefaultName(variables);
-	}*/
-	
-	/**
-	 * The {@link JSONObjectInterface} this {@link Instruction} was deserialized from,
-	 * as a formatted {@link String}.
-	 */
-	//private final String formattedJSON;
+	private final Find[] finds;
 
 	/**
-	 * An array of {@link Instruction}s to be turned into {@link Executable}s after
-	 * this {@link Execution} is executed.
+	 * An array of {@link Load}s dependent upon this {@link Instruction}.
 	 */
-	private final Instruction[] children;
+	private final Load[] pages;
 	
+	/**
+	 * Whether or not this {@link Instruction} should save the values of its results.
+	 */
 	private final boolean shouldSaveValue;
 	
 	/**
 	 * 
-	 * @return Whether {@link #shouldSaveValue()} should be <code>true</code>
-	 * or <code>false</code> by default.
-	 * @see #shouldSaveValue
-	 */
-	//public abstract boolean defaultShouldSaveValue();
-	
-	/**
-	 * The {@link RegexpCompiler} used to compile {@link Pattern}s during the execution of this
-	 * {@link Instruction}.
-	 */
-	private final RegexpCompiler compiler;
-	
-	/**
-	 * The {@link Browser} used to compile {@link Page}s and during the execution of this
-	 * {@link Instruction}.
-	 */
-	private final Browser browser;
-	
-	/**
-	 * The {@link Database} in which this {@link Instruction}'s {@link Result}s will be stored.
-	 */
-	private final Database database;
-	
-	/**
-	 * The {@link Logger} to this {@link Instruction} sends log messages to.
-	 */
-	private final Logger log;
-	
-	/**
-	 * 
-	 * @param compiler The {@link RegexpCompiler} to use when compiling {@link Pattern}
-	 * @param browser The {@link Browser] to use when loading {@link Page}s.
-	 * @param database The {@link Database} to save results to.
-	 * @param log The {@link Log} to log progress to.  <code>Null</code> to disable logging for this
-	 * execution.
 	 * @param shouldSaveValue Whether this {@link Instruction}'s results' values should be
 	 * saved. <code>True</code> if they should be, <code>false</code> otherwise.
 	 * @param name The {@link MustacheTemplate} that will be compiled and used as the name of this
 	 * {@link Instruction}'s {@link Result}s. 
-	 * @param children An array of {@link Instruction}s to be executed after the execution of
-	 * this {@link Instruction}.
+	 * @param finds An array of {@link Find}s dependent on this {@link Instruction}.
+	 * @param pages An array of {@link Load}s dependent on this {@link Instruction}.
 	 */
-	public Instruction(RegexpCompiler compiler, Browser browser,
-			Database database, Logger log, boolean shouldSaveValue,
-			MustacheTemplate name, Instruction[] children) {
-		this.compiler = compiler;
-		this.browser = browser;
-		this.database = database;
-		this.log = log;
+	public Instruction(boolean shouldSaveValue,
+			MustacheTemplate name, Find[] finds, Load[] pages) {
 		this.shouldSaveValue = shouldSaveValue;
 		this.name = name;
-		this.children = children;
+		this.finds = finds;
+		this.pages = pages;
 	}
-	
-	public Instruction fromJSON(JSONObjectInterface jsonObject,
-			boolean defaultShouldSaveValue, MustacheTemplate defaultName)
-				throws DeserializationException, IOException {
-		try {
-			
-			MustacheTemplate name;
-			
-			if(jsonObject.has(NAME)) {
-				name = MustacheTemplate.compile(jsonObject.getString(NAME));
-			} else {
-				name = defaultName;
-			}
-			if(jsonObject.has(SAVE)) {
-				shouldSaveValue = jsonObject.getBoolean(SAVE);
-			} else {
-				shouldSaveValue = defaultShouldSaveValue;
-			}
-			
-			Vector children = new Vector();
-			if(jsonObject.has(FIND)) {
-				// If the key refers directly to an object, it is considered
-				// an array of 1.
-				if(jsonObject.isJSONObject(FIND)) {
-					children.add(new Find(jsonObject.getJSONObject(FIND)));
-				} else {
-					JSONArrayInterface array = jsonObject.getJSONArray(FIND);
-					for(int i = 0 ; i < array.length() ; i ++) {
-						children.add(new Find(array.getJSONObject(i)));
-					}
-				}
-			}
-			
-			if(jsonObject.has(LOAD)) {
-				// If the key refers directly to an object, it is considered
-				// an array of 1.
-				if(jsonObject.isJSONObject(LOAD)) {
-					children.add(new Page(jsonObject.getJSONObject(LOAD)));
-				} else {
-					JSONArrayInterface array = jsonObject.getJSONArray(LOAD);
-					for(int i = 0 ; i < array.length() ; i ++) {
-						children.add(new Page(array.getJSONObject(i)));
-					}
-				}
-			}
-			this.children = new Instruction[children.size()];
-			children.copyInto(this.children);
-			
-			return new Instruction();
-		} catch(JSONParserException e) {
-			throw new DeserializationException(e);
-		} catch(MustacheCompilationException e) {
-			throw new DeserializationException(e);
-		}
-	}
-	
-	/**
-	 * {@link Instruction} can be initialized with a {@link JSONObjectInterface}, which has a location.
-	 * @param jsonObject The {@link JSONObjectInterface} object to deserialize.
-	 * @throws DeserializationException If there is a problem deserializing <code>obj</code>
-	 * @throws IOException If there is an error loading one of the references.
-	 */
-	/*public Instruction(JSONObjectInterface jsonObject) throws DeserializationException, IOException {
-		
-	}*/
 	
 	/**
 	 * @return The raw {@link MustacheTemplate} string of this {@link Instruction}'s {@link #name}.
@@ -208,7 +81,7 @@ public final class Instruction  {
 	public String toString() {
 		return name.toString();
 	}
-
+	
 	/**
 	 * Execute this {@link Instruction}, including all its children.
 	 * @param variables The {@link Variables} to use when compiling {@link MustacheTemplate}s.
@@ -219,12 +92,12 @@ public final class Instruction  {
 			Logger log) {
 		// Create & initially stock queue.
 		Vector queue = new Vector();
-		queue.add(new Executable(this, compiler,
+		queue.add(new Execution(this, compiler,
 				browser, variables, source, database));
 		
 		// Run queue.
 		while(queue.size() > 0) {
-			Executable exc = (Executable) queue.elementAt(0);
+			Execution exc = (Execution) queue.elementAt(0);
 			queue.removeElementAt(0);
 			
 			if(log != null) {
@@ -268,16 +141,16 @@ public final class Instruction  {
 	 * @see #generateResult
 	 * @see #getChildren
 	 */
-	public Executable[] generateChildExecutables(RegexpCompiler compiler, Browser browser,
-			Executable parent, Result[] sources, Database database)
+	public Execution[] generateChildExecutables(RegexpCompiler compiler, Browser browser,
+			Execution parent, Result[] sources, Database database)
 				throws DeserializationException, IOException {
-		Executable[] childExecutables = new Executable[sources.length * children.length];
+		Execution[] childExecutables = new Execution[sources.length * children.length];
 		
 		for(int i = 0; i < sources.length ; i++) {
 			Result source = sources[i];
 			for(int j = 0 ; j < children.length ; j++) {
 				childExecutables[(i * children.length) + j] =
-					new Executable(children[j], compiler, browser, parent, source, database);
+					new Execution(children[j], compiler, browser, parent, source, database);
 			}
 		}
 		return childExecutables;
@@ -291,7 +164,7 @@ public final class Instruction  {
 	 * @return An array of {@link String}s from executing this particular {@link Instruction}.  Will be passed to
 	 * {@link generateChildren}.
 	 * @throws MissingVariableException If a tag needed for this execution is not accessible amongst the
-	 * {@link Executable}'s {@link Variables}.
+	 * {@link Execution}'s {@link Variables}.
 	 * @throws BrowserException If the {@link Browser} experienced an exception loading.
 	 * @throws RegexpException If there was a problem matching with {@link RegexpCompiler}.
 	 * @throws DatabaseException If there was a problem storing data in {@link Database}.
@@ -317,10 +190,4 @@ public final class Instruction  {
 		}
 		return results;
 	}
-	
-	//protected abstract String[] generateResultValues(RegexpCompiler compiler, Browser browser,
-	//		Variables variables, String source) throws RegexpException;
-	
-	//protected abstract String getDefaultName(Variables variables, RegexpCompiler compiler,
-	//		Browser browser) throws MissingVariableException, RegexpException;
 }

@@ -1,18 +1,18 @@
 package net.microscraper.uri;
 
 /**
- * Subclasses instantiate {@link URIInterface}.
+ * Subclasses instantiate {@link Uri}.
  * @author realest
  *
  */
-public interface URIFactory {
+public interface UriFactory {
 	
 	/**
-	 * Generate a {@link URIInterface} from the {@link String} <code>uri</code>.
+	 * Generate a {@link Uri} from the {@link String} <code>uri</code>.
 	 * @param uri The {@link String} to use.
-	 * @return A {@link URIInterface}.
-	 * @throws MalformedURIInterfaceException If <code>uri</code> could not be used to create
-	 * a {@link URIInterface}.
+	 * @return A {@link Uri}.
+	 * @throws MalformedUriException If <code>uri</code> could not be used to create
+	 * a {@link Uri}.
 	 */
-	public abstract URIInterface fromString(String uri) throws MalformedURIInterfaceException;
+	public abstract Uri fromString(String uri) throws MalformedUriException;
 }

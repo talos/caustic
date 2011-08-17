@@ -8,16 +8,16 @@ import java.util.List;
 import net.microscraper.client.Logger;
 import net.microscraper.client.impl.commandline.json.JSONStringerInterface;
 import net.microscraper.impl.log.BasicLogger;
-import net.microscraper.json.JSONParser;
-import net.microscraper.json.JSONParserException;
+import net.microscraper.json.JsonParser;
+import net.microscraper.json.JsonException;
 import net.microscraper.util.StringUtils;
 
 public class ThreadSafeJSONLogger extends BasicLogger {
 	private final List<JSONStringerInterface> logList = Collections.synchronizedList(new ArrayList<JSONStringerInterface>());
 	private Integer pos = 0;
-	private final JSONParser jsonInterface;
+	private final JsonParser jsonInterface;
 	
-	public ThreadSafeJSONLogger(JSONParser jsonInterface) {
+	public ThreadSafeJSONLogger(JsonParser jsonInterface) {
 		this.jsonInterface = jsonInterface;
 	}
 	
@@ -26,7 +26,7 @@ public class ThreadSafeJSONLogger extends BasicLogger {
 			JSONStringerInterface stringer = jsonInterface.getStringer();
 			stringer.object().key(key).value(value).endObject();
 			return stringer;
-		} catch (JSONParserException e) {
+		} catch (JsonException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}

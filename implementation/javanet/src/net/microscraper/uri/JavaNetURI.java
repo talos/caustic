@@ -7,10 +7,10 @@ import java.net.URISyntaxException;
 import net.microscraper.client.Browser;
 import net.microscraper.client.BrowserException;
 import net.microscraper.file.FileLoader;
-import net.microscraper.uri.URIInterface;
-import net.microscraper.uri.URIInterfaceException;
+import net.microscraper.uri.Uri;
+import net.microscraper.uri.Uri;
 
-public class JavaNetURI implements URIInterface {
+public class JavaNetURI implements Uri {
 
 	private static final String HTTP_SCHEME = "http";
 	private static final String FILE_SCHEME = "file";
@@ -35,11 +35,11 @@ public class JavaNetURI implements URIInterface {
 		this.fileLoader = fileLoader;
 	}
 	
-	public URIInterface resolve(URIInterface otherLocation) {
+	public Uri resolve(Uri otherLocation) {
 			return new JavaNetURI( uri.resolve(otherLocation.toString()), browser, fileLoader );
 	}
 	
-	public URIInterface resolve(String path) throws URIInterfaceException {
+	public Uri resolve(String path) throws URIInterfaceException {
 		return resolve(new JavaNetURI(path, browser, fileLoader));
 	}
 	
@@ -54,7 +54,7 @@ public class JavaNetURI implements URIInterface {
 	public boolean equals(Object obj) {
 		if(obj == this)
 			return true;
-		if(obj instanceof URIInterface) {
+		if(obj instanceof Uri) {
 			return this.toString().equals(obj.toString());
 		}
 		return false;

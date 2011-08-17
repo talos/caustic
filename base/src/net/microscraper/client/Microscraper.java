@@ -6,14 +6,14 @@ import java.util.Hashtable;
 import net.microscraper.database.Database;
 import net.microscraper.impl.log.BasicLog;
 import net.microscraper.instruction.DeserializationException;
-import net.microscraper.instruction.Page;
-import net.microscraper.json.JSONParser;
-import net.microscraper.json.JSONObjectInterface;
+import net.microscraper.instruction.Load;
+import net.microscraper.json.JsonParser;
+import net.microscraper.json.JsonObject;
 import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.uri.MalformedURIInterfaceException;
-import net.microscraper.uri.URIFactory;
-import net.microscraper.uri.URIInterface;
+import net.microscraper.uri.MalformedUriException;
+import net.microscraper.uri.UriFactory;
+import net.microscraper.uri.Uri;
 import net.microscraper.util.BasicVariables;
 import net.microscraper.util.StringUtils;
 
@@ -29,107 +29,107 @@ import net.microscraper.util.StringUtils;
  *
  */
 public class Microscraper implements Loggable {	
-	private final URIInterface userDir;
+	private final Uri userDir;
 	private final RegexpCompiler compiler;
 	private final Browser browser;
-	private final URIFactory uriFactory;
+	private final UriFactory uriFactory;
 	private final Database database;
-	private final JSONParser jsonInterface;
+	private final JsonParser parser;
 	private final BasicLog log = new BasicLog();
 	
 	/**
 	 * @param compiler The {@link RegexpCompiler} to use when compiling regular
 	 * expressions.
 	 * @param browser A {@link Browser} to use for HTTP requests.
-	 * @param jsonInterface A {@link JSONParser} to use in parsing and loading JSON.
-	 * @param uriFactory A {@link URIFactory} to create {@link URIInterface}s with.
+	 * @param jsonInterface A {@link JsonParser} to use in parsing and loading JSON.
+	 * @param uriFactory A {@link UriFactory} to create {@link Uri}s with.
 	 * @param database the {@link Database} to use for storage.
 	 */
-	public Microscraper(RegexpCompiler compiler, Browser browser, URIFactory uriFactory,
-			JSONParser jsonInterface, Database database) {
+	public Microscraper(RegexpCompiler compiler, Browser browser, UriFactory uriFactory,
+			JsonParser jsonInterface, Database database) {
 		this.compiler = compiler;
 		this.browser = browser;
-		this.jsonInterface = jsonInterface;
+		this.parser = jsonInterface;
 		this.database = database;
 		this.uriFactory = uriFactory;
 		try {
 			this.userDir = uriFactory.fromString(System.getProperty("user.dir"));
-		} catch(MalformedURIInterfaceException e) {
+		} catch(MalformedUriException e) {
 			throw new RuntimeException(StringUtils.quote(System.getProperty("user.dir")) + " could not be converted to URI.");
 		}
 		this.browser.register(log);
 	}
 	
-	private void scrape(JSONObjectInterface pageJson, Hashtable[] defaultsHash)
+	private void scrape(JsonObject pageJson, Hashtable[] defaultsHash)
 			throws DeserializationException, IOException {
 		for(int i = 0 ; i < defaultsHash.length ; i ++) {
-			new Page(pageJson).execute(compiler, browser, BasicVariables.fromHashtable(defaultsHash[i]), null, database, log);
+			new Load(pageJson).execute(compiler, browser, BasicVariables.fromHashtable(defaultsHash[i]), null, database, log);
 		}
 	}
 	
 	/**
-	 * Scrape from a {@link Page} in a JSON String.
-	 * @param pageInstructionJSON A {@link String} with a {@link Page} serialized in JSON.
+	 * Scrape from a {@link Load} in a JSON String.
+	 * @param pageInstructionJSON A {@link String} with a {@link Load} serialized in JSON.
 	 */
 	public void scrapeFromJson(String pageInstructionJSON)
 			throws DeserializationException, IOException {
-		JSONObjectInterface json = jsonInterface.parse(userDir, pageInstructionJSON);
+		JsonObject json = parser.parse(userDir, pageInstructionJSON);
 		scrape(json, new Hashtable[] { new Hashtable() });
 	}
 	
 	/**
-	 * Scrape from a {@link Page} in a JSON String.
-	 * @param pageInstructionJSON A {@link String} with a {@link Page} serialized in JSON.
+	 * Scrape from a {@link Load} in a JSON String.
+	 * @param pageInstructionJSON A {@link String} with a {@link Load} serialized in JSON.
 	 * @param defaults A {@link Hashtable} mapping {@link String}s to {@link String}s to substitute in 
 	 * <code>pageInstructionJSON</code> {@link MustacheTemplate} tags.
 	 */
 	public void scrapeFromJson(String pageInstructionJSON, Hashtable defaults)
 			throws DeserializationException, IOException, InterruptedException {
-		JSONObjectInterface json = jsonInterface.parse(uriFactory.fromString(userDir), pageInstructionJSON);
+		JsonObject json = parser.parse(uriFactory.fromString(userDir), pageInstructionJSON);
 		scrape(json, new Hashtable[] { defaults } );
 	}
 	
 	/**
-	 * Scrape from a {@link Page} in a JSON String for each member of <code>defaultsArray</code>.
-	 * @param pageInstructionJSON A {@link String} with a {@link Page} serialized in JSON.
+	 * Scrape from a {@link Load} in a JSON String for each member of <code>defaultsArray</code>.
+	 * @param pageInstructionJSON A {@link String} with a {@link Load} serialized in JSON.
 	 * @param defaultsArray An array of {@link Hashtable}s.  Each maps {@link String}s to {@link String}s to substitute in 
 	 * <code>pageInstructionJSON</code> {@link MustacheTemplate} tags.
 	 */
 	public void scrapeFromJson(String pageInstructionJSON, Hashtable[] defaultsArray)
 			throws DeserializationException, IOException, InterruptedException {
-		JSONObjectInterface json = jsonInterface.parse(uriFactory.fromString(userDir), pageInstructionJSON);
+		JsonObject json = parser.parse(uriFactory.fromString(userDir), pageInstructionJSON);
 		scrape(json, defaultsArray);
 	}
 
 	/**
-	 * Scrape from a {@link Page} loaded from a URI.
-	 * @param uri A {@link String} with the URI location of a {@link Page} serialized in JSON.
+	 * Scrape from a {@link Load} loaded from a URI.
+	 * @param uri A {@link String} with the URI location of a {@link Load} serialized in JSON.
 	 */
 	public void scrapeFromUri(String uri)
 			throws DeserializationException, IOException, InterruptedException {
-		JSONObjectInterface json = jsonInterface.load(this.uriFactory.fromString(uri));
+		JsonObject json = parser.load(this.uriFactory.fromString(uri));
 		scrape(json, new Hashtable[] { new Hashtable() });
 	}
 	/**
-	 * Scrape from a {@link Page} in a JSON String.
-	 * @param uri A {@link String} with the URI location of a {@link Page} serialized in JSON.
+	 * Scrape from a {@link Load} in a JSON String.
+	 * @param uri A {@link String} with the URI location of a {@link Load} serialized in JSON.
 	 * @param defaults A {@link Hashtable} mapping {@link String}s to {@link String}s to substitute in 
 	 */
 	public void scrapeFromUri(String uri, Hashtable defaults)
 			throws DeserializationException, IOException, InterruptedException {
-		JSONObjectInterface json = jsonInterface.load(this.uriFactory.fromString(uri));
+		JsonObject json = parser.load(this.uriFactory.fromString(uri));
 		scrape(json, new Hashtable[] { defaults } );
 	}
 
 	/**
-	 * Scrape from a {@link Page} in a JSON String.
-	 * @param uri A {@link String} with the URI location of a {@link Page} serialized in JSON.
+	 * Scrape from a {@link Load} in a JSON String.
+	 * @param uri A {@link String} with the URI location of a {@link Load} serialized in JSON.
 	 * @param defaultsArray An array of {@link Hashtable}s.  Each maps {@link String}s to {@link String}s to substitute in 
 	 * <code>pageInstructionJSON</code> {@link MustacheTemplate} tags.
 	 */
 	public void scrapeFromUri(String uri, Hashtable[] defaultsArray)
 			throws DeserializationException, IOException, InterruptedException {
-		JSONObjectInterface json = jsonInterface.load(this.uriFactory.fromString(uri));
+		JsonObject json = parser.load(this.uriFactory.fromString(uri));
 		scrape(json, defaultsArray);
 	}
 

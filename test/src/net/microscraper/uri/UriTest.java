@@ -1,4 +1,4 @@
-package net.microscraper.json;
+package net.microscraper.uri;
 
 import static org.junit.Assert.*;
 
@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import net.microscraper.uri.JavaNetURI;
-import net.microscraper.uri.URIInterface;
+import net.microscraper.uri.Uri;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,19 +15,19 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class URIInterfaceTest {
+public class UriTest {
 	
-	private final Constructor<URIInterface> constructor;
+	private final Constructor<Uri> constructor;
 	
 	private static final String filePathWithFragment = "file:/path/to/file#fragment";
 	private static final String pathWithoutFragment = "path/to/file";
 	private static final String httpWithFragment = "http://www.site.com/#fragment";
 	
-	private URIInterface newLocation(String uriOrPath) throws Exception {
+	private Uri newLocation(String uriOrPath) throws Exception {
 		return constructor.newInstance(uriOrPath);
 	}
 	
-	public URIInterfaceTest(final Class<URIInterface> klass) throws Exception {
+	public UriTest(final Class<Uri> klass) throws Exception {
 		constructor = klass.getConstructor(String.class);
 	}
 	

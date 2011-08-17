@@ -1,5 +1,9 @@
 package net.microscraper.mustache;
 
+import net.microscraper.instruction.DeserializationException;
+import net.microscraper.json.JsonIterator;
+import net.microscraper.json.JsonObject;
+import net.microscraper.json.JsonException;
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
 import net.microscraper.util.Variables;
@@ -26,18 +30,17 @@ public class MustacheNameValuePair {
 	 * @throws MustacheCompilationException If <code>nameValuePair</code> cannot be turned into a
 	 * {@link MustacheTemplate}.
 	 */
-	public static MustacheNameValuePair compile(NameValuePair nameValuePair)
+	/*public static MustacheNameValuePair compile(NameValuePair nameValuePair)
 			throws MustacheCompilationException {
 		return new MustacheNameValuePair(nameValuePair);
-	}
+	}*/
 	
 	
-	private MustacheNameValuePair(MustacheTemplate name, MustacheTemplate value) {
+	public MustacheNameValuePair(MustacheTemplate name, MustacheTemplate value) {
 		this.name = name;
 		this.value = value;
 	}
 	
-	public MustacheSubstitution
 	
 	public static NameValuePair[] compile(MustacheNameValuePair[] nameValuePairs,
 				Variables variables) {
@@ -48,4 +51,5 @@ public class MustacheNameValuePair {
 		}
 		return encodedNameValuePairs;
 	}
+
 }

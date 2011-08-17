@@ -162,7 +162,7 @@ public final class MultiTableDatabase implements Database {
 	 * @param value The {@link String} value to update.  Should <b>not</b> be <code>
 	 * null</code>.
 	 * @param the 0-based {@link int} index of this {@link Result} within its
-	 * {@link Executable}.
+	 * {@link Execution}.
 	 * @throws TableManipulationException If the {@link IOTable} cannot be updated.
 	 */
 	private void updateTable(IOTable table, int id, String name, String value,

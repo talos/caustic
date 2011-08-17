@@ -8,8 +8,8 @@ import mockit.Tested;
 import mockit.Verifications;
 import net.microscraper.client.Browser;
 import net.microscraper.database.Database;
-import net.microscraper.json.JSONArrayInterface;
-import net.microscraper.json.JSONObjectInterface;
+import net.microscraper.json.JsonArray;
+import net.microscraper.json.JsonObject;
 import net.microscraper.regexp.RegexpCompiler;
 import static net.microscraper.test.TestUtils.*;
 import net.microscraper.util.Variables;
@@ -19,7 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public abstract class InstructionTest {	
-	@Mocked private JSONObjectInterface jsonObject;
+	@Mocked private JsonObject jsonObject;
 	@Mocked private RegexpCompiler compiler;
 	@Mocked private Browser browser;
 	@Mocked private Database database;
@@ -28,7 +28,7 @@ public abstract class InstructionTest {
 	//@Mocked private Instruction instruction;
 	//@Mocked() private Instruction instruction;
 	
-	protected abstract Instruction getInstruction(JSONObjectInterface obj) throws Exception;
+	protected abstract Instruction getInstruction(JsonObject obj) throws Exception;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -73,7 +73,7 @@ public abstract class InstructionTest {
 		instruction.execute(compiler, browser, variables, null, database, null);
 		
 		new Verifications() {
-			Executable exc;
+			Execution exc;
 			{
 				exc.run(); times = 4;
 		}};

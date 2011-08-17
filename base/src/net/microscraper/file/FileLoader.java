@@ -2,7 +2,7 @@ package net.microscraper.file;
 
 import java.io.IOException;
 
-import net.microscraper.uri.URIInterface;
+import net.microscraper.uri.Uri;
 
 /**
  * Implementations of this interface can load the contents of files located at a
@@ -18,5 +18,5 @@ public interface FileLoader {
 	 * @return A String with the contents of the file at that the <code>path</code>.
 	 * @throws IOException If the path could not be loaded.
 	 */
-	public String load(URIInterface path) throws IOException;
+	public String load(Uri path) throws IOException;
 }

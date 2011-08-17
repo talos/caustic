@@ -9,13 +9,13 @@ import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.client.Browser;
 import net.microscraper.file.FileLoader;
-import net.microscraper.json.JSONParser;
-import net.microscraper.json.JSONObjectInterface;
-import net.microscraper.json.JSONMEParser;
+import net.microscraper.json.JsonParser;
+import net.microscraper.json.JsonObject;
+import net.microscraper.json.JsonMEParser;
 import net.microscraper.regexp.JakartaRegexpCompiler;
 import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.uri.URIInterface;
+import net.microscraper.uri.Uri;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,12 +23,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-public abstract class JSONObjectInterfaceTest {
-	private JSONParser jsonParser;
+public abstract class JsonObjectTest {
+	private JsonParser jsonParser;
 	
 	private @Mocked FileLoader fileLoader;
 	private @Mocked Browser browser;
-	private @Mocked URIInterface location;
+	private @Mocked Uri location;
 	private String path = "path";
 	
 	private static final String jsonStringSimpleObject = 
@@ -49,9 +49,9 @@ public abstract class JSONObjectInterfaceTest {
 		}};
 	}
 	
-	protected abstract JSONParser getJSONParser();
+	protected abstract JsonParser getJSONParser();
 
-	private JSONObjectInterface getObject(final String jsonString) throws Exception {
+	private JsonObject getObject(final String jsonString) throws Exception {
 		new NonStrictExpectations() {{
 			fileLoader.load(location); result = jsonString;
 		}};
@@ -61,24 +61,24 @@ public abstract class JSONObjectInterfaceTest {
 	
 	@Test
 	public void testGetJSONArray() throws Exception {
-		assertEquals(4, getObject(jsonStringComplexObject).getJSONArray("array").length());
+		assertEquals(4, getObject(jsonStringComplexObject).getJsonArray("array").length());
 	}
 
 	@Test
 	public void testIsJSONArray() throws Exception {
-		assertTrue(getObject(jsonStringComplexObject).isJSONArray("array"));
-		assertFalse(getObject(jsonStringComplexObject).isJSONArray("object"));
+		assertTrue(getObject(jsonStringComplexObject).isJsonArray("array"));
+		assertFalse(getObject(jsonStringComplexObject).isJsonArray("object"));
 	}
 
 	@Test
 	public void testGetJSONObject() throws Exception {
-		assertEquals(4, getObject(jsonStringComplexObject).getJSONObject("object").length());
+		assertEquals(4, getObject(jsonStringComplexObject).getJsonObject("object").length());
 	}
 
 	@Test
 	public void testIsJSONObject() throws Exception {
-		assertFalse(getObject(jsonStringComplexObject).isJSONObject("array"));
-		assertTrue(getObject(jsonStringComplexObject).isJSONObject("object"));
+		assertFalse(getObject(jsonStringComplexObject).isJsonObject("array"));
+		assertTrue(getObject(jsonStringComplexObject).isJsonObject("object"));
 	}
 
 	@Test

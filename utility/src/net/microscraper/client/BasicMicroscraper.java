@@ -4,7 +4,7 @@ import net.microscraper.browser.JavaNetBrowser;
 import net.microscraper.client.Microscraper;
 import net.microscraper.database.Database;
 import net.microscraper.file.JavaIOFileLoader;
-import net.microscraper.json.JSONMEParser;
+import net.microscraper.json.JsonMEParser;
 import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.uri.JavaNetURIFactory;
 
@@ -12,7 +12,7 @@ import net.microscraper.uri.JavaNetURIFactory;
  * Basic implementation of {@link Microscraper} using
  * {@link JavaUtilRegexpCompiler}, {@link JavaNetBrowser},
  * {@link JavaNetURIFactory}, {@link JavaIOFileLoader},
- * and {@link JSONMEParser}.
+ * and {@link JsonMEParser}.
  * @author realest
  *
  */
@@ -25,6 +25,6 @@ public class BasicMicroscraper extends Microscraper {
 					  new JavaNetBrowser(),
 					  new JavaIOFileLoader()
 					 ),
-			  new JSONMEParser(), database);
+			  new JsonMEParser(), database);
 	}
 }

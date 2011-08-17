@@ -8,13 +8,13 @@ import net.microscraper.client.Microscraper;
 import net.microscraper.client.impl.commandline.json.JSONStringerInterface;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
-import net.microscraper.json.JSONParser;
+import net.microscraper.json.JsonParser;
 
 public class ThreadSafeJSONDatabase implements Database {
 	private final List<JSONStringerInterface> executions = Collections.synchronizedList(new ArrayList<JSONStringerInterface>());
 	private Integer pos = -1;
-	private final JSONParser json;
-	public ThreadSafeJSONDatabase(JSONParser json) {
+	private final JsonParser json;
+	public ThreadSafeJSONDatabase(JsonParser json) {
 		this.json = json;
 	}
 	public void resetIterator() {

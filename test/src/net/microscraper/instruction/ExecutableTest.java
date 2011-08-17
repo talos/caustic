@@ -10,7 +10,7 @@ import mockit.NonStrictExpectations;
 import net.microscraper.client.Browser;
 import net.microscraper.client.BrowserException;
 import net.microscraper.database.Database;
-import net.microscraper.json.JSONObjectInterface;
+import net.microscraper.json.JsonObject;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.test.TestUtils;
 import static net.microscraper.test.TestUtils.*;
@@ -28,16 +28,16 @@ public class ExecutableTest extends InstructionTest {
 	//@Mocked private Variables variables;
 	private final Variables variables = BasicVariables.empty();
 	
-	private Executable exc;
+	private Execution exc;
 
 	@Override
-	protected Instruction getInstruction(JSONObjectInterface obj) throws Exception {
-		return new Page(obj);
+	protected Instruction getInstruction(JsonObject obj) throws Exception {
+		return new Load(obj);
 	}
 	
 	@Before
 	public void setUp() throws Exception {
-		exc = new Executable(instruction, compiler, browser, variables, null, database);
+		exc = new Execution(instruction, compiler, browser, variables, null, database);
 	}
 	
 	@Test
@@ -118,7 +118,7 @@ public class ExecutableTest extends InstructionTest {
 			MissingVariableException missingVariable;
 			{
 				instruction.generateChildExecutables(compiler, browser, exc, (Result[]) any, database);
-						result = missingVariable; result = new Executable[] {};
+						result = missingVariable; result = new Execution[] {};
 			}
 		};
 		
@@ -195,15 +195,15 @@ public class ExecutableTest extends InstructionTest {
 		final String grandchildKey = randomString();
 		final String grandchildValue = randomString(); 
 		
-		final Executable child = new Executable(childInstruction, compiler, browser, variables, null, database);
-		final Executable grandchild = new Executable(grandchildInstruction, compiler, browser, variables, null, database);
+		final Execution child = new Execution(childInstruction, compiler, browser, variables, null, database);
+		final Execution grandchild = new Execution(grandchildInstruction, compiler, browser, variables, null, database);
 		new NonStrictExpectations() {
 			//Executable child, grandchild;
 			{
 				onInstance(instruction).generateChildExecutables(compiler, browser, exc, null, database);
-					result = new Executable[] { child };
+					result = new Execution[] { child };
 				onInstance(childInstruction).generateChildExecutables(compiler, browser, child, null, database);
-					result = new Executable[] { grandchild };
+					result = new Execution[] { grandchild };
 					
 				onInstance(instruction).generateResults(compiler, browser, exc, null, database);
 					result = new Result[] { new Result(0, key, value) };

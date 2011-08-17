@@ -8,7 +8,8 @@ import mockit.NonStrictExpectations;
 import mockit.Verifications;
 import net.microscraper.client.Browser;
 import net.microscraper.database.Database;
-import net.microscraper.json.JSONObjectInterface;
+import net.microscraper.json.JsonObject;
+import net.microscraper.mustache.MustachePattern;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.util.Variables;
@@ -17,7 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class FindTest extends InstructionTest {	
-	@Mocked JSONObjectInterface obj;
+	@Mocked JsonObject obj;
 	@Mocked Database database;
 	@Mocked Browser browser;
 	@Mocked RegexpCompiler compiler;
@@ -25,10 +26,10 @@ public class FindTest extends InstructionTest {
 	@Mocked Result source;
 	
 	@Override
-	public Find getInstruction(final JSONObjectInterface obj) throws Exception {
+	public Find getInstruction(final JsonObject obj) throws Exception {
 		final String pattern = randomString();
 		new NonStrictExpectations() {{
-			onInstance(obj).getString(Regexp.PATTERN); result = pattern;
+			onInstance(obj).getString(MustachePattern.PATTERN); result = pattern;
 		}};
 		return new Find(obj);
 	}
@@ -42,7 +43,7 @@ public class FindTest extends InstructionTest {
 	
 	@Test(expected=DeserializationException.class)
 	public void testIsNotAPage() throws Exception {
-		new Page(obj);
+		new Load(obj);
 	}
 	
 	@Test(expected=DeserializationException.class)
@@ -53,7 +54,7 @@ public class FindTest extends InstructionTest {
 	@Test
 	public void testNeedsOnlyAPatternToDeserialize() throws Exception {
 		new NonStrictExpectations() {{
-			obj.getString(Regexp.PATTERN); result = randomString();
+			obj.getString(MustachePattern.PATTERN); result = randomString();
 		}};
 		new Find(obj);
 	}
@@ -61,7 +62,7 @@ public class FindTest extends InstructionTest {
 	@Test(expected=DeserializationException.class)
 	public void testDefiningMaxAndSingleMatchPreventsDeserialization() throws Exception {
 		new NonStrictExpectations() {{
-			obj.getString(Regexp.PATTERN); result = randomString();
+			obj.getString(MustachePattern.PATTERN); result = randomString();
 			obj.has(MAX_MATCH); result = true;
 			obj.has(MATCH); result = true;
 		}};
@@ -71,7 +72,7 @@ public class FindTest extends InstructionTest {
 	@Test(expected=DeserializationException.class)
 	public void testDefiningMinAndSingleMatchPreventsDeserialization() throws Exception {
 		new NonStrictExpectations() {{
-			obj.getString(Regexp.PATTERN); result = randomString();
+			obj.getString(MustachePattern.PATTERN); result = randomString();
 			obj.has(MIN_MATCH); result = true;
 			obj.has(MATCH); result = true;
 		}};
@@ -85,7 +86,7 @@ public class FindTest extends InstructionTest {
 		
 		new NonStrictExpectations() {{
 				source.getValue(); result = stringSource;
-				obj.getString(Regexp.PATTERN); result = patternString;
+				obj.getString(MustachePattern.PATTERN); result = patternString;
 				compiler.compile(patternString, anyBoolean, anyBoolean, anyBoolean); result = pattern;
 		}};
 		
@@ -132,7 +133,7 @@ public class FindTest extends InstructionTest {
 		
 		new NonStrictExpectations() {{
 				source.getValue(); result = stringSource;
-				obj.getString(Regexp.PATTERN); result = patternString;
+				obj.getString(MustachePattern.PATTERN); result = patternString;
 				compiler.compile(patternString, anyBoolean, anyBoolean, anyBoolean); result = pattern;
 		}};
 		

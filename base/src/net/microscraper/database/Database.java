@@ -5,7 +5,7 @@ import java.io.IOException;
 import net.microscraper.instruction.Result;
 
 /**
- * Implementations of {@link Database} store the results of {@link Executable}s
+ * Implementations of {@link Database} store the results of {@link Execution}s
  * and generate {@link Result} objects.
  * @see Result
  * @author john
@@ -18,7 +18,7 @@ public interface Database {
 	 * @param name A {@link String} name to store this value under.  Cannot be <code>null</code>.
 	 * @param value A {@link String} value.  Can be <code>null</code>.
 	 * @param resultNum The 0-based {@link int} index of this {@link Result} within its 
-	 * {@link Executable}.
+	 * {@link Execution}.
 	 * redundant results -- entire pages, for example.
 	 * @return A unique {@link int} identifier.
 	 * @throws IOException
@@ -33,7 +33,7 @@ public interface Database {
 	 * @param name A {@link String} name to store this value under.  Cannot be <code>null</code>.
 	 * @param value A {@link String} value.  Can be <code>null</code>.
 	 * @param resultNum The 0-based {@link int} index of this {@link Result} within its 
-	 * {@link Executable}.
+	 * {@link Execution}.
 	 * @return A unique {@link int} identifier.
 	 * @throws DatabaseException If the {@link Database} experiences an exception.
 	 */

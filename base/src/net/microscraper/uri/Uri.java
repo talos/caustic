@@ -3,11 +3,11 @@ package net.microscraper.uri;
 import java.io.IOException;
 
 /**
- * A {@link URIInterface} provides an interface for a URI.
+ * A {@link Uri} provides an interface for a URI.
  * @author realest
  *
  */
-public interface URIInterface {
+public interface Uri {
 	/**
 	 * The separator used in {@link JSONLocation}'s fragment paths.
 	 * Is <code>/</code>
@@ -15,27 +15,27 @@ public interface URIInterface {
 	//public static final String JSON_PATH_SEP = "/";
 	
 	/**
-	 * Constructs a new {@link URIInterface}
-	 * by resolving the given {@link URIInterface} against
-	 * this {@link URIInterface}
-	 * @param jsonLocation The {@link URIInterface} to resolve.
-	 * @return The resulting {@link URIInterface}.
+	 * Constructs a new {@link Uri}
+	 * by resolving the given {@link Uri} against
+	 * this {@link Uri}
+	 * @param jsonLocation The {@link Uri} to resolve.
+	 * @return The resulting {@link Uri}.
 	 */
-	public URIInterface resolve(URIInterface jsonLocation);
+	public Uri resolve(Uri jsonLocation);
 	
 	/**
-	 * Constructs a new {@link URIInterface}
+	 * Constructs a new {@link Uri}
 	 * by parsing the given string as a URI and then resolving it against this
-	 * {@link URIInterface}. 
+	 * {@link Uri}. 
 	 * @param uri A {@link String} to parse as a URI.
-	 * @return The resulting {@link URIInterface}.
-	 * @throws MalformedURIInterfaceException if <code>uri</code> is not a valid
-	 * {@link URIInterface} and therefore cannot be resolved.
+	 * @return The resulting {@link Uri}.
+	 * @throws MalformedUriException if <code>uri</code> is not a valid
+	 * {@link Uri} and therefore cannot be resolved.
 	 */
-	public URIInterface resolve(String uri) throws MalformedURIInterfaceException;
+	public Uri resolve(String uri) throws MalformedUriException;
 	
 	/**
-	 * Load the resource this {@link URIInterface} refers to as a {@link String}.
+	 * Load the resource this {@link Uri} refers to as a {@link String}.
 	 * @return The resource as a {@link String}.
 	 * @throws IOException If there was a problem loading the resource.
 	 */
@@ -116,15 +116,15 @@ public interface URIInterface {
 	
 	/**
 	 * 
-	 * @return Returns the content of this {@link URIInterface} as a string. 
+	 * @return Returns the content of this {@link Uri} as a string. 
 	 * @see java.net.URI#toString()
 	 */
 	public String toString();
 	
 	/**
-	 * Tests this {@link URIInterface} for equality with another object. 
+	 * Tests this {@link Uri} for equality with another object. 
 	 * @param obj The object to compare.
-	 * @return <code>True</code> if both objects are {@link URIInterface}s 
+	 * @return <code>True</code> if both objects are {@link Uri}s 
 	 * referring to the same location, <code>false</code> otherwise.
 	 * @see java.net.URI#equals(Object)
 	 */

@@ -10,14 +10,14 @@ import mockit.NonStrictExpectations;
 import net.microscraper.database.Database;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
-import net.microscraper.instruction.Page;
-import net.microscraper.instruction.Regexp;
-import net.microscraper.json.JSONObjectInterface;
-import net.microscraper.json.JSONParser;
+import net.microscraper.instruction.Load;
+import net.microscraper.json.JsonObject;
+import net.microscraper.json.JsonParser;
+import net.microscraper.mustache.MustachePattern;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.uri.URIFactory;
-import net.microscraper.uri.URIInterface;
+import net.microscraper.uri.UriFactory;
+import net.microscraper.uri.Uri;
 import net.microscraper.util.NameValuePair;
 import static net.microscraper.test.TestUtils.*;
 
@@ -28,8 +28,8 @@ public class MicroscraperTest {
 	
 	@Mocked private RegexpCompiler compiler;
 	@Mocked private Browser browser;
-	@Mocked private URIFactory uriFactory;
-	@Mocked private JSONParser jsonParser;
+	@Mocked private UriFactory uriFactory;
+	@Mocked private JsonParser jsonParser;
 	@Mocked private Database database;
 	
 	Microscraper microscraper;
@@ -52,9 +52,9 @@ public class MicroscraperTest {
 	//private static final String contentWithDefaultsString = randomString();
 	
 	private static final String jsonString =
-			"{\"" + Page.URL + "\":\"" + urlString + "\",\"" + Instruction.FIND + "\":{\"" + Regexp.PATTERN + "\":\"" + patternString + "\"} }";
+			"{\"" + Load.URL + "\":\"" + urlString + "\",\"" + Instruction.FIND + "\":{\"" + MustachePattern.PATTERN + "\":\"" + patternString + "\"} }";
 	private static final String jsonWithDefaultsString =
-			"{\"" + Page.URL + "\":\"" + urlWithDefaultsStringRaw + "\",\""+ Instruction.FIND +"\":{\""+Regexp.PATTERN+"\":\"" + patternWithDefaultsStringRaw + "\"} }";
+			"{\"" + Load.URL + "\":\"" + urlWithDefaultsStringRaw + "\",\""+ Instruction.FIND +"\":{\""+MustachePattern.PATTERN+"\":\"" + patternWithDefaultsStringRaw + "\"} }";
 	private static final Hashtable defaultsHash = new Hashtable();
 	private static final Hashtable[] defaultsHashArray = new Hashtable[] {
 		defaultsHash,
@@ -69,14 +69,14 @@ public class MicroscraperTest {
 	
 	private void expectJson() throws Exception {
 		new Expectations() {
-			JSONObjectInterface page, find;
+			JsonObject page, find;
 			Pattern pattern;
 			String[] match = new String[] { randomString() };
 			{
-				jsonParser.parse((URIInterface) any, jsonString); result = page;
-				page.getString(Page.URL); result = urlString;
-				page.getJSONObject(Instruction.FIND); result = find;
-				find.getString(Regexp.PATTERN); result = patternString;
+				jsonParser.parse((Uri) any, jsonString); result = page;
+				page.getString(Load.URL); result = urlString;
+				page.getJsonObject(Instruction.FIND); result = find;
+				find.getString(MustachePattern.PATTERN); result = patternString;
 				browser.get(urlString, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any); result = contentString;
 				compiler.compile(patternString, false, false, true); result = pattern;
 				pattern.match(contentString, Find.ENTIRE_MATCH, Find.FIRST_MATCH, Find.LAST_MATCH); result = match;
@@ -88,14 +88,14 @@ public class MicroscraperTest {
 	
 	private void recordJsonWithDefaults() throws Exception {
 		new Expectations() {
-			JSONObjectInterface page, find;
+			JsonObject page, find;
 			Pattern pattern;
 			String[] match = new String[] { randomString() };
 			{
-				jsonParser.parse((URIInterface) any, jsonWithDefaultsString); result = page;
-				page.getString(Page.URL); result = urlWithDefaultsStringRaw;
-				page.getJSONObject(Instruction.FIND); result = find;
-				find.getString(Regexp.PATTERN); result = patternWithDefaultsStringRaw;
+				jsonParser.parse((Uri) any, jsonWithDefaultsString); result = page;
+				page.getString(Load.URL); result = urlWithDefaultsStringRaw;
+				page.getJsonObject(Instruction.FIND); result = find;
+				find.getString(MustachePattern.PATTERN); result = patternWithDefaultsStringRaw;
 				browser.get(urlWithDefaultsStringCompiled, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any); result = contentString;
 				compiler.compile(patternWithDefaultsStringCompiled, false, false, true); result = pattern;
 				pattern.match(contentString, Find.ENTIRE_MATCH, Find.FIRST_MATCH, Find.LAST_MATCH); result = match;
@@ -128,7 +128,7 @@ public class MicroscraperTest {
 	@Test
 	public void testScrapeFromUriString() throws DeserializationException, IOException, DatabaseException {
 		new Expectations() {
-			URIInterface uri;
+			Uri uri;
 			{
 				uriFactory.fromString(uriString); result = uri;
 				uri.load(); result = jsonString;
@@ -141,7 +141,7 @@ public class MicroscraperTest {
 	@Test
 	public void testScrapeFromUriStringAndDefaultsHash() {
 		new Expectations() {
-			URIInterface uri;
+			Uri uri;
 			{
 				uriFactory.fromString(uriString); result = uri;
 				uri.load(); result = jsonWithDefaultsString;
@@ -154,7 +154,7 @@ public class MicroscraperTest {
 	@Test
 	public void testScrapeFromUriStringAndDefaultsHashArray() {
 		new Expectations() {
-			URIInterface uri;
+			Uri uri;
 			{
 				uriFactory.fromString(uriString); result = uri;
 				uri.load(); result = jsonWithDefaultsString;
