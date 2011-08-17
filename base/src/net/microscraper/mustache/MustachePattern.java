@@ -1,6 +1,6 @@
 package net.microscraper.mustache;
 
-import net.microscraper.instruction.DeserializationException;
+import net.microscraper.client.DeserializationException;
 import net.microscraper.json.JsonException;
 import net.microscraper.json.JsonObject;
 import net.microscraper.regexp.Pattern;

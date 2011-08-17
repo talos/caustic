@@ -6,6 +6,7 @@ import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
 import net.microscraper.client.Browser;
+import net.microscraper.client.DeserializationException;
 import net.microscraper.database.Database;
 import net.microscraper.json.JsonArray;
 import net.microscraper.json.JsonObject;

@@ -240,7 +240,7 @@ public class JsonMEParser implements JsonParser {
 		}
 		
 		public JsonArray getJsonArray(int index)
-				throws JsonException, MalformedUriException, IOException {
+				throws JsonException {
 			try {
 				return new JSONMEArray(uri, array.getJSONArray(index));
 			} catch(org.json.me.JSONException e) {

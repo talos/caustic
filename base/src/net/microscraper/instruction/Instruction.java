@@ -83,11 +83,34 @@ public final class Instruction  {
 	}
 	
 	/**
+	 * Generate an array of {@link Execution}s from {@link Instruction#finds}.
+	 * @param variables The {@link Variables} to bind the {@link Execution}s to.
+	 * @param source The {@link String} source to bind each {@link Find} to.
+	 * @return The array of {@link Execution}s.
+	 */
+	public Execution[] generateFindExecutions(Variables variables, String source) {
+		Execution[] findExecutions = new Execution[finds.length];
+		for(int i = 0 ; i < finds.length ; i ++ ) {
+			findExecutions[i] = new Execution(finds[i]);
+		}
+		return findExecutions;
+	}
+	
+	/**
+	 * Generate an array of {@link Execution}s from {@link Instruction#loads}.
+	 * @param variables The {@link Variables} to bind the {@link Load}s to.
+	 * @return The array of {@link Execution}s.
+	 */
+	public Execution[] generateLoadExecutions(Variables variables) {
+		
+	}
+	
+	/**
 	 * Execute this {@link Instruction}, including all its children.
 	 * @param variables The {@link Variables} to use when compiling {@link MustacheTemplate}s.
 	 * @param source The {@link Result} source for this execution.  Can be <code>null</code>.
 	 */
-	public void execute(RegexpCompiler compiler, Browser browser,
+	/*public void execute(RegexpCompiler compiler, Browser browser,
 			Variables variables, Result source, Database database,
 			Logger log) {
 		// Create & initially stock queue.
@@ -125,7 +148,7 @@ public final class Instruction  {
 				queue.addElement(exc);
 			}
 		}
-	}
+	}*/
 	
 	/**
 	 * Generate the children of this {@link Instruction} during execution.  There will be as many children
@@ -141,7 +164,7 @@ public final class Instruction  {
 	 * @see #generateResult
 	 * @see #getChildren
 	 */
-	public Execution[] generateChildExecutables(RegexpCompiler compiler, Browser browser,
+	/*public Execution[] generateChildExecutables(RegexpCompiler compiler, Browser browser,
 			Execution parent, Result[] sources, Database database)
 				throws DeserializationException, IOException {
 		Execution[] childExecutables = new Execution[sources.length * children.length];
@@ -154,7 +177,7 @@ public final class Instruction  {
 			}
 		}
 		return childExecutables;
-	}
+	}*/
 
 	/**
 	 * @param compiler The {@link RegexpCompiler} to parse with.
@@ -169,7 +192,7 @@ public final class Instruction  {
 	 * @throws RegexpException If there was a problem matching with {@link RegexpCompiler}.
 	 * @throws DatabaseException If there was a problem storing data in {@link Database}.
 	 */
-	public final Result[] generateResults(RegexpCompiler compiler, Browser browser,
+	/*public final Result[] generateResults(RegexpCompiler compiler, Browser browser,
 			Variables variables, Result source, Database database) throws RegexpException {
 		String[] resultValues;
 		if(source == null) {
@@ -189,5 +212,5 @@ public final class Instruction  {
 			results[i] = new Result(id, name, resultValues[i]);
 		}
 		return results;
-	}
+	}*/
 }

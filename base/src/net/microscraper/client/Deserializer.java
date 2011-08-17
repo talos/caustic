@@ -2,7 +2,6 @@ package net.microscraper.client;
 
 import java.io.IOException;
 
-import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Load;
 import net.microscraper.json.JsonObject;

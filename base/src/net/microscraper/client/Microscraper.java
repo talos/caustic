@@ -5,7 +5,6 @@ import java.util.Hashtable;
 
 import net.microscraper.database.Database;
 import net.microscraper.impl.log.BasicLog;
-import net.microscraper.instruction.DeserializationException;
 import net.microscraper.instruction.Load;
 import net.microscraper.json.JsonParser;
 import net.microscraper.json.JsonObject;

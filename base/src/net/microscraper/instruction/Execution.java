@@ -9,14 +9,14 @@ import net.microscraper.util.Variables;
  * @author john
  *
  */
-public final class Execution implements Variables {
+public final class Execution implements Runnable {
 	
-	private final Instruction instruction;
+	private final Executable executable;
 	private final Result source;
 	private final Variables variables;
 	
 	private Result[] results = null;
-	private Execution[] children = null;
+	//private Execution[] children = null;
 	
 	private Throwable failure = null; // has to be Throwable because that's what #getCause returns.
 	private String lastMissingVariable = null;
@@ -131,7 +131,6 @@ public final class Execution implements Variables {
 	public final String toString() {
 		return instruction.toString();
 	}
-
 	
 	/**
 	 * 
@@ -163,5 +162,12 @@ public final class Execution implements Variables {
 		} else {
 			return false;
 		}
+	}
+	
+	/**
+	 * Attempt to run the {@link Execution}.
+	 */
+	public void run() {
+		
 	}
 }

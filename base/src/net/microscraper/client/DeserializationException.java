@@ -1,4 +1,6 @@
-package net.microscraper.instruction;
+package net.microscraper.client;
+
+import net.microscraper.instruction.Instruction;
 
 /**
  * {@link DeserializationException} is thrown when there is a problem generating an
