@@ -2,6 +2,7 @@ package net.microscraper.instruction;
 
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
+import net.microscraper.util.Variables;
 
 
 /**
@@ -10,7 +11,7 @@ import net.microscraper.util.NameValuePair;
  * @author john
  *
  */
-public class Result extends BasicNameValuePair {
+public class Result extends BasicNameValuePair implements Variables {
 
 	private final int id;
 	

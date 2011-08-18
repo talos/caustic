@@ -1,10 +1,9 @@
 package net.microscraper.mustache;
 
-import net.microscraper.client.DeserializationException;
-import net.microscraper.json.JsonException;
-import net.microscraper.json.JsonObject;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.util.Substitutable;
+import net.microscraper.util.Substitution;
 import net.microscraper.util.Variables;
 
 /**
@@ -12,61 +11,58 @@ import net.microscraper.util.Variables;
  * @author john
  *
  */
-public class MustachePattern {
-
+public class MustachePattern implements Substitutable {
+	
 	/**
-	 * @see net.microscraper.json.JsonParser#compile
+	 * The {@link MustacheTemplate} that will be substituted into a {@link String}
+	 * to use as the pattern.
 	 */
 	private final MustacheTemplate pattern;
 	
 	/**
-	 * @return The {@link MustachePattern}'s pattern.  Mustache compiled before it is used.
+	 * Flag equivalent to {@link java.util.regex.Pattern#CASE_INSENSITIVE
 	 */
-	private final boolean isCaseSensitive;
-
+	private final boolean isCaseInsensitive;
+	
 	/**
-	 * @see net.microscraper.json.JsonParser#compile
+	 * Flag equivalent to {@link java.util.regex.Pattern#MULTILINE
 	 */
 	private final boolean isMultiline;
-
+	
 	/**
-	 * @see net.microscraper.json.JsonParser#compile
+	 * Flag equivalent to {@link java.util.regex.Pattern#DOTALL
 	 */
 	private final boolean doesDotMatchNewline;
 	
-	public MustachePattern(MustacheTemplate pattern, boolean isCaseSensitive,
+	/**
+	 * The {@link RegexpCompiler} to use when compiling this {@link MustachePattern}.
+	 */
+	private final RegexpCompiler compiler;
+	
+	public MustachePattern(RegexpCompiler compiler, MustacheTemplate pattern, boolean isCaseInsensitive,
 			boolean isMultiline, boolean doesDotMatchNewline) {
+		this.compiler = compiler;
 		this.pattern = pattern;
-		this.isCaseSensitive = isCaseSensitive;
+		this.isCaseInsensitive = isCaseInsensitive;
 		this.isMultiline = isMultiline;
 		this.doesDotMatchNewline = doesDotMatchNewline;
 	}
 	
+	/**
+	 * Compile a {@link MustachePattern} into a {@link Pattern}, which will
+	 * be contained in {@link Substitution#getSubstituted()}.
+	 */
+	public Substitution sub(Variables variables) {
+		Substitution sub = pattern.sub(variables);
+		if(sub.isSuccessful()) {
+			String subbedPattern = (String) sub.getSubstituted();
+			return Substitution.success(compiler.compile(
+					subbedPattern,
+					isCaseInsensitive,
+					isMultiline, doesDotMatchNewline));
 
-	/**
-	 * Compile a {@link MustachePattern} into a {@link Pattern}.
-	 * @param compiler The {@link RegexpCompiler} to use.
-	 * @param variables The {@link Variables} to use.
-	 * @return The {@link Pattern}.
-	 */
-	public Pattern compile(RegexpCompiler compiler, Variables variables) {
-		return compiler.compile(
-				pattern.sub(variables),
-				isCaseSensitive,
-				isMultiline, doesDotMatchNewline);
-	}
-	
-	/**
-	 * Compile an array of {@link MustachePattern}s into an array of {@link Pattern}s.
-	 * @param regexps The array of {@link MustachePattern}s to compile.
-	 * @param variables The {@link Variables} to use.
-	 * @return An array of {@link Pattern}.
-	 */
-	public static Pattern[] compile(MustachePattern[] regexps, RegexpCompiler compiler, Variables variables) {
-		Pattern[] patterns = new Pattern[regexps.length];
-		for(int i  = 0 ; i < regexps.length ; i++) {
-			patterns[i] = regexps[i].compile(compiler, variables);
+		} else {
+			return sub;
 		}
-		return patterns;
 	}
 }

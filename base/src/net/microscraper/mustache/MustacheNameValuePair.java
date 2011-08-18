@@ -1,11 +1,9 @@
 package net.microscraper.mustache;
 
-import net.microscraper.client.DeserializationException;
-import net.microscraper.json.JsonIterator;
-import net.microscraper.json.JsonObject;
-import net.microscraper.json.JsonException;
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
+import net.microscraper.util.Substitutable;
+import net.microscraper.util.Substitution;
 import net.microscraper.util.Variables;
 
 
@@ -14,42 +12,24 @@ import net.microscraper.util.Variables;
  * @author john
  *
  */
-public class MustacheNameValuePair {
+public class MustacheNameValuePair implements Substitutable {
 	public final MustacheTemplate name;
 	public final MustacheTemplate value;
-		
-	private MustacheNameValuePair(NameValuePair nameValuePair) throws MustacheCompilationException {
-		this.name = MustacheTemplate.compile(nameValuePair.getName());
-		this.value = MustacheTemplate.compile(nameValuePair.getValue());
-	}
-	
-	/**
-	 * Compile a {@link MustacheNameValuePair} from a {@link NameValuePair}.
-	 * @param nameValuePair The {@link NameValuePair} to convert into a {@link MustacheNameValuePair}.
-	 * @return A {@link MustacheNameValuePair}.
-	 * @throws MustacheCompilationException If <code>nameValuePair</code> cannot be turned into a
-	 * {@link MustacheTemplate}.
-	 */
-	/*public static MustacheNameValuePair compile(NameValuePair nameValuePair)
-			throws MustacheCompilationException {
-		return new MustacheNameValuePair(nameValuePair);
-	}*/
-	
 	
 	public MustacheNameValuePair(MustacheTemplate name, MustacheTemplate value) {
 		this.name = name;
 		this.value = value;
 	}
 	
-	
-	public static NameValuePair[] compile(MustacheNameValuePair[] nameValuePairs,
-				Variables variables) {
-		NameValuePair[] encodedNameValuePairs = 
-			new NameValuePair[nameValuePairs.length];
-		for(int i = 0; i < nameValuePairs.length ; i ++) {
-			encodedNameValuePairs[i] = nameValuePairs[i].compile(variables);
+	/**
+	 * Substitutes to {@link NameValuePair}.
+	 */
+	public Substitution sub(Variables variables) {
+		Substitution sub = Substitution.combine(new Substitution[] { name.sub(variables), value.sub(variables) });
+		if(sub.isSuccessful()) {
+			String[] substituted = (String[]) sub.getSubstituted();
+			return Substitution.success((NameValuePair) new BasicNameValuePair(substituted[0], substituted[1]));
 		}
-		return encodedNameValuePairs;
+		return sub;
 	}
-
 }

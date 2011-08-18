@@ -57,6 +57,12 @@ public interface Browser extends Loggable, Decoder, Encoder {
 	public static final String ACCEPT_HEADER_JSON_VALUE = "application/json,text/json";
 	
 	public static final String UTF_8 = "UTF-8";
+
+	public static final String GET = "get";
+
+	public static final String POST = "post";
+
+	public static final String HEAD = "head";
 	
 	/**
 	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies

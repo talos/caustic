@@ -1,29 +1,20 @@
 package net.microscraper.instruction;
 
-import java.io.IOException;
+import java.util.Vector;
 
-import net.microscraper.client.Browser;
-import net.microscraper.json.JsonArray;
-import net.microscraper.json.JsonException;
-import net.microscraper.json.JsonObject;
 import net.microscraper.mustache.MustachePattern;
 import net.microscraper.mustache.MustacheTemplate;
-import net.microscraper.mustache.MustacheCompilationException;
-import net.microscraper.regexp.InvalidRangeException;
-import net.microscraper.regexp.MissingGroupException;
-import net.microscraper.regexp.NoMatchesException;
-import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.regexp.RegexpException;
-import net.microscraper.regexp.RegexpUtils;
-import net.microscraper.util.StringUtils;
+import net.microscraper.regexp.Pattern;
+import net.microscraper.util.Substitution;
 import net.microscraper.util.Variables;
 
 /**
- * {@link Find} provides a pattern and a replacement value for matches.
+ * An {@link Executable} for extracting matches from a source string according to
+ * a {@link Pattern} and substitution.
  * @author john
  *
  */
-public class Find {
+public class Find implements Executable {
 
 	/**
 	 * The {@link String} that should be mustached and evaluated for backreferences,
@@ -73,13 +64,50 @@ public class Find {
 		this.tests = tests;
 	}
 	
-	public Execution matchAgainst(String source, Variables variables)
-					throws NoMatchesException, MissingGroupException,
-					InvalidRangeException {
-		return pattern.compile(compiler, variables).match(
-				source,
-				replacement.sub(variables),
-				minMatch, maxMatch);
+	public Execution execute(String source, Variables variables) {
+		final Execution result;
+		Substitution subPattern = pattern.sub(variables);
+		Substitution subReplacement = replacement.sub(variables);
+		Substitution subTests = Substitution.arraySub(tests, variables);
+		
+		if(!subPattern.isSuccessful() || !subReplacement.isSuccessful() || !subTests.isSuccessful()) {
+			// One of the substitutions was not OK.
+			result = Execution.missingVariables(Substitution.combine(
+					new Substitution[] { subPattern, subReplacement, subTests }
+			).getMissingVariables());
+
+		} else {
+			// All the substitutions were OK.
+			Pattern pattern = (Pattern) subPattern.getSubstituted();
+			String replacement = (String) subReplacement.getSubstituted();
+			String[] matches = pattern.match(source, replacement, minMatch, maxMatch);
+			Pattern[] tests = (Pattern[]) subTests.getSubstituted();
+			
+			// We got at least 1 match.
+			if(matches.length == 0) {
+				result = Execution.noMatches();
+			} else {
+				// Run the tests.
+				Vector failedTests = new Vector();
+				for(int i = 0 ; i < tests.length ; i ++) {
+					for(int j = 0 ; j < matches.length ; j ++) {
+						boolean passed = tests[i].matches(matches[j], Pattern.FIRST_MATCH);
+						if(passed == false) {
+							failedTests.add(tests[i]);
+						}
+					}
+				}
+				
+				// Failed a test :(
+				if(failedTests.size() > 0) {
+					Pattern[] failedTestsAry = new Pattern[failedTests.size()];
+					failedTests.copyInto(failedTestsAry);
+					result = Execution.failedTests(failedTestsAry);
+				} else { // Passed all tests! :)
+					result = Execution.success(matches);
+				}
+			}
+		}
+		return result;
 	}
-	
 }

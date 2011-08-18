@@ -13,7 +13,6 @@ import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.mustache.MustacheCompilationException;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.regexp.RegexpException;
 import net.microscraper.util.StringUtils;
 import net.microscraper.util.Variables;
 import net.microscraper.util.VectorUtils;
@@ -44,14 +43,14 @@ public final class Instruction  {
 	private final MustacheTemplate name;
 	
 	/**
-	 * An array of {@link Find}s dependent upon this {@link Instruction}.
+	 * The {@link Executable} corresponding to this {@link Instruction}.
 	 */
-	private final Find[] finds;
-
+	private final Executable executable;
+	
 	/**
-	 * An array of {@link Load}s dependent upon this {@link Instruction}.
+	 * An array of {@link Instruction}s dependent upon this {@link Instruction}.
 	 */
-	private final Load[] pages;
+	private final Instruction[] children;
 	
 	/**
 	 * Whether or not this {@link Instruction} should save the values of its results.
@@ -64,15 +63,15 @@ public final class Instruction  {
 	 * saved. <code>True</code> if they should be, <code>false</code> otherwise.
 	 * @param name The {@link MustacheTemplate} that will be compiled and used as the name of this
 	 * {@link Instruction}'s {@link Result}s. 
-	 * @param finds An array of {@link Find}s dependent on this {@link Instruction}.
-	 * @param pages An array of {@link Load}s dependent on this {@link Instruction}.
+	 * @param executable The {@link Executable} directly within this {@link Instruction}.
+	 * @param children An array of {@link Executable}s launched by this {@link Instruction}.
 	 */
 	public Instruction(boolean shouldSaveValue,
-			MustacheTemplate name, Find[] finds, Load[] pages) {
+			MustacheTemplate name, Executable executable, Instruction[] children) {
 		this.shouldSaveValue = shouldSaveValue;
 		this.name = name;
-		this.finds = finds;
-		this.pages = pages;
+		this.executable = executable;
+		this.children = children;
 	}
 	
 	/**
@@ -86,6 +85,7 @@ public final class Instruction  {
 	 * Generate the array of {@link Result}s from executing this {@link Instruction}
 	 * without a source.
 	 * @return The array of {@link Result}s from executing this {@link Instruction}.
+	 * @throws InterruptedException if the user interrupts execution.
 	 */
 	public Result[] execute() {
 		
@@ -96,36 +96,40 @@ public final class Instruction  {
 	 * using a {@link Result} source.
 	 * @param source The {@link Result} source for the execution.
 	 * @return The array of {@link Result}s from executing this {@link Instruction}.
+	 * @throws InterruptedException if the user interrupts execution.
 	 */
-	public Result[] execute(Result source) {
+	public Result[] execute(Result source) throws InterruptedException {
 		
-	}
-	
-	/**
-	 * Execute this {@link Instruction}, including all its children.
-	 * @param variables The {@link Variables} to use when compiling {@link MustacheTemplate}s.
-	 * @param source The {@link Result} source for this execution.  Can be <code>null</code>.
-	 */
-	/*public void execute(RegexpCompiler compiler, Browser browser,
-			Variables variables, Result source, Database database,
-			Logger log) {
-		// Create & initially stock queue.
 		Vector queue = new Vector();
-		queue.add(new Execution(this, compiler,
-				browser, variables, source, database));
+		queue.add(executable.execute(source.getValue(), source));
 		
 		// Run queue.
 		while(queue.size() > 0) {
 			Execution exc = (Execution) queue.elementAt(0);
 			queue.removeElementAt(0);
 			
-			if(log != null) {
+			if(exc.isComplete()) {
+				String[] resultValues = exc.getResults();
+				for(int i = 0; i < resultValues.length; i ++) {
+					new Result(0, name, resultValues[i]);
+					for(int j = 0 ; j < children.length ; j++) {
+						
+						children[j].execute(
+					}
+				}
+			} else if(exc.isMissingVariables()) {
+				
+			} else if(exc.hasFailed()) {
+				
+			}
+			
+			/*if(log != null) {
 				log.i("Running " + exc.toString());
 			}
-			exc.run();
+			exc.run();*/
 			
 			// If the execution is complete, add its children to the queue.
-			if(exc.isComplete()) {
+			/*if(exc.isComplete()) {
 				VectorUtils.arrayIntoVector(exc.getChildren(), queue);
 			} else if (exc.isStuck()) {
 				if(log != null) {
@@ -142,8 +146,19 @@ public final class Instruction  {
 			
 			if(!exc.isComplete() && !exc.isStuck() && !exc.hasFailed()) {
 				queue.addElement(exc);
-			}
+			}*/
 		}
+	}
+	
+	/**
+	 * Execute this {@link Instruction}, including all its children.
+	 * @param variables The {@link Variables} to use when compiling {@link MustacheTemplate}s.
+	 * @param source The {@link Result} source for this execution.  Can be <code>null</code>.
+	 */
+	/*public void execute(RegexpCompiler compiler, Browser browser,
+			Variables variables, Result source, Database database,
+			Logger log) {
+		// Create & initially stock queue.
 	}*/
 	
 	/**

@@ -1,178 +1,113 @@
 package net.microscraper.instruction;
 
-import net.microscraper.client.Browser;
-import net.microscraper.database.Database;
-import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.util.Variables;
+import java.io.IOException;
+
+import net.microscraper.regexp.Pattern;
 
 /**
- * When successful, an {@link Execution} generates {@link Result}s.  It is
- * bound to a {@link Variables} instance.  If the {@link Variables} instance
- * is currently missing a variable it needs to run, it can explain what it is missing.
- * If it is missing the same variable after to consecutive tries, it considers itself
- * stuck.  If it fails due to some exception, it can explain what.
+ * When successful, an {@link Execution} contains {@link String}s.  If the execution
+ * failed because of a missing variable, it contains the missing variables.  If the
+ * execution failed because of something else, it contains the reason why.
  * @author john
  *
  */
 public final class Execution {
 	
-	private final Executable executable;
-	private final Result source;
-	private final Variables variables;
+	private final String[] results;
+	private final String[] missingVariables;
+	private final String failedBecause;
 	
-	private Result[] results = null;
-	//private Execution[] children = null;
+	private Execution(String[] results, String[] missingVariables, String failure) {
+		this.results = results;
+		this.missingVariables = missingVariables;
+		this.failedBecause = failure;
+	}
 	
-	private Throwable failure = null; // has to be Throwable because that's what #getCause returns.
-	private String lastMissingVariable = null;
-	private String missingVariable = null;
+	public static Execution success() {
+		return new Execution(new String[] {}, null, null);
+	}
 	
-	private boolean isStuck = false;
-	private boolean isComplete = false;
+	public static Execution success(String result) {
+		return new Execution(new String[] { result }, null, null);
+	}
 	
-	/**
-	 * Search for <code>key</code> only within this {@link Execution} or its
-	 * immediate descendents.
-	 * @param key the {@link String} to retrieve.
-	 * @return the value mapped to {@link String}, or <code>null</code> if it
-	 * is not mapped.
-	 */
-	/*private String localGet(String key) {
-		if(source != null) {
-			if(source.getName().equals(key)) {
-				return source.getValue();
-			}
-		}
-		if(results != null) {
-			if(results.length == 1) {
-				if(results[0].getName().equals(key)) {
-					return results[0].getValue();
-				}
-			}
-		}
-		if(children != null) {
-			for(int i = 0 ; i < children.length ; i++) {
-				String localValue = children[i].localGet(key);
-				if(localValue != null) {
-					return localValue;
-				}
-			}
-		}
-		return null;
+	public static Execution success(String[] results) {
+		return new Execution(results, null, null);
+	}
+	
+	public static Execution missingVariables(String[] missingVariables) {
+		return new Execution(null, missingVariables, null);
+	}
+	
+	/*public static Execution failure(String failedBecause) {
+		return new Execution(null, null, failedBecause);
 	}*/
-	
-	/**
-	 * 
-	 * @return <code>True</code> if the {@link Execution} has not {@link #run} successfully, and will not do so
-	 * without an update to its {@link Variables}, <code>false</code> otherwise.
-	 * @see #run()
-	 * @see #stuckOn()
-	 */
-	public final boolean isStuck() {
-		return isStuck;
+	public static Execution noMatches() {
+		return new Execution(null, null, "No matches.");
 	}
-
-	/**
-	 * 
-	 * @return The name of the {@link MissingVariable} that is stopping this {@link Execution} 
-	 * from completing its {@link #run}, if the {@link #isStuck} is returning <code>true</code>.
-	 * @throws IllegalStateException If called when {@link #isStuck} is not <code>true</code>.
-	 * @see #isStuck()
-	 */
-	public final String stuckOn() throws IllegalStateException {
-		if(isStuck()) {
-			return missingVariable;
-		} else {
-			throw new IllegalStateException();
-		}
+	
+	public static Execution ioException(IOException e) {
+		return new Execution(null, null, e.getMessage());
+	}
+	
+	public static Execution failedTests(Pattern[] failedTests) {
+		// TODO this is a missed opportunity!
+		return new Execution(null, null, "failed tests");
 	}
 	
 	/**
 	 * 
-	 * @return <code>True</code> if the {@link Execution} has failed to {@link #run},
-	 * and cannot do so, <code>false</code> otherwise.
+	 * @return <code>True</code> if the {@link Execution} has failed, <code>false</code> otherwise.
 	 * @see #run()
 	 * @see #failedBecause()
 	 */
-	public final boolean hasFailed() {
-		if(failure != null) {
-			return true;
-		} else {
-			return false;
-		}
+	public boolean hasFailed() {
+		return failedBecause == null ? false : true;
 	}
 	
 	/**
 	 * 
-	 * @return The {@link Throwable} that caused the {@link Execution} to fail to {@link #run},
-	 * @throws IllegalStateException If {@link #hasFailed} is <code>false</code>.
+	 * @return What caused the {@link Execution} to fail.
 	 * @see #run()
 	 * @see #hasFailed()
 	 */
-	public final Throwable failedBecause() throws IllegalStateException {
-		if(hasFailed()) {
-			return failure;
-		} else {
+	public String failedBecause() {
+		if(!hasFailed())
 			throw new IllegalStateException();
-		}
+		return failedBecause;
 	}
 
 	/**
 	 * 
-	 * @return <code>True</code> if the {@link Execution} has {@link #run} successfully, and can have
-	 * {@link #getChildren} called upon it, <code>false</code> otherwise.
-	 * @see #run()
-	 * @see #getChildren()
-	 * @see #getResult()
+	 * @return <code>True</code> if the {@link Execution} was a success, <code>false</code> otherwise.
+	 * @see #getResults()
 	 */
-	public final boolean isComplete() {
-		return isComplete;
-	}
-	
-	
-	/**
-	 * Returns {@link #instruction} as  {@link String}.
-	 */
-	public final String toString() {
-		return instruction.toString();
+	public boolean isComplete() {
+		return results == null ? false : true;
 	}
 	
 	/**
 	 * 
-	 * @return An array of fresh {@link Execution}s that this {@link Execution} has created.
-	 * @throws IllegalStateException if called before the {@link Execution} {@link #isComplete()}.
-	 * @see #run()
-	 * @see #isComplete()
+	 * @return The {@link String}s of this {@link Execution}.
 	 */
-	public final Execution[] getChildren() throws IllegalStateException {
-		if(isComplete()) {
-			return children;
-		} else {
+	public String[] getResults() {
+		if(!isComplete())
 			throw new IllegalStateException();
-		}
-	}
-	
-	public String get(String key) {
-		String localValue = localGet(key);
-		if(localValue != null) {
-			return localValue;
-		} else {
-			return variables.get(key); // search up.
-		}
-	}
-
-	public boolean containsKey(String key) {
-		if(get(key) != null) {
-			return true;
-		} else {
-			return false;
-		}
+		return results;
 	}
 	
 	/**
-	 * Attempt to run the {@link Execution}.
+	 * 
+	 * @return <code>True</code> if the {@link Execution} is missing variables, <code>false</code> otherwise.
+	 * @see #getMissingVariables()
 	 */
-	public void run() {
-		
+	public boolean isMissingVariables() {
+		return missingVariables == null ? false : true;
+	}
+	
+	public String[] getMissingVariables() {
+		if(!isMissingVariables()) 
+			throw new IllegalStateException();
+		return missingVariables;
 	}
 }

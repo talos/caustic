@@ -2,17 +2,18 @@ package net.microscraper.json;
 
 import java.io.IOException;
 
+import net.microscraper.client.Browser;
 import net.microscraper.client.DeserializationException;
 import net.microscraper.client.Deserializer;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
-import net.microscraper.instruction.Method;
 import net.microscraper.instruction.Load;
 import net.microscraper.mustache.MustacheCompilationException;
 import net.microscraper.mustache.MustacheNameValuePair;
 import net.microscraper.mustache.MustachePattern;
 import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.regexp.Pattern;
+import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpUtils;
 import net.microscraper.uri.MalformedUriException;
 import net.microscraper.util.StringUtils;
@@ -23,6 +24,16 @@ public class JsonDeserializer implements Deserializer {
 	 * The {@link JsonParser} used to parse JSON objects.
 	 */
 	private final JsonParser parser;
+	
+	/**
+	 * The {@link RegexpCompiler} to use when deserializing {@link Find}s.
+	 */
+	private final RegexpCompiler compiler;
+	
+	/**
+	 * The {@link Browser} to use when deserializing {@link Load}s.
+	 */
+	private final Browser browser;
 	
 	/**
 	 * Deserialize an {@link Load} from a {@link JsonObject}.
@@ -74,23 +85,23 @@ public class JsonDeserializer implements Deserializer {
 		if(jsonObject.has(POSTS)) {
 			if(jsonObject.isJsonObject(POSTS)) {
 				postNameValuePairs = deserializeMustacheNameValuePairArray(jsonObject.getJsonObject(POSTS));
-				return Load.post(url, postNameValuePairs, headers, cookies, preload, stops);
+				return Load.post(browser, url, postNameValuePairs, headers, cookies, preload, stops);
 			} else {
 				postData = MustacheTemplate.compile(jsonObject.getString(POSTS));
-				return Load.post(url, postData, headers, cookies, preload, stops);
+				return Load.post(browser, url, postData, headers, cookies, preload, stops);
 			}
 		}
 		
 		if(jsonObject.has(METHOD)) {
 			String method = jsonObject.getString(METHOD);
-			if(method.equalsIgnoreCase(Method.POST)) {
+			if(method.equalsIgnoreCase(Browser.POST)) {
 				postData = MustacheTemplate.compile("");
-				return Load.post(url, postData, headers, cookies, preload, stops);
-			} else if(method.equalsIgnoreCase(Method.HEAD)) {
-				return Load.get(url, headers, cookies, preload, stops);
+				return Load.post(browser, url, postData, headers, cookies, preload, stops);
+			} else if(method.equalsIgnoreCase(Browser.HEAD)) {
+				return Load.get(browser, url, headers, cookies, preload, stops);
 			}
 		}
-		return Load.get(url, headers, cookies, preload, stops);
+		return Load.get(browser, url, headers, cookies, preload, stops);
 	}
 
 	/**
@@ -226,7 +237,7 @@ public class JsonDeserializer implements Deserializer {
 		boolean isCaseSensitive = jsonObject.has(IS_CASE_SENSITIVE) ? jsonObject.getBoolean(IS_CASE_SENSITIVE) : IS_CASE_SENSITIVE_DEFAULT;
 		boolean isMultiline = jsonObject.has(IS_MULTILINE) ? jsonObject.getBoolean(IS_MULTILINE) : IS_MULTILINE_DEFAULT;
 		boolean doesDotMatchNewline = jsonObject.has(DOES_DOT_MATCH_ALL) ? jsonObject.getBoolean(DOES_DOT_MATCH_ALL) : DOES_DOT_MATCH_ALL_DEFAULT;
-		return new MustachePattern(pattern, isCaseSensitive, isMultiline, doesDotMatchNewline);
+		return new MustachePattern(compiler, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline);
 	}
 	
 	/**
@@ -357,8 +368,10 @@ public class JsonDeserializer implements Deserializer {
 	public static final String DOES_DOT_MATCH_ALL = "dot_matches_all";
 	public static final boolean DOES_DOT_MATCH_ALL_DEFAULT = true;
 
-	public JsonDeserializer(JsonParser parser) {
+	public JsonDeserializer(JsonParser parser, RegexpCompiler compiler, Browser browser) {
+		this.compiler = compiler;
 		this.parser = parser;
+		this.browser = browser;
 	}
 	
 	public Load deserializeLoad(String serializedString)

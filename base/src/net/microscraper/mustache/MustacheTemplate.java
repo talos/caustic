@@ -1,8 +1,11 @@
 package net.microscraper.mustache;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Vector;
 
 import net.microscraper.util.Encoder;
+import net.microscraper.util.Substitutable;
+import net.microscraper.util.Substitution;
 import net.microscraper.util.Variables;
 
 /**
@@ -11,7 +14,7 @@ import net.microscraper.util.Variables;
  * @author john
  *
  */
-public final class MustacheTemplate {
+public final class MustacheTemplate implements Substitutable {
 	private final String template;
 	
 	private MustacheTemplate(String template) throws MustacheCompilationException {
@@ -29,8 +32,6 @@ public final class MustacheTemplate {
 			close_tag_end_pos = close_tag_start_pos + close_tag.length();
 		}
 	}
-	
-
 
 	public static final String open_tag = "{{";
 	public static final String close_tag = "}}";
@@ -51,9 +52,9 @@ public final class MustacheTemplate {
 	/**
 	 * Substitute the values from a {@link Variables} into the {@link MustacheTemplate}.
 	 * @param variables The {@link Variables} to use in the substitution.
-	 * @return A {@link MustacheSubstitution} with the results of the substitution.
+	 * @return A {@link Substitution} with the results of the substitution.
 	 */
-	public MustacheSubstitution sub(Variables variables) {
+	public Substitution sub(Variables variables) {
 		try {
 			return sub(variables, null, null);
 		} catch(UnsupportedEncodingException e) {
@@ -61,20 +62,20 @@ public final class MustacheTemplate {
 		};
 	}
 	
-
 	/**
 	 * Substitute the values from a {@link Variables} into the {@link MustacheTemplate},
 	 * and encode each value upon inserting it.
 	 * @param variables The {@link Variables} to use in the substitution.
 	 * @param encoder The {@link Encoder} to use when encoding values.
 	 * @param encoding The {@link String} encoding for <code>encoder</code> to use.
-	 * @return A {@link MustacheSubstitution} with the results of the substitution.
+	 * @return A {@link Substitution} with the results of the substitution.
 	 * @throws UnsupportedEncodingException if <code>encoding</code> is not supported.
 	 */
-	public MustacheSubstitution sub(Variables variables, Encoder encoder, String encoding) throws UnsupportedEncodingException {
+	public Substitution sub(Variables variables, Encoder encoder, String encoding) throws UnsupportedEncodingException {
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
 		String result = "";
+		Vector missingVariables = new Vector();
 		while((open_tag_start_pos = template.indexOf(open_tag, close_tag_end_pos)) != -1) {
 			
 			// Pass unmodified text from the end of the last closed tag to the start of the current open tag.
@@ -94,11 +95,18 @@ public final class MustacheTemplate {
 					result += variables.get(tag);
 				}
 			} else {
-				return MustacheSubstitution.fail(tag);
+				//return Substitution.fail(tag);
+				missingVariables.add(tag);
 			}
 		}
-		return MustacheSubstitution.success(result + template.substring(close_tag_end_pos));
 		
+		if(missingVariables.size() == 0) {
+			return Substitution.success(result + template.substring(close_tag_end_pos));
+		} else {
+			String[] missingVariablesAry = new String[missingVariables.size()];
+			missingVariables.copyInto(missingVariablesAry);
+			return Substitution.fail(missingVariablesAry);
+		}
 		
 	}
 	

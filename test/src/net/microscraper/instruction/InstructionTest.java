@@ -30,7 +30,6 @@ public final class InstructionTest {
 	
 	@Mocked private Result source;
 	
-	private String source = "the quick brown fox";
 	private String name = "name";
 	private Instruction instruction;
 	

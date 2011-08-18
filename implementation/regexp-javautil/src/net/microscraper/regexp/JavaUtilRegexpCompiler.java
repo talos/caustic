@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import net.microscraper.regexp.InvalidRangeException;
-import net.microscraper.regexp.MissingGroupException;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 
@@ -21,7 +20,7 @@ public class JavaUtilRegexpCompiler implements RegexpCompiler {
 	}
 	
 	private final static class JavaUtilPattern implements Pattern {
-		private java.util.regex.Pattern pattern;
+		private final java.util.regex.Pattern pattern;
 		
 		public JavaUtilPattern(String pString, int flags) {
 			pattern = java.util.regex.Pattern.compile(pString, flags);
@@ -40,14 +39,8 @@ public class JavaUtilRegexpCompiler implements RegexpCompiler {
 			return match;
 		}
 		
-		private String replace(String input, String substitution) throws MissingGroupException {
-			Matcher matcher = pattern.matcher(input);
-			return matcher.replaceFirst(substitution);
-		}
-		
 		@Override
-		public String[] match(String input, String substitution, int minMatch, int maxMatch)
-					throws MissingGroupException {
+		public String[] match(String input, String substitution, int minMatch, int maxMatch) {
 			if(!RegexpUtils.isValidRange(minMatch, maxMatch)) {
 				throw new IllegalArgumentException(new InvalidRangeException(this, minMatch, maxMatch));
 			}
@@ -57,7 +50,7 @@ public class JavaUtilRegexpCompiler implements RegexpCompiler {
 			// Find the complete matchesList.
 			List<String> matchesList = new ArrayList<String>();
 			while(matcher.find()) {
-				matchesList.add(replace(matcher.group(), substitution));
+				matchesList.add(pattern.matcher(matcher.group()).replaceFirst(substitution));
 			}
 			
 			// No matches at all.

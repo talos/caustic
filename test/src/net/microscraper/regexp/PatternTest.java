@@ -8,7 +8,6 @@ import java.util.Collection;
 import net.microscraper.regexp.InvalidRangeException;
 import net.microscraper.regexp.JakartaRegexpCompiler;
 import net.microscraper.regexp.JavaUtilRegexpCompiler;
-import net.microscraper.regexp.NoMatchesException;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 
@@ -18,14 +17,14 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class PatternInterfaceTest {
+public class PatternTest {
 	private final RegexpCompiler re;
 	private Pattern pat;
 	private String testClass;
 
 	private static final String quickBrownFox = "The quick brown fox jumped over the lazy dog.";
 	
-	public PatternInterfaceTest(final RegexpCompiler regexpCompiler) {
+	public PatternTest(final RegexpCompiler regexpCompiler) {
 		this.re = regexpCompiler;
 		this.testClass = regexpCompiler.getClass().getSimpleName();
 	}
@@ -38,14 +37,6 @@ public class PatternInterfaceTest {
 		});
 	}
 	
-	
-	@Test
-	public void testMatchesString() {
-		pat = re.compile("the", false, false, false);
-		
-		assertTrue(testClass + " match failed.", pat.matches(quickBrownFox));
-	}
-
 	@Test
 	public void testMatchesStringInt() {
 		pat = re.compile("\\w{3}", false, false, false);
@@ -94,10 +85,10 @@ public class PatternInterfaceTest {
 		Pattern betaLowerSensitive = re.compile("beta", false, false, false);
 		Pattern betaCapsInsensitive  = re.compile("BETA", true, false, false);
 		Pattern betaLowerInsensitive = re.compile("beta", true, false, false);
-		assertFalse(testClass + " case sensitive uppercase should not match lowercase input.", betaCapsSensitive.matches(input));
-		assertTrue(testClass + " case sensitive lowercase should match lowercase input.", betaLowerSensitive.matches(input));
-		assertTrue(testClass + " case insensitive uppercase should match lowercase input.", betaCapsInsensitive.matches(input));
-		assertTrue(testClass + " case insensitive lowercase should match lowercase input.", betaLowerInsensitive.matches(input));
+		assertFalse(testClass + " case sensitive uppercase should not match lowercase input.", betaCapsSensitive.matches(input, Pattern.FIRST_MATCH));
+		assertTrue(testClass + " case sensitive lowercase should match lowercase input.", betaLowerSensitive.matches(input, Pattern.FIRST_MATCH));
+		assertTrue(testClass + " case insensitive uppercase should match lowercase input.", betaCapsInsensitive.matches(input, Pattern.FIRST_MATCH));
+		assertTrue(testClass + " case insensitive lowercase should match lowercase input.", betaLowerInsensitive.matches(input, Pattern.FIRST_MATCH));
 	}
 	
 	@Test
@@ -148,8 +139,8 @@ public class PatternInterfaceTest {
 		assertEquals(thirdToLastMatch, "briskets");
 	}
 	
-	@Test(expected=InvalidRangeException.class)
-	public void testInvalidMatchRange() throws Exception {
+	@Test(expected=IllegalArgumentException.class)
+	public void testInvalidMatchRangeIllegalArgument() throws Exception {
 		String input = "briskets, bicycles, and boleros";
 		pat = re.compile("b\\w+s", false, false, false);
 		String sub = "$0";
@@ -157,13 +148,13 @@ public class PatternInterfaceTest {
 		pat.match(input, sub, -1, -2);
 	}
 	
-	@Test(expected=NoMatchesException.class)
+	@Test
 	public void testNonMatch() throws Exception {
 		String input = "briskets, bicycles, and boleros";
 		pat = re.compile("b\\w+s", false, false, false);
 		String sub = "$0";
 		
-		pat.match(input, sub, 4, 4);
+		assertArrayEquals(new String[] { }, pat.match(input, sub, 4, 4));
 	}
 	
 	@Test()

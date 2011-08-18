@@ -5,8 +5,6 @@ import java.util.Vector;
 import org.apache.regexp.RE;
 
 import net.microscraper.regexp.InvalidRangeException;
-import net.microscraper.regexp.MissingGroupException;
-import net.microscraper.regexp.NoMatchesException;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 
@@ -33,9 +31,6 @@ public class JakartaRegexpCompiler implements RegexpCompiler {
 			this.patternString = patternString;
 		}
 		
-		public boolean matches(String input) {
-			return re.match(input);
-		}
 		public boolean matches(String input, int matchNumber) {
 			int pos = 0;
 			int curMatch = 0;
@@ -49,36 +44,10 @@ public class JakartaRegexpCompiler implements RegexpCompiler {
 			return false;
 		}
 		
-		private String replace(String input, String substitution) throws MissingGroupException {
-			return re.subst(input, substitution, RE.REPLACE_BACKREFERENCES);
-		}
-		
-		public String match(String input, String substitution, int matchNumber) throws NoMatchesException, MissingGroupException {			
-			int pos = 0;
-			int curMatch = 0;
-			Vector backwardsMemory = new Vector();
-			while(re.match(input, pos)) {
-				pos = re.getParenEnd(0);
-				if(matchNumber >= 0) {
-					if(curMatch == matchNumber) {
-						return replace(re.getParen(0), substitution);
-					}
-				} else {
-					backwardsMemory.addElement(replace(re.getParen(0), substitution));
-				}
-				curMatch++;
-			}
-			if(matchNumber < 0 && backwardsMemory.size() + matchNumber >= 0) {
-				return (String) backwardsMemory.elementAt(backwardsMemory.size() + matchNumber);
-			}
-			throw new NoMatchesException(this, curMatch, matchNumber, input);
-		}
-		
-		public String[] match(String input, String substitution, int minMatch, int maxMatch)
-					throws InvalidRangeException, NoMatchesException, MissingGroupException {
+		public String[] match(String input, String substitution, int minMatch, int maxMatch) {
 			if((maxMatch >= 0 && minMatch >= 0 && maxMatch < minMatch) ||
 					(maxMatch < 0 && minMatch < 0 && maxMatch < minMatch))
-				throw new InvalidRangeException(this, minMatch, maxMatch);
+				throw new IllegalArgumentException(new InvalidRangeException(this, minMatch, maxMatch));
 			
 			//Matcher matcher = pattern.matcher(input);
 			
@@ -87,11 +56,11 @@ public class JakartaRegexpCompiler implements RegexpCompiler {
 			int pos = 0;
 			while(re.match(input, pos)) {
 				pos = re.getParenEnd(0);
-				matchesList.addElement(replace(re.getParen(0), substitution));
+				matchesList.addElement(re.subst(re.getParen(0), substitution, RE.REPLACE_BACKREFERENCES));
 			}
 			// No matches at all.
 			if(matchesList.size() == 0)
-				throw new NoMatchesException(this, matchesList.size(), minMatch, maxMatch, input);
+				return new String[] {};
 			
 			// Determine the first and last indices relative to our list.
 			int firstIndex = minMatch >= 0 ? minMatch : matchesList.size() + minMatch;
@@ -99,7 +68,7 @@ public class JakartaRegexpCompiler implements RegexpCompiler {
 			
 			// Range excludes 
 			if(lastIndex < firstIndex)
-				throw new NoMatchesException(this, matchesList.size(), firstIndex, lastIndex, input);
+				return new String[] {};
 			
 			String[] matches = new String[1 + lastIndex - firstIndex];
 			for(int i = 0 ; i < matches.length ; i ++) {

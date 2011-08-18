@@ -36,14 +36,15 @@ public interface Pattern {
 	 * Returns an array of Strings of the substitution, one for each match.  Returns a zero-length
 	 * array if there were no matches.
 	 * @param input {@link String} input.
-	 * @param substitution The substitution to use, for example "$0"
+	 * @param replacement The replacement to use.  Backreferences are notated with
+	 * <code>$</code>, so <code>$0</code> would be the whole match, <code>$1</code>
+	 * the first backreference, etc.
 	 * @param minMatch Which match should be the first to be included in the return.  0-indexed, with negative numbers counting backwards from end (-1 is last).
 	 * @param maxMatch Which match should be the last to be included in the return.  0-indexed, with negative numbers counting backwards from end (-1 is last.
 	 * @return {@link String[]} An array of strings, each using the substitution for the pattern,
 	 * of zero length if there were no matches.
-	 * @throws MissingGroupException The substitution referred to a backreference group not in the pattern.
 	 * @see #LAST_MATCH
 	 * @see #FIRST_MATCH
 	 */
-	public abstract String[] match(String input, String substitution, int minMatch, int maxMatch) throws NoMatchesException, MissingGroupException, InvalidRangeException;
+	public abstract String[] match(String input, String replacement, int minMatch, int maxMatch);
 }
