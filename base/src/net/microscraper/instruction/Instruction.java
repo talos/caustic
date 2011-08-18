@@ -81,27 +81,23 @@ public final class Instruction  {
 	public String toString() {
 		return name.toString();
 	}
-	
+
 	/**
-	 * Generate an array of {@link Execution}s from {@link Instruction#finds}.
-	 * @param variables The {@link Variables} to bind the {@link Execution}s to.
-	 * @param source The {@link String} source to bind each {@link Find} to.
-	 * @return The array of {@link Execution}s.
+	 * Generate the array of {@link Result}s from executing this {@link Instruction}
+	 * without a source.
+	 * @return The array of {@link Result}s from executing this {@link Instruction}.
 	 */
-	public Execution[] generateFindExecutions(Variables variables, String source) {
-		Execution[] findExecutions = new Execution[finds.length];
-		for(int i = 0 ; i < finds.length ; i ++ ) {
-			findExecutions[i] = new Execution(finds[i]);
-		}
-		return findExecutions;
+	public Result[] execute() {
+		
 	}
 	
 	/**
-	 * Generate an array of {@link Execution}s from {@link Instruction#loads}.
-	 * @param variables The {@link Variables} to bind the {@link Load}s to.
-	 * @return The array of {@link Execution}s.
+	 * Generate the array of {@link Result}s from executing this {@link Instruction}
+	 * using a {@link Result} source.
+	 * @param source The {@link Result} source for the execution.
+	 * @return The array of {@link Result}s from executing this {@link Instruction}.
 	 */
-	public Execution[] generateLoadExecutions(Variables variables) {
+	public Result[] execute(Result source) {
 		
 	}
 	

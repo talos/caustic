@@ -33,15 +33,15 @@ public interface Pattern {
 	public abstract boolean matches(String input, int matchNumber);
 	
 	/**
-	 * Returns an array of Strings of the substitution, one for each match.
-	 * @param input String input
+	 * Returns an array of Strings of the substitution, one for each match.  Returns a zero-length
+	 * array if there were no matches.
+	 * @param input {@link String} input.
 	 * @param substitution The substitution to use, for example "$0"
 	 * @param minMatch Which match should be the first to be included in the return.  0-indexed, with negative numbers counting backwards from end (-1 is last).
 	 * @param maxMatch Which match should be the last to be included in the return.  0-indexed, with negative numbers counting backwards from end (-1 is last.
-	 * @return {@link String[]} An array of strings, each using the substitution for the pattern.
-	 * @throws NoMatchesException There was no match at the match number for this pattern.
+	 * @return {@link String[]} An array of strings, each using the substitution for the pattern,
+	 * of zero length if there were no matches.
 	 * @throws MissingGroupException The substitution referred to a backreference group not in the pattern.
-	 * @throws InvalidRangeException The range referred to a positive maximum less than a positive minimum, or a negative maximum less than a negative minimum.
 	 * @see #LAST_MATCH
 	 * @see #FIRST_MATCH
 	 */

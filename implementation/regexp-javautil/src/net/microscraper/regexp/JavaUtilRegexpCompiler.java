@@ -6,7 +6,6 @@ import java.util.regex.Matcher;
 
 import net.microscraper.regexp.InvalidRangeException;
 import net.microscraper.regexp.MissingGroupException;
-import net.microscraper.regexp.NoMatchesException;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 
@@ -29,12 +28,6 @@ public class JavaUtilRegexpCompiler implements RegexpCompiler {
 		}
 		
 		@Override
-		public boolean matches(String input) {			
-			Matcher matcher = pattern.matcher(input);
-			boolean match = matcher.find();
-			return match;
-		}
-		@Override
 		public boolean matches(String input, int matchNumber) {			
 			Matcher matcher = pattern.matcher(input);
 			int i = 0;
@@ -52,40 +45,11 @@ public class JavaUtilRegexpCompiler implements RegexpCompiler {
 			return matcher.replaceFirst(substitution);
 		}
 		
-		/**
-		 * Faster match for a 
-		 * @param input
-		 * @param substitution
-		 * @param matchNumber
-		 * @return
-		 * @throws NoMatchesException
-		 * @throws MissingGroupException
-		 */
-		/*private String match(String input, String substitution, int matchNumber) throws NoMatchesException, MissingGroupException {			
-			Matcher matcher = pattern.matcher(input);
-			List<String> backwardsMemory = new ArrayList<String>();
-			int i = 0;
-			while(matcher.find()) {
-				if(matchNumber >= 0) {
-					if(i == matchNumber) {
-						return replace(matcher.group(), substitution);
-					} else if(i > matchNumber) { break; }
-				} else {
-					backwardsMemory.add(replace(matcher.group(), substitution));
-				}
-				i++;
-			}
-			if(matchNumber < 0 && backwardsMemory.size() + matchNumber >= 0) {
-				return backwardsMemory.get(backwardsMemory.size() + matchNumber);
-			}
-			throw new NoMatchesException(this, i, matchNumber, input);
-		}*/
-		
 		@Override
 		public String[] match(String input, String substitution, int minMatch, int maxMatch)
-					throws InvalidRangeException, NoMatchesException, MissingGroupException {
+					throws MissingGroupException {
 			if(!RegexpUtils.isValidRange(minMatch, maxMatch)) {
-				throw new InvalidRangeException(this, minMatch, maxMatch);
+				throw new IllegalArgumentException(new InvalidRangeException(this, minMatch, maxMatch));
 			}
 			
 			Matcher matcher = pattern.matcher(input);
@@ -98,15 +62,15 @@ public class JavaUtilRegexpCompiler implements RegexpCompiler {
 			
 			// No matches at all.
 			if(matchesList.size() == 0)
-				throw new NoMatchesException(this, matchesList.size(), minMatch, maxMatch, input);
+				return new String[] {};
 			
 			// Determine the first and last indices relative to our list.
 			int firstIndex = minMatch >= 0 ? minMatch : matchesList.size() + minMatch;
 			int lastIndex  = maxMatch >= 0 ? maxMatch : matchesList.size() + maxMatch;
 			
-			// Range excludes 
+			// Range excludes all matches.
 			if(lastIndex < firstIndex)
-				throw new NoMatchesException(this, matchesList.size(), firstIndex, lastIndex, input);
+				return new String[] {};
 			
 			String[] matches = new String[1 + lastIndex - firstIndex];
 			for(int i = 0 ; i < matches.length ; i ++) {

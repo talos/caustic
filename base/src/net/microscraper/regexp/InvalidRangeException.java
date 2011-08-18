@@ -5,7 +5,7 @@ package net.microscraper.regexp;
  * @author realest
  *
  */
-public class InvalidRangeException extends RegexpException {
+public class InvalidRangeException extends Exception {
 	/**
 	 * 
 	 */
@@ -13,7 +13,7 @@ public class InvalidRangeException extends RegexpException {
 	private final int minMatch;
 	private final int maxMatch;
 	public InvalidRangeException(Pattern pattern, int minMatch, int maxMatch) {
-		super(pattern, "Range " + minMatch + " to " + maxMatch + " is not valid.");
+		super("Range " + minMatch + " to " + maxMatch + " is not valid.");
 		this.minMatch = minMatch;
 		this.maxMatch = maxMatch;
 	}

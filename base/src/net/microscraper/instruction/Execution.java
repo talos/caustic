@@ -6,10 +6,15 @@ import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.util.Variables;
 
 /**
+ * When successful, an {@link Execution} generates {@link Result}s.  It is
+ * bound to a {@link Variables} instance.  If the {@link Variables} instance
+ * is currently missing a variable it needs to run, it can explain what it is missing.
+ * If it is missing the same variable after to consecutive tries, it considers itself
+ * stuck.  If it fails due to some exception, it can explain what.
  * @author john
  *
  */
-public final class Execution implements Runnable {
+public final class Execution {
 	
 	private final Executable executable;
 	private final Result source;
@@ -32,7 +37,7 @@ public final class Execution implements Runnable {
 	 * @return the value mapped to {@link String}, or <code>null</code> if it
 	 * is not mapped.
 	 */
-	private String localGet(String key) {
+	/*private String localGet(String key) {
 		if(source != null) {
 			if(source.getName().equals(key)) {
 				return source.getValue();
@@ -54,7 +59,7 @@ public final class Execution implements Runnable {
 			}
 		}
 		return null;
-	}
+	}*/
 	
 	/**
 	 * 

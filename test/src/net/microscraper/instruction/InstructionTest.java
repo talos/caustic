@@ -28,6 +28,8 @@ public final class InstructionTest {
 	@Mocked private Find find;
 	@Mocked private Load page;
 	
+	@Mocked private Result source;
+	
 	private String source = "the quick brown fox";
 	private String name = "name";
 	private Instruction instruction;
@@ -37,13 +39,11 @@ public final class InstructionTest {
 		//instruction = new Instruction(false, MustacheTemplate.compile(name), )
 	}
 	
-	@Before
-	public void generateFindExecutions() throws Exception {
-		//Execution[] executions = instruction.generateFindExecutions(variables, source);
+	public void testExecuteWithoutSource() throws Exception {
+		Result[] results = instruction.execute();
 	}
 	
-	@Before
-	public void generateLoadExecutions() throws Exception {
-		//Execution[] executions = instruction.generateLoadExecutions(variables);
+	public void testExecuteWithSource() throws Exception {
+		Result[] results = instruction.execute(source);
 	}
 }
