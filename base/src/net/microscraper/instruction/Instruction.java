@@ -1,6 +1,7 @@
 package net.microscraper.instruction;
 
 import java.io.IOException;
+import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.client.Browser;
@@ -43,14 +44,14 @@ public final class Instruction  {
 	private final MustacheTemplate name;
 	
 	/**
-	 * The {@link Executable} corresponding to this {@link Instruction}.
+	 * An array of {@link Find}s dependent upon this {@link Instruction}.
 	 */
-	private final Executable executable;
+	private final Find[] finds;
 	
 	/**
-	 * An array of {@link Instruction}s dependent upon this {@link Instruction}.
+	 * An array of {@link Load}s dependent upon this {@link Instruction}.
 	 */
-	private final Instruction[] children;
+	private final Load[] loads;
 	
 	/**
 	 * Whether or not this {@link Instruction} should save the values of its results.
@@ -63,15 +64,15 @@ public final class Instruction  {
 	 * saved. <code>True</code> if they should be, <code>false</code> otherwise.
 	 * @param name The {@link MustacheTemplate} that will be compiled and used as the name of this
 	 * {@link Instruction}'s {@link Result}s. 
-	 * @param executable The {@link Executable} directly within this {@link Instruction}.
-	 * @param children An array of {@link Executable}s launched by this {@link Instruction}.
+	 * @param finds An array of {@link Find}s launched by this {@link Instruction}.
+	 * @param finds An array of {@link Load}s launched by this {@link Instruction}.
 	 */
 	public Instruction(boolean shouldSaveValue,
-			MustacheTemplate name, Executable executable, Instruction[] children) {
+			MustacheTemplate name, Find[] finds, Load[] loads) {
 		this.shouldSaveValue = shouldSaveValue;
 		this.name = name;
-		this.executable = executable;
-		this.children = children;
+		this.finds = finds;
+		this.loads = loads;
 	}
 	
 	/**
@@ -80,15 +81,9 @@ public final class Instruction  {
 	public String toString() {
 		return name.toString();
 	}
-
-	/**
-	 * Generate the array of {@link Result}s from executing this {@link Instruction}
-	 * without a source.
-	 * @return The array of {@link Result}s from executing this {@link Instruction}.
-	 * @throws InterruptedException if the user interrupts execution.
-	 */
-	public Result[] execute() {
-		
+	
+	public Executable bind(Variables variables, String source) {
+		return new Executable();
 	}
 	
 	/**
@@ -98,7 +93,7 @@ public final class Instruction  {
 	 * @return The array of {@link Result}s from executing this {@link Instruction}.
 	 * @throws InterruptedException if the user interrupts execution.
 	 */
-	public Result[] execute(Result source) throws InterruptedException {
+	/*public Result[] execute(Result source) throws InterruptedException {
 		
 		Vector queue = new Vector();
 		queue.add(executable.execute(source.getValue(), source));
@@ -147,8 +142,8 @@ public final class Instruction  {
 			if(!exc.isComplete() && !exc.isStuck() && !exc.hasFailed()) {
 				queue.addElement(exc);
 			}*/
-		}
-	}
+		//}
+	//}
 	
 	/**
 	 * Execute this {@link Instruction}, including all its children.

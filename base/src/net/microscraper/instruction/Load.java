@@ -17,7 +17,7 @@ import net.microscraper.util.Variables;
  * @author realest
  *
  */
-public final class Load implements Executable {
+public final class Load {
 	/**
 	 * The HTTP request type to use.  Either {@link Browser#GET},
 	 * {@link Browser#POST}, or {@link Browser#HEAD}.
@@ -103,11 +103,15 @@ public final class Load implements Executable {
 		return new Load(browser, Browser.POST, url, null, postNameValuePairs, headers, cookies, preload, stops);
 	}
 	
-	public Execution execute(String source, Variables variables)
+	public Execution request(Variables variables)
 			throws InterruptedException {		
 		// Temporary executions to do before.  Not published, executed each time.
+		// TODO combine missingVariables from preexecutions here?
 		for(int i = 0 ; i < preload.length ; i ++) {
-			preload[i].execute(source, variables);
+			Execution preExecution = preload[i].request(variables);
+			if(!preExecution.isSuccessful()) {
+				return preExecution;
+			}
 		}
 		try {
 			final Execution result;

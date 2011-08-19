@@ -1,8 +1,11 @@
 package net.microscraper.instruction;
 
 import java.io.IOException;
+import java.util.Hashtable;
 
 import net.microscraper.regexp.Pattern;
+import net.microscraper.util.BasicNameValuePair;
+import net.microscraper.util.Variables;
 
 /**
  * When successful, an {@link Execution} contains {@link String}s.  If the execution
@@ -13,35 +16,44 @@ import net.microscraper.regexp.Pattern;
  */
 public final class Execution {
 	
-	private final String[] results;
+	//private final String name;
+	//private final String[] resultValues;
+	private final Executable[] children;
 	private final String[] missingVariables;
 	private final String failedBecause;
 	
-	private Execution(String[] results, String[] missingVariables, String failure) {
-		this.results = results;
+	private Execution(Executable[] children, String[] missingVariables, String failure) {
+		this.children = children;
 		this.missingVariables = missingVariables;
 		this.failedBecause = failure;
 	}
 	
-	public static Execution success() {
-		return new Execution(new String[] {}, null, null);
-	}
-	
-	public static Execution success(String result) {
-		return new Execution(new String[] { result }, null, null);
-	}
-	
-	public static Execution success(String[] results) {
-		return new Execution(results, null, null);
+	public static Execution success(Variables variables,
+			String name, String[] resultValues, Instruction[] childInstructions) {
+		Executable[] childExecutables = new Executable[resultValues.length * childInstructions.length];
+		for(int i = 0 ; i < childInstructions.length ; i++) {
+			
+			// Only one resultValue, modifies the Variables (passes up
+			// the new value).
+			if(resultValues.length == 1) {
+				variables.put(name, resultValues[0]);
+				childExecutables[i] = childInstructions[i].bind(variables, resultValues[0]);
+			
+			// Multiple resultValues, copies but does not modify the Variables.
+			} else {
+				for(int j = 0 ; j < resultValues.length ; j++) {
+					Variables branchedVariables = variables.branch(name, resultValues[j]);
+					childExecutables[i * childInstructions.length + j] = childInstructions[i].bind(branchedVariables, resultValues[j]);
+				}
+			}
+		}
+		return new Execution(childExecutables, null, null);
 	}
 	
 	public static Execution missingVariables(String[] missingVariables) {
 		return new Execution(null, missingVariables, null);
 	}
 	
-	/*public static Execution failure(String failedBecause) {
-		return new Execution(null, null, failedBecause);
-	}*/
 	public static Execution noMatches() {
 		return new Execution(null, null, "No matches.");
 	}
@@ -82,18 +94,18 @@ public final class Execution {
 	 * @return <code>True</code> if the {@link Execution} was a success, <code>false</code> otherwise.
 	 * @see #getResults()
 	 */
-	public boolean isComplete() {
-		return results == null ? false : true;
+	public boolean isSuccessful() {
+		return children == null ? false : true;
 	}
 	
 	/**
 	 * 
-	 * @return The {@link String}s of this {@link Execution}.
+	 * @return The {@link Executable}s resulting from this successful {@link Execution}.
 	 */
-	public String[] getResults() {
-		if(!isComplete())
+	public Executable[] generateChildren() {
+		if(!isSuccessful())
 			throw new IllegalStateException();
-		return results;
+		return children;
 	}
 	
 	/**

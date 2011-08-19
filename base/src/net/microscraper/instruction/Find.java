@@ -14,7 +14,7 @@ import net.microscraper.util.Variables;
  * @author john
  *
  */
-public class Find implements Executable {
+public class Find {
 
 	/**
 	 * The {@link String} that should be mustached and evaluated for backreferences,
@@ -64,7 +64,7 @@ public class Find implements Executable {
 		this.tests = tests;
 	}
 	
-	public Execution execute(String source, Variables variables) {
+	public Execution match(String source, Variables variables) {
 		final Execution result;
 		Substitution subPattern = pattern.sub(variables);
 		Substitution subReplacement = replacement.sub(variables);
