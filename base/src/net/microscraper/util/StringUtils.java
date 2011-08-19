@@ -37,6 +37,10 @@ public class StringUtils {
 		return joined;
 	}
 	
+	public static String quoteJoin(String[] strings) {
+		return quote(join(strings, QUOTATION + ", " + QUOTATION));
+	}
+	
 	public static String truncate(String string, int length) {
 		if(string == null)
 			return "";

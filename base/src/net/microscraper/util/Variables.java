@@ -3,39 +3,28 @@ package net.microscraper.util;
 import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Vector;
 
 public class Variables {
 	
-	private final Vector parentHashtables = new Vector();
+	private final Variables parent;
 	private Hashtable hashtable = new Hashtable();
 	
-	private Variables() { }
+	private Variables() {
+		parent = null;
+	}
 	
-	/**
-	 * Extend a {@link BasicVariables} with mappings from a {@link Hashtable}.  Modifies
-	 * the original.
-	 * @param withHashtable The {@link Hashtable} to use.
-	 * @throws IllegalArgumentException if one of the <code>withHashtable</code> elements
-	 * has a non-{@link String} key or value.
-	 * @return The original {@link BasicVariables}, modified.
-	 */
-	public Variables extend(Hashtable withHashtable) {
-		Enumeration enum = withHashtable.keys();
-		while(enum.hasMoreElements()) {
-			Object key = enum.nextElement();
-			Object value = withHashtable.get(key);
-			if(key instanceof String && value instanceof String) {
-				hashtable.put(key, value);
-			} else {
-				throw new IllegalArgumentException();
-			}
-		}
-		return this;
+	private Variables(Variables parent) {
+		this.parent = parent;
+	}
+	
+	public static Variables branch(Variables parent, String key, String value) {
+		Variables branched = new Variables(parent);
+		branched.put(key, value);
+		return branched;
 	}
 
 	/**
-	 * Initialize an empty {@link BasicVariables}.
+	 * Initialize an empty {@link Variables}.
 	 */
 	public static Variables empty() {
 		return new Variables();
@@ -44,7 +33,8 @@ public class Variables {
 	/**
 	 * Turn a form-encoded {@link String} into {@link Variables}.
 	 * @param decoder The {@link Decoder} to use for decoding.
-	 * @param formEncodedData A {@link String} of form-encoded data to convert.
+	 * @param formEncodedData A {@link String} of form-encoded data to convert.  It must be 
+	 * correctly formatted.
 	 * @param encoding The encoding to use.  <code>UTF-8</code> recommended.
 	 * @return A {@link Variables}.
 	 * @throws UnsupportedEncodingException If the encoding is not supported.
@@ -66,13 +56,23 @@ public class Variables {
 	}
 	
 	/**
-	 * Initialize {@link BasicVariables} values from a {@link Hashtable}.
+	 * Initialize {@link Variables} values from a {@link Hashtable}.  Its keys and values must
+	 * all be {@link String}s.
 	 * @param initialHashtable Initial {@link Hashtable} whose mappings should stock {@link Variables}.
-	 * @throws IllegalArgumentException if one of the <code>initialHashtable</code> elements
-	 * has a non-{@link String} key or value.
 	 */
 	public static Variables fromHashtable(Hashtable initialHashtable) {
-		return empty().extend(initialHashtable);
+		Enumeration enum = initialHashtable.keys();
+		Variables variables = new Variables();
+		while(enum.hasMoreElements()) {
+			try {
+				String key = (String) enum.nextElement();
+				String value = (String) initialHashtable.get(key);
+				variables.put((String) key, value);
+			} catch(ClassCastException e) {
+				throw new IllegalArgumentException("Variables must be initialized with String-String hashtable.", e);
+			}
+		}
+		return variables;
 	}
 
 	/**
@@ -85,16 +85,11 @@ public class Variables {
 	public String get(String key) {
 		if(hashtable.containsKey(key)) {
 			return (String) hashtable.get(key);			
+		} else if(parent != null) {
+			return parent.get(key);
 		} else {
-			Enumeration enumeration = parentHashtables.elements();
-			while(enumeration.hasMoreElements()) {
-				Hashtable parent = (Hashtable) enumeration.nextElement();
-				if(parent.containsKey(key)) {
-					return (String) parent.get(key);
-				}
-			}
+			return null;
 		}
-		return null;
 	}
 
 	/**
@@ -108,25 +103,14 @@ public class Variables {
 	public boolean containsKey(String key) {
 		if(hashtable.containsKey(key)) {
 			return true;
+		} else if(parent != null) {
+			return parent.containsKey(key);
 		} else {
-			Enumeration enumeration = parentHashtables.elements();
-			while(enumeration.hasMoreElements()) {
-				Hashtable parent = (Hashtable) enumeration.nextElement();
-				if(parent.containsKey(key)) {
-					return true;
-				}
-			}
+			return false;
 		}
-		return false;
 	}
 	
 	public void put(String key, String value) {
 		hashtable.put(key, value);
-	}
-	
-	public void branch(String key, String value) {
-		parentHashtables.add(hashtable);
-		hashtable = new Hashtable();
-		put(key, value);
 	}
 }

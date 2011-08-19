@@ -13,7 +13,18 @@ import net.microscraper.util.Variables;
  */
 public class Executable {
 	
+	private Execution lastExecution;
 	
+	private final MustacheTemplate name;
+	private final Variables variables;
+	private final String source;
+	
+	private final Find find;
+	private final Load load;
+	
+	private String compiledName;
+	private String[] resultValues;
+	private Instruction[] childInstructions;
 	
 	public Executable(MustacheTemplate name, Load load, Variables variables) {
 	}
@@ -23,8 +34,17 @@ public class Executable {
 	}
 	
 	public Execution execute() {
-		// TODO
-		return null;
+		if(compiledName == null) {
+			name.sub(variables);
+		}
+		return Execution.success(variables, name, resultValues, childInstructions);
+	}
+	
+	public Execution lastExecution() {
+		if(lastExecution == null) {
+			throw new IllegalStateException("Has not been executed.");
+		}
+		return lastExecution;
 	}
 	
 	public boolean isStuck() {

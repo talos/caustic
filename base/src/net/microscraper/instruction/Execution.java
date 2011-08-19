@@ -1,14 +1,12 @@
 package net.microscraper.instruction;
 
 import java.io.IOException;
-import java.util.Hashtable;
 
 import net.microscraper.regexp.Pattern;
-import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.Variables;
 
 /**
- * When successful, an {@link Execution} contains {@link String}s.  If the execution
+ * When successful, an {@link Execution} contains {@link Executable}s.  If the execution
  * failed because of a missing variable, it contains the missing variables.  If the
  * execution failed because of something else, it contains the reason why.
  * @author john
@@ -16,8 +14,6 @@ import net.microscraper.util.Variables;
  */
 public final class Execution {
 	
-	//private final String name;
-	//private final String[] resultValues;
 	private final Executable[] children;
 	private final String[] missingVariables;
 	private final String failedBecause;
@@ -42,7 +38,7 @@ public final class Execution {
 			// Multiple resultValues, copies but does not modify the Variables.
 			} else {
 				for(int j = 0 ; j < resultValues.length ; j++) {
-					Variables branchedVariables = variables.branch(name, resultValues[j]);
+					Variables branchedVariables = Variables.branch(variables, name, resultValues[j]);
 					childExecutables[i * childInstructions.length + j] = childInstructions[i].bind(branchedVariables, resultValues[j]);
 				}
 			}
