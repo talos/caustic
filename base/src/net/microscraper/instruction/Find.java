@@ -65,6 +65,10 @@ public class Find implements Action {
 	}
 	
 	public Execution execute(String source, Variables variables) {
+		if(source == null) {
+			throw new IllegalArgumentException("Cannot execute Find without a source.");
+		}
+		
 		final Execution result;
 		Execution subPattern = pattern.sub(variables);
 		Execution subReplacement = replacement.sub(variables);
