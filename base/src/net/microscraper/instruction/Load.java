@@ -64,7 +64,8 @@ public final class Load implements Action {
 	 */
 	private final Browser browser;
 	
-	private Load(Browser browser, String method, MustacheTemplate url, MustacheTemplate postData,
+	private Load( 
+			Browser browser, String method, MustacheTemplate url, MustacheTemplate postData,
 			MustacheNameValuePair[] postNameValuePairs,
 			MustacheNameValuePair[] headers, MustacheNameValuePair[] cookies,
 			Load[] preload, MustachePattern[] stops) {
@@ -177,5 +178,19 @@ public final class Load implements Action {
 		} catch(IOException e) {
 			return Execution.ioException(e);
 		}
+	}
+	
+	/**
+	 * {@Link Load}'s default name is its {@link #url}.
+	 */
+	public MustacheTemplate getDefaultName() {
+		return url;
+	}
+
+	/**
+	 * {@link Load} does not persist its value by default, because entire pages tend to be large.
+	 */
+	public boolean getDefaultShouldPersistValue() {
+		return false;
 	}
 }

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import net.microscraper.instruction.Result;
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
 
@@ -81,7 +80,7 @@ public final class MultiTableDatabase implements Database {
 		rootResultId = rootTable.getLastId();
 	}
 	
-	public int store(String name, String value, int resultNum) throws IOException,
+	public int storeInitial(String name, String value, int resultNum) throws IOException,
 				TableManipulationException {
 		
 		if(value != null) {

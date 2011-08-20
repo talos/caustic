@@ -65,9 +65,9 @@ public class ArgumentsDatabase implements Database {
 	}
 	
 	@Override
-	public int store(String name, String value, int resultNum)
+	public int storeInitial(String name, String value, int resultNum)
 			throws DatabaseException {
-		return database.store(name, value, resultNum);
+		return database.storeInitial(name, value, resultNum);
 	}
 
 	@Override

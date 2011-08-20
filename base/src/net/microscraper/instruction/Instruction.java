@@ -1,5 +1,7 @@
 package net.microscraper.instruction;
 
+import java.io.IOException;
+
 import net.microscraper.client.Browser;
 import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.regexp.RegexpCompiler;
@@ -11,7 +13,7 @@ import net.microscraper.util.Variables;
  * @author realest
  *
  */
-public class Instruction  {
+public class Instruction {
 	
 	/**
 	 * The {@link MustacheTemplate} name for this {@link Instruction}.  Can be <code>null</code>.
@@ -21,24 +23,14 @@ public class Instruction  {
 	private final MustacheTemplate name;
 	
 	/**
-	 * An array of {@link Find}s dependent upon this {@link Instruction}.
-	 */
-	//private final Find[] finds;
-	
-	/**
-	 * An array of {@link Load}s dependent upon this {@link Instruction}.
-	 */
-	//private final Load[] loads;
-	
-	/**
 	 * An array of {@link Instruction}s dependent upon this {@link Instruction}.
 	 */
 	private final Instruction[] children;
 	
 	/**
-	 * Whether or not this {@link Instruction} should save the values of its results.
+	 * Whether or not this {@link Instruction} should save the values of its results to the {@link Database}.
 	 */
-	private final boolean shouldSaveValue;
+	private final boolean shouldPersistValue;
 	
 	/**
 	 * The {@link Action} done by this {@link Instruction}.
@@ -58,14 +50,14 @@ public class Instruction  {
 	public Instruction(boolean shouldSaveValue,
 			MustacheTemplate name, Action action,
 			Instruction[] children) {
-		this.shouldSaveValue = shouldSaveValue;
+		this.shouldPersistValue = shouldSaveValue;
 		this.name = name;
 		this.action = action;
 		this.children = children;
 	}
 	
 	public Instruction(Instruction instruction) {
-		this.shouldSaveValue = instruction.shouldSaveValue;
+		this.shouldPersistValue = instruction.shouldPersistValue;
 		this.name = instruction.name;
 		this.action = instruction.action;
 		this.children = instruction.children;
@@ -78,15 +70,27 @@ public class Instruction  {
 		return name.toString();
 	}
 	
-	public Executable bind(String source, Variables variables) {
+	/**
+	 * Produce an {@link Executable} by binding this {@link Instruction} to a {@link String} source
+	 * and {@link Variable}.  The {@link Executable} will reuse these to fire
+	 * {@link #execute(String, Variables)} in {@link Executable#execute()}.
+	 * @param source The {@link String} source to bind to {@link Executable}.
+	 * @param variables The {@link Variables} variables to bind to {@link Executable}.
+	 * @return The bound {@link Executable}.
+	 */
+	/*public Executable bind(String source, Variables variables) {
 		return new Executable(source, variables, this);
-	}
+	}*/
 	
 	/**
 	 * Generate the children of this {@link Instruction} during execution.  There will be as many children
-	 * as the product of <code>sources</code> and {@link #children}.
+	 * as the product of <code>sources</code> and {@link #children}.  Should be run by
+	 * {@link Executable#execute()} as part of {@link InstructionRunner#run()}.
+	 * @throws InterruptedException If the user interrupted the execution.
+	 * @throws IOException If there was an error persisting to the {@link Database}.
+	 * @see Executable#execute()
 	 */
-	public Execution execute(String source, Variables variables) throws InterruptedException {
+	public Execution execute(String source, Variables variables) throws InterruptedException, IOException {
 		final Execution result;
 		
 		Execution nameSub = name.sub(variables);
@@ -108,26 +112,19 @@ public class Instruction  {
 				String[] resultValues = (String[]) actionExecution.getExecuted();
 				Executable[] childExecutables = new Executable[resultValues.length * children.length];
 				
-				// Only one resultValue, modifies the Variables (passes up
-				// the new value).
-				if(resultValues.length == 1) {
-					variables.put(name, resultValues[0]);
-					for(int i = 0 ; i < resultValues.length ; i++) {
-						childExecutables[i] = children[i].bind(resultValues[i], variables);
-					}
-				} else {
-					
-					// Multiple resultValues, copies but does not modify the Variables.
-					for(int i = 0 ; i < resultValues.length ; i ++) {
-						Variables branchedVariables
-							= Variables.branch(variables, name, resultValues[i]);
-						for(int j = 0 ; j < resultValues.length ; j++) {
-							childExecutables[i * children.length + j]
-									= children[i].bind(resultValues[j], branchedVariables);
-						}
-
+				// Generate new Variables instances for the kids.
+				Variables[] branches = Variables.branch(variables, name, resultValues, shouldPersistValue);
+				for(int i = 0 ; i < resultValues.length ; i ++) {
+					Variables branch = branches[i];
+					String childSource = resultValues[i];
+					for(int j = 0 ; j < children.length ; j++) {
+						Instruction child = children[j];
+						childExecutables[i * resultValues.length + j]
+								= new Executable(childSource, branch, child);
+						//		= child.bind(childSource, branch);
 					}
 				}
+
 				result = Execution.success(childExecutables);
 			}
 		}

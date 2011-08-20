@@ -105,7 +105,7 @@ public final class MustacheTemplate implements Substitutable {
 		} else {
 			String[] missingVariablesAry = new String[missingVariables.size()];
 			missingVariables.copyInto(missingVariablesAry);
-			return Execution.fail(missingVariablesAry);
+			return Execution.missingVariables(missingVariablesAry);
 		}
 		
 	}

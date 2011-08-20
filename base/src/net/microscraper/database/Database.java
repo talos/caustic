@@ -2,8 +2,6 @@ package net.microscraper.database;
 
 import java.io.IOException;
 
-import net.microscraper.instruction.Result;
-
 /**
  * Implementations of {@link Database} store the results of {@link Execution}s
  * and generate {@link Result} objects.
@@ -24,7 +22,7 @@ public interface Database {
 	 * @throws IOException
 	 * @throws TableManipulationException.
 	 */
-	public int store(String name, String value, int resultNum) throws IOException, TableManipulationException;
+	public int storeInitial(String name, String value, int resultNum) throws IOException, TableManipulationException;
 	
 	/**
 	 * Store a name and value with a source {@link Result} in the {@link Database}.

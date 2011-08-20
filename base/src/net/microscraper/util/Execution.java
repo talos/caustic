@@ -20,6 +20,13 @@ public class Execution {
 	private final String[] missingVariables;
 	private final String[] failedBecause;
 	
+	/**
+	 * Private constructor.  Only one of these parameters should be non-<code>null</code>
+	 * @param executed The {@link Object} returned by {@link #getExecuted()}.
+	 * @param missingVariables The {@link String} array returned by {@link #getMissingVariables()},
+	 * 
+	 * @param failedBecause
+	 */
 	private Execution(Object executed, String[] missingVariables, String[] failedBecause) {
 		this.executed = executed;
 		this.missingVariables = missingVariables;
@@ -45,18 +52,47 @@ public class Execution {
 		return new Execution(null, missingVariables, null);
 	}
 
-	
-	public static Execution noMatches() {
-		return new Execution(null, null, new String[] {"No matches."});
+	/**
+	 * Create an {@link Execution} describing a failure because a pattern did 
+	 * not match against a source.
+	 * @param source The {@link String} source.
+	 * @param pattern The {@link Pattern} that did not match.
+	 * @param minMatch The expected first match.
+	 * @param maxMatch The expected last match.
+	 * @return The failed {@link Execution}.
+	 */
+	public static Execution noMatches(String source, Pattern pattern, int minMatch, int maxMatch) {
+		return new Execution(null, null,
+				new String[] { "Match " + StringUtils.quote(pattern) +
+						" did not have a match between " + 
+						StringUtils.quote(minMatch) + " and " + 
+						StringUtils.quote(maxMatch) + " against " +
+						StringUtils.quote(source)
+		});
 	}
 	
+	/**
+	 * Create an {@link Execution} describing a failure because of an {@link IOException}.
+	 * @param e The {@link IOException} that caused the {@link Execution} to fail.
+	 * @return The failed {@link Execution}.
+	 */
 	public static Execution ioException(IOException e) {
 		return new Execution(null, null, new String[] { e.getMessage() });
 	}
 	
-	public static Execution failedTests(Pattern[] failedTests) {
-		// TODO this is a missed opportunity!
-		return new Execution(null, null, new String[] { "failed tests" });
+	/**
+	 * Create an {@link Execution} describing a failure because a test patterns
+	 * failed.
+	 * @param tested The {@link String} being tested.
+	 * @param tests A {@link Pattern} doing the testing.
+	 * @return The failed {@link Execution}.
+	 */
+	public static Execution failedTests(String tested, Pattern test) {
+		return new Execution(null, null,
+				new String[] { "Test " + StringUtils.quote(test) +
+				" did not match " +
+				StringUtils.quote(tested)
+		});
 	}
 	/**
 	 * 

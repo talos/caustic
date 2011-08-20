@@ -67,7 +67,7 @@ public abstract class MicroscraperImplementationTest {
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {		
 		new Expectations() {{
-			database.store("http://www.google.com/search?q=hello", (String) withNull(), 0); result = 0;
+			database.storeInitial("http://www.google.com/search?q=hello", (String) withNull(), 0); result = 0;
 			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 0); result = 1;
 			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 1); result = 2;
 			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 2); result = 3;
@@ -82,7 +82,7 @@ public abstract class MicroscraperImplementationTest {
 	@Test
 	public void testScrapeComplexGoogle() throws Exception {
 		new Expectations() {{
-			database.store("http://www.google.com/search?q=hello", (String) withNull(), 0);
+			database.storeInitial("http://www.google.com/search?q=hello", (String) withNull(), 0);
 			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 0); result = 1;
 			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 1); result = 2;
 			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 2); result = 3;

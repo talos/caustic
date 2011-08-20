@@ -2,7 +2,6 @@ package net.microscraper.database;
 
 import java.io.IOException;
 
-import net.microscraper.instruction.Result;
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
 
@@ -46,7 +45,7 @@ public final class SingleTableDatabase implements Database {
 		this.table = connection.getWritableTable(COLUMN_NAMES);
 	}
 
-	public final int store(String name, String value, int resultNum)
+	public final int storeInitial(String name, String value, int resultNum)
 			throws TableManipulationException {
 		return table.insert(
 				new NameValuePair[] {

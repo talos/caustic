@@ -80,7 +80,7 @@ public class MicroscraperTest {
 				browser.get(urlString, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any); result = contentString;
 				compiler.compile(patternString, false, false, true); result = pattern;
 				pattern.match(contentString, Find.ENTIRE_MATCH, Find.FIRST_MATCH, Find.LAST_MATCH); result = match;
-				database.store(urlString, (String) withNull(), withEqual(0)); result = 0;
+				database.storeInitial(urlString, (String) withNull(), withEqual(0)); result = 0;
 				database.store(urlString, withEqual(0), patternString, match[0], withEqual(0)); result = 1;
 			}
 		};
@@ -99,7 +99,7 @@ public class MicroscraperTest {
 				browser.get(urlWithDefaultsStringCompiled, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any); result = contentString;
 				compiler.compile(patternWithDefaultsStringCompiled, false, false, true); result = pattern;
 				pattern.match(contentString, Find.ENTIRE_MATCH, Find.FIRST_MATCH, Find.LAST_MATCH); result = match;
-				database.store(urlString, (String) withNull(), withEqual(0)); result = 0;
+				database.storeInitial(urlString, (String) withNull(), withEqual(0)); result = 0;
 				database.store(urlString, withEqual(0), patternString, match[0], withEqual(0)); result = 1;
 			}
 		};

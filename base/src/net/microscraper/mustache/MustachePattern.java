@@ -65,4 +65,8 @@ public class MustachePattern implements Substitutable {
 			return sub;
 		}
 	}
+	
+	public MustacheTemplate getTemplate() {
+		return pattern;
+	}
 }

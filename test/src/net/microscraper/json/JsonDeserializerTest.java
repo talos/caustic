@@ -39,9 +39,9 @@ public class JsonDeserializerTest {
 		deserializer = new JsonDeserializer(parser, compiler, browser);
 		new NonStrictExpectations() {{
 			parser.parse(loadJson); result = loadObj;
-			loadObj.getString(URL); result = googleString;
+			loadObj.getString(LOAD); result = googleString;
 			parser.parse(findJson); result = findObj;
-			findObj.getString(PATTERN); result = patternString;
+			findObj.getString(FIND); result = patternString;
 		}};
 	}
 	

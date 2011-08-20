@@ -1,5 +1,6 @@
 package net.microscraper.json;
 
+import java.io.IOException;
 import java.util.Hashtable;
 
 import net.microscraper.uri.Uri;
@@ -38,21 +39,22 @@ public interface JsonParser {
 	 * @throws JsonException If there is an error generating
 	 * the {@link JsonObject}.
 	 * @throws MalformedUriException if the {@link Uri} could not be resolved.
+	 * @throws IOException if a reference could not be loaded.
 	 */
 	public abstract JsonObject load(Uri location) 
-			throws JsonException, MalformedUriException;
+			throws JsonException, MalformedUriException, IOException;
 	
 	/**
 	 * Compile a {@link JsonObject} directly from a {@link String}.
-	 * @param location The {@link Uri} URI to use when resolving <code>jsonString</code>'s references.
 	 * @param jsonString The {@link String} to parse.
 	 * @return A {@link JsonObject}.
 	 * @throws JsonException If there is an error generating
 	 * the {@link JsonObject}.
-	 * @throws MalformedUriException if the {@link Uri} could not be resolved.
+	 * @throws MalformedUriException if a reference could not be resolved.
+	 * @throws IOException if a reference could not be loaded.
 	 */
-	public abstract JsonObject parse(Uri location, String jsonString)
-			throws JsonException, MalformedUriException;
+	public abstract JsonObject parse(String jsonString)
+			throws JsonException, MalformedUriException, IOException;
 	
 	/**
 	 * Compile a flat {@link JsonObject} from a {@link Hashtable} of

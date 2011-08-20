@@ -14,7 +14,7 @@ import net.microscraper.util.Variables;
  * @author john
  *
  */
-public class Find extends Instruction implements Action {
+public class Find implements Action {
 
 	/**
 	 * The {@link String} that should be mustached and evaluated for backreferences,
@@ -85,29 +85,46 @@ public class Find extends Instruction implements Action {
 			
 			// We got at least 1 match.
 			if(matches.length == 0) {
-				result = Execution.noMatches();
+				result = Execution.noMatches(source, pattern, minMatch, maxMatch);
 			} else {
 				// Run the tests.
-				Vector failedTests = new Vector();
+				Vector failedExecutions = new Vector();
 				for(int i = 0 ; i < tests.length ; i ++) {
+					Pattern test = tests[i];
 					for(int j = 0 ; j < matches.length ; j ++) {
-						boolean passed = tests[i].matches(matches[j], Pattern.FIRST_MATCH);
+						String tested = matches[j];
+						boolean passed = test.matches(tested, Pattern.FIRST_MATCH);
 						if(passed == false) {
-							failedTests.add(tests[i]);
+							failedExecutions.add(Execution.failedTests(tested, test));
 						}
 					}
 				}
 				
 				// Failed a test :(
-				if(failedTests.size() > 0) {
-					Pattern[] failedTestsAry = new Pattern[failedTests.size()];
-					failedTests.copyInto(failedTestsAry);
-					result = Execution.failedTests(failedTestsAry);
+				if(failedExecutions.size() > 0) {
+					Execution[] failedExecutionsAry = new Execution[failedExecutions.size()];
+					failedExecutions.copyInto(failedExecutionsAry);
+					//result = Execution.failedTests(matches[j], failedTestsAry);
+					result = Execution.combine(failedExecutionsAry);
 				} else { // Passed all tests! :)
 					result = Execution.success(matches);
 				}
 			}
 		}
 		return result;
+	}
+	
+	/**
+	 * {@link Find}'s default name is its {@link #pattern}'s {@link MustachePattern#getTemplate()}.
+	 */
+	public MustacheTemplate getDefaultName() {
+		return pattern.getTemplate();
+	}
+
+	/**
+	 * {@link Find} does persist its value by default.
+	 */
+	public boolean getDefaultShouldPersistValue() {
+		return true;
 	}
 }
