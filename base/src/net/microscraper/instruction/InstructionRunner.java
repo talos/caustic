@@ -7,6 +7,7 @@ import java.util.Vector;
 import net.microscraper.client.Loggable;
 import net.microscraper.client.Logger;
 import net.microscraper.impl.log.BasicLog;
+import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;
 import net.microscraper.util.Variables;
 import net.microscraper.util.VectorUtils;
@@ -60,7 +61,7 @@ public class InstructionRunner implements Runnable, Loggable {
 			// Evaluate the execution's success.
 			if(execution.isSuccessful()) {
 				// It's successful -- add the resultant executables onto the queue.
-				Executable[] children = execution.generateChildren();
+				Executable[] children = (Executable[]) execution.getExecuted();
 				log.i("Executable " + StringUtils.quote(executable) + " successful." + 
 						" Adding its " + children.length + " children to the queue.");
 				VectorUtils.arrayIntoVector(children, queue);
@@ -95,7 +96,6 @@ public class InstructionRunner implements Runnable, Loggable {
 			Enumeration e = stuckExecutables.elements();
 			while(e.hasMoreElements()) {
 				Executable stuckExecutable = (Executable) e.nextElement();
-				Execution stuckExecution = stuckExecutable.lastExecution();
 				log.i("Executable " + stuckExecutable + " was stuck on " + 
 						StringUtils.quoteJoin(stuckExecution.getMissingVariables()));
 			}
@@ -106,7 +106,6 @@ public class InstructionRunner implements Runnable, Loggable {
 			Enumeration e = stuckExecutables.elements();
 			while(e.hasMoreElements()) {
 				Executable failedExecutable = (Executable) e.nextElement();
-				Execution failedExecution = failedExecutable.lastExecution();
 				log.i("Executable " + failedExecutable + " failed because of " +
 						StringUtils.quote(failedExecution.failedBecause()));
 			}			

@@ -5,7 +5,7 @@ import java.util.Vector;
 import net.microscraper.mustache.MustachePattern;
 import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.regexp.Pattern;
-import net.microscraper.util.Substitution;
+import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
 /**
@@ -14,7 +14,7 @@ import net.microscraper.util.Variables;
  * @author john
  *
  */
-public class Find {
+public class Find extends Instruction implements Action {
 
 	/**
 	 * The {@link String} that should be mustached and evaluated for backreferences,
@@ -64,24 +64,24 @@ public class Find {
 		this.tests = tests;
 	}
 	
-	public Execution match(String source, Variables variables) {
+	public Execution execute(String source, Variables variables) {
 		final Execution result;
-		Substitution subPattern = pattern.sub(variables);
-		Substitution subReplacement = replacement.sub(variables);
-		Substitution subTests = Substitution.arraySub(tests, variables);
+		Execution subPattern = pattern.sub(variables);
+		Execution subReplacement = replacement.sub(variables);
+		Execution subTests = Execution.arraySub(tests, variables);
 		
 		if(!subPattern.isSuccessful() || !subReplacement.isSuccessful() || !subTests.isSuccessful()) {
 			// One of the substitutions was not OK.
-			result = Execution.missingVariables(Substitution.combine(
-					new Substitution[] { subPattern, subReplacement, subTests }
+			result = Execution.missingVariables(Execution.combine(
+					new Execution[] { subPattern, subReplacement, subTests }
 			).getMissingVariables());
 
 		} else {
 			// All the substitutions were OK.
-			Pattern pattern = (Pattern) subPattern.getSubstituted();
-			String replacement = (String) subReplacement.getSubstituted();
+			Pattern pattern = (Pattern) subPattern.getExecuted();
+			String replacement = (String) subReplacement.getExecuted();
 			String[] matches = pattern.match(source, replacement, minMatch, maxMatch);
-			Pattern[] tests = (Pattern[]) subTests.getSubstituted();
+			Pattern[] tests = (Pattern[]) subTests.getExecuted();
 			
 			// We got at least 1 match.
 			if(matches.length == 0) {

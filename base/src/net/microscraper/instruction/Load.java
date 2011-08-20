@@ -8,7 +8,7 @@ import net.microscraper.mustache.MustachePattern;
 import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.util.NameValuePair;
-import net.microscraper.util.Substitution;
+import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
 /**
@@ -17,7 +17,7 @@ import net.microscraper.util.Variables;
  * @author realest
  *
  */
-public final class Load {
+public final class Load implements Action {
 	/**
 	 * The HTTP request type to use.  Either {@link Browser#GET},
 	 * {@link Browser#POST}, or {@link Browser#HEAD}.
@@ -103,66 +103,77 @@ public final class Load {
 		return new Load(browser, Browser.POST, url, null, postNameValuePairs, headers, cookies, preload, stops);
 	}
 	
-	public Execution request(Variables variables)
+	/**
+	 * Make the request and retrieve the response body specified by this {@link Load}.
+	 * @return An {@link Execution} whose {@link Execution#getExecuted()} is a one-length {@link String}
+	 * with the response body, which is a zero-length {@link String} if the {@link Load}'s method
+	 * is Head.
+	 */
+	public Execution execute(String source, Variables variables)
 			throws InterruptedException {		
 		// Temporary executions to do before.  Not published, executed each time.
 		// TODO combine missingVariables from preexecutions here?
 		for(int i = 0 ; i < preload.length ; i ++) {
-			Execution preExecution = preload[i].request(variables);
+			Execution preExecution = preload[i].execute(source, variables);
 			if(!preExecution.isSuccessful()) {
 				return preExecution;
 			}
 		}
 		try {
-			final Execution result;
+			//final Execution result;
 
-			Substitution urlSub = url.sub(variables, browser, Browser.UTF_8);
-			Substitution headersSub = Substitution.arraySub(headers, variables);
-			Substitution cookiesSub = Substitution.arraySub(cookies, variables);
+			Execution urlSub = url.sub(variables, browser, Browser.UTF_8);
+			Execution headersSub = Execution.arraySub(headers, variables);
+			Execution cookiesSub = Execution.arraySub(cookies, variables);
 			
 			if(!urlSub.isSuccessful() || !headersSub.isSuccessful() || !cookiesSub.isSuccessful()) {
-				result = Execution.missingVariables(Substitution.combine(new Substitution[] {
+				return Execution.combine(new Execution[] {
 						urlSub, headersSub, cookiesSub
-				}).getMissingVariables());
+				});
 			} else {
-				String url = (String) urlSub.getSubstituted();
-				NameValuePair[] headers = (NameValuePair[]) headersSub.getSubstituted();
-				NameValuePair[] cookies = (NameValuePair[]) cookiesSub.getSubstituted();
+				
+				final String responseBody;
+
+				String url = (String) urlSub.getExecuted();
+				NameValuePair[] headers = (NameValuePair[]) headersSub.getExecuted();
+				NameValuePair[] cookies = (NameValuePair[]) cookiesSub.getExecuted();
 				
 				if(method.equals(Browser.HEAD)){
 					browser.head(url, headers, cookies);
-					result = Execution.success();
+					responseBody = "";
 				} else {
-					Substitution stopsSub = Substitution.arraySub(stops, variables);
+					
+					Execution stopsSub = Execution.arraySub(stops, variables);
 					if(!stopsSub.isSuccessful()) {
-						result = Execution.missingVariables(stopsSub.getMissingVariables());
+						return Execution.missingVariables(stopsSub.getMissingVariables());
 					} else {
-						Pattern[] stops = (Pattern[]) stopsSub.getSubstituted();
+						Pattern[] stops = (Pattern[]) stopsSub.getExecuted();
 						if(method.equals(Browser.POST)) {
 							if(postNameValuePairs == null) {
-								Substitution postsSub = Substitution.arraySub(postNameValuePairs, variables);
+								Execution postsSub = Execution.arraySub(postNameValuePairs, variables);
 								if(!postsSub.isSuccessful()) {
-									result  = Execution.missingVariables(postsSub.getMissingVariables());
+									return Execution.missingVariables(postsSub.getMissingVariables());
 								} else {
-									NameValuePair[] posts = (NameValuePair[]) postsSub.getSubstituted();
-									result = Execution.success(browser.post(url, headers, cookies, stops, posts));
+									NameValuePair[] posts = (NameValuePair[]) postsSub.getExecuted();
+									responseBody = browser.post(url, headers, cookies, stops, posts);
 								}
 							} else {
-								Substitution postsSub = postData.sub(variables, browser, Browser.UTF_8);
+								Execution postsSub = postData.sub(variables, browser, Browser.UTF_8);
 								if(!postsSub.isSuccessful()) {
-									result = Execution.missingVariables(postsSub.getMissingVariables());
+									return Execution.missingVariables(postsSub.getMissingVariables());
 								} else {
-									String postData = (String) postsSub.getSubstituted();
-									result = Execution.success(browser.post(url, headers, cookies, stops, postData));
+									String postData = (String) postsSub.getExecuted();
+									responseBody = browser.post(url, headers, cookies, stops, postData);
 								}
 							}
 						} else {
-							result = Execution.success(browser.get(url, headers, cookies, stops));
+							responseBody = browser.get(url, headers, cookies, stops);
 						}
 					}
 				}
+				return Execution.success(new String[] { responseBody } );
 			}
-			return result;
+			//return result;
 		} catch(IOException e) {
 			return Execution.ioException(e);
 		}

@@ -5,6 +5,7 @@ import java.io.IOException;
 import net.microscraper.client.Browser;
 import net.microscraper.client.DeserializationException;
 import net.microscraper.client.Deserializer;
+import net.microscraper.instruction.Action;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Load;
@@ -168,7 +169,8 @@ public class JsonDeserializer implements Deserializer {
 	 * @throws DeserializationException If there was a problem parsing a child {@link Find}.
 	 * @throws MustacheCompilationException If a {@link MustacheTemplate} could not be compiled.
 	 */
-	private Instruction deserializeInstruction(JsonObject jsonObject, MustacheTemplate defaultName,
+	private Instruction deserializeInstruction(JsonObject jsonObject, Action action,
+			MustacheTemplate defaultName,
 			boolean defaultShouldSaveValue)
 				throws MustacheCompilationException, DeserializationException, JsonException,
 				MalformedUriException, IOException {
@@ -221,7 +223,7 @@ public class JsonDeserializer implements Deserializer {
 			load = new Load[] {};
 		}
 		
-		return new Instruction(shouldSaveValue, name, finds, load);
+		return new Instruction(shouldSaveValue, name, action, children);
 	}
 
 	/**

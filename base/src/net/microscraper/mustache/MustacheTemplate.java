@@ -5,7 +5,7 @@ import java.util.Vector;
 
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Substitutable;
-import net.microscraper.util.Substitution;
+import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
 /**
@@ -52,9 +52,9 @@ public final class MustacheTemplate implements Substitutable {
 	/**
 	 * Substitute the values from a {@link Variables} into the {@link MustacheTemplate}.
 	 * @param variables The {@link Variables} to use in the substitution.
-	 * @return A {@link Substitution} with the results of the substitution.
+	 * @return A {@link Execution} with the results of the substitution.
 	 */
-	public Substitution sub(Variables variables) {
+	public Execution sub(Variables variables) {
 		try {
 			return sub(variables, null, null);
 		} catch(UnsupportedEncodingException e) {
@@ -68,10 +68,10 @@ public final class MustacheTemplate implements Substitutable {
 	 * @param variables The {@link Variables} to use in the substitution.
 	 * @param encoder The {@link Encoder} to use when encoding values.
 	 * @param encoding The {@link String} encoding for <code>encoder</code> to use.
-	 * @return A {@link Substitution} with the results of the substitution.
+	 * @return A {@link Execution} with the results of the substitution.
 	 * @throws UnsupportedEncodingException if <code>encoding</code> is not supported.
 	 */
-	public Substitution sub(Variables variables, Encoder encoder, String encoding) throws UnsupportedEncodingException {
+	public Execution sub(Variables variables, Encoder encoder, String encoding) throws UnsupportedEncodingException {
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
 		String result = "";
@@ -101,11 +101,11 @@ public final class MustacheTemplate implements Substitutable {
 		}
 		
 		if(missingVariables.size() == 0) {
-			return Substitution.success(result + template.substring(close_tag_end_pos));
+			return Execution.success(result + template.substring(close_tag_end_pos));
 		} else {
 			String[] missingVariablesAry = new String[missingVariables.size()];
 			missingVariables.copyInto(missingVariablesAry);
-			return Substitution.fail(missingVariablesAry);
+			return Execution.fail(missingVariablesAry);
 		}
 		
 	}

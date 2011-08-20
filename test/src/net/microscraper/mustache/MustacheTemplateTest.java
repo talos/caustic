@@ -8,7 +8,7 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.util.Encoder;
-import net.microscraper.util.Substitution;
+import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 import static net.microscraper.test.TestUtils.*;
 
@@ -48,15 +48,15 @@ public class MustacheTemplateTest {
 	@Test
 	public void testSubSuccessful() throws MustacheCompilationException {
 		MustacheTemplate template = MustacheTemplate.compile(validTemplateRaw);
-		Substitution sub = template.sub(variables);
+		Execution sub = template.sub(variables);
 		assertTrue(sub.isSuccessful());
-		assertEquals(validTemplateCompiled, sub.getSubstituted());
+		assertEquals(validTemplateCompiled, sub.getExecuted());
 	}
 	
 	@Test
 	public void testSubUnsuccessful() throws MustacheCompilationException {
 		MustacheTemplate template = MustacheTemplate.compile(validTemplateRaw);
-		Substitution sub = template.sub(empty);
+		Execution sub = template.sub(empty);
 		assertFalse(sub.isSuccessful());
 		assertArrayEquals(new String[] { key }, sub.getMissingVariables());
 	}
@@ -68,9 +68,9 @@ public class MustacheTemplateTest {
 			encoder.encode(value, encoding); result = encodedValue;
 		}};
 		MustacheTemplate template = MustacheTemplate.compile(validTemplateRaw);
-		Substitution sub = template.sub(variables, encoder, encoding);
+		Execution sub = template.sub(variables, encoder, encoding);
 		assertTrue(sub.isSuccessful());
-		assertEquals(validTemplateCompiledEncoded, sub.getSubstituted());
+		assertEquals(validTemplateCompiledEncoded, sub.getExecuted());
 	}
 	
 	@Test
@@ -80,7 +80,7 @@ public class MustacheTemplateTest {
 			encoder.encode(value, encoding); result = encodedValue; times = 0;
 		}};
 		MustacheTemplate template = MustacheTemplate.compile(validTemplateRaw);
-		Substitution sub = template.sub(empty, encoder, encoding);
+		Execution sub = template.sub(empty, encoder, encoding);
 		assertFalse(sub.isSuccessful());
 		assertArrayEquals(new String[] {key}, sub.getMissingVariables());
 	}

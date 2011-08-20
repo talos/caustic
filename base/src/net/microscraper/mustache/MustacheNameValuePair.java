@@ -3,7 +3,7 @@ package net.microscraper.mustache;
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
 import net.microscraper.util.Substitutable;
-import net.microscraper.util.Substitution;
+import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
 
@@ -24,11 +24,11 @@ public class MustacheNameValuePair implements Substitutable {
 	/**
 	 * Substitutes to {@link NameValuePair}.
 	 */
-	public Substitution sub(Variables variables) {
-		Substitution sub = Substitution.combine(new Substitution[] { name.sub(variables), value.sub(variables) });
+	public Execution sub(Variables variables) {
+		Execution sub = Execution.combine(new Execution[] { name.sub(variables), value.sub(variables) });
 		if(sub.isSuccessful()) {
-			String[] substituted = (String[]) sub.getSubstituted();
-			return Substitution.success((NameValuePair) new BasicNameValuePair(substituted[0], substituted[1]));
+			String[] substituted = (String[]) sub.getExecuted();
+			return Execution.success((NameValuePair) new BasicNameValuePair(substituted[0], substituted[1]));
 		}
 		return sub;
 	}

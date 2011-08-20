@@ -3,7 +3,7 @@ package net.microscraper.mustache;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.util.Substitutable;
-import net.microscraper.util.Substitution;
+import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
 /**
@@ -50,13 +50,13 @@ public class MustachePattern implements Substitutable {
 	
 	/**
 	 * Compile a {@link MustachePattern} into a {@link Pattern}, which will
-	 * be contained in {@link Substitution#getSubstituted()}.
+	 * be contained in {@link Execution#getExecuted()}.
 	 */
-	public Substitution sub(Variables variables) {
-		Substitution sub = pattern.sub(variables);
+	public Execution sub(Variables variables) {
+		Execution sub = pattern.sub(variables);
 		if(sub.isSuccessful()) {
-			String subbedPattern = (String) sub.getSubstituted();
-			return Substitution.success(compiler.compile(
+			String subbedPattern = (String) sub.getExecuted();
+			return Execution.success(compiler.compile(
 					subbedPattern,
 					isCaseInsensitive,
 					isMultiline, doesDotMatchNewline));
