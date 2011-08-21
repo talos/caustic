@@ -1,6 +1,6 @@
 
 {
 	"description" : "ACRIS has a font definition for every column.",
-	"pattern"     : "<\\s*font[^>]*>(.*?)</\\s*font\\s*>",
-	"replacement" : "$1"
+	"find"     : "<\\s*font[^>]*>(.*?)</\\s*font\\s*>",
+	"replace" : "$1"
 }

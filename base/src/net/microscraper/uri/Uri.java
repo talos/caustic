@@ -38,81 +38,9 @@ public interface Uri {
 	 * Load the resource this {@link Uri} refers to as a {@link String}.
 	 * @return The resource as a {@link String}.
 	 * @throws IOException If there was a problem loading the resource.
+	 * @throws InterruptedException If the user interrupts the load.
 	 */
-	public String load() throws IOException;
-	
-	/**
-	 * Constructs a new {@link JSONLocation} 
-	 * by resolving the given string as a path
-	 * against this {@link JSONLocation}'s fragment.
-	 * @param path A {@link String} referring to part of the original {@link JSONLocation}'s
-	 * object.
-	 * @return The resulting {@link JSONLocation}.
-	 * @throws JSONLocationException if there is an error resolving.
-	 */
-	//public JSONLocation resolveFragment(String path) throws JSONLocationException;
-
-	/**
-	 * Constructs a new {@link JSONLocation}
-	 * by parsing the given integer as an index
-	 * against this {@link JSONLocation}'s fragment.
-	 * @param path An int referring to an index inside the original {@link JSONLocation}'s
-	 * array.
-	 * @return The resulting {@link JSONLocation}.
-	 * @throws JSONLocationException if there is an error resolving.
-	 */
-	//public JSONLocation resolveFragment(int index) throws JSONLocationException;
-	
-	/**
-	 * 
-	 * @return <code>True</code> if the {@link URIInterface} is in the local
-	 * filesystem, <code>false</code> otherwise.
-	 */
-	//public boolean isFile();
-	
-	/**
-	 * 
-	 * @return <code>True</code> if the {@link URIInterface} is on a server
-	 * accessible by HTTP request, <code>false</code> otherwise.
-	 */
-	//public boolean isHttp();
-	
-	/**
-	 * 
-	 * @return The scheme segment of the {@link URIInterface}'s URI.
-	 * @see java.net.URI#getScheme()
-	 */
-	//public String getScheme();
-	
-	/**
-	 * 
-	 * @return The scheme specific part of the {@link URIInterface}'s URI.
-	 * @see java.net.URI#getSchemeSpecificPart()
-	 */
-	//public String getSchemeSpecificPart();
-
-	/**
-	 * 
-	 * @return The fragment part of the {@link URIInterface}'s URI.
-	 * @see java.net.URI#getFragment()
-	 */
-	//public String getFragment();
-	
-	/**
-	 * Tells whether or not this {@link URIInterface} is absolute.
-	 * A {@link URIInterface} is absolute if, and only if, it has a
-	 * scheme component. 
-	 * @return <code>true</code> if, and only if, this {@link URIInterface} is absolute
-	 * @see java.net.URI#isAbsolute()
-	 */
-	//public boolean isAbsolute();
-
-	/**
-	 * 
-	 * @return The fragment part of the {@link JSONLocation}'s URI, exploded
-	 * into an array based off of {@link #JSON_PATH_SEP}.
-	 */
-	//public String[] explodeJSONPath();
+	public String load() throws IOException, InterruptedException;
 	
 	/**
 	 * 
@@ -129,4 +57,10 @@ public interface Uri {
 	 * @see java.net.URI#equals(Object)
 	 */
 	public boolean equals(Object obj);
+
+	/**
+	 * 
+	 * @return The scheme specific part of the URI.
+	 */
+	public String getSchemeSpecificPart();
 }

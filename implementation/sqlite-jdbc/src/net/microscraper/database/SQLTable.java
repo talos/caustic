@@ -3,7 +3,6 @@ package net.microscraper.database;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.microscraper.database.DatabaseException;
 import net.microscraper.database.IOTable;
 import net.microscraper.util.NameValuePair;
 import net.microscraper.util.StringUtils;
@@ -73,7 +72,7 @@ public class SQLTable implements IOTable {
 	}
 	
 	@Override
-	public void addColumn(String columnName) throws DatabaseException {
+	public void addColumn(String columnName) throws TableManipulationException {
 		preventIllegalBacktick(columnName);
 		
 		try {
@@ -90,7 +89,7 @@ public class SQLTable implements IOTable {
 			connection.runBatch();
 			columns.add(columnName);
 		} catch(SQLConnectionException e) {
-			throw new DatabaseException(e);
+			throw new TableManipulationException(e);
 		}
 	}
 	
@@ -116,7 +115,7 @@ public class SQLTable implements IOTable {
 	}
 	
 	@Override
-	public int insert(NameValuePair[] nameValuePairs) throws DatabaseException {
+	public int insert(NameValuePair[] nameValuePairs) throws TableManipulationException {
 		String[] columnNames = new String[nameValuePairs.length + 1];
 		String[] parameters = new String[nameValuePairs.length + 1];
 		String[] columnValues = new String[nameValuePairs.length + 1];
@@ -142,13 +141,13 @@ public class SQLTable implements IOTable {
 			//return new SQLResult(id, name, value)
 			return id;
 		} catch(SQLConnectionException e) {
-			throw new DatabaseException(e);
+			throw new TableManipulationException(e);
 		}
 	}
 
 	@Override
 	public void update(int id, NameValuePair[] nameValuePairs)
-			throws DatabaseException {
+			throws TableManipulationException {
 		String[] setStatements = new String[nameValuePairs.length];
 		String[] values = new String[nameValuePairs.length];
 		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
@@ -165,7 +164,7 @@ public class SQLTable implements IOTable {
 			update.bindStrings(values);
 			update.execute();
 		} catch (SQLConnectionException e) {
-			throw new DatabaseException(e);
+			throw new TableManipulationException(e);
 		}
 	}
 
@@ -180,14 +179,19 @@ public class SQLTable implements IOTable {
 	}
 
 	@Override
-	public void drop() throws DatabaseException {
+	public void drop() throws TableManipulationException {
 		try {
 			SQLPreparedStatement drop = connection.prepareStatement(
 					"DROP TABLE `" + name + "`");
 			drop.execute();
 			connection.runBatch();
 		} catch(SQLConnectionException e) {
-			throw new DatabaseException(e);
+			throw new TableManipulationException(e);
 		}
+	}
+
+	@Override
+	public int getLastId() {
+		return id;
 	}
 }

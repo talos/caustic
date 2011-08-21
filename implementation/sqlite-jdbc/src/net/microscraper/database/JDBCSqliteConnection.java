@@ -1,5 +1,6 @@
 package net.microscraper.database;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -8,11 +9,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.microscraper.client.Logger;
-import net.microscraper.database.DatabaseException;
 import net.microscraper.database.IOTable;
 import net.microscraper.database.WritableTable;
-import net.microscraper.impl.log.BasicLog;
 
 /**
  * An implementation of {@link SQLConnection} for org.sqlite.JDBC
@@ -215,35 +213,35 @@ public class JDBCSqliteConnection implements SQLConnection {
 	}
 
 	@Override
-	public void open() throws DatabaseException { }
+	public void open() { }
 	
 	@Override
 	public IOTable getIOTable(String name, String[] textColumns)
-			throws DatabaseException {
+			throws IOException {
 		try {
 			IOTable table = new SQLTable(this, name, textColumns);
 			runBatch();
 			return table;
 		} catch(SQLConnectionException e) {
-			throw new DatabaseException(e);
+			throw new IOException(e);
 		}
 	}
 
 	@Override
-	public void close() throws DatabaseException {
+	public void close() throws IOException {
 		try {
 			runBatch();
 			connection.commit();
 		} catch(SQLConnectionException e) {
-			throw new DatabaseException(e);
+			throw new IOException(e);
 		} catch(SQLException e) {
-			throw new DatabaseException(e);
+			throw new IOException(e);
 		}
 	}
 	
 	@Override
 	public WritableTable getWritableTable(String[] textColumns)
-			throws DatabaseException {
+			throws IOException {
 		return getIOTable(SINGLE_TABLE_NAME, textColumns);
 	}
 }

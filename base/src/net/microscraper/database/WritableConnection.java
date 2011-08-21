@@ -10,7 +10,6 @@ public interface WritableConnection {
 	 * @return A {@link WritableTable}.
 	 * @throws IOException if the {@link WritableTable} cannot be created.
 	 */
-	public abstract WritableTable getWritableTable(String[] textColumns)
-			throws IOException;
+	public abstract WritableTable getWritableTable(String[] textColumns) throws IOException;
 
 }

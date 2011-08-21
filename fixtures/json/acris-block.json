@@ -1,12 +1,12 @@
 
 {
-	"url" : "http://a836-acris.nyc.gov/Scripts/DocSearch.dll/BBLResult",
+	"load" : "http://a836-acris.nyc.gov/Scripts/DocSearch.dll/BBLResult",
 	"name" : "ACRIS BBLResult",
 	"cookies" : {
 		"JUMPPAGE" : "YES"
 	},
 	"posts" : {
-		"hid_borough" : "{{Borough}}",
+		"hid_borough" : "{{Borough}}",replace
 		"hid_borough_name" : "",
 		"hid_block" : "{{Block}}",
 		"hid_lot"   : "0000",
@@ -26,31 +26,31 @@
 		"hid_ISIntranet" : "N",
 		"hid_EmployeeID" : ""
 	},
-	"find" : {
+	"then" : {
+		"find" : "<!--Table Begin!-->(.*?)<!--Table End-->",
 		"name" : "table",
 		"save" : false,
-		"pattern" : "<!--Table Begin!-->(.*?)<!--Table End-->",
 		"match" : 0,
-		"find" : {
+		"then" : {
 			"extends" : { "$ref" : "shared/html-row.json" },
 			"name"      : "record",
 			"save"      : false,
 			"min"  : 2,
 			"max"  : -1,
-			"find" : [{
+			"then" : [{
 				"name"        : "Borough",
-				"pattern"     : ".",
-				"replacement" : "{{Borough}}",
+				"find"     : ".",
+				"replace" : "{{Borough}}",
                                 "match"       : 0
 			},{
 				"name"        : "Block",
-				"pattern"     : ".",
-				"replacement" : "{{Block}}",
+				"find"     : ".",
+				"replace" : "{{Block}}",
                                 "match"       : 0
 			},{
 				"name"        : "Doc ID",
-				"pattern"     : "go_detail\\('([^']+)'\\)",
-				"replacement" : "$1",
+				"find"     : "go_detail\\('([^']+)'\\)",
+				"replace" : "$1",
                                 "match"       : 0
 			},{
 				"extends" : { "$ref" : "shared/acris-column.json" },

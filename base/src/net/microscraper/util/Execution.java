@@ -216,7 +216,7 @@ public class Execution {
 	 * substitutables</code>, if it is successful.
 	 * @param substitutables The array of {@link Substitutable}s to {@link 
 	 * Substitutable#sub(Variables)} en masse.
-	 * @param variables THe {@link Variables} to use.
+	 * @param variables The {@link Variables} to use.
 	 * @return A single {@link Execution}, with either all the <code>substitutables</code>
 	 * substituted or a combined array of the missing variables.
 	 */

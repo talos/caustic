@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import au.com.bytecode.opencsv.CSVWriter;
-import net.microscraper.database.DatabaseException;
 import net.microscraper.database.WritableTable;
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
@@ -31,14 +30,14 @@ public class DelimitedTable implements WritableTable {
 	}
 	
 	@Override
-	public int insert(NameValuePair[] nameValuePairs) throws DatabaseException {
+	public int insert(NameValuePair[] nameValuePairs) throws TableManipulationException {
 		// Prepend ID to the array of nameValuePairs.
 		curId ++;
 		nameValuePairs = Arrays.copyOf(nameValuePairs, nameValuePairs.length + 1);
 		nameValuePairs[nameValuePairs.length -1] = new BasicNameValuePair(ID_COLUMN_NAME, Integer.toString(curId));
 		
 		if(nameValuePairs.length != columns.size()) {
-			throw new DatabaseException(BasicNameValuePair.preview(nameValuePairs) + " does not fit in " +
+			throw new TableManipulationException(BasicNameValuePair.preview(nameValuePairs) + " does not fit in " +
 					StringUtils.join(columns.toArray(new String[0]), ", "));
 		}
 		
@@ -48,11 +47,16 @@ public class DelimitedTable implements WritableTable {
 			if(index > -1) {
 				valuesInOrder[index] = nameValuePairs[i].getValue();
 			} else {
-				throw new DatabaseException(nameValuePairs[i].getName() + " is not a column in " +
+				throw new TableManipulationException(nameValuePairs[i].getName() + " is not a column in " +
 						StringUtils.join(columns.toArray(new String[0]), ", "));
 			}
 		}
 		writer.writeNext(valuesInOrder);
+		return curId;
+	}
+
+	@Override
+	public int getLastId() {
 		return curId;
 	}
 

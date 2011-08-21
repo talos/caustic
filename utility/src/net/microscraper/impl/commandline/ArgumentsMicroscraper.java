@@ -7,14 +7,17 @@ import java.util.Hashtable;
 
 import au.com.bytecode.opencsv.CSVReader;
 
+import net.microscraper.browser.JavaNetBrowser;
 import net.microscraper.client.BasicMicroscraper;
+import net.microscraper.client.Browser;
+import net.microscraper.client.DeserializationException;
 import net.microscraper.client.Microscraper;
-import net.microscraper.client.MicroscraperException;
 import net.microscraper.database.Database;
-import net.microscraper.database.DatabaseException;
 import net.microscraper.database.SQLConnectionException;
 import net.microscraper.impl.log.JavaIOFileLogger;
 import net.microscraper.impl.log.SystemOutLogger;
+import net.microscraper.uri.MalformedUriException;
+import net.microscraper.util.HashtableUtils;
 
 import static net.microscraper.impl.commandline.Arguments.*;
 
@@ -27,14 +30,30 @@ public class ArgumentsMicroscraper {
 	 * Initialize an {@link ArgumentsMicroscraper}.
 	 * @param arguments The array of {@link String} arguments from the command line to use.
 	 * @throws IOException 
-	 * @throws DatabaseException 
 	 * @throws SQLConnectionException 
 	 */
-	public ArgumentsMicroscraper(Arguments args) throws SQLConnectionException, DatabaseException, IOException {		
+	public ArgumentsMicroscraper(Arguments args) throws SQLConnectionException, IOException {		
 		Database database = new ArgumentsDatabase(args);
 		
 		this.args = args;
-		scraper = new BasicMicroscraper(database);
+		final int rateLimit;
+		final int timeout;
+		
+		// Set rate limit.
+		try {
+			rateLimit = Integer.parseInt(args.get(RATE_LIMIT));
+		} catch(NumberFormatException e) {
+			throw new IllegalArgumentException(RATE_LIMIT + " must be an integer");
+		}
+		
+		// Set timeout.
+		try {
+			timeout = Integer.parseInt(args.get(TIMEOUT));
+		} catch(NumberFormatException e) {
+			throw new IllegalArgumentException(TIMEOUT + " must be an integer");
+		}
+		
+		scraper = BasicMicroscraper.get(database, rateLimit, timeout);
 
 		// Register logs.
 		if(args.has(LOG_FILE)) {
@@ -43,23 +62,11 @@ public class ArgumentsMicroscraper {
 		if(args.has(LOG_STDOUT)) {
 			scraper.register(new SystemOutLogger());
 		}
-		
-		// Set rate limit.
-		try {
-			scraper.setRateLimit(Integer.parseInt(args.get(RATE_LIMIT)));
-		} catch(NumberFormatException e) {
-			throw new IllegalArgumentException(RATE_LIMIT + " must be an integer");
-		}
-		
-		// Set timeout.
-		try {
-			scraper.setTimeout(Integer.parseInt(args.get(TIMEOUT)));
-		} catch(NumberFormatException e) {
-			throw new IllegalArgumentException(TIMEOUT + " must be an integer");
-		}
 	}
 	
-	public void scrape() throws IOException, MicroscraperException { 
+	public void scrape() throws IOException, InterruptedException, DeserializationException, MalformedUriException { 
+		Hashtable<String, String> defaults;
+		defaults = HashtableUtils.fromFormEncoded(new JavaNetBrowser(), args.get(DEFAULTS), Browser.UTF_8);
 		
 		// Run (handle inputs)
 		if(args.has(INPUT)) {
@@ -78,18 +85,18 @@ public class ArgumentsMicroscraper {
 				for(int i = 0 ; i < values.length ; i ++) {
 					lineDefaults.put(headers[i], values[i]);
 				}
-				scrape(lineDefaults);
+				scrape(HashtableUtils.combine(new Hashtable[] { defaults, lineDefaults }));
 			}
 		} else {
-			scrape(new Hashtable<String, String>());
+			scrape(defaults);
 		}
 	}
 	
-	private void scrape(Hashtable<String, String> extraDefaults) throws MicroscraperException {
+	private void scrape(Hashtable<String, String> defaults) throws InterruptedException, IOException, DeserializationException, MalformedUriException {
 		if(args.has(JSON_INSTRUCTION)) {
-			scraper.scrapeWithJSON(args.get(JSON_INSTRUCTION), args.get(DEFAULTS), extraDefaults);
+			scraper.scrapeFromJson(args.get(JSON_INSTRUCTION), defaults);
 		} else if(args.has(URI_INSTRUCTION)) {
-			scraper.scrapeWithURI(args.get(URI_INSTRUCTION), args.get(DEFAULTS), extraDefaults);
+			scraper.scrapeFromUri(args.get(URI_INSTRUCTION), defaults);
 		}
 	}
 }

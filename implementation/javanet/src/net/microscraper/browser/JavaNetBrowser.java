@@ -121,7 +121,7 @@ public class JavaNetBrowser implements Browser, Loggable {
 			}
 			if(terminates != null && terminates.length > 0) {
 				for(int i = 0 ; i < terminates.length ; i++) {
-					if(terminates[i].matches(responseBody)){
+					if(terminates[i].matches(responseBody, Pattern.FIRST_MATCH)){
 						log.i("Terminating " + url.toString() + " due to pattern " + terminates[i].toString());
 						break loading;
 					}

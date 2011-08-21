@@ -3,13 +3,13 @@ package net.microscraper.impl.commandline;
 import java.io.IOException;
 
 import net.microscraper.database.Database;
-import net.microscraper.database.DatabaseException;
 import net.microscraper.database.DelimitedConnection;
 import net.microscraper.database.IOConnection;
 import net.microscraper.database.JDBCSqliteConnection;
 import net.microscraper.database.MultiTableDatabase;
 import net.microscraper.database.SQLConnectionException;
 import net.microscraper.database.SingleTableDatabase;
+import net.microscraper.database.TableManipulationException;
 import net.microscraper.util.StringUtils;
 
 import static net.microscraper.impl.commandline.Arguments.*;
@@ -18,7 +18,7 @@ public class ArgumentsDatabase implements Database {
 	private final Database database;
 	
 	public ArgumentsDatabase(Arguments args)
-			throws SQLConnectionException, DatabaseException, IOException {
+			throws SQLConnectionException, IOException {
 		
 		// Determine format.
 		String format;
@@ -65,19 +65,23 @@ public class ArgumentsDatabase implements Database {
 	}
 	
 	@Override
-	public int storeInitial(String name, String value, int resultNum)
-			throws DatabaseException {
+	public int storeInitial(String name, String value, int resultNum) throws TableManipulationException, IOException {
 		return database.storeInitial(name, value, resultNum);
 	}
 
 	@Override
 	public int store(String sourceName, int sourceId, String name,
-			String value, int resultNum) throws DatabaseException {
+			String value, int resultNum) throws TableManipulationException, IOException {
 		return database.store(sourceName, sourceId, name, value, resultNum);
 	}
 
 	@Override
-	public void close() throws DatabaseException {
+	public void close() throws IOException {
 		database.close();
+	}
+
+	@Override
+	public void clean() throws TableManipulationException {
+		database.clean();
 	}
 }

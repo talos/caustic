@@ -45,6 +45,7 @@ public class Microscraper implements Loggable {
 			throws DeserializationException, IOException {
 		for(int i = 0 ; i < defaultsHashes.length ; i ++) {
 			InstructionRunner runner = new InstructionRunner(instruction, database, defaultsHashes[i], source);
+			runner.register(log);
 			runner.run();
 		}
 	}

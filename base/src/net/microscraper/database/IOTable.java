@@ -19,7 +19,7 @@ public interface IOTable extends WritableTable {
 	/**
 	 * Add a column.
 	 * @param columnName The {@link String} name of column to add.
-	 * @throws DatabaseException if the column could not be added.
+	 * @throws TableManipulationException if the column could not be added.
 	 */
 	public abstract void addColumn(String columnName) throws TableManipulationException;
 
@@ -41,14 +41,14 @@ public interface IOTable extends WritableTable {
 	 * @param id the {@link int} ID of the row to update.
 	 * @param nameValuePairs An array of {@link NameValuePair}s mapping
 	 * columns to new values.
-	 * @throws DatabaseException if the row could not be updated.
+	 * @throws TableManipulationException if the row could not be updated.
 	 */
 	public abstract void update(int id, NameValuePair[] nameValuePairs)
 			throws TableManipulationException;
 	
 	/**
 	 * Delete this {@link IOTable}.
-	 * @throws DatabaseException If the {@link IOTable} could not be dropped.
+	 * @throws TableManipulationException If the {@link IOTable} could not be dropped.
 	 */
 	public void drop() throws TableManipulationException;
 }

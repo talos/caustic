@@ -1,16 +1,16 @@
 
 {
-	"url" : "http://www.google.com/search?q={{query}}",
-	"find"  : {
+	"load" : "http://www.google.com/search?q={{query}}",
+	"then"  : {
+		"find"     : "{{query}}\\s+(\\w+)",
+		"replace" : "$1",
 		"name"   : "after",
-		"pattern"     : "{{query}}\\s+(\\w+)",
-		"replacement" : "$1",
-		"load" : {
-			"url" : "http://www.google.com/search?q={{after}}",
-			"find" : {
-				"name"   : "what do you say after '{{after}}'?",
-				"pattern"     : "{{after}}\\s+(\\w+)",
-				"replacement" : "I say '$1'!"
+		"then" : {
+			"load" : "http://www.google.com/search?q={{after}}",
+			"then" : {
+				"find"     : "{{after}}\\s+(\\w+)",
+				"replace" : "I say '$1'!",
+				"name"   : "what do you say after '{{after}}'?"
 			}
 		}
 	}

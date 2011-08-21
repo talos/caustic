@@ -1,5 +1,5 @@
 
 {
-	"pattern" : "<\\s*td[^>]*>(.*?)</\\s*td\\s*>",
-	"replacement" : "$1"
+	"find" : "<\\s*td[^>]*>(.*?)</\\s*td\\s*>",
+	"replace" : "$1"
 }

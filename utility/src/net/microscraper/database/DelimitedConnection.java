@@ -8,7 +8,6 @@ import java.util.Arrays;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
-import net.microscraper.database.DatabaseException;
 import net.microscraper.database.WritableConnection;
 import net.microscraper.database.WritableTable;
 
@@ -46,8 +45,7 @@ public class DelimitedConnection implements WritableConnection {
 	
 
 	@Override
-	public WritableTable getWritableTable(String[] textColumns)
-			throws DatabaseException {
+	public WritableTable getWritableTable(String[] textColumns) {
 		return new DelimitedTable(writer, textColumns);
 	}
 

@@ -5,9 +5,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import net.microscraper.client.Browser;
-import net.microscraper.client.BrowserException;
 import net.microscraper.file.FileLoader;
-import net.microscraper.uri.Uri;
 import net.microscraper.uri.Uri;
 
 public class JavaNetURI implements Uri {
@@ -19,13 +17,13 @@ public class JavaNetURI implements Uri {
 	private final Browser browser;
 	private final FileLoader fileLoader;
 	
-	public JavaNetURI(String uriString, Browser browser, FileLoader fileLoader) throws URIInterfaceException {
+	public JavaNetURI(String uriString, Browser browser, FileLoader fileLoader) throws MalformedUriException {
 		try {
 			this.uri = new URI(uriString);
 			this.browser = browser;
 			this.fileLoader = fileLoader;
 		} catch(URISyntaxException e) {
-			throw new URIInterfaceException(e);
+			throw new MalformedUriException(e);
 		}
 	}
 	
@@ -39,7 +37,7 @@ public class JavaNetURI implements Uri {
 			return new JavaNetURI( uri.resolve(otherLocation.toString()), browser, fileLoader );
 	}
 	
-	public Uri resolve(String path) throws URIInterfaceException {
+	public Uri resolve(String path) throws MalformedUriException {
 		return resolve(new JavaNetURI(path, browser, fileLoader));
 	}
 	
@@ -60,7 +58,7 @@ public class JavaNetURI implements Uri {
 		return false;
 	}
 
-	public String load() throws IOException, URIInterfaceException {
+	public String load() throws IOException, InterruptedException {
 		if(uri.getScheme() == null) {
 			return fileLoader.load(this);
 		} else if(uri.getScheme().equals(FILE_SCHEME)) {
@@ -71,13 +69,11 @@ public class JavaNetURI implements Uri {
 				browser.setRateLimit(0);
 				String response = browser.get(this.toString(), null, null, null);
 				return response;
-			} catch(BrowserException e) {
-				throw new IOException(e);
 			} finally {
 				browser.setRateLimit(prevRateLimit);
 			}
 		} else {
-			throw new URIInterfaceException("Cannot load scheme " + uri.getScheme());
+			throw new IOException("Cannot load scheme " + uri.getScheme());
 		}
 	}
 }

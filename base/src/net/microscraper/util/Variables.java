@@ -1,7 +1,6 @@
 package net.microscraper.util;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -123,34 +122,6 @@ public class Variables {
 	 */
 	public static Variables empty(Database database) {
 		return new Variables(database, new Hashtable());
-	}
-	
-	/**
-	 * Turn a form-encoded {@link String} into {@link Variables}.
-	 * @param database
-	 * @param decoder The {@link Decoder} to use for decoding.
-	 * @param formEncodedData A {@link String} of form-encoded data to convert.  It must be 
-	 * correctly formatted.
-	 * @param encoding The encoding to use.  <code>UTF-8</code> recommended.
-	 * @return A {@link Variables}.
-	 * @throws UnsupportedEncodingException If the encoding is not supported.
-	 * @throws IOException If values could not be persisted to <code>database</code>.
-	 */
-	public static Variables fromFormEncoded(Database database,
-				Decoder decoder, String formEncodedData, String encoding)
-			throws UnsupportedEncodingException, IOException {
-		String[] splitByAmpersands = StringUtils.split(formEncodedData, "&");
-		Hashtable hashtable = new Hashtable();
-		for(int i = 0 ; i < splitByAmpersands.length; i++) {
-			String[] pair = StringUtils.split(splitByAmpersands[i], "=");
-			if(pair.length == 2) {
-				hashtable.put(decoder.decode(pair[0], encoding),
-						decoder.decode(pair[1], encoding));
-			} else {
-				throw new IllegalArgumentException(StringUtils.quote(splitByAmpersands[i]) + " is not a valid name-value pair.");
-			}
-		}
-		return fromHashtable(database, hashtable);
 	}
 	
 	/**

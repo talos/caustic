@@ -44,7 +44,7 @@ public class JsonMEParser implements JsonParser {
 		 * Instantiate {@link JSONMEObject}, following references.
 		 * @param initialURI
 		 * @param object
-		 * @throws URIInterfaceException
+		 * @throws MalformedUriException
 		 * @throws JsonException
 		 * @throws JSONException
 		 * @throws IOException
@@ -57,7 +57,11 @@ public class JsonMEParser implements JsonParser {
 			while(object.has(REFERENCE_KEY)) {
 				uri = uri.resolve(object.getString(REFERENCE_KEY));
 				//object = loadJSONObject(location, object.toString());
-				object = new JSONObject(uri.load());
+				try {
+					object = new JSONObject(uri.load());
+				} catch(InterruptedException e) {
+					throw new IOException(e);
+				}
 			}
 			
 			if(object.has(EXTENDS)) {
@@ -389,6 +393,8 @@ public class JsonMEParser implements JsonParser {
 			return new JSONMEObject(uri, new JSONObject(uri.load()));
 		} catch(org.json.me.JSONException e) {
 			throw new JsonException(e);
+		} catch(InterruptedException e) {
+			throw new IOException(e);
 		}
 	}
 	

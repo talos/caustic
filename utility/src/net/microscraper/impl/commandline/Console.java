@@ -4,9 +4,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-import net.microscraper.client.MicroscraperException;
-import net.microscraper.database.DatabaseException;
+import net.microscraper.client.DeserializationException;
 import net.microscraper.database.SQLConnectionException;
+import net.microscraper.uri.MalformedUriException;
 
 public class Console {
 	public static void main (String[] stringArgs) {
@@ -39,26 +39,25 @@ public class Console {
 			print("Could not find the input file: " + e.getMessage());
 		} catch(SQLConnectionException e) {
 			print("Could not open connection to SQL: " + e.getMessage());
-		} catch(DatabaseException e) {
-			print("Could not set up database: " + e.getMessage());
 		} catch(UnsupportedEncodingException e) {
 			print("Unsupported encoding: " + e.getMessage());
 		} catch(IOException e) {
 			print("Could not open log file: " + e.getMessage());
-		} /*catch(Throwable e) {
-			print("Unhandled exception c: " + e.getClass().getName());
-			print("Stack trace is in the log.");
-		}*/
+		} 
 		return null;
 	}
 	
 	private static void scrape(ArgumentsMicroscraper scraper) {
 		try {
 			scraper.scrape();
-		} catch(MicroscraperException e) {
-			print("Error scraping: " + e.getMessage());
 		} catch(IOException e) {
 			print("Error reading input file or writing to output file (log or output): " + e.getMessage());
+		} catch (InterruptedException e) {
+			print("User interrupt");
+		} catch (DeserializationException e) {
+			print("Could not deserialize Instruction");
+		} catch (MalformedUriException e) {
+			print("Bad reference in Instruction");
 		}
 	}
 

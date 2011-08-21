@@ -10,7 +10,7 @@ import net.microscraper.util.Variables;
 
 /**
  * An {@link Executable} for extracting matches from a source string according to
- * a {@link Pattern} and substitution.
+ * a {@link Pattern} and replacement {@link MustacheTemplate}.
  * @author john
  *
  */
@@ -64,6 +64,11 @@ public class Find implements Action {
 		this.tests = tests;
 	}
 	
+	/**
+	 * Use {@link #pattern}, substituted with {@link Variables}, to match against <code>source</code>.
+	 * Will return {@link Execution#failedTests(String, Pattern)} if at least one of the {@link #tests} does
+	 * not match against at least one of the result {@link String}s.
+	 */
 	public Execution execute(String source, Variables variables) {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
@@ -87,9 +92,9 @@ public class Find implements Action {
 			String[] matches = pattern.match(source, replacement, minMatch, maxMatch);
 			Pattern[] tests = (Pattern[]) subTests.getExecuted();
 			
-			// We got at least 1 match.
 			if(matches.length == 0) {
 				result = Execution.noMatches(source, pattern, minMatch, maxMatch);
+			// We got at least 1 match.
 			} else {
 				// Run the tests.
 				Vector failedExecutions = new Vector();

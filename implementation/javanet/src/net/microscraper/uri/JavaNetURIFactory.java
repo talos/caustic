@@ -4,7 +4,6 @@ import net.microscraper.client.Browser;
 import net.microscraper.file.FileLoader;
 import net.microscraper.uri.UriFactory;
 import net.microscraper.uri.Uri;
-import net.microscraper.uri.Uri;
 
 /**
  * An implementation of {@link UriFactory} that uses {@link JavaNetURI}.
@@ -27,7 +26,7 @@ public class JavaNetURIFactory implements UriFactory {
 		this.fileLoader = fileLoader;
 	}
 	
-	public Uri fromString(String uri) throws URIInterfaceException {
+	public Uri fromString(String uri) throws MalformedUriException {
 		return new JavaNetURI(uri, browser, fileLoader);
 	}
 }
