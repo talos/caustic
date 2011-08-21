@@ -2,9 +2,7 @@ package net.microscraper.instruction;
 
 import java.io.IOException;
 
-import net.microscraper.client.Browser;
 import net.microscraper.mustache.MustacheTemplate;
-import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
@@ -16,9 +14,7 @@ import net.microscraper.util.Variables;
 public class Instruction {
 	
 	/**
-	 * The {@link MustacheTemplate} name for this {@link Instruction}.  Can be <code>null</code>.
-	 * Name should therefore be retrieved through {@link #getName(Variables)}.
-	 * @see #getName(Variables, Browser, RegexpCompiler)
+	 * The {@link MustacheTemplate} name for this {@link Instruction}.
 	 */
 	private final MustacheTemplate name;
 	
@@ -37,30 +33,80 @@ public class Instruction {
 	 */
 	private final Action action;
 	
+
+
 	/**
-	 * 
-	 * @param shouldSaveValue Whether this {@link Instruction}'s results' values should be
-	 * saved. <code>True</code> if they should be, <code>false</code> otherwise.
+	 * Create a new {@link Instruction}.
+	 * Uses {@link Action#getDefaultShouldPersistValue()} for {@link #shouldPersistValue} and
+	 * {@link Action#getDefaultName()} for {@link #name}.
+	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
+	 * @param children An array of {@link Instruction}s launched with this {@link Instruction}'s
+	 * results.
+	 * @param shouldPersistValue Whether this {@link Instruction}'s executions' values should be
+	 * persisted to {@link Database}. <code>True</code> if they should be, <code>false</code> otherwise.
 	 * @param name The {@link MustacheTemplate} that will be compiled and used as the name of this
 	 * {@link Instruction}'s results.
-	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
-	 * @param finds An array of {@link Instruction}s launched with this {@link Instruction}'s
-	 * results.
 	 */
-	public Instruction(boolean shouldSaveValue,
-			MustacheTemplate name, Action action,
-			Instruction[] children) {
-		this.shouldPersistValue = shouldSaveValue;
+	public Instruction(Action action, Instruction[] children) {
+		this.shouldPersistValue = action.getDefaultShouldPersistValue();
+		this.action = action;
+		this.children = children;
+		this.name = action.getDefaultName();
+	}
+	
+	
+	/**
+	 * Create a new {@link Instruction} with a custom value for {@link #name}.
+	 * Uses {@link Action#getDefaultShouldPersistValue()} for {@link #shouldPersistValue}.
+	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
+	 * @param children An array of {@link Instruction}s launched with this {@link Instruction}'s
+	 * results.
+	 * @param name The {@link MustacheTemplate} that will be compiled and used as the name of this
+	 * {@link Instruction}'s results.
+	 */
+	public Instruction(Action action,
+			Instruction[] children, MustacheTemplate name) {
+		this.shouldPersistValue = action.getDefaultShouldPersistValue();
+		this.action = action;
+		this.children = children;
+		this.name = name;
+	}
+	
+	/**
+	 * Create a new {@link Instruction} with a custom value for {@link #name}.
+	 * Uses {@link Action#getDefaultName()} for {@link #name}.
+	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
+	 * @param children An array of {@link Instruction}s launched with this {@link Instruction}'s
+	 * results.
+	 * @param name The {@link MustacheTemplate} that will be compiled and used as the name of this
+	 * {@link Instruction}'s results.
+	 */
+	public Instruction(Action action,
+			Instruction[] children, boolean shouldPersistValue) {
+		this.shouldPersistValue = shouldPersistValue;
+		this.action = action;
+		this.children = children;
+		this.name = action.getDefaultName();
+	}
+	
+	/**
+	 * Create a new {@link Instruction} with a custom value for {@link #shouldPersistValue}
+	 * and {@link #name}.
+	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
+	 * @param children An array of {@link Instruction}s launched with this {@link Instruction}'s
+	 * results.
+	 * @param shouldPersistValue Whether this {@link Instruction}'s executions' values should be
+	 * persisted to {@link Database}. <code>True</code> if they should be, <code>false</code> otherwise.
+	 * @param name The {@link MustacheTemplate} that will be compiled and used as the name of this
+	 * {@link Instruction}'s results.
+	 */
+	public Instruction(Action action,
+			Instruction[] children, boolean shouldPersistValue,
+			MustacheTemplate name) {
+		this.shouldPersistValue = shouldPersistValue;
 		this.name = name;
 		this.action = action;
 		this.children = children;
-	}
-	
-	public Instruction(Instruction instruction) {
-		this.shouldPersistValue = instruction.shouldPersistValue;
-		this.name = instruction.name;
-		this.action = instruction.action;
-		this.children = instruction.children;
 	}
 	
 	/**
@@ -71,21 +117,13 @@ public class Instruction {
 	}
 	
 	/**
-	 * Produce an {@link Executable} by binding this {@link Instruction} to a {@link String} source
-	 * and {@link Variable}.  The {@link Executable} will reuse these to fire
-	 * {@link #execute(String, Variables)} in {@link Executable#execute()}.
-	 * @param source The {@link String} source to bind to {@link Executable}.
-	 * @param variables The {@link Variables} variables to bind to {@link Executable}.
-	 * @return The bound {@link Executable}.
-	 */
-	/*public Executable bind(String source, Variables variables) {
-		return new Executable(source, variables, this);
-	}*/
-	
-	/**
 	 * Generate the children of this {@link Instruction} during execution.  There will be as many children
-	 * as the product of <code>sources</code> and {@link #children}.  Should be run by
-	 * {@link Executable#execute()} as part of {@link InstructionRunner#run()}.
+	 * as the product of {@link Action#execute(String, Variables)}'s {@link Execution#getExecuted()}
+	 *  and {@link #children}.  Should be run by {@link Executable#execute()} as part of {@link InstructionRunner#run()}.
+	 * @param source The source {@link String} to use in the execution.
+	 * @param variables The {@link Variables} to use in the execution.
+	 * @return An {@link Execution} whose {@link Execution#getExecuted()} is an array of {@link Executable}s,
+	 * if it is successful, or the reasons why the execution did not go off.
 	 * @throws InterruptedException If the user interrupted the execution.
 	 * @throws IOException If there was an error persisting to the {@link Database}.
 	 * @see Executable#execute()
@@ -96,7 +134,7 @@ public class Instruction {
 		Execution nameSub = name.sub(variables);
 		
 		// Didn't get the name.
-		if(!nameSub.isSuccessful()) {
+		if(nameSub.isSuccessful() == false) {
 			result = nameSub;
 		
 		// Got the name.
@@ -105,7 +143,7 @@ public class Instruction {
 			
 			Execution actionExecution = action.execute(source, variables);
 			
-			if(!actionExecution.isSuccessful()) {
+			if(actionExecution.isSuccessful() == false) {
 				result = actionExecution;
 			} else {
 			
@@ -121,7 +159,6 @@ public class Instruction {
 						Instruction child = children[j];
 						childExecutables[i * resultValues.length + j]
 								= new Executable(childSource, branch, child);
-						//		= child.bind(childSource, branch);
 					}
 				}
 

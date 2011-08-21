@@ -1,10 +1,6 @@
 package net.microscraper.test;
 
 import java.util.Random;
-import java.util.Vector;
-
-import net.microscraper.instruction.Execution;
-import net.microscraper.util.StringUtils;
 
 /**
  * Static methods for testing.

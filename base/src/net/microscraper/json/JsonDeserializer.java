@@ -188,10 +188,9 @@ public class JsonDeserializer implements Deserializer {
 	private Instruction deserializeInstruction(JsonObject jsonObject)
 				throws MustacheCompilationException, DeserializationException, JsonException,
 				MalformedUriException, IOException {
-		final MustacheTemplate name;
-		final boolean shouldSaveValue;
 		final Action action;
 		final Instruction[] children;
+		final Instruction result;
 		
 		if(isFind(jsonObject)) {
 			action = deserializeFind(jsonObject);
@@ -199,17 +198,6 @@ public class JsonDeserializer implements Deserializer {
 			action = deserializeLoad(jsonObject);
 		} else {
 			throw new DeserializationException("There is no load or find action in the instruction.");
-		}
-		
-		if(jsonObject.has(NAME)) {
-			name = MustacheTemplate.compile(jsonObject.getString(NAME));
-		} else {
-			name = action.getDefaultName();
-		}
-		if(jsonObject.has(SAVE)) {
-			shouldSaveValue = jsonObject.getBoolean(SAVE);
-		} else {
-			shouldSaveValue = action.getDefaultShouldPersistValue();
 		}
 		
 		if(jsonObject.has(THEN)) {
@@ -230,7 +218,25 @@ public class JsonDeserializer implements Deserializer {
 			children = new Instruction[] {};
 		}
 		
-		return new Instruction(shouldSaveValue, name, action, children);
+
+		if(jsonObject.has(NAME)) {
+			MustacheTemplate name = MustacheTemplate.compile(jsonObject.getString(NAME));
+			if(jsonObject.has(SAVE)) {
+				boolean shouldPersistValue = jsonObject.getBoolean(SAVE);
+				result = new Instruction(action, children, shouldPersistValue, name);
+			} else {
+				result = new Instruction(action, children, name);
+				
+			}
+		} else {
+			if(jsonObject.has(SAVE)) {
+				boolean shouldPersistValue = jsonObject.getBoolean(SAVE);
+				result = new Instruction(action, children, shouldPersistValue);
+			} else {
+				result = new Instruction(action, children);
+			}
+		}
+		return result;
 	}
 
 	/**

@@ -12,53 +12,53 @@ import mockit.NonStrictExpectations;
 
 import org.junit.Test;
 
-public class SubstitutionTest {
+public class ExecutionTest {
 	
 	@Test
 	public void testIsSuccessful() {
 		Object obj = new Object();
-		Execution sub = Execution.success(obj);
-		assertTrue(sub.isSuccessful());
+		Execution execution = Execution.success(obj);
+		assertTrue(execution.isSuccessful());
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
-	public void testFailThrowsIllegalArgOnZeroLengthMissingVariables() {
-		Execution.fail(new String[] {});
+	public void testMissingVariableThrowsIllegalArgOnZeroLengthMissingVariables() {
+		Execution.missingVariables(new String[] {});
 	}
 	
 	@Test
-	public void testIsNotSuccessful() {
-		Execution sub = Execution.fail(new String[] { randomString() });
-		assertFalse(sub.isSuccessful());
+	public void testMissingVariablesIsNotSuccessful() {
+		Execution execution = Execution.missingVariables(new String[] { randomString() });
+		assertFalse(execution.isSuccessful());
 	}
 
 	@Test
 	public void testGetSubstituted() {
 		Object obj = new Object();
-		Execution sub = Execution.success(obj);
-		assertEquals(obj, sub.getExecuted());
+		Execution execution = Execution.success(obj);
+		assertEquals(obj, execution.getExecuted());
 	}
 
 	@Test
 	public void testGetMissingVariables() {
 		String[] missingVariables = new String[] { randomString(), randomString() };
-		Execution sub = Execution.fail(missingVariables);
-		assertArrayEquals(missingVariables, sub.getMissingVariables());
+		Execution execution = Execution.missingVariables(missingVariables);
+		assertArrayEquals(missingVariables, execution.getMissingVariables());
 	}
 	
 	@Test
-	public void testCombineOneUnsuccessfulIsUnsuccessful() {
-		Execution sub1 = Execution.success(new Object());
-		Execution sub2 = Execution.fail(new String[] { randomString() });
-		Execution combined = Execution.combine(new Execution[] { sub1, sub2 });
+	public void testCombineOneMissingVariablesIsMissingVariables() {
+		Execution execution1 = Execution.success(new Object());
+		Execution execution2 = Execution.missingVariables(new String[] { randomString() });
+		Execution combined = Execution.combine(new Execution[] { execution1, execution2 });
 		assertFalse(combined.isSuccessful());
 	}
 	
 	@Test
 	public void testCombineAllSuccessfulIsSuccessful() {
-		Execution sub1 = Execution.success(new Object());
-		Execution sub2 = Execution.success(new Object());
-		Execution combined = Execution.combine(new Execution[] { sub1, sub2 });
+		Execution execution1 = Execution.success(new Object());
+		Execution execution2 = Execution.success(new Object());
+		Execution combined = Execution.combine(new Execution[] { execution1, execution2 });
 		assertTrue(combined.isSuccessful());
 	}
 	
@@ -66,9 +66,9 @@ public class SubstitutionTest {
 	public void testCombineAllSuccessfulCombinesSubstitutedObjects() {
 		Object obj1 = new Object();
 		Object obj2 = new Object();
-		Execution sub1 = Execution.success(obj1);
-		Execution sub2 = Execution.success(obj2);
-		Execution combined = Execution.combine(new Execution[] { sub1, sub2 });
+		Execution execution1 = Execution.success(obj1);
+		Execution execution2 = Execution.success(obj2);
+		Execution combined = Execution.combine(new Execution[] { execution1, execution2 });
 		
 		Object[] combinedSubstituted = (Object[]) combined.getExecuted();
 		List<Object> list = Arrays.asList(combinedSubstituted);
@@ -78,14 +78,14 @@ public class SubstitutionTest {
 	}
 	
 	@Test
-	public void testCombineUnsuccessfulCombinesMissingVariables() {
+	public void testCombinMissingVariablesCombinesMissingVariables() {
 		String sharedString = randomString();
 		String[] missingVariables1 = new String[] { sharedString, randomString(), randomString() };
 		String[] missingVariables2 = new String[] { sharedString, randomString(), randomString() };
-		Execution sub1 = Execution.success(new Object());
-		Execution sub2 = Execution.fail(missingVariables1);
-		Execution sub3 = Execution.fail(missingVariables2);
-		Execution combined = Execution.combine(new Execution[] { sub1, sub2, sub3 });
+		Execution execution1 = Execution.success(new Object());
+		Execution execution2 = Execution.missingVariables(missingVariables1);
+		Execution execution3 = Execution.missingVariables(missingVariables2);
+		Execution combined = Execution.combine(new Execution[] { execution1, execution2, execution3 });
 		
 		String[] combinedMissing = combined.getMissingVariables();
 		List<String> list = Arrays.asList(combinedMissing);
@@ -135,8 +135,8 @@ public class SubstitutionTest {
 		
 		new NonStrictExpectations() {{
 			sub1.sub(variables); result = Execution.success(obj1);
-			sub2.sub(variables); result = Execution.fail(missingVariables1);
-			sub3.sub(variables); result = Execution.fail(missingVariables2);
+			sub2.sub(variables); result = Execution.missingVariables(missingVariables1);
+			sub3.sub(variables); result = Execution.missingVariables(missingVariables2);
 		}};
 		
 		Substitutable[] substitutables =

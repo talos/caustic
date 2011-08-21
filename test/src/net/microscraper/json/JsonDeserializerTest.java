@@ -1,19 +1,11 @@
 package net.microscraper.json;
 
-import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import mockit.Verifications;
 import net.microscraper.client.Browser;
 import net.microscraper.client.DeserializationException;
-import net.microscraper.database.Database;
-import net.microscraper.instruction.Find;
-import net.microscraper.instruction.Load;
-import net.microscraper.instruction.Result;
-import net.microscraper.mustache.MustachePattern;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.util.Variables;
 import static net.microscraper.json.JsonDeserializer.*;
 import static net.microscraper.test.TestUtils.randomInt;
 import static net.microscraper.test.TestUtils.randomString;
@@ -24,7 +16,8 @@ import org.junit.Test;
 public class JsonDeserializerTest {
 	private final String loadJson = randomString();
 	private final String findJson = randomString();
-	private @Mocked JsonObject loadObj, findObj;
+	private final String emptyJson = "";
+	private @Mocked JsonObject loadObj, findObj, emptyObj;
 	private @Mocked JsonParser parser;
 	private @Mocked RegexpCompiler compiler;
 	private @Mocked Browser browser;
@@ -39,30 +32,38 @@ public class JsonDeserializerTest {
 		deserializer = new JsonDeserializer(parser, compiler, browser);
 		new NonStrictExpectations() {{
 			parser.parse(loadJson); result = loadObj;
+			loadObj.has(LOAD); result = true;
 			loadObj.getString(LOAD); result = googleString;
+			
 			parser.parse(findJson); result = findObj;
+			findObj.has(FIND); result = true;
 			findObj.getString(FIND); result = patternString;
+			
+			parser.parse(emptyJson); result = emptyObj;
 		}};
 	}
 	
 	@Test
 	public void testDeserializeSimpleLoad() throws Exception {
-		deserializer.deserializeLoad(loadJson);
+		deserializer.deserializeInstruction(loadJson);
 	}
 
 	@Test
 	public void testDeserializeSimpleFind() throws Exception {
-		deserializer.deserializeFind(findJson);
+		deserializer.deserializeInstruction(findJson);
 	}
 
 	@Test(expected=DeserializationException.class)
-	public void testNotALoad() throws Exception {
-		deserializer.deserializeFind(loadJson);
+	public void testEmptyObjThrowsException() throws Exception {
+		deserializer.deserializeInstruction("");
 	}
 	
 	@Test(expected=DeserializationException.class)
-	public void testNotAFind() throws Exception {
-		deserializer.deserializeLoad(findJson);
+	public void testLoadAndFindInInstructionThrowsException() throws Exception {
+		new NonStrictExpectations() {{
+			findObj.has(LOAD); result = true;
+		}};
+		deserializer.deserializeInstruction(findJson);
 	}
 	
 	@Test(expected=DeserializationException.class)
@@ -71,7 +72,7 @@ public class JsonDeserializerTest {
 			findObj.has(MAX_MATCH); result = true;
 			findObj.has(MATCH); result = true;
 		}};
-		deserializer.deserializeFind(findJson);
+		deserializer.deserializeInstruction(findJson);
 	}
 
 	@Test(expected=DeserializationException.class)
@@ -80,7 +81,7 @@ public class JsonDeserializerTest {
 			findObj.has(MIN_MATCH); result = true;
 			findObj.has(MATCH); result = true;
 		}};
-		deserializer.deserializeFind(findJson);
+		deserializer.deserializeInstruction(findJson);
 	}
 	
 	@Test
@@ -92,7 +93,7 @@ public class JsonDeserializerTest {
 			compiler.compile(patternString, anyBoolean, anyBoolean, anyBoolean); result = pattern;
 		}};
 		
-		Find find = deserializer.deserializeFind(findJson);
+		//Instruction instruction = deserializer.deserializeInstruction(findJson);
 		/*
 		new Verifications() {{
 			pattern.match(stringSource, anyString, FIRST_MATCH, LAST_MATCH);
@@ -110,14 +111,14 @@ public class JsonDeserializerTest {
 			findObj.getInt(MAX_MATCH); result = max;
 		}};
 		
-		deserializer.deserializeFind(findJson);
+		deserializer.deserializeInstruction(findJson);
 	}
 	
 
 	@Test(expected = DeserializationException.class)
 	public void testWontDeserializeImpossibleNegativeMatchRange(@Mocked final Pattern pattern) throws Exception {
-		final int min = 0 - (randomInt() + 1);
-		final int max = 0 - (randomInt(0 - min));
+		final int max = 0 - (randomInt() + 1);
+		final int min = 0 - (randomInt(0 - max));
 		new NonStrictExpectations() {{
 			findObj.has(MIN_MATCH); result = true;
 			findObj.has(MAX_MATCH); result = true;
@@ -125,7 +126,7 @@ public class JsonDeserializerTest {
 			findObj.getInt(MAX_MATCH); result = max;
 		}};
 		
-		deserializer.deserializeFind(findJson);
+		deserializer.deserializeInstruction(findJson);
 	}
 	
 	@Test

@@ -19,8 +19,8 @@ public interface Database {
 	 * {@link Execution}.
 	 * redundant results -- entire pages, for example.
 	 * @return A unique {@link int} identifier.
-	 * @throws IOException
-	 * @throws TableManipulationException.
+	 * @throws TableManipulationException if there is a problem manipulating tables during storage.
+	 * @throws IOException if there is some other problem with writing to the {@link Database}.
 	 */
 	public int storeInitial(String name, String value, int resultNum) throws IOException, TableManipulationException;
 	
@@ -33,7 +33,8 @@ public interface Database {
 	 * @param resultNum The 0-based {@link int} index of this {@link Result} within its 
 	 * {@link Execution}.
 	 * @return A unique {@link int} identifier.
-	 * @throws DatabaseException If the {@link Database} experiences an exception.
+	 * @throws TableManipulationException if there is a problem manipulating tables during storage.
+	 * @throws IOException if there is some other problem with writing to the {@link Database}.
 	 */
 	public int store(String sourceName, int sourceId, String name, String value, int resultNum)
 				throws IOException, TableManipulationException;
