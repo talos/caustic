@@ -34,12 +34,7 @@ public final class Load implements Action {
 	 * {@link MustacheNameValuePair}s of generic headers.
 	 */
 	private final MustacheNameValuePair[] headers;
-
-	/**
-	 * {@link Load} requests to make beforehand. No data is extracted from these pages.
-	 */
-	private final Load[] preload;
-
+	
 	/**
 	 * {@link MustachePattern}s that terminate the loading of this page's body.
 	 */
@@ -74,8 +69,7 @@ public final class Load implements Action {
 			Browser browser, Encoder encoder,
 			String method, MustacheTemplate url, MustacheTemplate postData,
 			MustacheNameValuePair[] postNameValuePairs,
-			MustacheNameValuePair[] headers, MustacheNameValuePair[] cookies,
-			Load[] preload, MustachePattern[] stops) {
+			MustacheNameValuePair[] headers, MustacheNameValuePair[] cookies, MustachePattern[] stops) {
 		this.browser = browser;
 		this.encoder = encoder;
 		this.method = method;
@@ -84,32 +78,27 @@ public final class Load implements Action {
 		this.postNameValuePairs = postNameValuePairs;
 		this.headers = headers;
 		this.cookies = cookies;
-		this.preload = preload;
 		this.stops = stops;
 	}
 	
 	public static Load head(Browser browser, Encoder encoder, MustacheTemplate url, MustacheNameValuePair[] headers,
-			MustacheNameValuePair[] cookies,
-			Load[] preload, MustachePattern[] stops) {
-		return new Load(browser, encoder, Browser.HEAD, url, null, null, headers, cookies, preload, stops);
+			MustacheNameValuePair[] cookies, MustachePattern[] stops) {
+		return new Load(browser, encoder, Browser.HEAD, url, null, null, headers, cookies, stops);
 	}
 	
 	public static Load get(Browser browser, Encoder encoder, MustacheTemplate url, MustacheNameValuePair[] headers,
-			MustacheNameValuePair[] cookies,
-			Load[] preload, MustachePattern[] stops) {
-		return new Load(browser,encoder,  Browser.GET, url, null, null, headers, cookies, preload, stops);
+			MustacheNameValuePair[] cookies, MustachePattern[] stops) {
+		return new Load(browser,encoder,  Browser.GET, url, null, null, headers, cookies, stops);
 	}
 	
 	public static Load post(Browser browser, Encoder encoder, MustacheTemplate url, MustacheTemplate postData,
-			MustacheNameValuePair[] headers, MustacheNameValuePair[] cookies,
-			Load[] preload, MustachePattern[] stops) {
-		return new Load(browser,encoder,  Browser.POST, url, postData, null, headers, cookies, preload, stops);
+			MustacheNameValuePair[] headers, MustacheNameValuePair[] cookies, MustachePattern[] stops) {
+		return new Load(browser,encoder,  Browser.POST, url, postData, null, headers, cookies, stops);
 	}
 	
 	public static Load post(Browser browser, Encoder encoder, MustacheTemplate url, MustacheNameValuePair[] postNameValuePairs,
-			MustacheNameValuePair[] headers, MustacheNameValuePair[] cookies,
-			Load[] preload, MustachePattern[] stops) {
-		return new Load(browser, encoder, Browser.POST, url, null, postNameValuePairs, headers, cookies, preload, stops);
+			MustacheNameValuePair[] headers, MustacheNameValuePair[] cookies, MustachePattern[] stops) {
+		return new Load(browser, encoder, Browser.POST, url, null, postNameValuePairs, headers, cookies, stops);
 	}
 	
 	/**
@@ -120,14 +109,6 @@ public final class Load implements Action {
 	 */
 	public Execution execute(String source, Variables variables)
 			throws InterruptedException {		
-		// Temporary executions to do before.  Not published, executed each time.
-		// TODO combine missingVariables from preexecutions here?
-		for(int i = 0 ; i < preload.length ; i ++) {
-			Execution preExecution = preload[i].execute(source, variables);
-			if(!preExecution.isSuccessful()) {
-				return preExecution;
-			}
-		}
 		try {
 			Execution urlSub = url.sub(variables, encoder, Browser.UTF_8);
 			Execution headersSub = Execution.arraySubNameValuePair(headers, variables);

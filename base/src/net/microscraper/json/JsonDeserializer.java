@@ -71,7 +71,6 @@ public class JsonDeserializer implements Deserializer {
 	private Load deserializeLoad(JsonObject jsonObject) throws JsonException, DeserializationException,
 			MustacheCompilationException, IOException, MalformedUriException {
 		final MustacheTemplate url;
-		final Load[] preload;
 		final MustacheTemplate postData;
 		final MustacheNameValuePair[] postNameValuePairs, cookies, headers;
 		final MustachePattern[] stops;
@@ -85,18 +84,8 @@ public class JsonDeserializer implements Deserializer {
 				deserializeMustacheNameValuePairArray(jsonObject.getJsonObject(HEADERS)) :
 				new MustacheNameValuePair[] {};
 		
-		if(jsonObject.has(PRELOAD)) {
-			JsonArray preloadJsonArray = jsonObject.getJsonArray(PRELOAD);
-			preload = new Load[preloadJsonArray.length()];
-			for(int i = 0 ; i < preload.length ; i++) {
-				preload[i] = deserializeLoad(preloadJsonArray.getJsonObject(i));
-			}
-		} else {
-			preload = new Load[] {};
-		}
-		
-		if(jsonObject.has(STOPS)) {
-			JsonArray stopJsonArray = jsonObject.getJsonArray(STOPS);
+		if(jsonObject.has(STOP)) {
+			JsonArray stopJsonArray = jsonObject.getJsonArray(STOP);
 			stops = new MustachePattern[stopJsonArray.length()];
 			for(int i = 0 ; i < stops.length ; i++) {
 				stops[i] = deserializeMustachePattern(stopJsonArray.getJsonObject(i));
@@ -108,10 +97,10 @@ public class JsonDeserializer implements Deserializer {
 		if(jsonObject.has(POSTS)) {
 			if(jsonObject.isJsonObject(POSTS)) {
 				postNameValuePairs = deserializeMustacheNameValuePairArray(jsonObject.getJsonObject(POSTS));
-				return Load.post(browser, encoder, url, postNameValuePairs, headers, cookies, preload, stops);
+				return Load.post(browser, encoder, url, postNameValuePairs, headers, cookies, stops);
 			} else {
 				postData = MustacheTemplate.compile(jsonObject.getString(POSTS));
-				return Load.post(browser, encoder, url, postData, headers, cookies, preload, stops);
+				return Load.post(browser, encoder, url, postData, headers, cookies, stops);
 			}
 		}
 		
@@ -119,12 +108,12 @@ public class JsonDeserializer implements Deserializer {
 			String method = jsonObject.getString(METHOD);
 			if(method.equalsIgnoreCase(Browser.POST)) {
 				postData = MustacheTemplate.compile("");
-				return Load.post(browser, encoder, url, postData, headers, cookies, preload, stops);
+				return Load.post(browser, encoder, url, postData, headers, cookies, stops);
 			} else if(method.equalsIgnoreCase(Browser.HEAD)) {
-				return Load.get(browser, encoder, url, headers, cookies, preload, stops);
+				return Load.get(browser, encoder, url, headers, cookies, stops);
 			}
 		}
-		return Load.get(browser, encoder, url, headers, cookies, preload, stops);
+		return Load.get(browser, encoder, url, headers, cookies, stops);
 	}
 
 	/**
@@ -261,7 +250,7 @@ public class JsonDeserializer implements Deserializer {
 	private MustachePattern deserializeMustachePattern(JsonObject jsonObject) throws MustacheCompilationException,
 			JsonException{
 		MustacheTemplate pattern = MustacheTemplate.compile(jsonObject.getString(FIND));
-		boolean isCaseSensitive = jsonObject.has(IS_CASE_SENSITIVE) ? jsonObject.getBoolean(IS_CASE_SENSITIVE) : IS_CASE_SENSITIVE_DEFAULT;
+		boolean isCaseSensitive = jsonObject.has(IS_CASE_INSENSITIVE) ? jsonObject.getBoolean(IS_CASE_INSENSITIVE) : IS_CASE_INSENSITIVE_DEFAULT;
 		boolean isMultiline = jsonObject.has(IS_MULTILINE) ? jsonObject.getBoolean(IS_MULTILINE) : IS_MULTILINE_DEFAULT;
 		boolean doesDotMatchNewline = jsonObject.has(DOES_DOT_MATCH_ALL) ? jsonObject.getBoolean(DOES_DOT_MATCH_ALL) : DOES_DOT_MATCH_ALL_DEFAULT;
 		return new MustachePattern(compiler, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline);
@@ -323,14 +312,9 @@ public class JsonDeserializer implements Deserializer {
 	public static final String HEADERS = "headers";
 	
 	/**
-	 * Key for {@link Load#preload} when deserializing.
-	 */
-	public static final String PRELOAD = "preload";
-	
-	/**
 	 * Key for {@link Load#stops} when deserializing.
 	 */
-	public static final String STOPS = "stop";
+	public static final String STOP = "stop";
 		
 	/**
 	 * Key for {@link Load#posts} when deserializing. 
@@ -373,10 +357,10 @@ public class JsonDeserializer implements Deserializer {
 	public static final String FIND = "find";
 	
 	/**
-	 * Key for deserializing {@link MustachePattern#isCaseSensitive}.
+	 * Key for deserializing {@link MustachePattern#isCaseInsensitive}.
 	 */
-	public static final String IS_CASE_SENSITIVE = "case_sensitive";
-	public static final boolean IS_CASE_SENSITIVE_DEFAULT = false;
+	public static final String IS_CASE_INSENSITIVE = "case_insensitive";
+	public static final boolean IS_CASE_INSENSITIVE_DEFAULT = false;
 	
 	/**
 	 * Key for deserializing {@link MustachePattern#isMultiline}.

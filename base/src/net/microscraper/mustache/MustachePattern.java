@@ -20,7 +20,7 @@ public class MustachePattern implements Substitutable {
 	private final MustacheTemplate pattern;
 	
 	/**
-	 * Flag equivalent to {@link java.util.regex.Pattern#CASE_INSENSITIVE
+	 * Flag equivalent to {@link java.util.regex.Pattern#CASE_INSENSITIVE}
 	 */
 	private final boolean isCaseInsensitive;
 	

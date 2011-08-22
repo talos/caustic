@@ -1,0 +1,25 @@
+{
+    "description" : "The base of a microscraper instruction.",
+    "type" : "object",
+    "properties" : {
+	"name" : {
+	    "description" : "The name of this instruction.  If this is specified and this instruction saves its result, it will be saved with this name.  Mustache substitutions are performed on this.",
+	    "type" : "string",
+	    "required" : false
+	},
+	"save" : {
+	    "description" : "Whether the result value of this instruction should be saved to a database.",
+	    "type" : "boolean",
+	    "required" : false
+	},
+	"then" : {
+	    "description" : "An array of Loads and Finds to be run after this Instruction is complete.  They will receive its result as their source, and have read access to all its variables.",
+	    "type" : ["object", "array"],
+	    "items" : [
+		{ "$ref" : "load" },
+		{ "$ref" : "find" }
+	    ],
+	    "required" : false
+	}
+    }
+}
