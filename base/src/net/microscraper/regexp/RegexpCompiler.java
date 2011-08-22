@@ -1,8 +1,5 @@
 package net.microscraper.regexp;
 
-import net.microscraper.template.PatternTemplate;
-import net.microscraper.util.Variables;
-
 /**
  * An implementation of {@link RegexpCompiler} is required for microscraper to parse strings.
  * In the spirit of {@link java.util.regex.Pattern#compile(String, int)}, but with a limited set of flags.
@@ -35,6 +32,4 @@ public interface RegexpCompiler {
 	public abstract Pattern compile(String patternString,
 			boolean isCaseInsensitive, boolean isMultiline,
 			boolean doesDotMatchNewline);
-	
-	//public abstract PatternInterface compile(Regexp regexp, Variables variables);
 }

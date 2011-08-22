@@ -1,34 +1,25 @@
 package net.microscraper.client;
 
-import java.io.IOException;
-
-import net.microscraper.instruction.Instruction;
+import net.microscraper.util.Execution;
+import net.microscraper.util.Variables;
 
 /**
- * Interface to deserialize a {@link String} into a {@link Load} or {@link Find}
- * instruction.
+ * Interface to generate {@link Instruction}s from {@link String}s.
  * @author talos
  *
  */
 public interface Deserializer {
 	/**
-	 * Deserialize an {@link Instruction} from a {@link String}.
-	 * @param serializedString {@link String} to deserialize.
-	 * @return A {@link Instruction} instance.
-	 * @throws DeserializationException If this is not a valid serialization of {@link Find}.
-	 * @throws IOException If there is an error loading a reference inside the serialization.
+	 * Generate an {@link Instruction} from a {@link String}.  The {@link Instruction}
+	 * is contained in the {@link Execution#getExecuted()} of the result.
+	 * @param serializedString {@link String} to which will be deserialized into an
+	 * {@link Instruction}.
+	 * @param variables A {@link Variables} instance.
+	 * @param rootUri A {@link String} URI that will be used to resolve any references
+	 * in <code>serializedString</code>.
+	 * @return A {@link Execution} instance whose {@link Execution#getExecuted()} is
+	 * an {@link Instruction}.
 	 */
-	public abstract Instruction deserializeString(String serializedString)
-		throws DeserializationException, IOException;
-
-	/**
-	 * Deserialize an {@link Instruction} from a {@link String} referring to a URI.
-	 * @param uriString {@link String} URI whose content should be deserialized.
-	 * @return A {@link Instruction} instance.
-	 * @throws DeserializationException If this is not a valid serialization of {@link Find}.
-	 * @throws IOException If there is an error loading a reference inside the serialization.
-	 */
-	public abstract Instruction deserializeUri(String uriString)
-		throws DeserializationException, IOException;
+	public abstract Execution deserializeString(String serializedString, Variables variables, String rootUri);
 
 }

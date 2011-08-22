@@ -16,10 +16,12 @@ public class InstructionPromise {
 	
 	private final Deserializer deserializer;
 	private final String serializedString;
+	private final String rootUri;
 	
-	public InstructionPromise(Deserializer deserializer, String serializedString) {
+	public InstructionPromise(Deserializer deserializer, String serializedString, String rootUri) {
 		this.deserializer = deserializer;
 		this.serializedString = serializedString;
+		this.rootUri = rootUri;
 	}
 	
 	/**
@@ -30,6 +32,6 @@ public class InstructionPromise {
 	 * {@link Instruction} if it is successful.
 	 */
 	public Execution load(Variables variables) {
-		
+		return deserializer.deserializeString(serializedString, variables, rootUri);
 	}
 }

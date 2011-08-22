@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Vector;
 
+import net.microscraper.client.DeserializationException;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.NameValuePairTemplate;
 import net.microscraper.template.PatternTemplate;
@@ -84,7 +85,7 @@ public class Execution {
 	}
 	
 	/**
-	 * Create an {@link Execution} describing a failure because a test patterns
+	 * Create an {@link Execution} describing a failure because test patterns
 	 * failed.
 	 * @param tested The {@link String} being tested.
 	 * @param tests A {@link Pattern} doing the testing.
@@ -97,6 +98,17 @@ public class Execution {
 				StringUtils.quote(tested)
 		});
 	}
+	
+	/**
+	 * Create an {@link Execution} describing a failure because deserialization
+	 * failed.
+	 * @param e The {@link DeserializationException}.
+	 * @return The failed {@link Execution}.
+	 */
+	public static Execution deserializationException(DeserializationException e) {
+		return new Execution(null, null, new String[] { e.getMessage() });
+	}
+	
 	/**
 	 * 
 	 * @return Whether this {@link Execution} was successful.

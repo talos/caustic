@@ -1,15 +1,16 @@
 package net.microscraper.instruction;
 
 import java.io.IOException;
+import java.util.Vector;
 
 import net.microscraper.client.Browser;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.NameValuePairTemplate;
-import net.microscraper.template.PatternTemplate;
 import net.microscraper.template.Template;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.NameValuePair;
 import net.microscraper.util.Execution;
+import net.microscraper.util.StringUtils;
 import net.microscraper.util.Variables;
 
 /**
@@ -19,37 +20,47 @@ import net.microscraper.util.Variables;
  *
  */
 public final class Load implements Action {
+	
 	/**
-	 * The HTTP request type to use.  Either {@link Browser#GET},
+	 * The HTTP request type that will be used if {@link #nonDefaultMethod}
+	 * is <code>null</code>.
+	 */
+	private final String defaultMethod = Browser.GET;
+	
+	/**
+	 * If non-<code>null</code>, the HTTP request type that will be used instead of
+	 * {@link #defaultMethod}.  Either {@link Browser#GET},
 	 * {@link Browser#POST}, or {@link Browser#HEAD}.
 	 */
-	private final String method;
+	private String nonDefaultMethod;
 
 	/**
 	 * {@link NameValuePairTemplate}s of cookies.
 	 */
-	private final NameValuePairTemplate[] cookies;
+	private final Vector cookies = new Vector();
 
 	/**
 	 * {@link NameValuePairTemplate}s of generic headers.
 	 */
-	private final NameValuePairTemplate[] headers;
+	private final Vector headers = new Vector();
 	
 	/**
 	 * {@link PatternTemplate}s that terminate the loading of this page's body.
 	 */
-	private final PatternTemplate[] stops;
+	//private final Vector stops = new Vector();
+	
+	private final Pattern[] stops = new Pattern[] {};
 	
 	/**
 	 * A {@link Template} of post data.  Exclusive of {@link #postNameValuePairs}.
 	 */
-	private final Template postData;
+	private Template postData;
 	
 	/**
 	 * {@link NameValuePairTemplate}s of post data.  Exclusive of {@link #postData}.
 	 */
-	private final NameValuePairTemplate[] postNameValuePairs;
-
+	private final Vector postNameValuePairs = new Vector();
+	
 	/**
 	 * A string that will be templated and evaulated as a URL.
 	 */
@@ -64,42 +75,89 @@ public final class Load implements Action {
 	 * The {@link Encoder} to use when encoding the URL.
 	 */
 	private final Encoder encoder;
-	
-	private Load( 
-			Browser browser, Encoder encoder,
-			String method, Template url, Template postData,
-			NameValuePairTemplate[] postNameValuePairs,
-			NameValuePairTemplate[] headers, NameValuePairTemplate[] cookies, PatternTemplate[] stops) {
+
+	/**
+	 * Instantiate a {@link Load}.
+	 * @param browser
+	 * @param encoder
+	 * @param url
+	 */
+	public Load(Browser browser, Encoder encoder, Template url) {
 		this.browser = browser;
 		this.encoder = encoder;
-		this.method = method;
 		this.url = url;
-		this.postData = postData;
-		this.postNameValuePairs = postNameValuePairs;
-		this.headers = headers;
-		this.cookies = cookies;
-		this.stops = stops;
 	}
 	
-	public static Load head(Browser browser, Encoder encoder, Template url, NameValuePairTemplate[] headers,
-			NameValuePairTemplate[] cookies, PatternTemplate[] stops) {
-		return new Load(browser, encoder, Browser.HEAD, url, null, null, headers, cookies, stops);
+	/**
+	 * Assign {@link #nonDefaultMethod}.  Cannot be changed once it is set.
+	 * @param method The {@link String} {@link Browser#POST}, {@link Browser#GET}, or 
+	 * {@link Browser#HEAD}, case-insensitive.
+	 */
+	public void setMethod(String method) {
+		if(!method.equalsIgnoreCase(Browser.POST) ||
+				!method.equalsIgnoreCase(Browser.GET) ||
+				!method.equalsIgnoreCase(Browser.HEAD)){
+			throw new IllegalArgumentException("Method " + StringUtils.quote(method) + " is illegal.");
+		} else if(nonDefaultMethod == null) {
+			this.nonDefaultMethod = method;
+		} else if(!nonDefaultMethod.equalsIgnoreCase(method)) {
+			throw new IllegalArgumentException("Cannot reassign method.");
+		}
 	}
 	
-	public static Load get(Browser browser, Encoder encoder, Template url, NameValuePairTemplate[] headers,
-			NameValuePairTemplate[] cookies, PatternTemplate[] stops) {
-		return new Load(browser,encoder,  Browser.GET, url, null, null, headers, cookies, stops);
+	/**
+	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #postNameValuePairs}.
+	 * If {@link #method} is not {@link Browser.POST}, this changes it to be so.
+	 * @param postNameValuePair The {@link NameValuePairTemplate} to add as a post.
+	 */
+	public void addPostNameValuePair(NameValuePairTemplate postNameValuePair) {
+		if(this.postData != null) {
+			throw new IllegalArgumentException("Cannot have both postData and postNameValuePairs");
+		}
+		setMethod(Browser.POST);
+		this.postNameValuePairs.add(postNameValuePair);
 	}
-	
-	public static Load post(Browser browser, Encoder encoder, Template url, Template postData,
-			NameValuePairTemplate[] headers, NameValuePairTemplate[] cookies, PatternTemplate[] stops) {
-		return new Load(browser,encoder,  Browser.POST, url, postData, null, headers, cookies, stops);
+
+	/**
+	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #postNameValuePairs}.
+	 * If {@link #method} is not {@link Browser.POST}, this changes it to be so.
+	 * @param postNameValuePair The {@link NameValuePairTemplate} to add as a post.
+	 */
+	public void setPostData(Template postData) {
+		if(this.postNameValuePairs.size() > 0) {
+			throw new IllegalArgumentException("Cannot have both postData and postNameValuePairs");
+		}
+		setMethod(Browser.POST);
+		if(this.postData == null) {
+			this.postData = postData;
+		} else {
+			throw new IllegalArgumentException("Cannot reassign postData");
+		}
 	}
-	
-	public static Load post(Browser browser, Encoder encoder, Template url, NameValuePairTemplate[] postNameValuePairs,
-			NameValuePairTemplate[] headers, NameValuePairTemplate[] cookies, PatternTemplate[] stops) {
-		return new Load(browser, encoder, Browser.POST, url, null, postNameValuePairs, headers, cookies, stops);
+
+	/**
+	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #headers}.
+	 * @param header The {@link NameValuePairTemplate} to add as a header.
+	 */
+	public void addHeader(NameValuePairTemplate header) {
+		this.postNameValuePairs.add(header);
 	}
+
+	/**
+	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #cookies}.
+	 * @param cookie The {@link NameValuePairTemplate} to add as a cookie.
+	 */
+	public void addCookie(NameValuePairTemplate cookie) {
+		this.postNameValuePairs.add(cookie);
+	}
+
+	/**
+	 * Add a {@link Find} to this {@link Load}'s {@link #stops}.
+	 * @param cookie The {@link NameValuePairTemplate} to add as a cookie.
+	 */
+	/*public void addStop(Find stop) {
+		this.stops.add(stop);
+	}*/
 	
 	/**
 	 * Make the request and retrieve the response body specified by this {@link Load}.
@@ -110,9 +168,17 @@ public final class Load implements Action {
 	public Execution execute(String source, Variables variables)
 			throws InterruptedException {		
 		try {
+			String method = nonDefaultMethod == null ? defaultMethod : nonDefaultMethod;
+			
 			Execution urlSub = url.sub(variables, encoder, Browser.UTF_8);
-			Execution headersSub = Execution.arraySubNameValuePair(headers, variables);
-			Execution cookiesSub = Execution.arraySubNameValuePair(cookies, variables);
+			
+			NameValuePairTemplate[] headersAry = new NameValuePairTemplate[headers.size()];
+			headers.copyInto(headersAry);
+			Execution headersSub = Execution.arraySubNameValuePair(headersAry, variables);
+			
+			NameValuePairTemplate[] cookiesAry = new NameValuePairTemplate[cookies.size()];
+			cookies.copyInto(cookiesAry);
+			Execution cookiesSub = Execution.arraySubNameValuePair(cookiesAry, variables);
 			
 			if(!urlSub.isSuccessful() || !headersSub.isSuccessful() || !cookiesSub.isSuccessful()) {
 				return Execution.combine(new Execution[] {
@@ -126,38 +192,36 @@ public final class Load implements Action {
 				NameValuePair[] headers = (NameValuePair[]) headersSub.getExecuted();
 				NameValuePair[] cookies = (NameValuePair[]) cookiesSub.getExecuted();
 				
-				if(method.equals(Browser.HEAD)){
+				if(method.equalsIgnoreCase(Browser.HEAD)){
 					browser.head(url, headers, cookies);
 					responseBody = "";
 				} else {
-					
-					Execution stopsSub = Execution.arraySubPattern(stops, variables);
-					if(!stopsSub.isSuccessful()) {
-						return Execution.missingVariables(stopsSub.getMissingVariables());
-					} else {
-						Pattern[] stops = (Pattern[]) stopsSub.getExecuted();
-						if(method.equals(Browser.POST)) {
-							if(postNameValuePairs != null) {
-								Execution postsSub = Execution.arraySubNameValuePair(postNameValuePairs, variables);
-								if(!postsSub.isSuccessful()) {
-									return Execution.missingVariables(postsSub.getMissingVariables());
-								} else {
-									NameValuePair[] posts = (NameValuePair[]) postsSub.getExecuted();
-									responseBody = browser.post(url, headers, cookies, stops, posts);
-								}
+					/*Find[] stopsAry = new Find[stops.size()];
+					stops.copyInto(stopsAry);
+					Execution stopsSub = Execution.arraySubPattern(stopsAry, variables);*/
+					if(method.equalsIgnoreCase(Browser.POST)) {
+						if(postNameValuePairs != null) {
+							NameValuePairTemplate[] postsAry = new NameValuePairTemplate[postNameValuePairs.size()];
+							postNameValuePairs.copyInto(postsAry);
+							Execution postsSub = Execution.arraySubNameValuePair(postsAry, variables);
+							if(!postsSub.isSuccessful()) {
+								return Execution.missingVariables(postsSub.getMissingVariables());
 							} else {
-								//Execution postsSub = postData.sub(variables, encoder, Browser.UTF_8);
-								Execution postsSub = postData.sub(variables);
-								if(!postsSub.isSuccessful()) {
-									return Execution.missingVariables(postsSub.getMissingVariables());
-								} else {
-									String postData = (String) postsSub.getExecuted();
-									responseBody = browser.post(url, headers, cookies, stops, postData);
-								}
+								NameValuePair[] posts = (NameValuePair[]) postsSub.getExecuted();
+								responseBody = browser.post(url, headers, cookies, stops, posts);
 							}
 						} else {
-							responseBody = browser.get(url, headers, cookies, stops);
+							//Execution postsSub = postData.sub(variables, encoder, Browser.UTF_8);
+							Execution postsSub = postData.sub(variables);
+							if(!postsSub.isSuccessful()) {
+								return Execution.missingVariables(postsSub.getMissingVariables());
+							} else {
+								String postData = (String) postsSub.getExecuted();
+								responseBody = browser.post(url, headers, cookies, stops, postData);
+							}
 						}
+					} else {
+						responseBody = browser.get(url, headers, cookies, stops);
 					}
 				}
 				return Execution.success(new String[] { responseBody } );

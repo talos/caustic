@@ -1,6 +1,7 @@
 package net.microscraper.instruction;
 
 import java.io.IOException;
+import java.util.Vector;
 
 import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
@@ -16,106 +17,57 @@ public class Instruction {
 	/**
 	 * Whether this {@link Instruction} has a particular name.
 	 */
-	private final boolean hasName;
+	private boolean hasName;
 	
 	/**
 	 * The {@link Template} name for this {@link Instruction}.
 	 */
-	private final Template name;
+	private Template name;
 	
 	/**
-	 * An array of {@link InstructionPromise}s dependent upon this {@link Instruction}.
+	 * A {@link Vector} of {@link InstructionPromise}s dependent upon this {@link Instruction}.
 	 */
-	private final InstructionPromise[] children;
+	private final Vector children = new Vector();
 	
 	/**
 	 * Whether or not this {@link Instruction} should save the values of its results to the {@link Database}.
 	 */
-	private final boolean shouldPersistValue;
+	private boolean shouldPersistValue;
 	
 	/**
 	 * The {@link Action} done by this {@link Instruction}.
 	 */
 	private final Action action;
-	
-
 
 	/**
 	 * Create a new {@link Instruction}.
 	 * Uses {@link Action#getDefaultShouldPersistValue()} for {@link #shouldPersistValue} and
 	 * {@link Action#getDefaultName()} for {@link #name}.
 	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
-	 * @param children An array of {@link InstructionPromise}s launched with this {@link Instruction}'s
-	 * results.
-	 * @param shouldPersistValue Whether this {@link Instruction}'s executions' values should be
-	 * persisted to {@link Database}. <code>True</code> if they should be, <code>false</code> otherwise.
-	 * @param name The {@link Template} that will be compiled and used as the name of this
 	 * {@link Instruction}'s results.
 	 */
-	public Instruction(Action action, InstructionPromise[] children) {
+	public Instruction(Action action) {
 		this.shouldPersistValue = action.getDefaultShouldPersistValue();
 		this.action = action;
-		this.children = children;
 		this.hasName = false;
 		this.name = action.getDefaultName();
 	}
 	
-	
 	/**
-	 * Create a new {@link Instruction} with a custom value for {@link #name}.
-	 * Uses {@link Action#getDefaultShouldPersistValue()} for {@link #shouldPersistValue}.
-	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
-	 * @param children An array of {@link InstructionPromise}s launched with this {@link Instruction}'s
-	 * results.
-	 * @param name The {@link Template} that will be compiled and used as the name of this
-	 * {@link Instruction}'s results.
+	 * Assign a {@link #name} to this {@link Instruction}.
+	 * @param name The {@link Template} name to assign.
 	 */
-	public Instruction(Action action,
-			InstructionPromise[] children, Template name) {
-		this.shouldPersistValue = action.getDefaultShouldPersistValue();
-		this.action = action;
-		this.children = children;
+	public void setName(Template name) {
 		this.hasName = true;
 		this.name = name;
 	}
-	
+
 	/**
-	 * Create a new {@link Instruction} with a custom value for {@link #name}.
-	 * Uses {@link Action#getDefaultName()} for {@link #name}.
-	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
-	 * @param children An array of {@link InstructionPromise}s launched with this {@link Instruction}'s
-	 * results.
-	 * @param name The {@link Template} that will be compiled and used as the name of this
-	 * {@link Instruction}'s results.
+	 * Assign a {@link #shouldPersistValue} to this {@link Instruction}.
+	 * @param name The {@link boolean} value to assign.
 	 */
-	public Instruction(Action action,
-			InstructionPromise[] children, boolean shouldPersistValue) {
+	public void setShouldPersistValue(boolean shouldPersistValue) {
 		this.shouldPersistValue = shouldPersistValue;
-		this.action = action;
-		this.children = children;
-		this.name = action.getDefaultName();
-		this.hasName = false;
-	}
-	
-	/**
-	 * Create a new {@link Instruction} with a custom value for {@link #shouldPersistValue}
-	 * and {@link #name}.
-	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
-	 * @param children An array of {@link InstructionPromise}s launched with this {@link Instruction}'s
-	 * results.
-	 * @param shouldPersistValue Whether this {@link Instruction}'s executions' values should be
-	 * persisted to {@link Database}. <code>True</code> if they should be, <code>false</code> otherwise.
-	 * @param name The {@link Template} that will be compiled and used as the name of this
-	 * {@link Instruction}'s results.
-	 */
-	public Instruction(Action action,
-			InstructionPromise[] children, boolean shouldPersistValue,
-			Template name) {
-		this.shouldPersistValue = shouldPersistValue;
-		this.name = name;
-		this.action = action;
-		this.hasName = true;
-		this.children = children;
 	}
 	
 	/**
@@ -126,7 +78,16 @@ public class Instruction {
 	}
 	
 	/**
-	 * Generate the {@link InstructionPromise} children of this
+	 * Add a {@link InstructionPromise} that will be used to create {@link Executable}s
+	 * upon {@link #execute(String, Variables)}.
+	 * @param child The {@link InstructionPromise} to add.
+	 */
+	public void addChild(InstructionPromise child) {
+		children.add(child);
+	}
+	
+	/**
+	 * Generate the {@link Executable} children of this
 	 * {@link Instruction} during execution.  There will be as many children
 	 * as the product of {@link Action#execute(String, Variables)}'s {@link Execution#getExecuted()}
 	 *  and {@link #children}.  Should be run by {@link Executable#execute()} as part of {@link InstructionRunner#run()}.
@@ -158,7 +119,7 @@ public class Instruction {
 			} else {
 			
 				String[] resultValues = (String[]) actionExecution.getExecuted();
-				Executable[] childExecutables = new Executable[resultValues.length * children.length];
+				Executable[] childExecutables = new Executable[resultValues.length * children.size()];
 				
 				// Generate new Variables instances for the kids.
 				Variables[] branches;
@@ -172,9 +133,9 @@ public class Instruction {
 				for(int i = 0 ; i < resultValues.length ; i ++) {
 					Variables branch = branches[i];
 					String childSource = resultValues[i];
-					for(int j = 0 ; j < children.length ; j++) {
-						InstructionPromise child = children[j];
-						childExecutables[(i * children.length) + j]
+					for(int j = 0 ; j < children.size() ; j++) {
+						InstructionPromise child = (InstructionPromise) children.elementAt(j);
+						childExecutables[(i * children.size()) + j]
 								= new Executable(childSource, branch, child);
 					}
 				}

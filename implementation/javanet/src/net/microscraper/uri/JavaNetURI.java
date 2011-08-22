@@ -17,7 +17,8 @@ public class JavaNetURI implements Uri {
 	private final Browser browser;
 	private final FileLoader fileLoader;
 	
-	public JavaNetURI(String uriString, Browser browser, FileLoader fileLoader) throws MalformedUriException {
+	public JavaNetURI(String uriString, Browser browser, FileLoader fileLoader)
+				throws MalformedUriException {
 		try {
 			this.uri = new URI(uriString);
 			this.browser = browser;
@@ -33,11 +34,19 @@ public class JavaNetURI implements Uri {
 		this.fileLoader = fileLoader;
 	}
 	
-	public Uri resolve(Uri otherLocation) {
-			return new JavaNetURI( uri.resolve(otherLocation.toString()), browser, fileLoader );
+	public Uri resolve(Uri otherLocation) throws RemoteToLocalSchemeResolutionException {
+		URI resolved = uri.resolve(otherLocation.toString());
+		if(this.uri.getScheme().equals(resolved.getScheme())) {
+			return new JavaNetURI(resolved , browser, fileLoader);
+			// Allow access TO anywhere from FILE_SCHEME
+		} else if(this.uri.getScheme().equalsIgnoreCase(FILE_SCHEME)) {
+			return new JavaNetURI(resolved , browser, fileLoader);
+		} else {
+			throw new RemoteToLocalSchemeResolutionException(this, otherLocation.toString());
+		}
 	}
 	
-	public Uri resolve(String path) throws MalformedUriException {
+	public Uri resolve(String path) throws MalformedUriException, RemoteToLocalSchemeResolutionException {
 		return resolve(new JavaNetURI(path, browser, fileLoader));
 	}
 	

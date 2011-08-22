@@ -1,6 +1,5 @@
 package net.microscraper.json;
 
-import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -13,9 +12,6 @@ import net.microscraper.json.JsonArray;
 import net.microscraper.json.JsonException;
 import net.microscraper.json.JsonIterator;
 import net.microscraper.json.JsonObject;
-import net.microscraper.uri.MalformedUriException;
-import net.microscraper.uri.Uri;
-import net.microscraper.uri.UriFactory;
 
 public class JsonMEParser implements JsonParser {
 	
@@ -25,87 +21,24 @@ public class JsonMEParser implements JsonParser {
 	 */
 	private static final int INDENT_FACTOR = 1;
 	
-	/**
-	 * The default {@link Uri} to use when resolving references from
-	 * a {@link String} of parsed JSON.
-	 */
-	private final Uri defaultUri;
-	
-	private final UriFactory uriFactory;
-	
 	private class JSONMEObject implements JsonObject {
 		private final JSONObject object;
 		
-		private final Uri uri;
-		
-		public JSONMEObject(Uri uri, Hashtable hash) throws JsonException {
-			this.object = new JSONObject(hash);
-			this.uri = uri;
+		public JSONMEObject(JSONObject obj) {
+			this.object = obj;
 		}
 		
-		/**
-		 * Instantiate {@link JSONMEObject}, following references.
-		 * @param initialURI
-		 * @param object
-		 * @throws MalformedUriException
-		 * @throws JsonException
-		 * @throws JSONException
-		 * @throws IOException
-		 */
-		public JSONMEObject(Uri initialURI, JSONObject object)
-				throws MalformedUriException, JsonException,
-				JSONException, IOException {
-			Uri uri = initialURI;
-			
-			while(object.has(REFERENCE_KEY)) {
-				uri = uri.resolve(object.getString(REFERENCE_KEY));
-				//object = loadJSONObject(location, object.toString());
-				try {
-					object = new JSONObject(uri.load());
-				} catch(InterruptedException e) {
-					throw new IOException(e);
-				}
-			}
-			
-			if(object.has(EXTENDS)) {
-				if(object.optJSONObject(EXTENDS) != null) {
-					merge(object, new JSONMEObject(uri, object.getJSONObject(EXTENDS)));
-				} else if(object.optJSONArray(EXTENDS) != null) {
-					JSONArray extensions = object.getJSONArray(EXTENDS);
-					for(int i = 0 ; i < extensions.length() ; i ++) {
-						merge(object, new JSONMEObject(uri, extensions.getJSONObject(i)));
-					}
-				} 
-			}
-			
-			this.object = object;
-			this.uri = uri;
-			//this.location = location;
-		}
-		
-		private void merge(JSONObject objToBeMerged, JSONMEObject objToMerge) throws org.json.me.JSONException {
-			Enumeration enum = objToMerge.object.keys();
-			while(enum.hasMoreElements()) {
-				String key = (String) enum.nextElement();
-				Object value = objToMerge.object.get(key);
-				
-				objToBeMerged.put(key, value);
-			}
-		}
-		
-		public JsonArray getJsonArray(String name)
-				throws JsonException, IOException, MalformedUriException {
+		public JsonArray getJsonArray(String name) throws JsonException {
 			try {
-				return new JSONMEArray(uri, object.getJSONArray(name));
+				return new JSONMEArray( object.getJSONArray(name));
 			} catch(org.json.me.JSONException e) {
 				throw new JsonException(e);
 			}
 		}
 
-		public JsonObject getJsonObject(String name)
-				throws JsonException, IOException, MalformedUriException {
+		public JsonObject getJsonObject(String name) throws JsonException {
 			try {
-				return new JSONMEObject(uri, object.getJSONObject(name));
+				return new JSONMEObject( object.getJSONObject(name));
 			} catch(org.json.me.JSONException e) {
 				throw new JsonException(e);
 			}
@@ -239,26 +172,23 @@ public class JsonMEParser implements JsonParser {
 	
 	private class JSONMEArray implements JsonArray {
 		private final JSONArray array;
-		private final Uri uri;
-		//public JSONMEArray(JSONLocation location, JSONArray ary) {
-		public JSONMEArray(Uri uri, JSONArray array) {
+		
+		public JSONMEArray(JSONArray array) {
 			this.array = array;
-			this.uri = uri;
 		}
 		
 		public JsonArray getJsonArray(int index)
 				throws JsonException {
 			try {
-				return new JSONMEArray(uri, array.getJSONArray(index));
+				return new JSONMEArray(array.getJSONArray(index));
 			} catch(org.json.me.JSONException e) {
 				throw new JsonException(e);
 			}
 		}
 		
-		public JsonObject getJsonObject(int index)
-				throws JsonException, MalformedUriException, IOException {
+		public JsonObject getJsonObject(int index) throws JsonException {
 			try {
-				return new JSONMEObject(uri, array.getJSONObject(index));
+				return new JSONMEObject(array.getJSONObject(index));
 			} catch(org.json.me.JSONException e) {
 				throw new JsonException(e);
 			}
@@ -375,42 +305,25 @@ public class JsonMEParser implements JsonParser {
 			}
 		}
 	}
-	
-	/**
-	 * Initialize a {@link JsonMEParser}.
-	 * @param uriFactory
-	 * @param defaultUri The {@link String} Uri to use when following references from 
-	 * {@link #parse}.
-	 */
-	public JsonMEParser(UriFactory uriFactory, String defaultUri) throws MalformedUriException {
-		this.defaultUri = uriFactory.fromString(defaultUri);
-		this.uriFactory = uriFactory;
-		
-	}
 
-	public JsonObject generate(Hashtable map)
-			throws JsonException {
-		return new JSONMEObject(defaultUri, map);
+	public JsonObject generate(Hashtable map) {
+		return new JSONMEObject(new JSONObject(map));
 	}
 	
-	public JsonObject load(String uriString)
-			throws JsonException, IOException, MalformedUriException {
+	public JsonObject parse(String jsonString) throws JsonException {
 		try {
-			Uri uri = uriFactory.fromString(uriString);
-			return new JSONMEObject(uri, new JSONObject(uri.load()));
+			return new JSONMEObject(new JSONObject(jsonString));
 		} catch(org.json.me.JSONException e) {
 			throw new JsonException(e);
-		} catch(InterruptedException e) {
-			throw new IOException(e);
 		}
 	}
 	
-	public JsonObject parse(String jsonString)
-			throws JsonException, IOException, MalformedUriException {
+	public boolean isJsonObject(String string) {
 		try {
-			return new JSONMEObject(defaultUri, new JSONObject(jsonString));
-		} catch(org.json.me.JSONException e) {
-			throw new JsonException(e);
+			new JSONObject(string);
+			return true;
+		} catch(JSONException e) {
+			return false;
 		}
 	}
 }

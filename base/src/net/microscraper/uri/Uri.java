@@ -9,19 +9,14 @@ import java.io.IOException;
  */
 public interface Uri {
 	/**
-	 * The separator used in {@link JSONLocation}'s fragment paths.
-	 * Is <code>/</code>
-	 */
-	//public static final String JSON_PATH_SEP = "/";
-	
-	/**
-	 * Constructs a new {@link Uri}
-	 * by resolving the given {@link Uri} against
+	 * Constructs a new {@link Uri} by resolving the given {@link Uri} against
 	 * this {@link Uri}
-	 * @param jsonLocation The {@link Uri} to resolve.
+	 * @param uri The {@link Uri} to resolve.
 	 * @return The resulting {@link Uri}.
+	 * @throws RemoteToLocalSchemeResolutionException if the returned {@link Uri} would have
+	 * a local scheme when this one does not.
 	 */
-	public Uri resolve(Uri jsonLocation);
+	public Uri resolve(Uri uri) throws RemoteToLocalSchemeResolutionException;
 	
 	/**
 	 * Constructs a new {@link Uri}
@@ -31,8 +26,10 @@ public interface Uri {
 	 * @return The resulting {@link Uri}.
 	 * @throws MalformedUriException if <code>uri</code> is not a valid
 	 * {@link Uri} and therefore cannot be resolved.
+	 * @throws RemoteToLocalSchemeResolutionException if the returned {@link Uri} would have
+	 * a local scheme when this one does not.
 	 */
-	public Uri resolve(String uri) throws MalformedUriException;
+	public Uri resolve(String uri) throws MalformedUriException, RemoteToLocalSchemeResolutionException;
 	
 	/**
 	 * Load the resource this {@link Uri} refers to as a {@link String}.

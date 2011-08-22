@@ -1,10 +1,6 @@
 package net.microscraper.json;
 
-import java.io.IOException;
 import java.util.Hashtable;
-
-import net.microscraper.uri.Uri;
-import net.microscraper.uri.MalformedUriException;;
 
 /**
  * Implementations provide an interface for parsing JSON objects.  The format
@@ -39,6 +35,15 @@ public interface JsonParser {
 	 */
 	/*public abstract JsonObject load(String uriString) 
 			throws JsonException, MalformedUriException, IOException;*/
+	
+	/**
+	 * Determine with a {@link String} could be parsed into a {@link JsonObject}
+	 * using {@link #parse(String)}.
+	 * @param string The {@link String} to test.
+	 * @return <code>true</code> if <code>string</code> could be parsed, <code>
+	 * false</code> otherwise.
+	 */
+	public abstract boolean isJsonObject(String string);
 	
 	/**
 	 * Compile a {@link JsonObject} directly from a {@link String}.

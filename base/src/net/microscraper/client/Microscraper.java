@@ -52,11 +52,6 @@ public class Microscraper implements Loggable {
 		scrape(deserializer.deserializeString(instructionJson), defaultsHashes, source);
 	}
 	
-	private void scrapeFromUri(String uri, Hashtable[] defaultsHashes, String source)
-			throws DeserializationException, IOException {
-		scrape(deserializer.deserializeUri(uri), defaultsHashes, source);
-	}
-	
 	/**
 	 * Scrape from a {@link Load} in a JSON String.
 	 * @param instructionJSON A {@link String} with a {@link Load} serialized in JSON.
