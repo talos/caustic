@@ -25,12 +25,12 @@ and sends the results to stdout
   <tr><td>1   <td>0         <td>[\w]*\sLucky          <td>Feeling Lucky
 </table>
 
-First, microscraper loaded the *url*.  As this is the first part of the instruction executed, it received the *id* "0".  Loading
+First, microscraper loads the URL in *load*.  As this is the first part of the instruction executed, it received the *id* "0".  Loading
 the page did not depend on another part of the instruction, so its *source_id* is blank.  No *name* is assigned to this part of
-the instruction, so *url* is assigned automatically.  Page values are not saved by default, so its *value* is blank.
+the instruction, so url is assigned automatically.  Page values are not saved by default, so its *value* is blank.
 
-Next, microscraper searched for the first instance of *pattern*.  *id* has incremented to "1", and *source_id* tells us that 
-*pattern* is matching against the google url.  The *pattern* is assigned as *name*  automatically, and the result of *pattern* 
+Next, microscraper searched for the first instance of *find*.  *id* has incremented to "1", and *source_id* tells us that 
+*find* is matching against the google url.  The *find* is assigned as *name*  automatically, and the result of *find* 
 is stored in *value*.
 
 #### The instruction format ####
@@ -68,11 +68,11 @@ to replace *{{query}}* with *hello*.  We get the following
   <tr><td>8 <td>0        <td>what do you say after 'hello'?          <td>I say 'movie'!  
 </table>
 
-Not only is google queried for *hello*, but the substitution affects the *name* and *replacement* of *find*.
+Not only is google queried for *hello*, but the substitution affects the *name* and *replace* of *find*.
 
-Here we see that *find* will match against any number of pattern matches from the *url*.
+Here we see that *find* will match against any number of pattern matches from *load*.
 
-We can use backreferences from *$0* to *$9* in  *replacement*.
+We can use backreferences from *$0* to *$9* in *replace*.
 
 #### Advanced substitutions ####
 
@@ -98,8 +98,7 @@ This [fixture](microscraper-client/blob/master/fixtures/json/complex-google.json
       }
     }
 
-takes advantage of dynamic substitution, along with the ability to make another url request inside *load*.  The
-"after" word is used to launch a whole new series of queries!
+takes advantage of dynamic substitution, along with the ability to place any number of *load* or *find* instructions inside *then*.  It launches a whole new series of queries!
 
 Try it with
 
@@ -127,7 +126,7 @@ You'll see that this results in quite a few dozen rows, but here are some highli
   <tr><td>63     <td>16  <td>what do you say after 'movie'?   <td>I say 'download'!
 </table>
 
-Note that the *source_id* column links each *find* result back to its source *url*.
+Note that the *source_id* column links each *find* result back to its source *load*.
 
 #### References ####
 

@@ -1,0 +1,61 @@
+
+{
+  "description" : "Search for a single class of crime in an up-to-thirty-day period for the whole of Philly.  {{crimeclass}} is a number, {{from}} and {{to}} are in the format 'mm/dd/yyyy'.",
+  "load" : "http://citymaps.phila.gov/CrimeMap/MappingServices.asmx/GetIncidentsByCriteria",
+  "method" : "post",
+  "headers" : {
+    "Referer" : "http://citymaps.phila.gov/CrimeMap/map.aspx",
+    "Content-Type" : "application/json; charset=UTF-8"
+  },
+  "posts" :  "{\"crimeclass\":\"{{crimeclass}}\",\"from\":\"{{from}}\",\"to\":\"{{to}}\",\"bounds\":\"2634355.5,211682,2784375.5,289682\"}",
+  "then" : {
+    "name" : "incident",
+    "find" : "\\{([^\\}]*)\\}",
+    "save" : true,
+    "then" : [{
+      "name" : "__type",
+      "find" : "__type\":\"([^\"]*)",
+      "replace" : "$1"
+    },{
+      "name" : "Dc_key",
+      "find" : "Dc_key\":\"([^\"]*)",
+      "replace" : "$1"
+    },{
+      "name" : "Ucr",
+      "find" : "Ucr\":([\\d\\.]*)",
+      "replace" : "$1"
+    },{
+      "name" : "Ucr_text",
+      "find" : "Ucr_text\":\"([^\"]*)",
+      "replace" : "$1"
+    },{
+      "name" : "Location",
+      "find" : "Location\":\"([^\"]*)",
+      "replace" : "$1"
+    },{
+      "name" : "Dispatch_date_time",
+      "find" : "Dispatch_date_time\":\"([^\"]*)",
+      "replace" : "$1"
+    },{
+      "name" : "Dc_dist",
+      "find" : "Dc_dist\":\"([^\"]*)",
+      "replace" : "$1"
+    },{
+      "name" : "Sector",
+      "find" : "Sector\":\"([^\"]*)",
+      "replace" : "$1"
+    },{
+      "name" : "Premise_text",
+      "find" : "Premise_text\":\"([^\"]*)",
+      "replace" : "$1"
+    },{
+      "name" : "X_coord",
+      "find" : "X_coord\":([\\d\\.]*)",
+      "replace" : "$1"
+    },{
+      "name" : "Y_coord",
+      "find" : "Y_coord\":([\\d\\.]*)",
+      "replace" : "$1"
+    }]
+  }
+}

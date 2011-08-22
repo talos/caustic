@@ -1,0 +1,58 @@
+{
+    "load" : "http://maps.cmpd.org/cmpdnet/agreement.aspx?ref=map",
+    "then" : [{ "$ref" : "../shared/viewstate.json" }, {
+	"load" : "http://maps.cmpd.org/cmpdnet/agreement.aspx?ref=map",
+	"posts" : {
+	    "__VIEWSTATE" : "{{viewstate}}",
+	    "btnAgree"    : "Accept",
+	    "txtError"    : ""
+	},
+	"then" : [{ "$ref" : "../shared/viewstate.json" },{
+	    "load" : "http://maps.cmpd.org/cmpdnet/map.aspx",
+	    "headers" : {
+		"Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+		"Accept-Charset":"ISO-8859-1,utf-8;q=0.7,*;q=0.3",
+		"Accept-Encoding":"gzip,deflate,sdch",
+		"Accept-Language":"en-US,en;q=0.8",
+		"Cache-Control":"max-age=0",
+		"Content-Type":"application/x-www-form-loadencoded",
+		"Host":"maps.cmpd.org",
+		"Origin":"http://maps.cmpd.org",
+		"Referer":"http://maps.cmpd.org/cmpdnet/map.aspx",
+		"User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.112 Safari/535.1"
+	    },
+	    "posts" : {
+		"__VIEWSTATE" : "{{viewstate}}",
+      		"__EVENTTARGET" : "",
+      		"__EVENTARGUMENT" : "",
+      		"dgrResults__PAGENUM" : "0",
+		"ddlBuffer" : "2640",
+		"ddlActive" : "Reported Incidents",
+      		"ImsMapVB1:tool" : "SELECT",
+		"ImsMapVB1:cmd" : "SELECT",
+		"ImsMapVB1:minx" : "1434776.635625",
+		"ImsMapVB1:maxx" : "1478548.979375",
+		"ImsMapVB1:maxy" : "563231.195",
+		"ImsMapVB1:miny" : "528213.32",
+		"ImsMapVB1:xCoords" : "",
+		"ImsMapVB1:yCoords" : "",
+		"ImsMapVB1:selY" : "540882.2996875",
+		"ImsMapVB1:legLOAD" : "",
+		"ImsMapVB1:txtCanEdit" : "false",
+		"ImsMapVB1:txtPrevExtent" : "1343905.25:460979:1577357.75:647741",
+		"ImsMapVB1:hiddenButton" : "Button",
+		"ImsMapVB1:selX" : "1450419.59",
+		"UAQuery_show" : "none",
+		"txtQueryDateFrom" : "7/8/2011",
+		"txtQueryDateTo" : "8/7/2011",
+		"UALayers_show" : "none",
+		"cbLayers:5" : "on",
+		"UALegend_show" : "none",
+		"UALocate_show" : "none",
+		"SearchTool1:ddlSearches" : "",
+		"UAResults_show" : "inline",
+		"txtLanguage" : "en-US"
+	    }
+	}]
+    }]
+}

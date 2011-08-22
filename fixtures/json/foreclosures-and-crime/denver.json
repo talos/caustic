@@ -1,0 +1,57 @@
+
+{
+    "description" : "takes neighborhood and time values.  Neighborhoods include 'Baker', 'Barnum', and 'CBD'.  The time value is trickier, is '06' for the most recent set, '712' for the next most recent, '7122010' for the last half of 2010, '062010' for the first half of 2010, and so on.",
+    "load" : "http://www.denvergov.org/denvermaps/report.asp?add=&park=&school=&lib=&a=neigh&neigh={{neighborhood}}&dist=500&time={{time}}&tbl=&rpt=offes&me=3106976%2C1636395.65%2C3255209%2C1769805.35&clickdist=50",
+    "then" : {
+	"find" : "<table\\s+class\\s*=\\s*\"Table\".*?</table>",
+	"save" : false,
+	"then" : {
+	    "extends" : {"$ref" : "../shared/html-row.json" },
+	    "name" : "row",
+	    "save" : false,
+	    "min" : 1,
+	    "max" : -1,
+	    "then" : [{
+		"extends" : { "$ref" : "../shared/html-column.json" },
+		"name" : "Offense Number",
+		"match" : 0
+	    },{
+		"extends" : { "$ref" : "../shared/html-column.json" },
+		"name" : "Date of Occurrence",
+		"match" : 1
+	    },{
+		"extends" : { "$ref" : "../shared/html-column.json" },
+		"name" : "Time",
+		"match" : 2
+	    },{
+		"extends" : { "$ref" : "../shared/html-column.json" },
+		"name" : "Offense Category",
+		"match" : 3
+	    },{
+		"extends" : { "$ref" : "../shared/html-column.json" },
+		"name" : "Specific Offense",
+		"match" : 4
+	    },{
+		"extends" : { "$ref" : "../shared/html-column.json" },
+		"name" : "Address",
+		"match" : 5
+	    },{
+		"extends" : { "$ref" : "../shared/html-column.json" },
+		"name" : "Neighborhood",
+		"match" : 6
+	    },{
+		"extends" : { "$ref" : "../shared/html-column.json" },
+		"name" : "City Council District",
+		"match" : 7
+	    },{
+		"extends" : { "$ref" : "../shared/html-column.json" },
+		"name" : "Police Precinct",
+		"match" : 8
+	    },{
+		"extends" : { "$ref" : "../shared/html-column.json" },
+		"name" : "Police District",
+		"match" : 9
+	    }]
+	}
+    }
+}

@@ -1,0 +1,34 @@
+
+{
+    "find" : "<table\\s+id\\s*=\\s*\"insideTable\".*?</table>",
+    "name" : "Columbus Table",
+    "save" : false,
+    "then" : {
+	"extends" : { "$ref" : "../shared/html-row.json" },
+	"name" : "row",
+	"save" : false,
+	"min" : 5,
+	"max" : -2,
+	"then" : [{
+	    "extends" : {"$ref" : "../shared/html-column.json" },
+	    "match" : 0,
+	    "name" : "Case Number"
+	},{
+	    "extends" : {"$ref" : "../shared/html-column.json" },
+	    "match" : 1,
+	    "name" : "Report Title"
+	},{
+	    "extends" : {"$ref" : "../shared/html-column.json" },
+	    "match" : 2,
+	    "name" : "Victim"
+	},{
+	    "extends" : {"$ref" : "../shared/html-column.json" },
+	    "match" : 3,
+	    "name" : "Case Opened"
+	},{
+	    "extends" : {"$ref" : "../shared/html-column.json" },
+	    "match" : 4,
+	    "name" : "Reported Location"
+	}]
+    }
+}
