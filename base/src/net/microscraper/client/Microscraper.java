@@ -8,7 +8,7 @@ import net.microscraper.impl.log.BasicLog;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.InstructionRunner;
 import net.microscraper.instruction.Load;
-import net.microscraper.mustache.MustacheTemplate;
+import net.microscraper.template.Template;
 import net.microscraper.uri.MalformedUriException;
 
 /**
@@ -49,7 +49,7 @@ public class Microscraper implements Loggable {
 
 	private void scrapeFromJSON(String instructionJson, Hashtable[] defaultsHashes, String source)
 			throws DeserializationException, IOException {
-		scrape(deserializer.deserializeJson(instructionJson), defaultsHashes, source);
+		scrape(deserializer.deserializeString(instructionJson), defaultsHashes, source);
 	}
 	
 	private void scrapeFromUri(String uri, Hashtable[] defaultsHashes, String source)
@@ -70,7 +70,7 @@ public class Microscraper implements Loggable {
 	 * Scrape from a {@link Load} in a JSON String.
 	 * @param instructionJSON A {@link String} with a {@link Load} serialized in JSON.
 	 * @param defaults A {@link Hashtable} mapping {@link String}s to {@link String}s to substitute in 
-	 * <code>pageInstructionJSON</code> {@link MustacheTemplate} tags.
+	 * <code>pageInstructionJSON</code> {@link Template} tags.
 	 */
 	public void scrapeFromJson(String instructionJSON, Hashtable defaults)
 			throws DeserializationException, IOException, InterruptedException {
@@ -81,7 +81,7 @@ public class Microscraper implements Loggable {
 	 * Scrape from a {@link Load} in a JSON String for each member of <code>defaultsArray</code>.
 	 * @param instructionJSONinstructionJSON A {@link String} with a {@link Load} serialized in JSON.
 	 * @param defaultsArray An array of {@link Hashtable}s.  Each maps {@link String}s to {@link String}s to substitute in 
-	 * <code>pageInstructionJSON</code> {@link MustacheTemplate} tags.
+	 * <code>pageInstructionJSON</code> {@link Template} tags.
 	 */
 	public void scrapeFromJson(String instructionJSON, Hashtable[] defaultsArray)
 			throws DeserializationException, IOException, InterruptedException {
@@ -112,7 +112,7 @@ public class Microscraper implements Loggable {
 	 * Scrape from a {@link Load} in a JSON String.
 	 * @param uri A {@link String} with the URI location of a {@link Load} serialized in JSON.
 	 * @param defaultsArray An array of {@link Hashtable}s.  Each maps {@link String}s to {@link String}s to substitute in 
-	 * <code>pageInstructionJSON</code> {@link MustacheTemplate} tags.
+	 * <code>pageInstructionJSON</code> {@link Template} tags.
 	 */
 	public void scrapeFromUri(String uri, Hashtable[] defaultsArray)
 			throws DeserializationException, IOException, InterruptedException,

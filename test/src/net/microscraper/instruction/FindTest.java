@@ -15,10 +15,10 @@ import net.microscraper.client.Browser;
 import net.microscraper.client.DeserializationException;
 import net.microscraper.database.Database;
 import net.microscraper.json.JsonObject;
-import net.microscraper.mustache.MustachePattern;
-import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.template.PatternTemplate;
+import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
@@ -26,16 +26,16 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class FindTest  {
-	@Mocked MustachePattern pattern;
+	@Mocked PatternTemplate pattern;
 	@Mocked Database database;
-	@Injectable MustacheTemplate replacement;
+	@Injectable Template replacement;
 	private Variables variables;
 	private Find find;
 	
 	@Before
 	public void setUp() throws Exception {
 		variables = Variables.empty(database);
-		find = new Find(pattern, replacement, 0, -1, new MustachePattern[] {});
+		find = new Find(pattern, replacement, 0, -1, new PatternTemplate[] {});
 	}
 	
 	@Test(expected = IllegalArgumentException.class)

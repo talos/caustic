@@ -2,7 +2,7 @@ package net.microscraper.instruction;
 
 import java.io.IOException;
 
-import net.microscraper.mustache.MustacheTemplate;
+import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
@@ -19,14 +19,14 @@ public class Instruction {
 	private final boolean hasName;
 	
 	/**
-	 * The {@link MustacheTemplate} name for this {@link Instruction}.
+	 * The {@link Template} name for this {@link Instruction}.
 	 */
-	private final MustacheTemplate name;
+	private final Template name;
 	
 	/**
-	 * An array of {@link Instruction}s dependent upon this {@link Instruction}.
+	 * An array of {@link InstructionPromise}s dependent upon this {@link Instruction}.
 	 */
-	private final Instruction[] children;
+	private final InstructionPromise[] children;
 	
 	/**
 	 * Whether or not this {@link Instruction} should save the values of its results to the {@link Database}.
@@ -45,14 +45,14 @@ public class Instruction {
 	 * Uses {@link Action#getDefaultShouldPersistValue()} for {@link #shouldPersistValue} and
 	 * {@link Action#getDefaultName()} for {@link #name}.
 	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
-	 * @param children An array of {@link Instruction}s launched with this {@link Instruction}'s
+	 * @param children An array of {@link InstructionPromise}s launched with this {@link Instruction}'s
 	 * results.
 	 * @param shouldPersistValue Whether this {@link Instruction}'s executions' values should be
 	 * persisted to {@link Database}. <code>True</code> if they should be, <code>false</code> otherwise.
-	 * @param name The {@link MustacheTemplate} that will be compiled and used as the name of this
+	 * @param name The {@link Template} that will be compiled and used as the name of this
 	 * {@link Instruction}'s results.
 	 */
-	public Instruction(Action action, Instruction[] children) {
+	public Instruction(Action action, InstructionPromise[] children) {
 		this.shouldPersistValue = action.getDefaultShouldPersistValue();
 		this.action = action;
 		this.children = children;
@@ -65,13 +65,13 @@ public class Instruction {
 	 * Create a new {@link Instruction} with a custom value for {@link #name}.
 	 * Uses {@link Action#getDefaultShouldPersistValue()} for {@link #shouldPersistValue}.
 	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
-	 * @param children An array of {@link Instruction}s launched with this {@link Instruction}'s
+	 * @param children An array of {@link InstructionPromise}s launched with this {@link Instruction}'s
 	 * results.
-	 * @param name The {@link MustacheTemplate} that will be compiled and used as the name of this
+	 * @param name The {@link Template} that will be compiled and used as the name of this
 	 * {@link Instruction}'s results.
 	 */
 	public Instruction(Action action,
-			Instruction[] children, MustacheTemplate name) {
+			InstructionPromise[] children, Template name) {
 		this.shouldPersistValue = action.getDefaultShouldPersistValue();
 		this.action = action;
 		this.children = children;
@@ -83,13 +83,13 @@ public class Instruction {
 	 * Create a new {@link Instruction} with a custom value for {@link #name}.
 	 * Uses {@link Action#getDefaultName()} for {@link #name}.
 	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
-	 * @param children An array of {@link Instruction}s launched with this {@link Instruction}'s
+	 * @param children An array of {@link InstructionPromise}s launched with this {@link Instruction}'s
 	 * results.
-	 * @param name The {@link MustacheTemplate} that will be compiled and used as the name of this
+	 * @param name The {@link Template} that will be compiled and used as the name of this
 	 * {@link Instruction}'s results.
 	 */
 	public Instruction(Action action,
-			Instruction[] children, boolean shouldPersistValue) {
+			InstructionPromise[] children, boolean shouldPersistValue) {
 		this.shouldPersistValue = shouldPersistValue;
 		this.action = action;
 		this.children = children;
@@ -101,16 +101,16 @@ public class Instruction {
 	 * Create a new {@link Instruction} with a custom value for {@link #shouldPersistValue}
 	 * and {@link #name}.
 	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
-	 * @param children An array of {@link Instruction}s launched with this {@link Instruction}'s
+	 * @param children An array of {@link InstructionPromise}s launched with this {@link Instruction}'s
 	 * results.
 	 * @param shouldPersistValue Whether this {@link Instruction}'s executions' values should be
 	 * persisted to {@link Database}. <code>True</code> if they should be, <code>false</code> otherwise.
-	 * @param name The {@link MustacheTemplate} that will be compiled and used as the name of this
+	 * @param name The {@link Template} that will be compiled and used as the name of this
 	 * {@link Instruction}'s results.
 	 */
 	public Instruction(Action action,
-			Instruction[] children, boolean shouldPersistValue,
-			MustacheTemplate name) {
+			InstructionPromise[] children, boolean shouldPersistValue,
+			Template name) {
 		this.shouldPersistValue = shouldPersistValue;
 		this.name = name;
 		this.action = action;
@@ -119,14 +119,15 @@ public class Instruction {
 	}
 	
 	/**
-	 * @return The raw {@link MustacheTemplate} string of this {@link Instruction}'s {@link #name}.
+	 * @return The raw {@link Template} string of this {@link Instruction}'s {@link #name}.
 	 */
 	public String toString() {
 		return name.toString();
 	}
 	
 	/**
-	 * Generate the children of this {@link Instruction} during execution.  There will be as many children
+	 * Generate the {@link InstructionPromise} children of this
+	 * {@link Instruction} during execution.  There will be as many children
 	 * as the product of {@link Action#execute(String, Variables)}'s {@link Execution#getExecuted()}
 	 *  and {@link #children}.  Should be run by {@link Executable#execute()} as part of {@link InstructionRunner#run()}.
 	 * @param source The source {@link String} to use in the execution.
@@ -167,12 +168,12 @@ public class Instruction {
 				} else {
 					branches = Variables.multiBranch(variables, name, resultValues, hasName, shouldPersistValue);						
 				}
-								
+				
 				for(int i = 0 ; i < resultValues.length ; i ++) {
 					Variables branch = branches[i];
 					String childSource = resultValues[i];
 					for(int j = 0 ; j < children.length ; j++) {
-						Instruction child = children[j];
+						InstructionPromise child = children[j];
 						childExecutables[(i * children.length) + j]
 								= new Executable(childSource, branch, child);
 					}

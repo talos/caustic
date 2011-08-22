@@ -1,4 +1,4 @@
-package net.microscraper.mustache;
+package net.microscraper.template;
 
 import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.NameValuePair;
@@ -8,15 +8,15 @@ import net.microscraper.util.Variables;
 
 
 /**
- * A name-value pair with Mustache substitutions done for both name and value.
+ * A name-value pair with {@link Template} substitutions done for both name and value.
  * @author john
  *
  */
-public class MustacheNameValuePair implements Substitutable {
-	public final MustacheTemplate name;
-	public final MustacheTemplate value;
+public class NameValuePairTemplate implements Substitutable {
+	public final Template name;
+	public final Template value;
 	
-	public MustacheNameValuePair(MustacheTemplate name, MustacheTemplate value) {
+	public NameValuePairTemplate(Template name, Template value) {
 		this.name = name;
 		this.value = value;
 	}

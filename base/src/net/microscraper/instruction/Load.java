@@ -3,10 +3,10 @@ package net.microscraper.instruction;
 import java.io.IOException;
 
 import net.microscraper.client.Browser;
-import net.microscraper.mustache.MustacheNameValuePair;
-import net.microscraper.mustache.MustachePattern;
-import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.regexp.Pattern;
+import net.microscraper.template.NameValuePairTemplate;
+import net.microscraper.template.PatternTemplate;
+import net.microscraper.template.Template;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.NameValuePair;
 import net.microscraper.util.Execution;
@@ -26,34 +26,34 @@ public final class Load implements Action {
 	private final String method;
 
 	/**
-	 * {@link MustacheNameValuePair}s of cookies.
+	 * {@link NameValuePairTemplate}s of cookies.
 	 */
-	private final MustacheNameValuePair[] cookies;
+	private final NameValuePairTemplate[] cookies;
 
 	/**
-	 * {@link MustacheNameValuePair}s of generic headers.
+	 * {@link NameValuePairTemplate}s of generic headers.
 	 */
-	private final MustacheNameValuePair[] headers;
+	private final NameValuePairTemplate[] headers;
 	
 	/**
-	 * {@link MustachePattern}s that terminate the loading of this page's body.
+	 * {@link PatternTemplate}s that terminate the loading of this page's body.
 	 */
-	private final MustachePattern[] stops;
+	private final PatternTemplate[] stops;
 	
 	/**
-	 * A {@link MustacheTemplate} of post data.  Exclusive of {@link #postNameValuePairs}.
+	 * A {@link Template} of post data.  Exclusive of {@link #postNameValuePairs}.
 	 */
-	private final MustacheTemplate postData;
+	private final Template postData;
 	
 	/**
-	 * {@link MustacheNameValuePair}s of post data.  Exclusive of {@link #postData}.
+	 * {@link NameValuePairTemplate}s of post data.  Exclusive of {@link #postData}.
 	 */
-	private final MustacheNameValuePair[] postNameValuePairs;
+	private final NameValuePairTemplate[] postNameValuePairs;
 
 	/**
-	 * A string that can be mustached and used as a URL.
+	 * A string that will be templated and evaulated as a URL.
 	 */
-	private final MustacheTemplate url;
+	private final Template url;
 	
 	/**
 	 * The {@link Browser} to use when loading.
@@ -67,9 +67,9 @@ public final class Load implements Action {
 	
 	private Load( 
 			Browser browser, Encoder encoder,
-			String method, MustacheTemplate url, MustacheTemplate postData,
-			MustacheNameValuePair[] postNameValuePairs,
-			MustacheNameValuePair[] headers, MustacheNameValuePair[] cookies, MustachePattern[] stops) {
+			String method, Template url, Template postData,
+			NameValuePairTemplate[] postNameValuePairs,
+			NameValuePairTemplate[] headers, NameValuePairTemplate[] cookies, PatternTemplate[] stops) {
 		this.browser = browser;
 		this.encoder = encoder;
 		this.method = method;
@@ -81,23 +81,23 @@ public final class Load implements Action {
 		this.stops = stops;
 	}
 	
-	public static Load head(Browser browser, Encoder encoder, MustacheTemplate url, MustacheNameValuePair[] headers,
-			MustacheNameValuePair[] cookies, MustachePattern[] stops) {
+	public static Load head(Browser browser, Encoder encoder, Template url, NameValuePairTemplate[] headers,
+			NameValuePairTemplate[] cookies, PatternTemplate[] stops) {
 		return new Load(browser, encoder, Browser.HEAD, url, null, null, headers, cookies, stops);
 	}
 	
-	public static Load get(Browser browser, Encoder encoder, MustacheTemplate url, MustacheNameValuePair[] headers,
-			MustacheNameValuePair[] cookies, MustachePattern[] stops) {
+	public static Load get(Browser browser, Encoder encoder, Template url, NameValuePairTemplate[] headers,
+			NameValuePairTemplate[] cookies, PatternTemplate[] stops) {
 		return new Load(browser,encoder,  Browser.GET, url, null, null, headers, cookies, stops);
 	}
 	
-	public static Load post(Browser browser, Encoder encoder, MustacheTemplate url, MustacheTemplate postData,
-			MustacheNameValuePair[] headers, MustacheNameValuePair[] cookies, MustachePattern[] stops) {
+	public static Load post(Browser browser, Encoder encoder, Template url, Template postData,
+			NameValuePairTemplate[] headers, NameValuePairTemplate[] cookies, PatternTemplate[] stops) {
 		return new Load(browser,encoder,  Browser.POST, url, postData, null, headers, cookies, stops);
 	}
 	
-	public static Load post(Browser browser, Encoder encoder, MustacheTemplate url, MustacheNameValuePair[] postNameValuePairs,
-			MustacheNameValuePair[] headers, MustacheNameValuePair[] cookies, MustachePattern[] stops) {
+	public static Load post(Browser browser, Encoder encoder, Template url, NameValuePairTemplate[] postNameValuePairs,
+			NameValuePairTemplate[] headers, NameValuePairTemplate[] cookies, PatternTemplate[] stops) {
 		return new Load(browser, encoder, Browser.POST, url, null, postNameValuePairs, headers, cookies, stops);
 	}
 	
@@ -171,7 +171,7 @@ public final class Load implements Action {
 	/**
 	 * {@Link Load}'s default name is its {@link #url}.
 	 */
-	public MustacheTemplate getDefaultName() {
+	public Template getDefaultName() {
 		return url;
 	}
 

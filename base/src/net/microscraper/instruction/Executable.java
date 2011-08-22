@@ -7,7 +7,7 @@ import net.microscraper.util.StringUtils;
 import net.microscraper.util.Variables;
 
 /**
- * An {@link Executable} is an execution-time binding of an {@link Instruction} to
+ * An {@link Executable} is an execution-time binding of an {@link InstructionPromise} to
  * the data it needs to run.
  * @see Load
  * @see Find
@@ -16,23 +16,33 @@ import net.microscraper.util.Variables;
  */
 public class Executable {
 	
-	public static int SOURCE_TRUNCATE_LENGTH = 50;
-	
-	private Execution prevExecution;
-	private Execution execution;
+	/**
+	 * How many characters of {@link #source} to show in {@link #toString()}.
+	 */
+	public static final int SOURCE_TRUNCATE_LENGTH = 50;
 	
 	private final String source;
 	private final Variables variables;
-	private final Instruction instruction;
+	private final InstructionPromise instructionPromise;
 	
-	public Executable(String source, Variables variables, Instruction instruction) {
+	/**
+	 * The {@link Instruction} that this {@link Executable} runs.
+	 */
+	private Instruction instruction;
+	private Execution prevExecution;
+	private Execution execution;
+	
+	public Executable(String source, Variables variables, InstructionPromise instructionPromise) {
 		this.source = source;
 		this.variables = variables;
-		this.instruction = instruction;
+		this.instructionPromise = instructionPromise;
 	}
 	
 	/**
-	 * Run {@link Instruction#execute(String, Variables)} using the {@link #source}
+	 * Runs {@link InstructionPromise#execute(Variables)} using the {@link #variables}
+	 * to which this {@link Executable} is bound to get {@link #instruction}.<p>
+	 * Once it has this {@link Instruction}, it performs
+	 * {@link Instruction#execute(String, Variables)} using the {@link #source}
 	 * and {@link #variables} that this {@link Executable} is bound to.
 	 * @return An {@link Execution} object resulting from {@link Instruction#execute},
 	 * whose {@link Execution#getExecuted()} is an array of {@link Executable}s.
@@ -41,7 +51,19 @@ public class Executable {
 	 */
 	public Execution execute() throws InterruptedException, IOException {
 		prevExecution = execution;
-		execution = instruction.execute(source, variables);
+		
+		// If instruction is not yet loaded, try to get it.
+		if(instruction == null) {
+			execution = instructionPromise.load(variables);
+			if(execution.isSuccessful()) {
+				instruction = (Instruction) execution.getExecuted();
+			}
+		}
+		
+		// If instruction is loaded, execute it.
+		if(instruction != null) {
+			execution = instruction.execute(source, variables);
+		}
 		return execution;
 	}
 	

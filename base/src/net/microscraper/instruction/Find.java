@@ -2,31 +2,31 @@ package net.microscraper.instruction;
 
 import java.util.Vector;
 
-import net.microscraper.mustache.MustachePattern;
-import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.regexp.Pattern;
+import net.microscraper.template.PatternTemplate;
+import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
 /**
  * An {@link Executable} for extracting matches from a source string according to
- * a {@link Pattern} and replacement {@link MustacheTemplate}.
+ * a {@link Pattern} and replacement {@link Template}.
  * @author john
  *
  */
 public class Find implements Action {
 
 	/**
-	 * The {@link String} that should be mustached and evaluated for backreferences,
+	 * The {@link String} that should be templated and evaluated for backreferences,
 	 * then returned once for each match.<p>
 	 * Defaults to {@link #ENTIRE_MATCH}.
 	 */
-	private final MustacheTemplate replacement;
+	private final Template replacement;
 
 	/**
-	 * {@link MustachePattern}s that test the sanity of the parser's output.
+	 * {@link PatternTemplate}s that test the sanity of the parser's output.
 	 */
-	private final MustachePattern[] tests;
+	private final PatternTemplate[] tests;
 
 	/**
 	 * Value for when {@link #replacement} is the entire match.
@@ -35,9 +35,9 @@ public class Find implements Action {
 
 	/**
 	 * 
-	 * The {@link MustachePattern} inside this {@link Find}.
+	 * The {@link PatternTemplate} inside this {@link Find}.
 	 */
-	private final MustachePattern pattern;
+	private final PatternTemplate pattern;
 	
 	/**
 	 * The first of the parser's matches to export.
@@ -55,8 +55,8 @@ public class Find implements Action {
 	 */
 	private final int maxMatch;
 	
-	public Find(MustachePattern pattern, MustacheTemplate replacement,
-			int minMatch, int maxMatch, MustachePattern[] tests) {
+	public Find(PatternTemplate pattern, Template replacement,
+			int minMatch, int maxMatch, PatternTemplate[] tests) {
 		this.pattern = pattern;
 		this.replacement = replacement;
 		this.minMatch = minMatch;
@@ -124,9 +124,9 @@ public class Find implements Action {
 	}
 	
 	/**
-	 * {@link Find}'s default name is its {@link #pattern}'s {@link MustachePattern#getTemplate()}.
+	 * {@link Find}'s default name is its {@link #pattern}'s {@link PatternTemplate#getTemplate()}.
 	 */
-	public MustacheTemplate getDefaultName() {
+	public Template getDefaultName() {
 		return pattern.getTemplate();
 	}
 

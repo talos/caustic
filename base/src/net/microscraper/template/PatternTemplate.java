@@ -1,4 +1,4 @@
-package net.microscraper.mustache;
+package net.microscraper.template;
 
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
@@ -7,17 +7,17 @@ import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
 /**
- * A {@link Pattern} that uses a {@link MustacheTemplate} for substitutions.
+ * A {@link Pattern} that uses a {@link Template} for substitutions.
  * @author john
  *
  */
-public class MustachePattern implements Substitutable {
+public class PatternTemplate implements Substitutable {
 	
 	/**
-	 * The {@link MustacheTemplate} that will be substituted into a {@link String}
+	 * The {@link Template} that will be substituted into a {@link String}
 	 * to use as the pattern.
 	 */
-	private final MustacheTemplate pattern;
+	private final Template pattern;
 	
 	/**
 	 * Flag equivalent to {@link java.util.regex.Pattern#CASE_INSENSITIVE}
@@ -35,11 +35,11 @@ public class MustachePattern implements Substitutable {
 	private final boolean doesDotMatchNewline;
 	
 	/**
-	 * The {@link RegexpCompiler} to use when compiling this {@link MustachePattern}.
+	 * The {@link RegexpCompiler} to use when compiling this {@link PatternTemplate}.
 	 */
 	private final RegexpCompiler compiler;
 	
-	public MustachePattern(RegexpCompiler compiler, MustacheTemplate pattern, boolean isCaseInsensitive,
+	public PatternTemplate(RegexpCompiler compiler, Template pattern, boolean isCaseInsensitive,
 			boolean isMultiline, boolean doesDotMatchNewline) {
 		this.compiler = compiler;
 		this.pattern = pattern;
@@ -49,7 +49,7 @@ public class MustachePattern implements Substitutable {
 	}
 	
 	/**
-	 * Compile a {@link MustachePattern} into a {@link Pattern}, which will
+	 * Compile a {@link PatternTemplate} into a {@link Pattern}, which will
 	 * be contained in {@link Execution#getExecuted()}.
 	 */
 	public Execution sub(Variables variables) {
@@ -66,7 +66,7 @@ public class MustachePattern implements Substitutable {
 		}
 	}
 	
-	public MustacheTemplate getTemplate() {
+	public Template getTemplate() {
 		return pattern;
 	}
 }

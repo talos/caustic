@@ -9,8 +9,8 @@ import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Tested;
 import net.microscraper.database.Database;
-import net.microscraper.mustache.MustacheTemplate;
 import static net.microscraper.util.TestUtils.*;
+import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
@@ -19,7 +19,7 @@ import org.junit.Test;
 
 public final class InstructionTest {	
 	@Mocked private Database database;
-	@Mocked private MustacheTemplate name;
+	@Mocked private Template name;
 	
 	@Mocked private Action action;
 	

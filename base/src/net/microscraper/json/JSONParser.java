@@ -7,13 +7,9 @@ import net.microscraper.uri.Uri;
 import net.microscraper.uri.MalformedUriException;;
 
 /**
- * Implementations provide a fully-featured interface for microscraper to
- * handle JSON with references.  The format
- * of this interface is indebted to org.json.me, but also should implement
- * JSON referencing when the object is first initialized.
+ * Implementations provide an interface for parsing JSON objects.  The format
+ * of this interface is indebted to org.json.me.
  * @author john
- * @see #REFERENCE_KEY
- * @see #EXTENDS
  *
  */
 public interface JsonParser {
@@ -22,7 +18,7 @@ public interface JsonParser {
 	 * the object with the contents of the JSON loaded from the URI that is this
 	 * key's value.
 	 */
-	public static final String REFERENCE_KEY = "$ref";
+	//public static final String REFERENCE_KEY = "$ref";
 	
 	/**
 	 * When the parser encounters this as a key in an object, it should append 
@@ -30,7 +26,7 @@ public interface JsonParser {
 	 * the value is an array, it should append all of the key-value pairs of
 	 * each array element into the original object.
 	 */
-	public static final String EXTENDS = "extends";
+	//public static final String EXTENDS = "extends";
 	
 	/**
 	 * Load a {@link JsonObject} from a {@link Uri}.
@@ -41,8 +37,8 @@ public interface JsonParser {
 	 * @throws MalformedUriException if the {@link Uri} could not be resolved.
 	 * @throws IOException if a reference could not be loaded.
 	 */
-	public abstract JsonObject load(String uriString) 
-			throws JsonException, MalformedUriException, IOException;
+	/*public abstract JsonObject load(String uriString) 
+			throws JsonException, MalformedUriException, IOException;*/
 	
 	/**
 	 * Compile a {@link JsonObject} directly from a {@link String}.
@@ -50,11 +46,9 @@ public interface JsonParser {
 	 * @return A {@link JsonObject}.
 	 * @throws JsonException If there is an error generating
 	 * the {@link JsonObject}.
-	 * @throws MalformedUriException if a reference could not be resolved.
-	 * @throws IOException if a reference could not be loaded.
 	 */
-	public abstract JsonObject parse(String jsonString)
-			throws JsonException, MalformedUriException, IOException;
+	public abstract JsonObject parse(String jsonString) throws JsonException;
+	//		throws JsonException, MalformedUriException, IOException;
 	
 	/**
 	 * Compile a flat {@link JsonObject} from a {@link Hashtable} of

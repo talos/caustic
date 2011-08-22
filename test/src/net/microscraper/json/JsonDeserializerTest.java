@@ -47,17 +47,17 @@ public class JsonDeserializerTest {
 	
 	@Test
 	public void testDeserializeSimpleLoad() throws Exception {
-		deserializer.deserializeJson(loadJson);
+		deserializer.deserializeString(loadJson);
 	}
 
 	@Test
 	public void testDeserializeSimpleFind() throws Exception {
-		deserializer.deserializeJson(findJson);
+		deserializer.deserializeString(findJson);
 	}
 
 	@Test(expected=DeserializationException.class)
 	public void testEmptyObjThrowsException() throws Exception {
-		deserializer.deserializeJson("");
+		deserializer.deserializeString("");
 	}
 	
 	@Test(expected=DeserializationException.class)
@@ -65,7 +65,7 @@ public class JsonDeserializerTest {
 		new NonStrictExpectations() {{
 			findObj.has(LOAD); result = true;
 		}};
-		deserializer.deserializeJson(findJson);
+		deserializer.deserializeString(findJson);
 	}
 	
 	@Test(expected=DeserializationException.class)
@@ -74,7 +74,7 @@ public class JsonDeserializerTest {
 			findObj.has(MAX_MATCH); result = true;
 			findObj.has(MATCH); result = true;
 		}};
-		deserializer.deserializeJson(findJson);
+		deserializer.deserializeString(findJson);
 	}
 
 	@Test(expected=DeserializationException.class)
@@ -83,7 +83,7 @@ public class JsonDeserializerTest {
 			findObj.has(MIN_MATCH); result = true;
 			findObj.has(MATCH); result = true;
 		}};
-		deserializer.deserializeJson(findJson);
+		deserializer.deserializeString(findJson);
 	}
 	
 	@Test
@@ -113,7 +113,7 @@ public class JsonDeserializerTest {
 			findObj.getInt(MAX_MATCH); result = max;
 		}};
 		
-		deserializer.deserializeJson(findJson);
+		deserializer.deserializeString(findJson);
 	}
 	
 
@@ -128,7 +128,7 @@ public class JsonDeserializerTest {
 			findObj.getInt(MAX_MATCH); result = max;
 		}};
 		
-		deserializer.deserializeJson(findJson);
+		deserializer.deserializeString(findJson);
 	}
 	
 	@Test

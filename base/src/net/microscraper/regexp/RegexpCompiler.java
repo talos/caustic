@@ -1,6 +1,6 @@
 package net.microscraper.regexp;
 
-import net.microscraper.mustache.MustachePattern;
+import net.microscraper.template.PatternTemplate;
 import net.microscraper.util.Variables;
 
 /**

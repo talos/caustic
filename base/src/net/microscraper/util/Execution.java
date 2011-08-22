@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Vector;
 
-import net.microscraper.mustache.MustacheNameValuePair;
-import net.microscraper.mustache.MustachePattern;
 import net.microscraper.regexp.Pattern;
+import net.microscraper.template.NameValuePairTemplate;
+import net.microscraper.template.PatternTemplate;
 
 /**
  * {@link Execution} says whether an attempt to use a set of {@link Variables}
@@ -236,16 +236,16 @@ public class Execution {
 
 	/**
 	 * Convenience method to generate a single {@link Execution} from a whole
-	 * array of {@link MustachePattern}s. The {@link #getExecuted()} of the
+	 * array of {@link PatternTemplate}s. The {@link #getExecuted()} of the
 	 * returned {@link Execution} will be an array of the substituted {@link
 	 * Pattern}s if it is successful.
-	 * @param substitutables The array of {@link MustacheNameValuePair}s to {@link 
-	 * MustacheNameValuePair#sub(Variables)} en masse.
+	 * @param substitutables The array of {@link NameValuePairTemplate}s to {@link 
+	 * NameValuePairTemplate#sub(Variables)} en masse.
 	 * @param variables The {@link Variables} to use.
 	 * @return A single {@link Execution}, with either all the <code>substitutables</code>
 	 * substituted or a combined array of the missing variables.
 	 */
-	public static Execution arraySubNameValuePair(MustacheNameValuePair[] substitutables, Variables variables) {
+	public static Execution arraySubNameValuePair(NameValuePairTemplate[] substitutables, Variables variables) {
 		Execution[] substitutions = new Execution[substitutables.length];
 		for(int i = 0 ; i < substitutables.length ; i ++) {
 			substitutions[i] = substitutables[i].sub(variables);
@@ -268,16 +268,16 @@ public class Execution {
 	
 	/**
 	 * Convenience method to generate a single {@link Execution} from a whole
-	 * array of {@link MustacheNameValuePair}s. The {@link #getExecuted()} of the
+	 * array of {@link NameValuePairTemplate}s. The {@link #getExecuted()} of the
 	 * returned {@link Execution} will be an array of the substituted {@link
 	 * NameValuePair}s if it is successful.
-	 * @param substitutables The array of {@link MustachePattern}s to {@link 
-	 * MustachePattern#sub(Variables)} en masse.
+	 * @param substitutables The array of {@link PatternTemplate}s to {@link 
+	 * PatternTemplate#sub(Variables)} en masse.
 	 * @param variables The {@link Variables} to use.
 	 * @return A single {@link Execution}, with either all the <code>substitutables</code>
 	 * substituted or a combined array of the missing variables.
 	 */
-	public static Execution arraySubPattern(MustachePattern[] patterns, Variables variables) {
+	public static Execution arraySubPattern(PatternTemplate[] patterns, Variables variables) {
 		Execution[] substitutions = new Execution[patterns.length];
 		for(int i = 0 ; i < patterns.length ; i ++) {
 			substitutions[i] = patterns[i].sub(variables);

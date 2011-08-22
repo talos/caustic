@@ -1,6 +1,6 @@
 package net.microscraper.instruction;
 
-import net.microscraper.mustache.MustacheTemplate;
+import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
@@ -24,7 +24,7 @@ public interface Action {
 	 */
 	public Execution execute(String source, Variables variables) throws InterruptedException;
 	
-	public MustacheTemplate getDefaultName();
+	public Template getDefaultName();
 	
 	public boolean getDefaultShouldPersistValue();
 }

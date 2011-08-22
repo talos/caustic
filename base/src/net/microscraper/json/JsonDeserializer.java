@@ -8,19 +8,25 @@ import net.microscraper.client.Deserializer;
 import net.microscraper.instruction.Action;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
+import net.microscraper.instruction.InstructionPromise;
 import net.microscraper.instruction.Load;
-import net.microscraper.mustache.MustacheCompilationException;
-import net.microscraper.mustache.MustacheNameValuePair;
-import net.microscraper.mustache.MustachePattern;
-import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpUtils;
+import net.microscraper.template.NameValuePairTemplate;
+import net.microscraper.template.PatternTemplate;
+import net.microscraper.template.Template;
+import net.microscraper.template.TemplateCompilationException;
 import net.microscraper.uri.MalformedUriException;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.StringUtils;
 
 public class JsonDeserializer implements Deserializer {
+	
+	/**
+	 * The default {@link Uri} to use when resolving local JSON.
+	 */
+	private final Uri defaultUri;
 	
 	/**
 	 * The {@link JsonParser} used to parse JSON objects.
@@ -66,40 +72,40 @@ public class JsonDeserializer implements Deserializer {
 	 * @throws MalformedUriException If a reference was not formatted properly.
 	 * @throws IOException if a reference could not be loaded.
 	 * @throws DeserializationException If the {@link Method} for {@link Load} cannot be recognized.
-	 * @throws MustacheCompilationException If a {@link MustacheTemplate} could not be compiled.
+	 * @throws TemplateCompilationException If a {@link Template} could not be compiled.
 	 */
 	private Load deserializeLoad(JsonObject jsonObject) throws JsonException, DeserializationException,
-			MustacheCompilationException, IOException, MalformedUriException {
-		final MustacheTemplate url;
-		final MustacheTemplate postData;
-		final MustacheNameValuePair[] postNameValuePairs, cookies, headers;
-		final MustachePattern[] stops;
+			TemplateCompilationException, IOException, MalformedUriException {
+		final Template url;
+		final Template postData;
+		final NameValuePairTemplate[] postNameValuePairs, cookies, headers;
+		final PatternTemplate[] stops;
 		
-		url = MustacheTemplate.compile(jsonObject.getString(LOAD));
+		url = Template.compile(jsonObject.getString(LOAD));
 		
 		cookies = jsonObject.has(COOKIES) ?
-				deserializeMustacheNameValuePairArray(jsonObject.getJsonObject(COOKIES)) :
-				new MustacheNameValuePair[] {};
+				deserializeNameValuePairTemplate(jsonObject.getJsonObject(COOKIES)) :
+				new NameValuePairTemplate[] {};
 		headers = jsonObject.has(HEADERS) ?
-				deserializeMustacheNameValuePairArray(jsonObject.getJsonObject(HEADERS)) :
-				new MustacheNameValuePair[] {};
+				deserializeNameValuePairTemplate(jsonObject.getJsonObject(HEADERS)) :
+				new NameValuePairTemplate[] {};
 		
 		if(jsonObject.has(STOP)) {
 			JsonArray stopJsonArray = jsonObject.getJsonArray(STOP);
-			stops = new MustachePattern[stopJsonArray.length()];
+			stops = new PatternTemplate[stopJsonArray.length()];
 			for(int i = 0 ; i < stops.length ; i++) {
-				stops[i] = deserializeMustachePattern(stopJsonArray.getJsonObject(i));
+				stops[i] = deserializePatternTemplate(stopJsonArray.getJsonObject(i));
 			}
 		} else {
-			stops = new MustachePattern[] {};
+			stops = new PatternTemplate[] {};
 		}
 		
 		if(jsonObject.has(POSTS)) {
 			if(jsonObject.isJsonObject(POSTS)) {
-				postNameValuePairs = deserializeMustacheNameValuePairArray(jsonObject.getJsonObject(POSTS));
+				postNameValuePairs = deserializeNameValuePairTemplate(jsonObject.getJsonObject(POSTS));
 				return Load.post(browser, encoder, url, postNameValuePairs, headers, cookies, stops);
 			} else {
-				postData = MustacheTemplate.compile(jsonObject.getString(POSTS));
+				postData = Template.compile(jsonObject.getString(POSTS));
 				return Load.post(browser, encoder, url, postData, headers, cookies, stops);
 			}
 		}
@@ -107,7 +113,7 @@ public class JsonDeserializer implements Deserializer {
 		if(jsonObject.has(METHOD)) {
 			String method = jsonObject.getString(METHOD);
 			if(method.equalsIgnoreCase(Browser.POST)) {
-				postData = MustacheTemplate.compile("");
+				postData = Template.compile("");
 				return Load.post(browser, encoder, url, postData, headers, cookies, stops);
 			} else if(method.equalsIgnoreCase(Browser.HEAD)) {
 				return Load.get(browser, encoder, url, headers, cookies, stops);
@@ -124,30 +130,30 @@ public class JsonDeserializer implements Deserializer {
 	 * @throws MalformedUriException If a reference was not formatted properly.
 	 * @throws IOException if a reference could not be loaded.
 	 * @throws DeserializationException if there is a problem setting the match range.
-	 * @throws MustacheCompilationException If a {@link MustacheTemplate} could not be compiled.
+	 * @throws TemplateCompilationException If a {@link Template} could not be compiled.
 	 */
 	private Find deserializeFind(JsonObject jsonObject) throws JsonException, DeserializationException,
-				MustacheCompilationException, MalformedUriException, IOException {
-		final MustachePattern pattern;
-		final MustachePattern[] tests;
-		final MustacheTemplate replacement;
+				TemplateCompilationException, MalformedUriException, IOException {
+		final PatternTemplate pattern;
+		final PatternTemplate[] tests;
+		final Template replacement;
 		final int minMatch;
 		final int maxMatch;
 		
-		pattern = deserializeMustachePattern(jsonObject);
+		pattern = deserializePatternTemplate(jsonObject);
 		if(jsonObject.has(TESTS)) {
 			JsonArray testsJsonArray = jsonObject.getJsonArray(TESTS);
-			tests = new MustachePattern[testsJsonArray.length()];
+			tests = new PatternTemplate[testsJsonArray.length()];
 			for(int i = 0 ; i < tests.length ; i ++) {
-				tests[i] = deserializeMustachePattern(testsJsonArray.getJsonObject(i));
+				tests[i] = deserializePatternTemplate(testsJsonArray.getJsonObject(i));
 			}
 		} else {
-			tests = new MustachePattern[] {};
+			tests = new PatternTemplate[] {};
 		}
 		
 		replacement = jsonObject.has(REPLACE) ?
-				MustacheTemplate.compile(jsonObject.getString(REPLACE)) :
-				MustacheTemplate.compile(Find.ENTIRE_MATCH);
+				Template.compile(jsonObject.getString(REPLACE)) :
+				Template.compile(Find.ENTIRE_MATCH);
 		
 		if(jsonObject.has(MATCH)) {
 			if(jsonObject.has(MIN_MATCH) || jsonObject.has(MAX_MATCH)) {
@@ -182,7 +188,7 @@ public class JsonDeserializer implements Deserializer {
 				throws DeserializationException, IOException {
 		try {
 			final Action action;
-			final Instruction[] children;
+			final InstructionPromise[] children;
 			final Instruction result;
 			
 			if(isFind(jsonObject)) {
@@ -196,7 +202,7 @@ public class JsonDeserializer implements Deserializer {
 			if(jsonObject.has(THEN)) {
 				// If the key refers directly to an object, it is considered
 				// an array of 1.
-				if(jsonObject.isJsonObject(THEN)) {
+				/*if(jsonObject.isJsonObject(THEN)) {
 					children = new Instruction[] {
 						deserializeInstruction(jsonObject.getJsonObject(THEN))
 					};
@@ -206,14 +212,24 @@ public class JsonDeserializer implements Deserializer {
 					for(int i = 0 ; i < array.length() ; i ++) {
 						children[i] = deserializeInstruction(array.getJsonObject(i));
 					}
+				}*/
+				if(jsonObject.isJsonObject(THEN)) {
+					children = new InstructionPromise[] {
+						new InstructionPromise(this, jsonObject.getString(THEN))	
+					};
+				} else {
+					JsonArray array = jsonObject.getJsonArray(THEN);
+					children = new InstructionPromise[array.length()];
+					for(int i = 0 ; i < array.length() ; i ++) {
+						children[i] = new InstructionPromise(this, array.getString(i));
+					}
 				}
 			} else {
-				children = new Instruction[] {};
+				children = new InstructionPromise[] {};
 			}
-			
 	
 			if(jsonObject.has(NAME)) {
-				MustacheTemplate name = MustacheTemplate.compile(jsonObject.getString(NAME));
+				Template name = Template.compile(jsonObject.getString(NAME));
 				if(jsonObject.has(SAVE)) {
 					boolean shouldPersistValue = jsonObject.getBoolean(SAVE);
 					result = new Instruction(action, children, shouldPersistValue, name);
@@ -232,7 +248,7 @@ public class JsonDeserializer implements Deserializer {
 			return result;
 		} catch (JsonException e) {
 			throw new DeserializationException(e);
-		} catch (MustacheCompilationException e) {
+		} catch (TemplateCompilationException e) {
 			throw new DeserializationException(e);
 		} catch (MalformedUriException e) {
 			throw new DeserializationException(e);
@@ -241,19 +257,19 @@ public class JsonDeserializer implements Deserializer {
 	}
 
 	/**
-	 * Deserialize a {@link MustachePattern} from a {@link JsonObject}.
+	 * Deserialize a {@link PatternTemplate} from a {@link JsonObject}.
 	 * @param jsonObject Input {@link JsonObject} object.
-	 * @return A {@link MustachePattern} instance.
+	 * @return A {@link PatternTemplate} instance.
 	 * @throws JsonException If there was a problem parsing the JSON.
-	 * @throws MustacheCompilationException If a {@link MustacheTemplate} could not be compiled.
+	 * @throws TemplateCompilationException If a {@link Template} could not be compiled.
 	 */
-	private MustachePattern deserializeMustachePattern(JsonObject jsonObject) throws MustacheCompilationException,
+	private PatternTemplate deserializePatternTemplate(JsonObject jsonObject) throws TemplateCompilationException,
 			JsonException{
-		MustacheTemplate pattern = MustacheTemplate.compile(jsonObject.getString(FIND));
+		Template pattern = Template.compile(jsonObject.getString(FIND));
 		boolean isCaseSensitive = jsonObject.has(IS_CASE_INSENSITIVE) ? jsonObject.getBoolean(IS_CASE_INSENSITIVE) : IS_CASE_INSENSITIVE_DEFAULT;
 		boolean isMultiline = jsonObject.has(IS_MULTILINE) ? jsonObject.getBoolean(IS_MULTILINE) : IS_MULTILINE_DEFAULT;
 		boolean doesDotMatchNewline = jsonObject.has(DOES_DOT_MATCH_ALL) ? jsonObject.getBoolean(DOES_DOT_MATCH_ALL) : DOES_DOT_MATCH_ALL_DEFAULT;
-		return new MustachePattern(compiler, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline);
+		return new PatternTemplate(compiler, pattern, isCaseSensitive, isMultiline, doesDotMatchNewline);
 	}
 	
 	/**
@@ -261,19 +277,19 @@ public class JsonDeserializer implements Deserializer {
 	 * @param jsonObject Input {@link JsonObject} hash.
 	 * @return A {@link NameValuePairs} instance.
 	 * @throws JsonException If there was a problem parsing the JSON.
-	 * @throws MustacheCompilationException If a {@link MustacheTemplate} could not be compiled.
+	 * @throws TemplateCompilationException If a {@link Template} could not be compiled.
 	 */
-	private MustacheNameValuePair[] deserializeMustacheNameValuePairArray(JsonObject jsonObject)
-				throws JsonException, MustacheCompilationException {
-		MustacheNameValuePair[] pairs = new MustacheNameValuePair[jsonObject.length()];
+	private NameValuePairTemplate[] deserializeNameValuePairTemplate(JsonObject jsonObject)
+				throws JsonException, TemplateCompilationException {
+		NameValuePairTemplate[] pairs = new NameValuePairTemplate[jsonObject.length()];
 		JsonIterator iter = jsonObject.keys();
 		int i = 0;
 		while(iter.hasNext()) {
 			String key = (String) iter.next();
 			String value = jsonObject.getString(key);
-			pairs[i] = new MustacheNameValuePair(
-					MustacheTemplate.compile(key),
-					MustacheTemplate.compile(value));
+			pairs[i] = new NameValuePairTemplate(
+					Template.compile(key),
+					Template.compile(value));
 			i++;
 		}
 		return pairs;
@@ -352,24 +368,39 @@ public class JsonDeserializer implements Deserializer {
 	public static final String SAVE = "save";
 	
 	/**
-	 * Key for deserializing {@link MustachePattern#pattern}.
+	 * Key for deserializing {@link PatternTemplate#pattern}.
 	 */
 	public static final String FIND = "find";
 	
 	/**
-	 * Key for deserializing {@link MustachePattern#isCaseInsensitive}.
+	 * Key for a reference that will replace the current object.
+	 */
+	public static final String REF = "$ref";
+	
+	/**
+	 * Key for an object that will extend the current object.
+	 */
+	public static final String EXTENDS = "extends";
+	
+	/**
+	 * Key for a self-reference.
+	 */
+	public static final String SELF = "$this";
+	
+	/**
+	 * Key for deserializing {@link PatternTemplate#isCaseInsensitive}.
 	 */
 	public static final String IS_CASE_INSENSITIVE = "case_insensitive";
 	public static final boolean IS_CASE_INSENSITIVE_DEFAULT = false;
 	
 	/**
-	 * Key for deserializing {@link MustachePattern#isMultiline}.
+	 * Key for deserializing {@link PatternTemplate#isMultiline}.
 	 */
 	public static final String IS_MULTILINE = "multiline";
 	public static final boolean IS_MULTILINE_DEFAULT = false;
 	
 	/** 
-	 * Key for deserializing {@link MustachePattern#doesDotMatchNewline}.
+	 * Key for deserializing {@link PatternTemplate#doesDotMatchNewline}.
 	 */
 	public static final String DOES_DOT_MATCH_ALL = "dot_matches_all";
 	public static final boolean DOES_DOT_MATCH_ALL_DEFAULT = true;
@@ -381,7 +412,7 @@ public class JsonDeserializer implements Deserializer {
 		this.encoder = encoder;
 	}
 	
-	public Instruction deserializeJson(String serializedString)
+	public Instruction deserializeString(String serializedString)
 			throws DeserializationException, IOException {
 		try {
 			return deserializeInstruction(parser.parse(serializedString));
@@ -391,7 +422,8 @@ public class JsonDeserializer implements Deserializer {
 			throw new DeserializationException(e);			
 		}
 	}
-
+	
+	/*
 	public Instruction deserializeUri(String uriString)
 			throws DeserializationException, IOException {
 		try {
@@ -402,4 +434,5 @@ public class JsonDeserializer implements Deserializer {
 			throw new DeserializationException(e);			
 		}
 	}
+	*/
 }
