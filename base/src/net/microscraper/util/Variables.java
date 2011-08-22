@@ -17,38 +17,38 @@ public class Variables {
 	
 	private final Variables parent;
 	private final Database database;
-	private Hashtable hashtable; // = new Hashtable();
+	private final Hashtable hashtable;
 	
 	private final String sourceName;
 	private final boolean hasSource;
 	private final int sourceNumber;
 	
 	/**
-	 * Variables without a source.
+	 * Non-branched {@link Variables}.
 	 * @param database
 	 * @param hashtable
 	 */
 	private Variables(Database database, Hashtable hashtable) {
 		this.hashtable = hashtable;
 		this.database = database;
-		parent = null;
+		this.parent = null;
 		
 		this.hasSource = false;
 		this.sourceNumber = 0;
 		this.sourceName = null;
 	}
-
+	
 	/**
-	 * Variables with a source.
-	 * @param database
+	 * Branched from another {@link Variables}, but not sharing a table.
+	 * @param parent
 	 * @param hashtable
 	 * @param sourceNumber
 	 * @param sourceName
 	 */
-	private Variables(Database database, Hashtable hashtable, int sourceNumber, String sourceName) {
+	private Variables(Variables parent, Hashtable hashtable, int sourceNumber, String sourceName) {
 		this.hashtable = hashtable;
-		this.database = database;
-		parent = null;
+		this.database = parent.database;
+		this.parent = parent;
 		
 		this.hasSource = true;
 		this.sourceNumber = sourceNumber;
@@ -56,18 +56,23 @@ public class Variables {
 	}
 	
 	/**
-	 * Variables branched from another {@link Variables}.
+	 * Branched from another {@link Variables}, but sharing a table.
 	 * @param parent
 	 * @param sourceNumber
 	 * @param sourceName
 	 */
-	private Variables(Variables parent, int sourceNumber, String sourceName) {
+	private Variables(Variables parent, int sourceNumber, String sourceName, String sourceValue, boolean shouldContainKeyValue) {
 		this.parent = parent;
+		this.hashtable = parent.hashtable;
 		this.database = parent.database;
 		
 		this.hasSource = true;
 		this.sourceNumber = sourceNumber;
 		this.sourceName = sourceName;
+		
+		if(shouldContainKeyValue == true) {
+			hashtable.put(sourceName, sourceValue);
+		} 
 	}
 	
 	private int store(String name, String value, int resultNum, boolean shouldPersistValue)
@@ -84,39 +89,62 @@ public class Variables {
 	
 	/**
 	 * Create {@link Variables} branches.<p>
-	 * If the length of <code>values</code> is <code>1</code>, then the resulting (single) {@link Variables}
-	 * will share a backing table with <code>parent</code>.
-	 * If the length of <code>values</code> is greater than <code>1</code>, then the resulting array of 
+	 * The resulting array of 
 	 * {@link Variables} will read from <code>parent</code> if it can't find a key in itself, but will have its
-	 * own backing table.
+	 * own backing table.  There will be as many of them as the length of <code>values</code>.
 	 * @param parent The {@link Variables} to branch from.
 	 * @param key A new {@link String} key that will be included in each branch.
-	 * @param value An array of {@link String}s, where each element will be the value for
-	 * <code>key</code> in one of the resulting branches. Must be of non-zero length.
-	 * @param shouldPersist
+	 * @param values An array of {@link String}s, where each element will be the value for
+	 * <code>key</code> in one of the resulting branches. Must be of length greater than one.
+	 * Use {@link #singleBranch(Variables, String, String, boolean, boolean)} for single
+	 * result.
+	 * @param shouldContainKeyValue Whether the new {@link Variables} should contain <code>parent</code>
+	 * and <code>key</code> as an entry.
+	 * @param shouldPersistValue
 	 * @return An array of {@link Variables} branches.
 	 * @throws IOException
 	 */
-	public static Variables[] branch(Variables parent, String key, String[] values, boolean shouldPersistValue)
+	public static Variables[] multiBranch(Variables parent, String key, String[] values,
+				boolean shouldContainKeyValue,
+				boolean shouldPersistValue)
 			throws IOException {
 		if(values.length == 0) {
 			throw new IllegalArgumentException("Cannot branch without values.");
+		} else if(values.length == 1) {
+			throw new IllegalArgumentException("Should use singleBranch");
 		}
 		final Variables[] branches = new Variables[values.length];
-		if(values.length == 1) {
-			String value = values[0];
-			int sourceNumber = parent.store(key, value, 0, shouldPersistValue);
-			branches[0] = new Variables(parent.database, parent.hashtable, sourceNumber, key);
-		} else {
-			for(int i = 0 ; i < values.length ; i ++) {
-				String value = values[i];
-				int sourceNumber = parent.store(key, value, i, shouldPersistValue);
-				branches[i] = new Variables(parent.database, new Hashtable(), sourceNumber, key);
+		for(int i = 0 ; i < values.length ; i ++) {
+			String value = values[i];
+			int sourceNumber = parent.store(key, value, i, shouldPersistValue);
+			Hashtable branchHashtable = new Hashtable();
+			if(shouldContainKeyValue == true) {
+				branchHashtable.put(key, value);
 			}
+			branches[i] = new Variables(parent, branchHashtable, sourceNumber, key);
 		}
 		return branches;
 	}
 
+	/**
+	 * Create a {@link Variables} branch.<p>
+	 * It will share a backing table with <code>parent</code>.
+	 * @param parent The {@link Variables} to branch from.
+	 * @param key A new {@link String} key that will be included in the branch and its parent.
+	 * @param value An {@link String} value that will map to <code>key</code> in the branch and its parent.
+	 * @param shouldContainKeyValue Whether the new {@link Variables} should contain <code>parent</code>
+	 * and <code>key</code> as an entry.
+	 * @param shouldPersistValue
+	 * @return An {@link Variables} branch.
+	 * @throws IOException
+	 */
+	public static Variables singleBranch(Variables parent, String key, String value,
+				boolean shouldContainKeyValue,
+				boolean shouldPersistValue)
+			throws IOException {
+		int sourceNumber = parent.store(key, value, 0, shouldPersistValue);
+		return new Variables(parent, sourceNumber, key, value, shouldContainKeyValue);
+	}
 	/**
 	 * Initialize an empty {@link Variables} with a {@link Database}.
 	 */
@@ -126,25 +154,26 @@ public class Variables {
 	
 	/**
 	 * Initialize {@link Variables} values from a {@link Hashtable}.  Its keys and values must
-	 * all be {@link String}s.  <code>initialHashtable</code> is copied.
+	 * all be {@link String}s.  <code>initialHashtable</code> is copied, and will not be modified
+	 * as {@link Variables} changes.
 	 * @param database
 	 * @param initialHashtable Initial {@link Hashtable} whose mappings should stock {@link Variables}.
 	 * @throws IOException
 	 */
 	public static Variables fromHashtable(Database database, Hashtable initialHashtable) throws IOException {
 		Enumeration enum = initialHashtable.keys();
-		Variables variables = Variables.empty(database);
 		while(enum.hasMoreElements()) {
 			try {
 				String key = (String) enum.nextElement();
 				String value = (String) initialHashtable.get(key);
-				database.storeInitial(key, value, 0);
+				//database.storeInitial(key, value, 0);
 				//variables.put((String) key, value, true);
 			} catch(ClassCastException e) {
 				throw new IllegalArgumentException("Variables must be initialized with String-String hashtable.", e);
 			}
 		}
-		return variables;
+		
+		return new Variables(database, (Hashtable) initialHashtable.clone());
 	}
 
 	/**
@@ -183,26 +212,15 @@ public class Variables {
 	}
 	
 	/**
-	 * Add a {@link String} - {@link String} pair to this {@link Variables}.
-	 * @param key The {@link String} key.
-	 * @param value The {@link String} value.
-	 * @param shouldPersist Whether this value should be saved to the {@link Database}.
+	 * Return a {@link String} representation of this {@link Variables} backing {@link Hashtable}
+	 * and that of all its parents, if any.
 	 */
-	/*
-	public void put(String key, String value, boolean shouldPersist) {
-		hashtable.put(key, value);
-		if(shouldPersist == false) {
-			value = null;
+	public String toString() {
+		String result = "";
+		if(parent != null) {
+			result += parent.toString() + " >> ";
 		}
-		if(hasSource) {
-			database.store(sourceName, sourceId, name, value, resultNum)
-		} else {
-			
-		}
-		if(shouldPersist) {
-			database.storeInitial(key, value, 0);
-		} else {
-			database.store(sourceName, sourceId, key, null, 0);
-		}	}
-		*/
+		result += StringUtils.quote(hashtable.toString());
+		return result;
+	}
 }

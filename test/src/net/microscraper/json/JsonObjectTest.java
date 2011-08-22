@@ -37,8 +37,6 @@ public abstract class JsonObjectTest {
 			"[ \"string\", 1, true , null ]";
 	private static final String jsonStringComplexObject =
 			"{ \"object\" : " + jsonStringSimpleObject + ", \"array\" : " + jsonStringSimpleArray + " }";
-
-	
 	
 	
 	@Before
@@ -56,7 +54,7 @@ public abstract class JsonObjectTest {
 			fileLoader.load(location); result = jsonString;
 		}};
 		
-		return jsonParser.load(location);
+		return jsonParser.load(path);
 	}
 	
 	@Test

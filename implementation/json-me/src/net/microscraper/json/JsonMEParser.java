@@ -15,6 +15,7 @@ import net.microscraper.json.JsonIterator;
 import net.microscraper.json.JsonObject;
 import net.microscraper.uri.MalformedUriException;
 import net.microscraper.uri.Uri;
+import net.microscraper.uri.UriFactory;
 
 public class JsonMEParser implements JsonParser {
 	
@@ -22,13 +23,15 @@ public class JsonMEParser implements JsonParser {
 	 * How much indentation to use for {@link JSONObject#toString(int)}
 	 * and {@link JSONObject#toString(int)}.
 	 */
-	private static final int INDENT_FACTOR = 2;
+	private static final int INDENT_FACTOR = 1;
 	
 	/**
 	 * The default {@link Uri} to use when resolving references from
 	 * a {@link String} of parsed JSON.
 	 */
 	private final Uri defaultUri;
+	
+	private final UriFactory uriFactory;
 	
 	private class JSONMEObject implements JsonObject {
 		private final JSONObject object;
@@ -372,24 +375,28 @@ public class JsonMEParser implements JsonParser {
 			}
 		}
 	}
-
+	
 	/**
 	 * Initialize a {@link JsonMEParser}.
-	 * @param defaultUri The {@link Uri} to use when following references from 
+	 * @param uriFactory
+	 * @param defaultUri The {@link String} Uri to use when following references from 
 	 * {@link #parse}.
 	 */
-	public JsonMEParser(Uri defaultUri) {
-		this.defaultUri = defaultUri;
+	public JsonMEParser(UriFactory uriFactory, String defaultUri) throws MalformedUriException {
+		this.defaultUri = uriFactory.fromString(defaultUri);
+		this.uriFactory = uriFactory;
+		
 	}
-	
+
 	public JsonObject generate(Hashtable map)
 			throws JsonException {
 		return new JSONMEObject(defaultUri, map);
 	}
 	
-	public JsonObject load(Uri uri)
+	public JsonObject load(String uriString)
 			throws JsonException, IOException, MalformedUriException {
 		try {
+			Uri uri = uriFactory.fromString(uriString);
 			return new JSONMEObject(uri, new JSONObject(uri.load()));
 		} catch(org.json.me.JSONException e) {
 			throw new JsonException(e);

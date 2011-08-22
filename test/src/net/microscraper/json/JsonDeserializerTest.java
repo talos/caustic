@@ -6,9 +6,10 @@ import net.microscraper.client.Browser;
 import net.microscraper.client.DeserializationException;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.util.Encoder;
 import static net.microscraper.json.JsonDeserializer.*;
-import static net.microscraper.test.TestUtils.randomInt;
-import static net.microscraper.test.TestUtils.randomString;
+import static net.microscraper.util.TestUtils.randomInt;
+import static net.microscraper.util.TestUtils.randomString;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -21,6 +22,7 @@ public class JsonDeserializerTest {
 	private @Mocked JsonParser parser;
 	private @Mocked RegexpCompiler compiler;
 	private @Mocked Browser browser;
+	private @Mocked Encoder encoder;
 	
 	private JsonDeserializer deserializer;
 	
@@ -29,7 +31,7 @@ public class JsonDeserializerTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		deserializer = new JsonDeserializer(parser, compiler, browser);
+		deserializer = new JsonDeserializer(parser, compiler, browser, encoder);
 		new NonStrictExpectations() {{
 			parser.parse(loadJson); result = loadObj;
 			loadObj.has(LOAD); result = true;
@@ -45,17 +47,17 @@ public class JsonDeserializerTest {
 	
 	@Test
 	public void testDeserializeSimpleLoad() throws Exception {
-		deserializer.deserializeInstruction(loadJson);
+		deserializer.deserializeJson(loadJson);
 	}
 
 	@Test
 	public void testDeserializeSimpleFind() throws Exception {
-		deserializer.deserializeInstruction(findJson);
+		deserializer.deserializeJson(findJson);
 	}
 
 	@Test(expected=DeserializationException.class)
 	public void testEmptyObjThrowsException() throws Exception {
-		deserializer.deserializeInstruction("");
+		deserializer.deserializeJson("");
 	}
 	
 	@Test(expected=DeserializationException.class)
@@ -63,7 +65,7 @@ public class JsonDeserializerTest {
 		new NonStrictExpectations() {{
 			findObj.has(LOAD); result = true;
 		}};
-		deserializer.deserializeInstruction(findJson);
+		deserializer.deserializeJson(findJson);
 	}
 	
 	@Test(expected=DeserializationException.class)
@@ -72,7 +74,7 @@ public class JsonDeserializerTest {
 			findObj.has(MAX_MATCH); result = true;
 			findObj.has(MATCH); result = true;
 		}};
-		deserializer.deserializeInstruction(findJson);
+		deserializer.deserializeJson(findJson);
 	}
 
 	@Test(expected=DeserializationException.class)
@@ -81,7 +83,7 @@ public class JsonDeserializerTest {
 			findObj.has(MIN_MATCH); result = true;
 			findObj.has(MATCH); result = true;
 		}};
-		deserializer.deserializeInstruction(findJson);
+		deserializer.deserializeJson(findJson);
 	}
 	
 	@Test
@@ -111,7 +113,7 @@ public class JsonDeserializerTest {
 			findObj.getInt(MAX_MATCH); result = max;
 		}};
 		
-		deserializer.deserializeInstruction(findJson);
+		deserializer.deserializeJson(findJson);
 	}
 	
 
@@ -126,7 +128,7 @@ public class JsonDeserializerTest {
 			findObj.getInt(MAX_MATCH); result = max;
 		}};
 		
-		deserializer.deserializeInstruction(findJson);
+		deserializer.deserializeJson(findJson);
 	}
 	
 	@Test

@@ -7,7 +7,7 @@ import java.util.Hashtable;
 
 import au.com.bytecode.opencsv.CSVReader;
 
-import net.microscraper.browser.JavaNetBrowser;
+import net.microscraper.browser.JavaNetDecoder;
 import net.microscraper.client.BasicMicroscraper;
 import net.microscraper.client.Browser;
 import net.microscraper.client.DeserializationException;
@@ -26,12 +26,15 @@ public class ArgumentsMicroscraper {
 	private final Microscraper scraper;
 	private final Arguments args;
 	
+	private final Hashtable<String, String> defaults;
+	
 	/**
 	 * Initialize an {@link ArgumentsMicroscraper}.
 	 * @param arguments The array of {@link String} arguments from the command line to use.
 	 * @throws IOException 
 	 * @throws SQLConnectionException 
 	 */
+	@SuppressWarnings("unchecked")
 	public ArgumentsMicroscraper(Arguments args) throws SQLConnectionException, IOException {		
 		Database database = new ArgumentsDatabase(args);
 		
@@ -62,12 +65,12 @@ public class ArgumentsMicroscraper {
 		if(args.has(LOG_STDOUT)) {
 			scraper.register(new SystemOutLogger());
 		}
+
+		defaults = HashtableUtils.fromFormEncoded(new JavaNetDecoder(), args.get(DEFAULTS), Browser.UTF_8);
 	}
 	
-	public void scrape() throws IOException, InterruptedException, DeserializationException, MalformedUriException { 
-		Hashtable<String, String> defaults;
-		defaults = HashtableUtils.fromFormEncoded(new JavaNetBrowser(), args.get(DEFAULTS), Browser.UTF_8);
-		
+	@SuppressWarnings("unchecked")
+	public void scrape() throws IOException, InterruptedException, DeserializationException, MalformedUriException { 		
 		// Run (handle inputs)
 		if(args.has(INPUT)) {
 			char inputColumnDelimiter;

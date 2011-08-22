@@ -17,6 +17,7 @@ import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpUtils;
 import net.microscraper.uri.MalformedUriException;
+import net.microscraper.util.Encoder;
 import net.microscraper.util.StringUtils;
 
 public class JsonDeserializer implements Deserializer {
@@ -35,6 +36,11 @@ public class JsonDeserializer implements Deserializer {
 	 * The {@link Browser} to use when deserializing {@link Load}s.
 	 */
 	private final Browser browser;
+	
+	/**
+	 * The {@link Encoder} to use when deserializing {@link Load}s.
+	 */
+	private final Encoder encoder;
 	
 	private boolean isLoad(JsonObject jsonObject) {
 		if(jsonObject.has(LOAD) && !jsonObject.has(FIND)) {
@@ -102,10 +108,10 @@ public class JsonDeserializer implements Deserializer {
 		if(jsonObject.has(POSTS)) {
 			if(jsonObject.isJsonObject(POSTS)) {
 				postNameValuePairs = deserializeMustacheNameValuePairArray(jsonObject.getJsonObject(POSTS));
-				return Load.post(browser, url, postNameValuePairs, headers, cookies, preload, stops);
+				return Load.post(browser, encoder, url, postNameValuePairs, headers, cookies, preload, stops);
 			} else {
 				postData = MustacheTemplate.compile(jsonObject.getString(POSTS));
-				return Load.post(browser, url, postData, headers, cookies, preload, stops);
+				return Load.post(browser, encoder, url, postData, headers, cookies, preload, stops);
 			}
 		}
 		
@@ -113,12 +119,12 @@ public class JsonDeserializer implements Deserializer {
 			String method = jsonObject.getString(METHOD);
 			if(method.equalsIgnoreCase(Browser.POST)) {
 				postData = MustacheTemplate.compile("");
-				return Load.post(browser, url, postData, headers, cookies, preload, stops);
+				return Load.post(browser, encoder, url, postData, headers, cookies, preload, stops);
 			} else if(method.equalsIgnoreCase(Browser.HEAD)) {
-				return Load.get(browser, url, headers, cookies, preload, stops);
+				return Load.get(browser, encoder, url, headers, cookies, preload, stops);
 			}
 		}
-		return Load.get(browser, url, headers, cookies, preload, stops);
+		return Load.get(browser, encoder, url, headers, cookies, preload, stops);
 	}
 
 	/**
@@ -180,63 +186,69 @@ public class JsonDeserializer implements Deserializer {
 	 * @param defaultShouldSaveValue
 	 * @return
 	 * @throws JsonException If there was a problem parsing the JSON.
-	 * @throws MalformedUriException If a reference was not formatted properly.
 	 * @throws IOException if a reference could not be loaded.
 	 * @throws DeserializationException If there was a problem deserializing.
-	 * @throws MustacheCompilationException If a {@link MustacheTemplate} could not be compiled.
 	 */
 	private Instruction deserializeInstruction(JsonObject jsonObject)
-				throws MustacheCompilationException, DeserializationException, JsonException,
-				MalformedUriException, IOException {
-		final Action action;
-		final Instruction[] children;
-		final Instruction result;
-		
-		if(isFind(jsonObject)) {
-			action = deserializeFind(jsonObject);
-		} else if(isLoad(jsonObject)) {
-			action = deserializeLoad(jsonObject);
-		} else {
-			throw new DeserializationException("There is no load or find action in the instruction.");
-		}
-		
-		if(jsonObject.has(THEN)) {
-			// If the key refers directly to an object, it is considered
-			// an array of 1.
-			if(jsonObject.isJsonObject(THEN)) {
-				children = new Instruction[] {
-					deserializeInstruction(jsonObject.getJsonObject(THEN))
-				};
+				throws DeserializationException, IOException {
+		try {
+			final Action action;
+			final Instruction[] children;
+			final Instruction result;
+			
+			if(isFind(jsonObject)) {
+				action = deserializeFind(jsonObject);
+			} else if(isLoad(jsonObject)) {
+				action = deserializeLoad(jsonObject);
 			} else {
-				JsonArray array = jsonObject.getJsonArray(THEN);
-				children = new Instruction[array.length()];
-				for(int i = 0 ; i < array.length() ; i ++) {
-					children[i] = deserializeInstruction(array.getJsonObject(i));
+				throw new DeserializationException("There is no load or find action in the instruction.");
+			}
+			
+			if(jsonObject.has(THEN)) {
+				// If the key refers directly to an object, it is considered
+				// an array of 1.
+				if(jsonObject.isJsonObject(THEN)) {
+					children = new Instruction[] {
+						deserializeInstruction(jsonObject.getJsonObject(THEN))
+					};
+				} else {
+					JsonArray array = jsonObject.getJsonArray(THEN);
+					children = new Instruction[array.length()];
+					for(int i = 0 ; i < array.length() ; i ++) {
+						children[i] = deserializeInstruction(array.getJsonObject(i));
+					}
+				}
+			} else {
+				children = new Instruction[] {};
+			}
+			
+	
+			if(jsonObject.has(NAME)) {
+				MustacheTemplate name = MustacheTemplate.compile(jsonObject.getString(NAME));
+				if(jsonObject.has(SAVE)) {
+					boolean shouldPersistValue = jsonObject.getBoolean(SAVE);
+					result = new Instruction(action, children, shouldPersistValue, name);
+				} else {
+					result = new Instruction(action, children, name);
+					
+				}
+			} else {
+				if(jsonObject.has(SAVE)) {
+					boolean shouldPersistValue = jsonObject.getBoolean(SAVE);
+					result = new Instruction(action, children, shouldPersistValue);
+				} else {
+					result = new Instruction(action, children);
 				}
 			}
-		} else {
-			children = new Instruction[] {};
+			return result;
+		} catch (JsonException e) {
+			throw new DeserializationException(e);
+		} catch (MustacheCompilationException e) {
+			throw new DeserializationException(e);
+		} catch (MalformedUriException e) {
+			throw new DeserializationException(e);
 		}
-		
 
-		if(jsonObject.has(NAME)) {
-			MustacheTemplate name = MustacheTemplate.compile(jsonObject.getString(NAME));
-			if(jsonObject.has(SAVE)) {
-				boolean shouldPersistValue = jsonObject.getBoolean(SAVE);
-				result = new Instruction(action, children, shouldPersistValue, name);
-			} else {
-				result = new Instruction(action, children, name);
-				
-			}
-		} else {
-			if(jsonObject.has(SAVE)) {
-				boolean shouldPersistValue = jsonObject.getBoolean(SAVE);
-				result = new Instruction(action, children, shouldPersistValue);
-			} else {
-				result = new Instruction(action, children);
-			}
-		}
-		return result;
 	}
 
 	/**
@@ -378,22 +390,32 @@ public class JsonDeserializer implements Deserializer {
 	public static final String DOES_DOT_MATCH_ALL = "dot_matches_all";
 	public static final boolean DOES_DOT_MATCH_ALL_DEFAULT = true;
 
-	public JsonDeserializer(JsonParser parser, RegexpCompiler compiler, Browser browser) {
+	public JsonDeserializer(JsonParser parser, RegexpCompiler compiler, Browser browser, Encoder encoder) {
 		this.compiler = compiler;
 		this.parser = parser;
 		this.browser = browser;
+		this.encoder = encoder;
 	}
 	
-	public Instruction deserializeInstruction(String serializedString)
+	public Instruction deserializeJson(String serializedString)
 			throws DeserializationException, IOException {
 		try {
 			return deserializeInstruction(parser.parse(serializedString));
-		} catch (JsonException e) {
+		} catch(MalformedUriException e) {
 			throw new DeserializationException(e);
-		} catch (MustacheCompilationException e) {
+		} catch(JsonException e) {
+			throw new DeserializationException(e);			
+		}
+	}
+
+	public Instruction deserializeUri(String uriString)
+			throws DeserializationException, IOException {
+		try {
+			return deserializeInstruction(parser.load(uriString));
+		} catch(MalformedUriException e) {
 			throw new DeserializationException(e);
-		} catch (MalformedUriException e) {
-			throw new DeserializationException(e);
+		} catch(JsonException e) {
+			throw new DeserializationException(e);			
 		}
 	}
 }

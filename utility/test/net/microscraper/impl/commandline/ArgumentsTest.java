@@ -1,7 +1,7 @@
 package net.microscraper.impl.commandline;
 
 import static org.junit.Assert.*;
-import static net.microscraper.test.TestUtils.*;
+import static net.microscraper.util.TestUtils.*;
 
 import static net.microscraper.impl.commandline.Arguments.*;
 

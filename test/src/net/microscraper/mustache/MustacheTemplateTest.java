@@ -10,7 +10,7 @@ import mockit.NonStrictExpectations;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
-import static net.microscraper.test.TestUtils.*;
+import static net.microscraper.util.TestUtils.*;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -3,6 +3,7 @@ package net.microscraper.instruction;
 import java.io.IOException;
 
 import net.microscraper.util.Execution;
+import net.microscraper.util.StringUtils;
 import net.microscraper.util.Variables;
 
 /**
@@ -14,6 +15,8 @@ import net.microscraper.util.Variables;
  *
  */
 public class Executable {
+	
+	public static int SOURCE_TRUNCATE_LENGTH = 50;
 	
 	private Execution prevExecution;
 	private Execution execution;
@@ -48,7 +51,7 @@ public class Executable {
 	 * {@link #execute()} has been called.
 	 * @return The most recently obtained {@link Execution}.
 	 */
-	public Execution lastExecution() {
+	public Execution getLastExecution() {
 		if(execution == null) {
 			throw new IllegalStateException("Has not been executed.");
 		}
@@ -68,9 +71,19 @@ public class Executable {
 				String[] combinedMissingVariables
 						= Execution.combine(new Execution[] { execution, prevExecution }).getMissingVariables();
 				return combinedMissingVariables.length == execution.getMissingVariables().length &&
-						combinedMissingVariables.length == lastExecution().getMissingVariables().length;
+						combinedMissingVariables.length == getLastExecution().getMissingVariables().length;
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Provides information on the {@link #source}, {@link #instruction}, and {@link #variables}.
+	 */
+	public String toString() {
+		return "Executable with " +
+				(source != null ? " source " + StringUtils.truncate(StringUtils.quote(source), SOURCE_TRUNCATE_LENGTH) + " and " : "" )
+				+ "instructions " + StringUtils.quote(instruction.toString()) +
+				" and variables " + StringUtils.quote(variables.toString());
 	}
 }

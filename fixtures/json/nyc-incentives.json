@@ -5,22 +5,22 @@
 		"load" : "https://a836-propertyportal.nyc.gov/searchdetails.aspx",
 		"cookies" : {
 			"style"   : "default",
-			"borough" : "{{Borough Number}}",
+			"borough" : "{{Borough}}",
 			"block"   : "{{Block}}",
 			"lot"     : "{{Lot}}"
 		},
 		"then" : [
 		{
-			"name"    : "Borough Number",
-			"find" : ".",
-			"replace" : "{{Borough Number}}"
+			"name"    : "Borough",
+			"find" : "^",
+			"replace" : "{{Borough}}",
 		},{
 			"name"    : "Block",
-			"find" : ".",
+			"find" : "^",
 			"replace" : "{{Block}}"
 		},{
 			"name"    : "Lot",
-			"find" : ".",
+			"find" : "^",
 			"replace" : "{{Lot}}"
 		},{
 			"name"    : "Owner Name(s)",

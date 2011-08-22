@@ -1,6 +1,6 @@
 package net.microscraper.util;
 
-import static net.microscraper.test.TestUtils.*;
+import static net.microscraper.util.TestUtils.*;
 
 import java.util.Arrays;
 import java.util.List;

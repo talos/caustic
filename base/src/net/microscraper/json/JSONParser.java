@@ -34,14 +34,14 @@ public interface JsonParser {
 	
 	/**
 	 * Load a {@link JsonObject} from a {@link Uri}.
-	 * @param location The {@link Uri} URI to load.
+	 * @param uriString The {@link String} URI to load.
 	 * @return A {@link JsonObject}.
 	 * @throws JsonException If there is an error generating
 	 * the {@link JsonObject}.
 	 * @throws MalformedUriException if the {@link Uri} could not be resolved.
 	 * @throws IOException if a reference could not be loaded.
 	 */
-	public abstract JsonObject load(Uri location) 
+	public abstract JsonObject load(String uriString) 
 			throws JsonException, MalformedUriException, IOException;
 	
 	/**

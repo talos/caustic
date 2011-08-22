@@ -77,7 +77,7 @@ public class Find implements Action {
 		final Execution result;
 		Execution subPattern = pattern.sub(variables);
 		Execution subReplacement = replacement.sub(variables);
-		Execution subTests = Execution.arraySub(tests, variables);
+		Execution subTests = Execution.arraySubPattern(tests, variables);
 		
 		if(!subPattern.isSuccessful() || !subReplacement.isSuccessful() || !subTests.isSuccessful()) {
 			// One of the substitutions was not OK.
@@ -99,7 +99,7 @@ public class Find implements Action {
 				// Run the tests.
 				Vector failedExecutions = new Vector();
 				for(int i = 0 ; i < tests.length ; i ++) {
-					Pattern test = tests[i];
+					Pattern test = (Pattern) tests[i];
 					for(int j = 0 ; j < matches.length ; j ++) {
 						String tested = matches[j];
 						boolean passed = test.matches(tested, Pattern.FIRST_MATCH);

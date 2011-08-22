@@ -40,7 +40,7 @@ public abstract class JsonParserTest {
 		}};
 		
 		assertEquals("Not generating JSON Object with value.",
-				"value", jsonInterface.load(location1).getString("name"));
+				"value", jsonInterface.load(path1).getString("name"));
 	}
 	
 	@Test
@@ -51,6 +51,6 @@ public abstract class JsonParserTest {
 			fileLoader.load(location2); result = "{ \"name\" = \"value\" }";
 		}};
 		assertEquals("Not generating JSON Object with referenced value.",
-				"value", jsonInterface.load(location1).getString("name"));
+				"value", jsonInterface.load(path1).getString("name"));
 	}
 }

@@ -27,8 +27,9 @@ public class MustacheNameValuePair implements Substitutable {
 	public Execution sub(Variables variables) {
 		Execution sub = Execution.combine(new Execution[] { name.sub(variables), value.sub(variables) });
 		if(sub.isSuccessful()) {
-			String[] substituted = (String[]) sub.getExecuted();
-			return Execution.success((NameValuePair) new BasicNameValuePair(substituted[0], substituted[1]));
+			Object[] substituted = (Object[]) sub.getExecuted();
+			return Execution.success(
+					(NameValuePair) new BasicNameValuePair((String) substituted[0], (String) substituted[1]));
 		}
 		return sub;
 	}

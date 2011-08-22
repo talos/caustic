@@ -1,4 +1,4 @@
-package net.microscraper.test;
+package net.microscraper.util;
 
 import java.util.Random;
 

@@ -2,7 +2,7 @@ package net.microscraper.util;
 
 import static org.junit.Assert.*;
 
-import static net.microscraper.test.TestUtils.*;
+import static net.microscraper.util.TestUtils.*;
 import net.microscraper.util.StringUtils;
 
 import org.junit.Test;

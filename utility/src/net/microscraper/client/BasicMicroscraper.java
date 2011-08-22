@@ -3,10 +3,12 @@ package net.microscraper.client;
 import java.io.IOException;
 
 import net.microscraper.browser.JavaNetBrowser;
+import net.microscraper.browser.JavaNetEncoder;
 import net.microscraper.client.Microscraper;
 import net.microscraper.database.Database;
 import net.microscraper.file.FileLoader;
 import net.microscraper.file.JavaIOFileLoader;
+import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.json.JsonDeserializer;
 import net.microscraper.json.JsonMEParser;
 import net.microscraper.json.JsonParser;
@@ -15,6 +17,7 @@ import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.uri.JavaNetURIFactory;
 import net.microscraper.uri.MalformedUriException;
 import net.microscraper.uri.UriFactory;
+import net.microscraper.util.Encoder;
 
 /**
  * Basic implementation of {@link Microscraper} using
@@ -35,14 +38,19 @@ public class BasicMicroscraper {
 	public static Microscraper get(Database database, int rateLimit, int timeout) throws IOException {
 		try {
 			Browser browser = new JavaNetBrowser();
+			
+			//browser.register(new SystemOutLogger());
+			
 			browser.setRateLimit(rateLimit);
 			browser.setTimeout(timeout);
 			FileLoader fileLoader = new JavaIOFileLoader();
 			RegexpCompiler compiler = new JavaUtilRegexpCompiler();
 			UriFactory uriFactory = new JavaNetURIFactory(browser, fileLoader);
-			JsonParser parser = new JsonMEParser(uriFactory.fromString(System.getProperty("user.dir")));
-			Deserializer deserializer = new JsonDeserializer(parser, compiler, browser);
-			return new Microscraper(deserializer, database, uriFactory);
+			JsonParser parser = new JsonMEParser(uriFactory, System.getProperty("user.dir"));
+			Encoder encoder = new JavaNetEncoder();
+			Deserializer deserializer = new JsonDeserializer(parser, compiler, browser, encoder);
+			Microscraper scraper = new Microscraper(deserializer, database);
+			return scraper;
 		} catch(MalformedUriException e) {
 			throw new IOException(e);
 		}

@@ -9,7 +9,6 @@ import mockit.Verifications;
 import net.microscraper.database.IOConnection;
 import net.microscraper.database.IOTable;
 import net.microscraper.database.MultiTableDatabase;
-import net.microscraper.instruction.Result;
 import net.microscraper.util.NameValuePair;
 
 import org.junit.Before;

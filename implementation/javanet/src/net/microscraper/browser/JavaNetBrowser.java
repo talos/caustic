@@ -4,14 +4,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -23,6 +20,7 @@ import net.microscraper.client.Logger;
 import net.microscraper.impl.log.BasicLog;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.util.BasicNameValuePair;
+import net.microscraper.util.Encoder;
 import net.microscraper.util.NameValuePair;
 import net.microscraper.util.StringUtils;
 
@@ -41,6 +39,7 @@ public class JavaNetBrowser implements Browser, Loggable {
 	private int timeout = Browser.DEFAULT_TIMEOUT;
 	private int maxResponseSize = Browser.DEFAULT_MAX_RESPONSE_SIZE;
 	private final BasicLog log = new BasicLog();
+	private final Encoder encoder = new JavaNetEncoder();
 	
 	public void head(String url, NameValuePair[] headers, NameValuePair[] cookies)
 			throws IOException, InterruptedException {
@@ -64,7 +63,7 @@ public class JavaNetBrowser implements Browser, Loggable {
 		String postData = "";
 		if(posts != null) {
 			for(int i = 0 ; i < posts.length ; i ++) {
-				postData += encode(posts[i].getName(), encoding) + '=' + encode(posts[i].getValue(), encoding) + '&';
+				postData += encoder.encode(posts[i].getName(), encoding) + '=' + encoder.encode(posts[i].getValue(), encoding) + '&';
 			}
 			postData = postData.substring(0, postData.length() -1); // trim trailing ampersand
 		}
@@ -140,7 +139,8 @@ public class JavaNetBrowser implements Browser, Loggable {
 		return responseBody;
 	}
 	
-	private static void addHeaderToConnection(HttpURLConnection conn, NameValuePair header) {
+	private void addHeaderToConnection(HttpURLConnection conn, NameValuePair header) {
+		log.i("Adding header: " + header);
 		conn.setRequestProperty(header.getName(), header.getValue());
 	}
 	
@@ -216,7 +216,7 @@ public class JavaNetBrowser implements Browser, Loggable {
 			writer = new OutputStreamWriter(conn.getOutputStream());
 			
 			postData = postData == null ? "" : postData;
-			log.i("Using posts: " + postData);
+			log.i("Using posts: " + StringUtils.quote(postData));
 			writer.write(postData);
 			writer.flush();
 			
@@ -321,7 +321,6 @@ public class JavaNetBrowser implements Browser, Loggable {
 	 * @param conn
 	 */
 	private void updateCookieRequestHeader(HttpURLConnection conn) {
-		//String cookie_string = "";
 		String[] cookieAry = new String[cookieStore.size()];
 		Enumeration e = cookieStore.keys();
 		int i = 0;
@@ -370,16 +369,6 @@ public class JavaNetBrowser implements Browser, Loggable {
 				return 0;
 			}
 		}
-	}
-	
-	public String encode(String stringToEncode, String encoding)
-			throws UnsupportedEncodingException {
-		return URLEncoder.encode(stringToEncode, encoding);
-	}
-	
-	public String decode(String stringToDecode, String encoding) 
-			throws UnsupportedEncodingException {
-		return URLDecoder.decode(stringToDecode, encoding);
 	}
 	
 	public void setRateLimit(int rateLimitKBPS) {

@@ -27,7 +27,8 @@ public class HashtableUtils {
 				result.put(decoder.decode(pair[0], encoding),
 						decoder.decode(pair[1], encoding));
 			} else {
-				throw new IllegalArgumentException(StringUtils.quote(splitByAmpersands[i]) + " is not a valid name-value pair.");
+				throw new IllegalArgumentException(
+						StringUtils.quote(splitByAmpersands[i]) + " is not a valid name-value pair.");
 			}
 		}
 		return result;

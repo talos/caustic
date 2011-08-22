@@ -1,8 +1,11 @@
 package net.microscraper.util;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Vector;
 
+import net.microscraper.mustache.MustacheNameValuePair;
+import net.microscraper.mustache.MustachePattern;
 import net.microscraper.regexp.Pattern;
 
 /**
@@ -164,7 +167,8 @@ public class Execution {
 	 * status if at least one has failed.<p>
 	 * All unique missing variable names are combined.<p>
 	 * If all <code>executions</code> were successful, the result {@link Execution}'s
-	 * executed value is an array of the executed objects.
+	 * executed value is an {@link Object} array of the executed objects.
+	 * Each must be cast individually.
 	 * @param executions An array of {@link Execution}s.
 	 * @return A single {@link Execution}.
 	 */
@@ -212,8 +216,9 @@ public class Execution {
 	/**
 	 * Convenience method to generate a single {@link Execution} from a whole
 	 * array of {@link Substitutables}. The {@link #getExecuted()} of the
-	 * returned {@link Execution} will be an array of the substituted <code>
-	 * substitutables</code>, if it is successful.
+	 * returned {@link Execution} will be an {@link Object} array of the substituted <code>
+	 * substitutables</code>, if it is successful.  Each element must
+	 * be cast separately.
 	 * @param substitutables The array of {@link Substitutable}s to {@link 
 	 * Substitutable#sub(Variables)} en masse.
 	 * @param variables The {@link Variables} to use.
@@ -226,5 +231,70 @@ public class Execution {
 			substitutions[i] = substitutables[i].sub(variables);
 		}
 		return combine(substitutions);
+	}
+	
+
+	/**
+	 * Convenience method to generate a single {@link Execution} from a whole
+	 * array of {@link MustachePattern}s. The {@link #getExecuted()} of the
+	 * returned {@link Execution} will be an array of the substituted {@link
+	 * Pattern}s if it is successful.
+	 * @param substitutables The array of {@link MustacheNameValuePair}s to {@link 
+	 * MustacheNameValuePair#sub(Variables)} en masse.
+	 * @param variables The {@link Variables} to use.
+	 * @return A single {@link Execution}, with either all the <code>substitutables</code>
+	 * substituted or a combined array of the missing variables.
+	 */
+	public static Execution arraySubNameValuePair(MustacheNameValuePair[] substitutables, Variables variables) {
+		Execution[] substitutions = new Execution[substitutables.length];
+		for(int i = 0 ; i < substitutables.length ; i ++) {
+			substitutions[i] = substitutables[i].sub(variables);
+		}
+		//return combine(substitutions);
+		Execution result;
+		Execution rawCombined = combine(substitutions);
+		if(rawCombined.isSuccessful()) {
+			Object[] objArray = (Object[]) rawCombined.getExecuted();
+			NameValuePair[] nameValuePairArray = new NameValuePair[objArray.length];
+			for(int i = 0 ; i < objArray.length ; i ++) {
+				nameValuePairArray[i] = (NameValuePair) objArray[i];
+			}
+			result = Execution.success(nameValuePairArray);
+		} else {
+			result = rawCombined;
+		}
+		return result;
+	}
+	
+	/**
+	 * Convenience method to generate a single {@link Execution} from a whole
+	 * array of {@link MustacheNameValuePair}s. The {@link #getExecuted()} of the
+	 * returned {@link Execution} will be an array of the substituted {@link
+	 * NameValuePair}s if it is successful.
+	 * @param substitutables The array of {@link MustachePattern}s to {@link 
+	 * MustachePattern#sub(Variables)} en masse.
+	 * @param variables The {@link Variables} to use.
+	 * @return A single {@link Execution}, with either all the <code>substitutables</code>
+	 * substituted or a combined array of the missing variables.
+	 */
+	public static Execution arraySubPattern(MustachePattern[] patterns, Variables variables) {
+		Execution[] substitutions = new Execution[patterns.length];
+		for(int i = 0 ; i < patterns.length ; i ++) {
+			substitutions[i] = patterns[i].sub(variables);
+		}
+		//return combine(substitutions);
+		Execution result;
+		Execution rawCombined = combine(substitutions);
+		if(rawCombined.isSuccessful()) {
+			Object[] objArray = (Object[]) rawCombined.getExecuted();
+			Pattern[] patternAry = new Pattern[objArray.length];
+			for(int i = 0 ; i < objArray.length ; i ++) {
+				patternAry[i] = (Pattern) objArray[i];
+			}
+			result = Execution.success(patternAry);
+		} else {
+			result = rawCombined;
+		}
+		return result;
 	}
 }

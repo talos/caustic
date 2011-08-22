@@ -35,8 +35,12 @@ public class BasicNameValuePair implements NameValuePair {
 	public static String preview(NameValuePair[] nameValuePairs) {
 		String[] joined = new String[nameValuePairs.length];
 		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
-			joined[i] = nameValuePairs[i].getName() + ": " + nameValuePairs[i].getValue();
+			joined[i] = nameValuePairs.toString();
 		}
 		return StringUtils.join(joined, ", ");
+	}
+	
+	public String toString() {
+		return StringUtils.quote(getName()) + ": " + StringUtils.quote(getValue());
 	}
 }

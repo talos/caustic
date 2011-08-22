@@ -6,7 +6,7 @@
 		"JUMPPAGE" : "YES"
 	},
 	"posts" : {
-		"hid_borough" : "{{Borough}}",replace
+		"hid_borough" : "{{Borough}}",
 		"hid_borough_name" : "",
 		"hid_block" : "{{Block}}",
 		"hid_lot"   : "0000",

@@ -1,7 +1,7 @@
 package net.microscraper.instruction;
 
 import static net.microscraper.instruction.Find.*;
-import static net.microscraper.test.TestUtils.*;
+import static net.microscraper.util.TestUtils.*;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;

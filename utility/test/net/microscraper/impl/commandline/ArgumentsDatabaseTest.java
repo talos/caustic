@@ -1,7 +1,7 @@
 package net.microscraper.impl.commandline;
 
 import static net.microscraper.impl.commandline.Arguments.*;
-import static net.microscraper.test.TestUtils.randomString;
+import static net.microscraper.util.TestUtils.randomString;
 import static org.junit.Assert.*;
 
 import mockit.Expectations;

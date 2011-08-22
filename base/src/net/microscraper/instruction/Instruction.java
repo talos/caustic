@@ -14,6 +14,11 @@ import net.microscraper.util.Variables;
 public class Instruction {
 	
 	/**
+	 * Whether this {@link Instruction} has a particular name.
+	 */
+	private final boolean hasName;
+	
+	/**
 	 * The {@link MustacheTemplate} name for this {@link Instruction}.
 	 */
 	private final MustacheTemplate name;
@@ -51,6 +56,7 @@ public class Instruction {
 		this.shouldPersistValue = action.getDefaultShouldPersistValue();
 		this.action = action;
 		this.children = children;
+		this.hasName = false;
 		this.name = action.getDefaultName();
 	}
 	
@@ -69,6 +75,7 @@ public class Instruction {
 		this.shouldPersistValue = action.getDefaultShouldPersistValue();
 		this.action = action;
 		this.children = children;
+		this.hasName = true;
 		this.name = name;
 	}
 	
@@ -87,6 +94,7 @@ public class Instruction {
 		this.action = action;
 		this.children = children;
 		this.name = action.getDefaultName();
+		this.hasName = false;
 	}
 	
 	/**
@@ -106,6 +114,7 @@ public class Instruction {
 		this.shouldPersistValue = shouldPersistValue;
 		this.name = name;
 		this.action = action;
+		this.hasName = true;
 		this.children = children;
 	}
 	
@@ -151,13 +160,20 @@ public class Instruction {
 				Executable[] childExecutables = new Executable[resultValues.length * children.length];
 				
 				// Generate new Variables instances for the kids.
-				Variables[] branches = Variables.branch(variables, name, resultValues, shouldPersistValue);
+				Variables[] branches;
+				
+				if(resultValues.length == 1) {
+					branches = new Variables[] { Variables.singleBranch(variables, name, resultValues[0], hasName, shouldPersistValue) };	
+				} else {
+					branches = Variables.multiBranch(variables, name, resultValues, hasName, shouldPersistValue);						
+				}
+								
 				for(int i = 0 ; i < resultValues.length ; i ++) {
 					Variables branch = branches[i];
 					String childSource = resultValues[i];
 					for(int j = 0 ; j < children.length ; j++) {
 						Instruction child = children[j];
-						childExecutables[i * resultValues.length + j]
+						childExecutables[(i * children.length) + j]
 								= new Executable(childSource, branch, child);
 					}
 				}

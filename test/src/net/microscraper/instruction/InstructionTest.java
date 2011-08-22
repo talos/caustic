@@ -10,7 +10,7 @@ import mockit.NonStrictExpectations;
 import mockit.Tested;
 import net.microscraper.database.Database;
 import net.microscraper.mustache.MustacheTemplate;
-import static net.microscraper.test.TestUtils.*;
+import static net.microscraper.util.TestUtils.*;
 import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 

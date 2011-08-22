@@ -6,14 +6,14 @@ cooperative scrapers for mobile apps
 
 The easiest way to try out microscraper is the precompiled utility. Run
 
-    $ utility/microscraper --json='{"url":"http://www.google.com","find":{"pattern":"[\\w]*\\sLucky"}}'
+    $ utility/microscraper --json='{"load":"http://www.google.com","then":{"find":"[\\w]*\\sLucky"}}'
 
 in the terminal of your choice.  This executes the JSON instruction
 
     {
-      "url"  : "http://www.google.com",
-      "find" : {
-        "pattern" : "[\\w]*\\sLucky"
+      "load"  : "http://www.google.com",
+      "then" : {
+        "find" : "[\\w]*\\sLucky"
       }
     }
 
@@ -41,11 +41,11 @@ Substitutions are done for text inside double-curlies *{{}}*, kind of like [must
 Here's a simple instruction, which is one of the [fixtures](microscraper-client/blob/master/fixtures/json/simple-google.json):
 
     {
-     "url" : "http://www.google.com/search?q={{query}}",
-     "find"  : {
-       "name"   : "what do you say after '{{query}}'?",
-       "pattern"     : "{{query}}\\s+(\\w+)",
-       "replacement" : "I say '$1'!"
+     "load" : "http://www.google.com/search?q={{query}}",
+     "then"  : {
+       "find"    : "{{query}}\\s+(\\w+)",
+       "replace" : "I say '$1'!",
+       "name"    : "what do you say after '{{query}}'?"
      }
     }
 
@@ -82,17 +82,17 @@ curlies will be substituted once a *value* has been found for it.
 This [fixture](microscraper-client/blob/master/fixtures/json/complex-google.json)
 
     {
-      "url" : "http://www.google.com/search?q={{query}}",
-      "find"  : {
-        "name"        : "after",
-        "pattern"     : "{{query}}\\s+(\\w+)",
-        "replacement" : "$1",
-        "load" : {
-          "url" : "http://www.google.com/search?q={{after}}",
-          "find" : {
-            "name"   : "what do you say after '{{after}}'?",
-            "pattern"     : "{{query}}\\s+(\\w+)",
-            "replacement" : "I say '$1'!"
+      "load" : "http://www.google.com/search?q={{query}}",
+      "then"  : {
+        "find"    : "{{query}}\\s+(\\w+)",
+        "replace" : "$1",
+        "name"    : "after",
+        "then" : {
+          "load" : "http://www.google.com/search?q={{after}}",
+          "then" : {
+            "find"    : "{{query}}\\s+(\\w+)",
+            "replace" : "I say '$1'!",
+            "name"    : "what do you say after '{{after}}'?"
           }
         }
       }
@@ -137,12 +137,12 @@ before it.  Wouldn't it be nice if we could reuse instruction components?
 This [fixture](microscraper-client/blob/master/fixtures/json/reference-google.json) does just that
 
     {
-      "url" : "http://www.google.com/search?q={{query}}",
-      "find"  : {
-        "name"   : "after",
-        "pattern"     : "{{query}}\\s+(\\w+)",
-        "replacement" : "$1",
-        "load" : { "$ref" : "simple-google.json" }
+      "load" : "http://www.google.com/search?q={{query}}",
+      "then"  : {
+        "find"    : "{{query}}\\s+(\\w+)",
+        "replace" : "$1",
+        "name"    : "after",
+        "then"    : { "$ref" : "simple-google.json" }
       }
     }
 

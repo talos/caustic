@@ -19,20 +19,18 @@ import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.uri.UriFactory;
 import net.microscraper.uri.Uri;
 import net.microscraper.util.NameValuePair;
-import static net.microscraper.test.TestUtils.*;
+import static net.microscraper.util.TestUtils.*;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class MicroscraperTest {
 	
-	@Mocked private RegexpCompiler compiler;
-	@Mocked private Browser browser;
 	@Mocked private UriFactory uriFactory;
-	@Mocked private JsonParser jsonParser;
+	@Mocked private Deserializer deserializer;
 	@Mocked private Database database;
 	
-	Microscraper microscraper;
+	private Microscraper microscraper;
 	
 	private static final String defaultName = "query";
 	private static final String defaultValue = "hello";
@@ -50,23 +48,26 @@ public class MicroscraperTest {
 	
 	private static final String contentString = randomString();
 	//private static final String contentWithDefaultsString = randomString();
-	
+	/*
 	private static final String jsonString =
-			"{\"" + Load.URL + "\":\"" + urlString + "\",\"" + Instruction.FIND + "\":{\"" + MustachePattern.PATTERN + "\":\"" + patternString + "\"} }";
+			"{\"" + Load.LOAD + "\":\"" + urlString + "\",\"" + Instruction.THEN + "\":{\"" + MustachePattern.PATTERN + "\":\"" + patternString + "\"} }";
 	private static final String jsonWithDefaultsString =
 			"{\"" + Load.URL + "\":\"" + urlWithDefaultsStringRaw + "\",\""+ Instruction.FIND +"\":{\""+MustachePattern.PATTERN+"\":\"" + patternWithDefaultsStringRaw + "\"} }";
 	private static final Hashtable defaultsHash = new Hashtable();
 	private static final Hashtable[] defaultsHashArray = new Hashtable[] {
 		defaultsHash,
 		defaultsHash
-	};
+	};*/
+	
+	private String jsonString = randomString();
 	
 	@Before
 	public void setUp() throws Exception {
-		microscraper = new Microscraper(compiler, browser, uriFactory, jsonParser, database);
-		defaultsHash.put(defaultName, defaultValue);
+		//microscraper = new Microscraper(compiler, browser, uriFactory, jsonParser, database);
+		//defaultsHash.put(defaultName, defaultValue);
+		microscraper = new Microscraper(deserializer, database, uriFactory);
 	}
-	
+	/*
 	private void expectJson() throws Exception {
 		new Expectations() {
 			JsonObject page, find;
@@ -104,7 +105,7 @@ public class MicroscraperTest {
 			}
 		};
 	}
-	
+	*/
 	@Test
 	public void testMicroscraper() {
 		 /* This will fail if setUp() fails. */
@@ -113,6 +114,7 @@ public class MicroscraperTest {
 	@Test
 	public void testScrapeFromJsonString() throws DeserializationException, IOException, DatabaseException {
 		microscraper.scrapeFromJson(jsonString);
+		microscraper.sc
 	}
 	
 	@Test

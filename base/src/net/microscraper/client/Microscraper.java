@@ -10,8 +10,6 @@ import net.microscraper.instruction.InstructionRunner;
 import net.microscraper.instruction.Load;
 import net.microscraper.mustache.MustacheTemplate;
 import net.microscraper.uri.MalformedUriException;
-import net.microscraper.uri.UriFactory;
-import net.microscraper.uri.Uri;
 
 /**
  * A {@link Microscraper} can scrape an {@link Instruction}.
@@ -28,17 +26,14 @@ public class Microscraper implements Loggable {
 	private final BasicLog log = new BasicLog();
 	private final Deserializer deserializer;
 	private final Database database;
-	private final UriFactory uriFactory;
 	
 	/**
 	 * @param deserializer A {@link Deserializer} to use to instantiate {@link Instruction}s.
-	 * @param uriFactory A {@link UriFactory} to create {@link Uri}s with.
 	 * @param database the {@link Database} to use for storage.
 	 */
-	public Microscraper(Deserializer deserializer, Database database, UriFactory uriFactory) {
+	public Microscraper(Deserializer deserializer, Database database) {
 		this.deserializer = deserializer;
 		this.database = database;
-		this.uriFactory = uriFactory;
 	}
 	
 	private void scrape(Instruction instruction, Hashtable[] defaultsHashes, String source)
@@ -48,11 +43,18 @@ public class Microscraper implements Loggable {
 			runner.register(log);
 			runner.run();
 		}
+		database.clean();
+		database.close();
 	}
 
 	private void scrapeFromJSON(String instructionJson, Hashtable[] defaultsHashes, String source)
 			throws DeserializationException, IOException {
-		scrape(deserializer.deserializeInstruction(instructionJson), defaultsHashes, source);
+		scrape(deserializer.deserializeJson(instructionJson), defaultsHashes, source);
+	}
+	
+	private void scrapeFromUri(String uri, Hashtable[] defaultsHashes, String source)
+			throws DeserializationException, IOException {
+		scrape(deserializer.deserializeUri(uri), defaultsHashes, source);
 	}
 	
 	/**
@@ -93,8 +95,7 @@ public class Microscraper implements Loggable {
 	public void scrapeFromUri(String uri)
 			throws DeserializationException, IOException, InterruptedException,
 			MalformedUriException  {
-		String json = uriFactory.fromString(uri).load();
-		scrapeFromJSON(json, new Hashtable[] { new Hashtable() }, null);
+		scrapeFromUri(uri, new Hashtable[] { new Hashtable() }, null);
 	}
 	/**
 	 * Scrape from a {@link Load} in a JSON String.
@@ -104,8 +105,7 @@ public class Microscraper implements Loggable {
 	public void scrapeFromUri(String uri, Hashtable defaults)
 			throws DeserializationException, IOException, InterruptedException, 
 			MalformedUriException  {
-		String json = uriFactory.fromString(uri).load();
-		scrapeFromJSON(json, new Hashtable[] { defaults } , null);
+		scrapeFromUri(uri, new Hashtable[] { defaults } , null);
 	}
 
 	/**
@@ -117,8 +117,7 @@ public class Microscraper implements Loggable {
 	public void scrapeFromUri(String uri, Hashtable[] defaultsArray)
 			throws DeserializationException, IOException, InterruptedException,
 					MalformedUriException {
-		String json = uriFactory.fromString(uri).load();
-		scrapeFromJSON(json, defaultsArray, null);
+		scrapeFromUri(uri, defaultsArray, null);
 	}
 
 	/**

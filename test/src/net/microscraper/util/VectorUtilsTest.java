@@ -1,7 +1,7 @@
 package net.microscraper.util;
 
-import static net.microscraper.test.TestUtils.randomInt;
-import static net.microscraper.test.TestUtils.randomString;
+import static net.microscraper.util.TestUtils.randomInt;
+import static net.microscraper.util.TestUtils.randomString;
 import static org.junit.Assert.*;
 
 import java.util.Vector;

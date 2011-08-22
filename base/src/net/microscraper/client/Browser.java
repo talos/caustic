@@ -3,14 +3,12 @@ package net.microscraper.client;
 import java.io.IOException;
 
 import net.microscraper.regexp.Pattern;
-import net.microscraper.util.Decoder;
-import net.microscraper.util.Encoder;
 import net.microscraper.util.NameValuePair;
 
 /**
  * Implementations of the {@link Browser} interface can be used by to make HTTP requests and handle the responses.
  */
-public interface Browser extends Loggable, Decoder, Encoder {
+public interface Browser extends Loggable {
 	/**
 	 * The default number of seconds to wait before timing out on a
 	 * request for {@link Browser} interfaces.
@@ -53,15 +51,13 @@ public interface Browser extends Loggable, Decoder, Encoder {
 	public static final String ACCEPT_LANGUAGE_HEADER_DEFAULT_VALUE = "en-US,en;q=0.8";
 	
 	public static final String ACCEPT_HEADER_NAME = "Accept";
-	public static final String ACCEPT_HEADER_DEFAULT_VALUE = "application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-	public static final String ACCEPT_HEADER_JSON_VALUE = "application/json,text/json";
+	public static final String ACCEPT_HEADER_DEFAULT_VALUE = "*/*";
+	//public static final String ACCEPT_HEADER_JSON_VALUE = "application/json,text/json";
 	
 	public static final String UTF_8 = "UTF-8";
 
 	public static final String GET = "get";
-
 	public static final String POST = "post";
-
 	public static final String HEAD = "head";
 	
 	/**

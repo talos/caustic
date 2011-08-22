@@ -50,14 +50,14 @@ public class Console {
 	private static void scrape(ArgumentsMicroscraper scraper) {
 		try {
 			scraper.scrape();
-		} catch(IOException e) {
-			print("Error reading input file or writing to output file (log or output): " + e.getMessage());
-		} catch (InterruptedException e) {
-			print("User interrupt");
-		} catch (DeserializationException e) {
-			print("Could not deserialize Instruction");
 		} catch (MalformedUriException e) {
-			print("Bad reference in Instruction");
+			print("Bad reference in Instruction: " + e.getMessage());
+		} catch(IOException e) {
+			print("IO problem: " + e.getMessage());
+		} catch (InterruptedException e) {
+			print("User interrupt.");
+		} catch (DeserializationException e) {
+			print("Could not deserialize Instruction: " + e.getMessage());
 		}
 	}
 

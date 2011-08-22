@@ -47,7 +47,7 @@ public class StringUtils {
 		if(string.length() < length) {
 			return string;
 		} else {
-			return string.substring(0, length);
+			return quote(string.substring(0, length) + "...");
 		}
 	}
 
