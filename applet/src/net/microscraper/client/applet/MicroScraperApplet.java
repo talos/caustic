@@ -5,11 +5,11 @@ import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import net.microscraper.browser.JavaNetDecoder;
 import net.microscraper.client.BasicMicroscraper;
-import net.microscraper.client.Logger;
+import net.microscraper.client.Browser;
 import net.microscraper.client.Microscraper;
-import net.microscraper.json.JsonParser;
-import net.microscraper.json.JsonMEParser;
+import net.microscraper.util.HashtableUtils;
 
 /**
  * Provides interface between browser and scraper applet through public methods.
@@ -19,17 +19,11 @@ import net.microscraper.json.JsonMEParser;
 public class MicroScraperApplet extends Applet {
 	private static final long serialVersionUID = 2768937336583253219L;
 	
-	private static final JsonParser json = new JsonMEParser();
-	
-	public static final String encoding = "UTF-8";
-	
-	//private ThreadSafeJSONPublisher database;
-	private ThreadSafeJSONLogger logger = new ThreadSafeJSONLogger(json);
+	private ThreadSafeDatabase database;
+	private ThreadSafeLogger logger;
 	private Thread current_thread;
-	//private Iterator<Stringer> publisherIterator;
-	//private Iterator<Stringer> logIterator;
 	
-	// thx http://stackoverflow.com/questions/1272648/need-to-read-own-jars-manifest-and-not-root-classloaders-manifest
+	// thanks http://stackoverflow.com/questions/1272648/need-to-read-own-jars-manifest-and-not-root-classloaders-manifest
 	public String manifest(String key) {
 		try {
 			String className = MicroScraperApplet.class.getSimpleName() + ".class";
@@ -56,11 +50,20 @@ public class MicroScraperApplet extends Applet {
 		try {
 			if(!isAlive()) {
 				// Reset the log and publisher with each execution.
-				database = new ThreadSafeJSONDatabase(json);
-				logger = new ThreadSafeJSONLogger(json);
-				//logIterator = logger.getIterator();
-				//publisherIterator = publisher.getIterator();
-				Thread thread = new Thread(new ScrapeRunnable());
+				
+				
+				database = new ThreadSafeDatabase();
+				logger = new ThreadSafeLogger();
+				Microscraper scraper = BasicMicroscraper.get(database, 100, 100);
+				scraper.register(logger);
+								
+				Thread thread = new Thread(
+						new ScrapeRunnable(
+								scraper,
+								instructionURI,
+								HashtableUtils.fromFormEncoded(new JavaNetDecoder(), formEncodedDefaults, Browser.UTF_8)
+							)
+					);
 				thread.start();
 				current_thread = thread;
 			} else {
@@ -74,7 +77,6 @@ public class MicroScraperApplet extends Applet {
 	public void stop() {
 		try {
 			current_thread.interrupt();
-			Microscraper.reset();
 			logger.i("Killed test.");
 		} catch(Throwable e) {
 			e.printStackTrace();

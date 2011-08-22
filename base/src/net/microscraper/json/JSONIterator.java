@@ -13,7 +13,7 @@ public interface JsonIterator {
 	 * @return <code>true</code> if there is another key, <code>false</code> otherwise.
 	 */
 	public abstract boolean hasNext();
-	
+    
 	/**
 	 * 
 	 * @return The next {@link String} key.
