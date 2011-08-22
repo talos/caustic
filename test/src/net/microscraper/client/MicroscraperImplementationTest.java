@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Hashtable;
 
 import mockit.Expectations;
 import mockit.Mocked;
@@ -40,7 +41,7 @@ public abstract class MicroscraperImplementationTest {
 	 */
 	private Microscraper scraper;
 	
-	protected abstract Microscraper getScraperToTest(Database database);
+	protected abstract Microscraper getScraperToTest(Database database) throws Exception;
 	
 	/**
 	 * Set up the {@link #client} before each test.
@@ -74,9 +75,15 @@ public abstract class MicroscraperImplementationTest {
 			// etc.
 			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), anyInt);
 					minTimes = 1;
+			
+			database.clean();
+			database.close();
 		}};
 		
-		scraper.scrapeWithURI(simpleGoogle, "query=hello");
+		Hashtable<String, String> defaults = new Hashtable<String, String>();
+		defaults.put("query", "hello");
+		
+		scraper.scrapeFromUri(simpleGoogle, defaults);
 	}
 	
 	@Test
@@ -99,9 +106,15 @@ public abstract class MicroscraperImplementationTest {
 			database.store(withPrefix("http://www.google.com/search?q="), 4, withPrefix("what do you say after"), withPrefix("I say"), anyInt); minTimes = 1;
 			
 			database.store(withPrefix("http://www.google.com/search?q="), anyInt, withPrefix("what do you say after"), withPrefix("I say"), anyInt); minTimes = 1;
+		
+			database.clean();
+			database.close();
 		}};
 		
-		scraper.scrapeWithURI(complexGoogle, "query=hello");
+		Hashtable<String, String> defaults = new Hashtable<String, String>();
+		defaults.put("query", "hello");
+
+		scraper.scrapeFromUri(complexGoogle, defaults);
 	}
 	
 	/**
