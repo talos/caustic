@@ -23,7 +23,7 @@ public class Executable {
 	
 	private final String source;
 	private final Variables variables;
-	private final InstructionPromise instructionPromise;
+	private final InstructionPromise promise;
 	
 	/**
 	 * The {@link Instruction} that this {@link Executable} runs.
@@ -35,7 +35,7 @@ public class Executable {
 	public Executable(String source, Variables variables, InstructionPromise instructionPromise) {
 		this.source = source;
 		this.variables = variables;
-		this.instructionPromise = instructionPromise;
+		this.promise = instructionPromise;
 	}
 	
 	/**
@@ -54,7 +54,7 @@ public class Executable {
 		
 		// If instruction is not yet loaded, try to get it.
 		if(instruction == null) {
-			execution = instructionPromise.load(variables);
+			execution = promise.load(variables);
 			if(execution.isSuccessful()) {
 				instruction = (Instruction) execution.getExecuted();
 			}
@@ -92,8 +92,9 @@ public class Executable {
 			if(execution.isMissingVariables() && prevExecution.isMissingVariables()) {
 				String[] combinedMissingVariables
 						= Execution.combine(new Execution[] { execution, prevExecution }).getMissingVariables();
+				
 				return combinedMissingVariables.length == execution.getMissingVariables().length &&
-						combinedMissingVariables.length == getLastExecution().getMissingVariables().length;
+						combinedMissingVariables.length == prevExecution.getMissingVariables().length;
 			}
 		}
 		return false;
@@ -105,7 +106,7 @@ public class Executable {
 	public String toString() {
 		return "Executable with " +
 				(source != null ? " source " + StringUtils.truncate(StringUtils.quote(source), SOURCE_TRUNCATE_LENGTH) + " and " : "" )
-				+ "instructions " + StringUtils.quote(instruction.toString()) +
+				+ "instructions " + StringUtils.quote(promise.toString()) +
 				" and variables " + StringUtils.quote(variables.toString());
 	}
 }

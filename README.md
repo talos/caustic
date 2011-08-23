@@ -6,7 +6,7 @@ cooperative scrapers for mobile apps
 
 The easiest way to try out microscraper is the precompiled utility. Run
 
-    $ utility/microscraper --json='{"load":"http://www.google.com","then":{"find":"[\\w]*\\sLucky"}}'
+    $ utility/microscraper '{"load":"http://www.google.com","then":{"find":"[\\w]*\\sLucky"}}'
 
 in the terminal of your choice.  This executes the JSON instruction
 
@@ -141,7 +141,7 @@ This [fixture](microscraper-client/blob/master/fixtures/json/reference-google.js
         "find"    : "{{query}}\\s+(\\w+)",
         "replace" : "$1",
         "name"    : "after",
-        "then"    : { "$ref" : "simple-google.json" }
+        "then"    : "simple-google.json"
       }
     }
 
@@ -150,9 +150,6 @@ Running
     $ utility/microscraper fixtures/json/complex-google.json --defaults="query=hello"
 
 should give you the same results as before.
-
-Microscraper takes a page from [jsonschema](http://json-schema.org/), using *$ref* as the key to a URI to
-replace the enclosing object.
 
 #### Why? ####
 

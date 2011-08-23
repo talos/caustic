@@ -94,8 +94,8 @@ public final class Load implements Action {
 	 * {@link Browser#HEAD}, case-insensitive.
 	 */
 	public void setMethod(String method) {
-		if(!method.equalsIgnoreCase(Browser.POST) ||
-				!method.equalsIgnoreCase(Browser.GET) ||
+		if(!method.equalsIgnoreCase(Browser.POST) &&
+				!method.equalsIgnoreCase(Browser.GET) &&
 				!method.equalsIgnoreCase(Browser.HEAD)){
 			throw new IllegalArgumentException("Method " + StringUtils.quote(method) + " is illegal.");
 		} else if(nonDefaultMethod == null) {
@@ -140,7 +140,7 @@ public final class Load implements Action {
 	 * @param header The {@link NameValuePairTemplate} to add as a header.
 	 */
 	public void addHeader(NameValuePairTemplate header) {
-		this.postNameValuePairs.add(header);
+		this.headers.add(header);
 	}
 
 	/**
@@ -148,7 +148,7 @@ public final class Load implements Action {
 	 * @param cookie The {@link NameValuePairTemplate} to add as a cookie.
 	 */
 	public void addCookie(NameValuePairTemplate cookie) {
-		this.postNameValuePairs.add(cookie);
+		this.cookies.add(cookie);
 	}
 
 	/**
@@ -170,7 +170,7 @@ public final class Load implements Action {
 		try {
 			String method = nonDefaultMethod == null ? defaultMethod : nonDefaultMethod;
 			
-			Execution urlSub = url.sub(variables, encoder, Browser.UTF_8);
+			Execution urlSub = url.subEncoded(variables, encoder, Browser.UTF_8);
 			
 			NameValuePairTemplate[] headersAry = new NameValuePairTemplate[headers.size()];
 			headers.copyInto(headersAry);
@@ -189,6 +189,7 @@ public final class Load implements Action {
 				final String responseBody;
 
 				String url = (String) urlSub.getExecuted();
+				
 				NameValuePair[] headers = (NameValuePair[]) headersSub.getExecuted();
 				NameValuePair[] cookies = (NameValuePair[]) cookiesSub.getExecuted();
 				

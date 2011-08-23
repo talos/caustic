@@ -16,7 +16,7 @@ public class DeserializationException extends Exception {
 	private static final long serialVersionUID = 131401908426100287L;
 	
 	public DeserializationException(Throwable e) {
-		super(e);
+		super(e.getClass().toString() + ": " + e);
 	}
 	public DeserializationException(String msg) {
 		super(msg);

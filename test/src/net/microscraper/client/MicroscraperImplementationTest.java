@@ -12,6 +12,7 @@ import net.microscraper.client.Browser;
 import net.microscraper.client.Microscraper;
 import net.microscraper.database.Database;
 import net.microscraper.file.FileLoader;
+import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.json.JsonParser;
 import net.microscraper.regexp.RegexpCompiler;
 
@@ -82,8 +83,8 @@ public abstract class MicroscraperImplementationTest {
 		
 		Hashtable<String, String> defaults = new Hashtable<String, String>();
 		defaults.put("query", "hello");
-		
-		scraper.scrapeFromUri(simpleGoogle, defaults);
+		//scraper.register(new SystemOutLogger());
+		scraper.scrape(simpleGoogle, defaults);
 	}
 	
 	@Test
@@ -114,7 +115,7 @@ public abstract class MicroscraperImplementationTest {
 		Hashtable<String, String> defaults = new Hashtable<String, String>();
 		defaults.put("query", "hello");
 
-		scraper.scrapeFromUri(complexGoogle, defaults);
+		scraper.scrape(complexGoogle, defaults);
 	}
 	
 	/**

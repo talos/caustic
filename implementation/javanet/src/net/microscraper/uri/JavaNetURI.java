@@ -36,7 +36,10 @@ public class JavaNetURI implements Uri {
 	
 	public Uri resolve(Uri otherLocation) throws RemoteToLocalSchemeResolutionException {
 		URI resolved = uri.resolve(otherLocation.toString());
-		if(this.uri.getScheme().equals(resolved.getScheme())) {
+		if(this.uri.getScheme() == null) {
+			// same as FILE_SCHEME, allow access out
+			return new JavaNetURI(resolved, browser, fileLoader);
+		} else if(this.uri.getScheme().equals(resolved.getScheme())) {
 			return new JavaNetURI(resolved , browser, fileLoader);
 			// Allow access TO anywhere from FILE_SCHEME
 		} else if(this.uri.getScheme().equalsIgnoreCase(FILE_SCHEME)) {

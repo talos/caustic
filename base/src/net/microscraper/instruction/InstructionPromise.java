@@ -34,4 +34,11 @@ public class InstructionPromise {
 	public Execution load(Variables variables) {
 		return deserializer.deserializeString(serializedString, variables, rootUri);
 	}
+	
+	/**
+	 * Returns {@link #serializedString}.
+	 */
+	public String toString() {
+		return serializedString;
+	}
 }

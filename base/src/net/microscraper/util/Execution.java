@@ -1,13 +1,11 @@
 package net.microscraper.util;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.Vector;
 
 import net.microscraper.client.DeserializationException;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.NameValuePairTemplate;
-import net.microscraper.template.PatternTemplate;
 
 /**
  * {@link Execution} says whether an attempt to use a set of {@link Variables}
@@ -81,7 +79,7 @@ public class Execution {
 	 * @return The failed {@link Execution}.
 	 */
 	public static Execution ioException(IOException e) {
-		return new Execution(null, null, new String[] { e.getMessage() });
+		return new Execution(null, null, new String[] { "IO Exception : " + e.getMessage() });
 	}
 	
 	/**
@@ -143,8 +141,8 @@ public class Execution {
 	/**
 	 * 
 	 * @return The tag that caused an unsuccessful {@link Execution}.
-	 * Should only be called if {@link #isSuccessful()} is <code>false</code>.
-	 * @see #isSuccessful()
+	 * Should only be called if {@link #isMissingVariables()} is <code>true</code>.
+	 * @see #isMissingVariables()
 	 */
 	public String[] getMissingVariables() {
 		if(!isMissingVariables()) 
@@ -279,34 +277,18 @@ public class Execution {
 	}
 	
 	/**
-	 * Convenience method to generate a single {@link Execution} from a whole
-	 * array of {@link NameValuePairTemplate}s. The {@link #getExecuted()} of the
-	 * returned {@link Execution} will be an array of the substituted {@link
-	 * NameValuePair}s if it is successful.
-	 * @param substitutables The array of {@link PatternTemplate}s to {@link 
-	 * PatternTemplate#sub(Variables)} en masse.
-	 * @param variables The {@link Variables} to use.
-	 * @return A single {@link Execution}, with either all the <code>substitutables</code>
-	 * substituted or a combined array of the missing variables.
+	 * Provide {@link Object#toString()} of the executed object, or a quoted list of
+	 * what went wrong.
 	 */
-	public static Execution arraySubPattern(PatternTemplate[] patterns, Variables variables) {
-		Execution[] substitutions = new Execution[patterns.length];
-		for(int i = 0 ; i < patterns.length ; i ++) {
-			substitutions[i] = patterns[i].sub(variables);
-		}
-		//return combine(substitutions);
-		Execution result;
-		Execution rawCombined = combine(substitutions);
-		if(rawCombined.isSuccessful()) {
-			Object[] objArray = (Object[]) rawCombined.getExecuted();
-			Pattern[] patternAry = new Pattern[objArray.length];
-			for(int i = 0 ; i < objArray.length ; i ++) {
-				patternAry[i] = (Pattern) objArray[i];
-			}
-			result = Execution.success(patternAry);
+	public String toString() {
+		if(isSuccessful()) {
+			return "Successful execution resulting in " + StringUtils.quote(getExecuted());
+		} else if(isMissingVariables()) {
+			return "Execution missing variables " + StringUtils.quoteJoin(getMissingVariables());			
+		} else if(hasFailed()) {
+			return "Execution failed because " + StringUtils.quoteJoin(failedBecause());				
 		} else {
-			result = rawCombined;
+			throw new IllegalStateException();
 		}
-		return result;
 	}
 }

@@ -39,6 +39,11 @@ public class BasicMicroscraper {
 		try {
 			Browser browser = new JavaNetBrowser();
 			
+			String executionDir = System.getProperty("user.dir");
+			if(!executionDir.endsWith(System.getProperty("file.separator"))) {
+				executionDir += System.getProperty("file.separator");
+			}
+						
 			//browser.register(new SystemOutLogger());
 			
 			browser.setRateLimit(rateLimit);
@@ -46,10 +51,10 @@ public class BasicMicroscraper {
 			FileLoader fileLoader = new JavaIOFileLoader();
 			RegexpCompiler compiler = new JavaUtilRegexpCompiler();
 			UriFactory uriFactory = new JavaNetURIFactory(browser, fileLoader);
-			JsonParser parser = new JsonMEParser(uriFactory, System.getProperty("user.dir"));
+			JsonParser parser = new JsonMEParser();
 			Encoder encoder = new JavaNetEncoder();
-			Deserializer deserializer = new JsonDeserializer(parser, compiler, browser, encoder);
-			Microscraper scraper = new Microscraper(deserializer, database);
+			Deserializer deserializer = new JsonDeserializer(parser, compiler, browser, encoder, uriFactory);
+			Microscraper scraper = new Microscraper(deserializer, database, executionDir);
 			return scraper;
 		} catch(MalformedUriException e) {
 			throw new IOException(e);

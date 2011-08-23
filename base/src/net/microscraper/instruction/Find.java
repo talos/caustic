@@ -34,7 +34,7 @@ public class Find implements Action {
 	/**
 	 * Flag equivalent to {@link java.util.regex.Pattern#DOTALL}
 	 */
-	private boolean doesDotMatchNewline = false;
+	private boolean doesDotMatchNewline = true;
 	
 	/**
 	 * The {@link RegexpCompiler} to use when compiling this {@link Find}.
@@ -78,7 +78,8 @@ public class Find implements Action {
 		this.compiler = compiler;
 		this.pattern = pattern;
 		try {
-			this.replacement = Template.compile(ENTIRE_MATCH);
+			this.replacement = Template.compile(ENTIRE_MATCH,
+					Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
 		} catch(TemplateCompilationException e) {
 			throw new RuntimeException(e); // this shouldn't happen
 		}

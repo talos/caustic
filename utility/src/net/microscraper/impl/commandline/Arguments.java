@@ -52,8 +52,8 @@ public final class Arguments {
 	
 	public static final String TIMESTAMP = new SimpleDateFormat("yyyyMMddkkmmss").format(new Date());
 
-	public static final Option URI_INSTRUCTION = Option.withoutDefault("uri");
-	public static final Option JSON_INSTRUCTION = Option.withoutDefault("json");
+	public static final Option INSTRUCTION = Option.withoutDefault("instruction");
+	
 	public static final Option BATCH_SIZE = Option.withDefault("batch-size", "100");
 	public static final Option DEFAULTS = Option.withDefault("defaults", "");
 	public static final Option INPUT = Option.withoutDefault("input");
@@ -85,7 +85,7 @@ public final class Arguments {
 	
 	public static final String USAGE = 
 "usage: microscraper <uri> [<options>]" + newline +
-"		microscraper (" + JSON_INSTRUCTION + "=\"<json>\"|" + URI_INSTRUCTION + "<uri>) [<options>]" + newline +
+"		microscraper <json> [<options>]" + newline +
 "" + newline +
 "uri" + newline +
 "	A URI that points to microscraper instruction JSON." + newline +
@@ -133,16 +133,14 @@ public final class Arguments {
 			throw new IllegalArgumentException("");
 		}
 		
-		for(int i = 0 ; i < args.length ; i ++) {
+		arguments.put(INSTRUCTION, args[0]);
+		
+		for(int i = 1 ; i < args.length ; i ++) {
 			String arg = args[i];
 			String value = null;
 			if(arg.indexOf('=') > -1) {
 				value = arg.substring(arg.indexOf('=') + 1);
 				arg = arg.substring(0, arg.indexOf('='));
-			}
-			if(!Option.exists(arg) && i == 0) { // assume invalid first arg is a URI
-				arguments.put(URI_INSTRUCTION, args[i]);
-				continue; 
 			}
 			arguments.put(Option.retrieve(arg), value);
 		}

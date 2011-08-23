@@ -96,10 +96,11 @@ public class ArgumentsMicroscraper {
 	}
 	
 	private void scrape(Hashtable<String, String> defaults) throws InterruptedException, IOException, DeserializationException, MalformedUriException {
-		if(args.has(JSON_INSTRUCTION)) {
+		/*if(args.has(JSON_INSTRUCTION)) {
 			scraper.scrapeFromJson(args.get(JSON_INSTRUCTION), defaults);
 		} else if(args.has(URI_INSTRUCTION)) {
 			scraper.scrapeFromUri(args.get(URI_INSTRUCTION), defaults);
-		}
+		}*/
+		scraper.scrape(args.get(INSTRUCTION), defaults);
 	}
 }

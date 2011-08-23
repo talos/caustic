@@ -21,8 +21,8 @@ public class ArgumentsMicroscraperTest {
 	@Before
 	public void setup() {
 		new NonStrictExpectations() {{
-			argsWithUri.has(URI_INSTRUCTION); result = true;
-			argsWithUri.get(URI_INSTRUCTION); result = randomString();
+			argsWithUri.has(INSTRUCTION); result = true;
+			argsWithUri.get(INSTRUCTION); result = randomString();
 		}};
 	}
 	

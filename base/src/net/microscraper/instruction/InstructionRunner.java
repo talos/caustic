@@ -16,7 +16,7 @@ import net.microscraper.util.VectorUtils;
 
 public class InstructionRunner implements Runnable, Loggable {
 	
-	private final Instruction instruction;
+	private final InstructionPromise promise;
 	private final Variables variables;
 	private final String source;
 	
@@ -26,15 +26,15 @@ public class InstructionRunner implements Runnable, Loggable {
 	
 	/**
 	 * 
-	 * @param instruction
+	 * @param promise
 	 * @param database
 	 * @param defaults
 	 * @param source
 	 * @throws IOException If there was a problem writing to the database.
 	 */
-	public InstructionRunner(Instruction instruction, Database database, Hashtable defaults, String source)
+	public InstructionRunner(InstructionPromise promise, Database database, Hashtable defaults, String source)
 			throws IOException {
-		this.instruction = instruction;
+		this.promise = promise;
 		this.variables = Variables.fromHashtable(database, defaults);
 		this.source = source;
 	}
@@ -52,7 +52,7 @@ public class InstructionRunner implements Runnable, Loggable {
 	}
 	
 	public void run() {
-		Executable start = new Executable(source, variables, instruction);
+		Executable start = new Executable(source, variables, promise);
 		queue.add(start);
 		
 		//log.i("Starting to execute with " + StringUtils.quote(start));

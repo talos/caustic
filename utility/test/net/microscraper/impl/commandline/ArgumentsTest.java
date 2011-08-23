@@ -45,25 +45,13 @@ public class ArgumentsTest {
 	}
 
 	@Test
-	public void testURIIsDefaultFirstArgument() {
+	public void testInstructionIsDefaultFirstArgument() {
 		String uri = randomString();
 		
 		Arguments args = new Arguments(new String[] { uri } );
 		
-		assertTrue(args.has(URI_INSTRUCTION));
-		assertEquals(uri, args.get(URI_INSTRUCTION));
-	}
-	
-
-	@Test
-	public void testJSONOptionExcludesURIFirstArgument() {
-		String json = randomString();
-		
-		Arguments args = new Arguments(new String[] { JSON_INSTRUCTION + "=" + json } );
-		
-		assertFalse(args.has(URI_INSTRUCTION));
-		assertTrue(args.has(JSON_INSTRUCTION));
-		assertEquals(json, args.get(JSON_INSTRUCTION));
+		assertTrue(args.has(INSTRUCTION));
+		assertEquals(uri, args.get(INSTRUCTION));
 	}
 	
 	@Test

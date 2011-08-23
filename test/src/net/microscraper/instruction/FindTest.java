@@ -1,6 +1,5 @@
 package net.microscraper.instruction;
 
-import static net.microscraper.instruction.Find.*;
 import static net.microscraper.util.TestUtils.*;
 import static org.junit.Assert.*;
 
@@ -10,14 +9,9 @@ import java.util.List;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import mockit.Verifications;
-import net.microscraper.client.Browser;
-import net.microscraper.client.DeserializationException;
 import net.microscraper.database.Database;
-import net.microscraper.json.JsonObject;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.template.PatternTemplate;
 import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
@@ -26,16 +20,17 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class FindTest  {
-	@Mocked PatternTemplate pattern;
 	@Mocked Database database;
-	@Injectable Template replacement;
+	@Mocked RegexpCompiler compiler;
+	@Injectable Template pattern, replacement;
 	private Variables variables;
 	private Find find;
 	
 	@Before
 	public void setUp() throws Exception {
 		variables = Variables.empty(database);
-		find = new Find(pattern, replacement, 0, -1, new PatternTemplate[] {});
+		find = new Find(compiler, pattern);
+		find.setReplacement(replacement);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -70,6 +65,7 @@ public class FindTest  {
 	@Test
 	public void testNoMatchesIsFailure() throws Exception {
 		final String source = randomString();
+		final String patternString = randomString();
 		final String replacementString = randomString();
 		new NonStrictExpectations() {
 			@Injectable Execution patternExc, replacementExc;
@@ -77,18 +73,19 @@ public class FindTest  {
 			{
 				pattern.sub(variables); result = patternExc;
 				patternExc.isSuccessful(); result = true;
-				patternExc.getExecuted(); result = regexpPattern;
+				patternExc.getExecuted(); result = patternString;
 				
 				replacement.sub(variables); result = replacementExc;
 				replacementExc.isSuccessful(); result = true;
-				replacementExc.getExecuted(); result = randomString();
+				replacementExc.getExecuted(); result = replacementString;
 				
+				compiler.compile(patternString, anyBoolean, anyBoolean, anyBoolean); result = regexpPattern;
 				regexpPattern.match(source, replacementString, anyInt, anyInt); result = new String[] {};
 		}};
 		Execution exc = find.execute(randomString(), variables);
 		assertTrue(exc.hasFailed());
 		assertEquals(1, exc.failedBecause().length);
-		assertTrue(exc.failedBecause()[0].contains("No matches"));
+		assertTrue(exc.failedBecause()[0] + " should contain 'match'", exc.failedBecause()[0].contains("match"));
 	}
 	
 }

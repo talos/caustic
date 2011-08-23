@@ -20,7 +20,7 @@ import org.junit.Test;
 public final class InstructionTest {	
 	@Mocked private Database database;
 	@Mocked private Template name;
-	
+	@Mocked private InstructionPromise promise;
 	@Mocked private Action action;
 	
 	private Variables variables;
@@ -31,6 +31,8 @@ public final class InstructionTest {
 	@Before
 	public void setUp() throws Exception {
 		variables = Variables.empty(database);
+		instruction = new Instruction(action);
+		instruction.setName(name);
 	}
 
 	@Test
@@ -47,7 +49,6 @@ public final class InstructionTest {
 			}
 		};
 		
-		instruction = new Instruction(action, new Instruction[] {}, false, name);
 		Execution exc = instruction.execute(source, variables);
 		assertTrue(exc.isMissingVariables());
 		assertArrayEquals(missingVariableNames, exc.getMissingVariables());
@@ -69,7 +70,6 @@ public final class InstructionTest {
 			}
 		};
 		
-		instruction = new Instruction(action, new Instruction[] {}, false, name);
 		Execution exc = instruction.execute(source, variables);
 		assertTrue(exc.isMissingVariables());
 		assertArrayEquals(missingVariableNames, exc.getMissingVariables());
@@ -78,7 +78,7 @@ public final class InstructionTest {
 	@Test
 	public void testProducesExecutableArrayProductOfInstructionAndResults() throws Exception {
 		final String[] actionResults = new String[] { randomString(), randomString(), randomString() };
-		final Instruction[] children = new Instruction[] { instruction, instruction, instruction, instruction };
+		final InstructionPromise[] children = new InstructionPromise[] { promise, promise, promise, promise };
 		
 		new NonStrictExpectations() {
 			@Injectable Execution nameExecution, actionExecution;
@@ -92,7 +92,9 @@ public final class InstructionTest {
 			}
 		};
 		
-		instruction = new Instruction(action, children, false, name);
+		for(int i = 0 ; i < children.length ; i ++) {
+			instruction.addChild(children[i]);
+		}
 		Execution exc = instruction.execute(source, variables);
 		
 		assertTrue(exc.isSuccessful());
@@ -103,7 +105,6 @@ public final class InstructionTest {
 	@Test(expected = IOException.class)
 	public void testThrowsIOExceptionOnPersistError() throws Exception {
 		final String[] actionResults = new String[] { randomString(), randomString(), randomString() };
-		final Instruction[] children = new Instruction[] { instruction, instruction, instruction, instruction };
 		
 		new NonStrictExpectations() {
 			@Injectable Execution nameExecution, actionExecution;
@@ -118,7 +119,6 @@ public final class InstructionTest {
 			}
 		};
 		
-		instruction = new Instruction(action, children, false, name);
 		instruction.execute(source, variables);
 	}
 }

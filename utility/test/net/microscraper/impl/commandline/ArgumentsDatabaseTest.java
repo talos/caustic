@@ -23,8 +23,8 @@ public class ArgumentsDatabaseTest {
 	@Before
 	public void setup() {
 		new NonStrictExpectations() {{
-			args.has(URI_INSTRUCTION); result = true;
-			args.get(URI_INSTRUCTION); result = randomString();
+			args.has(INSTRUCTION); result = true;
+			args.get(INSTRUCTION); result = randomString();
 		}};
 	}
 	/*

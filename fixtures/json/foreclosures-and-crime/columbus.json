@@ -2,75 +2,86 @@
 {
     "description" : "Search for crime for the whole of Columbus for a single day.  Format of {{date}} is 'MM/DD/YYYY'",
     "load" : "http://www.columbuspolice.org/Reports/PubDefault.aspx",
-    "then" : [{ "$ref" : "../shared/viewstate.json" },{
-	"load" : "http://www.columbuspolice.org/Reports/PubDefault.aspx",
-	"method" : "post",
-	"posts" : {
-	    "__VIEWSTATE" : "{{viewstate}}",
-	    "btnAgree" : "I Understand"
-	},
-	"then" : [{ "$ref" : "../shared/viewstate.json" }, {
-	    "load" : "http://www.columbuspolice.org/Reports/Search.aspx",
+    "then" :
+    [
+	"../shared/viewstate.json",
+	{
+	    "load" : "http://www.columbuspolice.org/Reports/PubDefault.aspx",
 	    "method" : "post",
 	    "posts" : {
-		"__EVENTTARGET" : "btnBrowse",
-		"__EVENTARGUMENT" : "",
 		"__VIEWSTATE" : "{{viewstate}}",
-		"searchBy" : "rdoNumber",
-		"txtNumber" : "",
-		"txtLastName": ""
+		"btnAgree" : "I Understand"
 	    },
-	    "then" : [{ "$ref" : "../shared/viewstate.json" },{
-		"load" : "http://www.columbuspolice.org/Reports/StepOne.aspx",
-		"method" : "post",
-		"posts" : {
-		    "__EVENTTARGET" : "lnkCity",
-		    "__EVENTARGUMENT" : "",
-		    "__VIEWSTATE" : "{{viewstate}}"
-		},
-		"then" : [{ "$ref" : "../shared/viewstate.json" },{
-		    "load" : "http://www.columbuspolice.org/Reports/StepTwo.aspx?loc=all",
+	    "then" : [
+		"../shared/viewstate.json",
+		{
+		    "load" : "http://www.columbuspolice.org/Reports/Search.aspx",
 		    "method" : "post",
 		    "posts" : {
-			"txtDate" : "{{date}}",
-			"btnGo"   : "Go",
+			"__EVENTTARGET" : "btnBrowse",
+			"__EVENTARGUMENT" : "",
 			"__VIEWSTATE" : "{{viewstate}}",
-			"__EVENTTARGET" : "",
-			"__EVENTARGUMENT" : ""
+			"searchBy" : "rdoNumber",
+			"txtNumber" : "",
+			"txtLastName": ""
 		    },
-		    "then" : [{ "$ref" : "../shared/viewstate.json" },{
-			"load" : "http://www.columbuspolice.org/Reports/StepThree.aspx?loc=all",
-			"method" : "post",
-			"posts" : {
-			    "btnGo"   : "Go",
-			    "__VIEWSTATE" : "{{viewstate}}",
-			    "__EVENTTARGET" : "",
-			    "__EVENTARGUMENT" : "",
-			    "chkPerson" : "on",
-			    "chkProp" : "on",
-			    "chkOther" : "on"
-			},
-			"then" : [
-			    { "$ref" : "columbus-table.json" },
-			    { "$ref" : "../shared/viewstate.json" },
-			    {
-				"find" : "href\\s*=\\s*\"javascript:__doPostBack\\('(grdCases\\$_ctl\\d+\\$_ctl\\d+)'",
-				"replace" : "$1",
-				"name" : "grdCases",
-				"then" : {
-				    "load" : "http://www.columbuspolice.org/Reports/ReportGrid.aspx?loc=all",
+		    "then" : [
+			"../shared/viewstate.json",
+			{
+			    "load" : "http://www.columbuspolice.org/Reports/StepOne.aspx",
+			    "method" : "post",
+			    "posts" : {
+				"__EVENTTARGET" : "lnkCity",
+				"__EVENTARGUMENT" : "",
+				"__VIEWSTATE" : "{{viewstate}}"
+			    },
+			    "then" : [
+				"../shared/viewstate.json",
+				{
+				    "load" : "http://www.columbuspolice.org/Reports/StepTwo.aspx?loc=all",
 				    "method" : "post",
 				    "posts" : {
+					"txtDate" : "{{date}}",
+					"btnGo"   : "Go",
 					"__VIEWSTATE" : "{{viewstate}}",
-					"__EVENTTARGET" : "{{grdCases}}",
+					"__EVENTTARGET" : "",
 					"__EVENTARGUMENT" : ""
 				    },
-				    "then" : { "$ref" : "columbus-table.json" }
-				}
-			    }]
-		    }]
+				    "then" : [
+					"../shared/viewstate.json",
+					{
+					    "load" : "http://www.columbuspolice.org/Reports/StepThree.aspx?loc=all",
+					    "method" : "post",
+					    "posts" : {
+						"btnGo"   : "Go",
+						"__VIEWSTATE" : "{{viewstate}}",
+						"__EVENTTARGET" : "",
+						"__EVENTARGUMENT" : "",
+						"chkPerson" : "on",
+						"chkProp" : "on",
+						"chkOther" : "on"
+					    },
+					    "then" : [
+						"columbus-table.json",
+						"../shared/viewstate.json",
+						{
+						    "find" : "href\\s*=\\s*\"javascript:__doPostBack\\('(grdCases\\$_ctl\\d+\\$_ctl\\d+)'",
+						    "replace" : "$1",
+						    "name" : "grdCases",
+						    "then" : {
+							"load" : "http://www.columbuspolice.org/Reports/ReportGrid.aspx?loc=all",
+							"method" : "post",
+							"posts" : {
+							    "__VIEWSTATE" : "{{viewstate}}",
+							    "__EVENTTARGET" : "{{grdCases}}",
+							    "__EVENTARGUMENT" : ""
+							},
+							"then" : "columbus-table.json"
+						    }
+						}]
+					}]
+				}]
+			}]
 		}]
-	    }]
 	}]
-    }]
 }

@@ -76,9 +76,26 @@ public class ExecutionTest {
 		assertTrue(list.contains(obj2));
 		assertEquals(2, combinedSubstituted.length);
 	}
+
+	@Test
+	public void testCombineMissingVariablesCombinesMissingVariables() {
+		String[] missingVariables1 = new String[] { randomString(3) };
+		String[] missingVariables2 = new String[] { randomString(4) };
+		Execution execution1 = Execution.missingVariables(missingVariables1);
+		Execution execution2 = Execution.missingVariables(missingVariables2);
+		Execution combined = Execution.combine(new Execution[] { execution1, execution2 });
+		
+		String[] combinedMissing = combined.getMissingVariables();
+		List<String> list = Arrays.asList(combinedMissing);
+		List<String> missingList1 = Arrays.asList(missingVariables1);
+		List<String> missingList2 = Arrays.asList(missingVariables2);
+		assertTrue(list.containsAll(missingList1));
+		assertTrue(list.containsAll(missingList2));
+		assertEquals("Should not merge different missing variables.", 2, combinedMissing.length);
+	}
 	
 	@Test
-	public void testCombinMissingVariablesCombinesMissingVariables() {
+	public void testCombineMissingVariablesCombinesMissingVariablesWithoutDuplicates() {
 		String sharedString = randomString();
 		String[] missingVariables1 = new String[] { sharedString, randomString(), randomString() };
 		String[] missingVariables2 = new String[] { sharedString, randomString(), randomString() };

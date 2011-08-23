@@ -6,10 +6,10 @@ import java.util.Hashtable;
 import net.microscraper.database.Database;
 import net.microscraper.impl.log.BasicLog;
 import net.microscraper.instruction.Instruction;
+import net.microscraper.instruction.InstructionPromise;
 import net.microscraper.instruction.InstructionRunner;
 import net.microscraper.instruction.Load;
 import net.microscraper.template.Template;
-import net.microscraper.uri.MalformedUriException;
 
 /**
  * A {@link Microscraper} can scrape an {@link Instruction}.
@@ -23,6 +23,7 @@ import net.microscraper.uri.MalformedUriException;
  *
  */
 public class Microscraper implements Loggable {	
+	private final String executionDir;
 	private final BasicLog log = new BasicLog();
 	private final Deserializer deserializer;
 	private final Database database;
@@ -30,89 +31,52 @@ public class Microscraper implements Loggable {
 	/**
 	 * @param deserializer A {@link Deserializer} to use to instantiate {@link Instruction}s.
 	 * @param database the {@link Database} to use for storage.
+	 * @param executionDir the {@link String} path to where {@link Microscraper}
+	 * is being executed from. This is used to resolve the path to local instructions.
 	 */
-	public Microscraper(Deserializer deserializer, Database database) {
+	public Microscraper(Deserializer deserializer, Database database, String executionDir) {
 		this.deserializer = deserializer;
 		this.database = database;
+		this.executionDir = executionDir;
 	}
 	
-	private void scrape(Instruction instruction, Hashtable[] defaultsHashes, String source)
-			throws DeserializationException, IOException {
+	private void scrape(String instructionString, Hashtable[] defaultsHashes, String source) throws IOException {
+		InstructionPromise promise = new InstructionPromise(deserializer, instructionString, executionDir);
 		for(int i = 0 ; i < defaultsHashes.length ; i ++) {
-			InstructionRunner runner = new InstructionRunner(instruction, database, defaultsHashes[i], source);
+			InstructionRunner runner = new InstructionRunner(promise, database, defaultsHashes[i], source);
 			runner.register(log);
 			runner.run();
 		}
 		database.clean();
 		database.close();
 	}
-
-	private void scrapeFromJSON(String instructionJson, Hashtable[] defaultsHashes, String source)
-			throws DeserializationException, IOException {
-		scrape(deserializer.deserializeString(instructionJson), defaultsHashes, source);
-	}
 	
 	/**
-	 * Scrape from a {@link Load} in a JSON String.
-	 * @param instructionJSON A {@link String} with a {@link Load} serialized in JSON.
+	 * Scrape from a {@link Load} in a serialized String.
+	 * @param serializedString A {@link String} with a {@link Load} serialized in JSON.
 	 */
-	public void scrapeFromJson(String instructionJSON)
-			throws DeserializationException, IOException {
-		scrapeFromJSON(instructionJSON, new Hashtable[] { new Hashtable() }, null);
+	public void scrape(String serializedString) throws IOException {
+		scrape(serializedString, new Hashtable[] { new Hashtable() }, null);
 	}
 	
 	/**
-	 * Scrape from a {@link Load} in a JSON String.
-	 * @param instructionJSON A {@link String} with a {@link Load} serialized in JSON.
+	 * Scrape from a {@link Load} in a serialized String.
+	 * @param serializedString A {@link String} with a {@link Load} serialized in JSON.
 	 * @param defaults A {@link Hashtable} mapping {@link String}s to {@link String}s to substitute in 
-	 * <code>pageInstructionJSON</code> {@link Template} tags.
+	 * <code>serializedString</code> {@link Template} tags.
 	 */
-	public void scrapeFromJson(String instructionJSON, Hashtable defaults)
-			throws DeserializationException, IOException, InterruptedException {
-		scrapeFromJSON(instructionJSON, new Hashtable[] { defaults }, null );
+	public void scrape(String serializedString, Hashtable defaults) throws IOException  {
+		scrape(serializedString, new Hashtable[] { defaults }, null );
 	}
 	
 	/**
-	 * Scrape from a {@link Load} in a JSON String for each member of <code>defaultsArray</code>.
-	 * @param instructionJSONinstructionJSON A {@link String} with a {@link Load} serialized in JSON.
+	 * Scrape from a {@link Load} in a serialized String.
+	 * @param serializedString A {@link String} with a {@link Load} serialized in JSON.
 	 * @param defaultsArray An array of {@link Hashtable}s.  Each maps {@link String}s to {@link String}s to substitute in 
-	 * <code>pageInstructionJSON</code> {@link Template} tags.
+	 * <code>serializedString</code> {@link Template} tags.
 	 */
-	public void scrapeFromJson(String instructionJSON, Hashtable[] defaultsArray)
-			throws DeserializationException, IOException, InterruptedException {
-		scrapeFromJSON(instructionJSON, defaultsArray, null);
-	}
-
-	/**
-	 * Scrape from a {@link Load} loaded from a URI.
-	 * @param uri A {@link String} with the URI location of a {@link Load} serialized in JSON.
-	 */
-	public void scrapeFromUri(String uri)
-			throws DeserializationException, IOException, InterruptedException,
-			MalformedUriException  {
-		scrapeFromUri(uri, new Hashtable[] { new Hashtable() }, null);
-	}
-	/**
-	 * Scrape from a {@link Load} in a JSON String.
-	 * @param uri A {@link String} with the URI location of a {@link Load} serialized in JSON.
-	 * @param defaults A {@link Hashtable} mapping {@link String}s to {@link String}s to substitute in 
-	 */
-	public void scrapeFromUri(String uri, Hashtable defaults)
-			throws DeserializationException, IOException, InterruptedException, 
-			MalformedUriException  {
-		scrapeFromUri(uri, new Hashtable[] { defaults } , null);
-	}
-
-	/**
-	 * Scrape from a {@link Load} in a JSON String.
-	 * @param uri A {@link String} with the URI location of a {@link Load} serialized in JSON.
-	 * @param defaultsArray An array of {@link Hashtable}s.  Each maps {@link String}s to {@link String}s to substitute in 
-	 * <code>pageInstructionJSON</code> {@link Template} tags.
-	 */
-	public void scrapeFromUri(String uri, Hashtable[] defaultsArray)
-			throws DeserializationException, IOException, InterruptedException,
-					MalformedUriException {
-		scrapeFromUri(uri, defaultsArray, null);
+	public void scrape(String serializedString, Hashtable[] defaultsArray) throws IOException  {
+		scrape(serializedString, defaultsArray, null);
 	}
 
 	/**

@@ -6,49 +6,49 @@
 	"find" : "<table\\s+class\\s*=\\s*\"Table\".*?</table>",
 	"save" : false,
 	"then" : {
-	    "extends" : {"$ref" : "../shared/html-row.json" },
+	    "extends" : "../shared/html-row.json",
 	    "name" : "row",
 	    "save" : false,
 	    "min" : 1,
 	    "max" : -1,
 	    "then" : [{
-		"extends" : { "$ref" : "../shared/html-column.json" },
+		"extends" : "../shared/html-column.json",
 		"name" : "Offense Number",
 		"match" : 0
 	    },{
-		"extends" : { "$ref" : "../shared/html-column.json" },
+		"extends" : "../shared/html-column.json",
 		"name" : "Date of Occurrence",
 		"match" : 1
 	    },{
-		"extends" : { "$ref" : "../shared/html-column.json" },
+		"extends" : "../shared/html-column.json",
 		"name" : "Time",
 		"match" : 2
 	    },{
-		"extends" : { "$ref" : "../shared/html-column.json" },
+		"extends" : "../shared/html-column.json",
 		"name" : "Offense Category",
 		"match" : 3
 	    },{
-		"extends" : { "$ref" : "../shared/html-column.json" },
+		"extends" : "../shared/html-column.json",
 		"name" : "Specific Offense",
 		"match" : 4
 	    },{
-		"extends" : { "$ref" : "../shared/html-column.json" },
+		"extends" : "../shared/html-column.json",
 		"name" : "Address",
 		"match" : 5
 	    },{
-		"extends" : { "$ref" : "../shared/html-column.json" },
+		"extends" : "../shared/html-column.json",
 		"name" : "Neighborhood",
 		"match" : 6
 	    },{
-		"extends" : { "$ref" : "../shared/html-column.json" },
+		"extends" : "../shared/html-column.json",
 		"name" : "City Council District",
 		"match" : 7
 	    },{
-		"extends" : { "$ref" : "../shared/html-column.json" },
+		"extends" : "../shared/html-column.json",
 		"name" : "Police Precinct",
 		"match" : 8
 	    },{
-		"extends" : { "$ref" : "../shared/html-column.json" },
+		"extends" : "../shared/html-column.json",
 		"name" : "Police District",
 		"match" : 9
 	    }]

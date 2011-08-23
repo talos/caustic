@@ -5,6 +5,6 @@
 		"name"   : "query",
 		"find"     : "{{query}}\\s+(\\w+)",
 		"replace" : "$1",
-		"then" : { "$ref" : "simple-google.json" }
+		"then" : "./simple-google.json"
 	}
 }

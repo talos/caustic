@@ -40,7 +40,7 @@ public final class Template implements Substitutable {
 	 * from {@link Variables}.
 	 */
 	private final String closeTag;
-	
+
 	private Template(String template, String openTag, String closeTag) throws TemplateCompilationException {
 		this.template = template;
 		this.openTag = openTag;
@@ -58,29 +58,30 @@ public final class Template implements Substitutable {
 			close_tag_end_pos = close_tag_start_pos + closeTag.length();
 		}
 	}
-	
-	
+
 	/**
-	 * Compile a {@link Template} from a {@link String} using {@link #DEFAULT_OPEN_TAG}
-	 * and {@link #DEFAULT_CLOSE_TAG}
+	 * Compile a {@link Template} from a {@link String}.
 	 * @param template The {@link String} to convert into a {@link Template}.
+	 * @param openTag The {@link String} that opens a tag.
+	 * @param closeTag The {@link String} that closes a tag.
 	 * @return A {@link Template}.
 	 * @throws TemplateCompilationException If <code>template</code> cannot be turned into a
 	 * {@link Template}.
 	 */
-	public static Template compile(String template)
+	public static Template compile(String template, String openTag, String closeTag)
 			throws TemplateCompilationException {
-		return new Template(template, DEFAULT_OPEN_TAG, DEFAULT_CLOSE_TAG);
+		return new Template(template, openTag, closeTag);
 	}
 
 	/**
 	 * Substitute the values from a {@link Variables} into the {@link Template}.
 	 * @param variables The {@link Variables} to use in the substitution.
-	 * @return A {@link Execution} with the results of the substitution.
+	 * @return A {@link Execution} whose {@link Execution#getExecuted()} is the {@link String}
+	 * result of the substitution.
 	 */
 	public Execution sub(Variables variables) {
 		try {
-			return sub(variables, null, null);
+			return subEncoded(variables, null, null);
 		} catch(UnsupportedEncodingException e) {
 			throw new RuntimeException(e); // should be impossible
 		};
@@ -95,7 +96,7 @@ public final class Template implements Substitutable {
 	 * @return A {@link Execution} with the results of the substitution.
 	 * @throws UnsupportedEncodingException if <code>encoding</code> is not supported.
 	 */
-	public Execution sub(Variables variables, Encoder encoder, String encoding) throws UnsupportedEncodingException {
+	public Execution subEncoded(Variables variables, Encoder encoder, String encoding) throws UnsupportedEncodingException {
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
 		String result = "";

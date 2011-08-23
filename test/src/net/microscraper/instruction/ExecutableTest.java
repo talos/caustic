@@ -16,6 +16,7 @@ import org.junit.Test;
 public class ExecutableTest {
 	
 	@Mocked private Variables variables;
+	@Mocked private InstructionPromise promise;
 	@Mocked private Instruction instruction;
 	
 	private String source;
@@ -23,15 +24,25 @@ public class ExecutableTest {
 
 	@Before
 	public void setUp() throws Exception {
+		new NonStrictExpectations() {
+			@Injectable Execution execution;
+			{
+				promise.load(variables); result = execution;
+				onInstance(execution).isSuccessful(); result = true;
+				execution.getExecuted(); result = instruction;
+			}
+		};
 		source = randomString();
-		executable = new Executable(source, variables, instruction);
+		executable = new Executable(source, variables, promise);
 	}
 	
 	@Test
 	public void testExecuteExecutesInstructionWithVariablesAndSourceOnce() throws Exception {
-		new Expectations() {{
-			instruction.execute(source, variables); times = 1;
-		}};
+		new Expectations() {
+			{
+				instruction.execute(source, variables); times = 1;
+			}
+		};
 		executable.execute();
 	}
 
@@ -121,8 +132,8 @@ public class ExecutableTest {
 	}
 	
 	@Test
-	public void testToStringIncludesInstructionToStringAndSourceAndVariablesToString() {
-		assertTrue(executable.toString().contains(instruction.toString()));
+	public void testToStringIncludesPromiseToStringAndSourceAndVariablesToString() {
+		assertTrue(executable.toString().contains(promise.toString()));
 		assertTrue(executable.toString().contains(source.toString()));
 		assertTrue(executable.toString().contains(variables.toString()));
 	}

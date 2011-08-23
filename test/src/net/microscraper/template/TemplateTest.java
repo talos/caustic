@@ -70,7 +70,7 @@ public class TemplateTest {
 			encoder.encode(value, encoding); result = encodedValue;
 		}};
 		Template template = Template.compile(validTemplateRaw);
-		Execution sub = template.sub(variables, encoder, encoding);
+		Execution sub = template.subEncoded(variables, encoder, encoding);
 		assertTrue(sub.isSuccessful());
 		assertEquals(validTemplateCompiledEncoded, sub.getExecuted());
 	}
@@ -82,7 +82,7 @@ public class TemplateTest {
 			encoder.encode(value, encoding); result = encodedValue; times = 0;
 		}};
 		Template template = Template.compile(validTemplateRaw);
-		Execution sub = template.sub(empty, encoder, encoding);
+		Execution sub = template.subEncoded(empty, encoder, encoding);
 		assertFalse(sub.isSuccessful());
 		assertArrayEquals(new String[] {key}, sub.getMissingVariables());
 	}
@@ -95,7 +95,7 @@ public class TemplateTest {
 			encoder.encode(value, encoding); result = new UnsupportedEncodingException();
 		}};
 		Template template = Template.compile(validTemplateRaw);
-		template.sub(variables, encoder, encoding);
+		template.subEncoded(variables, encoder, encoding);
 	}
 
 	@Test

@@ -61,7 +61,7 @@ public class Variables {
 	 * @param sourceNumber
 	 * @param sourceName
 	 */
-	private Variables(Variables parent, int sourceNumber, String sourceName, String sourceValue, boolean shouldContainKeyValue) {
+	private Variables(Variables parent, int sourceNumber, String sourceName, String sourceValue, boolean hasName, boolean shouldPersistValue) {
 		this.parent = parent;
 		this.hashtable = parent.hashtable;
 		this.database = parent.database;
@@ -70,7 +70,7 @@ public class Variables {
 		this.sourceNumber = sourceNumber;
 		this.sourceName = sourceName;
 		
-		if(shouldContainKeyValue == true) {
+		if(hasName == true && shouldPersistValue) {
 			hashtable.put(sourceName, sourceValue);
 		} 
 	}
@@ -98,14 +98,13 @@ public class Variables {
 	 * <code>key</code> in one of the resulting branches. Must be of length greater than one.
 	 * Use {@link #singleBranch(Variables, String, String, boolean, boolean)} for single
 	 * result.
-	 * @param shouldContainKeyValue Whether the new {@link Variables} should contain <code>parent</code>
-	 * and <code>key</code> as an entry.
+	 * @param hasName
 	 * @param shouldPersistValue
 	 * @return An array of {@link Variables} branches.
 	 * @throws IOException
 	 */
 	public static Variables[] multiBranch(Variables parent, String key, String[] values,
-				boolean shouldContainKeyValue,
+				boolean hasName,
 				boolean shouldPersistValue)
 			throws IOException {
 		if(values.length == 0) {
@@ -118,7 +117,7 @@ public class Variables {
 			String value = values[i];
 			int sourceNumber = parent.store(key, value, i, shouldPersistValue);
 			Hashtable branchHashtable = new Hashtable();
-			if(shouldContainKeyValue == true) {
+			if(hasName == true && shouldPersistValue == true) {
 				branchHashtable.put(key, value);
 			}
 			branches[i] = new Variables(parent, branchHashtable, sourceNumber, key);
@@ -132,18 +131,17 @@ public class Variables {
 	 * @param parent The {@link Variables} to branch from.
 	 * @param key A new {@link String} key that will be included in the branch and its parent.
 	 * @param value An {@link String} value that will map to <code>key</code> in the branch and its parent.
-	 * @param shouldContainKeyValue Whether the new {@link Variables} should contain <code>parent</code>
-	 * and <code>key</code> as an entry.
+	 * @param hasName 
 	 * @param shouldPersistValue
 	 * @return An {@link Variables} branch.
 	 * @throws IOException
 	 */
 	public static Variables singleBranch(Variables parent, String key, String value,
-				boolean shouldContainKeyValue,
+				boolean hasName,
 				boolean shouldPersistValue)
 			throws IOException {
 		int sourceNumber = parent.store(key, value, 0, shouldPersistValue);
-		return new Variables(parent, sourceNumber, key, value, shouldContainKeyValue);
+		return new Variables(parent, sourceNumber, key, value, hasName, shouldPersistValue);
 	}
 	/**
 	 * Initialize an empty {@link Variables} with a {@link Database}.
@@ -163,13 +161,10 @@ public class Variables {
 	public static Variables fromHashtable(Database database, Hashtable initialHashtable) throws IOException {
 		Enumeration enum = initialHashtable.keys();
 		while(enum.hasMoreElements()) {
-			try {
-				String key = (String) enum.nextElement();
-				String value = (String) initialHashtable.get(key);
-				//database.storeInitial(key, value, 0);
-				//variables.put((String) key, value, true);
-			} catch(ClassCastException e) {
-				throw new IllegalArgumentException("Variables must be initialized with String-String hashtable.", e);
+			Object key = enum.nextElement();
+			Object value = initialHashtable.get(key);
+			if(!(key instanceof String && value instanceof String)) {
+				throw new IllegalArgumentException("Variables must be initialized with String-String hashtable.");
 			}
 		}
 		

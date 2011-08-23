@@ -2,34 +2,14 @@ package net.microscraper.json;
 
 import static org.junit.Assert.*;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
-import net.microscraper.client.Browser;
-import net.microscraper.file.FileLoader;
 import net.microscraper.json.JsonParser;
 import net.microscraper.json.JsonObject;
-import net.microscraper.json.JsonMEParser;
-import net.microscraper.regexp.JakartaRegexpCompiler;
-import net.microscraper.regexp.JavaUtilRegexpCompiler;
-import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.uri.Uri;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
 public abstract class JsonObjectTest {
 	private JsonParser jsonParser;
-	
-	private @Mocked FileLoader fileLoader;
-	private @Mocked Browser browser;
-	private @Mocked Uri location;
-	private String path = "path";
 	
 	private static final String jsonStringSimpleObject = 
 			"{ \"string\" : \"value\", \"int\" : 1, \"boolean\" : true, \"null\" : null }";
@@ -42,19 +22,12 @@ public abstract class JsonObjectTest {
 	@Before
 	public void setUp() throws Exception {
 		jsonParser = getJSONParser();
-		new NonStrictExpectations() {{
-			location.toString(); result = path;
-		}};
 	}
 	
 	protected abstract JsonParser getJSONParser();
 
-	private JsonObject getObject(final String jsonString) throws Exception {
-		new NonStrictExpectations() {{
-			fileLoader.load(location); result = jsonString;
-		}};
-		
-		return jsonParser.load(path);
+	private JsonObject getObject(String jsonString) throws Exception {
+		return jsonParser.parse(jsonString);
 	}
 	
 	@Test
