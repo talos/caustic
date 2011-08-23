@@ -3,8 +3,8 @@ package net.microscraper.database;
 import java.io.IOException;
 
 /**
- * Implementations of {@link Database} store the results of {@link Execution}s
- * and generate {@link Result} objects.
+ * Implementations of {@link Database} store the results of an {@link Executable}s and return
+ * unique integer IDs.
  * @see Result
  * @author john
  *
@@ -12,34 +12,21 @@ import java.io.IOException;
 public interface Database {
 	
 	/**
-	 * Store a name and value without a source {@link Result} in the {@link Database}.
-	 * @param name A {@link String} name to store this value under.  Cannot be <code>null</code>.
+	 * Store one result from an {@link Action}.
+	 * @param sourceId The {@link int} ID of the source {@link Variables}.
+	 * @param resultNum The 0-based {@link int} index of this result within its 
+	 * {@link Executable}.
+	 * @param name A {@link String} name to store this value under.  Should not be <code>null</code>.
+	 * @param sourceName The {@link String} name of the source {@link Variables}.
 	 * @param value A {@link String} value.  Can be <code>null</code>.
-	 * @param resultNum The 0-based {@link int} index of this {@link Result} within its 
-	 * {@link Execution}.
-	 * redundant results -- entire pages, for example.
 	 * @return A unique {@link int} identifier.
 	 * @throws TableManipulationException if there is a problem manipulating tables during storage.
 	 * @throws IOException if there is some other problem with writing to the {@link Database}.
 	 */
-	public int storeInitial(String name, String value, int resultNum) throws IOException, TableManipulationException;
+	public int store(int sourceId, int resultNum, String name, String sourceName, String value)
+				throws TableManipulationException, IOException;
 	
-	/**
-	 * Store a name and value with a source {@link Result} in the {@link Database}.
-	 * @param sourceId The {@link String} name of the source {@link Result}.
-	 * @param sourceId The {@link int} ID of the source {@link Result}.
-	 * @param name A {@link String} name to store this value under.  Cannot be <code>null</code>.
-	 * @param value A {@link String} value.  Can be <code>null</code>.
-	 * @param resultNum The 0-based {@link int} index of this {@link Result} within its 
-	 * {@link Execution}.
-	 * @return A unique {@link int} identifier.
-	 * @throws TableManipulationException if there is a problem manipulating tables during storage.
-	 * @throws IOException if there is some other problem with writing to the {@link Database}.
-	 */
-	public int store(String sourceName, int sourceId, String name, String value, int resultNum)
-				throws IOException, TableManipulationException;
 	
-
 	/**
 	 * Clean up the {@link Database}, preparing the tables for closing.  Does not {@link #close()}
 	 * the {@link Database}.

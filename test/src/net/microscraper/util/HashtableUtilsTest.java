@@ -14,7 +14,6 @@ import org.junit.Test;
 
 public class HashtableUtilsTest {	
 	private Decoder decoder = new Decoder() {
-		@Override
 		public String decode(String stringToDecode, String encoding)
 				throws UnsupportedEncodingException {
 			return URLDecoder.decode(stringToDecode, encoding);

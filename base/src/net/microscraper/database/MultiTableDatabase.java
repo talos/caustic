@@ -79,8 +79,8 @@ public final class MultiTableDatabase implements Database {
 		tables.put(ROOT_TABLE_NAME, rootTable);
 		rootResultId = rootTable.getLastId();
 	}
-	
-	public int storeInitial(String name, String value, int resultNum) throws IOException,
+	/*
+	private int storeInitial(String name, String value, int resultNum) throws IOException,
 				TableManipulationException {
 		
 		if(value != null) {
@@ -92,10 +92,16 @@ public final class MultiTableDatabase implements Database {
 				new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(rootResultId))
 		});
 	}
-	
-	public int store(String sourceName, int sourceId, String name, String value, int resultNum)
+	*/
+	public int store(int sourceId, int resultNum, String name, String sourceName, String value)
 				throws IOException, TableManipulationException {
-		String sourceTableName = cleanTableName(sourceName);
+		String sourceTableName = null;
+		if(sourceName == null) {
+			sourceName = ROOT_TABLE_NAME;
+		} else {
+			sourceTableName = cleanTableName(sourceName);
+		}
+		
 		IOTable sourceTable;
 		if(tables.containsKey(sourceTableName)) {
 			sourceTable = (IOTable) tables.get(sourceTableName);

@@ -43,7 +43,7 @@ public class MultiTableDatabaseTest {
 	
 	@Test
 	public void testStoreStringString() throws Exception {
-		db.storeInitial("name", "value", 0);
+		db.store(0, 0, "name", null, "value");
 		
 		new Verifications() {{
 			rootTable.insert((NameValuePair[]) any); times = 1;
@@ -54,8 +54,8 @@ public class MultiTableDatabaseTest {
 
 	@Test
 	public void testStoreResultStringString() throws Exception {
-		int parentId = db.storeInitial("parentName", "parentValue", 0);
-		db.store("parentName", 0, "childName", "childValue", 0);
+		int parentId = db.store(0, 0, "name", "parentName", "value");
+		db.store(0, 0, "childName", "parentName", "childValue");
 		
 		new Verifications() {{
 			//table.insert((NameValuePair[]) any); times = 3;

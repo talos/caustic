@@ -1,0 +1,9 @@
+{
+    "load"  : "http://www.google.com/search?q={{query}}",
+    "then" : {
+    	"find"     : "{{query}}\\s+(\\w+)",
+    	"replace" : "$1",
+    	"name"   : "query",
+	"then"   : "$this"
+    }
+}

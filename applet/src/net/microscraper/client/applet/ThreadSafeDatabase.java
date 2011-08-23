@@ -61,8 +61,8 @@ public class ThreadSafeDatabase implements Database {
 		return lastId;
 	}
 	@Override
-	public int store(String sourceName, int sourceId, String name,
-			String value, int resultNum) throws IOException,
+	public int store(int sourceId, int resultNum, String name,
+			String sourceName, String value) throws IOException,
 			TableManipulationException {
 		executions.add(getEntry(sourceId, name, value));
 		return lastId;

@@ -65,14 +65,9 @@ public class ArgumentsDatabase implements Database {
 	}
 	
 	@Override
-	public int storeInitial(String name, String value, int resultNum) throws TableManipulationException, IOException {
-		return database.storeInitial(name, value, resultNum);
-	}
-
-	@Override
-	public int store(String sourceName, int sourceId, String name,
-			String value, int resultNum) throws TableManipulationException, IOException {
-		return database.store(sourceName, sourceId, name, value, resultNum);
+	public int store(int sourceId, int resultNum, String name,
+			String sourceName, String value) throws TableManipulationException, IOException {
+		return database.store(sourceId, resultNum, name, sourceName, value);
 	}
 
 	@Override

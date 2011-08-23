@@ -44,7 +44,7 @@ public final class SingleTableDatabase implements Database {
 	public SingleTableDatabase(WritableConnection connection) throws IOException {
 		this.table = connection.getWritableTable(COLUMN_NAMES);
 	}
-
+	/*
 	public final int storeInitial(String name, String value, int resultNum)
 			throws TableManipulationException {
 		return table.insert(
@@ -54,8 +54,8 @@ public final class SingleTableDatabase implements Database {
 					new BasicNameValuePair(VALUE_COLUMN, value)
 				});
 	}
-	
-	public final int store(String sourceName, int sourceId, String name, String value, int resultNum)
+	*/
+	public final int store(int sourceId, int resultNum, String name, String sourceName, String value)
 			throws TableManipulationException {
 		return table.insert(
 				new NameValuePair[] {

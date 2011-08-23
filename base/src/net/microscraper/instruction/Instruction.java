@@ -125,9 +125,9 @@ public class Instruction {
 				Variables[] branches;
 				
 				if(resultValues.length == 1) {
-					branches = new Variables[] { Variables.singleBranch(variables, name, resultValues[0], hasName, shouldPersistValue) };	
+					branches = new Variables[] { Variables.singleBranch(variables, name, resultValues[0], hasName && shouldPersistValue) };	
 				} else {
-					branches = Variables.multiBranch(variables, name, resultValues, hasName, shouldPersistValue);						
+					branches = Variables.multiBranch(variables, name, resultValues, hasName && shouldPersistValue);						
 				}
 				
 				for(int i = 0 ; i < resultValues.length ; i ++) {

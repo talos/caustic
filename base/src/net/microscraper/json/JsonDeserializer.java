@@ -58,7 +58,7 @@ public class JsonDeserializer implements Deserializer {
 	 */
 	private final Encoder encoder;
 	
-	private Execution deserialize(String jsonString, Variables variables, String uri,
+	private Execution deserialize(String jsonString, Variables variables, String baseUri,
 			String openTagString, String closeTagString)
 			throws DeserializationException, JsonException, TemplateCompilationException,
 			IOException, MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException {
@@ -66,17 +66,21 @@ public class JsonDeserializer implements Deserializer {
 		
 		// Parse non-objects as URIs after substitution with variables
 		if(!parser.isJsonObject(jsonString)) {
-			Execution uriSub = Template.compile(jsonString, openTagString, closeTagString)
-					.subEncoded(variables, encoder, Browser.UTF_8);
-			if(uriSub.isSuccessful()) {
-				String uriPath = (String) uriSub.getExecuted();
-				//Uri uriToLoad = uriFactory.fromString(uriString);
-				String uriToLoad = uriResolver.resolve(uri, uriPath);
-				String loadedJSONString = uriLoader.load(uriToLoad);
-				
-				result = deserialize(loadedJSONString, variables, uriToLoad, openTagString, closeTagString);
+			if(jsonString.equalsIgnoreCase(SELF)) {
+				String loadedJSONString = uriLoader.load(baseUri);
+				result = deserialize(loadedJSONString, variables, baseUri, openTagString, closeTagString);
 			} else {
-				result = uriSub;
+				Execution uriSub = Template.compile(jsonString, openTagString, closeTagString)
+						.subEncoded(variables, encoder, Browser.UTF_8);
+				if(uriSub.isSuccessful()) {
+					String uriPath = (String) uriSub.getExecuted();
+					String uriToLoad = uriResolver.resolve(baseUri, uriPath);
+					String loadedJSONString = uriLoader.load(uriToLoad);
+					
+					result = deserialize(loadedJSONString, variables, uriToLoad, openTagString, closeTagString);
+				} else {
+					result = uriSub;
+				}
 			}
 		} else {
 			
@@ -148,7 +152,7 @@ public class JsonDeserializer implements Deserializer {
 							Execution uriSubstitution = extendsUriTemplate.subEncoded(variables, encoder, Browser.UTF_8);
 							if(uriSubstitution.isSuccessful()) {
 								String uriPath = (String) uriSubstitution.getExecuted();
-								String uriToLoad = uriResolver.resolve(uri, uriPath);
+								String uriToLoad = uriResolver.resolve(baseUri, uriPath);
 								String loadedJSONString = uriLoader.load(uriToLoad);
 								
 								jsonObjects.add(parser.parse(loadedJSONString));
@@ -157,24 +161,43 @@ public class JsonDeserializer implements Deserializer {
 							}
 						}
 					} else if(key.equalsIgnoreCase(THEN)) {
+						Vector thenStrings = new Vector();
+						Vector thenObjects = new Vector(); // Strings are added to this too -- their deserialization is handled later.
+						
 						if(obj.isJsonObject(key)) {
-							children.add(new InstructionPromise(this, obj.getString(key), uri.toString()));
+							thenObjects.add(obj.getString(key));
 						} else if (obj.isJsonArray(key)) {
 							JsonArray array = obj.getJsonArray(key);
 							for(int j = 0 ; j < array.length() ; j ++) {
-								children.add(new InstructionPromise(this, array.getString(j), uri.toString()));
+								if(array.isJsonObject(j)) {
+									thenObjects.add(array.getString(j));
+								} else if(array.isString(j)) {
+									thenStrings.add(array.getString(j));
+								} else {
+									throw new DeserializationException(THEN + " array elements must be strings or objects.");
+								}
 							}
 						} else if(obj.isString(key)) {
-							if(obj.getString(key).equalsIgnoreCase(SELF)) {
-								children.add(new InstructionPromise(this, jsonString, uri.toString()));
-							} else {
-								children.add(new InstructionPromise(this, obj.getString(key), uri.toString()));
-							}
+							thenStrings.add(obj.getString(key));
 						} else {
 							throw new DeserializationException(StringUtils.quote(key) +
 									" must be a String reference to another " +
 									" instruction, an object with another instruction, or an array with any number " +
 									" of both.");
+						}
+						
+						for(int j = 0 ; j < thenStrings.size(); j ++) {
+							String thenString = (String) thenStrings.elementAt(j);
+							if(thenString.equalsIgnoreCase(SELF)) {
+								//children.add(new InstructionPromise(this, jsonString, baseUri.toString()));
+								children.add(new InstructionPromise(this, SELF, baseUri));
+							} else {
+								children.add(new InstructionPromise(this, thenString, baseUri));
+							}
+						}
+						for(int j = 0 ; j < thenObjects.size(); j ++ ) {
+							String thenObjectAsString = (String) thenObjects.elementAt(j);
+							children.add(new InstructionPromise(this, thenObjectAsString, baseUri));
 						}
 					} else if(key.equalsIgnoreCase(NAME)) {
 						name = Template.compile(obj.getString(key), openTagString, closeTagString);

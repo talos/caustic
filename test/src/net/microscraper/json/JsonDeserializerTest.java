@@ -1,10 +1,14 @@
 package net.microscraper.json;
 
-import mockit.Injectable;
+import java.util.Iterator;
+import java.util.Vector;
+
+import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
 import net.microscraper.client.Browser;
+import net.microscraper.instruction.Executable;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
@@ -13,6 +17,7 @@ import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
+import net.microscraper.util.VectorUtils;
 import static net.microscraper.json.JsonDeserializer.*;
 import static net.microscraper.util.TestUtils.randomInt;
 import static net.microscraper.util.TestUtils.randomString;
@@ -30,12 +35,13 @@ public class JsonDeserializerTest {
 	private @Mocked UriResolver uriResolver;
 	private @Mocked URILoader uriLoader;
 	private @Mocked Variables variables;
-
+	private @Mocked Pattern pattern;
+	
 	private JsonParser parser;
 	private JsonDeserializer deserializer;
 	
-	private static final String googleString = "http://www.google.com";
-	private static final String patternString = ".*";
+	private static final String urlString = "URL " + randomString();
+	private static final String patternString = "PATTERN " + randomString();
 	
 	private String emptyJson;
 	private String userDir;
@@ -48,22 +54,28 @@ public class JsonDeserializerTest {
 	public void setUp() throws Exception {
 		parser = new JsonMEParser();
 		
-		loadPath = randomString();
-		load = new JSONObject().put(LOAD, googleString);
-		findPath = randomString();
+		loadPath = "LOAD PATH " + randomString();
+		load = new JSONObject().put(LOAD, urlString);
+		findPath = "FIND PATH " + randomString();
 		find = new JSONObject().put(FIND, patternString);
 		deserializer = new JsonDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
 		emptyJson = new JSONObject().toString();
-		userDir = randomString();
-		
+		userDir = "USER DIR " + randomString();
+
+		final String loadUri = "LOAD URI " + randomString();
+		final String findUri = "FIND URI " + randomString();
 		new NonStrictExpectations() {
-			String loadUri = randomString();
-			String findUri = randomString();
 			{
+				uriResolver.resolve(userDir, ""); result = userDir;
+				uriResolver.resolve(loadPath, ""); result = loadPath;
+				uriResolver.resolve(findPath, ""); result = findPath;
+				
 				uriResolver.resolve(userDir, loadPath); result = loadUri;			
 				uriResolver.resolve(userDir, findPath); result = findUri;
-				uriLoader.load(loadUri); result = load;
-				uriLoader.load(findUri); result = find;
+				uriLoader.load(loadUri); result = load.toString();
+				uriLoader.load(findUri); result = find.toString();
+				
+				compiler.compile(patternString, anyBoolean, anyBoolean, anyBoolean); result = pattern;
 			}
 		};
 	}
@@ -191,5 +203,62 @@ public class JsonDeserializerTest {
 		
 		Execution exc = deserializer.deserializeString(extendedFind.toString(), variables, userDir);
 		assertTrue(exc + " should be a Find.", exc.isSuccessful());
+	}
+	
+	@Test
+	public void testSelfReference() throws Exception {
+		final int recursions = 100;
+		
+		final String source = randomString();
+		final String[] matches = new String[] { source };
+		find.put(THEN, SELF);
+		
+		new Expectations() {{
+			pattern.match(source, anyString, anyInt, anyInt); result = matches; times = recursions +1;
+		}};
+		
+		Execution exc;
+		exc = deserializer.deserializeString(find.toString(), variables, userDir);
+		Instruction instruction = (Instruction) exc.getExecuted();
+		
+		Executable child = ((Executable[]) instruction.execute(source, variables).getExecuted())[0];
+		for(int i = 0 ; i < recursions; i ++ ) {
+			child = ((Executable[]) child.execute().getExecuted())[0];
+		}
+	}
+	
+
+	@Test // TODO SELF referencing doesn't work with inline JSON.
+	public void testSelfReferenceArray() throws Exception {
+		final int recursions = 10;
+		
+		final String source = randomString();
+		final String[] matches = new String[] { source };
+		find.put(THEN, new JSONArray().put(SELF).put(SELF));
+		
+		new Expectations() {{
+			pattern.match(source, anyString, anyInt, anyInt); result = matches;
+					times = Double.valueOf(Math.pow(2, recursions)).intValue() -1;
+		}};
+		
+		Execution exc;
+		exc = deserializer.deserializeString(find.toString(), variables, userDir);
+		Instruction instruction = (Instruction) exc.getExecuted();
+		
+		Vector<Executable> children = new Vector<Executable>();
+		VectorUtils.arrayIntoVector((Executable[]) instruction.execute(source, variables).getExecuted(), children);
+		for(int i = 1 ; i < recursions; i ++ ) {
+			assertEquals(Double.valueOf(Math.pow(2, i)).intValue(), children.size());
+			
+			Vector<Executable> recursedChildren = new Vector<Executable>();
+			
+			Iterator<Executable> iter = children.listIterator();
+			while(iter.hasNext()) {
+				VectorUtils.arrayIntoVector(((Executable[]) iter.next().execute().getExecuted()), recursedChildren);
+			}
+			
+			children.clear();
+			children = recursedChildren;
+		}
 	}
 }

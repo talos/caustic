@@ -69,12 +69,13 @@ public abstract class MicroscraperImplementationTest {
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {		
 		new Expectations() {{
-			database.storeInitial("http://www.google.com/search?q=hello", (String) withNull(), 0); result = 0;
-			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 0); result = 1;
-			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 1); result = 2;
-			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), 2); result = 3;
+			database.store(0, 0, "query", (String) withNull(), "hello"); result = 0;
+			database.store(0, 0, "http://www.google.com/search?q=hello", (String) withNull(), (String) withNull()); result = 1;
+			database.store(1, 0, "what do you say after 'hello'?", "http://www.google.com/search?q=hello", withPrefix("I say ")); result = 2;
+			database.store(1, 1, "what do you say after 'hello'?", "http://www.google.com/search?q=hello", withPrefix("I say ")); result = 3;
+			database.store(1, 2, "what do you say after 'hello'?", "http://www.google.com/search?q=hello", withPrefix("I say ")); result = 4;
 			// etc.
-			database.store("http://www.google.com/search?q=hello", 0, "what do you say after 'hello'?", withPrefix("I say "), anyInt);
+			database.store(1, anyInt, "what do you say after 'hello'?", "http://www.google.com/search?q=hello", withPrefix("I say "));
 					minTimes = 1;
 			
 			database.clean();
@@ -90,23 +91,25 @@ public abstract class MicroscraperImplementationTest {
 	@Test
 	public void testScrapeComplexGoogle() throws Exception {
 		new Expectations() {{
-			database.storeInitial("http://www.google.com/search?q=hello", (String) withNull(), 0);
-			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 0); result = 1;
-			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 1); result = 2;
-			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, 2); result = 3;
-			database.store("http://www.google.com/search?q=hello", 0, "after", anyString, anyInt); minTimes = 1;
+			database.store(0, 0, "query", (String) withNull(), "hello"); result = 0;
+
+			database.store(1, 0, "http://www.google.com/search?q=hello", (String) withNull(), (String) withNull()); result = 1;
+			database.store(1, 0, "after", "http://www.google.com/search?q=hello", anyString); result = 1;
+			database.store(1, 1, "after", "http://www.google.com/search?q=hello", anyString); result = 2;
+			database.store(1, 2, "after", "http://www.google.com/search?q=hello", anyString); result = 3;
+			database.store(1, anyInt, "after", "http://www.google.com/search?q=hello", anyString); minTimes = 1;
 			
-			database.store("after", 1, withPrefix("http://www.google.com/search?q="), (String) withNull(), 0); result = 4;
-			database.store("after", 2, withPrefix("http://www.google.com/search?q="), (String) withNull(), 0); result = 5;
-			database.store("after", 3, withPrefix("http://www.google.com/search?q="), (String) withNull(), 0); result = 6;
-			database.store("after", anyInt, withPrefix("http://www.google.com/search?q="), (String) withNull(), 0); minTimes = 1;
+			database.store(2, 0, withPrefix("http://www.google.com/search?q="), "after", (String) withNull()); result = 4;
+			database.store(3, 0, withPrefix("http://www.google.com/search?q="), "after", (String) withNull()); result = 5;
+			database.store(4, 0, withPrefix("http://www.google.com/search?q="), "after", (String) withNull()); result = 6;
+			database.store(anyInt, 0, withPrefix("http://www.google.com/search?q="), "after", (String) withNull()); minTimes = 1;
 			
-			database.store(withPrefix("http://www.google.com/search?q="), 4, withPrefix("what do you say after"), withPrefix("I say"), 0);
-			database.store(withPrefix("http://www.google.com/search?q="), 4, withPrefix("what do you say after"), withPrefix("I say"), 1);
-			database.store(withPrefix("http://www.google.com/search?q="), 4, withPrefix("what do you say after"), withPrefix("I say"), 2);
-			database.store(withPrefix("http://www.google.com/search?q="), 4, withPrefix("what do you say after"), withPrefix("I say"), anyInt); minTimes = 1;
+			database.store(5, 0, withPrefix("what do you say after"), withPrefix("http://www.google.com/search?q="), withPrefix("I say"));
+			database.store(5, 1, withPrefix("what do you say after"), withPrefix("http://www.google.com/search?q="), withPrefix("I say"));
+			database.store(5, 2, withPrefix("what do you say after"), withPrefix("http://www.google.com/search?q="), withPrefix("I say"));
+			database.store(5, anyInt, withPrefix("what do you say after"), withPrefix("http://www.google.com/search?q="), withPrefix("I say")); minTimes = 1;
 			
-			database.store(withPrefix("http://www.google.com/search?q="), anyInt, withPrefix("what do you say after"), withPrefix("I say"), anyInt); minTimes = 1;
+			database.store(anyInt, anyInt, withPrefix("what do you say after"), withPrefix("http://www.google.com/search?q="), withPrefix("I say")); minTimes = 1;
 		
 			database.clean();
 			database.close();

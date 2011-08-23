@@ -1,5 +1,6 @@
 package net.microscraper.client;
 
+import java.io.File;
 import java.io.IOException;
 
 import net.microscraper.browser.JavaNetBrowser;
@@ -39,12 +40,10 @@ public class BasicMicroscraper {
 		try {
 			Browser browser = new JavaNetBrowser();
 			
-			String executionDir = System.getProperty("user.dir");
-			if(!executionDir.endsWith(System.getProperty("file.separator"))) {
-				executionDir += System.getProperty("file.separator");
+			String executionDir = new File(System.getProperty("user.dir")).toURI().toString();
+			if(!executionDir.endsWith("/")) {
+				executionDir += "/";
 			}
-						
-			//browser.register(new SystemOutLogger());
 			
 			browser.setRateLimit(rateLimit);
 			browser.setTimeout(timeout);

@@ -115,7 +115,7 @@ public final class InstructionTest {
 				action.execute(source, variables); times = 1; result = actionExecution;
 				actionExecution.isSuccessful(); result = true;
 				actionExecution.getExecuted(); result = actionResults;
-				database.storeInitial(anyString, anyString, anyInt); result = new IOException();
+				database.store(anyInt, anyInt, anyString, anyString, anyString); result = new IOException();
 			}
 		};
 		
