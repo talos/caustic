@@ -18,8 +18,8 @@ import net.microscraper.template.Template;
 import net.microscraper.template.TemplateCompilationException;
 import net.microscraper.uri.MalformedUriException;
 import net.microscraper.uri.RemoteToLocalSchemeResolutionException;
-import net.microscraper.uri.Uri;
-import net.microscraper.uri.UriFactory;
+import net.microscraper.uri.URILoader;
+import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;
@@ -29,10 +29,14 @@ import net.microscraper.util.VectorUtils;
 public class JsonDeserializer implements Deserializer {
 	
 	/**
-	 * The {@link UriFactory} to use when resolving {@link Uri}.
+	 * The {@link UriResolver} to use when resolving URIs.
 	 */
-	private final UriFactory uriFactory;
+	private final UriResolver uriResolver;
 	
+	/**
+	 * The {@link URILoader} to use when loading the contents of URIs.
+	 */
+	private final URILoader uriLoader;
 	
 	/**
 	 * The {@link JsonParser} used to parse JSON objects.
@@ -54,7 +58,7 @@ public class JsonDeserializer implements Deserializer {
 	 */
 	private final Encoder encoder;
 	
-	private Execution deserialize(String jsonString, Variables variables, Uri uri,
+	private Execution deserialize(String jsonString, Variables variables, String uri,
 			String openTagString, String closeTagString)
 			throws DeserializationException, JsonException, TemplateCompilationException,
 			IOException, MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException {
@@ -65,10 +69,12 @@ public class JsonDeserializer implements Deserializer {
 			Execution uriSub = Template.compile(jsonString, openTagString, closeTagString)
 					.subEncoded(variables, encoder, Browser.UTF_8);
 			if(uriSub.isSuccessful()) {
-				String uriString = (String) uriSub.getExecuted();
+				String uriPath = (String) uriSub.getExecuted();
 				//Uri uriToLoad = uriFactory.fromString(uriString);
-				Uri uriToLoad = uri.resolve(uriString);
-				result = deserialize(uriToLoad.load(), variables, uriToLoad, openTagString, closeTagString);
+				String uriToLoad = uriResolver.resolve(uri, uriPath);
+				String loadedJSONString = uriLoader.load(uriToLoad);
+				
+				result = deserialize(loadedJSONString, variables, uriToLoad, openTagString, closeTagString);
 			} else {
 				result = uriSub;
 			}
@@ -141,9 +147,11 @@ public class JsonDeserializer implements Deserializer {
 							Template extendsUriTemplate = Template.compile(obj.getString(key), openTagString, closeTagString);
 							Execution uriSubstitution = extendsUriTemplate.subEncoded(variables, encoder, Browser.UTF_8);
 							if(uriSubstitution.isSuccessful()) {
-								Uri uriToLoad = uri.resolve((String) uriSubstitution.getExecuted());
+								String uriPath = (String) uriSubstitution.getExecuted();
+								String uriToLoad = uriResolver.resolve(uri, uriPath);
+								String loadedJSONString = uriLoader.load(uriToLoad);
 								
-								jsonObjects.add(parser.parse(uriToLoad.load()));
+								jsonObjects.add(parser.parse(loadedJSONString));
 							} else {
 								return uriSubstitution; // can't substitute uri to load EXTENDS reference, missing-variable out.
 							}
@@ -456,18 +464,19 @@ public class JsonDeserializer implements Deserializer {
 	 * @param uriFactory
 	 */
 	public JsonDeserializer(JsonParser parser, RegexpCompiler compiler, Browser browser,
-			Encoder encoder, UriFactory uriFactory) throws MalformedUriException {
+			Encoder encoder, UriResolver uriResolver, URILoader uriLoader) throws MalformedUriException {
 		this.compiler = compiler;
 		this.parser = parser;
 		this.browser = browser;
 		this.encoder = encoder;
-		this.uriFactory = uriFactory;
+		this.uriResolver = uriResolver;
+		this.uriLoader = uriLoader;
 	}
 	
 	public Execution deserializeString(String serializedString, Variables variables, String uri) {
 		
 		try {
-			return deserialize(serializedString, variables, uriFactory.fromString(uri),
+			return deserialize(serializedString, variables, uri,
 					Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
 		} catch(JsonException e) {
 			return Execution.deserializationException(new DeserializationException(e));

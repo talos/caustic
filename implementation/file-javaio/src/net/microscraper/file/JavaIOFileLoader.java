@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import net.microscraper.file.FileLoader;
-import net.microscraper.uri.Uri;
 
 /**
  * An implementation of {@link FileLoader} using {@link java.io.File}.
@@ -17,8 +16,9 @@ import net.microscraper.uri.Uri;
 public class JavaIOFileLoader implements FileLoader {
 
 	@Override
-	public String load(Uri path) throws IOException {
-		File file = new File(path.getSchemeSpecificPart());
+	public String load(String path) throws IOException {
+		//File file = new File(path.getSchemeSpecificPart());
+		File file = new File(path);
 		FileInputStream fileInputStream = new FileInputStream(file);
 		byte[] buffer = new byte[(int) file.length()];  
 		fileInputStream.read(buffer);

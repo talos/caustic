@@ -1,9 +1,5 @@
 package net.microscraper.json;
 
-import java.io.IOException;
-
-import net.microscraper.uri.MalformedUriException;
-
 /**
  * Interface to a JSON array.
  * @author realest
@@ -25,12 +21,8 @@ public interface JsonArray {
 	 * @return <code>true</code> if <code>index</code> is a {@link JsonArray}, 
 	 * <code>false</code> otherwise.
 	 * @throws JsonException If <code>index</code> does not exist.
-	 * @throws IOException If the {@link JsonObject} follows a reference that cannot
-	 * be loaded.
-	 * @throws MalformedUriException If the {@link JsonObject} contains an invalid
-	 * reference.
 	 */
-	public abstract boolean isJsonArray(int index) throws JsonException, IOException, MalformedUriException;
+	public abstract boolean isJsonArray(int index) throws JsonException;
 	
 	/**
 	 * Retrieve a {@link JsonObject} from the specified <code>index</code>.
@@ -38,13 +30,9 @@ public interface JsonArray {
 	 * @return A {@link JsonObject}.
 	 * @throws JsonException If the index does not exist, or its value is
 	 *  not a JSON object.
-	 * @throws IOException If the {@link JsonObject} follows a reference that cannot
-	 * be loaded.
-	 * @throws MalformedUriException If the {@link JsonObject} contains an invalid
-	 * reference.
 	 * 
 	 */
-	public abstract JsonObject getJsonObject(int index) throws JsonException, IOException, MalformedUriException;
+	public abstract JsonObject getJsonObject(int index) throws JsonException;
 
 	/**
 	 * Determine whether the specified <code>index</code> is a {@link JsonObject}.
@@ -125,10 +113,4 @@ public interface JsonArray {
 	 * @return The length of the {@link JsonArray}.
 	 */
 	public abstract int length();
-	
-	/**
-	 * 
-	 * @return The {@link JSONInterfaceArray}'s {@link JSONLocation}.
-	 */
-	//public abstract JSONLocation getLocation();
 }

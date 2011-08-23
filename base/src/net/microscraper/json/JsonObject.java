@@ -1,14 +1,8 @@
 package net.microscraper.json;
 
-import java.io.IOException;
-
-import net.microscraper.uri.MalformedUriException;
-import net.microscraper.uri.Uri;
-
 /**
- * Interface to a JSON object.  Should be initialized by {@link JsonParser#load(Uri)}.
+ * Interface to a JSON object.
  * @see JsonParser 
- * @see Uri
  * @author realest
  *
  */
@@ -19,12 +13,8 @@ public interface JsonObject {
 	 * @return A {@link JsonArray}.
 	 * @throws JsonException If <code>key</code> does not exist, or its value is
 	 * not a JSON array.
-	 * @throws IOException If the {@link JsonArray} follows a reference that cannot
-	 * be loaded.
-	 * @throws MalformedUriException If the {@link JsonArray} contains an invalid
-	 * reference.
 	 */
-	public abstract JsonArray getJsonArray(String key) throws JsonException, IOException, MalformedUriException;
+	public abstract JsonArray getJsonArray(String key) throws JsonException;
 	
 	/**
 	 * Determine whether the specified <code>key</code> is a {@link JsonArray}.
@@ -41,12 +31,8 @@ public interface JsonObject {
 	 * @return A {@link JsonObject}.
 	 * @throws JsonException If <code>key</code> does not exist, or its value is
 	 * not a JSON object.
-	 * @throws IOException If the {@link JsonArray} follows a reference that cannot
-	 * be loaded.
-	 * @throws MalformedUriException If the {@link JsonArray} contains an invalid
-	 * reference.
 	 */
-	public abstract JsonObject getJsonObject(String key) throws JsonException, IOException, MalformedUriException;
+	public abstract JsonObject getJsonObject(String key) throws JsonException;
 	
 	/**
 	 * Determine whether the specified <code>key</code> is a {@link JsonObject}.
@@ -147,10 +133,4 @@ public interface JsonObject {
 	 * @return The number of key-value mappings in this {@link JsonObject}.
 	 */
 	public abstract int length();
-	
-	/**
-	 * 
-	 * @return The {@link JSONInterfaceObject}'s {@link JSONLocation}.
-	 */
-	//public abstract JSONLocation getLocation();
 }

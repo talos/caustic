@@ -8,8 +8,8 @@ import net.microscraper.client.Browser;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.uri.Uri;
-import net.microscraper.uri.UriFactory;
+import net.microscraper.uri.URILoader;
+import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
@@ -27,7 +27,8 @@ public class JsonDeserializerTest {
 	private @Mocked RegexpCompiler compiler;
 	private @Mocked Browser browser;
 	private @Mocked Encoder encoder;
-	private @Mocked UriFactory uriFactory;
+	private @Mocked UriResolver uriResolver;
+	private @Mocked URILoader uriLoader;
 	private @Mocked Variables variables;
 
 	private JsonParser parser;
@@ -37,9 +38,9 @@ public class JsonDeserializerTest {
 	private static final String patternString = ".*";
 	
 	private String emptyJson;
-	private String rootUriString;
-	private String loadRef;
-	private String findRef;
+	private String userDir;
+	private String loadPath;
+	private String findPath;
 	private JSONObject load;
 	private JSONObject find;
 	
@@ -47,70 +48,67 @@ public class JsonDeserializerTest {
 	public void setUp() throws Exception {
 		parser = new JsonMEParser();
 		
-		loadRef = randomString();
+		loadPath = randomString();
 		load = new JSONObject().put(LOAD, googleString);
-		findRef = randomString();
+		findPath = randomString();
 		find = new JSONObject().put(FIND, patternString);
-		deserializer = new JsonDeserializer(parser, compiler, browser, encoder, uriFactory);
+		deserializer = new JsonDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
 		emptyJson = new JSONObject().toString();
-		rootUriString = randomString();
+		userDir = randomString();
 		
 		new NonStrictExpectations() {
-			@Injectable Uri loadUri, findUri, rootUri;
+			String loadUri = randomString();
+			String findUri = randomString();
 			{
-				uriFactory.fromString(rootUriString); result = rootUri;
-				rootUri.resolve(loadRef); result = loadUri;
-				rootUri.resolve(findRef); result = findUri;
-				
-				uriFactory.fromString(loadRef); result = loadUri;
-				loadUri.load(); result = load.toString();
-				
-				uriFactory.fromString(findRef); result = findUri;
-				findUri.load(); result = find.toString();
-		}};
+				uriResolver.resolve(userDir, loadPath); result = loadUri;			
+				uriResolver.resolve(userDir, findPath); result = findUri;
+				uriLoader.load(loadUri); result = load;
+				uriLoader.load(findUri); result = find;
+			}
+		};
 	}
 	
 	@Test
 	public void testDeserializeSimpleLoadFromJsonSucceeds() throws Exception {
-		Execution exc = deserializer.deserializeString(load.toString(), variables, rootUriString);
+		Execution exc = deserializer.deserializeString(load.toString(), variables, userDir);
 		assertTrue(exc + " should be a Load.", exc.isSuccessful());
 	}
 	
 	@Test
 	public void testDeserializeSimpleLoadFromUriSucceeds() throws Exception {
-		Execution exc = deserializer.deserializeString(loadRef, variables, rootUriString);
+		Execution exc = deserializer.deserializeString(loadPath, variables, userDir);
 		assertTrue(exc + " should be a Load.", exc.isSuccessful());
 	}
 
 	@Test
 	public void testDeserializeSimpleFindFromJsonSucceeds() throws Exception {
-		Execution exc = deserializer.deserializeString(find.toString(), variables, rootUriString);
+		Execution exc = deserializer.deserializeString(find.toString(), variables, userDir);
 		assertTrue(exc + " should be a Find.", exc.isSuccessful());
 	}
 
 	@Test
 	public void testDeserializeSimpleFindFromUriSucceeds() throws Exception {
-		Execution exc = deserializer.deserializeString(findRef, variables, rootUriString);
+		Execution exc = deserializer.deserializeString(findPath, variables, userDir);
 		assertTrue(exc + " should be a Find.", exc.isSuccessful());
 	}
 
 	@Test
 	public void testEmptyObjFails() throws Exception {
-		Execution exc = deserializer.deserializeString(emptyJson, variables, rootUriString);
+		Execution exc = deserializer.deserializeString(emptyJson, variables, userDir);
 		assertTrue(exc + " should have failed because neither Find nor Load were defined.", exc.hasFailed());
 	}
 	
 	@Test
 	public void testRandomKeyFails() throws Exception {
 		find.put(randomString(), randomString());
-		Execution exc = deserializer.deserializeString(find.toString(), variables, rootUriString);
+		Execution exc = deserializer.deserializeString(find.toString(), variables, userDir);
 		assertTrue(exc + " should have failed because a random key-value was added.", exc.hasFailed());
 	}
 	
 	@Test
 	public void testLoadAndFindInInstructionFails() throws Exception {
 		find.put(LOAD, randomString());
-		Execution exc = deserializer.deserializeString(find.toString(), variables, rootUriString);
+		Execution exc = deserializer.deserializeString(find.toString(), variables, userDir);
 		assertTrue(exc + " should have failed because both a Find and a Load were defined.", exc.hasFailed());
 	}
 	
@@ -119,7 +117,7 @@ public class JsonDeserializerTest {
 		find.put(MAX_MATCH, 10);
 		find.put(MATCH, 5);
 		
-		Execution exc = deserializer.deserializeString(find.toString(), variables, rootUriString);
+		Execution exc = deserializer.deserializeString(find.toString(), variables, userDir);
 		assertTrue(exc + " should have failed because both " + MAX_MATCH + " and " + MATCH + " were defined.", exc.hasFailed());
 	}
 
@@ -128,7 +126,7 @@ public class JsonDeserializerTest {
 		find.put(MIN_MATCH, 0);
 		find.put(MATCH, 5);
 		
-		Execution exc = deserializer.deserializeString(find.toString(), variables, rootUriString);
+		Execution exc = deserializer.deserializeString(find.toString(), variables, userDir);
 		assertTrue(exc + " should have failed because both " + MIN_MATCH + " and " + MATCH + " were defined.", exc.hasFailed());
 	}
 	
@@ -140,7 +138,7 @@ public class JsonDeserializerTest {
 			compiler.compile(patternString, anyBoolean, anyBoolean, anyBoolean); result = pattern;
 		}};
 		
-		Instruction instruction = (Instruction) deserializer.deserializeString(find.toString(), variables, rootUriString).getExecuted();
+		Instruction instruction = (Instruction) deserializer.deserializeString(find.toString(), variables, userDir).getExecuted();
 		instruction.execute(stringSource, variables);
 		
 		new Verifications() {{
@@ -155,7 +153,7 @@ public class JsonDeserializerTest {
 		find.put(MIN_MATCH, min);
 		find.put(MAX_MATCH, max);
 		
-		Execution exc = deserializer.deserializeString(find.toString(), variables, rootUriString);
+		Execution exc = deserializer.deserializeString(find.toString(), variables, userDir);
 		assertTrue(exc + " should have failed because of invalid positive " + MIN_MATCH + " to " +MAX_MATCH + " range.", exc.hasFailed());
 	}
 	
@@ -166,7 +164,7 @@ public class JsonDeserializerTest {
 		find.put(MIN_MATCH, min);
 		find.put(MAX_MATCH, max);
 		
-		Execution exc = deserializer.deserializeString(find.toString(), variables, rootUriString);
+		Execution exc = deserializer.deserializeString(find.toString(), variables, userDir);
 		assertTrue(exc + " should have failed because of invalid negative " + MIN_MATCH + " to " +MAX_MATCH + " range.", exc.hasFailed());
 	}
 	
@@ -174,16 +172,16 @@ public class JsonDeserializerTest {
 	public void testExtendsObjectSetsFindAttribute() throws Exception {
 		JSONObject extendedFind = new JSONObject().put(EXTENDS, find);
 		
-		Execution exc = deserializer.deserializeString(extendedFind.toString(), variables, rootUriString);
+		Execution exc = deserializer.deserializeString(extendedFind.toString(), variables, userDir);
 		assertTrue(exc + " should be a Find.", exc.isSuccessful());
 	}
 	
 
 	@Test
 	public void testExtendsStringSetsFindAttribute() throws Exception {
-		JSONObject extendedFind = new JSONObject().put(EXTENDS, findRef);
+		JSONObject extendedFind = new JSONObject().put(EXTENDS, findPath);
 				
-		Execution exc = deserializer.deserializeString(extendedFind.toString(), variables, rootUriString);
+		Execution exc = deserializer.deserializeString(extendedFind.toString(), variables, userDir);
 		assertTrue(exc + " should be a Find.", exc.isSuccessful());
 	}
 	
@@ -191,7 +189,7 @@ public class JsonDeserializerTest {
 	public void testExtendsArrayObjectSetsFindAttribute() throws Exception {
 		JSONObject extendedFind = new JSONObject().put(EXTENDS, new JSONArray().put(find));
 		
-		Execution exc = deserializer.deserializeString(extendedFind.toString(), variables, rootUriString);
+		Execution exc = deserializer.deserializeString(extendedFind.toString(), variables, userDir);
 		assertTrue(exc + " should be a Find.", exc.isSuccessful());
 	}
 }
