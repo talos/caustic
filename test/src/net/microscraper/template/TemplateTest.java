@@ -25,7 +25,8 @@ public class TemplateTest {
 	private static final String key = "template";
 	private static final String value = "has been substituted";
 	private static final String encodedValue = "has+been+substituted";
-	private static final String validTemplateRaw = "A valid {{" + key + "}}.";
+	private static final String validTemplateRaw =
+			"A valid " + Template.DEFAULT_OPEN_TAG + key + Template.DEFAULT_CLOSE_TAG + ".";
 	private static final String validTemplateCompiled = "A valid " + value + ".";
 	private static final String validTemplateCompiledEncoded = "A valid " + encodedValue + ".";
 	
@@ -39,17 +40,17 @@ public class TemplateTest {
 	
 	@Test
 	public void testMustacheTemplateCompiles() throws TemplateCompilationException {
-		Template.compile(validTemplateRaw);
+		Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
 	}
 	
 	@Test(expected = TemplateCompilationException.class)
 	public void testInvalidMustacheDoesNotCompile() throws TemplateCompilationException {
-		Template.compile("{{");
+		Template.compile(Template.DEFAULT_OPEN_TAG, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
 	}
 	
 	@Test
 	public void testSubSuccessful() throws TemplateCompilationException {
-		Template template = Template.compile(validTemplateRaw);
+		Template template = Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
 		Execution sub = template.sub(variables);
 		assertTrue(sub.isSuccessful());
 		assertEquals(validTemplateCompiled, sub.getExecuted());
@@ -57,7 +58,7 @@ public class TemplateTest {
 	
 	@Test
 	public void testSubUnsuccessful() throws TemplateCompilationException {
-		Template template = Template.compile(validTemplateRaw);
+		Template template = Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
 		Execution sub = template.sub(empty);
 		assertFalse(sub.isSuccessful());
 		assertArrayEquals(new String[] { key }, sub.getMissingVariables());
@@ -69,7 +70,7 @@ public class TemplateTest {
 		new Expectations() {{
 			encoder.encode(value, encoding); result = encodedValue;
 		}};
-		Template template = Template.compile(validTemplateRaw);
+		Template template = Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
 		Execution sub = template.subEncoded(variables, encoder, encoding);
 		assertTrue(sub.isSuccessful());
 		assertEquals(validTemplateCompiledEncoded, sub.getExecuted());
@@ -81,7 +82,7 @@ public class TemplateTest {
 		new Expectations() {{
 			encoder.encode(value, encoding); result = encodedValue; times = 0;
 		}};
-		Template template = Template.compile(validTemplateRaw);
+		Template template = Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
 		Execution sub = template.subEncoded(empty, encoder, encoding);
 		assertFalse(sub.isSuccessful());
 		assertArrayEquals(new String[] {key}, sub.getMissingVariables());
@@ -94,13 +95,13 @@ public class TemplateTest {
 		new Expectations() {{
 			encoder.encode(value, encoding); result = new UnsupportedEncodingException();
 		}};
-		Template template = Template.compile(validTemplateRaw);
+		Template template = Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
 		template.subEncoded(variables, encoder, encoding);
 	}
 
 	@Test
 	public void testToString() throws TemplateCompilationException {
-		Template template = Template.compile(validTemplateRaw);
+		Template template = Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
 		assertEquals(validTemplateRaw, template.toString());
 	}
 
