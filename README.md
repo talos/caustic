@@ -149,8 +149,6 @@ should give you the same results as before.  Any string appearing inside *then* 
 
 What if you want a scraper to run itself?  No problem!
 
-This [fixture](microscraper-client/blob/master/fixtures/json/recursive-google.json) does just that
-
     {
       "load"  : "http://www.google.com/search?q={{query}}",
       "then" : {
