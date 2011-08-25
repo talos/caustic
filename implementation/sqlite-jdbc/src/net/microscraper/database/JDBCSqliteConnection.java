@@ -9,8 +9,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.microscraper.database.IOTable;
-import net.microscraper.database.WritableTable;
+import net.microscraper.database.Updateable;
+import net.microscraper.database.Insertable;
 
 /**
  * An implementation of {@link SQLConnection} for org.sqlite.JDBC
@@ -23,7 +23,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 	private final int batchSize;
 	
 	/**
-	 * The name of a single table for {@link #getWritableTable(String[])}.
+	 * The name of a single table for {@link #getInsertable(String[])}.
 	 */
 	private static final String SINGLE_TABLE_NAME = "results";
 	
@@ -216,10 +216,10 @@ public class JDBCSqliteConnection implements SQLConnection {
 	public void open() { }
 	
 	@Override
-	public IOTable getIOTable(String name, String[] textColumns)
+	public Updateable getIOTable(String name, String[] textColumns)
 			throws IOException {
 		try {
-			IOTable table = new SQLTable(this, name, textColumns);
+			Updateable table = new SQLTable(this, name, textColumns);
 			runBatch();
 			return table;
 		} catch(SQLConnectionException e) {
@@ -240,7 +240,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 	}
 	
 	@Override
-	public WritableTable getWritableTable(String[] textColumns)
+	public Insertable getInsertable(String[] textColumns)
 			throws IOException {
 		return getIOTable(SINGLE_TABLE_NAME, textColumns);
 	}

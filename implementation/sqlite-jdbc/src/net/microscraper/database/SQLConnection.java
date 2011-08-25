@@ -1,13 +1,13 @@
 package net.microscraper.database;
 
-import net.microscraper.database.IOConnection;
+import net.microscraper.database.UpdateableConnection;
 
 /**
  * An interface to a SQL connection.  Methods similar to {@link java.sql}.
  * @author talos
  *
  */
-public interface SQLConnection extends IOConnection {
+public interface SQLConnection extends UpdateableConnection {
 	
 	/**
 	 * @return A {@link String} to define a primary key, for example <code>

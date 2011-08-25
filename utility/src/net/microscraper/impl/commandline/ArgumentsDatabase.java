@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import net.microscraper.database.Database;
 import net.microscraper.database.DelimitedConnection;
-import net.microscraper.database.IOConnection;
+import net.microscraper.database.UpdateableConnection;
 import net.microscraper.database.JDBCSqliteConnection;
 import net.microscraper.database.MultiTableDatabase;
 import net.microscraper.database.SQLConnectionException;
@@ -47,7 +47,7 @@ public class ArgumentsDatabase implements Database {
 				
 				int batchSize = Integer.parseInt(args.get(BATCH_SIZE));
 				
-				IOConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
+				UpdateableConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
 
 				if(args.has(SINGLE_TABLE)) {
 					database = new SingleTableDatabase(connection);

@@ -1,7 +1,8 @@
 
-{
+q{
     "description" : "Can be run with FromMonth=01&ToMonth=12&FromDay=01&ToDay=31&FromYear=2007&ToYear=2007&Borough=3&Block=1772&DocType=",
     "load" : "http://a836-acris.nyc.gov/Scripts/DocSearch.dll/BBLResult",
+    "name" : "ACRIS BBLResult",
     "cookies" : {
 	"JUMPPAGE" : "YES"
     },
@@ -28,12 +29,26 @@
     },
     "then" : {
 	"find" : "<!--Table Begin!-->(.*?)<!--Table End-->",
+	"name" : "table",
+	"save" : false,
 	"match" : 0,
 	"then" : {
 	    "extends" : "../shared/html-row.json",
+	    "name"      : "record",
+	    "save"      : false,
 	    "min"  : 2,
 	    "max"  : -1,
 	    "then" : [{
+		"name"        : "Borough",
+		"find"     : "^",
+		"replace" : "{{Borough}}",
+                "match"       : 0
+	    },{
+		"name"        : "Block",
+		"find"     : "^",
+		"replace" : "{{Block}}",
+                "match"       : 0
+	    },{
 		"name"        : "Doc ID",
 		"find"     : "go_detail\\('([^']+)'\\)",
 		"replace" : "$1",

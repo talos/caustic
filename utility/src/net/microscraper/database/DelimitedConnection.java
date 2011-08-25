@@ -8,10 +8,10 @@ import java.util.Arrays;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
-import net.microscraper.database.WritableConnection;
-import net.microscraper.database.WritableTable;
+import net.microscraper.database.InsertableConnection;
+import net.microscraper.database.Insertable;
 
-public class DelimitedConnection implements WritableConnection {
+public class DelimitedConnection implements InsertableConnection {
 		
 	private final CSVWriter writer;
 	
@@ -45,7 +45,7 @@ public class DelimitedConnection implements WritableConnection {
 	
 
 	@Override
-	public WritableTable getWritableTable(String[] textColumns) {
+	public Insertable getInsertable(String[] textColumns) {
 		return new DelimitedTable(writer, textColumns);
 	}
 

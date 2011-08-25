@@ -2,15 +2,14 @@ package net.microscraper.database;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.List;
 
 import au.com.bytecode.opencsv.CSVWriter;
-import net.microscraper.database.WritableTable;
-import net.microscraper.util.BasicNameValuePair;
-import net.microscraper.util.NameValuePair;
+import net.microscraper.database.Insertable;
 import net.microscraper.util.StringUtils;
 
-public class DelimitedTable implements WritableTable {
+public class DelimitedTable implements Insertable {
 		
 	private final CSVWriter writer;
 		
@@ -24,23 +23,20 @@ public class DelimitedTable implements WritableTable {
 	}
 	
 	@Override
-	public void insert(NameValuePair[] nameValuePairs) throws TableManipulationException {
-		// Prepend ID to the array of nameValuePairs.
-		nameValuePairs = Arrays.copyOf(nameValuePairs, nameValuePairs.length);
-		
-		if(nameValuePairs.length != columns.size()) {
-			throw new TableManipulationException(BasicNameValuePair.preview(nameValuePairs) + " does not fit in " +
+	public void insert(@SuppressWarnings("rawtypes") Hashtable map) throws TableManipulationException {
+		if(map.size() != columns.size()) {
+			throw new TableManipulationException(StringUtils.quote(map.toString()) + " does not fit in " +
 					StringUtils.join(columns.toArray(new String[0]), ", "));
 		}
 		
-		String[] valuesInOrder = new String[nameValuePairs.length];
-		for(int i = 0 ; i < nameValuePairs.length; i ++) {
-			int index = columns.indexOf(nameValuePairs[i].getName());
-			if(index > -1) {
-				valuesInOrder[index] = nameValuePairs[i].getValue();
+		String[] valuesInOrder = new String[map.size()];
+		for(int i = 0 ; i < columns.size(); i ++) {
+			String columnName = columns.get(i);
+			if(map.containsKey(columnName)) {
+				valuesInOrder[i] = (String) map.get(columnName);
 			} else {
-				throw new TableManipulationException(nameValuePairs[i].getName() + " is not a column in " +
-						StringUtils.join(columns.toArray(new String[0]), ", "));
+				throw new TableManipulationException(StringUtils.quote(columnName) + " could not be found in " +
+						StringUtils.quote(map.toString()));
 			}
 		}
 		writer.writeNext(valuesInOrder);

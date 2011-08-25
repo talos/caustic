@@ -1,19 +1,20 @@
 package net.microscraper.database;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.List;
 
-import net.microscraper.database.IOTable;
-import net.microscraper.util.NameValuePair;
+import net.microscraper.database.Updateable;
 import net.microscraper.util.StringUtils;
 
 /**
- * A SQL implementation of {@link IOTable} using {@link SQLConnection}.
+ * A SQL implementation of {@link Updateable} using {@link SQLConnection}.
  * 
  * @author talos
  *
  */
-public class SQLTable implements IOTable {
+public class SQLTable implements Updateable {
 	
 	/**
 	 * {@link SQLConnection} used in this {@link SQLTable}.
@@ -48,7 +49,7 @@ public class SQLTable implements IOTable {
 			
 		} else {
 			SQLPreparedStatement createTable = 
-					this.connection.prepareStatement("CREATE TABLE `" + name + "` " +
+					this.connection.prepareStatement("CREATE TABLE `" + name + "` (" +
 		/*			+ " (`" + ID_COLUMN_NAME + "` " + connection.intColumnType() +
 					" " + connection.keyColumnDefinition() + ", " + */
 					columnDefinition + ")");
@@ -62,10 +63,6 @@ public class SQLTable implements IOTable {
 		preventIllegalBacktick(columnName);
 		
 		try {
-			/*if(columnName.equals(ID_COLUMN_NAME)) {
-				throw new SQLConnectionException(StringUtils.quote(columnName) + " is reserved as the " +
-							"ID column for the table.");
-			}*/
 			SQLPreparedStatement alterTable = 
 					connection.prepareStatement("" +
 							"ALTER TABLE `" + name + "` " +
@@ -100,16 +97,22 @@ public class SQLTable implements IOTable {
 		return columns.contains(columnName);
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Override
-	public void insert(NameValuePair[] nameValuePairs) throws TableManipulationException {
-		String[] columnNames = new String[nameValuePairs.length];
-		String[] parameters = new String[nameValuePairs.length];
-		String[] columnValues = new String[nameValuePairs.length];
+	public void insert(Hashtable map) throws TableManipulationException {
+		String[] columnNames = new String[map.size()];
+		String[] parameters = new String[map.size()];
+		String[] columnValues = new String[map.size()];
 		
-		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
-			columnNames[i] = "`" + nameValuePairs[i].getName() + "`";
+		int i = 0;
+		Enumeration enumeration = map.keys();
+		while(enumeration.hasMoreElements()) {
+			String name = (String) enumeration.nextElement();
+			String value =(String) map.get(name);
+			columnNames[i] = "`" + name + "`";
 			parameters[i] = "?";
-			columnValues[i] = nameValuePairs[i].getValue();
+			columnValues[i] = value;
+			i++;
 		}
 		
 		try {
@@ -124,14 +127,19 @@ public class SQLTable implements IOTable {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
-	public void update(String idColumnName, int id, NameValuePair[] nameValuePairs)
+	public void update(String idColumnName, int id, Hashtable map)
 			throws TableManipulationException {
-		String[] setStatements = new String[nameValuePairs.length];
-		String[] values = new String[nameValuePairs.length];
-		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
-			setStatements[i] = "`" + nameValuePairs[i].getName() + "` = ? ";
-			values[i] = nameValuePairs[i].getValue();
+		String[] setStatements = new String[map.size()];
+		String[] values = new String[map.size()];
+		
+		Enumeration enumeration = map.keys();
+		int i = 0;
+		while(enumeration.hasMoreElements()) {
+			String name = (String) enumeration.nextElement();
+			setStatements[i] = "`" + name + "` = ? ";
+			values[i] = (String) map.get(name);
 		}
 		
 		String set = " SET " + StringUtils.join(setStatements, ", ");

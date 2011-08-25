@@ -1,21 +1,15 @@
 package net.microscraper.database;
 
-import net.microscraper.util.NameValuePair;
+import java.util.Hashtable;
 
 /**
- * A {@link IOTable} interface that supports adding columns and inserting & updating
- * rows with a single {@link int} id.
+ * A {@link Updateable} interface supports adding columns updating certain columns by ID,
+ * and deleting.  It extends {@link Insertable}.
  * @author talos
  *
  */
-public interface IOTable extends WritableTable {
+public interface Updateable extends Insertable {
 
-	/**
-	 * 
-	 * @return The {@link String} name of the {@link IOTable}.
-	 */
-	//public String getName();
-	
 	/**
 	 * Add a column.
 	 * @param columnName The {@link String} name of column to add.
@@ -32,24 +26,24 @@ public interface IOTable extends WritableTable {
 	
 	/**
 	 * 
-	 * @return A {@link String} array of the names of columns in the {@link IOTable}.
+	 * @return A {@link String} array of the names of columns in the {@link Updateable}.
 	 */
 	public abstract String[] getColumnNames();
 
 	/**
-	 * Update an existing row in the {@link IOTable}.
+	 * Update an existing row in the {@link Updateable}.
 	 * @param idColumnName the {@link String} name of the ID column.
 	 * @param id the {@link int} ID of the row to update.
-	 * @param nameValuePairs An array of {@link NameValuePair}s mapping
-	 * columns to new values.
+	 * @param map A {@link Hashtable} mapping columns names to values to insert
+	 * into {@link Updateable}.
 	 * @throws TableManipulationException if the row could not be updated.
 	 */
-	public abstract void update(String idColumnName, int id, NameValuePair[] nameValuePairs)
+	public abstract void update(String idColumnName, int id, Hashtable map)
 			throws TableManipulationException;
 	
 	/**
-	 * Delete this {@link IOTable}.
-	 * @throws TableManipulationException If the {@link IOTable} could not be dropped.
+	 * Delete this {@link Updateable}.
+	 * @throws TableManipulationException If the {@link Updateable} could not be dropped.
 	 */
 	public void drop() throws TableManipulationException;
 }

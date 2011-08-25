@@ -10,7 +10,7 @@ import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Tested;
 import net.microscraper.database.SingleTableDatabase;
-import net.microscraper.database.WritableConnection;
+import net.microscraper.database.InsertableConnection;
 
 import org.junit.Before;
 import org.junit.Test;
