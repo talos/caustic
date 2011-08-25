@@ -6,6 +6,7 @@ import java.util.Vector;
 import net.microscraper.client.Browser;
 import net.microscraper.client.DeserializationException;
 import net.microscraper.client.Deserializer;
+import net.microscraper.database.Variables;
 import net.microscraper.instruction.Action;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
@@ -13,7 +14,7 @@ import net.microscraper.instruction.InstructionPromise;
 import net.microscraper.instruction.Load;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpUtils;
-import net.microscraper.template.NameValuePairTemplate;
+import net.microscraper.template.HashtableTemplate;
 import net.microscraper.template.Template;
 import net.microscraper.template.TemplateCompilationException;
 import net.microscraper.uri.MalformedUriException;
@@ -23,8 +24,6 @@ import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;
-import net.microscraper.util.Variables;
-import net.microscraper.util.VectorUtils;
 
 public class JsonDeserializer implements Deserializer {
 	
@@ -96,9 +95,9 @@ public class JsonDeserializer implements Deserializer {
 			Template url = null;
 			String method = null;
 			Template postData = null;
-			Vector posts = new Vector();
-			Vector cookies = new Vector();
-			Vector headers = new Vector();
+			HashtableTemplate posts = new HashtableTemplate();
+			HashtableTemplate cookies = new HashtableTemplate();
+			HashtableTemplate headers = new HashtableTemplate();
 			
 			// Populated for Find action
 			Template pattern = null;
@@ -211,9 +210,7 @@ public class JsonDeserializer implements Deserializer {
 						method = obj.getString(key);
 					} else if(key.equalsIgnoreCase(POSTS)) {
 						if(obj.isJsonObject(key)) {
-							VectorUtils.arrayIntoVector(
-									deserializeNameValuePairTemplate(obj.getJsonObject(key), openTagString, closeTagString),
-									posts);
+							posts.merge(deserializeHashtableTemplate(obj.getJsonObject(key), openTagString, closeTagString));
 						} else if(obj.isString(key)) {
 							postData = Template.compile(obj.getString(key), openTagString, closeTagString);
 						} else {
@@ -221,13 +218,9 @@ public class JsonDeserializer implements Deserializer {
 									" must be a String with post data or an object with name-value-pairs.");				
 						}
 					} else if(key.equalsIgnoreCase(COOKIES)) {
-						VectorUtils.arrayIntoVector(
-								deserializeNameValuePairTemplate(obj.getJsonObject(key), openTagString, closeTagString),
-								cookies);
+						cookies.merge(deserializeHashtableTemplate(obj.getJsonObject(key), openTagString, closeTagString));
 					} else if(key.equalsIgnoreCase(HEADERS)) {
-						VectorUtils.arrayIntoVector(
-								deserializeNameValuePairTemplate(obj.getJsonObject(key), openTagString, closeTagString),
-								headers);
+						headers.merge(deserializeHashtableTemplate(obj.getJsonObject(key), openTagString, closeTagString));
 						
 					/** Pattern attributes. **/
 					} else if(key.equalsIgnoreCase(FIND)) {
@@ -273,16 +266,11 @@ public class JsonDeserializer implements Deserializer {
 				}
 				if(postData != null) {
 					load.setPostData(postData);
+				} else {
+					load.addPosts(posts);
 				}
-				for(int i = 0 ; i < posts.size() ; i ++) {
-					load.addPostNameValuePair((NameValuePairTemplate) posts.elementAt(i));
-				}
-				for(int i = 0 ; i < cookies.size() ; i ++) {
-					load.addCookie((NameValuePairTemplate) cookies.elementAt(i));
-				}
-				for(int i = 0 ; i < headers.size() ; i ++) {
-					load.addHeader((NameValuePairTemplate) headers.elementAt(i));
-				}
+				load.addCookies(cookies);
+				load.addHeaders(headers);
 			} else if(pattern != null) {
 				// We have a Find
 				Find find = new Find(compiler, pattern);
@@ -344,29 +332,26 @@ public class JsonDeserializer implements Deserializer {
 	}
 	
 	/**
-	 * Deserialize a {@link NameValuePairTemplate} array from a {@link JsonObject} hash.
+	 * Deserialize a {@link HashtableTemplate} from a {@link JsonObject} hash.
 	 * @param jsonObject Input {@link JsonObject} hash.
 	 * @param openTagString
 	 * @param closeTagString
-	 * @return A {@link NameValuePairTemplate} array.
+	 * @return A {@link HashtableTemplate}.
 	 * @throws JsonException If there was a problem parsing the JSON.
 	 * @throws TemplateCompilationException If a {@link Template} could not be compiled.
 	 */
-	private NameValuePairTemplate[] deserializeNameValuePairTemplate(JsonObject jsonObject,
+	private HashtableTemplate deserializeHashtableTemplate(JsonObject jsonObject,
 			String openTagString, String closeTagString)
 				throws JsonException, TemplateCompilationException {
-		NameValuePairTemplate[] pairs = new NameValuePairTemplate[jsonObject.length()];
+		HashtableTemplate result = new HashtableTemplate();
 		JsonIterator iter = jsonObject.keys();
-		int i = 0;
 		while(iter.hasNext()) {
 			String key = (String) iter.next();
 			String value = jsonObject.getString(key);
-			pairs[i] = new NameValuePairTemplate(
-					Template.compile(key, openTagString, closeTagString),
+			result.put(Template.compile(key, openTagString, closeTagString),
 					Template.compile(value, openTagString, closeTagString));
-			i++;
 		}
-		return pairs;
+		return result;
 	}
 	
 	/**

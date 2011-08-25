@@ -10,10 +10,10 @@ import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Tested;
 import net.microscraper.database.Database;
+import net.microscraper.database.Variables;
 import static net.microscraper.util.TestUtils.*;
 import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
-import net.microscraper.util.Variables;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,18 +24,20 @@ public final class InstructionTest {
 	@Mocked private Action action;
 	
 	private Variables variables;
-	private String source = randomString();
-	private int firstId = randomInt();
+	private String source;
+	private int firstId;
+	private Template defaultName;
 	
 	@Tested private Instruction instruction;
 	
 	@Before
 	public void setUp() throws Exception {
-		new NonStrictExpectations() {{
-			database.getFirstId(); result = firstId;
-		}};
-		variables = Variables.empty(database);
+		firstId = randomInt();
+		source = randomString();
+		defaultName = Template.compile(randomString(), Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
+		variables = new Variables(database, firstId);
 		instruction = new Instruction(action);
+		instruction.setName(defaultName);
 	}
 
 	@Test
@@ -55,7 +57,7 @@ public final class InstructionTest {
 		final String[] missingVariableNames = new String[] { randomString(), randomString() };
 		
 		new NonStrictExpectations() {
-			Execution actionExecution;
+			@Injectable Execution actionExecution;
 			{
 				action.execute(source, variables); times = 1; result = actionExecution;
 				actionExecution.isMissingVariables(); result = true;
@@ -98,14 +100,15 @@ public final class InstructionTest {
 		new Expectations() {
 			@Injectable Execution actionExecution;
 			{
+				action.getDefaultName(); result = defaultName;
 				action.execute(source, variables); times = 1; result = actionExecution;
 				actionExecution.isSuccessful(); result = true;
 				actionExecution.getExecuted(); result = actionResults;
-				database.store(firstId, 0);
-				database.store(firstId, 1);
-				database.store(firstId, 2);
+				database.storeOneToMany(firstId, defaultName.toString()); times = 3;
 			}
 		};
+		instruction = new Instruction(action);
+
 		instruction.execute(source, variables);
 	}
 	
@@ -119,9 +122,9 @@ public final class InstructionTest {
 				action.execute(source, variables); times = 1; result = actionExecution;
 				actionExecution.isSuccessful(); result = true;
 				actionExecution.getExecuted(); result = actionResults;
-				database.store(firstId, 0, nameStr, actionResults[0]);
-				database.store(firstId, 1, nameStr, actionResults[1]);
-				database.store(firstId, 2, nameStr, actionResults[2]);
+				database.storeOneToMany(firstId, nameStr, actionResults[0]);
+				database.storeOneToMany(firstId, nameStr, actionResults[1]);
+				database.storeOneToMany(firstId, nameStr, actionResults[2]);
 			}
 		};
 		instruction.setName(Template.compile(nameStr, "{{", "}}"));
@@ -137,7 +140,7 @@ public final class InstructionTest {
 				action.execute(source, variables); times = 1; result = actionExecution;
 				actionExecution.isSuccessful(); result = true;
 				actionExecution.getExecuted(); result = actionResults;
-				database.store(firstId, anyInt, anyString, anyString); result = new IOException();
+				database.storeOneToMany(firstId, anyString, anyString); result = new IOException();
 			}
 		};
 		instruction.setName(Template.compile(randomString(), "{{", "}}"));

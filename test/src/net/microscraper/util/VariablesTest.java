@@ -3,50 +3,19 @@ package net.microscraper.util;
 import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
-import net.microscraper.database.Database;
+import net.microscraper.database.HashtableDatabase;
+import net.microscraper.database.Variables;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class VariablesTest {
 	
-	private @Mocked Database database;
 	private Variables variables;
-	
-	private int firstId;
 	
 	@Before
 	public void setUp() throws Exception {
-		firstId = randomInt();
-		new NonStrictExpectations() {{
-			database.getFirstId(); result = firstId;
-		}};
-	}
-	
-	@Test
-	public void testFromHashtable() throws Exception {
-		int tableLength = 10;
-		Hashtable<String, String> hashtable = new Hashtable<String, String>();
-		
-		for(int i = 0 ; i < tableLength ; i ++) {
-			hashtable.put(randomString(), randomString());
-		}
-		
-		variables = Variables.fromHashtable(database, hashtable);
-		
-		Enumeration<String> e = hashtable.keys();
-		while(e.hasMoreElements()) {
-			String key = (String) e.nextElement();
-			String value = (String) hashtable.get(key);
-			assertTrue(variables.containsKey(key));
-			assertEquals(value, variables.get(key));
-		}
+		variables = new HashtableDatabase().open();
 	}
 	
 	@Test
@@ -55,26 +24,25 @@ public class VariablesTest {
 		String childValue = randomString();
 		String grandchildKey = randomString();
 		String grandchildValue = randomString();
-		
-		variables = Variables.empty(database);
-		
-		variables.save(childKey, childValue);
-		variables.save(grandchildKey, grandchildValue);
-		assertTrue(variables.containsKey(childKey));
-		assertTrue(variables.containsKey(grandchildKey));
+				
+		Variables child = variables.storeOneToOne(childKey, childValue);
+		Variables grandchild = variables.storeOneToOne(grandchildKey, grandchildValue);
 		assertEquals(childValue, variables.get(childKey));
+		assertEquals(childValue, child.get(childKey));
+		assertEquals(childValue, grandchild.get(childKey));
 		assertEquals(grandchildValue, variables.get(grandchildKey));
+		assertEquals(grandchildValue, child.get(grandchildKey));
+		assertEquals(grandchildValue, grandchild.get(grandchildKey));
 	}
 
 	@Test
 	public void testMultiSavesDontPropagate() throws Exception {
 		String childKey = randomString();		
-		variables = Variables.empty(database);
 		
-		Variables child = variables.saveAndBranch(0, childKey, randomString());
+		Variables child = variables.storeOneToMany(childKey, randomString());
 		
-		assertFalse(variables.containsKey(childKey));
-		assertTrue(child.containsKey(childKey));
+		assertNull(variables.get(childKey));
+		assertNotNull(child.get(childKey));
 	}
 	
 	@Test
@@ -83,12 +51,14 @@ public class VariablesTest {
 		String childValue = randomString();
 		String grandchildValue = randomString();
 		
-		variables = Variables.empty(database);
-		
-		variables.save(key, childValue);
-		variables.save(key, grandchildValue);
+		Variables child = variables.storeOneToOne(key, childValue);
+		Variables grandchild = variables.storeOneToOne(key, grandchildValue);
 		assertNotSame(childValue, variables.get(key));
+		assertNotSame(childValue, child.get(key));
+		assertNotSame(childValue, grandchild.get(key));
 		assertEquals(grandchildValue, variables.get(key));
+		assertEquals(grandchildValue, child.get(key));
+		assertEquals(grandchildValue, grandchild.get(key));
 	}
 	
 
@@ -96,19 +66,18 @@ public class VariablesTest {
 	public void testResultsPropagateUntilMultiChildren() throws Exception {
 		String childKey = randomString();		
 		String grandchildKey = randomString();
-		variables = Variables.empty(database);
 		
-		variables.save(childKey, randomString());
-		Variables grandchild = variables.saveAndBranch(0, grandchildKey, randomString());
+		Variables child = variables.storeOneToOne(childKey, randomString());
+		Variables grandchild = variables.storeOneToMany(grandchildKey, randomString());
 		
-		assertTrue(variables.containsKey(childKey));
-		assertFalse(variables.containsKey(grandchildKey));
+		assertNotNull(variables.get(childKey));
+		assertNull(variables.get(grandchildKey));
 		
-		assertTrue(variables.containsKey(childKey));
-		assertFalse(variables.containsKey(grandchildKey));
+		assertNotNull(child.get(childKey));
+		assertNull(child.get(grandchildKey));
 		
-		assertTrue("Grandchild doesn't contain its parent key.", grandchild.containsKey(childKey));
-		assertTrue("Grandchild doesn't contain its own key.", grandchild.containsKey(grandchildKey));
+		assertNotNull("Grandchild doesn't contain its parent key.", grandchild.get(childKey));
+		assertNotNull("Grandchild doesn't contain its own key.", grandchild.get(grandchildKey));
 	}
 
 	@Test
@@ -118,53 +87,16 @@ public class VariablesTest {
 		
 		String cousinKey1 = randomString();
 		String cousinKey2 = randomString();
+				
+		Variables sibling1 = variables.storeOneToOne(siblingKey1, randomString());
+		Variables sibling2 = variables.storeOneToOne(siblingKey2, randomString());
 		
-		variables = Variables.empty(database);
+		Variables cousinFromSibling1 = sibling1.storeOneToOne(cousinKey1, randomString());
+		Variables cousinFromSibling2 = sibling2.storeOneToMany(cousinKey2, randomString());
 		
-		variables.save(siblingKey1, randomString());
-		variables.save(siblingKey2, randomString());
-		
-		variables.save(cousinKey1, randomString());
-		Variables cousinFromSibling2 = variables.saveAndBranch(0, cousinKey2, randomString());
-		
-		assertTrue("Variables doesn't contain key from its grandparent's grandchild descended through single results", cousinFromSibling2.containsKey(siblingKey1));
-		
-		assertFalse("Variables contains key from its grandparent's grandchild descended through multiple results", variables.containsKey(cousinKey2));
-	}
-	
-	@Test(expected = IllegalArgumentException.class)
-	public void testNonStringKeyInHashtableIsIllegal() throws Exception {
-		Hashtable<Object, String> hashtable = new Hashtable<Object, String>();
-		hashtable.put(new Object(), randomString());
-		Variables.fromHashtable(database, hashtable);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testNonStringValueInHashtableIsIllegal() throws Exception {
-		Hashtable<String, Object> hashtable = new Hashtable<String, Object>();
-		hashtable.put(randomString(), new Object());
-		Variables.fromHashtable(database, hashtable);
-	}
-
-	@Test()
-	public void testInitialCommitsToDatabase() throws Exception {
-		final String key = randomString();
-		final String value = randomString();
-		Hashtable<String, String> hashtable = new Hashtable<String, String>();
-		hashtable.put(key, value);
-		new Expectations() {{
-			database.store(firstId, key, value);
-		}};
-		Variables.fromHashtable(database, hashtable);
-	}
-	
-	@Test()
-	public void testSaveCommitsToDatabase() throws Exception {
-		final String key = randomString();
-		final String value = randomString();
-		new Expectations() {{
-			database.store(firstId, key, value);
-		}};
-		Variables.empty(database).save(key, value);
+		assertNotNull("Variables doesn't contain key from its grandparent's grandchild descended through single results",
+				cousinFromSibling2.get(siblingKey1));
+		assertNull("Variables contains key from its grandparent's grandchild descended through multiple results",
+				cousinFromSibling1.get(cousinKey2));
 	}
 }

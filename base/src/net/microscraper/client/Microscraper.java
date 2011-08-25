@@ -47,7 +47,6 @@ public class Microscraper implements Loggable {
 			runner.register(log);
 			runner.run();
 		}
-		database.clean();
 		database.close();
 	}
 	

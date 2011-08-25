@@ -7,10 +7,9 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
-import mockit.external.hamcrest.Description;
-import mockit.external.hamcrest.Matcher;
 import net.microscraper.client.Browser;
-import net.microscraper.database.Database;
+import net.microscraper.database.HashtableDatabase;
+import net.microscraper.database.Variables;
 import net.microscraper.instruction.Executable;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.regexp.Pattern;
@@ -19,8 +18,6 @@ import net.microscraper.uri.URILoader;
 import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
-import net.microscraper.util.NameValuePair;
-import net.microscraper.util.Variables;
 import net.microscraper.util.VectorUtils;
 import static net.microscraper.json.JsonDeserializer.*;
 import static net.microscraper.util.TestUtils.randomInt;
@@ -39,7 +36,6 @@ public class JsonDeserializerTest {
 	private @Mocked UriResolver uriResolver;
 	private @Mocked URILoader uriLoader;
 	private @Mocked Pattern pattern;
-	private @Mocked Database database;
 	
 	private JsonParser parser;
 	private JsonDeserializer deserializer;
@@ -67,7 +63,7 @@ public class JsonDeserializerTest {
 		emptyJson = new JSONObject().toString();
 		userDir = "USER DIR " + randomString();
 		
-		variables = Variables.empty(database);
+		variables = new HashtableDatabase().open();
 
 		final String loadUri = "LOAD URI " + randomString();
 		final String findUri = "FIND URI " + randomString();

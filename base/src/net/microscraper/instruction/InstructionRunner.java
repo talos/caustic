@@ -8,10 +8,10 @@ import java.util.Vector;
 import net.microscraper.client.Loggable;
 import net.microscraper.client.Logger;
 import net.microscraper.database.Database;
+import net.microscraper.database.Variables;
 import net.microscraper.impl.log.BasicLog;
 import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;
-import net.microscraper.util.Variables;
 import net.microscraper.util.VectorUtils;
 
 public class InstructionRunner implements Runnable, Loggable {
@@ -35,8 +35,15 @@ public class InstructionRunner implements Runnable, Loggable {
 	public InstructionRunner(InstructionPromise promise, Database database, Hashtable defaults, String source)
 			throws IOException {
 		this.promise = promise;
-		this.variables = Variables.fromHashtable(database, defaults);
+		//this.variables = Variables.fromHashtable(database, defaults);
+		
 		this.source = source;
+		variables = database.open();
+		Enumeration keys = defaults.keys();
+		while(keys.hasMoreElements()) {
+			String key = (String) keys.nextElement();
+			variables.storeOneToOne(key, (String) defaults.get(key));
+		}
 	}
 	
 	private Vector getStuckExecutables() {

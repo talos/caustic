@@ -1,7 +1,8 @@
 package net.microscraper.instruction;
 
+import net.microscraper.database.Variables;
+import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
-import net.microscraper.util.Variables;
 
 /**
  * An {@link Action} is the section of an {@link Instruction} that produces an 
@@ -22,4 +23,10 @@ public interface Action {
 	 * @throws InterruptedException If the user interrupts the action.
 	 */
 	public Execution execute(String source, Variables variables) throws InterruptedException;
+	
+	/**
+	 * A default name for this {@link Action}'s results when one is not specified.
+	 * @return A {@link Template} default name.
+	 */
+	public Template getDefaultName();
 }

@@ -15,6 +15,5 @@ public interface Insertable {
 	 * into {@link Insertable}.
 	 * @throws TableManipulationException if the row could not be inserted.
 	 */
-	public abstract void insert(Hashtable map)
-			throws TableManipulationException;
+	public abstract void insert(Hashtable map) throws TableManipulationException;
 }

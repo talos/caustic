@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.client.DeserializationException;
+import net.microscraper.database.Variables;
 import net.microscraper.regexp.Pattern;
-import net.microscraper.template.NameValuePairTemplate;
+import net.microscraper.template.Template;
 
 /**
  * {@link Execution} says whether an attempt to use a set of {@link Variables}
@@ -106,6 +107,19 @@ public class Execution {
 	public static Execution deserializationException(DeserializationException e) {
 		return new Execution(null, null, new String[] { e.getMessage() });
 	}
+
+	/**
+	 * Create an {@link Execution} describing a failure because the substitution of a
+	 * {@link Template} in a {@link HashtableTemplate} caused the overwriting of a
+	 * preexisting key.
+	 * @param overwriter The {@link Template} that tried to overwrite.
+	 * @param overwritten The {@link String} that would have been overwritten.
+	 * @return The failed {@link Execution}.
+	 */
+	public static Execution templateOverwrites(Template overwriter, String overwritten) {
+		return new Execution(null, null,
+				new String[] { overwriter.toString() + " overwrites " + overwritten + " during substitution." } );
+	}
 	
 	/**
 	 * 
@@ -116,7 +130,7 @@ public class Execution {
 	public boolean isSuccessful() {
 		return executed == null ? false : true;
 	}
-
+	
 	/**
 	 * 
 	 * @return The successfully executed object of a {@link Execution}.
@@ -224,59 +238,6 @@ public class Execution {
 	}
 	
 	/**
-	 * Convenience method to generate a single {@link Execution} from a whole
-	 * array of {@link Substitutables}. The {@link #getExecuted()} of the
-	 * returned {@link Execution} will be an {@link Object} array of the substituted <code>
-	 * substitutables</code>, if it is successful.  Each element must
-	 * be cast separately.
-	 * @param substitutables The array of {@link Substitutable}s to {@link 
-	 * Substitutable#sub(Variables)} en masse.
-	 * @param variables The {@link Variables} to use.
-	 * @return A single {@link Execution}, with either all the <code>substitutables</code>
-	 * substituted or a combined array of the missing variables.
-	 */
-	public static Execution arraySub(Substitutable[] substitutables, Variables variables) {
-		Execution[] substitutions = new Execution[substitutables.length];
-		for(int i = 0 ; i < substitutables.length ; i ++) {
-			substitutions[i] = substitutables[i].sub(variables);
-		}
-		return combine(substitutions);
-	}
-	
-
-	/**
-	 * Convenience method to generate a single {@link Execution} from a whole
-	 * array of {@link PatternTemplate}s. The {@link #getExecuted()} of the
-	 * returned {@link Execution} will be an array of the substituted {@link
-	 * Pattern}s if it is successful.
-	 * @param substitutables The array of {@link NameValuePairTemplate}s to {@link 
-	 * NameValuePairTemplate#sub(Variables)} en masse.
-	 * @param variables The {@link Variables} to use.
-	 * @return A single {@link Execution}, with either all the <code>substitutables</code>
-	 * substituted or a combined array of the missing variables.
-	 */
-	public static Execution arraySubNameValuePair(NameValuePairTemplate[] substitutables, Variables variables) {
-		Execution[] substitutions = new Execution[substitutables.length];
-		for(int i = 0 ; i < substitutables.length ; i ++) {
-			substitutions[i] = substitutables[i].sub(variables);
-		}
-		//return combine(substitutions);
-		Execution result;
-		Execution rawCombined = combine(substitutions);
-		if(rawCombined.isSuccessful()) {
-			Object[] objArray = (Object[]) rawCombined.getExecuted();
-			NameValuePair[] nameValuePairArray = new NameValuePair[objArray.length];
-			for(int i = 0 ; i < objArray.length ; i ++) {
-				nameValuePairArray[i] = (NameValuePair) objArray[i];
-			}
-			result = Execution.success(nameValuePairArray);
-		} else {
-			result = rawCombined;
-		}
-		return result;
-	}
-	
-	/**
 	 * Provide {@link Object#toString()} of the executed object, or a quoted list of
 	 * what went wrong.
 	 */
@@ -291,4 +252,5 @@ public class Execution {
 			throw new IllegalStateException();
 		}
 	}
+
 }

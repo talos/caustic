@@ -8,11 +8,12 @@ import java.util.Hashtable;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.NonStrictExpectations;
 import net.microscraper.client.Browser;
 import net.microscraper.client.Microscraper;
 import net.microscraper.database.Database;
+import net.microscraper.database.Variables;
 import net.microscraper.file.FileLoader;
-import net.microscraper.impl.log.SystemOutLogger;
 import net.microscraper.json.JsonParser;
 import net.microscraper.regexp.RegexpCompiler;
 
@@ -35,7 +36,7 @@ public abstract class MicroscraperImplementationTest {
 	/**
 	 * The mocked {@link Database}.
 	 */
-	@Mocked private Database database;
+	private Database database;
 	
 	/**
 	 * The tested {@link Microscraper} instance.
@@ -59,6 +60,12 @@ public abstract class MicroscraperImplementationTest {
 		nycIncentives =      fixtures.resolve("nyc-incentives.json").toString();
 		eventValidation =     fixtures.resolve("event-validation.json").toString();
 		
+		final Variables variables = new Variables(database, 0);
+		
+		new NonStrictExpectations() {{
+			database.open(); result = variables;
+		}};
+		
 		scraper = getScraperToTest(database);
 	}
 	
@@ -69,16 +76,14 @@ public abstract class MicroscraperImplementationTest {
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {		
 		new Expectations() {{
-			database.getFirstId(); result = 0;
-			database.store(0, "query", "hello"); result = 1;
-			database.store(0, 0, "what do you say after 'hello'?", withPrefix("I say ")); result = 2;
-			database.store(0, 1, "what do you say after 'hello'?", withPrefix("I say ")); result = 3;
-			database.store(0, 2, "what do you say after 'hello'?", withPrefix("I say ")); result = 4;
+			database.storeOneToOne(0, "query", "hello"); result = 1;
+			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); result = 2;
+			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); result = 3;
+			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); result = 4;
 			//database.store(0, 0, "query", (String) withNull(), "hello"); result = 0;
 			// etc.
-			database.store(0, anyInt, "what do you say after 'hello'?", withPrefix("I say ")); minTimes = 1;
+			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); minTimes = 1;
 			
-			database.clean();
 			database.close();
 		}};
 		
@@ -91,17 +96,15 @@ public abstract class MicroscraperImplementationTest {
 	@Test
 	public void testScrapeComplexGoogle() throws Exception {
 		new Expectations() {{
-			database.getFirstId(); result = 0;
-			database.store(0, "query", "hello"); result = 1;
+			database.storeOneToOne(0, "query", "hello"); result = 1;
 
-			database.store(0, 0, "after", anyString); result = 2;
-			database.store(0, 1, "after", anyString); result = 3;
-			database.store(0, 2, "after", anyString); result = 4;
-			database.store(0, anyInt, "after", anyString); minTimes = 1;
+			database.storeOneToMany(0, "after", anyString); result = 2;
+			database.storeOneToMany(0, "after", anyString); result = 3;
+			database.storeOneToMany(0, "after", anyString); result = 4;
+			database.storeOneToMany(0, "after", anyString); minTimes = 1;
 			
-			database.store(anyInt, anyInt, withPrefix("what do you say after"), withPrefix("I say")); minTimes = 1;
+			database.storeOneToMany(anyInt, withPrefix("what do you say after"), withPrefix("I say")); minTimes = 1;
 		
-			database.clean();
 			database.close();
 		}};
 		

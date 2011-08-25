@@ -15,7 +15,6 @@ import mockit.Verifications;
 import net.microscraper.database.UpdateableConnection;
 import net.microscraper.database.Updateable;
 import net.microscraper.database.MultiTableDatabase;
-import net.microscraper.util.NameValuePair;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,9 +24,8 @@ public class MultiTableDatabaseTest {
 	@Mocked Updateable rootTable;
 	@Mocked UpdateableConnection connection;
 	@Tested MultiTableDatabase db;
-	
-	int firstId;
-	
+	int id;
+		
 	@Before
 	public void setUp() throws Exception {
 		new Expectations() {{
@@ -36,26 +34,22 @@ public class MultiTableDatabaseTest {
 				$ = "Should create root table on instantiation.";
 		}};
 		db = new MultiTableDatabase(connection);
-		firstId = db.getFirstId();
+		db.open();
+		id = 0;
 	}
 	
 	@Test
 	public void testCreatesRootTableOnInstantiation() { }
 	
 	@Test
-	public void testFirstIdIsZero() throws Exception {
-		assertEquals(0, firstId);
-	}
-	
-	@Test
-	public void testStoreNameValueUpdatesRootTable() throws Exception {
+	public void testStoreOneToOneWithValueUpdatesRootTable() throws Exception {
 		final String name = randomString();
 		final String value = randomString();
 		new Expectations() {
 			{
 				rootTable.hasColumn(name); result = false;
 				rootTable.addColumn(name); $ = "Should add name column to root table.";
-				rootTable.update(ID_COLUMN_NAME, firstId, (Hashtable) any);
+				rootTable.update(ID_COLUMN_NAME, id, (Hashtable) any);
 					forEachInvocation = new Object() {
 						void validate(String columnName, int id, Hashtable map) {
 							assertEquals("Should update name and value in root table.", 1, map.size());
@@ -66,20 +60,20 @@ public class MultiTableDatabaseTest {
 			}
 		};
 		
-		db.store(firstId, name, value);
+		db.storeOneToOne(id, name, value);
 	}
 	
 	@Test
-	public void testStoreIntNameValueCreatesTableWithNameAndValueColumn() throws Exception {
+	public void testStoreOneToManyWithValueCreatesTableWithNameAndValueColumn() throws Exception {
 		final String name = randomString();
 		final String value = randomString();
 		new Expectations() {
 			@Injectable Updateable resultTable;
 			{
 				connection.getIOTable(name, withSameInstance(RESULT_TABLE_COLUMNS)); result = resultTable;
-				resultTable.insert((Hashtable) any);
+				resultTable.insert((Hashtable<String, String>) any);
 					forEachInvocation = new Object() {
-						void validate(Hashtable map) {
+						void validate(Hashtable<String, String> map) {
 							//assertEquals("Should create blank entry in new table", 0, nvps.length);
 							assertEquals(4, map.size());
 							
@@ -87,7 +81,7 @@ public class MultiTableDatabaseTest {
 							assertEquals(ROOT_TABLE_NAME, map.get(SOURCE_TABLE_COLUMN));
 
 							assertTrue(map.containsKey(SOURCE_ID_COLUMN_NAME));
-							assertEquals(Integer.toString(firstId), map.get(SOURCE_ID_COLUMN_NAME));
+							assertEquals(Integer.toString(id), map.get(SOURCE_ID_COLUMN_NAME));
 							
 							assertTrue(map.containsKey(ID_COLUMN_NAME));
 							assertEquals(Integer.toString(1), map.get(ID_COLUMN_NAME));							
@@ -99,15 +93,12 @@ public class MultiTableDatabaseTest {
 			}
 		};
 		
-		db.store(firstId, 0, name, value);
+		db.storeOneToMany(id, name, value);
 	}
 	
 
 	@Test
-	public void testStoreIntIsNoOp() throws Exception {
-		
-		assertEquals(0, db.store(firstId, 0));
-		assertEquals(0, db.store(firstId, 1));
-		assertEquals(0, db.store(firstId, 2));
+	public void testStoreOneToOneWithoutValueIsNoop() throws Exception {
+		assertEquals(0, db.storeOneToOne(id, randomString()));
 	}
 }

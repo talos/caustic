@@ -5,6 +5,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import net.microscraper.database.HashtableDatabase;
+import net.microscraper.database.Variables;
+
 public class HashtableUtils {
 
 	/**
@@ -13,7 +16,7 @@ public class HashtableUtils {
 	 * @param formEncodedData A {@link String} of form-encoded data to convert.  It must be 
 	 * correctly formatted.
 	 * @param encoding The encoding to use.  <code>UTF-8</code> recommended.
-	 * @return A {@link Variables}.
+	 * @return A {@link HashtableDatabase}.
 	 * @throws UnsupportedEncodingException If the encoding is not supported.
 	 * @throws IOException If values could not be persisted to <code>database</code>.
 	 */
@@ -53,4 +56,5 @@ public class HashtableUtils {
 		}
 		return result;
 	}
+	
 }

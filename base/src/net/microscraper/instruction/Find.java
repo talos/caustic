@@ -5,7 +5,7 @@ import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.template.Template;
 import net.microscraper.template.TemplateCompilationException;
 import net.microscraper.util.Execution;
-import net.microscraper.util.Variables;
+import net.microscraper.database.Variables;
 
 /**
  * An {@link Executable} for extracting matches from a source string according to
@@ -175,5 +175,12 @@ public class Find implements Action {
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Defaults to {@link #pattern}.
+	 */
+	public Template getDefaultName() {
+		return pattern;
 	}
 }

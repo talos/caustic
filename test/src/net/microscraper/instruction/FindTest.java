@@ -9,18 +9,17 @@ import java.util.List;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import net.microscraper.database.Database;
+import net.microscraper.database.HashtableDatabase;
+import net.microscraper.database.Variables;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
-import net.microscraper.util.Variables;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class FindTest  {
-	@Mocked Database database;
 	@Mocked RegexpCompiler compiler;
 	@Injectable Template pattern, replacement;
 	private Variables variables;
@@ -28,7 +27,7 @@ public class FindTest  {
 	
 	@Before
 	public void setUp() throws Exception {
-		variables = Variables.empty(database);
+		variables = new HashtableDatabase().open();
 		find = new Find(compiler, pattern);
 		find.setReplacement(replacement);
 	}

@@ -7,8 +7,9 @@ import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
+import net.microscraper.database.HashtableDatabase;
+import net.microscraper.database.Variables;
 import net.microscraper.util.Execution;
-import net.microscraper.util.Variables;
 
 import org.junit.Before;
 import org.junit.Test;

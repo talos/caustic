@@ -7,11 +7,12 @@ import java.io.UnsupportedEncodingException;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
+import net.microscraper.database.HashtableDatabase;
+import net.microscraper.database.Variables;
 import net.microscraper.template.Template;
 import net.microscraper.template.TemplateCompilationException;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
-import net.microscraper.util.Variables;
 import static net.microscraper.util.TestUtils.*;
 
 import org.junit.Before;
@@ -33,7 +34,6 @@ public class TemplateTest {
 	@Before
 	public void setup() {
 		new NonStrictExpectations() {{
-			variables.containsKey(key); result = true;
 			variables.get(key); result = value;
 		}};
 	}

@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
 
+import net.microscraper.database.Variables;
 import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
-import net.microscraper.util.StringUtils;
-import net.microscraper.util.Variables;
 
 /**
  * {@link Instruction}s hold instructions for {@link Execution}s.
@@ -19,7 +18,7 @@ public class Instruction {
 	/**
 	 * Whether this {@link Instruction} has a particular name.
 	 */
-	private boolean hasName = false;
+	private boolean hasNonDefaultName = false;
 	
 	/**
 	 * The {@link Template} name for this {@link Instruction}.
@@ -43,7 +42,7 @@ public class Instruction {
 	 */
 	public Instruction(Action action) {
 		this.action = action;
-		this.hasName = false;
+		this.name = action.getDefaultName();
 	}
 	
 	/**
@@ -51,7 +50,7 @@ public class Instruction {
 	 * @param name The {@link Template} name to assign.
 	 */
 	public void setName(Template name) {
-		this.hasName = true;
+		this.hasNonDefaultName = true;
 		this.name = name;
 	}
 	
@@ -87,17 +86,13 @@ public class Instruction {
 	public Execution execute(String source, Variables variables) throws InterruptedException, IOException {
 		final Execution result;
 		final String nameStr;
-		if(hasName) {
-			Execution nameSub = name.sub(variables);
-			// Didn't get the name.
-			if(nameSub.isSuccessful() == false) {
-				return nameSub; // eject
-			}
-			nameStr = (String) nameSub.getExecuted();
-		} else {
-			nameStr = null;
+		Execution nameSub = name.sub(variables);
+		// Didn't get the name.
+		if(nameSub.isSuccessful() == false) {
+			return nameSub; // eject
 		}
-			
+		nameStr = (String) nameSub.getExecuted();
+
 		Execution actionExecution = action.execute(source, variables);
 		
 		if(actionExecution.isSuccessful() == false) {
@@ -112,15 +107,16 @@ public class Instruction {
 				
 				// Save the value to Variables (and the database).
 				if(resultValues.length == 1) {
-					if(hasName) {
-						variables.save(nameStr, resultValue);
-					}
-					childVariables = variables;
-				} else {
-					if(hasName) {
-						childVariables = variables.saveAndBranch(i, nameStr, resultValue);
+					if(hasNonDefaultName) {
+						childVariables = variables.storeOneToOne(nameStr, resultValue);
 					} else {
-						childVariables = variables.branch(i);
+						childVariables = variables.storeOneToOne(nameStr);
+					}
+				} else {
+					if(hasNonDefaultName) {
+						childVariables = variables.storeOneToMany(nameStr, resultValue);
+					} else {
+						childVariables = variables.storeOneToMany(nameStr);
 					}
 				}
 				

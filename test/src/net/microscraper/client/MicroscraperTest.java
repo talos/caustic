@@ -15,7 +15,6 @@ import net.microscraper.json.JsonObject;
 import net.microscraper.json.JsonParser;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.util.NameValuePair;
 import static net.microscraper.util.TestUtils.*;
 
 import org.junit.Before;

@@ -64,6 +64,8 @@ public final class MultiTableDatabase implements Database {
 	 */
 	private final UpdateableConnection connection;
 	
+	private final HashtableDatabase hashtableDatabase = new HashtableDatabase();
+	
 	private final int firstId = 0;
 	private int curId = firstId;
 
@@ -87,19 +89,21 @@ public final class MultiTableDatabase implements Database {
 	 */
 	public MultiTableDatabase(UpdateableConnection connection) throws IOException {
 		this.connection = connection;
-		Updateable rootTable = connection.getIOTable(ROOT_TABLE_NAME, ROOT_TABLE_COLUMNS);
-		idNames.put(Integer.valueOf(firstId), ROOT_TABLE_NAME);
-		nameTables.put(ROOT_TABLE_NAME, rootTable);
 	}
-
+	
+	public int storeOneToOne(int sourceId, String name)
+			throws TableManipulationException, IOException {
+		// No-op, would just enter in a column with a blank value.
+		return hashtableDatabase.storeOneToOne(sourceId, name);
+	}
+	
 	/**
 	 * Add this name & value to the table of sourceId.  Create the column for the name
 	 * if it doesn't already exist.
 	 */
-	public int store(int sourceId, String name, String value)
+	public int storeOneToOne(int sourceId, String name, String value)
 			throws TableManipulationException, IOException {
-		curId ++;
-		
+		//curId ++;
 		String tableName = (String) idNames.get(Integer.valueOf(sourceId));
 		Updateable table = (Updateable) nameTables.get(tableName);
 		if(!table.hasColumn(cleanColumnName(name))) {
@@ -110,15 +114,14 @@ public final class MultiTableDatabase implements Database {
 		
 		table.update(ID_COLUMN_NAME, sourceId, map);
 		
-		return curId;
+		return hashtableDatabase.storeOneToOne(sourceId, name, value);
 	}
 
-	public int store(int sourceId, int resultNum)
+	public int storeOneToMany(int sourceId, String name)
 			throws TableManipulationException, IOException {
 		curId ++;
 		
 		String sourceTableName = (String) idNames.get(Integer.valueOf(sourceId));
-		String name = sourceTableName + "_deriv";
 		
 		Updateable table;
 		idNames.put(Integer.valueOf(curId), cleanTableName(name));
@@ -136,13 +139,13 @@ public final class MultiTableDatabase implements Database {
 		map.put(VALUE_COLUMN_NAME, "");
 		table.insert(map);
 		
-		return curId;
+		return hashtableDatabase.storeOneToMany(sourceId, name);
 	}
 
 	/**
 	 * Insert a new row into a table for this result.
 	 */
-	public int store(int sourceId, int resultNum, String name, String value)
+	public int storeOneToMany(int sourceId, String name, String value)
 			throws TableManipulationException, IOException {
 		curId ++;
 		
@@ -164,19 +167,26 @@ public final class MultiTableDatabase implements Database {
 		map.put(VALUE_COLUMN_NAME, value);
 		table.insert(map);
 		
-		return curId;
+		return hashtableDatabase.storeOneToMany(sourceId, name, value);
 	}
 	
 	public void close() throws IOException {
 		connection.close();
 	}
 
-	public int getFirstId() {
-		return firstId;
+	public String get(int id, String key) {
+		return hashtableDatabase.get(id, key);
 	}
 
-	public void clean() throws TableManipulationException {
-		// TODO Auto-generated method stub
-		
+	public Variables open() throws IOException {
+		Updateable rootTable = connection.getIOTable(ROOT_TABLE_NAME, ROOT_TABLE_COLUMNS);
+		idNames.put(Integer.valueOf(firstId), ROOT_TABLE_NAME);
+		nameTables.put(ROOT_TABLE_NAME, rootTable);
+		hashtableDatabase.open();
+		return new Variables(this, curId);
+	}
+
+	public String toString(int id) {
+		return hashtableDatabase.toString(id);
 	}
 }

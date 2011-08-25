@@ -2,8 +2,9 @@ package net.microscraper.client;
 
 import static org.junit.Assert.*;
 
+import java.util.Hashtable;
+
 import net.microscraper.regexp.Pattern;
-import net.microscraper.util.NameValuePair;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,12 +24,12 @@ public abstract class BrowserTest {
 
 	@Test
 	public void testHeadGoogle() throws Exception {
-		browser.head(google, new NameValuePair[] {}, new NameValuePair[] {});
+		browser.head(google, new Hashtable<String, String>());
 	}
 
 	@Test
 	public void testGetGoogle() throws Exception {
-		String responseBody = browser.get(google, new NameValuePair[] {}, new NameValuePair[] {}, new Pattern[] {});
+		String responseBody = browser.get(google, new Hashtable<String, String>(), new Pattern[] {});
 	}
 
 	@Test

@@ -3,19 +3,18 @@ package net.microscraper.template;
 import java.io.UnsupportedEncodingException;
 import java.util.Vector;
 
+import net.microscraper.database.Variables;
 import net.microscraper.util.Encoder;
-import net.microscraper.util.Substitutable;
 import net.microscraper.util.Execution;
-import net.microscraper.util.Variables;
 
 /**
- * Substitutions using {@link Variables}.
+ * Substitutions using {@link HashtableDatabase}.
  * This substitutes a key within {@link #openTag} and
- * {@link #closeTag} with a value from {@link Variables}.
+ * {@link #closeTag} with a value from {@link HashtableDatabase}.
  * @author john
  *
  */
-public final class Template implements Substitutable {
+public final class Template {
 
 	/**
 	 * Default {@link #openTag}.
@@ -31,13 +30,13 @@ public final class Template implements Substitutable {
 	
 	/**
 	 * {@link String} to mark the start of a key that will be substituted with a value
-	 * from {@link Variables}.
+	 * from {@link HashtableDatabase}.
 	 */
 	private final String openTag;
 	
 	/**
 	 * {@link String} to mark the end of a key that will be substituted with a value
-	 * from {@link Variables}.
+	 * from {@link HashtableDatabase}.
 	 */
 	private final String closeTag;
 
@@ -75,7 +74,7 @@ public final class Template implements Substitutable {
 
 	/**
 	 * Substitute the values from a {@link Variables} into the {@link Template}.
-	 * @param variables The {@link Variables} to use in the substitution.
+	 * @param variables The {@link HashtableDatabase} to use in the substitution.
 	 * @return A {@link Execution} whose {@link Execution#getExecuted()} is the {@link String}
 	 * result of the substitution.
 	 */
@@ -88,7 +87,7 @@ public final class Template implements Substitutable {
 	}
 	
 	/**
-	 * Substitute the values from a {@link Variables} into the {@link Template},
+	 * Substitute the values from a {@link HashtableDatabase} into the {@link Template},
 	 * and encode each value upon inserting it.
 	 * @param variables The {@link Variables} to use in the substitution.
 	 * @param encoder The {@link Encoder} to use when encoding values.
@@ -113,7 +112,8 @@ public final class Template implements Substitutable {
 			String tag = template.substring(open_tag_start_pos + openTag.length(), close_tag_start_pos);
 			
 			close_tag_end_pos = close_tag_start_pos + closeTag.length();
-			if(variables.containsKey(tag)) {
+			String value = variables.get(tag);
+			if(value != null) {
 				if(encoder != null) {
 					result += encoder.encode(variables.get(tag), encoding);	
 				} else {

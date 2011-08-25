@@ -1,17 +1,17 @@
 package net.microscraper.instruction;
 
 import java.io.IOException;
-import java.util.Vector;
+import java.util.Hashtable;
 
 import net.microscraper.client.Browser;
+import net.microscraper.client.Cookie;
+import net.microscraper.database.Variables;
 import net.microscraper.regexp.Pattern;
-import net.microscraper.template.NameValuePairTemplate;
+import net.microscraper.template.HashtableTemplate;
 import net.microscraper.template.Template;
 import net.microscraper.util.Encoder;
-import net.microscraper.util.NameValuePair;
 import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;
-import net.microscraper.util.Variables;
 
 /**
  * An {@link Executable} for making an HTTP request and likely loading
@@ -35,14 +35,14 @@ public final class Load implements Action {
 	private String nonDefaultMethod;
 
 	/**
-	 * {@link NameValuePairTemplate}s of cookies.
+	 * {@link HashtableTemplate}s of cookie name-values.
 	 */
-	private final Vector cookies = new Vector();
+	private final HashtableTemplate cookies = new HashtableTemplate();
 
 	/**
-	 * {@link NameValuePairTemplate}s of generic headers.
+	 * {@link HashtableTemplate}s of generic headers.
 	 */
-	private final Vector headers = new Vector();
+	private final HashtableTemplate headers = new HashtableTemplate();
 	
 	/**
 	 * {@link PatternTemplate}s that terminate the loading of this page's body.
@@ -52,14 +52,14 @@ public final class Load implements Action {
 	private final Pattern[] stops = new Pattern[] {};
 	
 	/**
-	 * A {@link Template} of post data.  Exclusive of {@link #postNameValuePairs}.
+	 * A {@link Template} of post data.  Exclusive of {@link #postTable}.
 	 */
 	private Template postData;
 	
 	/**
-	 * {@link NameValuePairTemplate}s of post data.  Exclusive of {@link #postData}.
+	 * {@link HashtableTemplate}s of post data.  Exclusive of {@link #postData}.
 	 */
-	private final Vector postNameValuePairs = new Vector();
+	private final HashtableTemplate postTable = new HashtableTemplate();
 	
 	/**
 	 * A string that will be templated and evaulated as a URL.
@@ -106,25 +106,25 @@ public final class Load implements Action {
 	}
 	
 	/**
-	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #postNameValuePairs}.
+	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #postTable}.
 	 * If {@link #method} is not {@link Browser.POST}, this changes it to be so.
-	 * @param postNameValuePair The {@link NameValuePairTemplate} to add as a post.
+	 * @param posts A {@link HashtableTemplate} of posts to add.
 	 */
-	public void addPostNameValuePair(NameValuePairTemplate postNameValuePair) {
-		if(this.postData != null) {
-			throw new IllegalArgumentException("Cannot have both postData and postNameValuePairs");
+	public void addPosts(HashtableTemplate posts) {
+		if(postData != null) {
+			throw new IllegalArgumentException("Cannot have both postData and postTable");
 		}
 		setMethod(Browser.POST);
-		this.postNameValuePairs.add(postNameValuePair);
+		postTable.merge(posts);
 	}
 
 	/**
-	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #postNameValuePairs}.
+	 * Set the post data for this {@link Load}.
 	 * If {@link #method} is not {@link Browser.POST}, this changes it to be so.
-	 * @param postNameValuePair The {@link NameValuePairTemplate} to add as a post.
+	 * @param postData The {@link Template} to use as a post.
 	 */
 	public void setPostData(Template postData) {
-		if(this.postNameValuePairs.size() > 0) {
+		if(postTable.size() > 0) {
 			throw new IllegalArgumentException("Cannot have both postData and postNameValuePairs");
 		}
 		setMethod(Browser.POST);
@@ -136,19 +136,19 @@ public final class Load implements Action {
 	}
 
 	/**
-	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #headers}.
-	 * @param header The {@link NameValuePairTemplate} to add as a header.
+	 * Add to this {@link Load}'s {@link #headers}.
+	 * @param headers A {@link HashtableTemplate} of headers to add.
 	 */
-	public void addHeader(NameValuePairTemplate header) {
-		this.headers.add(header);
+	public void addHeaders(HashtableTemplate headers) {
+		this.headers.merge(headers);
 	}
 
 	/**
 	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #cookies}.
-	 * @param cookie The {@link NameValuePairTemplate} to add as a cookie.
+	 * @param cookies A {@link HashtableTemplate} of cookies to add.
 	 */
-	public void addCookie(NameValuePairTemplate cookie) {
-		this.cookies.add(cookie);
+	public void addCookies(HashtableTemplate cookies) {
+		this.cookies.merge(cookies);
 	}
 
 	/**
@@ -171,14 +171,8 @@ public final class Load implements Action {
 			String method = nonDefaultMethod == null ? defaultMethod : nonDefaultMethod;
 			
 			Execution urlSub = url.subEncoded(variables, encoder, Browser.UTF_8);
-			
-			NameValuePairTemplate[] headersAry = new NameValuePairTemplate[headers.size()];
-			headers.copyInto(headersAry);
-			Execution headersSub = Execution.arraySubNameValuePair(headersAry, variables);
-			
-			NameValuePairTemplate[] cookiesAry = new NameValuePairTemplate[cookies.size()];
-			cookies.copyInto(cookiesAry);
-			Execution cookiesSub = Execution.arraySubNameValuePair(cookiesAry, variables);
+			Execution headersSub = headers.sub(variables);
+			Execution cookiesSub = cookies.sub(variables);
 			
 			if(!urlSub.isSuccessful() || !headersSub.isSuccessful() || !cookiesSub.isSuccessful()) {
 				return Execution.combine(new Execution[] {
@@ -190,26 +184,22 @@ public final class Load implements Action {
 
 				String url = (String) urlSub.getExecuted();
 				
-				NameValuePair[] headers = (NameValuePair[]) headersSub.getExecuted();
-				NameValuePair[] cookies = (NameValuePair[]) cookiesSub.getExecuted();
+				Hashtable headers = (Hashtable) headersSub.getExecuted();
+				Hashtable cookies = (Hashtable) cookiesSub.getExecuted();
+				browser.addCookies(Cookie.fromHashtable(url, cookies));
 				
 				if(method.equalsIgnoreCase(Browser.HEAD)){
-					browser.head(url, headers, cookies);
+					browser.head(url, headers);
 					responseBody = "";
 				} else {
-					/*Find[] stopsAry = new Find[stops.size()];
-					stops.copyInto(stopsAry);
-					Execution stopsSub = Execution.arraySubPattern(stopsAry, variables);*/
 					if(method.equalsIgnoreCase(Browser.POST)) {
-						if(postNameValuePairs != null) {
-							NameValuePairTemplate[] postsAry = new NameValuePairTemplate[postNameValuePairs.size()];
-							postNameValuePairs.copyInto(postsAry);
-							Execution postsSub = Execution.arraySubNameValuePair(postsAry, variables);
+						if(postTable.size() > 0) {
+							Execution postsSub = postTable.subEncoded(variables, encoder, Browser.UTF_8);
 							if(!postsSub.isSuccessful()) {
 								return Execution.missingVariables(postsSub.getMissingVariables());
 							} else {
-								NameValuePair[] posts = (NameValuePair[]) postsSub.getExecuted();
-								responseBody = browser.post(url, headers, cookies, stops, posts);
+								Hashtable posts = (Hashtable) postsSub.getExecuted();
+								responseBody = browser.post(url, headers, stops, posts);
 							}
 						} else {
 							//Execution postsSub = postData.sub(variables, encoder, Browser.UTF_8);
@@ -218,11 +208,11 @@ public final class Load implements Action {
 								return Execution.missingVariables(postsSub.getMissingVariables());
 							} else {
 								String postData = (String) postsSub.getExecuted();
-								responseBody = browser.post(url, headers, cookies, stops, postData);
+								responseBody = browser.post(url, headers, stops, postData);
 							}
 						}
 					} else {
-						responseBody = browser.get(url, headers, cookies, stops);
+						responseBody = browser.get(url, headers, stops);
 					}
 				}
 				return Execution.success(new String[] { responseBody } );
@@ -232,4 +222,12 @@ public final class Load implements Action {
 			return Execution.ioException(e);
 		}
 	}
+
+	/**
+	 * Defaults to {@link #url}.
+	 */
+	public Template getDefaultName() {
+		return url;
+	}
+	
 }

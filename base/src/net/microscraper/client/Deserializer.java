@@ -1,7 +1,7 @@
 package net.microscraper.client;
 
+import net.microscraper.database.Variables;
 import net.microscraper.util.Execution;
-import net.microscraper.util.Variables;
 
 /**
  * Interface to generate {@link Instruction}s from {@link String}s.

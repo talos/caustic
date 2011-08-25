@@ -1,8 +1,8 @@
 package net.microscraper.instruction;
 
 import net.microscraper.client.Deserializer;
+import net.microscraper.database.Variables;
 import net.microscraper.util.Execution;
-import net.microscraper.util.Variables;
 
 /**
  * An {@link InstructionPromise} allows for the lazy-loading of {@link Instruction}s.

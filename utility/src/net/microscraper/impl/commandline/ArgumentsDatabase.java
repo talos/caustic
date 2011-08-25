@@ -9,16 +9,15 @@ import net.microscraper.database.JDBCSqliteConnection;
 import net.microscraper.database.MultiTableDatabase;
 import net.microscraper.database.SQLConnectionException;
 import net.microscraper.database.SingleTableDatabase;
-import net.microscraper.database.TableManipulationException;
 import net.microscraper.util.StringUtils;
 
 import static net.microscraper.impl.commandline.Arguments.*;
 
-public class ArgumentsDatabase implements Database {
-	private final Database database;
+public class ArgumentsDatabase {
 	
-	public ArgumentsDatabase(Arguments args)
+	public static Database get(Arguments args)
 			throws SQLConnectionException, IOException {
+		final Database result;
 		
 		// Determine format.
 		String format;
@@ -50,49 +49,18 @@ public class ArgumentsDatabase implements Database {
 				UpdateableConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
 
 				if(args.has(SINGLE_TABLE)) {
-					database = new SingleTableDatabase(connection);
+					result = new SingleTableDatabase(connection);
 				} else {
-					database = new MultiTableDatabase(connection);
+					result = new MultiTableDatabase(connection);
 				}
 				
 			} else {
-				database = new SingleTableDatabase(DelimitedConnection.toFile(outputLocation, delimiter));
+				result = new SingleTableDatabase(DelimitedConnection.toFile(outputLocation, delimiter));
 			}
 			
 		} else { // output to STDOUT
-			database = new SingleTableDatabase(DelimitedConnection.toStdOut(delimiter));
+			result = new SingleTableDatabase(DelimitedConnection.toStdOut(delimiter));
 		}
-	}
-	@Override
-	public void close() throws IOException {
-		database.close();
-	}
-
-	@Override
-	public void clean() throws TableManipulationException {
-		database.clean();
-	}
-
-	@Override
-	public int store(int sourceId, String name, String value)
-			throws TableManipulationException, IOException {
-		return database.store(sourceId, name, value);
-	}
-
-	@Override
-	public int store(int sourceId, int resultNum)
-			throws TableManipulationException, IOException {
-		return database.store(sourceId, resultNum);
-	}
-
-	@Override
-	public int store(int sourceId, int resultNum, String name, String value)
-			throws TableManipulationException, IOException {
-		return database.store(sourceId, resultNum, name, value);
-	}
-
-	@Override
-	public int getFirstId() {
-		return database.getFirstId();
+		return result;
 	}
 }

@@ -28,6 +28,8 @@ public final class SingleTableDatabase implements Database {
 	 */
 	private final Insertable table;
 	
+	private final HashtableDatabase hashtableDatabase = new HashtableDatabase();
+	
 	private final int firstId = 0;
 	private int curId = firstId;
 	
@@ -46,30 +48,44 @@ public final class SingleTableDatabase implements Database {
 	
 	public void close() throws IOException { }
 
-	public void clean() throws TableManipulationException { }
-
-	public int store(int sourceId, String name, String value)
+	public int storeOneToOne(int sourceId, String name)
+			throws TableManipulationException, IOException {
+		curId++;
+		table.insert(generateMap(curId, sourceId, name, ""));
+		return hashtableDatabase.storeOneToOne(sourceId, name);
+	}
+	
+	public int storeOneToOne(int sourceId, String name, String value)
 			throws TableManipulationException, IOException {
 		curId++;
 		table.insert(generateMap(curId, sourceId, name, value));
-		return sourceId;
-	}
-	
-	public int store(int sourceId, int resultNum)
-			throws TableManipulationException, IOException {
-		curId++;
-		table.insert(generateMap(curId, sourceId, "", ""));
-		return curId;
+		return hashtableDatabase.storeOneToOne(sourceId, name, value);
 	}
 
-	public int store(int sourceId, int resultNum, String name, String value)
+	public int storeOneToMany(int sourceId, String name)
+			throws TableManipulationException, IOException {
+		curId++;
+		table.insert(generateMap(curId, sourceId, name, ""));
+		return hashtableDatabase.storeOneToMany(sourceId, name);
+	}
+
+	public int storeOneToMany(int sourceId, String name, String value)
 			throws TableManipulationException, IOException {
 		curId++;
 		table.insert(generateMap(curId, sourceId, name, value));
-		return curId;
+		return hashtableDatabase.storeOneToMany(sourceId, name, value);
+	}
+
+	public String get(int id, String key) {
+		return hashtableDatabase.get(id, key);
+	}
+
+	public Variables open() {
+		hashtableDatabase.open();
+		return new Variables(this, curId);
 	}
 	
-	public int getFirstId() {
-		return firstId;
+	public String toString(int id) {
+		return hashtableDatabase.toString(id);
 	}
 }

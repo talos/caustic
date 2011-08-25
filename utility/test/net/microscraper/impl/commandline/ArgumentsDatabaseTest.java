@@ -4,13 +4,9 @@ import static net.microscraper.impl.commandline.Arguments.*;
 import static net.microscraper.util.TestUtils.randomString;
 import static org.junit.Assert.*;
 
-import mockit.Expectations;
-import mockit.Mock;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Tested;
-import net.microscraper.database.SingleTableDatabase;
-import net.microscraper.database.InsertableConnection;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +38,7 @@ public class ArgumentsDatabaseTest {
 			args.has(OUTPUT_TO_FILE); result = true;
 			args.get(OUTPUT_FORMAT_OPTION); result = CSV_OUTPUT_FORMAT_VALUE;
 		}};
-		new ArgumentsDatabase(args);
+		ArgumentsDatabase.get(args);
 	}
 	
 

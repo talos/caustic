@@ -3,12 +3,13 @@ package net.microscraper.uri;
 import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
 
+import java.util.Hashtable;
+
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.client.Browser;
 import net.microscraper.file.FileLoader;
 import net.microscraper.regexp.Pattern;
-import net.microscraper.util.NameValuePair;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +36,7 @@ public abstract class URILoaderTest {
 		
 		new NonStrictExpectations() {{
 			fileLoader.load(filePath); result = fileContents;
-			browser.get(httpPath, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any);
+			browser.get(httpPath, (Hashtable) any, (Pattern[]) any);
 				result = httpContents;
 		}};
 	}

@@ -15,19 +15,17 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.client.Browser;
+import net.microscraper.client.Cookie;
 import net.microscraper.client.Loggable;
 import net.microscraper.client.Logger;
 import net.microscraper.impl.log.BasicLog;
 import net.microscraper.regexp.Pattern;
-import net.microscraper.util.BasicNameValuePair;
 import net.microscraper.util.Encoder;
-import net.microscraper.util.NameValuePair;
 import net.microscraper.util.StringUtils;
 
 /**
  * This is a very lightweight {@link Browser}.  It will add headers & posts, and does <b>very</b>
- *  primitive cookie handling.  It only
- * looks at the name & value of cookies -- not expiration or domains.
+ * primitive cookie handling.  It only looks at the name & value of cookies -- not expiration or domains.
  * @author john
  *
  */
@@ -41,42 +39,42 @@ public class JavaNetBrowser implements Browser, Loggable {
 	private final BasicLog log = new BasicLog();
 	private final Encoder encoder = new JavaNetEncoder();
 	
-	public void head(String url, NameValuePair[] headers, NameValuePair[] cookies)
+	public void head(String url, Hashtable headers)
 			throws IOException, InterruptedException {
 		log.i("Retrieving Head from  " + StringUtils.quote(url.toString()) + "...");
-		connectHandlingRedirectCookies("HEAD", new URL(url.toString()), null, headers, cookies);
+		connectHandlingRedirectCookies("HEAD", new URL(url.toString()), null, headers);
 	}
 
-	public String get(String url, NameValuePair[] headers,
-			NameValuePair[] cookies, Pattern[] terminates) throws
+	public String get(String url, Hashtable headers,
+			Pattern[] terminates) throws
 			IOException, InterruptedException {
 		log.i("Getting  " + url.toString() + "...");
-		InputStream stream = connectHandlingRedirectCookies("GET", new URL(url.toString()), null, headers, cookies);
+		InputStream stream = connectHandlingRedirectCookies("GET", new URL(url.toString()), null, headers);
 		return pullResponse(url, stream, terminates);
 	}
 
-	public String post(String url, NameValuePair[] headers, NameValuePair[] cookies,
-			Pattern[] terminates, NameValuePair[] posts)
+	public String post(String url, Hashtable headers, Pattern[] terminates, Hashtable posts)
 				throws IOException, InterruptedException {
 		log.i("Posting to  " + url.toString() + "...");
 
 		String postData = "";
-		if(posts != null) {
-			for(int i = 0 ; i < posts.length ; i ++) {
-				postData += encoder.encode(posts[i].getName(), encoding) + '=' + encoder.encode(posts[i].getValue(), encoding) + '&';
-			}
-			postData = postData.substring(0, postData.length() -1); // trim trailing ampersand
+		Enumeration keys = posts.keys();
+		while(keys.hasMoreElements()) {
+			String name = (String) keys.nextElement();
+			String value = (String) posts.get(name);
+			postData += encoder.encode(name, encoding) + '=' + encoder.encode(value, encoding) + '&';
 		}
+		postData = postData.substring(0, postData.length() -1); // trim trailing ampersand
 		
-		InputStream stream = connectHandlingRedirectCookies("POST", new URL(url.toString()), postData, headers, cookies);
+		InputStream stream = connectHandlingRedirectCookies("POST", new URL(url.toString()), postData, headers);
 		return pullResponse(url, stream, terminates);
 	}
 
-	public String post(String url, NameValuePair[] headers, NameValuePair[] cookies,
-			Pattern[] terminates, String postData)
+	public String post(String url, Hashtable headers, Pattern[] terminates,
+			String postData)
 				throws IOException, InterruptedException {
 		log.i("Posting to  " + url.toString() + "...");
-		InputStream stream = connectHandlingRedirectCookies("POST", new URL(url.toString()), postData, headers, cookies);
+		InputStream stream = connectHandlingRedirectCookies("POST", new URL(url.toString()), postData, headers);
 		return pullResponse(url, stream, terminates);
 	}
 	
@@ -139,9 +137,9 @@ public class JavaNetBrowser implements Browser, Loggable {
 		return responseBody;
 	}
 	
-	private void addHeaderToConnection(HttpURLConnection conn, NameValuePair header) {
-		log.i("Adding header: " + header);
-		conn.setRequestProperty(header.getName(), header.getValue());
+	private void addHeaderToConnection(HttpURLConnection conn, String name, String value) {
+		log.i("Adding header " + StringUtils.quote(name) + " : " + StringUtils.quote(value));
+		conn.setRequestProperty(name, value);
 	}
 	
 	/**
@@ -149,15 +147,13 @@ public class JavaNetBrowser implements Browser, Loggable {
 	 * @param method The {@link Method} to use.
 	 * @param url A {@link URL} to load.  Also defaults to be the Referer in the request header.
 	 * @param postData A {@link String} of POST data to send.
-	 * @param headers An array of {@link NameValuePair}s, can be <code>null</code>
-	 * @param cookies An array of {@link NameValuePair}s, can be <code>null</code>
+	 * @param headers A {@link Hashtable} of special headers to use.
 	 * @return A {@link java.net.HttpURLConnection}
 	 * @throws IOException If there was an error generating the {@link java.net.HttpURLConnection}.
 	 * @throws InterruptedException If the user interrupted the request.
 	 */
 	private HttpURLConnection generateConnection(String method,
-			URL url, String postData,
-			NameValuePair[] headers, NameValuePair[] cookies)
+			URL url, String postData, Hashtable headers)
 				throws IOException, InterruptedException {
 		if(rateLimitKBPS > 0) {
 			float kbpsSinceLastLoad = hostMemory.kbpsSinceLastLoadFor(url);
@@ -180,22 +176,21 @@ public class JavaNetBrowser implements Browser, Loggable {
 		HttpURLConnection conn = (HttpURLConnection) (new URL(url.toString())).openConnection();	
 		
 		// Add generic Headers.
-		addHeaderToConnection(conn, new BasicNameValuePair(ACCEPT_HEADER_NAME, ACCEPT_HEADER_DEFAULT_VALUE));
-		addHeaderToConnection(conn, new BasicNameValuePair(ACCEPT_LANGUAGE_HEADER_NAME, ACCEPT_LANGUAGE_HEADER_DEFAULT_VALUE));
-		addHeaderToConnection(conn, new BasicNameValuePair(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER_DEFAULT_VALUE));
-		addHeaderToConnection(conn, new BasicNameValuePair(REFERER_HEADER_NAME, url.toString())); // default to the current URL as referer.
-		if(headers != null) {
-			for(int i = 0 ; i < headers.length ; i++) {
-				addHeaderToConnection(conn, headers[i]);
-			}
+		addHeaderToConnection(conn, ACCEPT_HEADER_NAME, ACCEPT_HEADER_DEFAULT_VALUE);
+		addHeaderToConnection(conn, ACCEPT_LANGUAGE_HEADER_NAME, ACCEPT_LANGUAGE_HEADER_DEFAULT_VALUE);
+		addHeaderToConnection(conn, USER_AGENT_HEADER_NAME, USER_AGENT_HEADER_DEFAULT_VALUE);
+		addHeaderToConnection(conn, REFERER_HEADER_NAME, url.toString()); // default to the current URL as referer.
+		Enumeration headerNames = headers.keys();
+		while(headerNames.hasMoreElements()) {
+			String headerName = (String) headerNames.nextElement();
+			String headerValue = (String) headers.get(headerName);
+			addHeaderToConnection(conn, headerName, headerValue);
 		}
 		
 		// Add cookies passed directly into cookie store. Very primitive.
-		if(cookies != null) {
-			for(int i = 0; i < cookies.length ; i++) {
-				cookieStore.put(cookies[i].getName(), cookies[i].getValue());
-			}
-		}
+		/*for(int i = 0; i < cookies.length ; i++) {
+			cookieStore.put(cookies[i].getName(), cookies[i].getValue());
+		}*/
 
 		
 		// Add cookie header to request.
@@ -230,18 +225,16 @@ public class JavaNetBrowser implements Browser, Loggable {
 	
 	// Indebted to jcookie (http://jcookie.sourceforge.net/doc.html)
 	private InputStream connectHandlingRedirectCookies(String method, URL url,
-			String postData,
-			NameValuePair[] headers, NameValuePair[] cookies)
+			String postData, Hashtable headers)
 				throws IOException, InterruptedException {
-		return connectHandlingRedirectCookies(method, url, postData, headers, cookies, new Vector());
+		return connectHandlingRedirectCookies(method, url, postData, headers, new Vector());
 	}
 	
 	//private InputStream connectHandlingRedirectCookies(/*HttpURLConnection conn, */Vector redirects_followed)
 	private InputStream connectHandlingRedirectCookies(String method, URL url,
-			String postData,
-			NameValuePair[] headers, NameValuePair[] cookies, Vector redirects_followed)
+			String postData, Hashtable headers, Vector redirects_followed)
 				throws IOException, InterruptedException {
-		HttpURLConnection conn = generateConnection(method, url, postData, headers, cookies);
+		HttpURLConnection conn = generateConnection(method, url, postData, headers);
 		conn.setInstanceFollowRedirects(false);
 		try {
 			conn.connect();
@@ -271,7 +264,7 @@ public class JavaNetBrowser implements Browser, Loggable {
 						conn.disconnect();
 						return connectHandlingRedirectCookies("GET",
 								new URI(url.toString()).resolve(redirect_string).toURL(), null,
-								headers, null, redirects_followed);
+								headers, redirects_followed);
 						
 					} catch(Exception e) {
 						throw new IOException("Unable to parse redirect from " + conn.getURL().toString()
@@ -389,5 +382,14 @@ public class JavaNetBrowser implements Browser, Loggable {
 
 	public void register(Logger logger) {
 		log.register(logger);
+	}
+	
+	/**
+	 * TODO Currently very primitive, just ignores URL.
+	 */
+	public void addCookies(Cookie[] cookies) {
+		for(int i = 0 ; i < cookies.length ; i ++) {
+			this.cookieStore.put(cookies[i].getName(), cookies[i].getValue());
+		}
 	}
 }

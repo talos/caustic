@@ -36,7 +36,7 @@ public class ArgumentsMicroscraper {
 	 */
 	@SuppressWarnings("unchecked")
 	public ArgumentsMicroscraper(Arguments args) throws SQLConnectionException, IOException {		
-		Database database = new ArgumentsDatabase(args);
+		Database database = ArgumentsDatabase.get(args);
 		
 		this.args = args;
 		final int rateLimit;

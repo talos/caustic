@@ -2,9 +2,9 @@ package net.microscraper.instruction;
 
 import java.io.IOException;
 
+import net.microscraper.database.Variables;
 import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;
-import net.microscraper.util.Variables;
 
 /**
  * An {@link Executable} is an execution-time binding of an {@link InstructionPromise} to

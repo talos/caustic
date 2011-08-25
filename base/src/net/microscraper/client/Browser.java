@@ -1,9 +1,9 @@
 package net.microscraper.client;
 
 import java.io.IOException;
+import java.util.Hashtable;
 
 import net.microscraper.regexp.Pattern;
-import net.microscraper.util.NameValuePair;
 
 /**
  * Implementations of the {@link Browser} interface can be used by to make HTTP requests and handle the responses.
@@ -64,59 +64,58 @@ public interface Browser extends Loggable {
 	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies
 	 * from the Set-Cookie response header to the {@link Browser}'s cookie store.
 	 * @param url the URL to HTTP Head.
-	 * @param headers Array of {@link NameValuePair} extra headers.  Can be <code>null</code> if there are none.
-	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
+	 * @param headers {@link Hashtable} extra headers.
 	 * @throws IOException If there was an exception requesting the page.
 	 * @throws InterruptedException If the user interrupted the request.
 	 */
-	public abstract void head(String url, NameValuePair[] headers, NameValuePair[] cookies)
+	public abstract void head(String url, Hashtable headers)
 			throws IOException, InterruptedException;
 	
 	/**
 	 * Make an HTTP Get request.  This returns the body of the response, and adds cookies to the cookie jar.
 	 * @param url the URL to HTTP Get.
-	 * @param headers Array of {@link NameValuePair} extra headers.  Can be <code>null</code> if there are none.
-	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
-	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
+	 * @param headers {@link Hashtable} extra headers.
+	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.
 	 * @return The body of the response.
 	 * @throws IOException If there was an exception making or during the request.
 	 * @throws InterruptedException If the user interrupted the request.
 	 */
-	public abstract String get(String url, NameValuePair[] headers, NameValuePair[] cookies,
-			Pattern[] terminates) throws IOException, InterruptedException;
+	public abstract String get(String url, Hashtable headers, Pattern[] terminates) throws IOException, InterruptedException;
 	
 	/**
 	 * Make an HTTP Post request with an array of {@link NameValuePair}s to encode into post data.
 	 * This returns the body of the response, and adds cookies to the cookie jar.
 	 * @param url the URL to HTTP Get.
-	 * @param headers Array of {@link NameValuePair} extra headers.  Can be <code>null</code> if there are none.
-	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
-	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
-	 * @param posts Array of {@link NameValuePair} post data.  Can be <code>null</code> if there are none.
+	 * @param headers {@link Hashtable} extra headers.
+	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.
+	 * @param posts {@link Hashtable} of post data.  Should be form encoded as name-value pairs.
 	 * @return The body of the response.
 	 * @throws IOException If there was an exception making or during the request.
 	 * @throws InterruptedException If the user interrupted the request.
 	 */
-	public abstract String post(String url, NameValuePair[] headers,
-			NameValuePair[] cookies, Pattern[] terminates, NameValuePair[] posts)
+	public abstract String post(String url, Hashtable headers, Pattern[] terminates, Hashtable posts)
 			throws IOException, InterruptedException;
 
 	/**
 	 * Make an HTTP Post request with a {@link String} to encode into post data.
 	 * This returns the body of the response, and adds cookies to the cookie jar.
 	 * @param url the URL to HTTP Get.
-	 * @param headers Array of {@link NameValuePair} extra headers.  Can be <code>null</code> if there are none.
-	 * @param cookies Array of {@link NameValuePair} extra cookies.  These should also be added to the browser's cookie store.  Can be <code>null</code> if there are none.
-	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.  Can be <code>null</code> if there are none.
-	 * @param postData {@link String} of post data. be <code>null</code> if there is none.
+	 * @param headers {@link Hashtable} extra headers.
+	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.
+	 * @param postData {@link String} of post data.  Should be form encoded.
 	 * @return The body of the response.
 	 * @throws IOException If there was an exception making or during the request.
 	 * @throws InterruptedException If the user interrupted the request.
 	 */
-	public abstract String post(String url, NameValuePair[] headers,
-			NameValuePair[] cookies, Pattern[] terminates, String postData)
+	public abstract String post(String url, Hashtable headers, Pattern[] terminates, String postData)
 			throws IOException, InterruptedException;
-		
+	
+	/**
+	 * Add an array of {@link Cookie}s to the {@link Browser}'s cookie store.
+	 * @param cookies
+	 */
+	public abstract void addCookies(Cookie[] cookies);
+	
 	/**
 	 * Set the rate limit for loading from a single host.  The {@link Browser} will wait until the rate is below
 	 * this threshold before making another request.  Set this to <code>0</code> to disable rate limiting.

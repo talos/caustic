@@ -3,12 +3,12 @@ package net.microscraper.uri;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Hashtable;
 
 import net.microscraper.browser.JavaNetBrowser;
 import net.microscraper.client.Browser;
 import net.microscraper.file.FileLoader;
 import net.microscraper.regexp.Pattern;
-import net.microscraper.util.NameValuePair;
 
 public class JavaNetURILoader implements URILoader {
 	
@@ -43,7 +43,7 @@ public class JavaNetURILoader implements URILoader {
 			} else if(uri.getScheme().equalsIgnoreCase(UriResolver.FILE_SCHEME)) {
 				return fileLoader.load(uri.getSchemeSpecificPart());
 			} else {
-				return browser.get(uriStr, new NameValuePair[] {}, new NameValuePair[] {}, new Pattern[] {});
+				return browser.get(uriStr, new Hashtable(), new Pattern[] {});
 			}
 		} catch (URISyntaxException e) {
 			throw new IOException(e);
