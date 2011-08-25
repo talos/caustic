@@ -14,7 +14,7 @@ in the terminal of your choice.  This executes the JSON instruction
       "load"  : "http://www.google.com",
       "then" : {
         "find" : "Feeling\\s[\\w]*",
-	"name" : "Feeling?"
+        "name" : "Feeling?"
       }
     }
 
@@ -151,15 +151,15 @@ What if you want a scraper to run itself?  No problem!
 
 This [fixture](microscraper-client/blob/master/fixtures/json/recursive-google.json) does just that
 
-  {
-    "load"  : "http://www.google.com/search?q={{query}}",
-    "then" : {
-    	"find"     : "{{query}}\\s+(\\w+)",
-    	"replace" : "$1",
-    	"name"   : "query",
-	"then"   : "$this"
+    {
+      "load"  : "http://www.google.com/search?q={{query}}",
+      "then" : {
+        "find"     : "{{query}}\\s+(\\w+)",
+        "replace" : "$1",
+        "name"   : "query",
+        "then"   : "$this"
+      }
     }
-  }
 
 When inside *then*, *$this* evaluates to be the entire object.  This evaluation is only performed when *then*
 operates.
