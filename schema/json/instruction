@@ -3,18 +3,13 @@
     "type" : "object",
     "properties" : {
 	"name" : {
-	    "description" : "The name of this instruction.  If this is specified and this instruction saves its result, it will be saved with this name.  Mustache substitutions are performed on this.",
+	    "description" : "The name of this instruction.  If this is specified, its results will be saved under this name.  The results will also be used for substitutions using this name.",
 	    "type" : "string",
 	    "required" : false
 	},
-	"save" : {
-	    "description" : "Whether the result value of this instruction should be saved to a database.",
-	    "type" : "boolean",
-	    "required" : false
-	},
 	"then" : {
-	    "description" : "An array of Loads and Finds to be run after this Instruction is complete.  They will receive its result as their source, and have read access to all its variables.",
-	    "type" : ["object", "array"],
+	    "description" : "Load(s) and/or find(s) to be run after this instruction is complete.  Each will receive a result as its source.",
+	    "type" : ["string", "object", "array"],
 	    "items" : [
 		{ "$ref" : "load" },
 		{ "$ref" : "find" }

@@ -14,11 +14,6 @@ import net.microscraper.util.StringUtils;
  *
  */
 public class SQLTable implements IOTable {
-
-	/**
-	 * Name of unique ID column.
-	 */
-	private static final String ID_COLUMN_NAME = "_id";
 	
 	/**
 	 * {@link SQLConnection} used in this {@link SQLTable}.
@@ -35,13 +30,6 @@ public class SQLTable implements IOTable {
 	 */
 	private final List<String> columns = new ArrayList<String>();
 	
-	/**
-	 * The value of the last inserted row's ID in {@link #ID_COLUMN_NAME}.
-	 * Begins at <code>-1</code> and incremented with each
-	 * {@link #insert(NameValuePair[])}
-	 */
-	private int id = -1;
-	
 	public SQLTable(SQLConnection connection, String name,
 			String[] columns) throws SQLConnectionException {
 				
@@ -49,22 +37,20 @@ public class SQLTable implements IOTable {
 		this.connection = connection;
 		this.name = name;
 		
-		this.columns.add(ID_COLUMN_NAME);
-		
 		String[] columnDefinitions = new String[columns.length];
 		for(int i = 0 ; i < columns.length ; i ++) {
 			columnDefinitions[i] = columns[i] + " " + connection.textColumnType();
 			this.columns.add(columns[i]);
 		}
-		String columnDefinition = StringUtils.join(columnDefinitions, ", ");
+		String columnDefinition = StringUtils.join(columnDefinitions, " , ");
 		
 		if(connection.tableExists(name)) {
 			
 		} else {
 			SQLPreparedStatement createTable = 
 					this.connection.prepareStatement("CREATE TABLE `" + name + "` " +
-					" (`" + ID_COLUMN_NAME + "` " + connection.intColumnType() +
-					" " + connection.keyColumnDefinition() + ", " +
+		/*			+ " (`" + ID_COLUMN_NAME + "` " + connection.intColumnType() +
+					" " + connection.keyColumnDefinition() + ", " + */
 					columnDefinition + ")");
 			createTable.execute();
 			connection.runBatch();
@@ -76,10 +62,10 @@ public class SQLTable implements IOTable {
 		preventIllegalBacktick(columnName);
 		
 		try {
-			if(columnName.equals(ID_COLUMN_NAME)) {
+			/*if(columnName.equals(ID_COLUMN_NAME)) {
 				throw new SQLConnectionException(StringUtils.quote(columnName) + " is reserved as the " +
 							"ID column for the table.");
-			}
+			}*/
 			SQLPreparedStatement alterTable = 
 					connection.prepareStatement("" +
 							"ALTER TABLE `" + name + "` " +
@@ -115,19 +101,15 @@ public class SQLTable implements IOTable {
 	}
 	
 	@Override
-	public int insert(NameValuePair[] nameValuePairs) throws TableManipulationException {
-		String[] columnNames = new String[nameValuePairs.length + 1];
-		String[] parameters = new String[nameValuePairs.length + 1];
-		String[] columnValues = new String[nameValuePairs.length + 1];
+	public void insert(NameValuePair[] nameValuePairs) throws TableManipulationException {
+		String[] columnNames = new String[nameValuePairs.length];
+		String[] parameters = new String[nameValuePairs.length];
+		String[] columnValues = new String[nameValuePairs.length];
 		
-		columnNames[0] = ID_COLUMN_NAME;
-		parameters[0] = "?";
-		columnValues[0] = Integer.toString(id + 1);
-		
-		for(int i = 1 ; i < nameValuePairs.length + 1 ; i ++) {
-			columnNames[i] = "`" + nameValuePairs[i - 1].getName() + "`";
+		for(int i = 0 ; i < nameValuePairs.length ; i ++) {
+			columnNames[i] = "`" + nameValuePairs[i].getName() + "`";
 			parameters[i] = "?";
-			columnValues[i] = nameValuePairs[i - 1].getValue();
+			columnValues[i] = nameValuePairs[i].getValue();
 		}
 		
 		try {
@@ -137,16 +119,13 @@ public class SQLTable implements IOTable {
 							"VALUES (" + StringUtils.join(parameters, ", ") + ")");
 			insert.bindStrings(columnValues);
 			insert.execute();
-			id++;
-			//return new SQLResult(id, name, value)
-			return id;
 		} catch(SQLConnectionException e) {
 			throw new TableManipulationException(e);
 		}
 	}
 
 	@Override
-	public void update(int id, NameValuePair[] nameValuePairs)
+	public void update(String idColumnName, int id, NameValuePair[] nameValuePairs)
 			throws TableManipulationException {
 		String[] setStatements = new String[nameValuePairs.length];
 		String[] values = new String[nameValuePairs.length];
@@ -160,17 +139,12 @@ public class SQLTable implements IOTable {
 		try {
 			SQLPreparedStatement update = connection.prepareStatement(
 					"UPDATE `" + name + "` " + set +
-					"WHERE `" + ID_COLUMN_NAME + "` = " + Integer.toString(id));
+					"WHERE `" + idColumnName + "` = " + Integer.toString(id));
 			update.bindStrings(values);
 			update.execute();
 		} catch (SQLConnectionException e) {
 			throw new TableManipulationException(e);
 		}
-	}
-
-	@Override
-	public String getName() {
-		return name;
 	}
 
 	@Override
@@ -188,10 +162,5 @@ public class SQLTable implements IOTable {
 		} catch(SQLConnectionException e) {
 			throw new TableManipulationException(e);
 		}
-	}
-
-	@Override
-	public int getLastId() {
-		return id;
 	}
 }

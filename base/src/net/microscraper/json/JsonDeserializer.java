@@ -87,7 +87,7 @@ public class JsonDeserializer implements Deserializer {
 			JsonObject initialObj = parser.parse(jsonString);
 			
 			Template name = null;
-			Boolean shouldPersistValue = null;
+			//Boolean shouldPersistValue = null;
 			
 			// InstructionPromise children.
 			Vector children = new Vector();
@@ -201,9 +201,9 @@ public class JsonDeserializer implements Deserializer {
 						}
 					} else if(key.equalsIgnoreCase(NAME)) {
 						name = Template.compile(obj.getString(key), openTagString, closeTagString);
-					} else if(key.equalsIgnoreCase(SAVE)) {
+					/*} else if(key.equalsIgnoreCase(SAVE)) {
 						shouldPersistValue = Boolean.valueOf(obj.getBoolean(key));
-						
+						*/
 					/** Load-only attributes. **/
 					} else if(key.equalsIgnoreCase(LOAD)) {
 						url = Template.compile(obj.getString(key), openTagString, closeTagString);
@@ -323,10 +323,11 @@ public class JsonDeserializer implements Deserializer {
 			}
 			
 			if(action != null) {
+				
 				Instruction instruction = new Instruction(action);
-				if(shouldPersistValue != null) {
+				/*if(shouldPersistValue != null) {
 					instruction.setShouldPersistValue(shouldPersistValue.booleanValue());
-				}
+				}*/
 				if(name != null) {
 					instruction.setName(name);
 				}
@@ -438,7 +439,7 @@ public class JsonDeserializer implements Deserializer {
 	/**
 	 * Key for {@link Instruction#shouldSaveValue} value when deserializing from JSON.
 	 */
-	public static final String SAVE = "save";
+	//public static final String SAVE = "save";
 	
 	/**
 	 * Key for deserializing {@link PatternTemplate#pattern}.

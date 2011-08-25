@@ -1,10 +1,12 @@
 package net.microscraper.instruction;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Vector;
 
 import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
+import net.microscraper.util.StringUtils;
 import net.microscraper.util.Variables;
 
 /**
@@ -17,7 +19,7 @@ public class Instruction {
 	/**
 	 * Whether this {@link Instruction} has a particular name.
 	 */
-	private boolean hasName;
+	private boolean hasName = false;
 	
 	/**
 	 * The {@link Template} name for this {@link Instruction}.
@@ -30,27 +32,18 @@ public class Instruction {
 	private final Vector children = new Vector();
 	
 	/**
-	 * Whether or not this {@link Instruction} should save the values of its results to the {@link Database}.
-	 */
-	private boolean shouldPersistValue;
-	
-	/**
 	 * The {@link Action} done by this {@link Instruction}.
 	 */
 	private final Action action;
 
 	/**
 	 * Create a new {@link Instruction}.
-	 * Uses {@link Action#getDefaultShouldPersistValue()} for {@link #shouldPersistValue} and
-	 * {@link Action#getDefaultName()} for {@link #name}.
 	 * @param action The {@link Action} that produces this {@link Instruction}'s results.
 	 * {@link Instruction}'s results.
 	 */
 	public Instruction(Action action) {
-		this.shouldPersistValue = action.getDefaultShouldPersistValue();
 		this.action = action;
 		this.hasName = false;
-		this.name = action.getDefaultName();
 	}
 	
 	/**
@@ -60,14 +53,6 @@ public class Instruction {
 	public void setName(Template name) {
 		this.hasName = true;
 		this.name = name;
-	}
-
-	/**
-	 * Assign a {@link #shouldPersistValue} to this {@link Instruction}.
-	 * @param name The {@link boolean} value to assign.
-	 */
-	public void setShouldPersistValue(boolean shouldPersistValue) {
-		this.shouldPersistValue = shouldPersistValue;
 	}
 	
 	/**
@@ -101,48 +86,57 @@ public class Instruction {
 	 */
 	public Execution execute(String source, Variables variables) throws InterruptedException, IOException {
 		final Execution result;
-		
-		Execution nameSub = name.sub(variables);
-		
-		// Didn't get the name.
-		if(nameSub.isSuccessful() == false) {
-			result = nameSub;
-		
-		// Got the name.
+		final String nameStr;
+		if(hasName) {
+			Execution nameSub = name.sub(variables);
+			// Didn't get the name.
+			if(nameSub.isSuccessful() == false) {
+				return nameSub; // eject
+			}
+			nameStr = (String) nameSub.getExecuted();
 		} else {
-			String name = (String) nameSub.getExecuted();
+			nameStr = null;
+		}
 			
-			Execution actionExecution = action.execute(source, variables);
-			
-			if(actionExecution.isSuccessful() == false) {
-				result = actionExecution;
-			} else {
-			
-				String[] resultValues = (String[]) actionExecution.getExecuted();
-				Executable[] childExecutables = new Executable[resultValues.length * children.size()];
+		Execution actionExecution = action.execute(source, variables);
+		
+		if(actionExecution.isSuccessful() == false) {
+			result = actionExecution;
+		} else {
+		
+			String[] resultValues = (String[]) actionExecution.getExecuted();
+			Executable[] childExecutables = new Executable[resultValues.length * children.size()];
+			for(int i = 0 ; i < resultValues.length ; i ++ ) {
+				final String resultValue = resultValues[i];
+				final Variables childVariables;
 				
-				// Generate new Variables instances for the kids.
-				Variables[] branches;
-				
+				// Save the value to Variables (and the database).
 				if(resultValues.length == 1) {
-					branches = new Variables[] { Variables.singleBranch(variables, name, resultValues[0], hasName && shouldPersistValue) };	
+					if(hasName) {
+						variables.save(nameStr, resultValue);
+					}
+					childVariables = variables;
 				} else {
-					branches = Variables.multiBranch(variables, name, resultValues, hasName && shouldPersistValue);						
-				}
-				
-				for(int i = 0 ; i < resultValues.length ; i ++) {
-					Variables branch = branches[i];
-					String childSource = resultValues[i];
-					for(int j = 0 ; j < children.size() ; j++) {
-						InstructionPromise child = (InstructionPromise) children.elementAt(j);
-						childExecutables[(i * children.size()) + j]
-								= new Executable(childSource, branch, child);
+					if(hasName) {
+						childVariables = variables.saveAndBranch(i, nameStr, resultValue);
+					} else {
+						childVariables = variables.branch(i);
 					}
 				}
-
-				result = Execution.success(childExecutables);
+				
+				// Generate children.
+				int instructionPromiseNum = i * children.size();
+				Enumeration e = children.elements();
+				while(e.hasMoreElements()) {
+					InstructionPromise promise = (InstructionPromise) e.nextElement();
+					childExecutables[instructionPromiseNum] = new Executable(resultValue, childVariables, promise);
+					instructionPromiseNum++;
+				}
 			}
+
+			result = Execution.success(childExecutables);
 		}
+		
 		return result;
 	}
 }

@@ -11,30 +11,22 @@ import net.microscraper.util.NameValuePair;
 import net.microscraper.util.StringUtils;
 
 public class DelimitedTable implements WritableTable {
-	
-	private static final String ID_COLUMN_NAME = "id";
-	
+		
 	private final CSVWriter writer;
-	
-	private int curId = -1;
-	
+		
 	private final List<String> columns;
 	
 	public DelimitedTable(CSVWriter writer, String[] columns) {
 		this.writer = writer;
 		this.columns = new ArrayList<String>(Arrays.asList(columns));
-		// Prepend ID to the array of column names.
-		this.columns.add(0, ID_COLUMN_NAME);
-		
+		// Prepend ID to the array of column names.		
 		writer.writeNext(this.columns.toArray(new String[0]));
 	}
 	
 	@Override
-	public int insert(NameValuePair[] nameValuePairs) throws TableManipulationException {
+	public void insert(NameValuePair[] nameValuePairs) throws TableManipulationException {
 		// Prepend ID to the array of nameValuePairs.
-		curId ++;
-		nameValuePairs = Arrays.copyOf(nameValuePairs, nameValuePairs.length + 1);
-		nameValuePairs[nameValuePairs.length -1] = new BasicNameValuePair(ID_COLUMN_NAME, Integer.toString(curId));
+		nameValuePairs = Arrays.copyOf(nameValuePairs, nameValuePairs.length);
 		
 		if(nameValuePairs.length != columns.size()) {
 			throw new TableManipulationException(BasicNameValuePair.preview(nameValuePairs) + " does not fit in " +
@@ -52,13 +44,5 @@ public class DelimitedTable implements WritableTable {
 			}
 		}
 		writer.writeNext(valuesInOrder);
-		return curId;
 	}
-
-	@Override
-	public int getLastId() {
-		return curId;
-	}
-
-
 }

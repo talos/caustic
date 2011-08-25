@@ -63,13 +63,6 @@ public class ArgumentsDatabase implements Database {
 			database = new SingleTableDatabase(DelimitedConnection.toStdOut(delimiter));
 		}
 	}
-	
-	@Override
-	public int store(int sourceId, int resultNum, String name,
-			String sourceName, String value) throws TableManipulationException, IOException {
-		return database.store(sourceId, resultNum, name, sourceName, value);
-	}
-
 	@Override
 	public void close() throws IOException {
 		database.close();
@@ -78,5 +71,28 @@ public class ArgumentsDatabase implements Database {
 	@Override
 	public void clean() throws TableManipulationException {
 		database.clean();
+	}
+
+	@Override
+	public int store(int sourceId, String name, String value)
+			throws TableManipulationException, IOException {
+		return database.store(sourceId, name, value);
+	}
+
+	@Override
+	public int store(int sourceId, int resultNum)
+			throws TableManipulationException, IOException {
+		return database.store(sourceId, resultNum);
+	}
+
+	@Override
+	public int store(int sourceId, int resultNum, String name, String value)
+			throws TableManipulationException, IOException {
+		return database.store(sourceId, resultNum, name, value);
+	}
+
+	@Override
+	public int getFirstId() {
+		return database.getFirstId();
 	}
 }

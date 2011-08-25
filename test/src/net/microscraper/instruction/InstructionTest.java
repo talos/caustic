@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 
+import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
@@ -19,39 +20,34 @@ import org.junit.Test;
 
 public final class InstructionTest {	
 	@Mocked private Database database;
-	@Mocked private Template name;
 	@Mocked private InstructionPromise promise;
 	@Mocked private Action action;
 	
 	private Variables variables;
 	private String source = randomString();
+	private int firstId = randomInt();
 	
 	@Tested private Instruction instruction;
 	
 	@Before
 	public void setUp() throws Exception {
+		new NonStrictExpectations() {{
+			database.getFirstId(); result = firstId;
+		}};
 		variables = Variables.empty(database);
 		instruction = new Instruction(action);
-		instruction.setName(name);
 	}
 
 	@Test
 	public void testPassesNameMissingVariables() throws Exception {
-		final String[] missingVariableNames = new String[] { randomString(), randomString() };
-		
-		new NonStrictExpectations() {
-			Execution execution;
-			{
-				name.sub(variables); result = execution;
-				execution.isMissingVariables(); result = true;
-				execution.getMissingVariables(); result = missingVariableNames;
-				action.execute(source, variables); times = 0; $ = "Should not execute the action if name is missing variables.";
-			}
-		};
+		new Expectations() {{
+			action.execute(source, variables); times = 0; $ = "Should not execute the action if name is missing variables.";
+		}};
+		instruction.setName(Template.compile("{{requires}} {{variables}}", "{{", "}}"));
 		
 		Execution exc = instruction.execute(source, variables);
 		assertTrue(exc.isMissingVariables());
-		assertArrayEquals(missingVariableNames, exc.getMissingVariables());
+		assertArrayEquals(new String[] { "requires", "variables" }, exc.getMissingVariables());
 	}
 	
 	@Test
@@ -59,11 +55,8 @@ public final class InstructionTest {
 		final String[] missingVariableNames = new String[] { randomString(), randomString() };
 		
 		new NonStrictExpectations() {
-			Execution nameExecution, actionExecution;
+			Execution actionExecution;
 			{
-				name.sub(variables); result = nameExecution;
-				nameExecution.isSuccessful(); result = true;
-				nameExecution.getExecuted(); result = randomString();
 				action.execute(source, variables); times = 1; result = actionExecution;
 				actionExecution.isMissingVariables(); result = true;
 				actionExecution.getMissingVariables(); result = missingVariableNames;
@@ -81,11 +74,8 @@ public final class InstructionTest {
 		final InstructionPromise[] children = new InstructionPromise[] { promise, promise, promise, promise };
 		
 		new NonStrictExpectations() {
-			@Injectable Execution nameExecution, actionExecution;
+			@Injectable Execution actionExecution;
 			{
-				name.sub(variables); result = nameExecution;
-				nameExecution.isSuccessful(); result = true;
-				nameExecution.getExecuted(); result = randomString();
 				action.execute(source, variables); times = 1; result = actionExecution;
 				actionExecution.isSuccessful(); result = true;
 				actionExecution.getExecuted(); result = actionResults;
@@ -101,24 +91,56 @@ public final class InstructionTest {
 		assertTrue(exc.getExecuted() instanceof Executable[]);
 		assertEquals(actionResults.length * children.length, ((Executable[]) exc.getExecuted()).length);
 	}
+
+	@Test()
+	public void testSavesToDatabaseWhenNoNameDefined() throws Exception {
+		final String[] actionResults = new String[] { randomString(), randomString(), randomString() };
+		new Expectations() {
+			@Injectable Execution actionExecution;
+			{
+				action.execute(source, variables); times = 1; result = actionExecution;
+				actionExecution.isSuccessful(); result = true;
+				actionExecution.getExecuted(); result = actionResults;
+				database.store(firstId, 0);
+				database.store(firstId, 1);
+				database.store(firstId, 2);
+			}
+		};
+		instruction.execute(source, variables);
+	}
+	
+	@Test()
+	public void testSavesToDatabaseWhenNameDefined() throws Exception {
+		final String[] actionResults = new String[] { randomString(), randomString(), randomString() };
+		final String nameStr = randomString();
+		new Expectations() {
+			@Injectable Execution actionExecution;
+			{
+				action.execute(source, variables); times = 1; result = actionExecution;
+				actionExecution.isSuccessful(); result = true;
+				actionExecution.getExecuted(); result = actionResults;
+				database.store(firstId, 0, nameStr, actionResults[0]);
+				database.store(firstId, 1, nameStr, actionResults[1]);
+				database.store(firstId, 2, nameStr, actionResults[2]);
+			}
+		};
+		instruction.setName(Template.compile(nameStr, "{{", "}}"));
+		instruction.execute(source, variables);
+	}
 	
 	@Test(expected = IOException.class)
 	public void testThrowsIOExceptionOnPersistError() throws Exception {
 		final String[] actionResults = new String[] { randomString(), randomString(), randomString() };
-		
-		new NonStrictExpectations() {
-			@Injectable Execution nameExecution, actionExecution;
+		new Expectations() {
+			@Injectable Execution actionExecution;
 			{
-				name.sub(variables); result = nameExecution;
-				nameExecution.isSuccessful(); result = true;
-				nameExecution.getExecuted(); result = randomString();
 				action.execute(source, variables); times = 1; result = actionExecution;
 				actionExecution.isSuccessful(); result = true;
 				actionExecution.getExecuted(); result = actionResults;
-				database.store(anyInt, anyInt, anyString, anyString, anyString); result = new IOException();
+				database.store(firstId, anyInt, anyString, anyString); result = new IOException();
 			}
 		};
-		
+		instruction.setName(Template.compile(randomString(), "{{", "}}"));
 		instruction.execute(source, variables);
 	}
 }

@@ -28,13 +28,6 @@
 	    "description" : "A set of name-value pairs that will be used as extra cookies for this particular load.  Mustache substitutions are performed on both the name and value.",
 	    "type" : "object",
 	    "required" : false
-	},
-	"stop" : {
-	    "description" : "Patterns that will terminate this load.",
-	    "type" : ["array", "object"],
-	    "required" : false,
-	    "extends" : { "$ref", "pattern" },
-	    "items" : { "$ref" : "pattern" }
 	}
     }
 }

@@ -7,65 +7,72 @@ import net.microscraper.util.NameValuePair;
 
 /**
  * An implementation of {@link Database} whose subclasses store
- * all {@link Result}s in a single table.
+ * all results in a single table.
  * @author talos
  *
  */
 public final class SingleTableDatabase implements Database {
-		
-	/**
-	 * Name of column to hold value for {@link Result#getId()}
-	 * from {@link Result#getSource()}.
-	 */
+	
+	private static final String ID_COLUMN = "id";
 	private static final String SOURCE_ID_COLUMN = "source_id";
-	
-	/**
-	 * Name of column to hold value for {@link Result#getName()}.
-	 */
 	private static final String NAME_COLUMN = "name";
-	
-	/**
-	 * Name of column to hold value for {@link Result#getValue()}.
-	 */
 	private static final String VALUE_COLUMN = "value";
 	
 	/**
 	 * Names of columns in {@link IOTable}
 	 */
 	private static final String[] COLUMN_NAMES = new String[] {
-		SOURCE_ID_COLUMN, NAME_COLUMN, VALUE_COLUMN
+		ID_COLUMN, SOURCE_ID_COLUMN, NAME_COLUMN, VALUE_COLUMN
 	};
 	
 	/**
 	 * The {@link WritableTable} used by this {@link SingleTableDatabase}.
 	 */
-	private WritableTable table;
-			
+	private final WritableTable table;
+	
+	private final int firstId = 0;
+	private int curId = firstId;
+	
 	public SingleTableDatabase(WritableConnection connection) throws IOException {
 		this.table = connection.getWritableTable(COLUMN_NAMES);
-	}
-	/*
-	public final int storeInitial(String name, String value, int resultNum)
-			throws TableManipulationException {
-		return table.insert(
-				new NameValuePair[] {
-					new BasicNameValuePair(SOURCE_ID_COLUMN, null),
-					new BasicNameValuePair(NAME_COLUMN, name),
-					new BasicNameValuePair(VALUE_COLUMN, value)
-				});
-	}
-	*/
-	public final int store(int sourceId, int resultNum, String name, String sourceName, String value)
-			throws TableManipulationException {
-		return table.insert(
-				new NameValuePair[] {
-					new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(sourceId)),
-					new BasicNameValuePair(NAME_COLUMN, name),
-					new BasicNameValuePair(VALUE_COLUMN, value)
-				});
 	}
 	
 	public void close() throws IOException { }
 
 	public void clean() throws TableManipulationException { }
+
+	public int store(int sourceId, String name, String value)
+			throws TableManipulationException, IOException {
+		curId++;
+		table.insert(
+				new NameValuePair[] {
+						new BasicNameValuePair(ID_COLUMN, Integer.toString(curId)),
+						new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(sourceId)),
+						new BasicNameValuePair(NAME_COLUMN, name),
+						new BasicNameValuePair(VALUE_COLUMN, value)
+					});
+		return sourceId;
+	}
+
+	public int store(int sourceId, int resultNum)
+			throws TableManipulationException, IOException {
+		return sourceId;
+	}
+
+	public int store(int sourceId, int resultNum, String name, String value)
+			throws TableManipulationException, IOException {
+		curId++;
+		table.insert(
+				new NameValuePair[] {
+						new BasicNameValuePair(ID_COLUMN, Integer.toString(curId)),
+						new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(sourceId)),
+						new BasicNameValuePair(NAME_COLUMN, name),
+						new BasicNameValuePair(VALUE_COLUMN, value)
+					});
+		return curId;
+	}
+	
+	public int getFirstId() {
+		return firstId;
+	}
 }

@@ -13,57 +13,29 @@ import net.microscraper.database.Database;
  *
  */
 public class Variables {
-	
-	public static final int ONLY_RESULT_NUM = 0;
-	
+		
 	private final Variables parent;
 	private final Database database;
 	private final Hashtable hashtable;
 	
-	private final String name;
-	private final int number;
+	private final int id;
 	
 	/**
 	 * New non-branched {@link Variables}.
 	 * @param database The {@link Database} to write to.  All the name-value pairs of
 	 * <code>hashtable</code> will be stored in this.
-	 * @param hashtable A {@link Hashtable} to use as the backing table.  Will be modified.
+	 * @param hashtable A {@link Hashtable} copy for use as backing table.
 	 */
-	private Variables(Database database, Hashtable hashtable) throws IOException {
-		this.hashtable = hashtable;
+	private Variables(Database database, Hashtable source) throws IOException {
+		this.hashtable = new Hashtable();
 		this.database = database;
-		this.parent = null;
-		
-		this.number = ONLY_RESULT_NUM;
-		this.name = null;
-		
-		Enumeration keys = hashtable.keys();
-		int i = 0;
+		this.parent = this;
+		this.id = database.getFirstId();
+		Enumeration keys = source.keys();
 		while(keys.hasMoreElements()) {
 			String key = (String) keys.nextElement();
-			String value = (String) hashtable.get(key);
-			database.store(ONLY_RESULT_NUM, i, key, null, value);
-			i++;
-		}
-	}
-	
-	/**
-	 * New branched {@link Variables} that shares a backing table with <code>parent</code>.
-	 * @param parent The {@link Variables} parent.
-	 * @param name The name of the result that caused the branch.
-	 * @param value The value that caused the branch.  Can be null, in which case the value will
-	 * not be stored to the backing table.
-	 * @throws IOException If there was a problem with the {@link #database}.
-	 */
-	private Variables(Variables parent, String name, String value) throws IOException {
-		this.database = parent.database;
-		this.parent = parent;
-		
-		this.number = this.database.store(parent.number, ONLY_RESULT_NUM, name, parent.name, value);
-		this.name = name;
-		this.hashtable = parent.hashtable;
-		if(value != null) {
-			this.hashtable.put(name, value);
+			String value = (String) source.get(key);
+			save(key, value);
 		}
 	}
 
@@ -72,90 +44,64 @@ public class Variables {
 	 * backing table.
 	 * @param parent The {@link Variables} parent.
 	 * @param resultNum The {@link int} order of this result.
-	 * @param name The name of the result that caused the branch.
-	 * @param value The value that caused the branch.  Can be null, in which case the value will
-	 * not be stored to the backing table.
 	 * @throws IOException If there was a problem with the {@link #database}.
 	 */
-	private Variables(Variables parent, int resultNum, String name, String value) throws IOException {
+	private Variables(Variables parent, int resultNum) throws IOException {
 		this.database = parent.database;
 		this.parent = parent;
-		
-		this.number = this.database.store(parent.number, resultNum, name, parent.name, value);
-		this.name = name;
+		this.id = database.store(parent.id, resultNum);
 		this.hashtable = new Hashtable();
-		if(value != null) {
-			this.hashtable.put(name, value);
-		}
-	}
-
-	/**
-	 * Initialize an empty {@link Variables} with a {@link Database}.
-	 */
-	public static Variables empty(Database database) throws IOException {
-		return new Variables(database, new Hashtable());
 	}
 	
 	/**
-	 * Initialize {@link Variables} values from a {@link Hashtable}.  Its keys and values must
-	 * all be {@link String}s.  <code>initialHashtable</code> is copied, and will not be modified
-	 * as {@link Variables} changes.
-	 * @param database The {@link Database} to persist to.
-	 * @param initialHashtable Initial {@link Hashtable} whose mappings should stock {@link Variables}.
-	 * @throws IOException If the {@link Database} cannot be written to.
+	 * New branched {@link Variables} that inherits from <code>parent</code> but does not share its
+	 * backing table.
+	 * @param parent The {@link Variables} parent.
+	 * @param resultNum The {@link int} order of this result.
+	 * @param key The {@link String} key that this {@link Variables} will have, but not share with its
+	 * <code>parent</code>.
+	 * @param key The {@link String} value that this {@link Variables} will have, but not share with its
+	 * <code>parent</code>.
+	 * @throws IOException If there was a problem with the {@link #database}.
 	 */
-	public static Variables fromHashtable(Database database, Hashtable initialHashtable) throws IOException {
-		try {
-			return new Variables(database, (Hashtable) initialHashtable.clone());
-		} catch(ClassCastException e) {
-			throw new IllegalArgumentException("Variables must be initialized with String-String hashtable.");
-		}
+	private Variables(Variables parent, int resultNum, String key, String value) throws IOException {
+		this.database = parent.database;
+		this.parent = parent;
+		this.id = database.store(parent.id, resultNum, key, value);
+		this.hashtable = new Hashtable();
+		this.hashtable.put(key, value);
 	}
-
+	
 	/**
 	 * Create a {@link Variables} branch.<p>
-	 * It will share a backing table with <code>parent</code>.
-	 * @param parent The {@link Variables} to branch from.
-	 * @param key A new {@link String} key that will be included in the branch and its parent.
-	 * @param value An {@link String} value that will map to <code>key</code> in the branch and its parent.
-	 * @param shouldSaveValue Whether <code>value</code> should be saved to the backing table and database.
-	 * @return An {@link Variables} branch.
+	 * The resulting {@link Variables} will read from <code>parent</code> if it can't find a key in itself,
+	 * but will have its own backing table.
+	 * @return A {@link Variables} branch.
 	 * @throws IOException If the {@link Database} cannot be written to.
 	 */
-	public static Variables singleBranch(Variables parent, String key, String value,
-				boolean shouldSaveValue)
+	public Variables branch(int resultNum)
 			throws IOException {
-		return new Variables(parent, key, shouldSaveValue ? value : null);
+		return new Variables(this, resultNum);
 	}
-
+	
+	public void save(String key, String value) throws IOException {
+		parent.hashtable.put(key, value);
+		database.store(id, key, value);
+	}
+	
 	/**
-	 * Create {@link Variables} branches.<p>
-	 * The resulting array of 
-	 * {@link Variables} will read from <code>parent</code> if it can't find a key in itself, but will have its
-	 * own backing table.  There will be as many of them as the length of <code>values</code>.
-	 * @param parent The {@link Variables} to branch from.
-	 * @param key A new {@link String} key that will be included in each branch.
-	 * @param values An array of {@link String}s, where each element will be the value for
-	 * <code>key</code> in one of the resulting branches. Must be of length greater than one.
-	 * Use {@link #singleBranch(Variables, String, String, boolean, boolean)} for single
-	 * result.
-	 * @param shouldSaveValue Whether <code>value</code> should be saved to the backing table and database.
-	 * @return An array of {@link Variables} branches.
+	 * Create a {@link Variables} branch.<p>
+	 * The resulting {@link Variables} will read from <code>parent</code> if it can't find a key in itself,
+	 * but will have its own backing table.
+	 * @param resultNum The number of this result.
+	 * @param key A new {@link String} key that will be included in the branch but not the parent.
+	 * @param value An {@link String} value that will map to <code>key</code> in the branch but not the parent.
+	 * @return A {@link Variables} branch.
 	 * @throws IOException If the {@link Database} cannot be written to.
 	 */
-	public static Variables[] multiBranch(Variables parent, String key, String[] values,
-				boolean shouldSaveValue)
+	public Variables saveAndBranch(int resultNum, String key, String value)
 			throws IOException {
-		if(values.length == 0) {
-			throw new IllegalArgumentException("Cannot branch without values.");
-		} else if(values.length == 1) {
-			throw new IllegalArgumentException("Should use singleBranch");
-		}
-		final Variables[] branches = new Variables[values.length];
-		for(int i = 0 ; i < values.length ; i ++) {
-			branches[i] = new Variables(parent, i, key, shouldSaveValue ? values[i] : null);
-		}
-		return branches;
+		return new Variables(this, resultNum, key, value);
 	}
 	
 	/**
@@ -174,7 +120,7 @@ public class Variables {
 			return null;
 		}
 	}
-
+	
 	/**
 	 * Tests if the specified object is a key in this {@link Variables}. 
 	 * @param key The possible {@link String} key 
@@ -186,7 +132,7 @@ public class Variables {
 	public boolean containsKey(String key) {
 		if(hashtable.containsKey(key)) {
 			return true;
-		} else if(parent != null) {
+		} else if(parent != this) {
 			return parent.containsKey(key);
 		} else {
 			return false;
@@ -199,10 +145,34 @@ public class Variables {
 	 */
 	public String toString() {
 		String result = "";
-		if(parent != null) {
+		if(parent != this) {
 			result += parent.toString() + " >> ";
 		}
 		result += StringUtils.quote(hashtable.toString());
 		return result;
+	}
+	
+
+	/**
+	 * Initialize an empty {@link Variables} with a {@link Database}.
+	 */
+	public static Variables empty(Database database) throws IOException {
+		return new Variables(database, new Hashtable());
+	}
+	
+	/**
+	 * Initialize {@link Variables} values from a {@link Hashtable}.  Its keys and values must
+	 * all be {@link String}s.  <code>initialHashtable</code> is copied, and will not be modified
+	 * as {@link Variables} changes.
+	 * @param database The {@link Database} to persist to.
+	 * @param initialHashtable Initial {@link Hashtable} whose mappings should stock {@link Variables}.
+	 * @throws IOException If the {@link Database} cannot be written to.
+	 */
+	public static Variables fromHashtable(Database database, Hashtable initialHashtable) throws IOException {
+		try {
+			return new Variables(database, initialHashtable);
+		} catch(ClassCastException e) {
+			throw new IllegalArgumentException("Variables must be initialized with String-String hashtable.");
+		}
 	}
 }

@@ -14,7 +14,7 @@ public interface IOTable extends WritableTable {
 	 * 
 	 * @return The {@link String} name of the {@link IOTable}.
 	 */
-	public String getName();
+	//public String getName();
 	
 	/**
 	 * Add a column.
@@ -38,12 +38,13 @@ public interface IOTable extends WritableTable {
 
 	/**
 	 * Update an existing row in the {@link IOTable}.
+	 * @param idColumnName the {@link String} name of the ID column.
 	 * @param id the {@link int} ID of the row to update.
 	 * @param nameValuePairs An array of {@link NameValuePair}s mapping
 	 * columns to new values.
 	 * @throws TableManipulationException if the row could not be updated.
 	 */
-	public abstract void update(int id, NameValuePair[] nameValuePairs)
+	public abstract void update(String idColumnName, int id, NameValuePair[] nameValuePairs)
 			throws TableManipulationException;
 	
 	/**

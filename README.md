@@ -6,37 +6,31 @@ cooperative scrapers for mobile apps
 
 The easiest way to try out microscraper is the precompiled utility. Run
 
-    $ utility/microscraper '{"load":"http://www.google.com","then":{"find":"[\\w]*\\sLucky"}}'
+    $ utility/microscraper '{"load":"http://www.google.com","then":{"find":"Feeling\\s[\\w]*","name":"Feeling?"}}'
 
 in the terminal of your choice.  This executes the JSON instruction
 
     {
       "load"  : "http://www.google.com",
       "then" : {
-        "find" : "[\\w]*\\sLucky"
+        "find" : "Feeling\\s[\\w]*",
+	"name" : "Feeling?"
       }
     }
 
 and sends the results to stdout
 
 <table>
-  <tr><th>id  <th>source_id <th>name                  <th>value
-  <tr><td>0   <td>          <td>http://www.google.com <td>
-  <tr><td>1   <td>0         <td>[\w]*\sLucky          <td>Feeling Lucky
+  <tr><th>id  <th>source_id <th>name     <th>value
+  <tr><td>1   <td>0         <td>Feeling? <td>Feeling Lucky
 </table>
 
-First, microscraper loads the URL in *load*.  As this is the first part of the instruction executed, it received the *id* "0".  Loading
-the page did not depend on another part of the instruction, so its *source_id* is blank.  No *name* is assigned to this part of
-the instruction, so url is assigned automatically.  Page values are not saved by default, so its *value* is blank.
-
-Next, microscraper searched for the first instance of *find*.  *id* has incremented to "1", and *source_id* tells us that 
-*find* is matching against the google url.  The *find* is assigned as *name*  automatically, and the result of *find* 
-is stored in *value*.
+First, microscraper loads the URL in *load*.  Then it looks for the regular expression in *find*, and saves the match.
 
 #### The instruction format ####
 
 Microscrapers instructions are logic-free JSON objects that provide very dynamic templated instructions for scraping data.
-Substitutions are done for text inside double-curlies *{{}}*, kind of like [mustache](http://mustache.github.com/).
+By default, substitutions are done for text inside double-curlies *{{}}*, kind of like [mustache](http://mustache.github.com/).
 
 Here's a simple instruction, which is one of the [fixtures](microscraper-client/blob/master/fixtures/json/simple-google.json):
 
@@ -57,20 +51,20 @@ to replace *{{query}}* with *hello*.  We get the following
 
 <table>
   <tr><th>id<th>source_id<th>name<th>value</tr>
-  <tr><td>0 <td>         <td>http://www.google.com/search?q=hello <td>       </tr>
-  <tr><td>1 <td>0        <td>what do you say after 'hello'?          <td>I say 'kitty'!
-  <tr><td>2 <td>0        <td>what do you say after 'hello'?          <td>I say 'lyrics'!
-  <tr><td>3 <td>0        <td>what do you say after 'hello'?          <td>I say 'lionel'!
-  <tr><td>4 <td>0        <td>what do you say after 'hello'?          <td>I say 'kitty'!
-  <tr><td>5 <td>0        <td>what do you say after 'hello'?          <td>I say 'beyonce'!
+  <tr><td>1 <td>0        <td>query                                   <td>hello
+  <tr><td>2 <td>0        <td>what do you say after 'hello'?          <td>I say 'kitty'!
+  <tr><td>3 <td>0        <td>what do you say after 'hello'?          <td>I say 'lyrics'!
+  <tr><td>4 <td>0        <td>what do you say after 'hello'?          <td>I say 'lionel'!
+  <tr><td>5 <td>0        <td>what do you say after 'hello'?          <td>I say 'kitty'!
   <tr><td>6 <td>0        <td>what do you say after 'hello'?          <td>I say 'beyonce'!
-  <tr><td>7 <td>0        <td>what do you say after 'hello'?          <td>I say 'glee'!   
-  <tr><td>8 <td>0        <td>what do you say after 'hello'?          <td>I say 'movie'!  
+  <tr><td>7 <td>0        <td>what do you say after 'hello'?          <td>I say 'beyonce'!
+  <tr><td>8 <td>0        <td>what do you say after 'hello'?          <td>I say 'glee'!   
+  <tr><td>9 <td>0        <td>what do you say after 'hello'?          <td>I say 'movie'!  
 </table>
 
 Not only is google queried for *hello*, but the substitution affects the *name* and *replace* of *find*.
 
-Here we see that *find* will match against any number of pattern matches from *load*.
+We can also see that *find* can match multiple times.
 
 We can use backreferences from *$0* to *$9* in *replace*.
 
@@ -126,7 +120,7 @@ You'll see that this results in quite a few dozen rows, but here are some highli
   <tr><td>63     <td>16  <td>what do you say after 'movie'?   <td>I say 'download'!
 </table>
 
-Note that the *source_id* column links each *find* result back to its source *load*.
+Note that the *source_id* column links each *find* result back to the result it depends upon.
 
 #### References ####
 
@@ -149,7 +143,26 @@ Running
 
     $ utility/microscraper fixtures/json/complex-google.json --defaults="query=hello"
 
-should give you the same results as before.
+should give you the same results as before.  Any string appearing inside *then* will be evaulated as a reference.
+
+#### Recursion ####
+
+What if you want a scraper to run itself?  No problem!
+
+This [fixture](microscraper-client/blob/master/fixtures/json/recursive-google.json) does just that
+
+  {
+    "load"  : "http://www.google.com/search?q={{query}}",
+    "then" : {
+    	"find"     : "{{query}}\\s+(\\w+)",
+    	"replace" : "$1",
+    	"name"   : "query",
+	"then"   : "$this"
+    }
+  }
+
+When inside *then*, *$this* evaluates to be the entire object.  This evaluation is only performed when *then*
+operates.
 
 #### Why? ####
 

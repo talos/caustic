@@ -1,6 +1,5 @@
 package net.microscraper.instruction;
 
-import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
 import net.microscraper.util.Variables;
 
@@ -23,8 +22,4 @@ public interface Action {
 	 * @throws InterruptedException If the user interrupts the action.
 	 */
 	public Execution execute(String source, Variables variables) throws InterruptedException;
-	
-	public Template getDefaultName();
-	
-	public boolean getDefaultShouldPersistValue();
 }

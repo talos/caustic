@@ -32,6 +32,8 @@ public final class MultiTableDatabase implements Database {
 	 */
 	public static final String SOURCE_ID_COLUMN = "source_id";
 	
+	public static final String ID_COLUMN = "id";
+	
 	/**
 	 * Column name for the name of the table where the result row's source can be
 	 * found.
@@ -42,83 +44,27 @@ public final class MultiTableDatabase implements Database {
 	 * Default column names for {@link IOTable}s in {@link MultiTableDatabase}.
 	 */
 	public static final String[] COLUMN_NAMES = new String[] {
+		ID_COLUMN,
 		SOURCE_ID_COLUMN,
 		SOURCE_NAME_COLUMN };
 	
-	/**
-	 * The {@link IOTable} that holds {@link Result}s that don't have
-	 * a source.  These would be from the first layer of
-	 * {@link Instruction}s.  This table has only one row.
-	 */
-	private final IOTable rootTable;
+	private final Hashtable nameIds = new Hashtable();
 	
 	/**
-	 * The {@link int} ID for the only row of {@link #rootTable}.
+	 * A {@link Hashtable} of all the {@link IOTable}s in this 
+	 * {@link MultiTableDatabase}, keyed by all the IDs that could use
+	 * the 
 	 */
-	private final int rootResultId;
-	
-	/**
-	 * A {@link Hashtable} of all the {@link ChildResultsTable}s in this 
-	 * {@link MultiTableDatabase}, excepting {@link #rootTable}.
-	 * Keyed by {@link String} {@link ChildResultsTable} names.
-	 */
-	private final Hashtable tables = new Hashtable();
+	private final Hashtable idTables = new Hashtable();
 	
 	/**
 	 * A {@link IOConnection} to use when generating tables.
 	 */
 	private final IOConnection connection;
 	
-	/**
-	 * Create the root table with no values in it.
-	 * @throws IOException If the root table cannot be created.
-	 */
-	public MultiTableDatabase(IOConnection connection) throws IOException {
-		this.connection = connection;
-		rootTable = this.connection.getIOTable(ROOT_TABLE_NAME, COLUMN_NAMES);
-		tables.put(ROOT_TABLE_NAME, rootTable);
-		rootResultId = rootTable.getLastId();
-	}
-	/*
-	private int storeInitial(String name, String value, int resultNum) throws IOException,
-				TableManipulationException {
-		
-		if(value != null) {
-			updateTable(rootTable, rootResultId, name, value, resultNum);	
-		}
-		WritableTable table = getResultTable(name);
-		return table.insert(new NameValuePair[] {
-				new BasicNameValuePair(SOURCE_NAME_COLUMN, ROOT_TABLE_NAME),
-				new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(rootResultId))
-		});
-	}
-	*/
-	public int store(int sourceId, int resultNum, String name, String sourceName, String value)
-				throws IOException, TableManipulationException {
-		String sourceTableName = null;
-		if(sourceName == null) {
-			sourceName = ROOT_TABLE_NAME;
-		} else {
-			sourceTableName = cleanTableName(sourceName);
-		}
-		
-		IOTable sourceTable;
-		if(tables.containsKey(sourceTableName)) {
-			sourceTable = (IOTable) tables.get(sourceTableName);
-		} else {
-			sourceTable = getResultTable(sourceTableName);
-			tables.put(sourceTableName, sourceTable);
-		}
-		
-		if(value != null) {
-			updateTable(sourceTable, sourceId, name, value, resultNum);
-		}
-		WritableTable table = getResultTable(name);
-		return table.insert(new NameValuePair[] {
-				new BasicNameValuePair(SOURCE_NAME_COLUMN, sourceTable.getName()),
-				new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(sourceId))
-		});
-	}
+	private final int firstId = 0;
+	private int curId = firstId;
+
 	
 	private String cleanColumnName(String columnName) {
 		for(int i = 0 ; i < COLUMN_NAMES.length ; i ++) {
@@ -130,21 +76,77 @@ public final class MultiTableDatabase implements Database {
 	}
 	
 	private String cleanTableName(String tableName) {
-		if(tableName.equals(ROOT_TABLE_NAME)) {
-			return PREPEND + tableName;
-		} else {
-			return tableName;
+		return tableName.equals(ROOT_TABLE_NAME) ? PREPEND + tableName : tableName;
+	}	
+	
+	private IOTable getTable(int id) throws IOException {
+		if(!idTables.containsKey(Integer.valueOf(id))) {
+			throw new IllegalArgumentException();
 		}
+		return (IOTable) idTables.get(Integer.valueOf(id));
+	}
+	
+	private void newTable(String tableName, int id) throws IOException {
+		//if(!idTables.containsKey(cleanTableName(tableName))) {
+		if(nameIds.containsKey(cleanTableName(tableName))) {
+			
+		}
+		IOTable table = this.connection.getIOTable(cleanTableName(tableName), COLUMN_NAMES);
+		idTables.put(Integer.valueOf(id), table);
 	}
 	
 	/**
-	 * Get a {@link IOTable} for a {@link Result} name.
-	 * @param resultName The {@link Result} name to get the {@link IOTable} for.
-	 * @return The {@link IOTable}.
-	 * @throws IOException If there was an error generating the {@link IOTable}.
+	 * Create the root table with no values in it.
+	 * @throws IOException If the root table cannot be created.
 	 */
-	private IOTable getResultTable(String resultName) throws IOException {
-		String tableName = cleanTableName(resultName);
+	public MultiTableDatabase(IOConnection connection) throws IOException {
+		this.connection = connection;
+		newTable(ROOT_TABLE_NAME, curId);
+		//rootTable = this.connection.getIOTable(ROOT_TABLE_NAME, COLUMN_NAMES);
+		//tables.put(ROOT_TABLE_NAME, rootTable);
+		/*idToName.put(Integer.valueOf(firstId), ROOT_TABLE_NAME);
+		tables.put(ROOT_TABLE_NAME, rootTable);*/
+	}
+
+	public int store(int sourceId, String name, String value)
+			throws TableManipulationException, IOException {
+		IOTable table = getTable(sourceId);
+	//	table.update
+	}
+
+	public int store(int sourceId, int resultNum)
+			throws TableManipulationException, IOException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public int store(int sourceId, int resultNum, String name, String value)
+			throws TableManipulationException, IOException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public int store(Integer sourceId, int resultNum, String name, String value)
+				throws IOException, TableManipulationException {
+		IOTable sourceTable = getResultTable(sourceId);
+		
+		if(name != null && value != null) {
+			updateTable(sourceTable, sourceId, name, value, resultNum);
+		}
+		WritableTable table = getResultTable(name);
+		return table.insert(new NameValuePair[] {
+				new BasicNameValuePair(SOURCE_NAME_COLUMN, sourceTable.getName()),
+				new BasicNameValuePair(SOURCE_ID_COLUMN, Integer.toString(sourceId))
+		});
+	}
+	/**
+	 * Get a {@link IOTable} from a source ID.
+	 * @param The {@link Integer} source ID number.
+	 * @return The {@link IOTable}.
+	 */
+	private IOTable getSourceTable(Integer sourceId) throws IOException {
+		
+		/*String tableName = cleanTableName(resultName);
 		IOTable table;
 		if(tables.containsKey(tableName)) {
 			table = (IOTable) tables.get(tableName);
@@ -153,7 +155,7 @@ public final class MultiTableDatabase implements Database {
 			tables.put(tableName, table);
 		}
 		
-		return table;
+		return table;*/
 	}
 	
 	/**
@@ -200,5 +202,9 @@ public final class MultiTableDatabase implements Database {
 
 	public void close() throws IOException {
 		connection.close();
+	}
+
+	public int getFirstId() {
+		return firstId;
 	}
 }

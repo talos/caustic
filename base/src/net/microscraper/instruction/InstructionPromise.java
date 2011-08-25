@@ -16,12 +16,20 @@ public class InstructionPromise {
 	
 	private final Deserializer deserializer;
 	private final String serializedString;
-	private final String rootUri;
+	private final String uri;
 	
-	public InstructionPromise(Deserializer deserializer, String serializedString, String rootUri) {
+	/**
+	 * Create a new {@link InstructionPromise}.
+	 * @param deserializer The {@link Deserializer} to use.
+	 * @param serializedString The {@link String} containing the {@link Instruction} to be
+	 * deserialized.
+	 * @param uri The {@link String} URI to use when {@link Deserializer} resolves references
+	 * in <code>serializedString</code>.
+	 */
+	public InstructionPromise(Deserializer deserializer, String serializedString, String uri) {
 		this.deserializer = deserializer;
 		this.serializedString = serializedString;
-		this.rootUri = rootUri;
+		this.uri = uri;
 	}
 	
 	/**
@@ -32,7 +40,7 @@ public class InstructionPromise {
 	 * {@link Instruction} if it is successful.
 	 */
 	public Execution load(Variables variables) {
-		return deserializer.deserializeString(serializedString, variables, rootUri);
+		return deserializer.deserializeString(serializedString, variables, uri);
 	}
 	
 	/**

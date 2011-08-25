@@ -7,7 +7,10 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
+import mockit.external.hamcrest.Description;
+import mockit.external.hamcrest.Matcher;
 import net.microscraper.client.Browser;
+import net.microscraper.database.Database;
 import net.microscraper.instruction.Executable;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.regexp.Pattern;
@@ -16,6 +19,7 @@ import net.microscraper.uri.URILoader;
 import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
+import net.microscraper.util.NameValuePair;
 import net.microscraper.util.Variables;
 import net.microscraper.util.VectorUtils;
 import static net.microscraper.json.JsonDeserializer.*;
@@ -34,8 +38,8 @@ public class JsonDeserializerTest {
 	private @Mocked Encoder encoder;
 	private @Mocked UriResolver uriResolver;
 	private @Mocked URILoader uriLoader;
-	private @Mocked Variables variables;
 	private @Mocked Pattern pattern;
+	private @Mocked Database database;
 	
 	private JsonParser parser;
 	private JsonDeserializer deserializer;
@@ -43,6 +47,7 @@ public class JsonDeserializerTest {
 	private static final String urlString = "URL " + randomString();
 	private static final String patternString = "PATTERN " + randomString();
 	
+	private Variables variables;
 	private String emptyJson;
 	private String userDir;
 	private String loadPath;
@@ -61,11 +66,15 @@ public class JsonDeserializerTest {
 		deserializer = new JsonDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
 		emptyJson = new JSONObject().toString();
 		userDir = "USER DIR " + randomString();
+		
+		variables = Variables.empty(database);
 
 		final String loadUri = "LOAD URI " + randomString();
 		final String findUri = "FIND URI " + randomString();
 		new NonStrictExpectations() {
 			{
+				uriResolver.resolve(anyString, SELF);
+				
 				uriResolver.resolve(userDir, ""); result = userDir;
 				uriResolver.resolve(loadPath, ""); result = loadPath;
 				uriResolver.resolve(findPath, ""); result = findPath;
@@ -203,7 +212,32 @@ public class JsonDeserializerTest {
 		
 		Execution exc = deserializer.deserializeString(extendedFind.toString(), variables, userDir);
 		assertTrue(exc + " should be a Find.", exc.isSuccessful());
-	}
+	}	
+	/*
+	@Test
+	public void textExtendsAccretes() throws Exception {
+		JSONObject somePosts =
+				new JSONObject()
+					.put(POSTS, new JSONObject()
+						.put(randomString(), randomString())
+						.put(randomString(), randomString()));
+		JSONObject morePosts = 
+				new JSONObject()
+					.put(POSTS,  new JSONObject()
+						.put(randomString(), randomString())
+						.put(randomString(), randomString()));
+		load.put(EXTENDS, new JSONArray().put(somePosts).put(morePosts));
+		new Expectations() {{
+			browser.post(urlString, (NameValuePair[]) any, (NameValuePair[]) any, (Pattern[]) any,
+					}));
+		}};
+		
+		Execution exc;
+		exc = deserializer.deserializeString(load.toString(), variables, userDir);
+		Instruction instruction = (Instruction) exc.getExecuted();
+		
+		instruction.execute(null, variables);
+	}*/
 	
 	@Test
 	public void testSelfReference() throws Exception {
@@ -212,6 +246,10 @@ public class JsonDeserializerTest {
 		final String source = randomString();
 		final String[] matches = new String[] { source };
 		find.put(THEN, SELF);
+		
+		new NonStrictExpectations() {{
+			uriLoader.load(userDir); result = find.toString();
+		}};
 		
 		new Expectations() {{
 			pattern.match(source, anyString, anyInt, anyInt); result = matches; times = recursions +1;
@@ -228,13 +266,17 @@ public class JsonDeserializerTest {
 	}
 	
 
-	@Test // TODO SELF referencing doesn't work with inline JSON.
+	@Test 
 	public void testSelfReferenceArray() throws Exception {
 		final int recursions = 10;
 		
 		final String source = randomString();
 		final String[] matches = new String[] { source };
 		find.put(THEN, new JSONArray().put(SELF).put(SELF));
+
+		new NonStrictExpectations() {{
+			uriLoader.load(userDir); result = find.toString();
+		}};
 		
 		new Expectations() {{
 			pattern.match(source, anyString, anyInt, anyInt); result = matches;

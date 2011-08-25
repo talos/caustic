@@ -28,13 +28,6 @@
 	    "type" : "integer",
 	    "default" : -1,
 	    "required" : false
-	},
-	"tests" : {
-	    "description" : "Patterns that will be used to check each result after replace.",
-	    "type" : [ "array", "object" ],
-	    "extends" : { "$ref", "pattern" },
-	    "items" : { "$ref" : "pattern" },
-	    "required" : false
 	}
     }
 }

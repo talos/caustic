@@ -232,18 +232,4 @@ public final class Load implements Action {
 			return Execution.ioException(e);
 		}
 	}
-	
-	/**
-	 * {@Link Load}'s default name is its {@link #url}.
-	 */
-	public Template getDefaultName() {
-		return url;
-	}
-
-	/**
-	 * {@link Load} does not persist its value by default, because entire pages tend to be large.
-	 */
-	public boolean getDefaultShouldPersistValue() {
-		return false;
-	}
 }

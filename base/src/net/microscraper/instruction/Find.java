@@ -176,18 +176,4 @@ public class Find implements Action {
 		}
 		return result;
 	}
-	
-	/**
-	 * {@link Find}'s default name is its {@link #pattern}.
-	 */
-	public Template getDefaultName() {
-		return pattern;
-	}
-
-	/**
-	 * {@link Find} does persist its value by default.
-	 */
-	public boolean getDefaultShouldPersistValue() {
-		return true;
-	}
 }
