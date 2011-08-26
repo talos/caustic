@@ -4,7 +4,7 @@ cooperative scrapers for mobile apps
 
 ## Find ##
 
-The *find* object extends [instruction](instruction.md), and permits all of its attributes.  This is the [JSON schema](../schema/json/find).
+The *find* object extends [instruction](instruction.md), and permits all of its attributes.  Take a look at the [JSON schema](../schema/json/find).
 
 *Find* searches within a piece of source text provided by its enclosing instruction.  The simplest valid find object looks like this:
 
@@ -21,6 +21,8 @@ This would search for all matches of "tempalte regexp" within the text provided 
     }
 
 would find matches of the text substituting for "key" when *find* is run.  Substitutions are performed before the regular expression is compiled.  Regex wildcards and other special characters can be part of a substitution.  If the substitution for "key" were "b.t", the find could return "bot", "bat", etc.
+
+---
 
 ### Substitution & Scope ###
 
@@ -95,6 +97,8 @@ If the source string for "parent" were "rats, ribbons and rhizomes", the followi
 
 Although nested within several *then*s, each *find* leading to "grandchild" is one-to-one.  This means that "grandchild" is within scope for "cousin" *find*.  It will match three times, once for each "r" in the source string.
 
+---
+
 ### Optional Attributes ###
 
 #### case_insensitive ####
@@ -108,6 +112,8 @@ A boolean value, false by default.
 
 Would match once against the input "Hello world!", but would not match at all if case_insensitive were not specified.
 
+---
+
 #### multiline ####
 
 A boolean value, false by default.  If specified to be true, "^" will match before the start of every line, in addition to before the beginning of the whole string.  Likewise, "$" will match after the end of every line, in addition to after the end of the whole string.
@@ -119,6 +125,8 @@ A boolean value, false by default.  If specified to be true, "^" will match befo
 
 Would match every table row element at the very beginning of every line, in addition to one at the very beginning of the source string.
 
+---
+
 #### dot_matches_all ####
 
 A boolean value, true by default.  If specified to be false, "." will *not* match newlines.
@@ -129,6 +137,8 @@ A boolean value, true by default.  If specified to be false, "." will *not* matc
     }
 
 Would not match a cell where the intervening text had any linebreaks.
+
+---
 
 #### replace ####
 
@@ -150,6 +160,8 @@ Would run every dependent instruction with the source text "A cat is a cat".
 
 Would run every dependent instruction with the source text "A cat is not a giraffe", were "animal" keyed to giraffe.
 
+---
+
 #### match ####
 
 An integer, undefined by default.  When specified, find matches once instead of as many times as possible.  This attribute should not be specified if *max* or *min* are specified.
@@ -169,6 +181,8 @@ Would match only the first character in the source string.  "1" would match the 
     }
 
 Would match only the last character in the source string.  "-2" would match the second to last, "-3" the third to last, and so on.
+
+---
 
 #### min ####
 
@@ -190,6 +204,7 @@ Would match separately for every character in the source string including and af
 
 Would match separately for the last three characters of the source string.
 
+---
 
 #### max ####
 
