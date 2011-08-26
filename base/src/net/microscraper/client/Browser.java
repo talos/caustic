@@ -20,8 +20,6 @@ public interface Browser extends Loggable {
 	 */
 	public static final int MAX_REDIRECTS = 50;
 	
-	public static final int SUCCESS_CODE = 200;
-	
 	/**
 	 * The default rate limit a {@link Browser} interface imposes upon itself for
 	 * a single host.
@@ -83,35 +81,21 @@ public interface Browser extends Loggable {
 	public abstract String get(String url, Hashtable headers, Pattern[] terminates) throws IOException, InterruptedException;
 	
 	/**
-	 * Make an HTTP Post request with an array of {@link NameValuePair}s to encode into post data.
-	 * This returns the body of the response, and adds cookies to the cookie jar.
-	 * @param url the URL to HTTP Get.
-	 * @param headers {@link Hashtable} extra headers.
-	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.
-	 * @param posts {@link Hashtable} of post data.  Should be form encoded as name-value pairs.
-	 * @return The body of the response.
-	 * @throws IOException If there was an exception making or during the request.
-	 * @throws InterruptedException If the user interrupted the request.
-	 */
-	public abstract String post(String url, Hashtable headers, Pattern[] terminates, Hashtable posts)
-			throws IOException, InterruptedException;
-
-	/**
 	 * Make an HTTP Post request with a {@link String} to encode into post data.
 	 * This returns the body of the response, and adds cookies to the cookie jar.
 	 * @param url the URL to HTTP Get.
 	 * @param headers {@link Hashtable} extra headers.
 	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.
-	 * @param postData {@link String} of post data.  Should be form encoded.
+	 * @param encodedPostData {@link String} of post data.  Should already be encoded.
 	 * @return The body of the response.
 	 * @throws IOException If there was an exception making or during the request.
 	 * @throws InterruptedException If the user interrupted the request.
 	 */
-	public abstract String post(String url, Hashtable headers, Pattern[] terminates, String postData)
+	public abstract String post(String url, Hashtable headers, Pattern[] terminates, String encodedPostData)
 			throws IOException, InterruptedException;
 	
 	/**
-	 * Add an array of {@link Cookie}s to the {@link Browser}'s cookie store.
+	 * Add an array of {@link BasicCookie}s to the {@link Browser}'s cookie store.
 	 * @param cookies
 	 */
 	public abstract void addCookies(Cookie[] cookies);

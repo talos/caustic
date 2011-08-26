@@ -5,18 +5,43 @@ import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import net.microscraper.database.HashtableDatabase;
-import net.microscraper.database.Variables;
-
 public class HashtableUtils {
 
+	/**
+	 * Turn a {@link Hashtable} mapping {@link String}s to {@link String}s into a form-encoded
+	 * {@link String}.
+	 * @param encoder The {@link Encoder} to use for encoding.
+	 * @param hashtable A {@link String} to {@link String} {@link Hashtable}.
+	 * @param encoding The encoding to use.  <code>UTF-8</code> recommended.
+	 * @return A {@link HashtableDatabase}.
+	 * @throws UnsupportedEncodingException If the encoding is not supported.
+	 * @throws IOException If values could not be persisted to <code>database</code>.
+	 */
+	public static String toFormEncoded(Encoder encoder, Hashtable hashtable, String encoding)
+			throws UnsupportedEncodingException, IOException {
+
+		String result = "";
+		Enumeration keys = hashtable.keys();
+		try {
+			while(keys.hasMoreElements()) {
+				String name = (String) keys.nextElement();
+				String value = (String) hashtable.get(name);
+				result += encoder.encode(name, encoding) + '=' + encoder.encode(value, encoding) + '&';
+			}
+		} catch (ClassCastException e) {
+			throw new IllegalArgumentException("Hashtable must have only String keys and values to be form encoded.");
+		}
+		return result.substring(0, result.length() -1); // trim trailing ampersand
+		
+	}
+	
 	/**
 	 * Turn a form-encoded {@link String} into {@link Hashtable}.
 	 * @param decoder The {@link Decoder} to use for decoding.
 	 * @param formEncodedData A {@link String} of form-encoded data to convert.  It must be 
 	 * correctly formatted.
 	 * @param encoding The encoding to use.  <code>UTF-8</code> recommended.
-	 * @return A {@link HashtableDatabase}.
+	 * @return A {@link Hashtable}.
 	 * @throws UnsupportedEncodingException If the encoding is not supported.
 	 * @throws IOException If values could not be persisted to <code>database</code>.
 	 */

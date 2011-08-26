@@ -115,9 +115,9 @@ public final class Template {
 			String value = variables.get(tag);
 			if(value != null) {
 				if(encoder != null) {
-					result += encoder.encode(variables.get(tag), encoding);	
+					result += encoder.encode(value, encoding);	
 				} else {
-					result += variables.get(tag);
+					result += value;
 				}
 			} else {
 				//return Substitution.fail(tag);

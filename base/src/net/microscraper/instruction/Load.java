@@ -4,13 +4,14 @@ import java.io.IOException;
 import java.util.Hashtable;
 
 import net.microscraper.client.Browser;
-import net.microscraper.client.Cookie;
+import net.microscraper.client.BasicCookie;
 import net.microscraper.database.Variables;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.HashtableTemplate;
 import net.microscraper.template.Template;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
+import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.StringUtils;
 
 /**
@@ -22,17 +23,10 @@ import net.microscraper.util.StringUtils;
 public final class Load implements Action {
 	
 	/**
-	 * The HTTP request type that will be used if {@link #nonDefaultMethod}
-	 * is <code>null</code>.
-	 */
-	private final String defaultMethod = Browser.GET;
-	
-	/**
-	 * If non-<code>null</code>, the HTTP request type that will be used instead of
-	 * {@link #defaultMethod}.  Either {@link Browser#GET},
+	 * The HTTP request type that will be used. Either {@link Browser#GET},
 	 * {@link Browser#POST}, or {@link Browser#HEAD}.
 	 */
-	private String nonDefaultMethod;
+	private String method = Browser.GET;
 
 	/**
 	 * {@link HashtableTemplate}s of cookie name-values.
@@ -98,10 +92,8 @@ public final class Load implements Action {
 				!method.equalsIgnoreCase(Browser.GET) &&
 				!method.equalsIgnoreCase(Browser.HEAD)){
 			throw new IllegalArgumentException("Method " + StringUtils.quote(method) + " is illegal.");
-		} else if(nonDefaultMethod == null) {
-			this.nonDefaultMethod = method;
-		} else if(!nonDefaultMethod.equalsIgnoreCase(method)) {
-			throw new IllegalArgumentException("Cannot reassign method.");
+		} else {
+			this.method = method;
 		}
 	}
 	
@@ -128,11 +120,7 @@ public final class Load implements Action {
 			throw new IllegalArgumentException("Cannot have both postData and postNameValuePairs");
 		}
 		setMethod(Browser.POST);
-		if(this.postData == null) {
-			this.postData = postData;
-		} else {
-			throw new IllegalArgumentException("Cannot reassign postData");
-		}
+		this.postData = postData;
 	}
 
 	/**
@@ -161,19 +149,18 @@ public final class Load implements Action {
 	
 	/**
 	 * Make the request and retrieve the response body specified by this {@link Load}.
-	 * @return An {@link Execution} whose {@link Execution#getExecuted()} is a one-length {@link String}
-	 * with the response body, which is a zero-length {@link String} if the {@link Load}'s method
-	 * is Head.
+	 * @return An {@link Execution} whose {@link Execution#getExecuted()} is a one-length
+	 * {@link String} array containing the response body, which is a zero-length
+	 * {@link String} if the {@link Load}'s method is {@link Browser#HEAD}.
 	 */
 	public Execution execute(String source, Variables variables)
-			throws InterruptedException {		
-		try {
-			String method = nonDefaultMethod == null ? defaultMethod : nonDefaultMethod;
-			
+			throws InterruptedException {
+		try {			
 			Execution urlSub = url.subEncoded(variables, encoder, Browser.UTF_8);
 			Execution headersSub = headers.sub(variables);
 			Execution cookiesSub = cookies.sub(variables);
 			
+			// Cannot execute if any of these substitutions was not successful
 			if(!urlSub.isSuccessful() || !headersSub.isSuccessful() || !cookiesSub.isSuccessful()) {
 				return Execution.combine(new Execution[] {
 						urlSub, headersSub, cookiesSub
@@ -186,31 +173,35 @@ public final class Load implements Action {
 				
 				Hashtable headers = (Hashtable) headersSub.getExecuted();
 				Hashtable cookies = (Hashtable) cookiesSub.getExecuted();
-				browser.addCookies(Cookie.fromHashtable(url, cookies));
+				if(cookies.size() > 0) {
+					browser.addCookies(BasicCookie.fromHashtable(url, cookies));
+				}
 				
 				if(method.equalsIgnoreCase(Browser.HEAD)){
 					browser.head(url, headers);
 					responseBody = "";
 				} else {
 					if(method.equalsIgnoreCase(Browser.POST)) {
+						String postDataStr;
 						if(postTable.size() > 0) {
 							Execution postsSub = postTable.subEncoded(variables, encoder, Browser.UTF_8);
 							if(!postsSub.isSuccessful()) {
 								return Execution.missingVariables(postsSub.getMissingVariables());
 							} else {
 								Hashtable posts = (Hashtable) postsSub.getExecuted();
-								responseBody = browser.post(url, headers, stops, posts);
+								postDataStr = HashtableUtils.toFormEncoded(encoder, posts, Browser.UTF_8);
 							}
-						} else {
-							//Execution postsSub = postData.sub(variables, encoder, Browser.UTF_8);
+						} else if(postData != null) {
 							Execution postsSub = postData.sub(variables);
 							if(!postsSub.isSuccessful()) {
 								return Execution.missingVariables(postsSub.getMissingVariables());
 							} else {
-								String postData = (String) postsSub.getExecuted();
-								responseBody = browser.post(url, headers, stops, postData);
+								postDataStr = (String) postsSub.getExecuted();
 							}
+						} else {
+							postDataStr = "";
 						}
+						responseBody = browser.post(url, headers, stops, postDataStr);
 					} else {
 						responseBody = browser.get(url, headers, stops);
 					}
