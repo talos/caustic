@@ -30,16 +30,26 @@ public abstract class BrowserTest {
 	@Test
 	public void testGetGoogle() throws Exception {
 		String responseBody = browser.get(google, new Hashtable<String, String>(), new Pattern[] {});
+		assertTrue(responseBody.contains("google"));
 	}
-
+	
 	@Test
-	public void testPostStringNameValuePairArrayNameValuePairArrayPatternArrayNameValuePairArray() {
-		fail("Not yet implemented");
+	public void testAddCookiesViaACRIS() throws Exception {
+		String url = "http://a836-acris.nyc.gov/Scripts/Coverpage.dll/index";
+		browser.addCookies(new Cookie[] { new BasicCookie(url, "JUMPPAGE", "YES") } );
+		String responseBody = browser.get(url, new Hashtable<String, String>(), new Pattern[] {});
+		assertTrue("ACRIS should provide access to its property records page if the" +
+				"JUMPPAGE cookie is set.", responseBody.contains("Search Property Records"));
 	}
-
+	
 	@Test
-	public void testPostStringNameValuePairArrayNameValuePairArrayPatternArrayString() {
-		fail("Not yet implemented");
+	public void testPostViaACRIS() throws Exception {
+		String url = "http://a836-acris.nyc.gov/Scripts/DocSearch.dll/BBLResult";
+		String encodedPostData = "hid_borough=3&hid_block=1772&hid_doctype=&hid_lot=74&hid_SearchType=BBL";
+		browser.addCookies(new Cookie[] { new BasicCookie(url, "JUMPPAGE", "YES") } );
+		String responseBody = browser.post(url, new Hashtable<String, String>(), new Pattern[] {},
+				encodedPostData);
+		assertTrue(responseBody.contains("PULASKI"));
 	}
 
 	@Test
