@@ -1,0 +1,6 @@
+{
+    "description" : "A mustache-substitutable pattern.",
+    "type" : "object",
+    "properties" : {
+    }
+}
