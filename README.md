@@ -38,7 +38,7 @@ First, microscraper loads the URL in *load*.  Then it looks for the regular expr
 Microscrapers instructions are logic-free JSON objects that provide very dynamic templated instructions for scraping data.
 By default, substitutions are done for text inside double-curlies *{{}}*, kind of like [mustache](http://mustache.github.com/).
 
-All microscraper instructions are built from [find](microscraper-client/blob/master/doc/find.md) and [load](microscraper-client/blob/doc/load.md).
+All microscraper instructions are built from [find](microscraper-client/blob/master/doc/find.md)s and [load](microscraper-client/blob/master/doc/load.md)s.
 
 Here's a simple instruction, which is one of the [fixtures](microscraper-client/blob/master/fixtures/json/simple-google.json):
 
