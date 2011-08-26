@@ -101,7 +101,7 @@ If the source string for "parent" were "rats, ribbons and rhizomes", the followi
 
 Although nested within several *then*s, each *find* leading to "grandchild" is one-to-one.  This means that "grandchild" is within scope for "cousin" *find*.  It will match three times, once for each "r" in the source string.
 
-### Optional Attributes ###
+### optional attributes ###
 
 ---
 

@@ -2,7 +2,11 @@
 
 cooperative scrapers for mobile apps
 
-#### Usage ####
+## usage ##
+
+### getting started ###
+
+---
 
 The easiest way to try out microscraper is the precompiled utility. Run
 
@@ -27,10 +31,14 @@ and sends the results to stdout
 
 First, microscraper loads the URL in *load*.  Then it looks for the regular expression in *find*, and saves the match.
 
-#### The instruction format ####
+### The instruction format ###
+
+---
 
 Microscrapers instructions are logic-free JSON objects that provide very dynamic templated instructions for scraping data.
 By default, substitutions are done for text inside double-curlies *{{}}*, kind of like [mustache](http://mustache.github.com/).
+
+All microscraper instructions are built from [find](microscraper-client/blob/master/doc/find.md) and [load](microscraper-client/blob/doc/load.md).
 
 Here's a simple instruction, which is one of the [fixtures](microscraper-client/blob/master/fixtures/json/simple-google.json):
 
@@ -68,7 +76,9 @@ We can also see that *find* can match multiple times.
 
 We can use backreferences from *$0* to *$9* in *replace*.
 
-#### Advanced substitutions ####
+### advanced substitutions ###
+
+---
 
 Substitutions are a powerful tool because they develop over the course of execution.  Any *name* that appears in 
 curlies will be substituted once a *value* has been found for it.
@@ -122,7 +132,9 @@ You'll see that this results in quite a few dozen rows, but here are some highli
 
 Note that the *source_id* column links each *find* result back to the result it depends upon.
 
-#### References ####
+### References ###
+
+---
 
 You probably noticed that interior portion of the last fixture was basically copy-and-pasted from the fixture
 before it.  Wouldn't it be nice if we could reuse instruction components?
@@ -145,7 +157,9 @@ Running
 
 should give you the same results as before.  Any string appearing inside *then* will be evaulated as a reference.
 
-#### Recursion ####
+### Recursion ###
+
+---
 
 What if you want a scraper to run itself?  No problem!
 
@@ -162,6 +176,8 @@ What if you want a scraper to run itself?  No problem!
 When inside *then*, *$this* evaluates to be the entire object.  This evaluation is only performed when *then*
 operates.
 
-#### Why? ####
+### Why? ###
+
+---
 
 Microscraper is designed to give wider access to obscure public data.  The microscraper format makes it easy to quickly design and test a scraper that extracts a few pieces of information from behind several layers of obfuscation.
