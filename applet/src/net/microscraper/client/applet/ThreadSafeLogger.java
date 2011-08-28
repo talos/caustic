@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.microscraper.impl.log.BasicLogger;
+import net.microscraper.log.BasicLogger;
 
 public class ThreadSafeLogger extends BasicLogger {
 	private final List<String> logList = Collections.synchronizedList(new ArrayList<String>());

@@ -4,22 +4,18 @@ import java.io.IOException;
 import java.util.Hashtable;
 
 import net.microscraper.database.Database;
-import net.microscraper.impl.log.BasicLog;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.InstructionPromise;
 import net.microscraper.instruction.InstructionRunner;
 import net.microscraper.instruction.Load;
+import net.microscraper.log.BasicLog;
+import net.microscraper.log.Loggable;
+import net.microscraper.log.Logger;
 import net.microscraper.template.Template;
 
 /**
  * A {@link Microscraper} can scrape an {@link Instruction}.
  * @author john
- * @see #scrapeWithJSON(String)
- * @see #scrapeWithJSON(String, String)
- * @see #scrapeWithJSON(String, String, Hashtable)
- * @see #scrapeWithURI(String)
- * @see #scrapeWithURI(String, String)
- * @see #scrapeWithURI(String, String, Hashtable)
  *
  */
 public class Microscraper implements Loggable {	
@@ -77,35 +73,6 @@ public class Microscraper implements Loggable {
 	public void scrape(String serializedString, Hashtable[] defaultsArray) throws IOException  {
 		scrape(serializedString, defaultsArray, null);
 	}
-
-	/**
-	 * Set the rate limit for loading from a single host. Microscraper will wait until the rate is below this
-	 * threshold before making another request.
-	 * Set this to 0 to disable rate limiting.
-	 * @param rateLimitKBPS The rate limit to use.
-	 * @see Browser#setRateLimit(int)
-	 */
-	/*public void setRateLimit(int rateLimitKBPS) {
-		browser.setRateLimit(rateLimitKBPS);
-	}*/
-
-	/**
-	 * @param timeout How many seconds before giving up on a request.
-	 * @see Browser#setTimeout(int)
-	 */
-	/*public void setTimeout(int timeout) {
-		browser.setTimeout(timeout);
-	}*/
-
-	/**
-	 * @param maxResponseSizeKB The maximum size of a single response in kilobytes that Microscraper will
-	 * load before terminating. Since responses are fed straight through to a regex parser,
-	 * it is wise not to deal with huge pages.
-	 * @see Browser#setMaxResponseSize(int)
-	 */
-	/*public void setMaxResponseSize(int maxResponseSizeKB) {
-		browser.setMaxResponseSize(maxResponseSizeKB);
-	}*/
 
 	public void register(Logger logger) {
 		log.register(logger);

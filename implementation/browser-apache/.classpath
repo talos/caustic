@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="src" path="/MicroScraper Base"/>
-	<classpathentry exported="true" kind="lib" path="lib/httpcomponents-client-4.0.2/lib/httpcore-4.0.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/httpcomponents-client-4.0.2/lib/httpclient-4.0.2.jar"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/httpcomponents-client-4.0.2/lib/commons-logging-1.1.1.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Microscraper Base"/>
+	<classpathentry kind="lib" path="/Users/talos/Programming/microscraper-client/implementation/browser-apache/lib/httpclient-4.1.2.jar"/>
+	<classpathentry kind="lib" path="/Users/talos/Programming/microscraper-client/implementation/browser-apache/lib/httpcore-4.1.2.jar"/>
+	<classpathentry kind="lib" path="/Users/talos/Programming/microscraper-client/implementation/browser-apache/lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

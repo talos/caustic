@@ -7,13 +7,16 @@ import java.net.URI;
 import java.util.Hashtable;
 
 import mockit.Expectations;
+import mockit.Mock;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import net.microscraper.client.Browser;
+import mockit.Verifications;
 import net.microscraper.client.Microscraper;
 import net.microscraper.database.Database;
+import net.microscraper.database.HashtableDatabase;
 import net.microscraper.database.Variables;
 import net.microscraper.file.FileLoader;
+import net.microscraper.http.HttpBrowser;
 import net.microscraper.json.JsonParser;
 import net.microscraper.regexp.RegexpCompiler;
 
@@ -21,7 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Test {@link Microscraper} using fixtures, with a live {@link Browser}, {@link
+ * Test {@link Microscraper} using fixtures, with a live {@link HttpBrowser}, {@link
  * RegexpCompiler}, {@link JsonParser}, and {@link FileLoader}.
  * @author realest
  *
@@ -60,12 +63,7 @@ public abstract class MicroscraperImplementationTest {
 		nycIncentives =      fixtures.resolve("nyc-incentives.json").toString();
 		eventValidation =     fixtures.resolve("event-validation.json").toString();
 		
-		final Variables variables = new Variables(database, 0);
-		
-		new NonStrictExpectations() {{
-			database.open(); result = variables;
-		}};
-		
+		database = new HashtableDatabase();
 		scraper = getScraperToTest(database);
 	}
 	
@@ -75,8 +73,11 @@ public abstract class MicroscraperImplementationTest {
 	 */
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {		
-		new Expectations() {{
-			database.storeOneToOne(0, "query", "hello"); result = 1;
+		/*new Expectations() {
+			@Mocked Database database;
+			{
+			database.open(); result = variables;
+			variables.storeOneToOne("query", "hello"); result = variables;
 			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); result = 2;
 			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); result = 3;
 			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); result = 4;
@@ -85,12 +86,18 @@ public abstract class MicroscraperImplementationTest {
 			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); minTimes = 1;
 			
 			database.close();
-		}};
+		}};*/
 		
 		Hashtable<String, String> defaults = new Hashtable<String, String>();
 		defaults.put("query", "hello");
 		//scraper.register(new SystemOutLogger());
 		scraper.scrape(simpleGoogle, defaults);
+		
+		new Verifications() {
+			@Mocked Database database;
+			{
+				database.storeOneToOne(0, "");
+		}};
 	}
 	
 	@Test

@@ -7,7 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.microscraper.client.Browser;
+import net.microscraper.http.HttpBrowser;
+import net.microscraper.http.HttpRequester;
+import net.microscraper.http.RateLimitManager;
 import net.microscraper.util.StringUtils;
 
 public final class Arguments {
@@ -60,7 +62,7 @@ public final class Arguments {
 	public static final Option INPUT_COLUMN_DELIMITER = Option.withDefault("column-delimiter", ",");	
 	public static final Option LOG_FILE = Option.withoutDefault("log-file");	
 	public static final Option LOG_STDOUT = Option.withoutDefault("log-stdout");
-	public static final Option MAX_RESPONSE_SIZE = Option.withDefault("max-response-size", Integer.toString(Browser.DEFAULT_MAX_RESPONSE_SIZE));
+	public static final Option MAX_RESPONSE_SIZE = Option.withDefault("max-response-size", Integer.toString(HttpBrowser.DEFAULT_MAX_RESPONSE_SIZE));
 
 	public static final String CSV_OUTPUT_FORMAT_VALUE = "csv";
 	public static final String TAB_OUTPUT_FORMAT_VALUE = "tab";
@@ -79,9 +81,9 @@ public final class Arguments {
 	public static final char CSV_OUTPUT_COLUMN_DELIMITER = ',';
 	
 	public static final Option OUTPUT_TO_FILE = Option.withoutDefault("output-to-file");
-	public static final Option RATE_LIMIT = Option.withDefault("rate-limit", Integer.toString(Browser.DEFAULT_RATE_LIMIT));
+	public static final Option RATE_LIMIT = Option.withDefault("rate-limit", Integer.toString(RateLimitManager.DEFAULT_RATE_LIMIT));
 	public static final Option SINGLE_TABLE = Option.withoutDefault("single-table");
-	public static final Option TIMEOUT = Option.withDefault("timeout", Integer.toString(Browser.DEFAULT_TIMEOUT));
+	public static final Option TIMEOUT = Option.withDefault("timeout", Integer.toString(HttpRequester.DEFAULT_TIMEOUT_SECONDS));
 	
 	public static final String USAGE = 
 "usage: microscraper <uri> [<options>]" + newline +

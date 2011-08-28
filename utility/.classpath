@@ -10,7 +10,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JavaNet Implementation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JDBC SQLite Implementation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JSON ME Implementation"/>
-	<classpathentry kind="src" path="/MicroScraper Java IO File Implementation"/>
 	<classpathentry kind="src" path="/MicroScraper Base Test"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

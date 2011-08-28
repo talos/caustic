@@ -6,7 +6,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper Jakarta Regexp Implementation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JSON ME Implementation"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper Java IO File Implementation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper Java Util Regexp Implementation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JDBC SQLite Implementation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JavaNet Implementation"/>

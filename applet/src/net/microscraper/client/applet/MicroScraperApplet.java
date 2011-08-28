@@ -5,11 +5,11 @@ import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import net.microscraper.browser.JavaNetDecoder;
 import net.microscraper.client.BasicMicroscraper;
-import net.microscraper.client.Browser;
 import net.microscraper.client.Microscraper;
+import net.microscraper.http.HttpBrowser;
 import net.microscraper.util.HashtableUtils;
+import net.microscraper.util.JavaNetDecoder;
 
 /**
  * Provides interface between browser and scraper applet through public methods.
@@ -61,7 +61,7 @@ public class MicroScraperApplet extends Applet {
 						new ScrapeRunnable(
 								scraper,
 								instructionURI,
-								HashtableUtils.fromFormEncoded(new JavaNetDecoder(), formEncodedDefaults, Browser.UTF_8)
+								HashtableUtils.fromFormEncoded(new JavaNetDecoder(), formEncodedDefaults, HttpBrowser.UTF_8)
 							)
 					);
 				thread.start();

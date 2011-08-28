@@ -8,15 +8,19 @@ import java.util.Hashtable;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
-import net.microscraper.browser.JavaNetBrowser;
-import net.microscraper.browser.JavaNetEncoder;
-import net.microscraper.client.Browser;
-import net.microscraper.client.Cookie;
 import net.microscraper.database.Variables;
+import net.microscraper.http.CookieManager;
+import net.microscraper.http.HttpBrowser;
+import net.microscraper.http.JavaNetCookieManager;
+import net.microscraper.http.JavaNetHttpRequester;
+import net.microscraper.http.RateLimitManager;
+import net.microscraper.http.ResponseHeaders;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.Template;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
+import net.microscraper.util.JavaNetEncoder;
+import net.microscraper.util.JavaNetHttpUtils;
 
 
 import org.junit.Before;
@@ -24,9 +28,9 @@ import org.junit.Test;
 
 public class LoadTest {
 	
-	@Mocked(capture = 1) private Browser browser;
-	@Mocked(capture = 1, methods = "addCookies") private Browser liveBrowser;
+	@Mocked(capture = 1) private HttpBrowser browser;
 	@Mocked private Variables variables;
+	private HttpBrowser liveBrowser;
 	private Encoder encoder;
 	private Load load;
 	private Template url;
@@ -36,7 +40,9 @@ public class LoadTest {
 		url = Template.compile(randomString(), Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
 		encoder = new JavaNetEncoder();
 		load = new Load(browser, encoder, url);
-		liveBrowser = new JavaNetBrowser();
+		liveBrowser = new HttpBrowser(new JavaNetHttpRequester(),
+				new RateLimitManager(new JavaNetHttpUtils(), RateLimitManager.DEFAULT_RATE_LIMIT),
+				new JavaNetCookieManager());
 	}
 	
 	@Test
@@ -44,7 +50,7 @@ public class LoadTest {
 		new Expectations() {{
 			browser.head(url.toString(), (Hashtable) any);
 		}};
-		load.setMethod(Browser.HEAD);
+		load.setMethod(HttpBrowser.HEAD);
 		Execution exc = load.execute(null, variables);
 		assertTrue(exc.isSuccessful());
 		String[] results = (String[]) exc.getExecuted();
@@ -81,10 +87,13 @@ public class LoadTest {
 	@Test // This test requires a live internet connection.
 	public void testLiveBrowserSetsCookies() throws Exception {
 		final Template url = Template.compile("http://www.nytimes.com", "{{", "}}");
-		new Expectations() {{
-			browser.get(url.toString(), (Hashtable) any, (Pattern[]) any);
-			browser.addCookies((Cookie[]) any);
-		}};
+		new Expectations() {
+			@Mocked CookieManager cookieManager;
+			{
+				browser.get(url.toString(), (Hashtable) any, (Pattern[]) any);
+				cookieManager.addCookiesFromResponseHeaders(url.toString(), (ResponseHeaders) any);
+			}
+		};
 		Load load = new Load(liveBrowser, encoder, url);
 	}
 	
@@ -94,7 +103,7 @@ public class LoadTest {
 			browser.post(url.toString(), (Hashtable) any, (Pattern[]) any, "");
 				$ = "Post data should be a zero-length string.";
 		}};
-		load.setMethod(Browser.POST);
+		load.setMethod(HttpBrowser.POST);
 		load.execute(null, variables);
 	}
 	

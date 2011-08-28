@@ -7,7 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Hashtable;
 
-import net.microscraper.client.Browser;
+import net.microscraper.http.HttpBrowser;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +29,7 @@ public class HashtableUtilsTest {
 	public void testFromFormEncoded() throws Exception {
 		String formEncodedData = "number=6&word=bond&string=quick+brown+fox&string%202=quick%20brown%20fox";
 		
-		Hashtable hashtable = HashtableUtils.fromFormEncoded(decoder, formEncodedData, Browser.UTF_8);
+		Hashtable hashtable = HashtableUtils.fromFormEncoded(decoder, formEncodedData, HttpBrowser.UTF_8);
 		assertEquals("6", hashtable.get("number"));
 		assertEquals("bond", hashtable.get("word"));
 		assertEquals("quick brown fox", hashtable.get("string"));

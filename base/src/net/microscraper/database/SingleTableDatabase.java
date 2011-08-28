@@ -75,11 +75,12 @@ public final class SingleTableDatabase implements Database {
 		table.insert(generateMap(curId, sourceId, name, value));
 		return hashtableDatabase.storeOneToMany(sourceId, name, value);
 	}
-
+	
 	public String get(int id, String key) {
+		
 		return hashtableDatabase.get(id, key);
 	}
-
+	
 	public Variables open() {
 		hashtableDatabase.open();
 		return new Variables(this, curId);

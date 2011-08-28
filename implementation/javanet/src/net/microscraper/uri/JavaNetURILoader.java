@@ -5,33 +5,23 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Hashtable;
 
-import net.microscraper.browser.JavaNetBrowser;
-import net.microscraper.client.Browser;
 import net.microscraper.file.FileLoader;
+import net.microscraper.http.HttpBrowser;
+import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.regexp.Pattern;
 
 public class JavaNetURILoader implements URILoader {
 	
-	private final Browser browser;
+	private final HttpBrowser browser;
 	private final FileLoader fileLoader;
 
 	/**
 	 * Create a {@link JavaNetURILoader} using a specific browser.
-	 * @param browser The {@link Browser} to load remote URIs with.
+	 * @param browser The {@link HttpBrowser} to load remote URIs with.
 	 * @param fileLoader The {@link FileLoader} to load local URIs with.
 	 */
-	public JavaNetURILoader(Browser browser, FileLoader fileLoader) {
+	public JavaNetURILoader(HttpBrowser browser, FileLoader fileLoader) {
 		this.browser = browser;
-		this.fileLoader = fileLoader;
-	}
-	
-	/**
-	 * Create a {@link JavaNetURILoader} using a default {@link JavaNetBrowser}
-	 * browser.
-	 * @param fileLoader The {@link FileLoader} to load local URIs with.
-	 */
-	public JavaNetURILoader(FileLoader fileLoader) {
-		this.browser = new JavaNetBrowser();
 		this.fileLoader = fileLoader;
 	}
 	

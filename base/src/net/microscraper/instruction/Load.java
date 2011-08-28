@@ -3,9 +3,8 @@ package net.microscraper.instruction;
 import java.io.IOException;
 import java.util.Hashtable;
 
-import net.microscraper.client.Browser;
-import net.microscraper.client.BasicCookie;
 import net.microscraper.database.Variables;
+import net.microscraper.http.HttpBrowser;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.HashtableTemplate;
 import net.microscraper.template.Template;
@@ -23,10 +22,10 @@ import net.microscraper.util.StringUtils;
 public final class Load implements Action {
 	
 	/**
-	 * The HTTP request type that will be used. Either {@link Browser#GET},
-	 * {@link Browser#POST}, or {@link Browser#HEAD}.
+	 * The HTTP request type that will be used. Either {@link HttpBrowser#GET},
+	 * {@link HttpBrowser#POST}, or {@link HttpBrowser#HEAD}.
 	 */
-	private String method = Browser.GET;
+	private String method = HttpBrowser.GET;
 
 	/**
 	 * {@link HashtableTemplate}s of cookie name-values.
@@ -61,9 +60,9 @@ public final class Load implements Action {
 	private final Template url;
 	
 	/**
-	 * The {@link Browser} to use when loading.
+	 * The {@link HttpBrowser} to use when loading.
 	 */
-	private final Browser browser;
+	private final HttpBrowser browser;
 
 	/**
 	 * The {@link Encoder} to use when encoding the URL.
@@ -76,7 +75,7 @@ public final class Load implements Action {
 	 * @param encoder
 	 * @param url
 	 */
-	public Load(Browser browser, Encoder encoder, Template url) {
+	public Load(HttpBrowser browser, Encoder encoder, Template url) {
 		this.browser = browser;
 		this.encoder = encoder;
 		this.url = url;
@@ -84,13 +83,13 @@ public final class Load implements Action {
 	
 	/**
 	 * Assign {@link #nonDefaultMethod}.  Cannot be changed once it is set.
-	 * @param method The {@link String} {@link Browser#POST}, {@link Browser#GET}, or 
-	 * {@link Browser#HEAD}, case-insensitive.
+	 * @param method The {@link String} {@link HttpBrowser#POST}, {@link HttpBrowser#GET}, or 
+	 * {@link HttpBrowser#HEAD}, case-insensitive.
 	 */
 	public void setMethod(String method) {
-		if(!method.equalsIgnoreCase(Browser.POST) &&
-				!method.equalsIgnoreCase(Browser.GET) &&
-				!method.equalsIgnoreCase(Browser.HEAD)){
+		if(!method.equalsIgnoreCase(HttpBrowser.POST) &&
+				!method.equalsIgnoreCase(HttpBrowser.GET) &&
+				!method.equalsIgnoreCase(HttpBrowser.HEAD)){
 			throw new IllegalArgumentException("Method " + StringUtils.quote(method) + " is illegal.");
 		} else {
 			this.method = method;
@@ -99,27 +98,29 @@ public final class Load implements Action {
 	
 	/**
 	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #postTable}.
-	 * If {@link #method} is not {@link Browser.POST}, this changes it to be so.
+	 * If {@link #method} is not {@link HttpBrowser.POST}, this changes it to be so.
 	 * @param posts A {@link HashtableTemplate} of posts to add.
 	 */
 	public void addPosts(HashtableTemplate posts) {
 		if(postData != null) {
 			throw new IllegalArgumentException("Cannot have both postData and postTable");
 		}
-		setMethod(Browser.POST);
-		postTable.merge(posts);
+		if(posts.size() > 0) {
+			setMethod(HttpBrowser.POST);
+			postTable.merge(posts);
+		}
 	}
 
 	/**
 	 * Set the post data for this {@link Load}.
-	 * If {@link #method} is not {@link Browser.POST}, this changes it to be so.
+	 * If {@link #method} is not {@link HttpBrowser.POST}, this changes it to be so.
 	 * @param postData The {@link Template} to use as a post.
 	 */
 	public void setPostData(Template postData) {
 		if(postTable.size() > 0) {
 			throw new IllegalArgumentException("Cannot have both postData and postNameValuePairs");
 		}
-		setMethod(Browser.POST);
+		setMethod(HttpBrowser.POST);
 		this.postData = postData;
 	}
 
@@ -151,12 +152,12 @@ public final class Load implements Action {
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 * @return An {@link Execution} whose {@link Execution#getExecuted()} is a one-length
 	 * {@link String} array containing the response body, which is a zero-length
-	 * {@link String} if the {@link Load}'s method is {@link Browser#HEAD}.
+	 * {@link String} if the {@link Load}'s method is {@link HttpBrowser#HEAD}.
 	 */
 	public Execution execute(String source, Variables variables)
 			throws InterruptedException {
 		try {			
-			Execution urlSub = url.subEncoded(variables, encoder, Browser.UTF_8);
+			Execution urlSub = url.subEncoded(variables, encoder, HttpBrowser.UTF_8);
 			Execution headersSub = headers.sub(variables);
 			Execution cookiesSub = cookies.sub(variables);
 			
@@ -173,23 +174,21 @@ public final class Load implements Action {
 				
 				Hashtable headers = (Hashtable) headersSub.getExecuted();
 				Hashtable cookies = (Hashtable) cookiesSub.getExecuted();
-				if(cookies.size() > 0) {
-					browser.addCookies(BasicCookie.fromHashtable(url, cookies));
-				}
+				browser.addCookies(url, cookies);
 				
-				if(method.equalsIgnoreCase(Browser.HEAD)){
+				if(method.equalsIgnoreCase(HttpBrowser.HEAD)){
 					browser.head(url, headers);
 					responseBody = "";
 				} else {
-					if(method.equalsIgnoreCase(Browser.POST)) {
+					if(method.equalsIgnoreCase(HttpBrowser.POST)) {
 						String postDataStr;
 						if(postTable.size() > 0) {
-							Execution postsSub = postTable.subEncoded(variables, encoder, Browser.UTF_8);
+							Execution postsSub = postTable.subEncoded(variables, encoder, HttpBrowser.UTF_8);
 							if(!postsSub.isSuccessful()) {
 								return Execution.missingVariables(postsSub.getMissingVariables());
 							} else {
 								Hashtable posts = (Hashtable) postsSub.getExecuted();
-								postDataStr = HashtableUtils.toFormEncoded(encoder, posts, Browser.UTF_8);
+								postDataStr = HashtableUtils.toFormEncoded(encoder, posts, HttpBrowser.UTF_8);
 							}
 						} else if(postData != null) {
 							Execution postsSub = postData.sub(variables);

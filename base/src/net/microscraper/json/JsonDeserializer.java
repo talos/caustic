@@ -3,10 +3,10 @@ package net.microscraper.json;
 import java.io.IOException;
 import java.util.Vector;
 
-import net.microscraper.client.Browser;
 import net.microscraper.client.DeserializationException;
 import net.microscraper.client.Deserializer;
 import net.microscraper.database.Variables;
+import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Action;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
@@ -48,9 +48,9 @@ public class JsonDeserializer implements Deserializer {
 	private final RegexpCompiler compiler;
 	
 	/**
-	 * The {@link Browser} to use when deserializing {@link Load}s.
+	 * The {@link HttpBrowser} to use when deserializing {@link Load}s.
 	 */
-	private final Browser browser;
+	private final HttpBrowser browser;
 	
 	/**
 	 * The {@link Encoder} to use when deserializing {@link Load}s.
@@ -70,7 +70,7 @@ public class JsonDeserializer implements Deserializer {
 				result = deserialize(loadedJSONString, variables, baseUri, openTagString, closeTagString);
 			} else {
 				Execution uriSub = Template.compile(jsonString, openTagString, closeTagString)
-						.subEncoded(variables, encoder, Browser.UTF_8);
+						.subEncoded(variables, encoder, HttpBrowser.UTF_8);
 				if(uriSub.isSuccessful()) {
 					String uriPath = (String) uriSub.getExecuted();
 					String uriToLoad = uriResolver.resolve(baseUri, uriPath);
@@ -148,7 +148,7 @@ public class JsonDeserializer implements Deserializer {
 						}
 						for(int j = 0 ; j < extendsStrings.size() ; j ++) {
 							Template extendsUriTemplate = Template.compile(obj.getString(key), openTagString, closeTagString);
-							Execution uriSubstitution = extendsUriTemplate.subEncoded(variables, encoder, Browser.UTF_8);
+							Execution uriSubstitution = extendsUriTemplate.subEncoded(variables, encoder, HttpBrowser.UTF_8);
 							if(uriSubstitution.isSuccessful()) {
 								String uriPath = (String) uriSubstitution.getExecuted();
 								String uriToLoad = uriResolver.resolve(baseUri, uriPath);
@@ -472,7 +472,7 @@ public class JsonDeserializer implements Deserializer {
 	 * @param encoder
 	 * @param uriFactory
 	 */
-	public JsonDeserializer(JsonParser parser, RegexpCompiler compiler, Browser browser,
+	public JsonDeserializer(JsonParser parser, RegexpCompiler compiler, HttpBrowser browser,
 			Encoder encoder, UriResolver uriResolver, URILoader uriLoader) throws MalformedUriException {
 		this.compiler = compiler;
 		this.parser = parser;

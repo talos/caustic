@@ -7,9 +7,9 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
-import net.microscraper.client.Browser;
 import net.microscraper.database.HashtableDatabase;
 import net.microscraper.database.Variables;
+import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Executable;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.regexp.Pattern;
@@ -31,7 +31,7 @@ import org.junit.Test;
 
 public class JsonDeserializerTest {
 	private @Mocked RegexpCompiler compiler;
-	private @Mocked Browser browser;
+	private @Mocked HttpBrowser browser;
 	private @Mocked Encoder encoder;
 	private @Mocked UriResolver uriResolver;
 	private @Mocked URILoader uriLoader;
@@ -299,4 +299,5 @@ public class JsonDeserializerTest {
 			children = recursedChildren;
 		}
 	}
+	
 }

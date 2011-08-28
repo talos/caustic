@@ -7,17 +7,17 @@ import java.util.Hashtable;
 
 import au.com.bytecode.opencsv.CSVReader;
 
-import net.microscraper.browser.JavaNetDecoder;
 import net.microscraper.client.BasicMicroscraper;
-import net.microscraper.client.Browser;
 import net.microscraper.client.DeserializationException;
 import net.microscraper.client.Microscraper;
 import net.microscraper.database.Database;
 import net.microscraper.database.SQLConnectionException;
-import net.microscraper.impl.log.JavaIOFileLogger;
-import net.microscraper.impl.log.SystemOutLogger;
+import net.microscraper.http.HttpBrowser;
+import net.microscraper.log.JavaIOFileLogger;
+import net.microscraper.log.SystemOutLogger;
 import net.microscraper.uri.MalformedUriException;
 import net.microscraper.util.HashtableUtils;
+import net.microscraper.util.JavaNetDecoder;
 
 import static net.microscraper.impl.commandline.Arguments.*;
 
@@ -66,7 +66,7 @@ public class ArgumentsMicroscraper {
 			scraper.register(new SystemOutLogger());
 		}
 
-		defaults = HashtableUtils.fromFormEncoded(new JavaNetDecoder(), args.get(DEFAULTS), Browser.UTF_8);
+		defaults = HashtableUtils.fromFormEncoded(new JavaNetDecoder(), args.get(DEFAULTS), HttpBrowser.UTF_8);
 	}
 	
 	@SuppressWarnings("unchecked")

@@ -7,8 +7,8 @@ import java.util.Hashtable;
 
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import net.microscraper.client.Browser;
 import net.microscraper.file.FileLoader;
+import net.microscraper.http.HttpBrowser;
 import net.microscraper.regexp.Pattern;
 
 import org.junit.Before;
@@ -16,7 +16,7 @@ import org.junit.Test;
 
 public abstract class URILoaderTest {
 	
-	@Mocked private Browser browser;
+	@Mocked private HttpBrowser browser;
 	@Mocked private FileLoader fileLoader;
 	
 	private URILoader uriLoader;
@@ -27,7 +27,7 @@ public abstract class URILoaderTest {
 	private String fileContents = randomString();
 	private String httpContents = randomString();
 	
-	protected abstract URILoader getURILoader(Browser browser,
+	protected abstract URILoader getURILoader(HttpBrowser browser,
 			FileLoader fileLoader) throws Exception;
 	
 	@Before

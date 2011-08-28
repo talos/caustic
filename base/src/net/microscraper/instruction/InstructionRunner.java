@@ -5,11 +5,11 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import net.microscraper.client.Loggable;
-import net.microscraper.client.Logger;
 import net.microscraper.database.Database;
 import net.microscraper.database.Variables;
-import net.microscraper.impl.log.BasicLog;
+import net.microscraper.log.BasicLog;
+import net.microscraper.log.Loggable;
+import net.microscraper.log.Logger;
 import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;
 import net.microscraper.util.VectorUtils;
