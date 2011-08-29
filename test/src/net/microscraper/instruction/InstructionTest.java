@@ -22,16 +22,17 @@ public final class InstructionTest {
 	@Mocked private InstructionPromise promise;
 	@Mocked private Action action;
 	
-	int id = 0;
+	int id = randomInt();
 	private String source;
-	private int firstId;
 	private Template defaultName;
 	
 	@Tested private Instruction instruction;
 	
 	@Before
 	public void setUp() throws Exception {
-		firstId = randomInt();
+		new NonStrictExpectations() {{
+			database.getFreshSourceId(); result = id;
+		}};
 		source = randomString();
 		defaultName = new Template(randomString(), Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
 		instruction = new Instruction(action, database);
@@ -102,11 +103,11 @@ public final class InstructionTest {
 				action.execute(source, id); times = 1; result = actionExecution;
 				actionExecution.isSuccessful(); result = true;
 				actionExecution.getExecuted(); result = actionResults;
-				database.storeOneToMany(firstId, defaultName.toString()); times = 3;
+				database.storeOneToMany(id, defaultName.toString()); times = 3;
 			}
 		};
 		instruction = new Instruction(action, database);
-
+		
 		instruction.execute(source, id);
 	}
 	
@@ -120,9 +121,9 @@ public final class InstructionTest {
 				action.execute(source, id); times = 1; result = actionExecution;
 				actionExecution.isSuccessful(); result = true;
 				actionExecution.getExecuted(); result = actionResults;
-				database.storeOneToMany(firstId, nameStr, actionResults[0]);
-				database.storeOneToMany(firstId, nameStr, actionResults[1]);
-				database.storeOneToMany(firstId, nameStr, actionResults[2]);
+				database.storeOneToMany(id, nameStr, actionResults[0]);
+				database.storeOneToMany(id, nameStr, actionResults[1]);
+				database.storeOneToMany(id, nameStr, actionResults[2]);
 			}
 		};
 		instruction.setName(new Template(nameStr, "{{", "}}", database));
@@ -138,7 +139,7 @@ public final class InstructionTest {
 				action.execute(source, id); times = 1; result = actionExecution;
 				actionExecution.isSuccessful(); result = true;
 				actionExecution.getExecuted(); result = actionResults;
-				database.storeOneToMany(firstId, anyString, anyString); result = new IOException();
+				database.storeOneToMany(id, anyString, anyString); result = new IOException();
 			}
 		};
 		instruction.setName(new Template(randomString(), "{{", "}}", database));

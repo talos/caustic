@@ -7,13 +7,10 @@ import java.net.URI;
 import java.util.Hashtable;
 
 import mockit.Expectations;
-import mockit.Mock;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 import mockit.Verifications;
 import net.microscraper.client.Microscraper;
 import net.microscraper.database.Database;
-import net.microscraper.database.HashtableDatabase;
 import net.microscraper.file.FileLoader;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.json.JsonParser;
@@ -38,7 +35,7 @@ public abstract class MicroscraperImplementationTest {
 	/**
 	 * The mocked {@link Database}.
 	 */
-	private Database database;
+	@Mocked private Database database;
 	
 	/**
 	 * The tested {@link Microscraper} instance.
@@ -62,7 +59,6 @@ public abstract class MicroscraperImplementationTest {
 		nycIncentives =      fixtures.resolve("nyc-incentives.json").toString();
 		eventValidation =     fixtures.resolve("event-validation.json").toString();
 		
-		database = new HashtableDatabase();
 		scraper = getScraperToTest(database);
 	}
 	
@@ -72,11 +68,11 @@ public abstract class MicroscraperImplementationTest {
 	 */
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {		
-		/*new Expectations() {
-			@Mocked Database database;
+		new Expectations() {
 			{
-			database.open(); result = variables;
-			variables.storeOneToOne("query", "hello"); result = variables;
+			database.getFreshSourceId(); result = 0;
+			database.storeOneToOne(0, "query", "hello"); result = 1;
+			database.get(0, "query"); result = "hello";
 			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); result = 2;
 			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); result = 3;
 			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); result = 4;
@@ -85,7 +81,7 @@ public abstract class MicroscraperImplementationTest {
 			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); minTimes = 1;
 			
 			database.close();
-		}};*/
+		}};
 		
 		Hashtable<String, String> defaults = new Hashtable<String, String>();
 		defaults.put("query", "hello");

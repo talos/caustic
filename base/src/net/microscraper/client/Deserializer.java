@@ -14,6 +14,7 @@ public interface Deserializer {
 	 * is contained in the {@link Execution#getExecuted()} of the result.
 	 * @param serializedString {@link String} to which will be deserialized into an
 	 * {@link Instruction}.
+	 * @param database A {@link Database} to link deserialized {@link Instruction}s to.
 	 * @param sourceId A {@link int} to use to determine the available values from a {@link Database}
 	 * when doing substitutions.
 	 * @param rootUri A {@link String} URI that will be used to resolve any references

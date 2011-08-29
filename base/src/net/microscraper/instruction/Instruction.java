@@ -132,7 +132,7 @@ public class Instruction {
 				Enumeration e = children.elements();
 				while(e.hasMoreElements()) {
 					InstructionPromise promise = (InstructionPromise) e.nextElement();
-					childExecutables[instructionPromiseNum] = new Executable(resultValue, sourceId, promise);
+					childExecutables[instructionPromiseNum] = new Executable(resultValue, childId, promise);
 					instructionPromiseNum++;
 				}
 			}

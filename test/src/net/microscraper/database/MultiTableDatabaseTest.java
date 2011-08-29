@@ -34,7 +34,8 @@ public class MultiTableDatabaseTest extends DatabaseTest  {
 				result = rootTable;
 				$ = "Should create root table on instantiation.";
 		}};
-		return new MultiTableDatabase(connection);
+		db = new MultiTableDatabase(connection);
+		return db;
 	}
 	
 	@Test
