@@ -68,4 +68,19 @@ public abstract class HttpRequesterTest {
 		ResponseHeaders responseHeaders = response.getResponseHeaders();
 		assertTrue(responseHeaders.getHeaderNames().length > 1);
 	}
+	
+	@Test
+	public void testPost() throws Exception {
+		
+		String url = "http://a836-acris.nyc.gov/Scripts/DocSearch.dll/BBLResult";
+		String encodedPostData = "hid_borough=3&hid_block=1772&hid_doctype=&hid_lot=74&hid_SearchType=BBL";
+		Hashtable<String, String> headers = new Hashtable<String, String>();
+		headers.put("Cookie", "JUMPPAGE=YES");
+
+		HttpResponse response = requester.post(url, headers, encodedPostData);
+		assertTrue(response.isSuccess());
+		//ResponseHeaders responseHeaders = response.getResponseHeaders();
+		assertTrue(getString(response.getContentStream()).contains("PULASKI"));
+
+	}
 }

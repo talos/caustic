@@ -57,7 +57,7 @@ public class JavaNetHttpRequester implements HttpRequester {
 		} else {
 			conn.setRequestMethod(method.toUpperCase());
 		}
-		
+
 		// Try to connect.
 		try {
 			return new JavaNetHttpResponse(conn);
@@ -82,7 +82,7 @@ public class JavaNetHttpRequester implements HttpRequester {
 	@Override
 	public HttpResponse post(String url, Hashtable requestHeaders,
 			String encodedPostData) throws IOException, InterruptedException {
-		return getResponse("POST", url, requestHeaders, null);
+		return getResponse("POST", url, requestHeaders, encodedPostData);
 	}
 
 	@Override
