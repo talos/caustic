@@ -1,20 +1,26 @@
 package net.microscraper.client;
 
 import static org.junit.Assert.*;
+import static net.microscraper.util.TestUtils.*;
 
 import java.io.File;
 import java.net.URI;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.NonStrictExpectations;
 import mockit.Verifications;
+import mockit.VerificationsInOrder;
 import net.microscraper.client.Microscraper;
 import net.microscraper.database.Database;
+import net.microscraper.database.Scope;
 import net.microscraper.file.FileLoader;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.json.JsonParser;
 import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.util.ScopeGenerator;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -44,6 +50,8 @@ public abstract class MicroscraperImplementationTest {
 	
 	protected abstract Microscraper getScraperToTest(Database database) throws Exception;
 	
+	private ScopeGenerator gen;
+	
 	/**
 	 * Set up the {@link #client} before each test.
 	 * @throws Exception
@@ -60,6 +68,13 @@ public abstract class MicroscraperImplementationTest {
 		eventValidation =     fixtures.resolve("event-validation.json").toString();
 		
 		scraper = getScraperToTest(database);
+		gen = new ScopeGenerator();
+		new NonStrictExpectations() {{
+			database.getScope(); result = gen;
+			database.storeOneToOne((Scope) any, anyString, anyString); result = gen;
+				
+			database.storeOneToMany((Scope) any, anyString, anyString); result = gen;
+		}};
 	}
 	
 	/**
@@ -67,46 +82,31 @@ public abstract class MicroscraperImplementationTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void testScrapeSimpleGoogle() throws Exception {		
-		new Expectations() {
-			{
-			database.getFreshSourceId(); result = 0;
-			database.storeOneToOne(0, "query", "hello"); result = 1;
-			database.get(0, "query"); result = "hello";
-			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); result = 2;
-			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); result = 3;
-			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); result = 4;
-			//database.store(0, 0, "query", (String) withNull(), "hello"); result = 0;
-			// etc.
-			database.storeOneToMany(0, "what do you say after 'hello'?", withPrefix("I say ")); minTimes = 1;
-			
-			database.close();
+	public void testScrapeSimpleGoogle() throws Exception {
+		new NonStrictExpectations() {{
+			database.get((Scope) any, "query"); result = "hello";
 		}};
 		
 		Hashtable<String, String> defaults = new Hashtable<String, String>();
 		defaults.put("query", "hello");
-		//scraper.register(new SystemOutLogger());
 		scraper.scrape(simpleGoogle, defaults);
 		
-		new Verifications() {
-			@Mocked Database database;
-			{
-				database.storeOneToOne(0, "");
+		new VerificationsInOrder() {{
+			database.storeOneToOne(gen.first(), "query", "hello"); times = 1;
+			database.storeOneToMany(gen.first(), "what do you say after 'hello'?", withPrefix("I say "));
+				times = gen.count() - 1;
+			database.close();
 		}};
 	}
 	
 	@Test
 	public void testScrapeComplexGoogle() throws Exception {
-		new Expectations() {{
-			database.storeOneToOne(0, "query", "hello"); result = 1;
-
-			database.storeOneToMany(0, "after", anyString); result = 2;
-			database.storeOneToMany(0, "after", anyString); result = 3;
-			database.storeOneToMany(0, "after", anyString); result = 4;
-			database.storeOneToMany(0, "after", anyString); minTimes = 1;
+		new NonStrictExpectations() {{
+			database.storeOneToOne(gen.first(), "query", "hello");
+			database.get(gen.first(), "query"); result = "hello";
 			
-			database.storeOneToMany(anyInt, withPrefix("what do you say after"), withPrefix("I say")); minTimes = 1;
-		
+			database.storeOneToMany(gen.first(), "after", anyString); result = gen;
+			
 			database.close();
 		}};
 		
@@ -114,6 +114,17 @@ public abstract class MicroscraperImplementationTest {
 		defaults.put("query", "hello");
 
 		scraper.scrape(complexGoogle, defaults);
+		
+		new VerificationsInOrder() {{
+			database.storeOneToOne(gen.first(), "query", "hello"); times = 1;
+			database.storeOneToMany(gen.first(), "what do you say after 'hello'?", withPrefix("I say "));
+				times = gen.count();
+			
+			Iterator<Scope> scopes = gen.all().iterator();
+			while(scopes.hasNext()) {
+				database.storeOneToMany(scopes.next(), withPrefix("what do you say after"), withPrefix("I say"));
+			}
+		}};
 	}
 	
 	/**

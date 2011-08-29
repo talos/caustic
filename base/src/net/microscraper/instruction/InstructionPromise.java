@@ -2,6 +2,7 @@ package net.microscraper.instruction;
 
 import net.microscraper.client.Deserializer;
 import net.microscraper.database.Database;
+import net.microscraper.database.Scope;
 import net.microscraper.util.Execution;
 
 /**
@@ -37,13 +38,12 @@ public class InstructionPromise {
 	
 	/**
 	 * Load an {@link Instruction} using the information in {@link Variables}.
-	 * @param sourceId The {@link int} source ID to use when extracting values
-	 * from {@link Database}.
+	 * @param scope The {@link Scope} to use when extracting values from {@link Database}.
 	 * @return An {@link Execution} whose {@link Execution#getExecuted()} is an
 	 * {@link Instruction} if it is successful.
 	 */
-	public Execution load(int sourceId) {
-		return deserializer.deserializeString(serializedString, database, sourceId, uri);
+	public Execution load(Scope scope) {
+		return deserializer.deserializeString(serializedString, database, scope, uri);
 	}
 	
 	/**

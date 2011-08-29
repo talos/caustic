@@ -2,11 +2,9 @@
 {
     "find" : "<table\\s+id\\s*=\\s*\"insideTable\".*?</table>",
     "name" : "Columbus Table",
-    "save" : false,
     "then" : {
 	"extends" : "../shared/html-row.json",
 	"name" : "row",
-	"save" : false,
 	"min" : 5,
 	"max" : -2,
 	"then" : [{

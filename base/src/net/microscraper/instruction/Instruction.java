@@ -5,6 +5,7 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 import net.microscraper.database.Database;
+import net.microscraper.database.Scope;
 import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
 
@@ -83,24 +84,24 @@ public class Instruction {
 	 * as the product of {@link Action#execute(String, Variables)}'s {@link Execution#getExecuted()}
 	 *  and {@link #children}.  Should be run by {@link Executable#execute()} as part of {@link InstructionRunner#run()}.
 	 * @param source The source {@link String} to use in the execution.
-	 * @param sourceId The {@link int} to use when substituting from a {@link Database}.
+	 * @param scope The {@link Scope} to use when substituting from a {@link Database}.
 	 * @return An {@link Execution} whose {@link Execution#getExecuted()} is an array of {@link Executable}s,
 	 * if it is successful, or the reasons why the execution did not go off.
 	 * @throws InterruptedException If the user interrupted the execution.
 	 * @throws IOException If there was an error persisting to the {@link Database}.
 	 * @see Executable#execute()
 	 */
-	public Execution execute(String source, int sourceId) throws InterruptedException, IOException {
+	public Execution execute(String source, Scope scope) throws InterruptedException, IOException {
 		final Execution result;
 		final String nameStr;
-		Execution nameSub = name.sub(sourceId);
+		Execution nameSub = name.sub(scope);
 		// Didn't get the name.
 		if(nameSub.isSuccessful() == false) {
 			return nameSub; // eject
 		}
 		nameStr = (String) nameSub.getExecuted();
 		
-		Execution actionExecution = action.execute(source, sourceId);
+		Execution actionExecution = action.execute(source, scope);
 		
 		if(actionExecution.isSuccessful() == false) {
 			result = actionExecution;
@@ -110,20 +111,21 @@ public class Instruction {
 			Executable[] childExecutables = new Executable[resultValues.length * children.size()];
 			for(int i = 0 ; i < resultValues.length ; i ++ ) {
 				final String resultValue = resultValues[i];
-				final int childId;
+				final Scope childScope;
 				
 				// Save the value to Variables (and the database).
 				if(resultValues.length == 1) {
 					if(hasNonDefaultName) {
-						childId = database.storeOneToOne(sourceId, nameStr, resultValue);
+						database.storeOneToOne(scope, nameStr, resultValue);
 					} else {
-						childId = database.storeOneToOne(sourceId, nameStr);
+						database.storeOneToOne(scope, nameStr);
 					}
+					childScope = scope;
 				} else {
 					if(hasNonDefaultName) {
-						childId = database.storeOneToMany(sourceId, nameStr, resultValue);
+						childScope = database.storeOneToMany(scope, nameStr, resultValue);
 					} else {
-						childId = database.storeOneToMany(sourceId, nameStr);
+						childScope = database.storeOneToMany(scope, nameStr);
 					}
 				}
 				
@@ -132,7 +134,7 @@ public class Instruction {
 				Enumeration e = children.elements();
 				while(e.hasMoreElements()) {
 					InstructionPromise promise = (InstructionPromise) e.nextElement();
-					childExecutables[instructionPromiseNum] = new Executable(resultValue, childId, promise);
+					childExecutables[instructionPromiseNum] = new Executable(resultValue, childScope, promise);
 					instructionPromiseNum++;
 				}
 			}

@@ -5,6 +5,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import net.microscraper.database.Database;
+import net.microscraper.database.Scope;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.InstructionPromise;
 import net.microscraper.instruction.InstructionRunner;
@@ -42,17 +43,17 @@ public class Microscraper implements Loggable {
 		for(int i = 0 ; i < defaultsHashes.length ; i ++) {
 			Hashtable defaults = defaultsHashes[i];
 			
-			// Advance to an ID in the database unaffiliated with previous runs.
-			int sourceId = database.getFreshSourceId();
+			// Use a fresh database scope.
+			Scope scope = database.getScope();
 			
 			// Store default values in database
 			Enumeration keys = defaults.keys();
 			while(keys.hasMoreElements()) {
 				String key = (String) keys.nextElement();
-				database.storeOneToOne(sourceId, key, (String) defaults.get(key));
+				database.storeOneToOne(scope, key, (String) defaults.get(key));
 			}
 			
-			InstructionRunner runner = new InstructionRunner(promise, sourceId, source);
+			InstructionRunner runner = new InstructionRunner(promise, scope, source);
 			runner.register(log);
 			runner.run();
 		}

@@ -4,11 +4,14 @@ import java.io.IOException;
 
 import net.microscraper.database.Database;
 import net.microscraper.database.DelimitedConnection;
+import net.microscraper.database.HashtableDatabase;
 import net.microscraper.database.UpdateableConnection;
 import net.microscraper.database.JDBCSqliteConnection;
 import net.microscraper.database.MultiTableDatabase;
 import net.microscraper.database.SQLConnectionException;
 import net.microscraper.database.SingleTableDatabase;
+import net.microscraper.util.IntUUIDFactory;
+import net.microscraper.util.JavaUtilUUIDFactory;
 import net.microscraper.util.StringUtils;
 
 import static net.microscraper.impl.commandline.Arguments.*;
@@ -45,21 +48,25 @@ public class ArgumentsDatabase {
 			if(format.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
 				
 				int batchSize = Integer.parseInt(args.get(BATCH_SIZE));
+				Database backing = new HashtableDatabase(new JavaUtilUUIDFactory());
 				
 				UpdateableConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
 
 				if(args.has(SINGLE_TABLE)) {
-					result = new SingleTableDatabase(connection);
+					result = new SingleTableDatabase(backing, connection);
 				} else {
-					result = new MultiTableDatabase(connection);
+					result = new MultiTableDatabase(backing, connection);
 				}
 				
 			} else {
-				result = new SingleTableDatabase(DelimitedConnection.toFile(outputLocation, delimiter));
+				result = new SingleTableDatabase(
+						new HashtableDatabase(new IntUUIDFactory()),
+							DelimitedConnection.toFile(outputLocation, delimiter));
 			}
 			
 		} else { // output to STDOUT
-			result = new SingleTableDatabase(DelimitedConnection.toStdOut(delimiter));
+			result = new SingleTableDatabase(new HashtableDatabase(new IntUUIDFactory()),
+					DelimitedConnection.toStdOut(delimiter));
 		}
 		return result;
 	}

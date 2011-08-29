@@ -11,16 +11,16 @@ import java.util.Hashtable;
  */
 public final class SingleTableDatabase implements Database {
 	
-	private static final String ID_COLUMN = "id";
-	private static final String SOURCE_ID_COLUMN = "source_id";
-	private static final String NAME_COLUMN = "name";
-	private static final String VALUE_COLUMN = "value";
+	private static final String SCOPE_COLUMN_NAME = "scope";
+	private static final String SOURCE_COLUMN_NAME = "source";
+	private static final String NAME_COLUMN_NAME = "name";
+	private static final String VALUE_COLUMN_NAME = "value";
 	
 	/**
 	 * Names of columns in {@link Insertable}
 	 */
 	private static final String[] COLUMN_NAMES = new String[] {
-		ID_COLUMN, SOURCE_ID_COLUMN, NAME_COLUMN, VALUE_COLUMN
+		SCOPE_COLUMN_NAME, SOURCE_COLUMN_NAME, NAME_COLUMN_NAME, VALUE_COLUMN_NAME
 	};
 	
 	/**
@@ -28,65 +28,68 @@ public final class SingleTableDatabase implements Database {
 	 */
 	private final Insertable table;
 	
-	private final HashtableDatabase hashtableDatabase = new HashtableDatabase();
-	
-	private final int firstId = 0;
-	private int curId = firstId;
-	
-	private Hashtable generateMap(int id, int sourceId, String name, String value) {
+	private final Database backingDatabase;
+		
+	private Hashtable generateMap(Scope scope, Scope source, String name, String value) {
 		Hashtable map = new Hashtable();
-		map.put(ID_COLUMN, Integer.toString(curId));
-		map.put(SOURCE_ID_COLUMN, Integer.toString(sourceId));
-		map.put(NAME_COLUMN, name);
-		map.put(VALUE_COLUMN, value);
+		map.put(SCOPE_COLUMN_NAME, scope.getID().asString());
+		map.put(SOURCE_COLUMN_NAME, source.getID().asString());
+		map.put(NAME_COLUMN_NAME, name);
+		map.put(VALUE_COLUMN_NAME, value);
 		return map;
 	}
-	
-	public SingleTableDatabase(InsertableConnection connection) throws IOException {
+
+	/**
+	 * Create a {@link SingleTableDatabase} using another database for
+	 * retrieving values.
+	 * @param backingDatabase The {@link Database} to use when retrieving values.
+	 * @param connection A {@link InsertableConnection} to use when inserting
+	 * values.
+	 * @throws IOException if there was a problem creating the table by
+	 * <code>connection</code>.
+	 */
+	public SingleTableDatabase(Database backingDatabase,
+			InsertableConnection connection) throws IOException {
 		this.table = connection.getInsertable(COLUMN_NAMES);
+		this.backingDatabase = backingDatabase;
 	}
 	
 	public void close() throws IOException { }
 
-	public int storeOneToOne(int sourceId, String name)
+	public void storeOneToOne(Scope source, String name)
 			throws TableManipulationException, IOException {
-		//curId++;
-		//table.insert(generateMap(curId, sourceId, name, ""));
-		return hashtableDatabase.storeOneToOne(sourceId, name);
+		backingDatabase.storeOneToOne(source, name);
 	}
 	
-	public int storeOneToOne(int sourceId, String name, String value)
+	public void storeOneToOne(Scope source, String name, String value)
 			throws TableManipulationException, IOException {
-		//curId++;
-		table.insert(generateMap(curId, sourceId, name, value));
-		return hashtableDatabase.storeOneToOne(sourceId, name, value);
+		backingDatabase.storeOneToOne(source, name, value);
+		table.insert(generateMap(source, source, name, value));
 	}
 
-	public int storeOneToMany(int sourceId, String name)
+	public Scope storeOneToMany(Scope source, String name)
 			throws TableManipulationException, IOException {
-		curId++;
-		table.insert(generateMap(curId, sourceId, name, ""));
-		return hashtableDatabase.storeOneToMany(sourceId, name);
+		Scope scope = backingDatabase.storeOneToMany(source, name);
+		table.insert(generateMap(scope, source, name, ""));
+		return scope;
 	}
 
-	public int storeOneToMany(int sourceId, String name, String value)
+	public Scope storeOneToMany(Scope source, String name, String value)
 			throws TableManipulationException, IOException {
-		curId++;
-		table.insert(generateMap(curId, sourceId, name, value));
-		return hashtableDatabase.storeOneToMany(sourceId, name, value);
+		Scope scope = backingDatabase.storeOneToMany(source, name, value);
+		table.insert(generateMap(scope, source, name, value));
+		return scope;
 	}
 	
-	public String get(int id, String key) {
-		
-		return hashtableDatabase.get(id, key);
+	public String get(Scope scope, String key) {
+		return backingDatabase.get(scope, key);
 	}
 	
-	public int getFreshSourceId() throws IOException {
-		curId = hashtableDatabase.getFreshSourceId();
-		return curId;
+	public Scope getScope() throws IOException {
+		return backingDatabase.getScope();
 	}
 	
-	public String toString(int id) {
-		return hashtableDatabase.toString(id);
+	public String toString(Scope scope) {
+		return backingDatabase.toString(scope);
 	}
 }

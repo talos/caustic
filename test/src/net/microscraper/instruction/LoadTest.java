@@ -8,7 +8,9 @@ import java.util.Hashtable;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
+import mockit.NonStrictExpectations;
 import net.microscraper.database.Database;
+import net.microscraper.database.Scope;
 import net.microscraper.http.CookieManager;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.http.JavaNetCookieManager;
@@ -29,8 +31,8 @@ import org.junit.Test;
 public class LoadTest {
 	
 	@Mocked private Database database;
+	@Mocked private Scope scope;
 	@Mocked(capture = 1) private HttpBrowser browser;
-	int id = 0;
 	private HttpBrowser liveBrowser;
 	private Encoder encoder;
 	private Load load;
@@ -44,6 +46,9 @@ public class LoadTest {
 		liveBrowser = new HttpBrowser(new JavaNetHttpRequester(),
 				new RateLimitManager(new JavaNetHttpUtils(), RateLimitManager.DEFAULT_RATE_LIMIT),
 				new JavaNetCookieManager());
+		new NonStrictExpectations( ) {{
+			database.getScope(); result = scope;
+		}};
 	}
 	
 	@Test
@@ -52,7 +57,7 @@ public class LoadTest {
 			browser.head(url.toString(), (Hashtable) any);
 		}};
 		load.setMethod(HttpBrowser.HEAD);
-		Execution exc = load.execute(null, id);
+		Execution exc = load.execute(null, scope);
 		assertTrue(exc.isSuccessful());
 		String[] results = (String[]) exc.getExecuted();
 		assertEquals("Result should be one-length array.", 1, results.length);
@@ -65,7 +70,7 @@ public class LoadTest {
 		new Expectations() {{
 			browser.get(url.toString(), (Hashtable) any, (Pattern[]) any); result = response;
 		}};
-		Execution exc = load.execute(null, id);
+		Execution exc = load.execute(null, scope);
 		assertTrue(exc.isSuccessful());
 		String[] results = (String[]) exc.getExecuted();
 		assertEquals("Result should be one-length array.", 1, results.length);
@@ -78,11 +83,11 @@ public class LoadTest {
 		final String name = "query";
 		final Template url = new Template("http://www.google.com/?q={{" + value + "}}", "{{", "}}", database);
 		new Expectations() {{
-			database.get(id, name); result = value;
+			database.get(scope, name); result = value;
 			browser.get("http://www.google.com/?q=" + value, (Hashtable) any, (Pattern[]) any);
 		}};
 		Load load = new Load(browser, encoder, url);
-		load.execute(null, id);
+		load.execute(null, scope);
 	}
 	
 	@Test // This test requires a live internet connection.
@@ -105,7 +110,7 @@ public class LoadTest {
 				$ = "Post data should be a zero-length string.";
 		}};
 		load.setMethod(HttpBrowser.POST);
-		load.execute(null, id);
+		load.execute(null, scope);
 	}
 	
 	@Test
@@ -116,7 +121,7 @@ public class LoadTest {
 				$ = "Post data should be set by setting post data.";
 		}};
 		load.setPostData(postData);
-		load.execute(null, id);
+		load.execute(null, scope);
 	}
 	
 	@Test
@@ -126,11 +131,11 @@ public class LoadTest {
 		final Template postData = new Template(Template.DEFAULT_OPEN_TAG + key + Template.DEFAULT_CLOSE_TAG,
 				Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
 		new Expectations() {{
-			database.get(id, key); result = value;
+			database.get(scope, key); result = value;
 			browser.post(url.toString(), (Hashtable) any, (Pattern[]) any, value);
 				$ = "Post data should be substituted.";
 		}};
 		load.setPostData(postData);
-		load.execute(null, id);
+		load.execute(null, scope);
 	}
 }

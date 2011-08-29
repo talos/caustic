@@ -3,6 +3,7 @@ package net.microscraper.instruction;
 import java.io.IOException;
 import java.util.Hashtable;
 
+import net.microscraper.database.Scope;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.HashtableTemplate;
@@ -153,12 +154,12 @@ public final class Load implements Action {
 	 * {@link String} array containing the response body, which is a zero-length
 	 * {@link String} if the {@link Load}'s method is {@link HttpBrowser#HEAD}.
 	 */
-	public Execution execute(String source, int sourceId)
+	public Execution execute(String source, Scope scope)
 			throws InterruptedException {
 		try {			
-			Execution urlSub = url.subEncoded(sourceId, encoder);
-			Execution headersSub = headers.sub(sourceId);
-			Execution cookiesSub = cookies.sub(sourceId);
+			Execution urlSub = url.subEncoded(scope, encoder);
+			Execution headersSub = headers.sub(scope);
+			Execution cookiesSub = cookies.sub(scope);
 			
 			// Cannot execute if any of these substitutions was not successful
 			if(!urlSub.isSuccessful() || !headersSub.isSuccessful() || !cookiesSub.isSuccessful()) {
@@ -182,7 +183,7 @@ public final class Load implements Action {
 					if(method.equalsIgnoreCase(HttpBrowser.POST)) {
 						String postDataStr;
 						if(postTable.size() > 0) {
-							Execution postsSub = postTable.subEncoded(sourceId, encoder);
+							Execution postsSub = postTable.subEncoded(scope, encoder);
 							if(!postsSub.isSuccessful()) {
 								return Execution.missingVariables(postsSub.getMissingVariables());
 							} else {
@@ -190,7 +191,7 @@ public final class Load implements Action {
 								postDataStr = HashtableUtils.toFormEncoded(encoder, posts);
 							}
 						} else if(postData != null) {
-							Execution postsSub = postData.sub(sourceId);
+							Execution postsSub = postData.sub(scope);
 							if(!postsSub.isSuccessful()) {
 								return Execution.missingVariables(postsSub.getMissingVariables());
 							} else {

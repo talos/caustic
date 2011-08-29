@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
+import net.microscraper.util.IntUUIDFactory;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +19,8 @@ public class SingleTableDatabaseTest extends DatabaseTest  {
 		new NonStrictExpectations() {{
 			connection.getInsertable((String[]) any); result = table;
 		}};
-		return new SingleTableDatabase(connection);
+		return new SingleTableDatabase(
+				new HashtableDatabase(new IntUUIDFactory()), connection);
 	}
 	
 }

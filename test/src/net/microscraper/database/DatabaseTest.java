@@ -8,41 +8,43 @@ import org.junit.Test;
 
 public abstract class DatabaseTest {
 
-	private int id; 
-	private Database db;
+	protected Scope scope; 
+	protected Database db;
 	
 	protected abstract Database getDatabase() throws Exception;
 	
 	@Before
 	public void setUp() throws Exception {
 		db = getDatabase();
-		id = db.getFreshSourceId();
+		scope = db.getScope();
 	}
 
 	@Test
 	public void testStoreOneToOneWithoutValueStoresNothing() throws Exception {
-		db.storeOneToOne(id, "bleh");
-		assertNull(db.get(id, "bleh"));
+		db.storeOneToOne(scope, "bleh");
+		assertNull(db.get(scope, "bleh"));
 	}
 
 	@Test
 	public void testStoreOneToOneWithValueStoresValue() throws Exception {
-		db.storeOneToOne(id, "bleh", "meh");
-		assertEquals("meh", db.get(id, "bleh"));
+		db.storeOneToOne(scope, "bleh", "meh");
+		assertEquals("meh", db.get(scope, "bleh"));
 	}
 
 	@Test
 	public void testStoreOneToManyWithoutValueStoresNothing() throws Exception {
-		int branch = db.storeOneToMany(id, "bleh");
-		assertNull(db.get(id, "bleh"));
+		Scope branch = db.storeOneToMany(scope, "bleh");
+		assertNull(db.get(scope, "bleh"));
 		assertNull(db.get(branch, "bleh"));
 	}
-
+	
 	@Test
 	public void testStoreOneToManyWithValuePartiallyAccessible() throws Exception {
-		int branch = db.storeOneToMany(id, "bleh", "meh");
-		assertNull(db.get(id, "bleh"));
-		assertEquals("meh", db.get(branch, "bleh"));
+		Scope branch = db.storeOneToMany(scope, "bleh", "meh");
+		assertNull("Main scope should not know that this key exists", db.get(scope, "bleh"));
+		
+		assertNotNull("Branch should know that this key exists", db.get(branch, "bleh"));
+		assertEquals("Branch should retrieve this value.", "meh", db.get(branch, "bleh"));
 	}
 
 	@Test
@@ -52,23 +54,19 @@ public abstract class DatabaseTest {
 		String grandchildKey = randomString();
 		String grandchildValue = randomString();
 				
-		int child = db.storeOneToOne(id, childKey, childValue);
-		int grandchild = db.storeOneToOne(id, grandchildKey, grandchildValue);
-		assertEquals(childValue, db.get(id, childKey));
-		assertEquals(childValue, db.get(child, childKey));
-		assertEquals(childValue, db.get(grandchild,childKey));
-		assertEquals(grandchildValue, db.get(id,grandchildKey));
-		assertEquals(grandchildValue, db.get(child,grandchildKey));
-		assertEquals(grandchildValue, db.get(grandchild,grandchildKey));
+		db.storeOneToOne(scope, childKey, childValue);
+		db.storeOneToOne(scope, grandchildKey, grandchildValue);
+		assertEquals(childValue, db.get(scope, childKey));
+		assertEquals(grandchildValue, db.get(scope,grandchildKey));
 	}
 
 	@Test
 	public void testMultiSavesDontPropagate() throws Exception {
 		String childKey = randomString();		
 		
-		int child = db.storeOneToMany(id, childKey, randomString());
+		Scope child = db.storeOneToMany(scope, childKey, randomString());
 		
-		assertNull(db.get(id, childKey));
+		assertNull(db.get(scope, childKey));
 		assertNotNull(db.get(child, childKey));
 	}
 	
@@ -78,14 +76,10 @@ public abstract class DatabaseTest {
 		String childValue = randomString();
 		String grandchildValue = randomString();
 		
-		int child = db.storeOneToOne(id, key, childValue);
-		int grandchild = db.storeOneToOne(child, key, grandchildValue);
-		assertNotSame(childValue, db.get(id,key));
-		assertNotSame(childValue, db.get(child,key));
-		assertNotSame(childValue, db.get(grandchild,key));
-		assertEquals(grandchildValue, db.get(id,key));
-		assertEquals(grandchildValue, db.get(child,key));
-		assertEquals(grandchildValue, db.get(grandchild,key));
+		db.storeOneToOne(scope, key, childValue);
+		db.storeOneToOne(scope, key, grandchildValue);
+		assertNotSame(childValue, db.get(scope,key));
+		assertEquals(grandchildValue, db.get(scope,key));
 	}
 	
 
@@ -94,14 +88,11 @@ public abstract class DatabaseTest {
 		String childKey = randomString();		
 		String grandchildKey = randomString();
 		
-		int child = db.storeOneToOne(id, childKey, randomString());
-		int grandchild = db.storeOneToMany(child, grandchildKey, randomString());
+		db.storeOneToOne(scope, childKey, randomString());
+		Scope grandchild = db.storeOneToMany(scope, grandchildKey, randomString());
 		
-		assertNotNull(db.get(id,childKey));
-		assertNull(db.get(id,grandchildKey));
-		
-		assertNotNull(db.get(child,childKey));
-		assertNull(db.get(child,grandchildKey));
+		assertNotNull(db.get(scope,childKey));
+		assertNull(db.get(scope,grandchildKey));
 		
 		assertNotNull("Grandchild doesn't contain its parent key.", db.get(grandchild,childKey));
 		assertNotNull("Grandchild doesn't contain its own key.", db.get(grandchild,grandchildKey));
@@ -115,16 +106,16 @@ public abstract class DatabaseTest {
 		String cousinKey1 = randomString();
 		String cousinKey2 = randomString();
 				
-		int sibling1 = db.storeOneToOne(id,siblingKey1, randomString());
-		int sibling2 = db.storeOneToOne(id,siblingKey2, randomString());
+		db.storeOneToOne(scope,siblingKey1, randomString());
+		db.storeOneToOne(scope,siblingKey2, randomString());
 		
-		int cousinFromSibling1 = db.storeOneToOne(sibling1,cousinKey1, randomString());
-		int cousinFromSibling2 = db.storeOneToMany(sibling2,cousinKey2, randomString());
+		db.storeOneToOne(scope,cousinKey1, randomString());
+		Scope cousinFromSibling2 = db.storeOneToMany(scope,cousinKey2, randomString());
 		
 		assertNotNull("Variables doesn't contain key from its grandparent's grandchild descended through single results",
 				db.get(cousinFromSibling2, siblingKey1));
 		assertNull("Variables contains key from its grandparent's grandchild descended through multiple results",
-				db.get(cousinFromSibling1, cousinKey2));
+				db.get(scope, cousinKey2));
 	}
 
 }

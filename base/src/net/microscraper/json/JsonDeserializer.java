@@ -6,6 +6,7 @@ import java.util.Vector;
 import net.microscraper.client.DeserializationException;
 import net.microscraper.client.Deserializer;
 import net.microscraper.database.Database;
+import net.microscraper.database.Scope;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Action;
 import net.microscraper.instruction.Find;
@@ -57,7 +58,7 @@ public class JsonDeserializer implements Deserializer {
 	 */
 	private final Encoder encoder;
 	
-	private Execution deserialize(String jsonString, Database database, int sourceId, String baseUri,
+	private Execution deserialize(String jsonString, Database database, Scope scope, String baseUri,
 			String openTagString, String closeTagString)
 			throws DeserializationException, JsonException, TemplateCompilationException,
 			IOException, MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException {
@@ -67,16 +68,16 @@ public class JsonDeserializer implements Deserializer {
 		if(!parser.isJsonObject(jsonString)) {
 			if(jsonString.equalsIgnoreCase(SELF)) {
 				String loadedJSONString = uriLoader.load(baseUri);
-				result = deserialize(loadedJSONString, database, sourceId, baseUri, openTagString, closeTagString);
+				result = deserialize(loadedJSONString, database, scope, baseUri, openTagString, closeTagString);
 			} else {
 				Execution uriSub = new Template(jsonString, openTagString, closeTagString, database)
-						.subEncoded(sourceId, encoder);
+						.subEncoded(scope, encoder);
 				if(uriSub.isSuccessful()) {
 					String uriPath = (String) uriSub.getExecuted();
 					String uriToLoad = uriResolver.resolve(baseUri, uriPath);
 					String loadedJSONString = uriLoader.load(uriToLoad);
 					
-					result = deserialize(loadedJSONString, database, sourceId, uriToLoad, openTagString, closeTagString);
+					result = deserialize(loadedJSONString, database, scope, uriToLoad, openTagString, closeTagString);
 				} else {
 					result = uriSub;
 				}
@@ -148,7 +149,7 @@ public class JsonDeserializer implements Deserializer {
 						}
 						for(int j = 0 ; j < extendsStrings.size() ; j ++) {
 							Template extendsUriTemplate = new Template(obj.getString(key), openTagString, closeTagString, database);
-							Execution uriSubstitution = extendsUriTemplate.subEncoded(sourceId, encoder);
+							Execution uriSubstitution = extendsUriTemplate.subEncoded(scope, encoder);
 							if(uriSubstitution.isSuccessful()) {
 								String uriPath = (String) uriSubstitution.getExecuted();
 								String uriToLoad = uriResolver.resolve(baseUri, uriPath);
@@ -485,10 +486,10 @@ public class JsonDeserializer implements Deserializer {
 		this.uriLoader = uriLoader;
 	}
 	
-	public Execution deserializeString(String serializedString, Database database, int sourceId, String uri) {
+	public Execution deserializeString(String serializedString, Database database, Scope scope, String uri) {
 		
 		try {
-			return deserialize(serializedString, database, sourceId, uri,
+			return deserialize(serializedString, database, scope, uri,
 					Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
 		} catch(JsonException e) {
 			return Execution.deserializationException(new DeserializationException(e));

@@ -2,6 +2,7 @@ package net.microscraper.instruction;
 
 import java.io.IOException;
 
+import net.microscraper.database.Scope;
 import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;
 
@@ -21,7 +22,7 @@ public class Executable {
 	public static final int SOURCE_TRUNCATE_LENGTH = 50;
 	
 	private final String source;
-	private final int sourceId;
+	private final Scope scope;
 	private final InstructionPromise promise;
 	
 	/**
@@ -31,9 +32,9 @@ public class Executable {
 	private Execution prevExecution;
 	private Execution execution;
 	
-	public Executable(String source, int sourceId, InstructionPromise instructionPromise) {
+	public Executable(String source, Scope scope, InstructionPromise instructionPromise) {
 		this.source = source;
-		this.sourceId = sourceId;
+		this.scope = scope;
 		this.promise = instructionPromise;
 	}
 	
@@ -53,7 +54,7 @@ public class Executable {
 		
 		// If instruction is not yet loaded, try to get it.
 		if(instruction == null) {
-			execution = promise.load(sourceId);
+			execution = promise.load(scope);
 			if(execution.isSuccessful()) {
 				instruction = (Instruction) execution.getExecuted();
 			}
@@ -61,7 +62,7 @@ public class Executable {
 		
 		// If instruction is loaded, execute it.
 		if(instruction != null) {
-			execution = instruction.execute(source, sourceId);
+			execution = instruction.execute(source, scope);
 		}
 		return execution;
 	}

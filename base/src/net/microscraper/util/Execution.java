@@ -69,7 +69,7 @@ public class Execution {
 						" did not have a match between " + 
 						StringUtils.quote(minMatch) + " and " + 
 						StringUtils.quote(maxMatch) + " against " +
-						StringUtils.quote(source)
+						StringUtils.truncate(StringUtils.quote(source), 100)
 		});
 	}
 	

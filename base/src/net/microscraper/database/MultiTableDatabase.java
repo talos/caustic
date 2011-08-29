@@ -24,30 +24,33 @@ public final class MultiTableDatabase implements Database {
 	public static final String ROOT_TABLE_NAME = "root";
 	
 	/**
-	 * Column name for the ID of the source of a result row.
+	 * Column name for the scope of the source row.
 	 */
-	public static final String SOURCE_ID_COLUMN_NAME = "source_id";
+	public static final String SOURCE_COLUMN_NAME = "_source";
 	
-	public static final String ID_COLUMN_NAME = "id";
+	/**
+	 * Column name for the scope of this row.
+	 */
+	public static final String SCOPE_COLUMN_NAME = "_scope";
 	
 	/**
 	 * Column name for the name of the table where the result row's source can be
 	 * found.
 	 */
-	public static final String SOURCE_TABLE_COLUMN = "source_table";
+	public static final String SOURCE_TABLE_COLUMN = "_source_table";
 	
-	public static final String VALUE_COLUMN_NAME = "value";
+	public static final String VALUE_COLUMN_NAME = "_value";
 	
 	public static final String[] ROOT_TABLE_COLUMNS = new String[] {
-		ID_COLUMN_NAME
+		SCOPE_COLUMN_NAME
 	};
 	
 	/**
 	 * Default column names for {@link Updateable}s in {@link MultiTableDatabase}.
 	 */
 	public static final String[] RESULT_TABLE_COLUMNS = new String[] {
-		ID_COLUMN_NAME,
-		SOURCE_ID_COLUMN_NAME,
+		SCOPE_COLUMN_NAME,
+		SOURCE_COLUMN_NAME,
 		SOURCE_TABLE_COLUMN,
 		VALUE_COLUMN_NAME
 	};
@@ -55,20 +58,16 @@ public final class MultiTableDatabase implements Database {
 	private final Hashtable nameTables = new Hashtable();
 	
 	/**
-	 * A {@link Hashtable} of the name of every ID value.
+	 * A {@link Hashtable} keying {@link Scope}s to {@link String} names.
 	 */
-	private final Hashtable idNames = new Hashtable();
+	private final Hashtable scopeNames = new Hashtable();
 	
 	/**
 	 * A {@link UpdateableConnection} to use when generating tables.
 	 */
 	private final UpdateableConnection connection;
 	
-	private final HashtableDatabase hashtableDatabase = new HashtableDatabase();
-	
-	private final int firstId = 0;
-	private int curId = firstId;
-
+	private final Database backingDatabase;
 	
 	private String cleanColumnName(String columnName) {
 		for(int i = 0 ; i < RESULT_TABLE_COLUMNS.length ; i ++) {
@@ -84,28 +83,28 @@ public final class MultiTableDatabase implements Database {
 	}	
 	
 	/**
-	 * Create the root table with no values in it.
-	 * @throws IOException If the root table cannot be created.
+	 * Create a {@link MultiTableDatabase} using another database for
+	 * retrieving values.
 	 */
-	public MultiTableDatabase(UpdateableConnection connection) throws IOException {
+	public MultiTableDatabase(Database backingDatabase,
+			UpdateableConnection connection) throws IOException {
+		this.backingDatabase = backingDatabase;
 		this.connection = connection;
+		nameTables.put(ROOT_TABLE_NAME, connection.getIOTable(ROOT_TABLE_NAME, ROOT_TABLE_COLUMNS));
 	}
 	
-	public int storeOneToOne(int sourceId, String name)
+	public void storeOneToOne(Scope source, String name)
 			throws TableManipulationException, IOException {
-		//curId ++;
-		// No-op, would just enter in a column with a blank value.
-		return hashtableDatabase.storeOneToOne(sourceId, name);
+		backingDatabase.storeOneToOne(source, name);
 	}
 	
 	/**
 	 * Add this name & value to the table of sourceId.  Create the column for the name
 	 * if it doesn't already exist.
 	 */
-	public int storeOneToOne(int sourceId, String name, String value)
+	public void storeOneToOne(Scope source, String name, String value)
 			throws TableManipulationException, IOException {
-		//curId ++;
-		String tableName = (String) idNames.get(Integer.valueOf(sourceId));
+		String tableName = (String) scopeNames.get(source);
 		Updateable table = (Updateable) nameTables.get(tableName);
 		if(!table.hasColumn(cleanColumnName(name))) {
 			table.addColumn(cleanColumnName(name));
@@ -113,19 +112,19 @@ public final class MultiTableDatabase implements Database {
 		Hashtable map = new Hashtable();
 		map.put(cleanColumnName(name), value);
 		
-		table.update(ID_COLUMN_NAME, sourceId, map);
+		table.update(SCOPE_COLUMN_NAME, source.getID(), map);
 		
-		return hashtableDatabase.storeOneToOne(sourceId, name, value);
+		backingDatabase.storeOneToOne(source, name, value);
 	}
 
-	public int storeOneToMany(int sourceId, String name)
+	public Scope storeOneToMany(Scope source, String name)
 			throws TableManipulationException, IOException {
-		curId ++;
+		Scope scope = backingDatabase.storeOneToMany(source, name);
 		
-		String sourceTableName = (String) idNames.get(Integer.valueOf(sourceId));
+		String sourceTableName = (String) scopeNames.get(source);
 		
 		Updateable table;
-		idNames.put(Integer.valueOf(curId), cleanTableName(name));
+		scopeNames.put(scope, cleanTableName(name));
 		if(nameTables.containsKey(cleanTableName(name))) {
 			table = (Updateable) nameTables.get(cleanTableName(name));
 		} else {
@@ -134,26 +133,26 @@ public final class MultiTableDatabase implements Database {
 		}
 		
 		Hashtable map = new Hashtable();
-		map.put(ID_COLUMN_NAME, Integer.toString(curId));
-		map.put(SOURCE_ID_COLUMN_NAME, Integer.toString(sourceId));
+		map.put(SCOPE_COLUMN_NAME, scope.getID().asString());
+		map.put(SOURCE_COLUMN_NAME, source.getID().asString());
 		map.put(SOURCE_TABLE_COLUMN, sourceTableName);
-		map.put(VALUE_COLUMN_NAME, "");
+		//map.put(VALUE_COLUMN_NAME, "");
 		table.insert(map);
 		
-		return hashtableDatabase.storeOneToMany(sourceId, name);
+		return scope;
 	}
 
 	/**
 	 * Insert a new row into a table for this result.
 	 */
-	public int storeOneToMany(int sourceId, String name, String value)
+	public Scope storeOneToMany(Scope source, String name, String value)
 			throws TableManipulationException, IOException {
-		curId ++;
+		Scope scope = backingDatabase.storeOneToMany(source, name, value);
 		
-		String sourceTableName = (String) idNames.get(Integer.valueOf(sourceId));
+		String sourceTableName = (String) scopeNames.get(source);
 		
 		Updateable table;
-		idNames.put(Integer.valueOf(curId), cleanTableName(name));
+		scopeNames.put(scope, cleanTableName(name));
 		if(nameTables.containsKey(cleanTableName(name))) {
 			table = (Updateable) nameTables.get(cleanTableName(name));
 		} else {
@@ -162,32 +161,30 @@ public final class MultiTableDatabase implements Database {
 		}
 		
 		Hashtable map = new Hashtable();
-		map.put(ID_COLUMN_NAME, Integer.toString(curId));
-		map.put(SOURCE_ID_COLUMN_NAME, Integer.toString(sourceId));
+		map.put(SCOPE_COLUMN_NAME, scope.getID().asString());
+		map.put(SOURCE_COLUMN_NAME, source.getID().asString());
 		map.put(SOURCE_TABLE_COLUMN, sourceTableName);
 		map.put(VALUE_COLUMN_NAME, value);
 		table.insert(map);
 		
-		return hashtableDatabase.storeOneToMany(sourceId, name, value);
+		return scope;
 	}
 	
 	public void close() throws IOException {
 		connection.close();
 	}
 
-	public String get(int id, String key) {
-		return hashtableDatabase.get(id, key);
+	public String get(Scope scope, String key) {
+		return backingDatabase.get(scope, key);
 	}
 
-	public int getFreshSourceId() throws IOException {
-		int curId = hashtableDatabase.getFreshSourceId();
-		Updateable rootTable = connection.getIOTable(ROOT_TABLE_NAME, ROOT_TABLE_COLUMNS);
-		idNames.put(Integer.valueOf(curId), ROOT_TABLE_NAME);
-		nameTables.put(ROOT_TABLE_NAME, rootTable);
-		return curId;
+	public Scope getScope() throws IOException {
+		Scope scope = backingDatabase.getScope();
+		scopeNames.put(scope, ROOT_TABLE_NAME);
+		return scope;
 	}
 
-	public String toString(int id) {
-		return hashtableDatabase.toString(id);
+	public String toString(Scope scope) {
+		return backingDatabase.toString(scope);
 	}
 }

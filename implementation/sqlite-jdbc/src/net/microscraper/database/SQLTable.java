@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
+import net.microscraper.util.UUID;
 
 import net.microscraper.database.Updateable;
 import net.microscraper.util.StringUtils;
@@ -129,10 +130,10 @@ public class SQLTable implements Updateable {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public void update(String idColumnName, int id, Hashtable map)
+	public void update(String idColumnName, UUID id, Hashtable map)
 			throws TableManipulationException {
 		String[] setStatements = new String[map.size()];
-		String[] values = new String[map.size()];
+		String[] values = new String[map.size() + 1];
 		
 		Enumeration enumeration = map.keys();
 		int i = 0;
@@ -141,13 +142,14 @@ public class SQLTable implements Updateable {
 			setStatements[i] = "`" + name + "` = ? ";
 			values[i] = (String) map.get(name);
 		}
+		values[values.length - 1] = id.asString();
 		
 		String set = " SET " + StringUtils.join(setStatements, ", ");
 		
 		try {
 			SQLPreparedStatement update = connection.prepareStatement(
 					"UPDATE `" + name + "` " + set +
-					"WHERE `" + idColumnName + "` = " + Integer.toString(id));
+					"WHERE `" + idColumnName + "` = ?");
 			update.bindStrings(values);
 			update.execute();
 		} catch (SQLConnectionException e) {

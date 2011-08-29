@@ -6,6 +6,7 @@ import java.util.Hashtable;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
 import net.microscraper.util.HashtableUtils;
+import net.microscraper.database.Scope;
 import net.microscraper.template.Template;
 
 public class HashtableTemplate {
@@ -22,19 +23,19 @@ public class HashtableTemplate {
 		return table.size();
 	}
 	
-	public Execution sub(int sourceId) {
-		return subEncoded(sourceId, null);
+	public Execution sub(Scope scope) {
+		return subEncoded(scope, null);
 	}
 	
 	/**
 	 * Substitute this {@link HashtableTemplate} with values from {@link Database} accessible
 	 * to <code>sourceId</code>.
-	 * @param sourceId
+	 * @param scope
 	 * @param encoder
 	 * @return An {@link Execution} whose {@link Execution#getExecuted()} object, if successful, is an
 	 * {@link Hashtable} with all names and values substituted from {@link Variables}.
 	 */
-	public Execution subEncoded(int sourceId, Encoder encoder) {
+	public Execution subEncoded(Scope scope, Encoder encoder) {
 		Execution[] componentExecutions = new Execution[table.size() * 2];
 		Hashtable subbedTable = new Hashtable();
 		Enumeration keys = table.keys();
@@ -44,17 +45,17 @@ public class HashtableTemplate {
 			Template value = (Template) table.get(key);
 			Execution subbedKey;
 			if(encoder != null) {
-				subbedKey = key.subEncoded(sourceId, encoder);
+				subbedKey = key.subEncoded(scope, encoder);
 			} else {
-				subbedKey = key.sub(sourceId);
+				subbedKey = key.sub(scope);
 			}
 			componentExecutions[i] = subbedKey;
 			i++;
 			Execution subbedValue;
 			if(encoder != null) {
-				subbedValue = value.subEncoded(sourceId, encoder);
+				subbedValue = value.subEncoded(scope, encoder);
 			} else {
-				subbedValue = value.subEncoded(sourceId, encoder);
+				subbedValue = value.subEncoded(scope, encoder);
 			}
 			componentExecutions[i] = subbedValue;
 			i++;

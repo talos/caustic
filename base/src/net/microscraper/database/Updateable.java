@@ -2,6 +2,8 @@ package net.microscraper.database;
 
 import java.util.Hashtable;
 
+import net.microscraper.util.UUID;
+
 /**
  * A {@link Updateable} interface supports adding columns updating certain columns by ID,
  * and deleting.  It extends {@link Insertable}.
@@ -33,12 +35,12 @@ public interface Updateable extends Insertable {
 	/**
 	 * Update an existing row in the {@link Updateable}.
 	 * @param idColumnName the {@link String} name of the ID column.
-	 * @param id the {@link int} ID of the row to update.
+	 * @param uuid the {@link UUID} of the row to update.
 	 * @param map A {@link Hashtable} mapping columns names to values to insert
 	 * into {@link Updateable}.
 	 * @throws TableManipulationException if the row could not be updated.
 	 */
-	public abstract void update(String idColumnName, int id, Hashtable map)
+	public abstract void update(String idColumnName, UUID uuid, Hashtable map)
 			throws TableManipulationException;
 	
 	/**

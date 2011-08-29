@@ -8,21 +8,20 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.database.Database;
+import net.microscraper.database.Scope;
 import net.microscraper.template.Template;
 import net.microscraper.template.TemplateCompilationException;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
-import static net.microscraper.util.TestUtils.*;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class TemplateTest {
 	
-	//@Mocked Variables variables, empty;
 	@Mocked Database database, empty;
 	@Mocked Encoder encoder;
-	private int id = 0;
+	private Scope scope;
 	
 	private static final String key = "template";
 	private static final String value = "has been substituted";
@@ -33,9 +32,11 @@ public class TemplateTest {
 	private static final String validTemplateCompiledEncoded = "A valid " + encodedValue + ".";
 	
 	@Before
-	public void setup() {
+	public void setup() throws Exception {
 		new NonStrictExpectations() {{
-			database.get(id, key); result = value;
+			database.getScope(); result = scope;
+			empty.getScope(); result = scope;
+			database.get(scope, key); result = value;
 		}};
 	}
 	
@@ -52,7 +53,7 @@ public class TemplateTest {
 	@Test
 	public void testSubSuccessful() throws TemplateCompilationException {
 		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
-		Execution sub = template.sub(id);
+		Execution sub = template.sub(scope);
 		assertTrue(sub.isSuccessful());
 		assertEquals(validTemplateCompiled, sub.getExecuted());
 	}
@@ -60,7 +61,7 @@ public class TemplateTest {
 	@Test
 	public void testSubUnsuccessful() throws TemplateCompilationException {
 		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, empty);
-		Execution sub = template.sub(id);
+		Execution sub = template.sub(scope);
 		assertFalse(sub.isSuccessful());
 		assertArrayEquals(new String[] { key }, sub.getMissingVariables());
 	}
@@ -71,7 +72,7 @@ public class TemplateTest {
 			encoder.encode(value); result = encodedValue;
 		}};
 		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
-		Execution sub = template.subEncoded(id, encoder);
+		Execution sub = template.subEncoded(scope, encoder);
 		assertTrue(sub.isSuccessful());
 		assertEquals(validTemplateCompiledEncoded, sub.getExecuted());
 	}
@@ -82,7 +83,7 @@ public class TemplateTest {
 			encoder.encode(value); result = encodedValue; times = 0;
 		}};
 		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, empty);
-		Execution sub = template.subEncoded(id, encoder);
+		Execution sub = template.subEncoded(scope, encoder);
 		assertFalse(sub.isSuccessful());
 		assertArrayEquals(new String[] {key}, sub.getMissingVariables());
 	}
@@ -94,7 +95,7 @@ public class TemplateTest {
 			encoder.encode(value); result = new UnsupportedEncodingException();
 		}};
 		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
-		template.subEncoded(id, encoder);
+		template.subEncoded(scope, encoder);
 	}
 
 	@Test

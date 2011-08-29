@@ -3,6 +3,7 @@ package net.microscraper.template;
 import java.util.Vector;
 
 import net.microscraper.database.Database;
+import net.microscraper.database.Scope;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
 
@@ -75,22 +76,22 @@ public final class Template {
 
 	/**
 	 * Substitute the values from a {@link Variables} into the {@link Template}.
-	 * @param sourceId The {@link int} sourceId to use getting data from {@link #database}.
+	 * @param scope The {@link Scope} to use getting data from {@link #database}.
 	 * @return A {@link Execution} whose {@link Execution#getExecuted()} is the {@link String}
 	 * result of the substitution.
 	 */
-	public Execution sub(int sourceId) {
-		return subEncoded(sourceId, null);
+	public Execution sub(Scope scope) {
+		return subEncoded(scope, null);
 	}
 	
 	/**
 	 * Substitute the values from a {@link HashtableDatabase} into the {@link Template},
 	 * and encode each value upon inserting it.
-	 * @param sourceId The {@link int} sourceId to use getting data from {@link #database}.
+	 * @param scope The {@link Scope} to use getting data from {@link #database}.
 	 * @param encoder The {@link Encoder} to use when encoding values.
 	 * @return A {@link Execution} with the results of the substitution.
 	 */
-	public Execution subEncoded(int sourceId, Encoder encoder) {
+	public Execution subEncoded(Scope scope, Encoder encoder) {
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
 		String result = "";
@@ -107,7 +108,7 @@ public final class Template {
 			String tag = template.substring(open_tag_start_pos + openTag.length(), close_tag_start_pos);
 			
 			close_tag_end_pos = close_tag_start_pos + closeTag.length();
-			String value = database.get(sourceId, tag);
+			String value = database.get(scope, tag);
 			if(value != null) {
 				if(encoder != null) {
 					result += encoder.encode(value);	

@@ -8,6 +8,7 @@ import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.database.HashtableDatabase;
+import net.microscraper.database.Scope;
 import net.microscraper.util.Execution;
 
 import org.junit.Before;
@@ -18,8 +19,8 @@ public class ExecutableTest {
 	//@Mocked private Database database;
 	@Mocked private InstructionPromise promise;
 	@Mocked private Instruction instruction;
+	@Mocked private Scope scope;
 	
-	private int id = 0;
 	private String source;
 	private Executable executable;
 
@@ -28,20 +29,20 @@ public class ExecutableTest {
 		new NonStrictExpectations() {
 			@Injectable Execution execution;
 			{
-				promise.load(id); result = execution;
+				promise.load(scope); result = execution;
 				onInstance(execution).isSuccessful(); result = true;
 				execution.getExecuted(); result = instruction;
 			}
 		};
 		source = randomString();
-		executable = new Executable(source, id, promise);
+		executable = new Executable(source, scope, promise);
 	}
 	
 	@Test
 	public void testExecuteExecutesInstructionWithVariablesAndSourceOnce() throws Exception {
 		new Expectations() {
 			{
-				instruction.execute(source, id); times = 1;
+				instruction.execute(source, scope); times = 1;
 			}
 		};
 		executable.execute();
@@ -57,7 +58,7 @@ public class ExecutableTest {
 		new NonStrictExpectations() {
 			@Injectable Execution execution;
 			{
-				instruction.execute(source, id); result = execution;
+				instruction.execute(source, scope); result = execution;
 			}
 		};
 		Execution execution = executable.execute();
@@ -75,7 +76,7 @@ public class ExecutableTest {
 		new NonStrictExpectations() {
 			@Injectable Execution execution;
 			{
-				instruction.execute(source, id); result = execution;
+				instruction.execute(source, scope); result = execution;
 				execution.isMissingVariables(); result = true;
 				execution.getMissingVariables(); result = new String[] { randomString() };
 			}
@@ -90,7 +91,7 @@ public class ExecutableTest {
 		new NonStrictExpectations() {
 			@Injectable Execution execution1, execution2;
 			{
-				instruction.execute(source, id); result = execution1; result = execution2;
+				instruction.execute(source, scope); result = execution1; result = execution2;
 				
 				execution1.isMissingVariables(); result = true;
 				execution1.getMissingVariables(); result = new String[] { randomString(5) };
@@ -114,7 +115,7 @@ public class ExecutableTest {
 		new NonStrictExpectations() {
 			@Injectable Execution execution1, execution2;
 			{
-				instruction.execute(source, id); result = execution1; result = execution2;
+				instruction.execute(source, scope); result = execution1; result = execution2;
 				
 				execution1.isMissingVariables(); result = true;
 				execution1.getMissingVariables(); result = missingVariables;

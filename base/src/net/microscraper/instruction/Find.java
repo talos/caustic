@@ -1,5 +1,6 @@
 package net.microscraper.instruction;
 
+import net.microscraper.database.Scope;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.template.Template;
@@ -115,17 +116,17 @@ public class Find implements Action {
 	 * Will return {@link Execution#failedTests(String, Pattern)} if at least one of the {@link #tests}
 	 * does not match against at least one of the result {@link String}s.
 	 */
-	public Execution execute(String source, int sourceId) {
+	public Execution execute(String source, Scope scope) {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
 		
 		final Execution result;
-		Execution subPattern = pattern.sub(sourceId);
+		Execution subPattern = pattern.sub(scope);
 		
 		Execution subReplacement;
 		if(nonDefaultReplacement != null) {
-			subReplacement = nonDefaultReplacement.sub(sourceId);
+			subReplacement = nonDefaultReplacement.sub(scope);
 		} else {
 			subReplacement = Execution.success(ENTIRE_MATCH);
 		}
