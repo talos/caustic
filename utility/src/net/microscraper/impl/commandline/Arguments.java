@@ -83,7 +83,7 @@ public final class Arguments {
 	public static final Option OUTPUT_TO_FILE = Option.withoutDefault("output-to-file");
 	public static final Option RATE_LIMIT = Option.withDefault("rate-limit", Integer.toString(RateLimitManager.DEFAULT_RATE_LIMIT));
 	public static final Option SINGLE_TABLE = Option.withoutDefault("single-table");
-	public static final Option TIMEOUT = Option.withDefault("timeout", Integer.toString(HttpRequester.DEFAULT_TIMEOUT_SECONDS));
+	public static final Option TIMEOUT_MILLISECONDS = Option.withDefault("timeout", Integer.toString(HttpRequester.DEFAULT_TIMEOUT_MILLISECONDS));
 	
 	public static final String USAGE = 
 "usage: microscraper <uri> [<options>]" + newline +
@@ -124,9 +124,9 @@ public final class Arguments {
 "		Defaults to " + RATE_LIMIT.getDefault() + " KBPS." + newline +
 "	" + SINGLE_TABLE + newline +
 "		Save all results to a single sqlite table, if using sqlite" + newline +
-"	" + TIMEOUT + "=<timeout>" + newline +
-"		How many seconds to wait before giving up on a request." + newline + 
-"		Defaults to " + TIMEOUT.getDefault() + " seconds.";
+"	" + TIMEOUT_MILLISECONDS + "=<timeout>" + newline +
+"		How many milliseconds to wait before giving up on a request." + newline + 
+"		Defaults to " + TIMEOUT_MILLISECONDS.getDefault() + " milliseconds.";
 	
 	private final Map<Option, String> arguments = new HashMap<Option, String>();
 	

@@ -7,39 +7,42 @@ import org.junit.Before;
 import org.junit.Test;
 
 public abstract class DatabaseTest {
-	private Variables variables;
+
+	private int id; 
+	private Database db;
 	
 	protected abstract Database getDatabase() throws Exception;
 	
 	@Before
 	public void setUp() throws Exception {
-		variables = getDatabase().open();
+		db = getDatabase();
+		id = db.getFreshSourceId();
 	}
 
 	@Test
-	public void testStoreOneToOneIntString() throws Exception {
-		variables.storeOneToOne("bleh");
-		assertNull(variables.get("bleh"));
+	public void testStoreOneToOneWithoutValueStoresNothing() throws Exception {
+		db.storeOneToOne(id, "bleh");
+		assertNull(db.get(id, "bleh"));
 	}
 
 	@Test
-	public void testStoreOneToOneIntStringString() throws Exception {
-		variables.storeOneToOne("bleh", "meh");
-		assertEquals("meh", variables.get("bleh"));
+	public void testStoreOneToOneWithValueStoresValue() throws Exception {
+		db.storeOneToOne(id, "bleh", "meh");
+		assertEquals("meh", db.get(id, "bleh"));
 	}
 
 	@Test
-	public void testStoreOneToManyIntString() throws Exception {
-		Variables branch = variables.storeOneToMany("bleh");
-		assertNull(variables.get("bleh"));
-		assertNull(branch.get("bleh"));
+	public void testStoreOneToManyWithoutValueStoresNothing() throws Exception {
+		int branch = db.storeOneToMany(id, "bleh");
+		assertNull(db.get(id, "bleh"));
+		assertNull(db.get(branch, "bleh"));
 	}
 
 	@Test
-	public void testStoreOneToManyIntStringString() throws Exception {
-		Variables branch = variables.storeOneToMany("bleh", "meh");
-		assertNull(variables.get("bleh"));
-		assertEquals("meh", branch.get("bleh"));
+	public void testStoreOneToManyWithValuePartiallyAccessible() throws Exception {
+		int branch = db.storeOneToMany(id, "bleh", "meh");
+		assertNull(db.get(id, "bleh"));
+		assertEquals("meh", db.get(branch, "bleh"));
 	}
 
 	@Test
@@ -49,24 +52,24 @@ public abstract class DatabaseTest {
 		String grandchildKey = randomString();
 		String grandchildValue = randomString();
 				
-		Variables child = variables.storeOneToOne(childKey, childValue);
-		Variables grandchild = variables.storeOneToOne(grandchildKey, grandchildValue);
-		assertEquals(childValue, variables.get(childKey));
-		assertEquals(childValue, child.get(childKey));
-		assertEquals(childValue, grandchild.get(childKey));
-		assertEquals(grandchildValue, variables.get(grandchildKey));
-		assertEquals(grandchildValue, child.get(grandchildKey));
-		assertEquals(grandchildValue, grandchild.get(grandchildKey));
+		int child = db.storeOneToOne(id, childKey, childValue);
+		int grandchild = db.storeOneToOne(id, grandchildKey, grandchildValue);
+		assertEquals(childValue, db.get(id, childKey));
+		assertEquals(childValue, db.get(child, childKey));
+		assertEquals(childValue, db.get(grandchild,childKey));
+		assertEquals(grandchildValue, db.get(id,grandchildKey));
+		assertEquals(grandchildValue, db.get(child,grandchildKey));
+		assertEquals(grandchildValue, db.get(grandchild,grandchildKey));
 	}
 
 	@Test
 	public void testMultiSavesDontPropagate() throws Exception {
 		String childKey = randomString();		
 		
-		Variables child = variables.storeOneToMany(childKey, randomString());
+		int child = db.storeOneToMany(id, childKey, randomString());
 		
-		assertNull(variables.get(childKey));
-		assertNotNull(child.get(childKey));
+		assertNull(db.get(id, childKey));
+		assertNotNull(db.get(child, childKey));
 	}
 	
 	@Test
@@ -75,14 +78,14 @@ public abstract class DatabaseTest {
 		String childValue = randomString();
 		String grandchildValue = randomString();
 		
-		Variables child = variables.storeOneToOne(key, childValue);
-		Variables grandchild = variables.storeOneToOne(key, grandchildValue);
-		assertNotSame(childValue, variables.get(key));
-		assertNotSame(childValue, child.get(key));
-		assertNotSame(childValue, grandchild.get(key));
-		assertEquals(grandchildValue, variables.get(key));
-		assertEquals(grandchildValue, child.get(key));
-		assertEquals(grandchildValue, grandchild.get(key));
+		int child = db.storeOneToOne(id, key, childValue);
+		int grandchild = db.storeOneToOne(child, key, grandchildValue);
+		assertNotSame(childValue, db.get(id,key));
+		assertNotSame(childValue, db.get(child,key));
+		assertNotSame(childValue, db.get(grandchild,key));
+		assertEquals(grandchildValue, db.get(id,key));
+		assertEquals(grandchildValue, db.get(child,key));
+		assertEquals(grandchildValue, db.get(grandchild,key));
 	}
 	
 
@@ -91,17 +94,17 @@ public abstract class DatabaseTest {
 		String childKey = randomString();		
 		String grandchildKey = randomString();
 		
-		Variables child = variables.storeOneToOne(childKey, randomString());
-		Variables grandchild = variables.storeOneToMany(grandchildKey, randomString());
+		int child = db.storeOneToOne(id, childKey, randomString());
+		int grandchild = db.storeOneToMany(child, grandchildKey, randomString());
 		
-		assertNotNull(variables.get(childKey));
-		assertNull(variables.get(grandchildKey));
+		assertNotNull(db.get(id,childKey));
+		assertNull(db.get(id,grandchildKey));
 		
-		assertNotNull(child.get(childKey));
-		assertNull(child.get(grandchildKey));
+		assertNotNull(db.get(child,childKey));
+		assertNull(db.get(child,grandchildKey));
 		
-		assertNotNull("Grandchild doesn't contain its parent key.", grandchild.get(childKey));
-		assertNotNull("Grandchild doesn't contain its own key.", grandchild.get(grandchildKey));
+		assertNotNull("Grandchild doesn't contain its parent key.", db.get(grandchild,childKey));
+		assertNotNull("Grandchild doesn't contain its own key.", db.get(grandchild,grandchildKey));
 	}
 
 	@Test
@@ -112,16 +115,16 @@ public abstract class DatabaseTest {
 		String cousinKey1 = randomString();
 		String cousinKey2 = randomString();
 				
-		Variables sibling1 = variables.storeOneToOne(siblingKey1, randomString());
-		Variables sibling2 = variables.storeOneToOne(siblingKey2, randomString());
+		int sibling1 = db.storeOneToOne(id,siblingKey1, randomString());
+		int sibling2 = db.storeOneToOne(id,siblingKey2, randomString());
 		
-		Variables cousinFromSibling1 = sibling1.storeOneToOne(cousinKey1, randomString());
-		Variables cousinFromSibling2 = sibling2.storeOneToMany(cousinKey2, randomString());
+		int cousinFromSibling1 = db.storeOneToOne(sibling1,cousinKey1, randomString());
+		int cousinFromSibling2 = db.storeOneToMany(sibling2,cousinKey2, randomString());
 		
 		assertNotNull("Variables doesn't contain key from its grandparent's grandchild descended through single results",
-				cousinFromSibling2.get(siblingKey1));
+				db.get(cousinFromSibling2, siblingKey1));
 		assertNull("Variables contains key from its grandparent's grandchild descended through multiple results",
-				cousinFromSibling1.get(cousinKey2));
+				db.get(cousinFromSibling1, cousinKey2));
 	}
 
 }

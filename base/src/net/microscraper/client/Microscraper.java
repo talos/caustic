@@ -1,6 +1,7 @@
 package net.microscraper.client;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 import net.microscraper.database.Database;
@@ -37,9 +38,21 @@ public class Microscraper implements Loggable {
 	}
 	
 	private void scrape(String instructionString, Hashtable[] defaultsHashes, String source) throws IOException {
-		InstructionPromise promise = new InstructionPromise(deserializer, instructionString, executionDir);
+		InstructionPromise promise = new InstructionPromise(deserializer, database, instructionString, executionDir);
 		for(int i = 0 ; i < defaultsHashes.length ; i ++) {
-			InstructionRunner runner = new InstructionRunner(promise, database, defaultsHashes[i], source);
+			Hashtable defaults = defaultsHashes[i];
+			
+			// Advance to an ID in the database unaffiliated with previous runs.
+			int sourceId = database.getFreshSourceId();
+			
+			// Store default values in database
+			Enumeration keys = defaults.keys();
+			while(keys.hasMoreElements()) {
+				String key = (String) keys.nextElement();
+				database.storeOneToOne(sourceId, key, (String) defaults.get(key));
+			}
+			
+			InstructionRunner runner = new InstructionRunner(promise, sourceId, source);
 			runner.register(log);
 			runner.run();
 		}

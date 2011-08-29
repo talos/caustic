@@ -1,11 +1,7 @@
 package net.microscraper.http;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -14,6 +10,7 @@ import net.microscraper.log.BasicLog;
 import net.microscraper.log.Loggable;
 import net.microscraper.log.Logger;
 import net.microscraper.regexp.Pattern;
+import net.microscraper.util.Encoder;
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.StringUtils;
 
@@ -45,8 +42,6 @@ public class HttpBrowser implements Loggable {
 	public static final String ACCEPT_HEADER_DEFAULT_VALUE = "*/*";
 	//public static final String ACCEPT_HEADER_JSON_VALUE = "application/json,text/json";
 	
-	public static final String UTF_8 = "UTF-8";
-
 	public static final String GET = "get";
 	public static final String POST = "post";
 	public static final String HEAD = "head";
@@ -170,8 +165,8 @@ public class HttpBrowser implements Loggable {
 	}
 	
 	/**
-	 * Pull an {@link InputStream} into a {@link String}, allowing for early termination.
-	 * @param urlStr The {@link String} URL from which the {@link InputStream} is a response.
+	 * Pull an {@link InputStreamReader} into a {@link String}, allowing for early termination.
+	 * @param urlStr The {@link String} URL from which the {@link InputStreamReader} is a response.
 	 * @param stream An {@link InputStreamReader} response from <code>url</code>
 	 * @param terminates array of {@link Pattern}s to interrupt the load.
 	 * @return A {@link String}.
@@ -289,10 +284,11 @@ public class HttpBrowser implements Loggable {
 	 * @param urlStr The {@link String} URL to use for the domain and path of the added cookies.
 	 * @param cookies A {@link Hashtable} mapping {@link String} to {@link String} to use
 	 * as name-value pairs for the cookies. 
+	 * @param encoder An {@link Encoder} to use encoding cookie names &amp; values.
 	 */
-	public void addCookies(String urlStr, Hashtable cookies) {
+	public void addCookies(String urlStr, Hashtable cookies, Encoder encoder) {
 		try {
-			cookieManager.addCookies(urlStr, cookies);
+			cookieManager.addCookies(urlStr, cookies, encoder);
 		} catch(BadURLException e) {
 			log.i("Could not add cookies: " + e.getMessage());
 		}

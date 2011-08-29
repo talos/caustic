@@ -71,11 +71,10 @@ public interface Database {
 	public String get(int id, String key);
 	
 	/**
-	 * Open the database and obtain a blank {@link Variables} instance.
-	 * @return A blank new {@link Variables} instance.
+	 * Obtain an {@link int} that refers to an empty section of the {@link Database}.
 	 * @throws IOException If there is a problem opening the {@link Database}.
 	 */
-	public Variables open() throws IOException;
+	public int getFreshSourceId() throws IOException;
 	
 	/**
 	 * Obtain a {@link String} representation of the names and values available for <code>id</code>.

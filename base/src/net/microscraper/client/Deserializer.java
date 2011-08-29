@@ -1,6 +1,6 @@
 package net.microscraper.client;
 
-import net.microscraper.database.Variables;
+import net.microscraper.database.Database;
 import net.microscraper.util.Execution;
 
 /**
@@ -14,12 +14,13 @@ public interface Deserializer {
 	 * is contained in the {@link Execution#getExecuted()} of the result.
 	 * @param serializedString {@link String} to which will be deserialized into an
 	 * {@link Instruction}.
-	 * @param variables A {@link Variables} instance.
+	 * @param sourceId A {@link int} to use to determine the available values from a {@link Database}
+	 * when doing substitutions.
 	 * @param rootUri A {@link String} URI that will be used to resolve any references
 	 * in <code>serializedString</code>.
 	 * @return A {@link Execution} instance whose {@link Execution#getExecuted()} is
 	 * an {@link Instruction}.
 	 */
-	public abstract Execution deserializeString(String serializedString, Variables variables, String rootUri);
+	public abstract Execution deserializeString(String serializedString, Database database, int sourceId, String rootUri);
 
 }

@@ -178,12 +178,12 @@ public final class MultiTableDatabase implements Database {
 		return hashtableDatabase.get(id, key);
 	}
 
-	public Variables open() throws IOException {
+	public int getFreshSourceId() throws IOException {
+		int curId = hashtableDatabase.getFreshSourceId();
 		Updateable rootTable = connection.getIOTable(ROOT_TABLE_NAME, ROOT_TABLE_COLUMNS);
-		idNames.put(Integer.valueOf(firstId), ROOT_TABLE_NAME);
+		idNames.put(Integer.valueOf(curId), ROOT_TABLE_NAME);
 		nameTables.put(ROOT_TABLE_NAME, rootTable);
-		hashtableDatabase.open();
-		return new Variables(this, curId);
+		return curId;
 	}
 
 	public String toString(int id) {

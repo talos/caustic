@@ -8,7 +8,7 @@ import java.util.Hashtable;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
-import net.microscraper.database.Variables;
+import net.microscraper.database.Database;
 import net.microscraper.http.CookieManager;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.http.JavaNetCookieManager;
@@ -28,8 +28,9 @@ import org.junit.Test;
 
 public class LoadTest {
 	
+	@Mocked private Database database;
 	@Mocked(capture = 1) private HttpBrowser browser;
-	@Mocked private Variables variables;
+	int id = 0;
 	private HttpBrowser liveBrowser;
 	private Encoder encoder;
 	private Load load;
@@ -37,8 +38,8 @@ public class LoadTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		url = Template.compile(randomString(), Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
-		encoder = new JavaNetEncoder();
+		url = new Template(randomString(), Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		encoder = new JavaNetEncoder(Encoder.UTF_8);
 		load = new Load(browser, encoder, url);
 		liveBrowser = new HttpBrowser(new JavaNetHttpRequester(),
 				new RateLimitManager(new JavaNetHttpUtils(), RateLimitManager.DEFAULT_RATE_LIMIT),
@@ -51,7 +52,7 @@ public class LoadTest {
 			browser.head(url.toString(), (Hashtable) any);
 		}};
 		load.setMethod(HttpBrowser.HEAD);
-		Execution exc = load.execute(null, variables);
+		Execution exc = load.execute(null, id);
 		assertTrue(exc.isSuccessful());
 		String[] results = (String[]) exc.getExecuted();
 		assertEquals("Result should be one-length array.", 1, results.length);
@@ -64,7 +65,7 @@ public class LoadTest {
 		new Expectations() {{
 			browser.get(url.toString(), (Hashtable) any, (Pattern[]) any); result = response;
 		}};
-		Execution exc = load.execute(null, variables);
+		Execution exc = load.execute(null, id);
 		assertTrue(exc.isSuccessful());
 		String[] results = (String[]) exc.getExecuted();
 		assertEquals("Result should be one-length array.", 1, results.length);
@@ -75,18 +76,18 @@ public class LoadTest {
 	public void testUrlIsSubstituted() throws Exception {
 		final String value = randomString();
 		final String name = "query";
-		final Template url = Template.compile("http://www.google.com/?q={{" + value + "}}", "{{", "}}");
+		final Template url = new Template("http://www.google.com/?q={{" + value + "}}", "{{", "}}", database);
 		new Expectations() {{
-			variables.get(name); result = value;
+			database.get(id, name); result = value;
 			browser.get("http://www.google.com/?q=" + value, (Hashtable) any, (Pattern[]) any);
 		}};
 		Load load = new Load(browser, encoder, url);
-		load.execute(null, variables);
+		load.execute(null, id);
 	}
 	
 	@Test // This test requires a live internet connection.
 	public void testLiveBrowserSetsCookies() throws Exception {
-		final Template url = Template.compile("http://www.nytimes.com", "{{", "}}");
+		final Template url = new Template("http://www.nytimes.com", "{{", "}}", database);
 		new Expectations() {
 			@Mocked CookieManager cookieManager;
 			{
@@ -104,32 +105,32 @@ public class LoadTest {
 				$ = "Post data should be a zero-length string.";
 		}};
 		load.setMethod(HttpBrowser.POST);
-		load.execute(null, variables);
+		load.execute(null, id);
 	}
 	
 	@Test
 	public void testPostDataSetsPostMethod() throws Exception {
-		final Template postData = Template.compile(randomString(), Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
+		final Template postData = new Template(randomString(), Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG,database);
 		new Expectations() {{
 			browser.post(url.toString(), (Hashtable) any, (Pattern[]) any, postData.toString());
 				$ = "Post data should be set by setting post data.";
 		}};
 		load.setPostData(postData);
-		load.execute(null, variables);
+		load.execute(null, id);
 	}
 	
 	@Test
 	public void testPostDataIsSubbed() throws Exception {
 		final String key = randomString();
 		final String value = randomString();
-		final Template postData = Template.compile(Template.DEFAULT_OPEN_TAG + key + Template.DEFAULT_CLOSE_TAG,
-				Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
+		final Template postData = new Template(Template.DEFAULT_OPEN_TAG + key + Template.DEFAULT_CLOSE_TAG,
+				Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
 		new Expectations() {{
-			variables.get(key); result = value;
+			database.get(id, key); result = value;
 			browser.post(url.toString(), (Hashtable) any, (Pattern[]) any, value);
 				$ = "Post data should be substituted.";
 		}};
 		load.setPostData(postData);
-		load.execute(null, variables);
+		load.execute(null, id);
 	}
 }

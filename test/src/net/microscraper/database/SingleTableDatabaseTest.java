@@ -20,4 +20,5 @@ public class SingleTableDatabaseTest extends DatabaseTest  {
 		}};
 		return new SingleTableDatabase(connection);
 	}
+	
 }

@@ -7,8 +7,7 @@ import java.io.UnsupportedEncodingException;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import net.microscraper.database.HashtableDatabase;
-import net.microscraper.database.Variables;
+import net.microscraper.database.Database;
 import net.microscraper.template.Template;
 import net.microscraper.template.TemplateCompilationException;
 import net.microscraper.util.Encoder;
@@ -20,8 +19,10 @@ import org.junit.Test;
 
 public class TemplateTest {
 	
-	@Mocked Variables variables, empty;
+	//@Mocked Variables variables, empty;
+	@Mocked Database database, empty;
 	@Mocked Encoder encoder;
+	private int id = 0;
 	
 	private static final String key = "template";
 	private static final String value = "has been substituted";
@@ -34,56 +35,54 @@ public class TemplateTest {
 	@Before
 	public void setup() {
 		new NonStrictExpectations() {{
-			variables.get(key); result = value;
+			database.get(id, key); result = value;
 		}};
 	}
 	
 	@Test
 	public void testMustacheTemplateCompiles() throws TemplateCompilationException {
-		Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
+		new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
 	}
 	
 	@Test(expected = TemplateCompilationException.class)
 	public void testInvalidMustacheDoesNotCompile() throws TemplateCompilationException {
-		Template.compile(Template.DEFAULT_OPEN_TAG, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
+		new Template(Template.DEFAULT_OPEN_TAG, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
 	}
 	
 	@Test
 	public void testSubSuccessful() throws TemplateCompilationException {
-		Template template = Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
-		Execution sub = template.sub(variables);
+		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		Execution sub = template.sub(id);
 		assertTrue(sub.isSuccessful());
 		assertEquals(validTemplateCompiled, sub.getExecuted());
 	}
 	
 	@Test
 	public void testSubUnsuccessful() throws TemplateCompilationException {
-		Template template = Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
-		Execution sub = template.sub(empty);
+		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, empty);
+		Execution sub = template.sub(id);
 		assertFalse(sub.isSuccessful());
 		assertArrayEquals(new String[] { key }, sub.getMissingVariables());
 	}
 	
 	@Test
 	public void testSubSuccessfulEncoded() throws TemplateCompilationException, UnsupportedEncodingException {
-		final String encoding = randomString();
 		new Expectations() {{
-			encoder.encode(value, encoding); result = encodedValue;
+			encoder.encode(value); result = encodedValue;
 		}};
-		Template template = Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
-		Execution sub = template.subEncoded(variables, encoder, encoding);
+		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		Execution sub = template.subEncoded(id, encoder);
 		assertTrue(sub.isSuccessful());
 		assertEquals(validTemplateCompiledEncoded, sub.getExecuted());
 	}
 	
 	@Test
 	public void testSubUnsuccessfulEncoded() throws TemplateCompilationException, UnsupportedEncodingException {
-		final String encoding = randomString();
 		new Expectations() {{
-			encoder.encode(value, encoding); result = encodedValue; times = 0;
+			encoder.encode(value); result = encodedValue; times = 0;
 		}};
-		Template template = Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
-		Execution sub = template.subEncoded(empty, encoder, encoding);
+		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, empty);
+		Execution sub = template.subEncoded(id, encoder);
 		assertFalse(sub.isSuccessful());
 		assertArrayEquals(new String[] {key}, sub.getMissingVariables());
 	}
@@ -91,17 +90,16 @@ public class TemplateTest {
 	
 	@Test(expected = UnsupportedEncodingException.class)
 	public void testSubEncodedInvalidEncoding() throws TemplateCompilationException, UnsupportedEncodingException {
-		final String encoding = randomString();
 		new Expectations() {{
-			encoder.encode(value, encoding); result = new UnsupportedEncodingException();
+			encoder.encode(value); result = new UnsupportedEncodingException();
 		}};
-		Template template = Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
-		template.subEncoded(variables, encoder, encoding);
+		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		template.subEncoded(id, encoder);
 	}
 
 	@Test
 	public void testToString() throws TemplateCompilationException {
-		Template template = Template.compile(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
+		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
 		assertEquals(validTemplateRaw, template.toString());
 	}
 

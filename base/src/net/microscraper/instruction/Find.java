@@ -3,9 +3,7 @@ package net.microscraper.instruction;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.template.Template;
-import net.microscraper.template.TemplateCompilationException;
 import net.microscraper.util.Execution;
-import net.microscraper.database.Variables;
 
 /**
  * An {@link Executable} for extracting matches from a source string according to
@@ -42,11 +40,10 @@ public class Find implements Action {
 	private final RegexpCompiler compiler;
 	
 	/**
-	 * The {@link String} that should be templated and evaluated for backreferences,
-	 * then returned once for each match.<p>
-	 * Defaults to {@link #ENTIRE_MATCH}.
+	 * The {@link Template} that should be substituted evaluated for backreferences,
+	 * then returned once for each match, if it is assigned by {@link #setReplacement(Template)}.
 	 */
-	private Template replacement;
+	private Template nonDefaultReplacement = null;
 
 	/**
 	 * {@link PatternTemplate}s that test the sanity of the parser's output.
@@ -77,16 +74,10 @@ public class Find implements Action {
 	public Find(RegexpCompiler compiler, Template pattern) {
 		this.compiler = compiler;
 		this.pattern = pattern;
-		try {
-			this.replacement = Template.compile(ENTIRE_MATCH,
-					Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
-		} catch(TemplateCompilationException e) {
-			throw new RuntimeException(e); // this shouldn't happen
-		}
 	}
-
+	
 	public void setReplacement(Template replacement) {
-		this.replacement = replacement;
+		this.nonDefaultReplacement = replacement;
 	}
 	
 	public void setMinMatch(int min) {
@@ -124,14 +115,20 @@ public class Find implements Action {
 	 * Will return {@link Execution#failedTests(String, Pattern)} if at least one of the {@link #tests}
 	 * does not match against at least one of the result {@link String}s.
 	 */
-	public Execution execute(String source, Variables variables) {
+	public Execution execute(String source, int sourceId) {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
 		
 		final Execution result;
-		Execution subPattern = pattern.sub(variables);
-		Execution subReplacement = replacement.sub(variables);
+		Execution subPattern = pattern.sub(sourceId);
+		
+		Execution subReplacement;
+		if(nonDefaultReplacement != null) {
+			subReplacement = nonDefaultReplacement.sub(sourceId);
+		} else {
+			subReplacement = Execution.success(ENTIRE_MATCH);
+		}
 				
 		if(!subPattern.isSuccessful() || !subReplacement.isSuccessful()) {
 			// One of the substitutions was not OK.

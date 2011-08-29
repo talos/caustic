@@ -14,7 +14,6 @@ import mockit.Verifications;
 import net.microscraper.client.Microscraper;
 import net.microscraper.database.Database;
 import net.microscraper.database.HashtableDatabase;
-import net.microscraper.database.Variables;
 import net.microscraper.file.FileLoader;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.json.JsonParser;

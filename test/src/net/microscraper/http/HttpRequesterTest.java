@@ -1,6 +1,7 @@
 package net.microscraper.http;
 
 import static org.junit.Assert.*;
+import static net.microscraper.util.TestUtils.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,6 +9,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.CharBuffer;
 import java.util.Hashtable;
+
+import net.microscraper.util.StringUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -33,15 +36,20 @@ public abstract class HttpRequesterTest {
 		return strBuf.toString();
 	}
 	
-	@Test
-	public void testTimeout() throws Exception {
-		requester.setTimeout(1);
-		HttpResponse response = requester.head("http://www.lkjsdosfisjdfijosidjfsd.com", new Hashtable());
+	@Test(expected = IOException.class)
+	public void testBadURLThrowsIOException() throws Exception {
+		HttpResponse response = requester.head(randomString(), new Hashtable());
+	}
+	
+	@Test(expected = IOException.class)
+	public void testTimeoutThrowsIOException() throws Exception {
+		requester.setTimeout(10);
+		requester.get("http://www.nytimes.com", new Hashtable());
 	}
 	
 	@Test
 	public void testHeadGoogleHeaders() throws Exception {
-		HttpResponse response = requester.head("http://www.google.com", new Hashtable() {});
+		 requester.head("http://www.google.com", new Hashtable() {});
 		
 	}
 	
@@ -52,5 +60,12 @@ public abstract class HttpRequesterTest {
 		InputStreamReader contentStream = response.getContentStream();
 		assertTrue(getString(contentStream).contains("google"));
 	}
-
+	
+	@Test
+	public void testPopulatesHeaders() throws Exception {
+		HttpResponse response = requester.get("http://www.google.com", new Hashtable() {});
+		assertTrue(response.isSuccess());
+		ResponseHeaders responseHeaders = response.getResponseHeaders();
+		assertTrue(responseHeaders.getHeaderNames().length > 1);
+	}
 }

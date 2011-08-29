@@ -15,15 +15,16 @@ public interface HttpResponse {
 	public static final String CHARSET_KEY = "charset";
 	
 	/**
-	 * Obtain the response's content.
+	 * Obtain a stream to the response's content.
 	 * @return An {@link InputStreamReader} to read the content of the {@link HttpResponse}.
+	 * The {@link InputStreamReader#getEncoding()} should be that specified by the in the
+	 * HTTP response headers.
 	 */
 	public InputStreamReader getContentStream();
 
 	/**
 	 * 
-	 * @return Whether the {@link HttpResponse} has content that can be pulled from
-	 * {@link #getContentStream()}.
+	 * @return Whether the {@link HttpResponse} returned a successful code (2XX).
 	 */
 	public boolean isSuccess();
 	
@@ -34,14 +35,14 @@ public interface HttpResponse {
 	
 	/**
 	 * 
-	 * @return Whether this {@link HttpResponse} is a redirect.
+	 * @return Whether this {@link HttpResponse} is a redirect. (3XX)
 	 */
 	public boolean isRedirect();
 	
 	/**
 	 * 
 	 * @return The URL string that this response redirects to.
-	 * @throws BadURLException 
+	 * @throws BadURLException If the redirect location cannot be parsed.
 	 */
 	public String getRedirectLocation() throws BadURLException;
 	

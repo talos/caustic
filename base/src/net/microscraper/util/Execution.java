@@ -4,12 +4,11 @@ import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.client.DeserializationException;
-import net.microscraper.database.Variables;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.Template;
 
 /**
- * {@link Execution} says whether an attempt to use a set of {@link Variables}
+ * {@link Execution} says whether an attempt to use values from a {@link Database}
  * to modify an {@link Object} was successful.  If it was, it contains the modified
  * {@link Object}; if it wasn't because there was a {@Link Variable} missing, it contains
  * an array of the missing {@link Variable} names; if it wasn't because there was

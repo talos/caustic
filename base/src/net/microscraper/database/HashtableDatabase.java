@@ -23,9 +23,9 @@ public class HashtableDatabase implements Database {
 	 */
 	private final Hashtable idTables = new Hashtable();
 	
-	private final int firstId = 0;
+	private final int firstId = -1;
 	private int curId = firstId;
-	
+
 	public int storeOneToOne(int sourceId, String name)
 			throws TableManipulationException, IOException {
 		curId++;
@@ -91,10 +91,10 @@ public class HashtableDatabase implements Database {
 		idTables.clear();
 		curId = firstId;
 	}
-	
-	public Variables open() {
+
+	public int getFreshSourceId() throws IOException {
 		curId++;
-		idTables.put(Integer.valueOf(curId - 1), new Hashtable());
-		return new Variables(this, curId - 1);
+		idTables.put(Integer.valueOf(curId), new Hashtable());
+		return curId;
 	}
 }

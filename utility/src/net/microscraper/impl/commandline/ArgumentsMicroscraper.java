@@ -16,6 +16,7 @@ import net.microscraper.http.HttpBrowser;
 import net.microscraper.log.JavaIOFileLogger;
 import net.microscraper.log.SystemOutLogger;
 import net.microscraper.uri.MalformedUriException;
+import net.microscraper.util.Decoder;
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.JavaNetDecoder;
 
@@ -51,9 +52,9 @@ public class ArgumentsMicroscraper {
 		
 		// Set timeout.
 		try {
-			timeout = Integer.parseInt(args.get(TIMEOUT));
+			timeout = Integer.parseInt(args.get(TIMEOUT_MILLISECONDS));
 		} catch(NumberFormatException e) {
-			throw new IllegalArgumentException(TIMEOUT + " must be an integer");
+			throw new IllegalArgumentException(TIMEOUT_MILLISECONDS + " must be an integer");
 		}
 		
 		scraper = BasicMicroscraper.get(database, rateLimit, timeout);
@@ -66,7 +67,7 @@ public class ArgumentsMicroscraper {
 			scraper.register(new SystemOutLogger());
 		}
 
-		defaults = HashtableUtils.fromFormEncoded(new JavaNetDecoder(), args.get(DEFAULTS), HttpBrowser.UTF_8);
+		defaults = HashtableUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), args.get(DEFAULTS));
 	}
 	
 	@SuppressWarnings("unchecked")

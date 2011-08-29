@@ -81,9 +81,9 @@ public final class SingleTableDatabase implements Database {
 		return hashtableDatabase.get(id, key);
 	}
 	
-	public Variables open() {
-		hashtableDatabase.open();
-		return new Variables(this, curId);
+	public int getFreshSourceId() throws IOException {
+		curId = hashtableDatabase.getFreshSourceId();
+		return curId;
 	}
 	
 	public String toString(int id) {

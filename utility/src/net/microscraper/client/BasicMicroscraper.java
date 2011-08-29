@@ -60,7 +60,7 @@ public class BasicMicroscraper {
 			URILoader uriLoader = new JavaNetURILoader(browser, new JavaIOFileLoader());
 			UriResolver uriResolver = new JavaNetUriResolver();
 			JsonParser parser = new JsonMEParser();
-			Encoder encoder = new JavaNetEncoder();
+			Encoder encoder = new JavaNetEncoder(Encoder.UTF_8);
 			Deserializer deserializer = new JsonDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
 			Microscraper scraper = new Microscraper(deserializer, database, executionDir);
 			return scraper;

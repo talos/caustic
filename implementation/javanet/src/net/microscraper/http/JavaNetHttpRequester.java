@@ -20,7 +20,7 @@ import net.microscraper.http.HttpResponse;
  */
 public class JavaNetHttpRequester implements HttpRequester {
 	
-	private int timeoutSeconds = HttpRequester.DEFAULT_TIMEOUT_SECONDS;
+	private int timeoutMilliseconds = HttpRequester.DEFAULT_TIMEOUT_MILLISECONDS;
 	
 	/**
 	 * Request a {@link HttpURLConnection}, and follow any redirects while adding cookies.
@@ -44,15 +44,14 @@ public class JavaNetHttpRequester implements HttpRequester {
 			conn.setRequestProperty(headerName, headerValue);
 		}
 		
-		conn.setDoOutput(true);
 		conn.setDoInput(true);
-		conn.setReadTimeout(timeoutSeconds * 1000);
+		conn.setReadTimeout(timeoutMilliseconds);
 		
 		// Set method
 		if(method.equalsIgnoreCase(HttpBrowser.POST)) {
+			conn.setDoOutput(true);
 			conn.setRequestMethod("POST");
-			OutputStreamWriter writer = null;
-			writer = new OutputStreamWriter(conn.getOutputStream());
+			OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
 			writer.write(encodedPostData);
 			writer.flush();
 		} else {
@@ -63,7 +62,7 @@ public class JavaNetHttpRequester implements HttpRequester {
 		try {
 			return new JavaNetHttpResponse(conn);
 		} catch(SocketTimeoutException e) {
-			throw new IOException("Timeout after " + conn.getReadTimeout() + " seconds " +
+			throw new IOException("Timeout after " + conn.getReadTimeout() + " milliseconds " +
 					", " + e.bytesTransferred + " bytes transferred.");
 		}
 	}
@@ -87,8 +86,8 @@ public class JavaNetHttpRequester implements HttpRequester {
 	}
 
 	@Override
-	public void setTimeout(int timeoutSeconds) {
-		this.timeoutSeconds = timeoutSeconds;
+	public void setTimeout(int timeoutMilliseconds) {
+		this.timeoutMilliseconds = timeoutMilliseconds;
 	}
 	
 }

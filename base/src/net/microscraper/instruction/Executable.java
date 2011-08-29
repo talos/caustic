@@ -2,7 +2,6 @@ package net.microscraper.instruction;
 
 import java.io.IOException;
 
-import net.microscraper.database.Variables;
 import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;
 
@@ -22,7 +21,7 @@ public class Executable {
 	public static final int SOURCE_TRUNCATE_LENGTH = 50;
 	
 	private final String source;
-	private final Variables variables;
+	private final int sourceId;
 	private final InstructionPromise promise;
 	
 	/**
@@ -32,9 +31,9 @@ public class Executable {
 	private Execution prevExecution;
 	private Execution execution;
 	
-	public Executable(String source, Variables variables, InstructionPromise instructionPromise) {
+	public Executable(String source, int sourceId, InstructionPromise instructionPromise) {
 		this.source = source;
-		this.variables = variables;
+		this.sourceId = sourceId;
 		this.promise = instructionPromise;
 	}
 	
@@ -54,7 +53,7 @@ public class Executable {
 		
 		// If instruction is not yet loaded, try to get it.
 		if(instruction == null) {
-			execution = promise.load(variables);
+			execution = promise.load(sourceId);
 			if(execution.isSuccessful()) {
 				instruction = (Instruction) execution.getExecuted();
 			}
@@ -62,7 +61,7 @@ public class Executable {
 		
 		// If instruction is loaded, execute it.
 		if(instruction != null) {
-			execution = instruction.execute(source, variables);
+			execution = instruction.execute(source, sourceId);
 		}
 		return execution;
 	}
@@ -106,7 +105,7 @@ public class Executable {
 	public String toString() {
 		return "Executable with " +
 				(source != null ? " source " + StringUtils.truncate(StringUtils.quote(source), SOURCE_TRUNCATE_LENGTH) + " and " : "" )
-				+ "instructions " + StringUtils.quote(promise.toString()) +
-				" and variables " + StringUtils.quote(variables.toString());
+				+ "instructions " + StringUtils.quote(promise.toString());
+			// +	" and variables " + StringUtils.quote(database.toString(sourceId));
 	}
 }

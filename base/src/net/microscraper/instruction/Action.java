@@ -1,6 +1,5 @@
 package net.microscraper.instruction;
 
-import net.microscraper.database.Variables;
 import net.microscraper.template.Template;
 import net.microscraper.util.Execution;
 
@@ -17,12 +16,12 @@ public interface Action {
 	/**
 	 * Execute the action using a {@link String} source and {@link Variables}.
 	 * @param source The {@link String} source.
-	 * @param variables The {@link Variables} to use when executing.
+	 * @param sourceId The {@link int} to use when extracting values from {@link Database}.
 	 * @return An {@link Execution} whose {@link Execution#getExecuted()} is a
 	 * {@link String} array.
 	 * @throws InterruptedException If the user interrupts the action.
 	 */
-	public Execution execute(String source, Variables variables) throws InterruptedException;
+	public Execution execute(String source, int sourceId) throws InterruptedException;
 	
 	/**
 	 * A default name for this {@link Action}'s results when one is not specified.

@@ -3,7 +3,6 @@ package net.microscraper.instruction;
 import java.io.IOException;
 import java.util.Hashtable;
 
-import net.microscraper.database.Variables;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.HashtableTemplate;
@@ -154,12 +153,12 @@ public final class Load implements Action {
 	 * {@link String} array containing the response body, which is a zero-length
 	 * {@link String} if the {@link Load}'s method is {@link HttpBrowser#HEAD}.
 	 */
-	public Execution execute(String source, Variables variables)
+	public Execution execute(String source, int sourceId)
 			throws InterruptedException {
 		try {			
-			Execution urlSub = url.subEncoded(variables, encoder, HttpBrowser.UTF_8);
-			Execution headersSub = headers.sub(variables);
-			Execution cookiesSub = cookies.sub(variables);
+			Execution urlSub = url.subEncoded(sourceId, encoder);
+			Execution headersSub = headers.sub(sourceId);
+			Execution cookiesSub = cookies.sub(sourceId);
 			
 			// Cannot execute if any of these substitutions was not successful
 			if(!urlSub.isSuccessful() || !headersSub.isSuccessful() || !cookiesSub.isSuccessful()) {
@@ -174,7 +173,7 @@ public final class Load implements Action {
 				
 				Hashtable headers = (Hashtable) headersSub.getExecuted();
 				Hashtable cookies = (Hashtable) cookiesSub.getExecuted();
-				browser.addCookies(url, cookies);
+				browser.addCookies(url, cookies, encoder);
 				
 				if(method.equalsIgnoreCase(HttpBrowser.HEAD)){
 					browser.head(url, headers);
@@ -183,15 +182,15 @@ public final class Load implements Action {
 					if(method.equalsIgnoreCase(HttpBrowser.POST)) {
 						String postDataStr;
 						if(postTable.size() > 0) {
-							Execution postsSub = postTable.subEncoded(variables, encoder, HttpBrowser.UTF_8);
+							Execution postsSub = postTable.subEncoded(sourceId, encoder);
 							if(!postsSub.isSuccessful()) {
 								return Execution.missingVariables(postsSub.getMissingVariables());
 							} else {
 								Hashtable posts = (Hashtable) postsSub.getExecuted();
-								postDataStr = HashtableUtils.toFormEncoded(encoder, posts, HttpBrowser.UTF_8);
+								postDataStr = HashtableUtils.toFormEncoded(encoder, posts);
 							}
 						} else if(postData != null) {
-							Execution postsSub = postData.sub(variables);
+							Execution postsSub = postData.sub(sourceId);
 							if(!postsSub.isSuccessful()) {
 								return Execution.missingVariables(postsSub.getMissingVariables());
 							} else {

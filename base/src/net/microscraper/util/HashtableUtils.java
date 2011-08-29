@@ -12,13 +12,11 @@ public class HashtableUtils {
 	 * {@link String}.
 	 * @param encoder The {@link Encoder} to use for encoding.
 	 * @param hashtable A {@link String} to {@link String} {@link Hashtable}.
-	 * @param encoding The encoding to use.  <code>UTF-8</code> recommended.
 	 * @return A {@link HashtableDatabase}.
-	 * @throws UnsupportedEncodingException If the encoding is not supported.
 	 * @throws IOException If values could not be persisted to <code>database</code>.
 	 */
-	public static String toFormEncoded(Encoder encoder, Hashtable hashtable, String encoding)
-			throws UnsupportedEncodingException, IOException {
+	public static String toFormEncoded(Encoder encoder, Hashtable hashtable)
+			throws IOException {
 
 		String result = "";
 		Enumeration keys = hashtable.keys();
@@ -26,7 +24,7 @@ public class HashtableUtils {
 			while(keys.hasMoreElements()) {
 				String name = (String) keys.nextElement();
 				String value = (String) hashtable.get(name);
-				result += encoder.encode(name, encoding) + '=' + encoder.encode(value, encoding) + '&';
+				result += encoder.encode(name) + '=' + encoder.encode(value) + '&';
 			}
 		} catch (ClassCastException e) {
 			throw new IllegalArgumentException("Hashtable must have only String keys and values to be form encoded.");
@@ -40,20 +38,18 @@ public class HashtableUtils {
 	 * @param decoder The {@link Decoder} to use for decoding.
 	 * @param formEncodedData A {@link String} of form-encoded data to convert.  It must be 
 	 * correctly formatted.
-	 * @param encoding The encoding to use.  <code>UTF-8</code> recommended.
 	 * @return A {@link Hashtable}.
-	 * @throws UnsupportedEncodingException If the encoding is not supported.
 	 * @throws IOException If values could not be persisted to <code>database</code>.
 	 */
-	public static Hashtable fromFormEncoded(Decoder decoder, String formEncodedData, String encoding)
+	public static Hashtable fromFormEncoded(Decoder decoder, String formEncodedData)
 			throws UnsupportedEncodingException, IOException {
 		String[] splitByAmpersands = StringUtils.split(formEncodedData, "&");
 		Hashtable result = new Hashtable();
 		for(int i = 0 ; i < splitByAmpersands.length; i++) {
 			String[] pair = StringUtils.split(splitByAmpersands[i], "=");
 			if(pair.length == 2) {
-				result.put(decoder.decode(pair[0], encoding),
-						decoder.decode(pair[1], encoding));
+				result.put(decoder.decode(pair[0]),
+						decoder.decode(pair[1]));
 			} else {
 				throw new IllegalArgumentException(
 						StringUtils.quote(splitByAmpersands[i]) + " is not a valid name-value pair.");

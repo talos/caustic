@@ -3,6 +3,8 @@ package net.microscraper.http;
 import java.io.IOException;
 import java.util.Hashtable;
 
+import net.microscraper.util.Encoder;
+
 /**
  * The {@link CookieManager} stores and disburses cookies.
  * @author talos
@@ -26,6 +28,7 @@ public interface CookieManager {
 	 * @param requestHeaders The other headers used in the request, as a {@link String}
 	 * to {@link String} map of name-values.
 	 * @return An array of {@link String}s, each a single complete Cookie usable for the request.
+	 * Is a zero-length array if there are none.
 	 * @throws BadURLException If <code>urlString</code> can't be parsed as a URL.
 	 * @throws IOException If there is some other problem with the {@link CookieManager}
 	 */
@@ -39,6 +42,7 @@ public interface CookieManager {
 	 * @param requestHeaders The other headers used in the request, as a {@link String}
 	 * to {@link String} map of name-values.
 	 * @return An array of {@link String}s, each a single complete Cookie2 usable for the request.
+	 * Is a zero-length array if there are none.
 	 * @throws BadURLException If <code>urlString</code> can't be parsed as a URL.
 	 * @throws IOException If there is some other problem with the {@link CookieManager}
 	 */
@@ -59,8 +63,9 @@ public interface CookieManager {
 	 * Add cookies to the {@link CookieManager}.
 	 * @param urlStr The {@link String} URL to use for the domain and path of the added cookies.
 	 * @param cookies A {@link Hashtable} mapping {@link String} to {@link String} to use
-	 * as name-value pairs for the cookies. 
+	 * as name-value pairs for the cookies.  The values will be encoded by <code>encoder</code>
+	 * @param encoder The {@link Encoder} to use when encoding cookie names and values.
 	 * @throws BadURLException If the <code>urlStr</code> can't be parsed as a URL.
 	 */
-	public void addCookies(String url, Hashtable cookies) throws BadURLException;
+	public void addCookies(String urlStr, Hashtable cookies, Encoder encoder) throws BadURLException;
 }

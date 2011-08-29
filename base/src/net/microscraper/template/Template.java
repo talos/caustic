@@ -1,14 +1,13 @@
 package net.microscraper.template;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Vector;
 
-import net.microscraper.database.Variables;
+import net.microscraper.database.Database;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
 
 /**
- * Substitutions using {@link HashtableDatabase}.
+ * Substitutions using {@link Database}.
  * This substitutes a key within {@link #openTag} and
  * {@link #closeTag} with a value from {@link HashtableDatabase}.
  * @author john
@@ -26,6 +25,11 @@ public final class Template {
 	 */
 	public static final String DEFAULT_CLOSE_TAG = "}}";
 	
+	/**
+	 * The {@link Database} to pull values for substitutions from.
+	 */
+	private final Database database;
+	
 	private final String template;
 	
 	/**
@@ -40,10 +44,21 @@ public final class Template {
 	 */
 	private final String closeTag;
 
-	private Template(String template, String openTag, String closeTag) throws TemplateCompilationException {
+	/**
+	 * Compile a {@link Template} from a {@link String}.
+	 * @param template The {@link String} to convert into a {@link Template}.
+	 * @param openTag The {@link String} that opens a tag.
+	 * @param closeTag The {@link String} that closes a tag.
+	 * @param database The {@link Database} to use to pull values for substitutions.
+	 * @throws TemplateCompilationException If <code>template</code> cannot be turned into a
+	 * {@link Template}.
+	 */
+	public Template(String template, String openTag, String closeTag, Database database)
+			throws TemplateCompilationException {
 		this.template = template;
 		this.openTag = openTag;
 		this.closeTag = closeTag;
+		this.database = database;
 		
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
@@ -59,43 +74,23 @@ public final class Template {
 	}
 
 	/**
-	 * Compile a {@link Template} from a {@link String}.
-	 * @param template The {@link String} to convert into a {@link Template}.
-	 * @param openTag The {@link String} that opens a tag.
-	 * @param closeTag The {@link String} that closes a tag.
-	 * @return A {@link Template}.
-	 * @throws TemplateCompilationException If <code>template</code> cannot be turned into a
-	 * {@link Template}.
-	 */
-	public static Template compile(String template, String openTag, String closeTag)
-			throws TemplateCompilationException {
-		return new Template(template, openTag, closeTag);
-	}
-
-	/**
 	 * Substitute the values from a {@link Variables} into the {@link Template}.
-	 * @param variables The {@link HashtableDatabase} to use in the substitution.
+	 * @param sourceId The {@link int} sourceId to use getting data from {@link #database}.
 	 * @return A {@link Execution} whose {@link Execution#getExecuted()} is the {@link String}
 	 * result of the substitution.
 	 */
-	public Execution sub(Variables variables) {
-		try {
-			return subEncoded(variables, null, null);
-		} catch(UnsupportedEncodingException e) {
-			throw new RuntimeException(e); // should be impossible
-		};
+	public Execution sub(int sourceId) {
+		return subEncoded(sourceId, null);
 	}
 	
 	/**
 	 * Substitute the values from a {@link HashtableDatabase} into the {@link Template},
 	 * and encode each value upon inserting it.
-	 * @param variables The {@link Variables} to use in the substitution.
+	 * @param sourceId The {@link int} sourceId to use getting data from {@link #database}.
 	 * @param encoder The {@link Encoder} to use when encoding values.
-	 * @param encoding The {@link String} encoding for <code>encoder</code> to use.
 	 * @return A {@link Execution} with the results of the substitution.
-	 * @throws UnsupportedEncodingException if <code>encoding</code> is not supported.
 	 */
-	public Execution subEncoded(Variables variables, Encoder encoder, String encoding) throws UnsupportedEncodingException {
+	public Execution subEncoded(int sourceId, Encoder encoder) {
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
 		String result = "";
@@ -112,10 +107,10 @@ public final class Template {
 			String tag = template.substring(open_tag_start_pos + openTag.length(), close_tag_start_pos);
 			
 			close_tag_end_pos = close_tag_start_pos + closeTag.length();
-			String value = variables.get(tag);
+			String value = database.get(sourceId, tag);
 			if(value != null) {
 				if(encoder != null) {
-					result += encoder.encode(value, encoding);	
+					result += encoder.encode(value);	
 				} else {
 					result += value;
 				}

@@ -6,7 +6,6 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.database.Database;
-import net.microscraper.database.Variables;
 import net.microscraper.log.BasicLog;
 import net.microscraper.log.Loggable;
 import net.microscraper.log.Logger;
@@ -17,7 +16,7 @@ import net.microscraper.util.VectorUtils;
 public class InstructionRunner implements Runnable, Loggable {
 	
 	private final InstructionPromise promise;
-	private final Variables variables;
+	private final int sourceId;
 	private final String source;
 	
 	private final Vector queue = new Vector();
@@ -27,23 +26,15 @@ public class InstructionRunner implements Runnable, Loggable {
 	/**
 	 * 
 	 * @param promise
-	 * @param database
 	 * @param defaults
 	 * @param source
 	 * @throws IOException If there was a problem writing to the database.
 	 */
-	public InstructionRunner(InstructionPromise promise, Database database, Hashtable defaults, String source)
+	public InstructionRunner(InstructionPromise promise, int sourceId, String source)
 			throws IOException {
-		this.promise = promise;
-		//this.variables = Variables.fromHashtable(database, defaults);
-		
+		this.promise = promise;		
 		this.source = source;
-		variables = database.open();
-		Enumeration keys = defaults.keys();
-		while(keys.hasMoreElements()) {
-			String key = (String) keys.nextElement();
-			variables.storeOneToOne(key, (String) defaults.get(key));
-		}
+		this.sourceId = sourceId;
 	}
 	
 	private Vector getStuckExecutables() {
@@ -59,7 +50,7 @@ public class InstructionRunner implements Runnable, Loggable {
 	}
 	
 	public void run() {
-		Executable start = new Executable(source, variables, promise);
+		Executable start = new Executable(source, sourceId, promise);
 		queue.add(start);
 		
 		//log.i("Starting to execute with " + StringUtils.quote(start));

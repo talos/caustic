@@ -17,30 +17,14 @@ public class JavaNetHttpResponse implements HttpResponse {
 	private final int responseCode;
 	private final InputStreamReader contentStream;
 	private final ResponseHeaders responseHeaders;
-	//private final URI redirectURI;
 	private final URL url;
 	private final String redirectLocation;
-	
-	private ResponseHeaders generateResponseHeaders(final Map<String, List<String>> responseHeaders) {
-		return new ResponseHeaders() {
-			
-			@Override
-			public String[] getHeaderValues(String headerName) {
-				List<String> headerValues = responseHeaders.get(headerName);
-				return headerValues.toArray(new String[headerValues.size()]);
-			}
-			
-			@Override
-			public String[] getHeaderNames() {
-				return responseHeaders.keySet().toArray(new String[responseHeaders.size()]);
-			}
-		};
-	}
 	
 	public JavaNetHttpResponse(HttpURLConnection conn) throws IOException {
 		conn.connect();
 		responseCode = conn.getResponseCode();
-		responseHeaders = generateResponseHeaders(conn.getHeaderFields());
+		
+		responseHeaders = new JavaNetResponseHeaders(conn.getHeaderFields());
 		url = conn.getURL();
 		
 		// Attempt to determine charset from response headers.

@@ -1,10 +1,8 @@
 package net.microscraper.template;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import net.microscraper.database.Variables;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
 import net.microscraper.util.HashtableUtils;
@@ -24,22 +22,19 @@ public class HashtableTemplate {
 		return table.size();
 	}
 	
-	public Execution sub(Variables variables)
-			throws UnsupportedEncodingException {
-		return subEncoded(variables, null, null);
+	public Execution sub(int sourceId) {
+		return subEncoded(sourceId, null);
 	}
 	
 	/**
-	 * Substitute this {@link HashtableTemplate} with values from {@link Variables}.
-	 * @param variables
+	 * Substitute this {@link HashtableTemplate} with values from {@link Database} accessible
+	 * to <code>sourceId</code>.
+	 * @param sourceId
 	 * @param encoder
-	 * @param encoding
 	 * @return An {@link Execution} whose {@link Execution#getExecuted()} object, if successful, is an
 	 * {@link Hashtable} with all names and values substituted from {@link Variables}.
-	 * @throws UnsupportedEncodingException
 	 */
-	public Execution subEncoded(Variables variables, Encoder encoder, String encoding)
-			throws UnsupportedEncodingException {
+	public Execution subEncoded(int sourceId, Encoder encoder) {
 		Execution[] componentExecutions = new Execution[table.size() * 2];
 		Hashtable subbedTable = new Hashtable();
 		Enumeration keys = table.keys();
@@ -49,17 +44,17 @@ public class HashtableTemplate {
 			Template value = (Template) table.get(key);
 			Execution subbedKey;
 			if(encoder != null) {
-				subbedKey = key.subEncoded(variables, encoder, encoding);
+				subbedKey = key.subEncoded(sourceId, encoder);
 			} else {
-				subbedKey = key.sub(variables);
+				subbedKey = key.sub(sourceId);
 			}
 			componentExecutions[i] = subbedKey;
 			i++;
 			Execution subbedValue;
 			if(encoder != null) {
-				subbedValue = value.subEncoded(variables, encoder, encoding);
+				subbedValue = value.subEncoded(sourceId, encoder);
 			} else {
-				subbedValue = value.subEncoded(variables, encoder, encoding);
+				subbedValue = value.subEncoded(sourceId, encoder);
 			}
 			componentExecutions[i] = subbedValue;
 			i++;

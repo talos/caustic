@@ -15,13 +15,13 @@ public interface HttpRequester {
 	 * The default number of seconds to wait before timing out on a
 	 * request for {@link HttpBrowser} interfaces.
 	 */
-	public static final int DEFAULT_TIMEOUT_SECONDS = 30;
+	public static final int DEFAULT_TIMEOUT_MILLISECONDS = 30000;
 
 	/**
 	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies
 	 * from response headers to the {@link HttpBrowser}'s cookie store.
 	 * @param url the URL to HTTP Head.
-	 * @param headers {@link Hashtable} of headers, mapping {@link String} to {@link String}.
+	 * @param requestHeaders {@link Hashtable} of headers, mapping {@link String} to {@link String}.
 	 * @return A {@link HttpResponse}.
 	 * @throws IOException If there was an exception requesting the page.
 	 * @throws InterruptedException If the user interrupted the request.
@@ -32,7 +32,7 @@ public interface HttpRequester {
 	/**
 	 * Make an HTTP Get request.  This returns the body of the response, and adds cookies to the cookie jar.
 	 * @param url the URL to HTTP Get.
-	 * @param headers {@link Hashtable} of headers, mapping {@link String} to {@link String}.
+	 * @param requestHeaders {@link Hashtable} of headers, mapping {@link String} to {@link String}.
 	 * @return A {@link HttpResponse}.
 	 * @throws IOException If there was an exception making or during the request.
 	 * @throws InterruptedException If the user interrupted the request.
@@ -43,7 +43,7 @@ public interface HttpRequester {
 	 * Make an HTTP Post request with a {@link String} to encode into post data.
 	 * This returns the body of the response, and adds cookies to the cookie jar.
 	 * @param url the URL to HTTP Get.
-	 * @param headers {@link Hashtable} of headers, mapping {@link String} to {@link String}.
+	 * @param requestHeaders {@link Hashtable} of headers, mapping {@link String} to {@link String}.
 	 * @param encodedPostData {@link String} of post data.  Should already be encoded.
 	 * @return A {@link HttpResponse}.
 	 * @throws IOException If there was an exception making or during the request.
@@ -53,8 +53,9 @@ public interface HttpRequester {
 			throws IOException, InterruptedException;
 
 	/**
-	 * @param timeout How many seconds before giving up on a request.
+	 * @param timeoutMilliseconds How many milliseconds to wait for a response from the remote server
+	 * before giving up.
 	 */	
-	public abstract void setTimeout(int timeoutSeconds);
+	public abstract void setTimeout(int timeoutMilliseconds);
 	
 }
