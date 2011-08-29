@@ -50,14 +50,14 @@ public final class SingleTableDatabase implements Database {
 
 	public int storeOneToOne(int sourceId, String name)
 			throws TableManipulationException, IOException {
-		curId++;
-		table.insert(generateMap(curId, sourceId, name, ""));
+		//curId++;
+		//table.insert(generateMap(curId, sourceId, name, ""));
 		return hashtableDatabase.storeOneToOne(sourceId, name);
 	}
 	
 	public int storeOneToOne(int sourceId, String name, String value)
 			throws TableManipulationException, IOException {
-		curId++;
+		//curId++;
 		table.insert(generateMap(curId, sourceId, name, value));
 		return hashtableDatabase.storeOneToOne(sourceId, name, value);
 	}

@@ -93,7 +93,7 @@ public final class MultiTableDatabase implements Database {
 	
 	public int storeOneToOne(int sourceId, String name)
 			throws TableManipulationException, IOException {
-		curId ++;
+		//curId ++;
 		// No-op, would just enter in a column with a blank value.
 		return hashtableDatabase.storeOneToOne(sourceId, name);
 	}
@@ -104,7 +104,7 @@ public final class MultiTableDatabase implements Database {
 	 */
 	public int storeOneToOne(int sourceId, String name, String value)
 			throws TableManipulationException, IOException {
-		curId ++;
+		//curId ++;
 		String tableName = (String) idNames.get(Integer.valueOf(sourceId));
 		Updateable table = (Updateable) nameTables.get(tableName);
 		if(!table.hasColumn(cleanColumnName(name))) {

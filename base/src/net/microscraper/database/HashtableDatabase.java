@@ -28,7 +28,7 @@ public class HashtableDatabase implements Database {
 
 	public int storeOneToOne(int sourceId, String name)
 			throws TableManipulationException, IOException {
-		curId++;
+		//curId++;
 		// No-op: can't put null value in a hashtable.
 		//Hashtable table = (Hashtable) idTables.get(Integer.valueOf(sourceId));
 		//table.put(name, null);
@@ -37,7 +37,7 @@ public class HashtableDatabase implements Database {
 
 	public int storeOneToOne(int sourceId, String name, String value)
 			throws TableManipulationException, IOException {
-		curId++;
+		//curId++;
 		Hashtable table = (Hashtable) idTables.get(Integer.valueOf(sourceId));
 		table.put(name, value);
 		return sourceId;
