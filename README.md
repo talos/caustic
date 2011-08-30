@@ -25,8 +25,8 @@ in the terminal of your choice.  This executes the JSON instruction
 and sends the results to stdout
 
 <table>
-  <tr><th>id  <th>source_id <th>name     <th>value
-  <tr><td>1   <td>0         <td>Feeling? <td>Feeling Lucky
+  <tr><th>scope<th>source <th>name     <th>value
+  <tr><td>1    <td>0      <td>Feeling? <td>Feeling Lucky
 </table>
 
 First, microscraper loads the URL in *load*.  Then it looks for the regular expression in *find*, and saves the match.
@@ -58,7 +58,7 @@ For microscraper to execute this instruction, it needs a value to substitute for
 to replace *{{query}}* with *hello*.  We get the following
 
 <table>
-  <tr><th>id<th>source_id<th>name<th>value</tr>
+  <tr><th>scope<th>source<th>name<th>value</tr>
   <tr><td>1 <td>0        <td>query                                   <td>hello
   <tr><td>2 <td>0        <td>what do you say after 'hello'?          <td>I say 'kitty'!
   <tr><td>3 <td>0        <td>what do you say after 'hello'?          <td>I say 'lyrics'!
@@ -111,7 +111,7 @@ Try it with
 You'll see that this results in quite a few dozen rows, but here are some highlights:
 
 <table>
-  <tr><th>id     <th>source_id <th>name                       <th>value
+  <tr><th>scope  <th>source <th>name                       <th>value
   <tr><td>48     <td>14  <td>what do you say after 'beyonce'? <td>I say 'wedding'!
   <tr><td>49     <td>14  <td>what do you say after 'beyonce'? <td>I say 'songs'!
   <tr><td>50     <td>14  <td>what do you say after 'beyonce'? <td>I say 'youtube'!
@@ -130,7 +130,7 @@ You'll see that this results in quite a few dozen rows, but here are some highli
   <tr><td>63     <td>16  <td>what do you say after 'movie'?   <td>I say 'download'!
 </table>
 
-Note that the *source_id* column links each *find* result back to the result it depends upon.
+Note that the *source* column links each *find* result back to the *scope* it inherits from.
 
 ### References ###
 
