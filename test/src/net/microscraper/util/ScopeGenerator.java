@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.microscraper.database.Scope;
+import static net.microscraper.util.TestUtils.*;
 
 /**
  * A class to keep track of scope generation during tests.
@@ -24,7 +25,7 @@ public class ScopeGenerator implements Iterator<Scope> {
 	 * Increment the {@link ScopeGenerator} and return the next scope.
 	 */
 	public Scope next() {
-		scopes.add(new Scope(factory.get()));
+		scopes.add(new Scope(factory.get(), randomString()));
 		return scopes.get(scopes.size() - 1);
 	}
 	

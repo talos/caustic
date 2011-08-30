@@ -19,28 +19,27 @@ import org.junit.Test;
 
 public class MultiTableDatabaseTest extends DatabaseTest  {
 
-	@Mocked Updateable table;
+	@Mocked Updateable resultTable;
+	@Mocked Insertable joinTable;
 	@Mocked UpdateableConnection connection, otherConn;
 		
 	@Override
 	protected Database getDatabase() throws Exception {
 		new NonStrictExpectations() {{
-			//connection.getIOTable(anyString, withSameInstance(RESULT_TABLE_COLUMNS));
-			//	result = rootTable;
-			//	result = resultTable;
-			//connection.getIOTable(ROOT_TABLE_NAME, withSameInstance(ROOT_TABLE_COLUMNS));
-			//	result = rootTable;
+
 			connection.getIOTable(anyString, (String[]) any);
-				result = table;
+				result = resultTable;
+			connection.getInsertable(anyString, (String[]) any);
+				result = joinTable;
 		}};
 		return new MultiTableDatabase(new HashtableDatabase(new IntUUIDFactory()), connection);
 	}
 	
 	@Test
-	public void testCreatesRootTableOnInstantiation() throws Exception {
+	public void testCreatesDefaultResultTableOnInstantiation() throws Exception {
 		new Expectations() {{
-			otherConn.getIOTable(ROOT_TABLE_NAME, withSameInstance(ROOT_TABLE_COLUMNS));
-				result = table;
+			otherConn.getIOTable(DEFAULT_TABLE_NAME, withSameInstance(RESULT_TABLE_COLUMNS));
+				result = resultTable;
 				$ = "Should create root table on instantiation.";
 		}};
 		new MultiTableDatabase(new HashtableDatabase(new IntUUIDFactory()), otherConn);
@@ -52,9 +51,9 @@ public class MultiTableDatabaseTest extends DatabaseTest  {
 		final String value = randomString();
 		new Expectations() {
 			{
-				table.hasColumn(name); result = false;
-				table.addColumn(name); $ = "Should add name column to root table.";
-				table.update(SCOPE_COLUMN_NAME, scope.getID(), (Hashtable) any);
+				resultTable.hasColumn(name); result = false;
+				resultTable.addColumn(name); $ = "Should add name column to root table.";
+				resultTable.update(SCOPE_COLUMN_NAME, scope.getID(), (Hashtable) any);
 					forEachInvocation = new Object() {
 						void validate(String columnName, net.microscraper.util.UUID id, Hashtable map) {
 							assertEquals("Should update name and value in root table.", 1, map.size());
@@ -76,15 +75,12 @@ public class MultiTableDatabaseTest extends DatabaseTest  {
 			//@Injectable Updateable resultTable;
 			{
 				//connection.getIOTable(name, withSameInstance(RESULT_TABLE_COLUMNS)); result = resultTable;
-				table.insert((Hashtable<String, String>) any);
+				joinTable.insert((Hashtable<String, String>) any);
 					forEachInvocation = new Object() {
 						void validate(Hashtable<String, String> map) {
 							//assertEquals("Should create blank entry in new table", 0, nvps.length);
-							assertEquals(4, map.size());
+							assertEquals(3, map.size());
 							
-							assertTrue(map.containsKey(SOURCE_TABLE_COLUMN));
-							assertEquals(ROOT_TABLE_NAME, map.get(SOURCE_TABLE_COLUMN));
-
 							assertTrue(map.containsKey(SOURCE_COLUMN_NAME));
 							assertEquals(Integer.toString(scope.hashCode()), map.get(SOURCE_COLUMN_NAME));
 							

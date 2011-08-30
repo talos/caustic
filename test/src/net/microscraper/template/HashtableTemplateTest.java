@@ -31,7 +31,7 @@ public class HashtableTemplateTest {
 		alreadyEncodedKey = encoder.encode(multiWordKey);
 		alreadyEncodedValue = encoder.encode(multiWordValue);
 		database = new HashtableDatabase(new IntUUIDFactory());
-		scope = database.getScope();
+		scope = database.getDefaultScope();
 		database.storeOneToOne(scope, key, value);
 		database.storeOneToOne(scope, multiWordKey, multiWordValue);
 		database.storeOneToOne(scope, alreadyEncodedKey, alreadyEncodedValue);

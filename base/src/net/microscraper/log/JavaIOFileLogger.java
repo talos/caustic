@@ -15,22 +15,25 @@ import java.io.PrintStream;
  */
 public class JavaIOFileLogger extends BasicLogger {
 	
-	private final File file;
+	//private final File file;
+	private final String pathToFile;
 	private PrintStream printStream;
 	
-	public JavaIOFileLogger(File logFile) {
-		this.file = logFile;
+	public JavaIOFileLogger(String pathToFile) {
+		this.pathToFile = pathToFile;
 	}
 	
 	public void open() throws IOException {
-		printStream = new PrintStream(file);
+		super.open();
+		printStream = new PrintStream(new File(pathToFile));
 	}
 	
 	public void close() throws IOException {
+		super.close();
 		printStream.close();
 	}
 	
-	protected void write(String text) throws IllegalStateException {
+	protected void write(String text) {
 		printStream.println(text);
 	}
 }

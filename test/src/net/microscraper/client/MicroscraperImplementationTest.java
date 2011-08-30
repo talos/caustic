@@ -85,12 +85,11 @@ public abstract class MicroscraperImplementationTest {
 		}};
 		
 		new Expectations() {{
-			database.getScope(); result = defaults; times = 1;
+			database.getDefaultScope(); result = defaults; times = 1;
 			database.storeOneToOne((Scope) with(defaults.matchFirst()), "query", "hello");
 			database.storeOneToOne((Scope) with(defaults.matchFirst()), withPrefix("http://www.google.com/"));
 			database.storeOneToMany((Scope) with(defaults.matchFirst()), "what do you say after 'hello'?", withPrefix("I say "));
 					result = afterHello;
-			database.close();
 		}};
 		
 		Hashtable<String, String> defaultHash = new Hashtable<String, String>();
@@ -113,7 +112,7 @@ public abstract class MicroscraperImplementationTest {
 		}};
 		
 		new Expectations() {{
-			database.getScope(); result = defaults; times = 1;
+			database.getDefaultScope(); result = defaults; times = 1;
 			database.storeOneToOne((Scope) with(defaults.matchFirst()), "query", "hello");
 			database.storeOneToOne((Scope) with(defaults.matchFirst()), withPrefix("http://www.google.com/"));
 			database.storeOneToMany((Scope) with(defaults.matchFirst()), "after", withPrefix(anyString));
@@ -121,7 +120,6 @@ public abstract class MicroscraperImplementationTest {
 			database.storeOneToOne((Scope) with(afterHello.matchWithin()), withPrefix("http://www.google.com/")); result = recordGoogleAfters;
 			database.storeOneToMany((Scope) with(afterHello.matchWithin()), withPrefix("what do you say after"), withPrefix("I say "));
 					result = afterSomethingElse;
-			database.close();
 		}};
 		
 		Hashtable<String, String> defaultHash = new Hashtable<String, String>();
@@ -156,7 +154,7 @@ public abstract class MicroscraperImplementationTest {
 		propertyDefaults.put("Apt", "");
 
 		new Expectations() {{
-			database.getScope(); result = defaults;
+			database.getDefaultScope(); result = defaults;
 		}};
 		
 		new NonStrictExpectations() {{

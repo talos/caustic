@@ -11,6 +11,8 @@ import java.util.Hashtable;
  */
 public final class SingleTableDatabase implements Database {
 	
+	public static final String TABLE_NAME = "result";
+	
 	private static final String SCOPE_COLUMN_NAME = "scope";
 	private static final String SOURCE_COLUMN_NAME = "source";
 	private static final String NAME_COLUMN_NAME = "name";
@@ -26,19 +28,47 @@ public final class SingleTableDatabase implements Database {
 	/**
 	 * The {@link Insertable} used by this {@link SingleTableDatabase}.
 	 */
-	private final Insertable table;
+	private Insertable table;
+
+	/**
+	 * Whether {@link #open()} has been called.
+	 */
+	private boolean isOpen = false;
 	
+	private final InsertableConnection connection;
 	private final Database backingDatabase;
 		
-	private Hashtable generateMap(Scope scope, Scope source, String name, String value) {
+	/**
+	 * Generate insert appropriate columns into {@link #table}.
+	 * @param scope
+	 * @param source
+	 * @param name
+	 * @param value {@link String} can be <code>null</code>
+	 * @throws TableManipulationException
+	 */
+	private void insert(Scope scope, Scope source, String name, String value)
+				throws TableManipulationException {
+		ensureOpen();
 		Hashtable map = new Hashtable();
 		map.put(SCOPE_COLUMN_NAME, scope.getID().asString());
 		map.put(SOURCE_COLUMN_NAME, source.getID().asString());
 		map.put(NAME_COLUMN_NAME, name);
-		map.put(VALUE_COLUMN_NAME, value);
-		return map;
+		if(value != null) {
+			map.put(VALUE_COLUMN_NAME, value);
+		}
+		table.insert(map);
 	}
 
+	/**
+	 * 
+	 * @throws IllegalStateException If {@link MultiTableDatabase} has not been opened.
+	 */
+	private void ensureOpen() throws IllegalStateException {
+		if(isOpen == false) {
+			throw new IllegalStateException("Must open database before using it.");
+		}
+	}
+	
 	/**
 	 * Create a {@link SingleTableDatabase} using another database for
 	 * retrieving values.
@@ -48,14 +78,29 @@ public final class SingleTableDatabase implements Database {
 	 * @throws IOException if there was a problem creating the table by
 	 * <code>connection</code>.
 	 */
-	public SingleTableDatabase(Database backingDatabase,
-			InsertableConnection connection) throws IOException {
-		this.table = connection.getInsertable(COLUMN_NAMES);
+	public SingleTableDatabase(Database backingDatabase, InsertableConnection connection) {
+		this.connection = connection;
 		this.backingDatabase = backingDatabase;
 	}
-	
-	public void close() throws IOException { }
 
+	/**
+	 * Open {@link #connection} and {@link #backingDatabase}, and create {@link #table}.
+	 */
+	public void open() throws IOException {
+		connection.open();
+		backingDatabase.open();
+		table = connection.getInsertable(TABLE_NAME, COLUMN_NAMES);
+		isOpen = true;
+	}
+	
+	/**
+	 * Closes the {@link #backingDatabase} and {@link #connection}.
+	 */
+	public void close() throws IOException {
+		backingDatabase.close();
+		connection.close();
+	}
+	
 	public void storeOneToOne(Scope source, String name)
 			throws TableManipulationException, IOException {
 		backingDatabase.storeOneToOne(source, name);
@@ -64,20 +109,20 @@ public final class SingleTableDatabase implements Database {
 	public void storeOneToOne(Scope source, String name, String value)
 			throws TableManipulationException, IOException {
 		backingDatabase.storeOneToOne(source, name, value);
-		table.insert(generateMap(source, source, name, value));
+		insert(source, source, name, value);
 	}
 
 	public Scope storeOneToMany(Scope source, String name)
 			throws TableManipulationException, IOException {
 		Scope scope = backingDatabase.storeOneToMany(source, name);
-		table.insert(generateMap(scope, source, name, ""));
+		insert(scope, source, name, null);
 		return scope;
 	}
 
 	public Scope storeOneToMany(Scope source, String name, String value)
 			throws TableManipulationException, IOException {
 		Scope scope = backingDatabase.storeOneToMany(source, name, value);
-		table.insert(generateMap(scope, source, name, value));
+		insert(scope, source, name, value);
 		return scope;
 	}
 	
@@ -85,8 +130,8 @@ public final class SingleTableDatabase implements Database {
 		return backingDatabase.get(scope, key);
 	}
 	
-	public Scope getScope() throws IOException {
-		return backingDatabase.getScope();
+	public Scope getDefaultScope() throws IOException {
+		return backingDatabase.getDefaultScope();
 	}
 	
 	public String toString(Scope scope) {

@@ -477,8 +477,7 @@ public class JsonDeserializer implements Deserializer {
 	 * @param database
 	 */
 	public JsonDeserializer(JsonParser parser, RegexpCompiler compiler, HttpBrowser browser,
-			Encoder encoder, UriResolver uriResolver, URILoader uriLoader)
-					throws MalformedUriException {
+			Encoder encoder, UriResolver uriResolver, URILoader uriLoader) {
 		this.compiler = compiler;
 		this.parser = parser;
 		this.browser = browser;

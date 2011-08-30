@@ -32,7 +32,7 @@ public final class InstructionTest {
 	@Before
 	public void setUp() throws Exception {
 		new NonStrictExpectations() {{
-			database.getScope(); result = scope;
+			database.getDefaultScope(); result = scope;
 		}};
 		source = randomString();
 		defaultName = new Template(randomString(), Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);

@@ -68,7 +68,7 @@ public class JsonDeserializerTest {
 		final String findUri = "FIND URI " + randomString();
 		new NonStrictExpectations() {
 			{
-				database.getScope(); result = scope;
+				database.getDefaultScope(); result = scope;
 				uriResolver.resolve(anyString, SELF);
 				
 				uriResolver.resolve(userDir, ""); result = userDir;

@@ -19,49 +19,34 @@ import net.microscraper.database.Insertable;
  *
  */
 public class JDBCSqliteConnection implements SQLConnection {
-	private final Connection connection;
+	private Connection connection;
 	private final int batchSize;
-	
-	/**
-	 * The name of a single table for {@link #getInsertable(String[])}.
-	 */
-	private static final String SINGLE_TABLE_NAME = "results";
-	
+	private final String connectionPath;
+		
 	/**
 	 * Statements yet to be executed.
 	 */
 	private final List<PreparedStatement> batch = new ArrayList<PreparedStatement>();
 	
-	private JDBCSqliteConnection(String connectionPath, int batchSize)
-			throws SQLConnectionException {
+	private JDBCSqliteConnection(String connectionPath, int batchSize) {
 		this.batchSize = batchSize;
-		try {
-			Class.forName("org.sqlite.JDBC"); // Make sure we have this class.
-			connection = DriverManager.getConnection(connectionPath);
-			connection.setAutoCommit(false);
-		} catch(SQLException e) {
-			throw new SQLConnectionException(e);
-		} catch(ClassNotFoundException e) {
-			throw new SQLConnectionException(e);
-		}
+		this.connectionPath = connectionPath;
 	}
 
 	/**
 	 * Produce a {@link JDBCSqliteConnection} using a path to a database.
 	 * @param pathToDB {@link String} path to database.
 	 * @param batchSize How many statements to make before committing.
-	 * @throws SQLConnectionException if the {@link JDBCSqliteConnection} could not be created.
 	 */
-	public static JDBCSqliteConnection toFile(String pathToDB, int batchSize) throws SQLConnectionException {
+	public static JDBCSqliteConnection toFile(String pathToDB, int batchSize) {
 		return new JDBCSqliteConnection("jdbc:sqlite:" + pathToDB, batchSize);
 	}
 
 	/**
 	 * Produce a {@link JDBCSqliteConnection} in-memory.
 	 * @param batchSize How many statements to make before committing.
-	 * @throws SQLConnectionException if the {@link JDBCSqliteConnection} could not be created.
 	 */
-	public static JDBCSqliteConnection inMemory(int batchSize) throws SQLConnectionException {
+	public static JDBCSqliteConnection inMemory(int batchSize) {
 		return new JDBCSqliteConnection("jdbc:sqlite::memory:", batchSize);
 	}
 	
@@ -212,8 +197,21 @@ public class JDBCSqliteConnection implements SQLConnection {
 		return results.next();
 	}
 
+	/**
+	 * Open {@link JDBCSqliteConnection} using org.sqlite.JDBC.
+	 */
 	@Override
-	public void open() { }
+	public void open() throws IOException {
+		try {
+			Class.forName("org.sqlite.JDBC"); // Make sure we have this class.
+			connection = DriverManager.getConnection(connectionPath);
+			connection.setAutoCommit(false);
+		} catch(SQLException e) {
+			throw new IOException(e);
+		} catch(ClassNotFoundException e) {
+			throw new IOException(e);
+		}
+	}
 	
 	@Override
 	public Updateable getIOTable(String name, String[] textColumns)
@@ -240,8 +238,8 @@ public class JDBCSqliteConnection implements SQLConnection {
 	}
 	
 	@Override
-	public Insertable getInsertable(String[] textColumns)
+	public Insertable getInsertable(String name, String[] textColumns)
 			throws IOException {
-		return getIOTable(SINGLE_TABLE_NAME, textColumns);
+		return getIOTable(name, textColumns);
 	}
 }

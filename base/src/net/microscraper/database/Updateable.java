@@ -48,4 +48,5 @@ public interface Updateable extends Insertable {
 	 * @throws TableManipulationException If the {@link Updateable} could not be dropped.
 	 */
 	public void drop() throws TableManipulationException;
+	
 }

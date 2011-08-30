@@ -47,7 +47,7 @@ public class LoadTest {
 				new RateLimitManager(new JavaNetHttpUtils(), RateLimitManager.DEFAULT_RATE_LIMIT),
 				new JavaNetCookieManager());
 		new NonStrictExpectations( ) {{
-			database.getScope(); result = scope;
+			database.getDefaultScope(); result = scope;
 		}};
 	}
 	

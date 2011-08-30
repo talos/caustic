@@ -43,7 +43,8 @@ public class HashtableDatabase implements Database {
 
 	public Scope storeOneToMany(Scope source, String name)
 			throws TableManipulationException, IOException {
-		Scope newScope = getScope();
+		Scope newScope = new Scope(uuidFactory.get(), name);
+		scopeTables.put(newScope, new Hashtable());
 		scopeSources.put(newScope, source);
 		// Can't store anything, no value.
 		
@@ -80,14 +81,21 @@ public class HashtableDatabase implements Database {
 		return result;
 	}
 	
-	public void close() throws IOException {
-		scopeTables.clear();
-		scopeSources.clear();
-	}
 	
-	public Scope getScope() throws IOException {
-		Scope scope = new Scope(uuidFactory.get());
+	public Scope getDefaultScope() throws IOException {
+		
+		Scope scope = Scope.getDefault(uuidFactory.get());
 		scopeTables.put(scope, new Hashtable());
 		return scope;
+	}
+	
+	/**
+	 * No-op.
+	 */
+	public void open() { }
+	
+	public void close() {
+		scopeTables.clear();
+		scopeSources.clear();
 	}
 }

@@ -34,8 +34,8 @@ public class TemplateTest {
 	@Before
 	public void setup() throws Exception {
 		new NonStrictExpectations() {{
-			database.getScope(); result = scope;
-			empty.getScope(); result = scope;
+			database.getDefaultScope(); result = scope;
+			empty.getDefaultScope(); result = scope;
 			database.get(scope, key); result = value;
 		}};
 	}

@@ -28,7 +28,8 @@ public class Microscraper implements Loggable {
 	
 	/**
 	 * @param deserializer A {@link Deserializer} to use to instantiate {@link Instruction}s.
-	 * @param database the {@link Database} to use for storage.
+	 * @param database the {@link Database} to use for storage.  It should be opened beforehand,
+	 * and closed after (if necessary).
 	 * @param executionDir the {@link String} path to where {@link Microscraper}
 	 * is being executed from. This is used to resolve the path to local instructions.
 	 */
@@ -44,7 +45,7 @@ public class Microscraper implements Loggable {
 			Hashtable defaults = defaultsHashes[i];
 			
 			// Use a fresh database scope.
-			Scope scope = database.getScope();
+			Scope scope = database.getDefaultScope();
 			
 			// Store default values in database
 			Enumeration keys = defaults.keys();
@@ -57,7 +58,6 @@ public class Microscraper implements Loggable {
 			runner.register(log);
 			runner.run();
 		}
-		database.close();
 	}
 	
 	/**

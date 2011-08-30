@@ -52,12 +52,6 @@ public interface Database {
 				throws IOException;
 	
 	/**
-	 * Close up the {@link Database}. 
-	 * @throws IOException If the {@link Database} experiences an exception while closing.
-	 */
-	public void close() throws IOException;
-	
-	/**
 	 * Get a {@link String} value accessible to <code>id</code> in this {@link Database}.
 	 * @param scope The {@link Scope} that identifies what parts of {@link Database} should be searched.
 	 * @param key A {@link String} key.
@@ -66,15 +60,27 @@ public interface Database {
 	public String get(Scope scope, String key);
 	
 	/**
-	 * @return A new {@link Scope} that refers to an empty section of the {@link Database}.
+	 * @return A default {@link Scope} that refers to an empty section of the {@link Database}.
 	 * @throws IOException If there is a problem with the {@link Database}.
+	 * @see {@link Scope#getDefault(net.microscraper.util.UUID)}
 	 */
-	public Scope getScope() throws IOException;
+	public Scope getDefaultScope() throws IOException;
 	
 	/**
 	 * @param scope The {@link Scope} to use.
 	 * @return A {@link String} representing the data available to <code>scope</code>.
 	 */
 	public String toString(Scope scope);
+
+	/**
+	 * Open and initialize the database.  This will also open any underlying connections.
+	 * @throws IOException If there was a problem opening the {@link Database}.
+	 */
+	public void open() throws IOException;
 	
+	/**
+	 * Close the database.  This will also close any underlying connections.
+	 * @throws IOException If there was a problem closing the {@link Database}.
+	 */
+	public void close() throws IOException;
 }

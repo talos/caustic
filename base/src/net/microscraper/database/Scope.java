@@ -8,40 +8,66 @@ import net.microscraper.util.UUID;
  *
  */
 public class Scope {
+	/**
+	 * Automatically assigned name for default scope.
+	 */
+	public static final String DEFAULT = "default";
+	
 	private final UUID id;
-	//private final String name;
+	private final String name;
+	private final boolean isDefault;
+	
+	/**
+	 * Private constructor for default scope.
+	 * @param id
+	 */
+	private Scope(UUID id) {
+		this.id = id;
+		this.name = DEFAULT;
+		this.isDefault = true;
+	}
 	
 	/**
 	 * 
 	 * @param id A unique {@link UUID} for the {@link Scope}.
 	 * @param name The {@link String} name of the scope.
 	 */
-	/*public Scope(UUID id, String name) {
+	public Scope(UUID id, String name) {
 		this.id = id;
 		this.name = name;
-	}*/
-	
-	/**
-	 * @return The {@link String} name associated with {@link Scope}.
-	 */
-	/*public String getName() {
-		return name;
-	}*/
-	
-	/**
-	 * Alias for {@link #getName()}
-	 */
-	/*public String toString() {
-		return getName();
-	}*/
-	
+		this.isDefault = false;
+	}
 	
 	/**
 	 * 
 	 * @param id A unique {@link UUID} for the {@link Scope}.
+	 * @return A scope with the {@link #DEFAULT} name.
 	 */
-	public Scope(UUID id) {
-		this.id = id;
+	public static Scope getDefault(UUID id) {
+		return new Scope(id);
+	}
+	
+	/**
+	 * @return The {@link String} name associated with {@link Scope}.
+	 */
+	public String getName() {
+		return name;
+	}
+	
+	/**
+	 * Alias for {@link #getName()}
+	 */
+	public String toString() {
+		return getName();
+	}
+	
+	/**
+	 * 
+	 * @return <code>True</code> if this {@link Scope} is default (has the
+	 * {@link #DEFAULT} name), <code>false</code> otherwise.
+	 */
+	public boolean isDefault() {
+		return isDefault;
 	}
 	
 	/**

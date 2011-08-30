@@ -16,7 +16,7 @@ public abstract class DatabaseTest {
 	@Before
 	public void setUp() throws Exception {
 		db = getDatabase();
-		scope = db.getScope();
+		scope = db.getDefaultScope();
 	}
 
 	@Test

@@ -1,55 +1,56 @@
 package net.microscraper.impl.commandline;
 
+import static net.microscraper.impl.commandline.Arguments.LOG_STDOUT;
+import static net.microscraper.impl.commandline.Arguments.LOG_TO_FILE;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.microscraper.client.Deserializer;
+import net.microscraper.client.Microscraper;
+import net.microscraper.database.Database;
+import net.microscraper.database.DelimitedConnection;
+import net.microscraper.database.HashtableDatabase;
+import net.microscraper.database.InsertableConnection;
+import net.microscraper.database.JDBCSqliteConnection;
+import net.microscraper.database.MultiTableDatabase;
+import net.microscraper.database.SQLConnectionException;
+import net.microscraper.database.SingleTableDatabase;
+import net.microscraper.database.UpdateableConnection;
+import net.microscraper.file.JavaIOFileLoader;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.http.HttpRequester;
+import net.microscraper.http.JavaNetCookieManager;
+import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
+import net.microscraper.json.JsonDeserializer;
+import net.microscraper.json.JsonMEParser;
+import net.microscraper.json.JsonParser;
+import net.microscraper.log.JavaIOFileLogger;
+import net.microscraper.log.Logger;
+import net.microscraper.log.SystemOutLogger;
+import net.microscraper.regexp.JavaUtilRegexpCompiler;
+import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.uri.JavaNetURILoader;
+import net.microscraper.uri.JavaNetUriResolver;
+import net.microscraper.uri.URILoader;
+import net.microscraper.uri.UriResolver;
+import net.microscraper.util.Encoder;
+import net.microscraper.util.IntUUIDFactory;
+import net.microscraper.util.JavaNetEncoder;
+import net.microscraper.util.JavaNetHttpUtils;
+import net.microscraper.util.JavaUtilUUIDFactory;
 import net.microscraper.util.StringUtils;
 
 public final class Arguments {
-	private static final Map<String, Option> validOptions = new HashMap<String, Option>();
-	public static class Option  {
-		private static final String PREPEND = "--";
-		private final String defaultValue;
-		private final String name;
-		private Option(String nonPrependedName, String defaultValue) {
-			this.name = PREPEND + nonPrependedName;
-			this.defaultValue = defaultValue;
-			validOptions.put(this.name, this);
-		}
-		private static Option withoutDefault(String nonPrependedName) {
-			return new Option(nonPrependedName, null);
-		}
-		private static Option withDefault(String nonPrependedName, String defaultValue) {
-			return new Option(nonPrependedName, defaultValue);
-		}
-		private static boolean exists(String name) {
-			return validOptions.containsKey(name);
-		}
-		private static Option retrieve(String name) throws IllegalArgumentException {
-			if(exists(name)) {
-				return validOptions.get(name);
-			} else {
-				throw new IllegalArgumentException(name + " is not a valid option.");
-			}
-		}
-		public String toString() {
-			return name;
-		}
-		public boolean hasDefault() {
-			return defaultValue != null;
-		}
-		public String getDefault() {
-			return defaultValue;
-		}
-	}
-	
 	public static final String newline = System.getProperty("line.separator");
 	
 	public static final String TIMESTAMP = new SimpleDateFormat("yyyyMMddkkmmss").format(new Date());
@@ -117,7 +118,8 @@ public final class Arguments {
 "	" + OUTPUT_FORMAT_OPTION + "=(" + StringUtils.join(validOutputFormats.toArray(new String[0]), "|") +")" + newline +
 "		How to format output.  Defaults to " + StringUtils.quote(OUTPUT_FORMAT_OPTION.getDefault()) + "." + newline +
 "	" + SAVE_TO_FILE + "[=<path>], " + newline +
-"		Where to save the output.  Defaults to " + StringUtils.quote(SAVE_TO_FILE.getDefault()) + " in" + newline +
+"		Where to save the output.  Defaults to " +
+		StringUtils.quote(SAVE_TO_FILE.getDefault()) + ".<format> in" + newline +
 "		the current directory output." + newline +
 "	" + RATE_LIMIT + "=<max-kbps>" + newline +
 "		The rate limit, in KBPS, for loading from a single host." + newline +
@@ -129,10 +131,25 @@ public final class Arguments {
 "		Defaults to " + StringUtils.quote(TIMEOUT_MILLISECONDS.getDefault()) + " milliseconds.";
 	
 	private final Map<Option, String> arguments = new HashMap<Option, String>();
+
 	
-	public Arguments(String[] args) throws IllegalArgumentException {
+	private boolean has(Option option) {
+		return arguments.containsKey(option);
+	}
+	
+	private String get(Option option) throws ArgumentsException {
+		if(option.hasDefault() && arguments.get(option) == null) {
+			return option.getDefault();
+		} else if(arguments.get(option) != null) {
+			return arguments.get(option);
+		} else {
+			throw new ArgumentsException("Did not define value for " + StringUtils.quote(option));
+		}
+	}
+	
+	public Arguments(String[] args) throws ArgumentsException {
 		if(args.length == 0) {
-			throw new IllegalArgumentException("");
+			throw new ArgumentsException("Must have at least one argument.");
 		}
 		
 		arguments.put(INSTRUCTION, args[0]);
@@ -154,20 +171,119 @@ public final class Arguments {
 		}
 	}
 	
-	public boolean has(Option option) {
-		/*if(option.hasDefault()) {
-			throw new IllegalArgumentException(option + " has a default value, never need to question its existence.");
-		}*/
-		return arguments.containsKey(option);
+	public Deserializer getDeserializer() throws ArgumentsException, UnsupportedEncodingException {				
+		//this.args = args;
+		final int rateLimit;
+		final int timeout;
+		
+		// Set rate limit.
+		try {
+			rateLimit = Integer.parseInt(get(RATE_LIMIT));
+		} catch(NumberFormatException e) {
+			throw new ArgumentsException(RATE_LIMIT + " must be an integer");
+		}
+		
+		// Set timeout.
+		try {
+			timeout = Integer.parseInt(get(TIMEOUT_MILLISECONDS));
+		} catch(NumberFormatException e) {
+			throw new ArgumentsException(TIMEOUT_MILLISECONDS + " must be an integer");
+		}
+		
+		HttpRequester requester = new JavaNetHttpRequester();
+		requester.setTimeout(timeout);
+		
+		RateLimitManager memory = new RateLimitManager(new JavaNetHttpUtils(), rateLimit);
+		
+		HttpBrowser browser = new HttpBrowser(new JavaNetHttpRequester(),
+				memory, new JavaNetCookieManager());
+		
+		
+		RegexpCompiler compiler = new JavaUtilRegexpCompiler();
+		URILoader uriLoader = new JavaNetURILoader(browser, new JavaIOFileLoader());
+		UriResolver uriResolver = new JavaNetUriResolver();
+		JsonParser parser = new JsonMEParser();
+		Encoder encoder = new JavaNetEncoder(Encoder.UTF_8);
+		Deserializer deserializer = new JsonDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
+		
+		return deserializer;
+		//defaults = HashtableUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), args.get(DEFAULTS));
+	
 	}
 	
-	public String get(Option option) {
-		if(option.hasDefault() && arguments.get(option) == null) {
-			return option.getDefault();
-		} else if(arguments.get(option) != null) {
-			return arguments.get(option);
-		} else {
-			throw new IllegalArgumentException("Did not define value for " + StringUtils.quote(option));
+	public Database getDatabase() throws ArgumentsException {
+		final Database result;
+		
+		// Determine format.
+		String format;
+		format = get(OUTPUT_FORMAT_OPTION);
+		if(!validOutputFormats.contains(format)) {
+			throw new ArgumentsException(StringUtils.quote(format)
+					+ " is not a valid output format.");
 		}
+			
+		// Determine delimiter.
+		char delimiter;
+		if(format.equals(CSV_OUTPUT_FORMAT_VALUE)) {
+			delimiter = CSV_OUTPUT_COLUMN_DELIMITER;
+		} else { // (format.equals(TAB_OUTPUT_COLUMN_DELIMITER)) {
+			delimiter = TAB_OUTPUT_COLUMN_DELIMITER;
+		}
+		
+		// Set up output and databases.
+		if(has(SAVE_TO_FILE)) {
+			String outputLocation = get(SAVE_TO_FILE);
+			if(outputLocation.equals(SAVE_TO_FILE.getDefault())) { // append appropriate format for default
+				outputLocation += '.' + format;
+			}
+			if(format.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
+				
+				int batchSize = Integer.parseInt(get(BATCH_SIZE));
+				Database backing = new HashtableDatabase(new JavaUtilUUIDFactory());
+				
+				UpdateableConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
+				if(has(SINGLE_TABLE)) {
+					result = new SingleTableDatabase(backing, connection);
+				} else {
+					result = new MultiTableDatabase(backing, connection);
+				}
+				
+			} else {
+				result = new SingleTableDatabase(
+						new HashtableDatabase(new IntUUIDFactory()), DelimitedConnection.toFile(outputLocation, delimiter));
+			}
+			
+		} else { // output to STDOUT
+			result = new SingleTableDatabase(new HashtableDatabase(new IntUUIDFactory()), DelimitedConnection.toSystemOut(delimiter));
+		}
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @return The {@link String} path to the directory where the user is executing.
+	 */
+	public String getExecutionDir() throws ArgumentsException {
+		String executionDir = new File(System.getProperty("user.dir")).toURI().toString();
+		if(!executionDir.endsWith("/")) {
+			executionDir += "/";
+		}
+		return executionDir;
+	}
+	
+	
+	/**
+	 * 
+	 * @return A {@link List} of loggers that should be used.
+	 */
+	public List<Logger> getLoggers() throws ArgumentsException {
+		List<Logger> loggers = new ArrayList<Logger>();
+		if(has(LOG_TO_FILE)) {
+			loggers.add(new JavaIOFileLogger(get(LOG_TO_FILE)));
+		}
+		if(has(LOG_STDOUT)) {
+			loggers.add(new SystemOutLogger());
+		}
+		return loggers;
 	}
 }
