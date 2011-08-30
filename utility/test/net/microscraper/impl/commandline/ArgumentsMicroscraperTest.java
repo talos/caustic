@@ -15,24 +15,12 @@ import org.junit.Test;
 
 public class ArgumentsMicroscraperTest {
 	
-	@Mocked Arguments argsWithUri;
-	@Tested ArgumentsMicroscraper scraper;
-
-	@Before
-	public void setup() {
-		new NonStrictExpectations() {{
-			argsWithUri.has(INSTRUCTION); result = true;
-			argsWithUri.get(INSTRUCTION); result = randomString();
-		}};
-	}
-	
-	
 	@Test(expected=IllegalArgumentException.class)
 	public void testBatchSizeMustBeInt() {
 		String notAnInt = "nope";
 		new Arguments(new String[] { randomString(),
 				BATCH_SIZE + "=" + notAnInt,
-				OUTPUT_TO_FILE.toString()});
+				SAVE_TO_FILE.toString()});
 	}
 	
 	@Test(expected=IllegalArgumentException.class)

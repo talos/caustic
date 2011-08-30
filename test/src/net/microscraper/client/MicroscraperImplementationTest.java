@@ -5,11 +5,13 @@ import static net.microscraper.util.TestUtils.*;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.NonStrict;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
 import mockit.VerificationsInOrder;
@@ -32,7 +34,7 @@ import org.junit.Test;
  *
  */
 public abstract class MicroscraperImplementationTest {
-	private String simpleGoogle, complexGoogle, 
+	private String simpleGoogle, complexGoogle, referenceGoogle,
 	
 		nycPropertyOwner, nycIncentives, eventValidation;
 	
@@ -50,8 +52,6 @@ public abstract class MicroscraperImplementationTest {
 	
 	protected abstract Microscraper getScraperToTest(Database database) throws Exception;
 	
-	private ScopeGenerator gen;
-	
 	/**
 	 * Set up the {@link #client} before each test.
 	 * @throws Exception
@@ -62,19 +62,13 @@ public abstract class MicroscraperImplementationTest {
 		
 		simpleGoogle =       fixtures.resolve("simple-google.json").toString();
 		complexGoogle =      fixtures.resolve("complex-google.json").toString();
+		referenceGoogle =    fixtures.resolve("reference-google.json").toString();
 		
-		nycPropertyOwner =   fixtures.resolve("nyc-property-owner.json").toString();
-		nycIncentives =      fixtures.resolve("nyc-incentives.json").toString();
+		nycPropertyOwner =   fixtures.resolve("nyc/nyc-property-owner.json").toString();
+		nycIncentives =      fixtures.resolve("nyc/nyc-incentives.json").toString();
 		eventValidation =     fixtures.resolve("event-validation.json").toString();
 		
 		scraper = getScraperToTest(database);
-		gen = new ScopeGenerator();
-		new NonStrictExpectations() {{
-			database.getScope(); result = gen;
-			database.storeOneToOne((Scope) any, anyString, anyString); result = gen;
-				
-			database.storeOneToMany((Scope) any, anyString, anyString); result = gen;
-		}};
 	}
 	
 	/**
@@ -83,136 +77,109 @@ public abstract class MicroscraperImplementationTest {
 	 */
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {
+		final ScopeGenerator defaults = new ScopeGenerator();
+		final ScopeGenerator afterHello = new ScopeGenerator();
+		
 		new NonStrictExpectations() {{
 			database.get((Scope) any, "query"); result = "hello";
 		}};
 		
-		Hashtable<String, String> defaults = new Hashtable<String, String>();
-		defaults.put("query", "hello");
-		scraper.scrape(simpleGoogle, defaults);
-		
-		new VerificationsInOrder() {{
-			database.storeOneToOne(gen.first(), "query", "hello"); times = 1;
-			database.storeOneToMany(gen.first(), "what do you say after 'hello'?", withPrefix("I say "));
-				times = gen.count() - 1;
+		new Expectations() {{
+			database.getScope(); result = defaults; times = 1;
+			database.storeOneToOne((Scope) with(defaults.matchFirst()), "query", "hello");
+			database.storeOneToOne((Scope) with(defaults.matchFirst()), withPrefix("http://www.google.com/"));
+			database.storeOneToMany((Scope) with(defaults.matchFirst()), "what do you say after 'hello'?", withPrefix("I say "));
+					result = afterHello;
 			database.close();
 		}};
+		
+		Hashtable<String, String> defaultHash = new Hashtable<String, String>();
+		defaultHash.put("query", "hello");
+		scraper.scrape(simpleGoogle, defaultHash);
+		
+		assertEquals(1, defaults.count());
+		assertTrue(afterHello.count() > 1);
 	}
 	
-	@Test
-	public void testScrapeComplexGoogle() throws Exception {
+	public void testScrapeComplexGoogle(String pathToFixture) throws Exception {
+		final ScopeGenerator defaults = new ScopeGenerator();
+		final ScopeGenerator afterHello = new ScopeGenerator();
+		final ScopeGenerator recordGoogleAfters = new ScopeGenerator();
+		final ScopeGenerator afterSomethingElse = new ScopeGenerator();
+		
 		new NonStrictExpectations() {{
-			database.storeOneToOne(gen.first(), "query", "hello");
-			database.get(gen.first(), "query"); result = "hello";
-			
-			database.storeOneToMany(gen.first(), "after", anyString); result = gen;
-			
+			database.get((Scope) any, "query"); result = "hello";
+			database.get((Scope) any, anyString); result = "something else";
+		}};
+		
+		new Expectations() {{
+			database.getScope(); result = defaults; times = 1;
+			database.storeOneToOne((Scope) with(defaults.matchFirst()), "query", "hello");
+			database.storeOneToOne((Scope) with(defaults.matchFirst()), withPrefix("http://www.google.com/"));
+			database.storeOneToMany((Scope) with(defaults.matchFirst()), "after", withPrefix(anyString));
+					result = afterHello;
+			database.storeOneToOne((Scope) with(afterHello.matchWithin()), withPrefix("http://www.google.com/")); result = recordGoogleAfters;
+			database.storeOneToMany((Scope) with(afterHello.matchWithin()), withPrefix("what do you say after"), withPrefix("I say "));
+					result = afterSomethingElse;
 			database.close();
 		}};
 		
-		Hashtable<String, String> defaults = new Hashtable<String, String>();
-		defaults.put("query", "hello");
+		Hashtable<String, String> defaultHash = new Hashtable<String, String>();
+		defaultHash.put("query", "hello");
 
-		scraper.scrape(complexGoogle, defaults);
+		scraper.scrape(pathToFixture, defaultHash);
 		
-		new VerificationsInOrder() {{
-			database.storeOneToOne(gen.first(), "query", "hello"); times = 1;
-			database.storeOneToMany(gen.first(), "what do you say after 'hello'?", withPrefix("I say "));
-				times = gen.count();
-			
-			Iterator<Scope> scopes = gen.all().iterator();
-			while(scopes.hasNext()) {
-				database.storeOneToMany(scopes.next(), withPrefix("what do you say after"), withPrefix("I say"));
-			}
-		}};
+		assertEquals(1, defaults.count());
+		assertTrue(afterHello.count() > 1);
+		assertEquals("Google should have been requested for each 'after hello'.", afterHello.count(), recordGoogleAfters.count());
+		assertTrue(afterSomethingElse.count() > afterHello.count());
 	}
 	
-	/**
-	 * Test fixture {@link #simpleGoogleSplit1} and {@link #simpleGoogleSplit2}.
-	 * @throws Exception
-	 */
-	/*
 	@Test
-	public void testScrapeSimpleGoogleSplit() throws Exception {
-		final String expectedPhrase = "what do we say after hello?";
-
-		BasicNameValuePair[] extraVariables = new BasicNameValuePair[] {
-				new BasicNameValuePair("query", "hello")
-		};
-		
-		new Expectations() {
-			{
-				// Download Google HTML.
-				publisher.publishResult(
-						(String) withNull(),
-						anyString,
-						withEqual(simpleGoogleSplit1),
-						0,
-						(JSONLocation) withNull(),
-						(Integer) withNull()); times = 1;
-				
-				// Pull out the words.
-				publisher.publishResult(
-						expectedPhrase,
-						anyString,
-						withEqual(simpleGoogleSplit2),
-						anyInt,
-						withEqual(simpleGoogleSplit1),
-						0); minTimes = 1;
-			}
-		};
-		
-		testScrape(simpleGoogleSplit1, extraVariables);
+	public void testScrapeComplexGoogleNonReference() throws Exception {
+		testScrapeComplexGoogle(complexGoogle);
+	}
+	
+	@Test
+	public void testScrapeComplexGoogleReference() throws Exception {
+		testScrapeComplexGoogle(referenceGoogle);
 	}
 	
 	@Test
 	public void testScrapeNYCPropertyOwners() throws Exception {
-		final String ownerName = "Owner Name";
-		final String expectedOwner0 = "373 ATLANTIC AVENUE C";
-		final String expectedOwner1 = "373 ATLANTIC AVENUE CORPORATION";
-		BasicNameValuePair[] extraVariables = new BasicNameValuePair[] {
-				new BasicNameValuePair("House Number", "373"),
-				new BasicNameValuePair("Street Name", "Atlantic Av"),
-				new BasicNameValuePair("Borough Number", "3"),
-				new BasicNameValuePair("Apartment Number", "")
-		};
 		
-		new Expectations() {
-			{
-				publisher.publishResult(
-						(String) withNull(),
-						anyString,
-						withEqual(nycPropertyOwner),
-						0,
-						(JSONLocation) withNull(),
-						(Integer) withNull());
-				$ = "Problem with page"; times = 1;
-				
-				// Find the first owner.
-				publisher.publishResult(
-						ownerName,
-						expectedOwner0,
-						withEqual(nycPropertyOwner.resolve("#/finds_many/0")),
-						0,
-						withEqual(nycPropertyOwner),
-						0);
-				$ = "Problem with first owner result"; times = 1;
-				
-				// Find the second owner.
-				publisher.publishResult(
-						ownerName,
-						expectedOwner1,
-						withEqual(nycPropertyOwner.resolve("#/finds_many/0")),
-						1,
-						withEqual(nycPropertyOwner),
-						0);
-				$ = "Problem with second owner result"; times = 1; 
+		final ScopeGenerator defaults = new ScopeGenerator();
+		final Hashtable<String, String> propertyDefaults = new Hashtable<String, String>();
+		propertyDefaults.put("Number", "373");
+		propertyDefaults.put("Street", "Atlantic Ave");
+		propertyDefaults.put("Borough", "3");
+		propertyDefaults.put("Apt", "");
+
+		new Expectations() {{
+			database.getScope(); result = defaults;
+		}};
+		
+		new NonStrictExpectations() {{
+			Enumeration<String> keys = propertyDefaults.keys();
+			while(keys.hasMoreElements()) {
+				String key = keys.nextElement();
+				database.get((Scope) any, key); result = propertyDefaults.get(key);
+				database.storeOneToOne((Scope) any, key, propertyDefaults.get(key));
 			}
-		};
+		}};
+				
+		scraper.scrape(nycPropertyOwner, propertyDefaults);
 		
-		testScrape(nycPropertyOwner, extraVariables);
+		new VerificationsInOrder() {{
+			database.storeOneToOne((Scope) with(defaults.matchFirst()), "http://webapps.nyc.gov:8084/CICS/fin1/find001I");
+			database.storeOneToMany((Scope) with(defaults.matchFirst()),
+					"Owner of 373 Atlantic Ave, Borough 3", "373 ATLANTIC AVENUE C"); times = 1;
+			database.storeOneToMany((Scope) with(defaults.matchFirst()),
+					"Owner of 373 Atlantic Ave, Borough 3", "373 ATLANTIC AVENUE CORPORATION"); times = 1;
+			
+		}};
 	}
-		
+		/*
 	@Test
 	public void testScrapeNYCIncentives() throws Exception {
 		BasicNameValuePair[] extraVariables = new BasicNameValuePair[] {

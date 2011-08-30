@@ -23,9 +23,16 @@ public class HashtableTemplate {
 		return table.size();
 	}
 	
-	public Execution sub(Scope scope) {
+	/**
+	 * Substitute this {@link HashtableTemplate} with values from {@link Database} accessible
+	 * to <code>sourceId</code>.
+	 * @param scope
+	 * @return An {@link Execution} whose {@link Execution#getExecuted()} object, if successful, is an
+	 * {@link Hashtable} with all names and values substituted from {@link Variables}.
+	 */
+	/*public Execution sub(Scope scope) {
 		return subEncoded(scope, null);
-	}
+	}*/
 	
 	/**
 	 * Substitute this {@link HashtableTemplate} with values from {@link Database} accessible
@@ -35,7 +42,7 @@ public class HashtableTemplate {
 	 * @return An {@link Execution} whose {@link Execution#getExecuted()} object, if successful, is an
 	 * {@link Hashtable} with all names and values substituted from {@link Variables}.
 	 */
-	public Execution subEncoded(Scope scope, Encoder encoder) {
+	public Execution sub(Scope scope) {
 		Execution[] componentExecutions = new Execution[table.size() * 2];
 		Hashtable subbedTable = new Hashtable();
 		Enumeration keys = table.keys();
@@ -44,19 +51,21 @@ public class HashtableTemplate {
 			Template key = (Template) keys.nextElement();
 			Template value = (Template) table.get(key);
 			Execution subbedKey;
-			if(encoder != null) {
+			subbedKey = key.sub(scope);
+			/*if(encoder != null) {
 				subbedKey = key.subEncoded(scope, encoder);
 			} else {
 				subbedKey = key.sub(scope);
-			}
+			}*/
 			componentExecutions[i] = subbedKey;
 			i++;
 			Execution subbedValue;
-			if(encoder != null) {
+			subbedValue = value.sub(scope);
+			/*if(encoder != null) {
 				subbedValue = value.subEncoded(scope, encoder);
 			} else {
-				subbedValue = value.subEncoded(scope, encoder);
-			}
+				subbedValue = value.sub(scope);
+			}*/
 			componentExecutions[i] = subbedValue;
 			i++;
 			if(subbedKey.isSuccessful() && subbedValue.isSuccessful()) {

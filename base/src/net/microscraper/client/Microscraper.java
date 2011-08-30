@@ -10,7 +10,7 @@ import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.InstructionPromise;
 import net.microscraper.instruction.InstructionRunner;
 import net.microscraper.instruction.Load;
-import net.microscraper.log.BasicLog;
+import net.microscraper.log.MultiLog;
 import net.microscraper.log.Loggable;
 import net.microscraper.log.Logger;
 import net.microscraper.template.Template;
@@ -22,7 +22,7 @@ import net.microscraper.template.Template;
  */
 public class Microscraper implements Loggable {	
 	private final String executionDir;
-	private final BasicLog log = new BasicLog();
+	private final MultiLog log = new MultiLog();
 	private final Deserializer deserializer;
 	private final Database database;
 	
@@ -90,5 +90,7 @@ public class Microscraper implements Loggable {
 
 	public void register(Logger logger) {
 		log.register(logger);
+		this.deserializer.register(logger);
+
 	}
 }

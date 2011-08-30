@@ -74,7 +74,8 @@ public class JavaNetCookieManager implements CookieManager {
 	
 	@Override
 	public String[] getCookie2sFor(String urlString, Hashtable requestHeaders) throws BadURLException, IOException {
-		return getCookiesFor(urlString, requestHeaders, COOKIE_2_HEADER_NAME);
+		//return getCookiesFor(urlString, requestHeaders, COOKIE_2_HEADER_NAME);
+		return new String[] {};
 	}
 
 	@Override

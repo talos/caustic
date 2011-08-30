@@ -13,6 +13,7 @@ import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.InstructionPromise;
 import net.microscraper.instruction.Load;
+import net.microscraper.log.Logger;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpUtils;
 import net.microscraper.template.HashtableTemplate;
@@ -506,5 +507,9 @@ public class JsonDeserializer implements Deserializer {
 		} catch (DeserializationException e) {
 			return Execution.deserializationException(e);
 		}
+	}
+
+	public void register(Logger logger) {
+		browser.register(logger);
 	}
 }

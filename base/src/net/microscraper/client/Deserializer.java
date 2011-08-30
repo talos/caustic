@@ -2,6 +2,7 @@ package net.microscraper.client;
 
 import net.microscraper.database.Database;
 import net.microscraper.database.Scope;
+import net.microscraper.log.Loggable;
 import net.microscraper.util.Execution;
 
 /**
@@ -9,7 +10,7 @@ import net.microscraper.util.Execution;
  * @author talos
  *
  */
-public interface Deserializer {
+public interface Deserializer extends Loggable {
 	/**
 	 * Generate an {@link Instruction} from a {@link String}.  The {@link Instruction}
 	 * is contained in the {@link Execution#getExecuted()} of the result.

@@ -183,7 +183,7 @@ public final class Load implements Action {
 					if(method.equalsIgnoreCase(HttpBrowser.POST)) {
 						String postDataStr;
 						if(postTable.size() > 0) {
-							Execution postsSub = postTable.subEncoded(scope, encoder);
+							Execution postsSub = postTable.sub(scope);
 							if(!postsSub.isSuccessful()) {
 								return Execution.missingVariables(postsSub.getMissingVariables());
 							} else {

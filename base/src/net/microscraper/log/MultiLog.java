@@ -5,17 +5,17 @@ import java.util.Vector;
 
 
 /**
- * A {@link BasicLog} is an implementation of {@link Loggable}
+ * A {@link MultiLog} is an implementation of {@link Loggable}
  * to coordinate many {@link Logger}s simultaneously through
  * {@link Logger}'s own methods.
  * <p>
  * All {@link Logger}s that are registered will receive
- * the {@link Logger} methods called on the {@link BasicLog}.
+ * the {@link Logger} methods called on the {@link MultiLog}.
  * @author talos
  * @see Logger
  *
  */
-public final class BasicLog implements Logger, Loggable {
+public final class MultiLog implements Logger, Loggable {
 	private final Vector loggers = new Vector();
 	public void register(Logger logger) {
 		loggers.addElement(logger);

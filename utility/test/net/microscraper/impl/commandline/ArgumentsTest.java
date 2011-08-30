@@ -30,9 +30,9 @@ public class ArgumentsTest {
 	
 	@Test
 	public void testHasArgumentWithoutValue() throws Exception {
-		Arguments args = new Arguments(new String[] { randomString(), OUTPUT_TO_FILE.toString() });
+		Arguments args = new Arguments(new String[] { randomString(), SAVE_TO_FILE.toString() });
 		
-		assertTrue(args.has(OUTPUT_TO_FILE));
+		assertTrue(args.has(SAVE_TO_FILE));
 	}
 
 	@Test

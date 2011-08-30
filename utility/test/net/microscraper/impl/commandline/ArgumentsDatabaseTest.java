@@ -35,7 +35,7 @@ public class ArgumentsDatabaseTest {
 	@Test
 	public void testDefaultsToSingleTableForNonSqlite() throws Exception {
 		new NonStrictExpectations() {{
-			args.has(OUTPUT_TO_FILE); result = true;
+			args.has(SAVE_TO_FILE); result = true;
 			args.get(OUTPUT_FORMAT_OPTION); result = CSV_OUTPUT_FORMAT_VALUE;
 		}};
 		ArgumentsDatabase.get(args);

@@ -60,7 +60,7 @@ public final class Arguments {
 	public static final Option DEFAULTS = Option.withDefault("defaults", "");
 	public static final Option INPUT = Option.withoutDefault("input");
 	public static final Option INPUT_COLUMN_DELIMITER = Option.withDefault("column-delimiter", ",");	
-	public static final Option LOG_FILE = Option.withoutDefault("log-file");	
+	public static final Option LOG_TO_FILE = Option.withDefault("log-to-file", TIMESTAMP + ".log");
 	public static final Option LOG_STDOUT = Option.withoutDefault("log-stdout");
 	public static final Option MAX_RESPONSE_SIZE = Option.withDefault("max-response-size", Integer.toString(HttpBrowser.DEFAULT_MAX_RESPONSE_SIZE));
 
@@ -80,7 +80,7 @@ public final class Arguments {
 	public static final char TAB_OUTPUT_COLUMN_DELIMITER = '\t';
 	public static final char CSV_OUTPUT_COLUMN_DELIMITER = ',';
 	
-	public static final Option OUTPUT_TO_FILE = Option.withoutDefault("output-to-file");
+	public static final Option SAVE_TO_FILE = Option.withDefault("save-to-file", TIMESTAMP);
 	public static final Option RATE_LIMIT = Option.withDefault("rate-limit", Integer.toString(RateLimitManager.DEFAULT_RATE_LIMIT));
 	public static final Option SINGLE_TABLE = Option.withoutDefault("single-table");
 	public static final Option TIMEOUT_MILLISECONDS = Option.withDefault("timeout", Integer.toString(HttpRequester.DEFAULT_TIMEOUT_MILLISECONDS));
@@ -96,7 +96,7 @@ public final class Arguments {
 "options:" + newline +
 "	" + BATCH_SIZE + "=<batch-size>" + newline +
 "		If saving to SQL, assigns the batch size.  " + newline +
-"		Defaults to " + BATCH_SIZE.getDefault() + newline +
+"		Defaults to " + StringUtils.quote(BATCH_SIZE.getDefault()) + newline +
 "	" + DEFAULTS + "=\"<defaults>\"" + newline +
 "		A form-encoded string of name value pairs to use as" + newline +
 "		defaults during execution." + newline +
@@ -104,29 +104,29 @@ public final class Arguments {
 "		Path to a file with any number of additional default" + newline +
 "		values.  Each row is executed separately.  The first" + newline +
 "		row contains column names." + newline +
-"		The default column delimiter is '"+ INPUT.getDefault() + "'." + newline +
-"	" + LOG_FILE + "[=<path>]" + newline +
+"		The default column delimiter is "+ StringUtils.quote(INPUT.getDefault()) + "." + newline +
+"	" + LOG_TO_FILE + "[=<path>]" + newline +
 "		Pipe the log to a file." + newline +
-"		Path is optional, defaults to 'yyyyMMddkkmmss.log' in the" + newline +
+"		Path is optional, defaults to " + StringUtils.quote(LOG_TO_FILE.getDefault())  + " in the" + newline +
 "		current directory." + newline +
 "	" + LOG_STDOUT + newline +
 "		Pipe the log to stdout." + newline +
 "	" + MAX_RESPONSE_SIZE + newline +
 "		How many KB of a response to load from a single request before " + newline +
-"		cutting off the response.  Defaults to " + MAX_RESPONSE_SIZE.getDefault() + "KB." + newline +
+"		cutting off the response.  Defaults to " + StringUtils.quote(MAX_RESPONSE_SIZE.getDefault()) + "KB." + newline +
 "	" + OUTPUT_FORMAT_OPTION + "=(" + StringUtils.join(validOutputFormats.toArray(new String[0]), "|") +")" + newline +
-"		How to format output.  Defaults to " + OUTPUT_FORMAT_OPTION.getDefault() + "." + newline +
-"	" + OUTPUT_TO_FILE + "[=<path>], " + newline +
-"		Where to save the output.  Defaults to 'yyyyMMddkkmmss.<format>' in" + newline +
+"		How to format output.  Defaults to " + StringUtils.quote(OUTPUT_FORMAT_OPTION.getDefault()) + "." + newline +
+"	" + SAVE_TO_FILE + "[=<path>], " + newline +
+"		Where to save the output.  Defaults to " + StringUtils.quote(SAVE_TO_FILE.getDefault()) + " in" + newline +
 "		the current directory output." + newline +
 "	" + RATE_LIMIT + "=<max-kbps>" + newline +
 "		The rate limit, in KBPS, for loading from a single host." + newline +
-"		Defaults to " + RATE_LIMIT.getDefault() + " KBPS." + newline +
+"		Defaults to " + StringUtils.quote(RATE_LIMIT.getDefault()) + " KBPS." + newline +
 "	" + SINGLE_TABLE + newline +
 "		Save all results to a single sqlite table, if using sqlite" + newline +
 "	" + TIMEOUT_MILLISECONDS + "=<timeout>" + newline +
 "		How many milliseconds to wait before giving up on a request." + newline + 
-"		Defaults to " + TIMEOUT_MILLISECONDS.getDefault() + " milliseconds.";
+"		Defaults to " + StringUtils.quote(TIMEOUT_MILLISECONDS.getDefault()) + " milliseconds.";
 	
 	private final Map<Option, String> arguments = new HashMap<Option, String>();
 	
@@ -155,17 +155,19 @@ public final class Arguments {
 	}
 	
 	public boolean has(Option option) {
-		if(option.hasDefault()) {
+		/*if(option.hasDefault()) {
 			throw new IllegalArgumentException(option + " has a default value, never need to question its existence.");
-		}
+		}*/
 		return arguments.containsKey(option);
 	}
 	
 	public String get(Option option) {
-		if(option.hasDefault() && !arguments.containsKey(option)) {
+		if(option.hasDefault() && arguments.get(option) == null) {
 			return option.getDefault();
-		} else {
+		} else if(arguments.get(option) != null) {
 			return arguments.get(option);
+		} else {
+			throw new IllegalArgumentException("Did not define value for " + StringUtils.quote(option));
 		}
 	}
 }

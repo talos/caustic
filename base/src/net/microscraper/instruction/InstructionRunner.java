@@ -5,7 +5,7 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 import net.microscraper.database.Scope;
-import net.microscraper.log.BasicLog;
+import net.microscraper.log.MultiLog;
 import net.microscraper.log.Loggable;
 import net.microscraper.log.Logger;
 import net.microscraper.util.Execution;
@@ -20,7 +20,7 @@ public class InstructionRunner implements Runnable, Loggable {
 	
 	private final Vector queue = new Vector();
 	private final Vector failedExecutables = new Vector();
-	private final BasicLog log = new BasicLog();
+	private final MultiLog log = new MultiLog();
 	
 	/**
 	 * 

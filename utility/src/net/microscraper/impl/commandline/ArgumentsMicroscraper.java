@@ -14,6 +14,7 @@ import net.microscraper.database.Database;
 import net.microscraper.database.SQLConnectionException;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.log.JavaIOFileLogger;
+import net.microscraper.log.Logger;
 import net.microscraper.log.SystemOutLogger;
 import net.microscraper.uri.MalformedUriException;
 import net.microscraper.util.Decoder;
@@ -60,8 +61,10 @@ public class ArgumentsMicroscraper {
 		scraper = BasicMicroscraper.get(database, rateLimit, timeout);
 
 		// Register logs.
-		if(args.has(LOG_FILE)) {
-			scraper.register(new JavaIOFileLogger(new File(args.get(LOG_FILE))));
+		if(args.has(LOG_TO_FILE)) {
+			Logger logger = new JavaIOFileLogger(new File(args.get(LOG_TO_FILE)));
+			logger.open();
+			scraper.register(logger);
 		}
 		if(args.has(LOG_STDOUT)) {
 			scraper.register(new SystemOutLogger());

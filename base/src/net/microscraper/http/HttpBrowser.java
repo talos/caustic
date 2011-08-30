@@ -6,7 +6,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.http.RateLimitManager;
-import net.microscraper.log.BasicLog;
+import net.microscraper.log.MultiLog;
 import net.microscraper.log.Loggable;
 import net.microscraper.log.Logger;
 import net.microscraper.regexp.Pattern;
@@ -51,7 +51,7 @@ public class HttpBrowser implements Loggable {
 	private final CookieManager cookieManager;
 	
 	private int maxResponseSize = HttpBrowser.DEFAULT_MAX_RESPONSE_SIZE;
-	private final BasicLog log = new BasicLog();
+	private final MultiLog log = new MultiLog();
 
 	/**
 	 * Add generic headers.
@@ -100,6 +100,7 @@ public class HttpBrowser implements Loggable {
 	 */
 	private InputStreamReader request(String method, String urlStr, Hashtable headers, String postData, Vector redirectsFollowed)
 			throws InterruptedException, IOException {
+		log.i("Requesting " + method + " from " + StringUtils.quote(urlStr));
 		
 		// Merge in generic headers.
 		headers = HashtableUtils.combine(new Hashtable[] { getGenericHeaders(urlStr), headers });
@@ -108,12 +109,17 @@ public class HttpBrowser implements Loggable {
 		try {
 			String[] cookies = cookieManager.getCookiesFor(urlStr, headers);
 			String[] cookie2s = cookieManager.getCookie2sFor(urlStr, headers);
-
-			headers.put(CookieManager.COOKIE_HEADER_NAME, StringUtils.join(cookies, "; "));
-			headers.put(CookieManager.COOKIE_2_HEADER_NAME, StringUtils.join(cookie2s, "; "));
+			
+			if(cookies.length > 0) {
+				headers.put(CookieManager.COOKIE_HEADER_NAME, StringUtils.join(cookies, "; "));
+			}
+			if(cookie2s.length > 0) {
+				headers.put(CookieManager.COOKIE_2_HEADER_NAME, StringUtils.join(cookie2s, "; "));
+			}
 		} catch(BadURLException e) {
-			throw new IOException(e);
+			throw new IOException("Bad URL for adding cookie: " + e);
 		}
+		log.i("All headers: " + StringUtils.quote(headers));
 		
 		HttpResponse response;
 		if(method.equals(HEAD)) {
@@ -122,6 +128,8 @@ public class HttpBrowser implements Loggable {
 			response = requester.get(urlStr, headers);
 		} else {
 			response = requester.post(urlStr, headers, postData);
+			log.i("Post data: " + StringUtils.quote(postData));
+
 		}
 		
 		// Add cookies from the response.

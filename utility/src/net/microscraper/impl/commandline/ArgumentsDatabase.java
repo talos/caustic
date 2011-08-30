@@ -1,5 +1,6 @@
 package net.microscraper.impl.commandline;
 
+
 import java.io.IOException;
 
 import net.microscraper.database.Database;
@@ -39,8 +40,8 @@ public class ArgumentsDatabase {
 		}
 		
 		// Set up output and databases.
-		if(args.has(OUTPUT_TO_FILE)) {
-			String outputLocation = args.get(OUTPUT_TO_FILE);
+		if(args.has(SAVE_TO_FILE)) {
+			String outputLocation = args.get(SAVE_TO_FILE);
 			if(outputLocation == null) {
 				outputLocation = TIMESTAMP + "." + format;
 			}

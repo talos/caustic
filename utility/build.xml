@@ -13,6 +13,7 @@
             <fileset dir="../implementation/regexp-javautil/bin"/>
             <fileset dir="../implementation/sqlite-jdbc/bin"/>
             <zipfileset excludes="META-INF/*.SF" src="../implementation/sqlite-jdbc/lib/sqlitejdbc-v056/sqlitejdbc-v056.jar"/>
+            <fileset dir="../implementation/uuid-javautil/bin"/>
             <fileset dir="../implementation/json-me/bin"/>
             <fileset dir="../implementation/javanet/bin"/>
         </jar>

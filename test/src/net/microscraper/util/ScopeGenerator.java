@@ -13,7 +13,7 @@ import net.microscraper.database.Scope;
  */
 public class ScopeGenerator implements Iterator<Scope> {
 	private final List<Scope> scopes = new ArrayList<Scope>();
-	private final UUIDFactory factory = new IntUUIDFactory();
+	private final UUIDFactory factory = new JavaUtilUUIDFactory();
 	
 	/**
 	 * Always <code>true</code>.
@@ -43,13 +43,6 @@ public class ScopeGenerator implements Iterator<Scope> {
 		return scopes.size();
 	}
 
-	/**
-	 * 
-	 * @return The first value in the {@link ScopeGenerator}.
-	 */
-	public Scope first() {
-		return scopes.get(0);
-	}
 	
 	/**
 	 * 
@@ -61,9 +54,28 @@ public class ScopeGenerator implements Iterator<Scope> {
 	
 	/**
 	 * 
-	 * @return The last value in the {@link ScopeGenerator}.
+	 * @return An {@link Object} that can be used as a jmockit argument matcher against the first
+	 * {@link Scope} created by this {@link ScopeGenerator}.
 	 */
-	/*public int last() {
-		return start + cnt;
-	}*/
+	public Object matchFirst() {
+		return new Object() {
+			public boolean isValid(Scope scope) {
+				return scope.equals(scopes.get(0));
+			}
+		};
+	}
+	
+
+	/**
+	 * 
+	 * @return An {@link Object} that can be used as a jmockit argument matcher against any
+	 * {@link Scope} created by this {@link ScopeGenerator}.
+	 */
+	public Object matchWithin() {
+		return new Object() {
+			public boolean isValid(Scope scope) {
+				return scopes.contains(scope);
+			}
+		};
+	}
 }

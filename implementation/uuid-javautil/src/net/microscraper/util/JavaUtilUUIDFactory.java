@@ -1,5 +1,8 @@
 package net.microscraper.util;
 
+import net.microscraper.util.UUID;
+import net.microscraper.util.UUIDFactory;
+
 public class JavaUtilUUIDFactory implements UUIDFactory {
 
 	@Override

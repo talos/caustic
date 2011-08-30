@@ -14,12 +14,7 @@ import java.util.Date;
  *
  */
 public abstract class BasicLogger implements Logger {
-
-	/**
-	 * The cutoff for the length of a single entry.
-	 */
-	//private static final int MAX_ENTRY_LENGTH = 512;
-
+	
 	/**
 	 * Protected method to write formatted log text to wherever the subclass 
 	 * is directing output.
