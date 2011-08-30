@@ -15,15 +15,4 @@ public interface UpdateableConnection extends InsertableConnection {
 	public abstract Updateable getIOTable(String name, String[] textColumns)
 			throws IOException;
 
-	/**
-	 * Open the {@link UpdateableConnection}.
-	 * @throws IOException If there is a problem opening the {@link UpdateableConnection}.
-	 */
-	public abstract void open() throws IOException;
-
-	/**
-	 * Close the {@link UpdateableConnection}.
-	 * @throws IOException If there is a problem closing the {@link UpdateableConnection}.
-	 */
-	public abstract void close() throws IOException;
 }

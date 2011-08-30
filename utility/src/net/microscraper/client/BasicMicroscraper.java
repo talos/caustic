@@ -43,27 +43,7 @@ public class BasicMicroscraper {
 	 */
 	public static Microscraper get(Database database, int rateLimit, int timeout) throws IOException {
 		try {
-			HttpRequester requester = new JavaNetHttpRequester();
-			requester.setTimeout(timeout);
 			
-			RateLimitManager memory = new RateLimitManager(new JavaNetHttpUtils(), rateLimit);
-			
-			HttpBrowser browser = new HttpBrowser(new JavaNetHttpRequester(),
-					memory, new JavaNetCookieManager());
-			
-			String executionDir = new File(System.getProperty("user.dir")).toURI().toString();
-			if(!executionDir.endsWith("/")) {
-				executionDir += "/";
-			}
-			
-			RegexpCompiler compiler = new JavaUtilRegexpCompiler();
-			URILoader uriLoader = new JavaNetURILoader(browser, new JavaIOFileLoader());
-			UriResolver uriResolver = new JavaNetUriResolver();
-			JsonParser parser = new JsonMEParser();
-			Encoder encoder = new JavaNetEncoder(Encoder.UTF_8);
-			Deserializer deserializer = new JsonDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
-			Microscraper scraper = new Microscraper(deserializer, database, executionDir);
-			return scraper;
 		} catch(MalformedUriException e) {
 			throw new IOException(e);
 		}
