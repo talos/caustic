@@ -1,6 +1,5 @@
 package net.microscraper.util;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -13,10 +12,8 @@ public class HashtableUtils {
 	 * @param encoder The {@link Encoder} to use for encoding.
 	 * @param hashtable A {@link String} to {@link String} {@link Hashtable}.
 	 * @return A {@link HashtableDatabase}.
-	 * @throws IOException If values could not be persisted to <code>database</code>.
 	 */
-	public static String toFormEncoded(Encoder encoder, Hashtable hashtable)
-			throws IOException {
+	public static String toFormEncoded(Encoder encoder, Hashtable hashtable) {
 
 		String result = "";
 		Enumeration keys = hashtable.keys();
@@ -39,10 +36,9 @@ public class HashtableUtils {
 	 * @param formEncodedData A {@link String} of form-encoded data to convert.  It must be 
 	 * correctly formatted.
 	 * @return A {@link Hashtable}.
-	 * @throws IOException If values could not be persisted to <code>database</code>.
 	 */
 	public static Hashtable fromFormEncoded(Decoder decoder, String formEncodedData)
-			throws UnsupportedEncodingException, IOException {
+			throws UnsupportedEncodingException {
 		String[] splitByAmpersands = StringUtils.split(formEncodedData, "&");
 		Hashtable result = new Hashtable();
 		for(int i = 0 ; i < splitByAmpersands.length; i++) {

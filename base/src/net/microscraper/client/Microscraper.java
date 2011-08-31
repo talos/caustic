@@ -37,27 +37,25 @@ public class Microscraper implements Loggable {
 		this.deserializer = deserializer;
 		this.database = database;
 		this.executionDir = executionDir;
+		this.deserializer.register(log); // receive Browser logs
 	}
 	
-	private void scrape(String instructionString, Hashtable[] defaultsHashes, String source) throws IOException {
+	private void scrape(String instructionString, Hashtable defaults, String source) throws IOException {
 		InstructionPromise promise = new InstructionPromise(deserializer, database, instructionString, executionDir);
-		for(int i = 0 ; i < defaultsHashes.length ; i ++) {
-			Hashtable defaults = defaultsHashes[i];
 			
-			// Use a fresh database scope.
-			Scope scope = database.getDefaultScope();
-			
-			// Store default values in database
-			Enumeration keys = defaults.keys();
-			while(keys.hasMoreElements()) {
-				String key = (String) keys.nextElement();
-				database.storeOneToOne(scope, key, (String) defaults.get(key));
-			}
-			
-			InstructionRunner runner = new InstructionRunner(promise, scope, source);
-			runner.register(log);
-			runner.run();
+		// Use a fresh database scope.
+		Scope scope = database.getDefaultScope();
+		
+		// Store default values in database
+		Enumeration keys = defaults.keys();
+		while(keys.hasMoreElements()) {
+			String key = (String) keys.nextElement();
+			database.storeOneToOne(scope, key, (String) defaults.get(key));
 		}
+		
+		InstructionRunner runner = new InstructionRunner(promise, scope, source);
+		runner.register(log);
+		runner.run();
 	}
 	
 	/**
@@ -65,7 +63,7 @@ public class Microscraper implements Loggable {
 	 * @param serializedString A {@link String} with a {@link Load} serialized in JSON.
 	 */
 	public void scrape(String serializedString) throws IOException {
-		scrape(serializedString, new Hashtable[] { new Hashtable() }, null);
+		scrape(serializedString, new Hashtable(), null);
 	}
 	
 	/**
@@ -75,22 +73,10 @@ public class Microscraper implements Loggable {
 	 * <code>serializedString</code> {@link Template} tags.
 	 */
 	public void scrape(String serializedString, Hashtable defaults) throws IOException  {
-		scrape(serializedString, new Hashtable[] { defaults }, null );
-	}
-	
-	/**
-	 * Scrape from a {@link Load} in a serialized String.
-	 * @param serializedString A {@link String} with a {@link Load} serialized in JSON.
-	 * @param defaultsArray An array of {@link Hashtable}s.  Each maps {@link String}s to {@link String}s to substitute in 
-	 * <code>serializedString</code> {@link Template} tags.
-	 */
-	public void scrape(String serializedString, Hashtable[] defaultsArray) throws IOException  {
-		scrape(serializedString, defaultsArray, null);
+		scrape(serializedString, defaults, null);
 	}
 
 	public void register(Logger logger) {
 		log.register(logger);
-		this.deserializer.register(logger);
-
 	}
 }

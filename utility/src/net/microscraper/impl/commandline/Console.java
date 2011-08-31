@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,6 +28,26 @@ import net.microscraper.uri.MalformedUriException;
  *
  */
 public class Console {
+	private static void openLoggers(List<Logger> loggers) {
+		for(Logger logger : loggers) {
+			try {
+				logger.open();
+			} catch (IOException e) {
+				System.out.println("Could not open logger " + logger + ": " + e.getMessage());
+			}
+		}
+	}
+	
+	private static void closeLoggers(List<Logger> loggers) {
+		for(Logger logger : loggers) {
+			try {
+				logger.close();
+			} catch (IOException e) {
+				System.out.println("Could not close logger " + logger + ": " + e.getMessage());
+			}
+		}
+	}
+	
 	public static void main (String[] stringArgs) {
 		try {
 			Arguments arguments = new Arguments(stringArgs);
@@ -36,22 +57,28 @@ public class Console {
 			Database database = arguments.getDatabase();
 			String executionDir = arguments.getExecutionDir();
 			List<Logger> loggers = arguments.getLoggers();
+			String instructionSerialized = arguments.getInstruction();
+			Hashtable<String, String> defaults = arguments.getDefaults();
 			try {
 				
 				database.open();
 				Microscraper scraper = new Microscraper(deserializer, database, executionDir);				
 				
-				Iterator<Logger> iter = loggers.iterator();
-				while(iter.hasNext()) {
-					Logger logger = iter.next();
-					logger.open();
+				openLoggers(loggers);
+				for(Logger logger : loggers) {
 					scraper.register(logger);
 				}
-				for (Logger logger : loggers) {
-					
-				}
+				
+				scraper.scrape(instructionSerialized, defaults);
+			} catch(IOException e) {
+				// could not open database
 			} finally {
-				database.close();
+				closeLoggers(loggers);
+				try {
+					database.close();
+				} catch(IOException e) {
+					System.out.println("Could not close database: " + e.getMessage());
+				}
 			}
 		} catch(UnsupportedEncodingException e) {
 			System.out.println("Your computer does not support the required encoding: " + e.getMessage());
@@ -60,63 +87,4 @@ public class Console {
 			System.out.println(Arguments.USAGE);
 		}
 	}
-	
-	private static Scraper getScraper(Arguments args) {	
-		try {
-			
-			// Register logs.
-			if(args.has(LOG_TO_FILE)) {
-				Logger logger = new JavaIOFileLogger(new File(args.get(LOG_TO_FILE)));
-				logger.open();
-				scraper.register(logger);
-			}
-			if(args.has(LOG_STDOUT)) {
-				scraper.register(new SystemOutLogger());
-			}
-			return scraper;
-		} catch(IllegalArgumentException e) {
-			print(e.getMessage());
-			print(Arguments.USAGE);
-		} catch(FileNotFoundException e) {
-			print("Could not find the input file: " + e.getMessage());
-		} catch(SQLConnectionException e) {
-			print("Could not open connection to SQL: " + e.getMessage());
-		} catch(UnsupportedEncodingException e) {
-			print("Unsupported encoding: " + e.getMessage());
-		} catch(IOException e) {
-			print("Could not open log file: " + e.getMessage());
-		} 
-		return null;
-	}
-
-	/*
-	@SuppressWarnings("unchecked")
-	public void scrape() throws IOException, InterruptedException, DeserializationException, MalformedUriException { 		
-		// Run (handle inputs)
-		if(args.has(INPUT)) {
-			char inputColumnDelimiter;
-			String delim = args.get(INPUT_COLUMN_DELIMITER);
-			if(delim.length() > 1) {
-				throw new IllegalArgumentException(INPUT_COLUMN_DELIMITER + " must be a single character.");
-			}
-			inputColumnDelimiter = delim.charAt(0);
-			CSVReader input = new CSVReader(new FileReader(args.get(INPUT)), inputColumnDelimiter);
-			
-			String[] headers = input.readNext();
-			String[] values;
-			while((values = input.readNext()) != null) {
-				Hashtable<String, String> lineDefaults = new Hashtable<String, String>();
-				for(int i = 0 ; i < values.length ; i ++) {
-					lineDefaults.put(headers[i], values[i]);
-				}
-				scrape(HashtableUtils.combine(new Hashtable[] { defaults, lineDefaults }));
-			}
-		} else {
-			scrape(defaults);
-		}
-	}
-	
-	private void scrape(Hashtable<String, String> defaults) throws InterruptedException, IOException, DeserializationException, MalformedUriException {
-		scraper.scrape(args.get(INSTRUCTION), defaults);
-	}*/
 }

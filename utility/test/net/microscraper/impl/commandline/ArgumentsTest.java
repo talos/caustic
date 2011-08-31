@@ -23,9 +23,9 @@ public class ArgumentsTest {
 	public void testHasArgumentWithValue() throws Exception {
 		int batchSize = randomInt();
 		
-		Arguments args = new Arguments(new String[] { randomString(), INPUT + "=" + batchSize });
+		Arguments args = new Arguments(new String[] { randomString(), INPUT_FILE + "=" + batchSize });
 		
-		assertTrue(args.has(INPUT));
+		assertTrue(args.has(INPUT_FILE));
 	}
 	
 	@Test

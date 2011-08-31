@@ -34,11 +34,11 @@ public class ArgumentsMicroscraperTest {
 		String defaults = randomString();
 		
 		Arguments withQuotes = new Arguments(new String[] { randomString(),
-				DEFAULTS + "=" + '"' + defaults + '"' });
+				INPUT + "=" + '"' + defaults + '"' });
 		Arguments withoutQuotes = new Arguments(new String[] { randomString(),
-				DEFAULTS + "=" + defaults });
+				INPUT + "=" + defaults });
 		
-		assertEquals(withoutQuotes.get(DEFAULTS), withQuotes.get(DEFAULTS));
+		assertEquals(withoutQuotes.get(INPUT), withQuotes.get(INPUT));
 	}
 	
 	@Test(expected=IllegalArgumentException.class)

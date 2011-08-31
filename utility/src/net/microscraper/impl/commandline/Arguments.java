@@ -1,28 +1,26 @@
 package net.microscraper.impl.commandline;
 
-import static net.microscraper.impl.commandline.Arguments.LOG_STDOUT;
-import static net.microscraper.impl.commandline.Arguments.LOG_TO_FILE;
-
 import java.io.File;
-import java.io.IOException;
+import java.io.FileReader;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import au.com.bytecode.opencsv.CSVReader;
+
 import net.microscraper.client.Deserializer;
-import net.microscraper.client.Microscraper;
 import net.microscraper.database.Database;
 import net.microscraper.database.DelimitedConnection;
 import net.microscraper.database.HashtableDatabase;
-import net.microscraper.database.InsertableConnection;
 import net.microscraper.database.JDBCSqliteConnection;
 import net.microscraper.database.MultiTableDatabase;
-import net.microscraper.database.SQLConnectionException;
 import net.microscraper.database.SingleTableDatabase;
 import net.microscraper.database.UpdateableConnection;
 import net.microscraper.file.JavaIOFileLoader;
@@ -43,8 +41,11 @@ import net.microscraper.uri.JavaNetURILoader;
 import net.microscraper.uri.JavaNetUriResolver;
 import net.microscraper.uri.URILoader;
 import net.microscraper.uri.UriResolver;
+import net.microscraper.util.Decoder;
 import net.microscraper.util.Encoder;
+import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.IntUUIDFactory;
+import net.microscraper.util.JavaNetDecoder;
 import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.util.JavaNetHttpUtils;
 import net.microscraper.util.JavaUtilUUIDFactory;
@@ -58,8 +59,8 @@ public final class Arguments {
 	public static final Option INSTRUCTION = Option.withoutDefault("instruction");
 	
 	public static final Option BATCH_SIZE = Option.withDefault("batch-size", "100");
-	public static final Option DEFAULTS = Option.withDefault("defaults", "");
-	public static final Option INPUT = Option.withoutDefault("input");
+	public static final Option INPUT = Option.withDefault("input", "");
+	public static final Option INPUT_FILE = Option.withoutDefault("input-file");
 	public static final Option INPUT_COLUMN_DELIMITER = Option.withDefault("column-delimiter", ",");	
 	public static final Option LOG_TO_FILE = Option.withDefault("log-to-file", TIMESTAMP + ".log");
 	public static final Option LOG_STDOUT = Option.withoutDefault("log-stdout");
@@ -98,14 +99,14 @@ public final class Arguments {
 "	" + BATCH_SIZE + "=<batch-size>" + newline +
 "		If saving to SQL, assigns the batch size.  " + newline +
 "		Defaults to " + StringUtils.quote(BATCH_SIZE.getDefault()) + newline +
-"	" + DEFAULTS + "=\"<defaults>\"" + newline +
+"	" + INPUT + "=\"<defaults>\"" + newline +
 "		A form-encoded string of name value pairs to use as" + newline +
-"		defaults during execution." + newline +
-"	" + INPUT + "=<path> [" + INPUT_COLUMN_DELIMITER + "=<delimiter>]" + newline +
-"		Path to a file with any number of additional default" + newline +
+"		a single input during execution." + newline +
+"	" + INPUT_FILE + "=<path> [" + INPUT_COLUMN_DELIMITER + "=<delimiter>]" + newline +
+"		Path to a file with any number of additional input" + newline +
 "		values.  Each row is executed separately.  The first" + newline +
 "		row contains column names." + newline +
-"		The default column delimiter is "+ StringUtils.quote(INPUT.getDefault()) + "." + newline +
+"		The default column delimiter is "+ StringUtils.quote(INPUT_FILE.getDefault()) + "." + newline +
 "	" + LOG_TO_FILE + "[=<path>]" + newline +
 "		Pipe the log to a file." + newline +
 "		Path is optional, defaults to " + StringUtils.quote(LOG_TO_FILE.getDefault())  + " in the" + newline +
@@ -165,9 +166,9 @@ public final class Arguments {
 		}
 		
 		// Fix quotations on default values.
-		String possiblyQuotedDefaults = get(DEFAULTS);
+		String possiblyQuotedDefaults = get(INPUT);
 		if(possiblyQuotedDefaults.startsWith("\"") && possiblyQuotedDefaults.endsWith("\"")) {
-			arguments.put(DEFAULTS, possiblyQuotedDefaults.substring(1, possiblyQuotedDefaults.length() - 2));
+			arguments.put(INPUT, possiblyQuotedDefaults.substring(1, possiblyQuotedDefaults.length() - 2));
 		}
 	}
 	
@@ -207,7 +208,6 @@ public final class Arguments {
 		Deserializer deserializer = new JsonDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
 		
 		return deserializer;
-		//defaults = HashtableUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), args.get(DEFAULTS));
 	
 	}
 	
@@ -285,5 +285,74 @@ public final class Arguments {
 			loggers.add(new SystemOutLogger());
 		}
 		return loggers;
+	}
+	
+	/**
+	 * 
+	 * @return The serialized instruction {@link String}.
+	 * @throws ArgumentsException
+	 */
+	public String getInstruction() throws ArgumentsException {
+		return get(INSTRUCTION);
+	}
+	/*
+	@SuppressWarnings("unchecked")
+	public Hashtable<String, String> getDefaults() throws ArgumentsException, UnsupportedEncodingException {
+		return HashtableUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), get(DEFAULTS));
+	}*/
+	
+	/**
+	 * 
+	 * @return An {@link Iterator} whose elements are {@link Hashtable}s that can be used
+	 * as input for {@link Microscraper}.
+	 */
+	public Iterator<Hashtable<String, String>> getInput() throws ArgumentsException {
+		if(has(INPUT)) {
+			char inputColumnDelimiter;
+			String delim = get(INPUT_COLUMN_DELIMITER);
+			if(delim.length() > 1) {
+				throw new ArgumentsException(INPUT_COLUMN_DELIMITER + " must be a single character.");
+			}
+			inputColumnDelimiter = delim.charAt(0);
+			CSVReader input = new CSVReader(new FileReader(get(INPUT)), inputColumnDelimiter);
+			
+			String[] headers = input.readNext();
+			String[] values;
+			while((values = input.readNext()) != null) {
+				Hashtable<String, String> lineDefaults = new Hashtable<String, String>();
+				for(int i = 0 ; i < values.length ; i ++) {
+					lineDefaults.put(headers[i], values[i]);
+				}
+				scrape(HashtableUtils.combine(new Hashtable[] { defaults, lineDefaults }));
+			}
+		} else {
+			scrape(defaults);
+		}
+		return new Iterator<Hashtable<String, String>>() {
+				// TODO Auto-generated method stub
+				return new Iterator<Hashtable<String, String>>() {
+
+					@Override
+					public boolean hasNext() {
+						// TODO Auto-generated method stub
+						return false;
+					}
+
+					@Override
+					public Hashtable<String, String> next() {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public void remove() {
+						// TODO Auto-generated method stub
+						
+					}
+					
+				};
+			}
+			
+		};
 	}
 }
