@@ -2,6 +2,7 @@ package net.microscraper.impl.commandline;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -295,64 +297,24 @@ public final class Arguments {
 	public String getInstruction() throws ArgumentsException {
 		return get(INSTRUCTION);
 	}
-	/*
-	@SuppressWarnings("unchecked")
-	public Hashtable<String, String> getDefaults() throws ArgumentsException, UnsupportedEncodingException {
-		return HashtableUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), get(DEFAULTS));
-	}*/
 	
 	/**
 	 * 
-	 * @return An {@link Iterator} whose elements are {@link Hashtable}s that can be used
+	 * @return An {@link Input} whose elements are {@link Hashtable}s that can be used
 	 * as input for {@link Microscraper}.
 	 */
-	public Iterator<Hashtable<String, String>> getInput() throws ArgumentsException {
-		if(has(INPUT)) {
-			char inputColumnDelimiter;
-			String delim = get(INPUT_COLUMN_DELIMITER);
-			if(delim.length() > 1) {
+	public Input getInput() throws ArgumentsException, UnsupportedEncodingException {
+		Hashtable<String, String> shared =
+				HashtableUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), get(INPUT));
+		
+		if(has(INPUT_FILE)) {
+			if(get(INPUT_COLUMN_DELIMITER).length() > 1) {
 				throw new ArgumentsException(INPUT_COLUMN_DELIMITER + " must be a single character.");
 			}
-			inputColumnDelimiter = delim.charAt(0);
-			CSVReader input = new CSVReader(new FileReader(get(INPUT)), inputColumnDelimiter);
-			
-			String[] headers = input.readNext();
-			String[] values;
-			while((values = input.readNext()) != null) {
-				Hashtable<String, String> lineDefaults = new Hashtable<String, String>();
-				for(int i = 0 ; i < values.length ; i ++) {
-					lineDefaults.put(headers[i], values[i]);
-				}
-				scrape(HashtableUtils.combine(new Hashtable[] { defaults, lineDefaults }));
-			}
+			char inputColumnDelimiter = get(INPUT_COLUMN_DELIMITER).charAt(0);
+			return new Input(shared, get(INPUT_FILE), inputColumnDelimiter);
 		} else {
-			scrape(defaults);
+			return new Input(shared);
 		}
-		return new Iterator<Hashtable<String, String>>() {
-				// TODO Auto-generated method stub
-				return new Iterator<Hashtable<String, String>>() {
-
-					@Override
-					public boolean hasNext() {
-						// TODO Auto-generated method stub
-						return false;
-					}
-
-					@Override
-					public Hashtable<String, String> next() {
-						// TODO Auto-generated method stub
-						return null;
-					}
-
-					@Override
-					public void remove() {
-						// TODO Auto-generated method stub
-						
-					}
-					
-				};
-			}
-			
-		};
 	}
 }

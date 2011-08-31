@@ -58,27 +58,49 @@ public class Console {
 			String executionDir = arguments.getExecutionDir();
 			List<Logger> loggers = arguments.getLoggers();
 			String instructionSerialized = arguments.getInstruction();
-			Hashtable<String, String> defaults = arguments.getDefaults();
+			Input input = arguments.getInput();
 			try {
-				
 				database.open();
-				Microscraper scraper = new Microscraper(deserializer, database, executionDir);				
-				
-				openLoggers(loggers);
-				for(Logger logger : loggers) {
-					scraper.register(logger);
-				}
-				
-				scraper.scrape(instructionSerialized, defaults);
 			} catch(IOException e) {
-				// could not open database
-			} finally {
-				closeLoggers(loggers);
-				try {
-					database.close();
-				} catch(IOException e) {
-					System.out.println("Could not close database: " + e.getMessage());
+				System.out.println("Could not open database: " + e.getMessage());
+				return;
+			}
+			
+			Microscraper scraper = new Microscraper(deserializer, database, executionDir);				
+			
+			openLoggers(loggers);
+			for(Logger logger : loggers) {
+				scraper.register(logger);
+			}
+			
+			try {
+				input.open();
+			} catch(IOException e) {
+				System.out.println("Could not open input: " + e.getMessage());
+				return;
+			}
+			
+			try {
+				Hashtable<String, String> inputRow;
+				while((inputRow = input.next()) != null) {
+					scraper.scrape(instructionSerialized, inputRow);
 				}
+			} catch(IOException  e) {
+				System.out.println("Could not read input row: " + e.getMessage());
+				return;
+			}
+			
+			closeLoggers(loggers);
+			try {
+				database.close();
+			} catch(IOException e) {
+				System.out.println("Could not close database: " + e.getMessage());
+			}
+			
+			try {
+				input.close();
+			} catch(IOException e) {
+				
 			}
 		} catch(UnsupportedEncodingException e) {
 			System.out.println("Your computer does not support the required encoding: " + e.getMessage());

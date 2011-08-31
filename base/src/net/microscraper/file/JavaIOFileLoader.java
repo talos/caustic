@@ -20,6 +20,7 @@ public class JavaIOFileLoader implements FileLoader {
 		FileReader fileReader = new FileReader(file);
 		char[] buffer = new char[(int) file.length()];  
 		fileReader.read(buffer);
+		fileReader.close();
 		return new String(buffer);		
 	}
 }
