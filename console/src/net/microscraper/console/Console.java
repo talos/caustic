@@ -36,20 +36,21 @@ public class Console {
 		// Extract implementations from arguments, exit if there's a bad argument or this
 		// system does not support the encoding.
 		try {
-			Arguments arguments = new Arguments(stringArgs);
-			Deserializer deserializer = arguments.getDeserializer();
-			database = arguments.getDatabase();
-			String executionDir = arguments.getExecutionDir();
-			instructionSerialized = arguments.getInstruction();
-			loggers = arguments.getLoggers();
-			input = arguments.getInput();
+			ConsoleOptions options = new ConsoleOptions(stringArgs);
+			Deserializer deserializer = options.getDeserializer();
+			database = options.getDatabase();
+			String executionDir = options.getExecutionDir();
+			instructionSerialized = options.getInstruction();
+			loggers = options.getLoggers();
+			input = options.getInput();
 			scraper = new Microscraper(deserializer, database, executionDir);
 		} catch(InvalidOptionException e) {
 			println(e.getMessage());
-			println(Arguments.USAGE);
+			println("");
+			println(options.getUsage());
 			return;
 		} catch(UnsupportedEncodingException e) {
-			System.out.println("Your computer does not support the required encoding: " + e.getMessage());
+			println("Your computer does not support the required encoding: " + e.getMessage());
 			return;
 		}
 		

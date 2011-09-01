@@ -81,7 +81,6 @@ public class HashtableDatabase implements Database {
 		return result;
 	}
 	
-	
 	public Scope getDefaultScope() throws IOException {
 		
 		Scope scope = Scope.getDefault(uuidFactory.get());

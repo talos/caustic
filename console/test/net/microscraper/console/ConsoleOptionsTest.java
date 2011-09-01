@@ -1,67 +1,83 @@
 package net.microscraper.console;
 
-import static net.microscraper.console.Arguments.*;
+import static net.microscraper.console.ConsoleOptions.*;
 import static net.microscraper.util.TestUtils.*;
-import net.microscraper.console.Arguments;
+import static org.junit.Assert.*;
+
+import java.util.Hashtable;
+
+import net.microscraper.console.ConsoleOptions;
 import net.microscraper.console.InvalidOptionException;
+import net.microscraper.util.Encoder;
+import net.microscraper.util.HashtableUtils;
+import net.microscraper.util.JavaNetEncoder;
 
 import org.junit.Test;
 
-public class ArgumentsTest {
+public class ConsoleOptionsTest {
 
 	@Test(expected=InvalidOptionException.class)
 	public void testArgumentsNeedsOneArgument() throws Exception {
-		new Arguments(new String[] {});
+		new ConsoleOptions(new String[] {});
 	}
 	
 	@Test(expected=InvalidOptionException.class)
 	public void testArgumentsFailsOnUnknownArgument()  throws Exception {
-		new Arguments(new String[] {"not", "options=bleh"});
+		new ConsoleOptions(new String[] {"not", "options=bleh"});
 	}
 	
 
 	@Test(expected=InvalidOptionException.class)
 	public void testBatchSizeMustBeInt() throws Exception {
 		String notAnInt = randomString();
-		Arguments arguments =new Arguments(new String[] { randomString(),
+		ConsoleOptions arguments =new ConsoleOptions(new String[] { randomString(),
 				BATCH_SIZE + "=" + notAnInt,
 				SAVE_TO_FILE.toString(),
-				OUTPUT_FORMAT_OPTION.toString() + "=" + SQLITE_OUTPUT_FORMAT_VALUE});
+				FORMAT.toString() + "=" + SQLITE_FORMAT});
 		arguments.getDatabase();
 	}
 	
 	@Test(expected=InvalidOptionException.class)
 	public void testBatchSizeOnlyWithSQLOutput() throws Exception {
-		Arguments arguments = new Arguments(new String[] { randomString(),
+		ConsoleOptions arguments = new ConsoleOptions(new String[] { randomString(),
 				BATCH_SIZE + "=" + randomInt(),
-				OUTPUT_FORMAT_OPTION.toString() + "=" + CSV_OUTPUT_FORMAT_VALUE});
+				FORMAT.toString() + "=" + CSV_FORMAT});
 		
 		arguments.getDatabase();
 	}
-	/*
+	
 	@Test
-	public void testDefaultsAreTheSameWithQuotesOrWithout() {
-		String defaults = randomString();
+	public void testDefaultsAreTheSameWithQuotesOrWithout() throws Exception {
+		Hashtable<String, String> origHash = new Hashtable<String, String>();
+		for(int i = 0 ; i < 10 ; i ++) {
+			origHash.put(randomString(), randomString());
+		}
 		
-		Arguments withQuotes = new Arguments(new String[] { randomString(),
+		String defaults = HashtableUtils.toFormEncoded(new JavaNetEncoder(Encoder.UTF_8), origHash);
+		
+		ConsoleOptions withQuotes = new ConsoleOptions(new String[] { randomString(),
 				INPUT + "=" + '"' + defaults + '"' });
-		Arguments withoutQuotes = new Arguments(new String[] { randomString(),
+		ConsoleOptions withoutQuotes = new ConsoleOptions(new String[] { randomString(),
 				INPUT + "=" + defaults });
 		
-		assertEquals(withoutQuotes.get(INPUT), withQuotes.get(INPUT));
+		Hashtable<String, String> withQuotesInput = withQuotes.getInput().next();
+		Hashtable<String, String> withoutQuotesInput = withoutQuotes.getInput().next();
+		
+		assertTrue(withQuotesInput.keySet().containsAll(withoutQuotesInput.keySet()));
+		assertTrue(withQuotesInput.values().containsAll(withoutQuotesInput.values()));
 	}
-	*/
+	
 	@Test(expected=InvalidOptionException .class)
 	public void testMustHaveInputToDefineInputDelimiter() throws Exception {
-		Arguments arguments = new Arguments(new String[] { randomString(),
-				INPUT_COLUMN_DELIMITER + "=" + randomString(1) });
+		ConsoleOptions arguments = new ConsoleOptions(new String[] { randomString(),
+				INPUT_DELIMITER + "=" + randomString(1) });
 		arguments.getInput();
 	}
 	
 	@Test(expected=InvalidOptionException.class)
 	public void testInputColumnDelimiterMustBeOneCharacter() throws Exception {
-		Arguments arguments = new Arguments(new String[] { randomString(),
-				INPUT_COLUMN_DELIMITER + "=" + randomString(10) });
+		ConsoleOptions arguments = new ConsoleOptions(new String[] { randomString(),
+				INPUT_DELIMITER + "=" + randomString(10) });
 		arguments.getInput();
 	}
 	

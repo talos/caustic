@@ -2,8 +2,10 @@ package net.microscraper.instruction;
 
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Vector;
 
+import net.microscraper.database.Database;
 import net.microscraper.database.Scope;
 import net.microscraper.log.MultiLog;
 import net.microscraper.log.Loggable;
@@ -15,7 +17,8 @@ import net.microscraper.util.VectorUtils;
 public class InstructionRunner implements Runnable, Loggable {
 	
 	private final InstructionPromise promise;
-	private final Scope scope;
+	private final Database database;
+	private final Hashtable input;
 	private final String source;
 	
 	private final Vector queue = new Vector();
@@ -27,13 +30,12 @@ public class InstructionRunner implements Runnable, Loggable {
 	 * @param promise
 	 * @param scope
 	 * @param source
-	 * @throws IOException If there was a problem writing to the database.
 	 */
-	public InstructionRunner(InstructionPromise promise, Scope scope, String source)
-			throws IOException {
+	public InstructionRunner(InstructionPromise promise, Database database, Hashtable input, String source) {
 		this.promise = promise;		
 		this.source = source;
-		this.scope = scope;
+		this.database = database;
+		this.input = input;
 	}
 	
 	private Vector getStuckExecutables() {
@@ -49,19 +51,27 @@ public class InstructionRunner implements Runnable, Loggable {
 	}
 	
 	public void run() {
-		Executable start = new Executable(source, scope, promise);
-		queue.add(start);
-		
-		//log.i("Starting to execute with " + StringUtils.quote(start));
-		
-		// try - catch the entire loop for user interrupt.
+		// try - catch the entire loop for user interrupt and database IO problems.
 		try {
+			// Use a fresh database scope.
+			Scope scope = database.getDefaultScope();
+			
+			// Store default values in database
+			Enumeration keys = input.keys();
+			while(keys.hasMoreElements()) {
+				String key = (String) keys.nextElement();
+				database.storeOneToOne(scope, key, (String) input.get(key));
+			}
+			
+			Executable start = new Executable(source, scope, promise);
+			queue.add(start);
+			
 			do {
 				Executable executable = (Executable) queue.elementAt(0);
 				queue.removeElementAt(0);
 				
 				// Try to execute the executable.
-				log.i("Executing " + StringUtils.quote(executable));
+				log.i("Running " + StringUtils.quote(executable));
 				Execution execution = executable.execute();
 				
 				// Evaluate the execution's success.
@@ -93,17 +103,15 @@ public class InstructionRunner implements Runnable, Loggable {
 				// stuck.
 			} while(queue.size() > 0 && getStuckExecutables().size() < queue.size());
 		
-			log.i("Finished execution starting with " + StringUtils.quote(start));
+			log.i("Finished running " + StringUtils.quote(start));
 		} catch(InterruptedException e) {
-			log.i("Prematurely terminated execution starting with " + StringUtils.quote(start) 
-					+ " because of user interrupt.");
+			log.i("Prematurely terminated execution because of user interrupt.");
 		} catch(IOException e) {
-			log.i("Prematurely terminated execution starting with " + StringUtils.quote(start)
-					+ " because the database could not be saved to: " + e.getMessage());
+			log.i("Prematurely terminated execution because the database could be saved: " + e.getMessage());
 		}
 		
 		// Log information about stuck executables.
-		Vector stuckExecutables = getStuckExecutables();
+		/*Vector stuckExecutables = getStuckExecutables();
 		if(stuckExecutables.size() > 0) {
 			log.i("There were " + stuckExecutables.size() + " stuck executables: ");
 			Enumeration e = stuckExecutables.elements();
@@ -125,7 +133,7 @@ public class InstructionRunner implements Runnable, Loggable {
 						// TODO LOD violation
 						StringUtils.quoteJoin(failed.getLastExecution().failedBecause()));
 			}			
-		}
+		}*/
 		
 		queue.clear();
 	}

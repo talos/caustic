@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="browser-apache/src"/>
+	<classpathentry kind="src" path="javanet/src"/>
+	<classpathentry kind="src" path="json-me/src"/>
+	<classpathentry kind="src" path="regexp-jakarta/src"/>
+	<classpathentry kind="src" path="regexp-javautil/src"/>
+	<classpathentry kind="src" path="sqlite-jdbc/src"/>
+	<classpathentry kind="src" path="uuid-javautil/src"/>
+	<classpathentry kind="lib" path="browser-apache/lib/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="browser-apache/lib/httpclient-4.1.2.jar"/>
+	<classpathentry kind="lib" path="browser-apache/lib/httpcore-4.1.2.jar"/>
+	<classpathentry kind="lib" path="sqlite-jdbc/lib/sqlitejdbc-v056/sqlitejdbc-v056.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="uuid-javautil/bin"/>
+</classpath>
