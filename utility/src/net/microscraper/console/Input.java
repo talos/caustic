@@ -1,4 +1,4 @@
-package net.microscraper.impl.commandline;
+package net.microscraper.console;
 
 import java.io.FileReader;
 import java.io.IOException;

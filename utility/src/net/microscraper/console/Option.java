@@ -1,4 +1,4 @@
-package net.microscraper.impl.commandline;
+package net.microscraper.console;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,11 +23,11 @@ public class Option  {
 	private static boolean exists(String name) {
 		return validOptions.containsKey(name);
 	}
-	static Option retrieve(String name) throws IllegalArgumentException {
+	static Option retrieve(String name) throws InvalidOptionException {
 		if(exists(name)) {
 			return validOptions.get(name);
 		} else {
-			throw new IllegalArgumentException(name + " is not a valid option.");
+			throw new InvalidOptionException(name + " is not a valid option.");
 		}
 	}
 	public String toString() {

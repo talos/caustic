@@ -1,8 +1,6 @@
-package net.microscraper.impl.commandline;
+package net.microscraper.console;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,12 +8,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
-
-import au.com.bytecode.opencsv.CSVReader;
 
 import net.microscraper.client.Deserializer;
 import net.microscraper.database.Database;
@@ -67,14 +61,13 @@ public final class Arguments {
 	public static final Option LOG_TO_FILE = Option.withDefault("log-to-file", TIMESTAMP + ".log");
 	public static final Option LOG_STDOUT = Option.withoutDefault("log-stdout");
 	public static final Option MAX_RESPONSE_SIZE = Option.withDefault("max-response-size", Integer.toString(HttpBrowser.DEFAULT_MAX_RESPONSE_SIZE));
-
+	public static final Option ENCODING = Option.withDefault("encoding", Encoder.UTF_8);
+	
 	public static final String CSV_OUTPUT_FORMAT_VALUE = "csv";
 	public static final String TAB_OUTPUT_FORMAT_VALUE = "tab";
 	public static final String SQLITE_OUTPUT_FORMAT_VALUE = "sqlite";
 	
 	public static final Option OUTPUT_FORMAT_OPTION = Option.withDefault("output-format", TAB_OUTPUT_FORMAT_VALUE);
-	//public static final String DEFAULT_FILE_OUTPUT_FORMAT = SQLITE_OUTPUT_FORMAT_VALUE;
-	//public static final String DEFAULT_STDOUT_OUTPUT_FORMAT = TAB_OUTPUT_FORMAT_VALUE;
 	public static final List<String> validOutputFormats = Arrays.asList(
 			CSV_OUTPUT_FORMAT_VALUE,
 			TAB_OUTPUT_FORMAT_VALUE,
@@ -101,6 +94,8 @@ public final class Arguments {
 "	" + BATCH_SIZE + "=<batch-size>" + newline +
 "		If saving to SQL, assigns the batch size.  " + newline +
 "		Defaults to " + StringUtils.quote(BATCH_SIZE.getDefault()) + newline +
+"   " + ENCODING + "=<encoding>\" + newline +" +
+"       What encoding should be used.  Defaults to " + StringUtils.quote(ENCODING.getDefault()) + "." + newline +
 "	" + INPUT + "=\"<defaults>\"" + newline +
 "		A form-encoded string of name value pairs to use as" + newline +
 "		a single input during execution." + newline +
@@ -135,24 +130,45 @@ public final class Arguments {
 	
 	private final Map<Option, String> arguments = new HashMap<Option, String>();
 
-	
-	private boolean has(Option option) {
+	/**
+	 * 
+	 * @param option The {@link Option} to check.
+	 * @return <code>True</code> if the user specified {@link Option}, <code>
+	 * false</code> otherwise.
+	 */
+	private boolean isSpecified(Option option) {
 		return arguments.containsKey(option);
 	}
 	
-	private String get(Option option) throws ArgumentsException {
-		if(option.hasDefault() && arguments.get(option) == null) {
+	/**
+	 * 
+	 * @param option The {@link Option} whose value should be retrieved.
+	 * @return The {@link String} value of the {@link Option}.  If it is
+	 * not {@link #isSpecified(Option)}, then {@link Option#getDefault()}
+	 * is returned.
+	 * @throws InvalidOptionException If the user did not specify this 
+	 * {@link Option} and it does not have a default value.
+	 */
+	private String getValue(Option option) throws InvalidOptionException {
+		if(option.hasDefault() && !isSpecified(option)) {
 			return option.getDefault();
 		} else if(arguments.get(option) != null) {
 			return arguments.get(option);
 		} else {
-			throw new ArgumentsException("Did not define value for " + StringUtils.quote(option));
+			throw new InvalidOptionException("Did not define value for " + StringUtils.quote(option));
 		}
 	}
 	
-	public Arguments(String[] args) throws ArgumentsException {
+	/**
+	 * Instantiate {@link Arguments} with an array of strings from a main
+	 * function.
+	 * @param args A {@link String} array.
+	 * @throws InvalidOptionException If there were no options passed in <code>
+	 * args</code>, or if there was an unknown option passed.
+	 */
+	public Arguments(String[] args) throws InvalidOptionException {
 		if(args.length == 0) {
-			throw new ArgumentsException("Must have at least one argument.");
+			throw new InvalidOptionException("Must have at least one argument.");
 		}
 		
 		arguments.put(INSTRUCTION, args[0]);
@@ -168,29 +184,37 @@ public final class Arguments {
 		}
 		
 		// Fix quotations on default values.
-		String possiblyQuotedDefaults = get(INPUT);
+		String possiblyQuotedDefaults = getValue(INPUT);
 		if(possiblyQuotedDefaults.startsWith("\"") && possiblyQuotedDefaults.endsWith("\"")) {
 			arguments.put(INPUT, possiblyQuotedDefaults.substring(1, possiblyQuotedDefaults.length() - 2));
 		}
 	}
 	
-	public Deserializer getDeserializer() throws ArgumentsException, UnsupportedEncodingException {				
+	/**
+	 * 
+	 * @return A {@link Deserializer} based off the user-passed {@link Arguments}.
+	 * @throws InvalidOptionException if the user specified a {@link Deserializer} related
+	 * option that is invalid.
+	 * @throws UnsupportedEncodingException if the specified {@link #ENCODING} is
+	 * not supported.
+	 */
+	public Deserializer getDeserializer() throws InvalidOptionException, UnsupportedEncodingException {				
 		//this.args = args;
 		final int rateLimit;
 		final int timeout;
 		
 		// Set rate limit.
 		try {
-			rateLimit = Integer.parseInt(get(RATE_LIMIT));
+			rateLimit = Integer.parseInt(getValue(RATE_LIMIT));
 		} catch(NumberFormatException e) {
-			throw new ArgumentsException(RATE_LIMIT + " must be an integer");
+			throw new InvalidOptionException(RATE_LIMIT + " must be an integer");
 		}
 		
 		// Set timeout.
 		try {
-			timeout = Integer.parseInt(get(TIMEOUT_MILLISECONDS));
+			timeout = Integer.parseInt(getValue(TIMEOUT_MILLISECONDS));
 		} catch(NumberFormatException e) {
-			throw new ArgumentsException(TIMEOUT_MILLISECONDS + " must be an integer");
+			throw new InvalidOptionException(TIMEOUT_MILLISECONDS + " must be an integer");
 		}
 		
 		HttpRequester requester = new JavaNetHttpRequester();
@@ -213,14 +237,20 @@ public final class Arguments {
 	
 	}
 	
-	public Database getDatabase() throws ArgumentsException {
+	/**
+	 * 
+	 * @return A {@link Database} based off the user-passed {@link Arguments}.
+	 * @throws InvalidOptionException if the user specified a {@link Database} related
+	 * option that is invalid.
+	 */
+	public Database getDatabase() throws InvalidOptionException {
 		final Database result;
 		
 		// Determine format.
 		String format;
-		format = get(OUTPUT_FORMAT_OPTION);
+		format = getValue(OUTPUT_FORMAT_OPTION);
 		if(!validOutputFormats.contains(format)) {
-			throw new ArgumentsException(StringUtils.quote(format)
+			throw new InvalidOptionException(StringUtils.quote(format)
 					+ " is not a valid output format.");
 		}
 			
@@ -232,19 +262,25 @@ public final class Arguments {
 			delimiter = TAB_OUTPUT_COLUMN_DELIMITER;
 		}
 		
+		// Determine batch size.
+		int batchSize;
+		try {
+			batchSize = Integer.parseInt(getValue(BATCH_SIZE));
+		} catch(NumberFormatException e) {
+			throw new InvalidOptionException(BATCH_SIZE + " must be an integer.");
+		}
+		
 		// Set up output and databases.
-		if(has(SAVE_TO_FILE)) {
-			String outputLocation = get(SAVE_TO_FILE);
+		if(isSpecified(SAVE_TO_FILE)) {
+			String outputLocation = getValue(SAVE_TO_FILE);
 			if(outputLocation.equals(SAVE_TO_FILE.getDefault())) { // append appropriate format for default
 				outputLocation += '.' + format;
 			}
 			if(format.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
-				
-				int batchSize = Integer.parseInt(get(BATCH_SIZE));
 				Database backing = new HashtableDatabase(new JavaUtilUUIDFactory());
 				
 				UpdateableConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
-				if(has(SINGLE_TABLE)) {
+				if(isSpecified(SINGLE_TABLE)) {
 					result = new SingleTableDatabase(backing, connection);
 				} else {
 					result = new MultiTableDatabase(backing, connection);
@@ -258,6 +294,11 @@ public final class Arguments {
 		} else { // output to STDOUT
 			result = new SingleTableDatabase(new HashtableDatabase(new IntUUIDFactory()), DelimitedConnection.toSystemOut(delimiter));
 		}
+		
+		if(isSpecified(BATCH_SIZE) && !format.equals(SQLITE_OUTPUT_FORMAT_VALUE)) {
+			throw new InvalidOptionException("Should only specify " + BATCH_SIZE + " when " +
+					" outputting to " + SQLITE_OUTPUT_FORMAT_VALUE);
+		}
 		return result;
 	}
 	
@@ -265,7 +306,7 @@ public final class Arguments {
 	 * 
 	 * @return The {@link String} path to the directory where the user is executing.
 	 */
-	public String getExecutionDir() throws ArgumentsException {
+	public String getExecutionDir() throws InvalidOptionException {
 		String executionDir = new File(System.getProperty("user.dir")).toURI().toString();
 		if(!executionDir.endsWith("/")) {
 			executionDir += "/";
@@ -278,12 +319,12 @@ public final class Arguments {
 	 * 
 	 * @return A {@link List} of loggers that should be used.
 	 */
-	public List<Logger> getLoggers() throws ArgumentsException {
+	public List<Logger> getLoggers() throws InvalidOptionException {
 		List<Logger> loggers = new ArrayList<Logger>();
-		if(has(LOG_TO_FILE)) {
-			loggers.add(new JavaIOFileLogger(get(LOG_TO_FILE)));
+		if(isSpecified(LOG_TO_FILE)) {
+			loggers.add(new JavaIOFileLogger(getValue(LOG_TO_FILE)));
 		}
-		if(has(LOG_STDOUT)) {
+		if(isSpecified(LOG_STDOUT)) {
 			loggers.add(new SystemOutLogger());
 		}
 		return loggers;
@@ -292,10 +333,10 @@ public final class Arguments {
 	/**
 	 * 
 	 * @return The serialized instruction {@link String}.
-	 * @throws ArgumentsException
+	 * @throws InvalidOptionException
 	 */
-	public String getInstruction() throws ArgumentsException {
-		return get(INSTRUCTION);
+	public String getInstruction() throws InvalidOptionException {
+		return getValue(INSTRUCTION);
 	}
 	
 	/**
@@ -303,16 +344,17 @@ public final class Arguments {
 	 * @return An {@link Input} whose elements are {@link Hashtable}s that can be used
 	 * as input for {@link Microscraper}.
 	 */
-	public Input getInput() throws ArgumentsException, UnsupportedEncodingException {
+	public Input getInput() throws InvalidOptionException, UnsupportedEncodingException {
+		@SuppressWarnings("unchecked")
 		Hashtable<String, String> shared =
-				HashtableUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), get(INPUT));
+				HashtableUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), getValue(INPUT));
 		
-		if(has(INPUT_FILE)) {
-			if(get(INPUT_COLUMN_DELIMITER).length() > 1) {
-				throw new ArgumentsException(INPUT_COLUMN_DELIMITER + " must be a single character.");
+		if(isSpecified(INPUT_FILE)) {
+			if(getValue(INPUT_COLUMN_DELIMITER).length() > 1) {
+				throw new InvalidOptionException(INPUT_COLUMN_DELIMITER + " must be a single character.");
 			}
-			char inputColumnDelimiter = get(INPUT_COLUMN_DELIMITER).charAt(0);
-			return new Input(shared, get(INPUT_FILE), inputColumnDelimiter);
+			char inputColumnDelimiter = getValue(INPUT_COLUMN_DELIMITER).charAt(0);
+			return new Input(shared, getValue(INPUT_FILE), inputColumnDelimiter);
 		} else {
 			return new Input(shared);
 		}
