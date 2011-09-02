@@ -34,17 +34,17 @@ public class Option  {
 			throw new InvalidOptionException(name + " is not a valid option.");
 		}
 	}
-	public String toString() {
-		return name;
-	}
 	public void define(String value) {
 		this.value = value;
 	}
-	public String getValue() throws InvalidOptionException {
-		if(value != null) {
-			return value;
-		} else {
-			throw new InvalidOptionException(StringUtils.quote(name) + " must have a value defined.");
-		}
+	
+	/**
+	 * 
+	 * @return The {@link String} value assigned to this {@link Option}.
+	 * Is <code>null</code> if none has been assigned and there is no
+	 * default.
+	 */
+	public String getValue() {
+		return value;
 	}
 }

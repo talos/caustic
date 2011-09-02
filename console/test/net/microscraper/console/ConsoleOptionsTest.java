@@ -12,13 +12,17 @@ import net.microscraper.util.Encoder;
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.JavaNetEncoder;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class ConsoleOptionsTest {
 
+	private ConsoleOptions options;
+	
 	@Test(expected=InvalidOptionException.class)
 	public void testArgumentsNeedsOneArgument() throws Exception {
 		new ConsoleOptions(new String[] {});
+		
 	}
 	
 	@Test(expected=InvalidOptionException.class)
@@ -30,20 +34,20 @@ public class ConsoleOptionsTest {
 	@Test(expected=InvalidOptionException.class)
 	public void testBatchSizeMustBeInt() throws Exception {
 		String notAnInt = randomString();
-		ConsoleOptions arguments =new ConsoleOptions(new String[] { randomString(),
+		new ConsoleOptions(new String[] { randomString(),
 				BATCH_SIZE + "=" + notAnInt,
 				SAVE_TO_FILE.toString(),
 				FORMAT.toString() + "=" + SQLITE_FORMAT});
-		arguments.getDatabase();
+		options.getDatabase();
 	}
 	
 	@Test(expected=InvalidOptionException.class)
 	public void testBatchSizeOnlyWithSQLOutput() throws Exception {
-		ConsoleOptions arguments = new ConsoleOptions(new String[] { randomString(),
+		new ConsoleOptions(new String[] { randomString(),
 				BATCH_SIZE + "=" + randomInt(),
 				FORMAT.toString() + "=" + CSV_FORMAT});
 		
-		arguments.getDatabase();
+		options.getDatabase();
 	}
 	
 	@Test
@@ -56,7 +60,7 @@ public class ConsoleOptionsTest {
 		String defaults = HashtableUtils.toFormEncoded(new JavaNetEncoder(Encoder.UTF_8), origHash);
 		
 		ConsoleOptions withQuotes = new ConsoleOptions(new String[] { randomString(),
-				INPUT + "=" + '"' + defaults + '"' });
+				INPUT + "=\"" + defaults + '"' });
 		ConsoleOptions withoutQuotes = new ConsoleOptions(new String[] { randomString(),
 				INPUT + "=" + defaults });
 		
@@ -69,16 +73,16 @@ public class ConsoleOptionsTest {
 	
 	@Test(expected=InvalidOptionException .class)
 	public void testMustHaveInputToDefineInputDelimiter() throws Exception {
-		ConsoleOptions arguments = new ConsoleOptions(new String[] { randomString(),
+		new ConsoleOptions(new String[] { randomString(),
 				INPUT_DELIMITER + "=" + randomString(1) });
-		arguments.getInput();
+		options.getInput();
 	}
 	
 	@Test(expected=InvalidOptionException.class)
 	public void testInputColumnDelimiterMustBeOneCharacter() throws Exception {
-		ConsoleOptions arguments = new ConsoleOptions(new String[] { randomString(),
+		new ConsoleOptions(new String[] { randomString(),
 				INPUT_DELIMITER + "=" + randomString(10) });
-		arguments.getInput();
+		options.getInput();
 	}
 	
 	/*

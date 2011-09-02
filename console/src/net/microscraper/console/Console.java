@@ -47,7 +47,7 @@ public class Console {
 		} catch(InvalidOptionException e) {
 			println(e.getMessage());
 			println("");
-			println(options.getUsage());
+			println(ConsoleOptions.USAGE);
 			return;
 		} catch(UnsupportedEncodingException e) {
 			println("Your computer does not support the required encoding: " + e.getMessage());

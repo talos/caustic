@@ -51,37 +51,71 @@ public final class ConsoleOptions {
 	public static final String TIMESTAMP_STR = "yyyyMMddkkmmss";
 	public static final String TIMESTAMP = new SimpleDateFormat(TIMESTAMP_STR).format(new Date());
 
-	private final Option INSTRUCTION = Option.withoutDefault("instruction");
+	public static final String INSTRUCTION = "instruction";
+	private final Option instruction = Option.withoutDefault(INSTRUCTION);
 	
-	private final Option BATCH_SIZE = Option.withDefault("batch-size", "100");
-	private final Option INPUT = Option.withDefault("input", "");
-	private final Option INPUT_FILE = Option.withoutDefault("input-file");
-	private final Option INPUT_DELIMITER = Option.withDefault("delimiter", ",");	
-	private final Option LOG_TO_FILE = Option.withDefault("log-to-file", TIMESTAMP + ".log");
-	private final Option LOG_STDOUT = Option.withoutDefault("log-stdout");
-	private final Option MAX_RESPONSE_SIZE = Option.withDefault("max-response-size", Integer.toString(HttpBrowser.DEFAULT_MAX_RESPONSE_SIZE));
-	private final Option ENCODING = Option.withDefault("encoding", Encoder.UTF_8);
+	public static final String BATCH_SIZE = "batch-size";
+	public static final String BATCH_SIZE_DEFAULT = "100";
+	private final Option batchSize = Option.withDefault(BATCH_SIZE, BATCH_SIZE_DEFAULT);
+	
+	public static final String INPUT = "input";
+	public static final String INPUT_DEFAULT = "";
+	private final Option input = Option.withDefault(INPUT, INPUT_DEFAULT);
+	
+	public static final String INPUT_FILE = "input-file";
+	private final Option inputFile = Option.withoutDefault(INPUT_FILE);
+
+	public static final char TAB_DELIMITER = '\t';
+	public static final char COMMA_DELIMITER = ',';
+	
+	public static final String INPUT_DELIMITER = "delimiter";
+	public static final String INPUT_DELIMITER_DEFAULT = Character.toString(COMMA_DELIMITER);
+	private final Option inputDelimiter = Option.withDefault(INPUT_DELIMITER, INPUT_DELIMITER_DEFAULT);	
+	
+	public static final String LOG_TO_FILE = "log-to-file";
+	public static final String LOG_TO_FILE_DEFAULT = TIMESTAMP + ".log";	
+	private final Option logToFile = Option.withDefault(LOG_TO_FILE, LOG_TO_FILE_DEFAULT);
+	
+	public static final String LOG_STDOUT = "log-stdout";
+	private final Option logStdout = Option.withoutDefault(LOG_STDOUT);
+	
+	public static final String MAX_RESPONSE_SIZE = "max-response-size";
+	public static final String MAX_RESPONSE_SIZE_DEFAULT = Integer.toString(HttpBrowser.DEFAULT_MAX_RESPONSE_SIZE);
+	private final Option maxResponseSize = Option.withDefault(MAX_RESPONSE_SIZE, MAX_RESPONSE_SIZE_DEFAULT);
+	
+	public static final String ENCODING = "encoding";
+	public static final String ENCODING_DEFAULT  = Encoder.UTF_8;
+	private final Option encoding = Option.withDefault(ENCODING, ENCODING_DEFAULT);
 	
 	public static final String CSV_FORMAT = "csv";
 	public static final String TAB_FORMAT = "tab";
 	public static final String SQLITE_FORMAT = "sqlite";
 	
-	private final Option FORMAT = Option.withDefault("format", TAB_FORMAT);
+	public static final String FORMAT_DEFAULT = TAB_FORMAT;
+	public static final String FORMAT = "format";
+	private final Option format = Option.withDefault(FORMAT, FORMAT_DEFAULT);
 	public static final List<String> validOutputFormats = Arrays.asList(
 			CSV_FORMAT,
 			TAB_FORMAT,
 			SQLITE_FORMAT
 		);
 	
-	public static final char TAB_DELIMITER = '\t';
-	public static final char COMMA_DELIMITER = ',';
 	
-	private final Option SAVE_TO_FILE = Option.withDefault("save-to-file", TIMESTAMP);
-	private final Option RATE_LIMIT = Option.withDefault("rate-limit", Integer.toString(RateLimitManager.DEFAULT_RATE_LIMIT));
-	private final Option SINGLE_TABLE = Option.withoutDefault("single-table");
-	private final Option TIMEOUT_MILLISECONDS = Option.withDefault("timeout", Integer.toString(HttpRequester.DEFAULT_TIMEOUT_MILLISECONDS));
+	public static final String SAVE_TO_FILE = "save-to-file";
+	public static final String SAVE_TO_FILE_DEFAULT = TIMESTAMP;
+	private final Option saveToFile = Option.withDefault(SAVE_TO_FILE, TIMESTAMP);
 	
-	private final String usage = 
+	public static final String RATE_LIMIT = "rate-limit";
+	public static final String RATE_LIMIT_DEFAULT = Integer.toString(RateLimitManager.DEFAULT_RATE_LIMIT);
+	private final Option rateLimit = Option.withDefault(RATE_LIMIT, RATE_LIMIT_DEFAULT);
+	
+	public static final String SINGLE_TABLE = "single-table";
+	private final Option singleTable = Option.withoutDefault(SINGLE_TABLE);
+	
+	public static final String TIMEOUT_MILLISECONDS = "timeout";
+	private final Option timeoutMilliseconds = Option.withDefault(TIMEOUT_MILLISECONDS, Integer.toString(HttpRequester.DEFAULT_TIMEOUT_MILLISECONDS));
+	
+	public static final String USAGE = 
 "usage: microscraper <uri> [<options>]" + newline +
 "       microscraper <json> [<options>]" + newline + newline +
 "  uri" + newline +
@@ -91,9 +125,9 @@ public final class ConsoleOptions {
 "  options" + newline +
 "    " + BATCH_SIZE + "=<batch-size>" + newline +
 "        If saving to SQL, assigns the batch size.  " + newline +
-"        Defaults to " + BATCH_SIZE.getValue()  + "." + newline + 
+"        Defaults to " + BATCH_SIZE_DEFAULT  + "." + newline + 
 "    " + ENCODING + "=<encoding>" + newline +
-"        What encoding should be used.  Defaults to " + StringUtils.quote(ENCODING.getValue()) + "." + newline +
+"        What encoding should be used.  Defaults to " + StringUtils.quote(ENCODING_DEFAULT) + "." + newline +
 "    " + INPUT + "=\"<defaults>\"" + newline +
 "        A form-encoded string of name value pairs to use as" + newline +
 "        a single input during execution." + newline +
@@ -101,29 +135,29 @@ public final class ConsoleOptions {
 "        Path to a file with any number of additional input" + newline +
 "        values.  Each row is executed separately.  The first" + newline +
 "        row contains column names." + newline +
-"        The default column delimiter is "+ StringUtils.quote(INPUT_DELIMITER.getValue()) + "." + newline +
+"        The default column delimiter is "+ StringUtils.quote(INPUT_DELIMITER_DEFAULT) + "." + newline +
 "    " + LOG_TO_FILE + "[=<path>]" + newline +
 "        Pipe the log to a file." + newline +
-"        Path is optional, defaults to " + StringUtils.quote(LOG_TO_FILE.getValue())  + " in the" + newline +
+"        Path is optional, defaults to " + StringUtils.quote(LOG_TO_FILE_DEFAULT)  + " in the" + newline +
 "        current directory." + newline +
 "    " + LOG_STDOUT + newline +
 "        Pipe the log to stdout." + newline +
 "    " + MAX_RESPONSE_SIZE + newline +
 "        How many KB of a response to load from a single request " + newline +
-"        before cutting off the response.  Defaults to " + MAX_RESPONSE_SIZE.getValue() + "KB." + newline +
+"        before cutting off the response.  Defaults to " + MAX_RESPONSE_SIZE_DEFAULT + "KB." + newline +
 "    " + FORMAT + "=(" + StringUtils.join(validOutputFormats.toArray(new String[0]), "|") +")" + newline +
-"        How to format output.  Defaults to " + StringUtils.quote(FORMAT.getValue()) + "." + newline +
+"        How to format output.  Defaults to " + StringUtils.quote(FORMAT_DEFAULT) + "." + newline +
 "    " + SAVE_TO_FILE + "[=<path>], " + newline +
-"        Where to save the output.  Defaults to " + StringUtils.quote(SAVE_TO_FILE.getValue()) + ".<format>" + newline +
+"        Where to save the output.  Defaults to " + StringUtils.quote(SAVE_TO_FILE_DEFAULT + ".<format>" + newline +
 "        in the current directory output." + newline +
 "    " + RATE_LIMIT + "=<max-kbps>" + newline +
 "        The rate limit, in KBPS, for loading from a single host." + newline +
-"        Defaults to " + StringUtils.quote(RATE_LIMIT.getValue()) + " KBPS." + newline +
+"        Defaults to " + StringUtils.quote(RATE_LIMIT_DEFAULT) + " KBPS." + newline +
 "    " + SINGLE_TABLE + newline +
 "        Save all results to a single sqlite table, if using sqlite" + newline +
 "    " + TIMEOUT_MILLISECONDS + "=<timeout>" + newline +
 "        How many milliseconds to wait before giving up on a" + newline + 
-"        request.  Defaults to " + StringUtils.quote(TIMEOUT_MILLISECONDS.getValue()) + " milliseconds.";
+"        request.  Defaults to " + TIMEOUT_MILLISECONDS + " milliseconds.");
 	
 	private final List<Option> definedOptions = new ArrayList<Option>();
 	//private final Map<Option, String> optionValues = new HashMap<Option, String>();
@@ -148,7 +182,7 @@ public final class ConsoleOptions {
 	 * {@link Option} and it does not have a default value.
 	 */
 	private String getValue(Option option) throws InvalidOptionException {
-		if(isSpecified(option)) {
+		if(isSpecified(option) && option.getValue() != null) {
 			return option.getValue();
 		} else {
 			throw new InvalidOptionException("Did not define value for " + StringUtils.quote(option));
@@ -156,7 +190,7 @@ public final class ConsoleOptions {
 	}
 	
 	/**
-	 * Instantiate {@link ConsoleOptions} with an array of strings from a main
+	 * Initialize {@link ConsoleOptions} with an array of strings from a main
 	 * function.
 	 * @param args A {@link String} array.
 	 * @throws InvalidOptionException If there were no options passed in <code>
@@ -169,8 +203,8 @@ public final class ConsoleOptions {
 					"instruction by URI.");
 		}
 		
-		INSTRUCTION.define(args[0]);
-		definedOptions.add(INSTRUCTION);
+		instruction.define(args[0]);
+		definedOptions.add(instruction);
 		
 		for(int i = 1 ; i < args.length ; i ++) {
 			String arg = args[i];
@@ -198,14 +232,14 @@ public final class ConsoleOptions {
 		
 		// Set rate limit.
 		try {
-			rateLimit = Integer.parseInt(getValue(RATE_LIMIT));
+			rateLimit = Integer.parseInt(getValue(this.rateLimit));
 		} catch(NumberFormatException e) {
 			throw new InvalidOptionException(RATE_LIMIT + " must be an integer");
 		}
 		
 		// Set timeout.
 		try {
-			timeout = Integer.parseInt(getValue(TIMEOUT_MILLISECONDS));
+			timeout = Integer.parseInt(getValue(timeoutMilliseconds));
 		} catch(NumberFormatException e) {
 			throw new InvalidOptionException(TIMEOUT_MILLISECONDS + " must be an integer");
 		}
@@ -240,8 +274,7 @@ public final class ConsoleOptions {
 		final Database result;
 		
 		// Determine format.
-		String format;
-		format = getValue(FORMAT);
+		String format = getValue(this.format);
 		if(!validOutputFormats.contains(format)) {
 			throw new InvalidOptionException(StringUtils.quote(format)
 					+ " is not a valid output format.");
@@ -258,22 +291,22 @@ public final class ConsoleOptions {
 		// Determine batch size.
 		int batchSize;
 		try {
-			batchSize = Integer.parseInt(getValue(BATCH_SIZE));
+			batchSize = Integer.parseInt(getValue(this.batchSize));
 		} catch(NumberFormatException e) {
 			throw new InvalidOptionException(BATCH_SIZE + " must be an integer.");
 		}
 		
 		// Set up output and databases.
-		if(isSpecified(SAVE_TO_FILE)) {
-			String outputLocation = getValue(SAVE_TO_FILE);
-			if(outputLocation.equals(SAVE_TO_FILE.getValue())) { // TODO append appropriate format for default
+		if(isSpecified(saveToFile)) {
+			String outputLocation = getValue(saveToFile);
+			if(outputLocation.equals(saveToFile)) { // TODO append appropriate format for default
 				outputLocation += '.' + format;
 			}
 			if(format.equals(SQLITE_FORMAT)) {
 				Database backing = new HashtableDatabase(new JavaUtilUUIDFactory());
 				
 				UpdateableConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
-				if(isSpecified(SINGLE_TABLE)) {
+				if(isSpecified(singleTable)) {
 					result = new SingleTableDatabase(backing, connection);
 				} else {
 					result = new MultiTableDatabase(backing, connection);
@@ -288,7 +321,7 @@ public final class ConsoleOptions {
 			result = new SingleTableDatabase(new HashtableDatabase(new IntUUIDFactory()), DelimitedConnection.toSystemOut(delimiter));
 		}
 		
-		if(isSpecified(BATCH_SIZE) && !format.equals(SQLITE_FORMAT)) {
+		if(isSpecified(this.batchSize) && !format.equals(SQLITE_FORMAT)) {
 			throw new InvalidOptionException("Should only specify " + BATCH_SIZE + " when " +
 					" outputting to " + SQLITE_FORMAT);
 		}
@@ -314,10 +347,10 @@ public final class ConsoleOptions {
 	 */
 	public List<Logger> getLoggers() throws InvalidOptionException {
 		List<Logger> loggers = new ArrayList<Logger>();
-		if(isSpecified(LOG_TO_FILE)) {
-			loggers.add(new JavaIOFileLogger(getValue(LOG_TO_FILE)));
+		if(isSpecified(logToFile)) {
+			loggers.add(new JavaIOFileLogger(getValue(logToFile)));
 		}
-		if(isSpecified(LOG_STDOUT)) {
+		if(isSpecified(logStdout)) {
 			loggers.add(new SystemOutLogger());
 		}
 		return loggers;
@@ -329,7 +362,7 @@ public final class ConsoleOptions {
 	 * @throws InvalidOptionException
 	 */
 	public String getInstruction() throws InvalidOptionException {
-		return getValue(INSTRUCTION);
+		return getValue(instruction);
 	}
 	
 	/**
@@ -339,28 +372,24 @@ public final class ConsoleOptions {
 	 */
 	public Input getInput() throws InvalidOptionException, UnsupportedEncodingException {
 		@SuppressWarnings("unchecked")
-		String rawInputString = getValue(INPUT);
+		String rawInputString = getValue(input);
 		if(rawInputString.startsWith("\"") && rawInputString.endsWith("\"")) {
 			rawInputString = rawInputString.substring(1, rawInputString.length() - 1);
 		}
 		Hashtable<String, String> shared =
 				HashtableUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), rawInputString);
 		
-		if(isSpecified(INPUT_FILE)) {
-			char inputColumnDelimiter = getValue(INPUT_DELIMITER).charAt(0);
-			if(getValue(INPUT_DELIMITER).length() > 1) {
+		if(isSpecified(inputFile)) {
+			char inputColumnDelimiter = getValue(inputDelimiter).charAt(0);
+			if(getValue(inputDelimiter).length() > 1) {
 				throw new InvalidOptionException(INPUT_DELIMITER + " must be a single character.");
 			}
-			return Input.fromSharedAndCSV(shared, getValue(INPUT_FILE), inputColumnDelimiter);
+			return Input.fromSharedAndCSV(shared, getValue(inputFile), inputColumnDelimiter);
 		} else {
-			if(isSpecified(INPUT_DELIMITER)) {
+			if(isSpecified(inputDelimiter)) {
 				throw new InvalidOptionException("Cannot define " + INPUT_DELIMITER + " without an input file.");
 			}
 			return Input.fromShared(shared);
 		}
-	}
-
-	public String getUsage() {
-		return usage;
 	}
 }
