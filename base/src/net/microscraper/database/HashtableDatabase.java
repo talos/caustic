@@ -36,7 +36,7 @@ public class HashtableDatabase implements Database {
 	}
 	
 	public void storeOneToOne(Scope source, String name, String value)
-			throws TableManipulationException, IOException {
+		throws TableManipulationException, IOException {
 		Hashtable table = (Hashtable) scopeTables.get(source);
 		table.put(name, value);
 	}
@@ -72,7 +72,6 @@ public class HashtableDatabase implements Database {
 	
 	public String toString(Scope scope) {
 		String result = "";
-		//Integer sourceId = Integer.valueOf(scope);
 		while(scopeSources.containsKey(scope)) {
 			Hashtable table = (Hashtable) scopeTables.get(scope);
 			result += StringUtils.quote(table.toString()) + " << ";
@@ -82,7 +81,6 @@ public class HashtableDatabase implements Database {
 	}
 	
 	public Scope getDefaultScope() throws IOException {
-		
 		Scope scope = Scope.getDefault(uuidFactory.get());
 		scopeTables.put(scope, new Hashtable());
 		return scope;

@@ -2,6 +2,7 @@ package net.microscraper.console;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Hashtable;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -51,9 +52,17 @@ public class Input {
 	}
 	
 	public void open() throws IOException {
+		System.out.println("open");
 		if(hasCSV) {
 			fReader = new FileReader(pathToCSV);
 			csvRows = new CSVReader(fReader, inputColumnDelimiter);
+			
+			headers = csvRows.readNext();
+			if(headers == null) {
+				throw new IOException("No lines in input CSV.");
+			}
+			
+			System.out.println(Arrays.asList(headers));
 		}
 	}
 	

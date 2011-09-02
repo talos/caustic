@@ -14,7 +14,6 @@ import net.microscraper.log.MultiLog;
 import net.microscraper.log.Loggable;
 import net.microscraper.log.Logger;
 import net.microscraper.util.Execution;
-import net.microscraper.util.StringUtils;
 import net.microscraper.util.VectorUtils;
 
 public class Scraper implements Runnable, Loggable {
@@ -52,8 +51,6 @@ public class Scraper implements Runnable, Loggable {
 	 */
 	public Scraper(Instruction instruction, Database database, Hashtable input, String source) 
 			throws IOException {
-		//this.promise = promise;		
-		//this.instruction = instruction;
 		this.database = database;
 		this.input = input;
 		this.defaultScope = database.getDefaultScope();
@@ -150,9 +147,9 @@ public class Scraper implements Runnable, Loggable {
 			finishedExecutions.add(executable.getLastExecution());
 		}
 		
-		synchronized(hasBeenRun) {
+//		synchronized(hasBeenRun) {
 			hasBeenRun = Boolean.TRUE;
-		}
+//		}
 		//queue.clear();
 	}
 	
@@ -161,9 +158,9 @@ public class Scraper implements Runnable, Loggable {
 	 * false</code> otherwise.
 	 */
 	public boolean hasBeenRun() {
-		synchronized(hasBeenRun) {
+//		synchronized(hasBeenRun) {
 			return hasBeenRun.booleanValue();
-		}
+//		}
 	}
 
 	/**

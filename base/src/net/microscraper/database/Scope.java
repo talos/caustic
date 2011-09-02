@@ -91,8 +91,7 @@ public class Scope {
 			return true;
 		}
 		if(obj instanceof Scope) {
-			Scope other = (Scope) obj;
-			return other.hashCode() == this.hashCode();
+			return ((Scope) obj).hashCode() == this.hashCode();
 		}
 		return false;
 	}
