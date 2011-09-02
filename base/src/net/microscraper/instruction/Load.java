@@ -174,7 +174,9 @@ public final class Load implements Action {
 				
 				Hashtable headers = (Hashtable) headersSub.getExecuted();
 				Hashtable cookies = (Hashtable) cookiesSub.getExecuted();
-				browser.addCookies(url, cookies, encoder);
+				if(cookies.size() > 0) {
+					browser.addCookies(url, cookies, encoder);
+				}
 				
 				if(method.equalsIgnoreCase(HttpBrowser.HEAD)){
 					browser.head(url, headers);

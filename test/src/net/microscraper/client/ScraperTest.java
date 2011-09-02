@@ -112,12 +112,12 @@ public class ScraperTest {
 		final ScopeGenerator afterHello = new ScopeGenerator();
 
 		Load loadGoogle = new Load(browser, encoder,
-				new Template("http://www.google.com/?q={{query}}", "{{", "}}", database));
+				new Template("http://www.google.com/search?q={{query}}", "{{", "}}", database));
 		Instruction simpleGoogle = new Instruction(loadGoogle, database);
 		
 		Find findWordAfter = new Find(compiler,
 				new Template("{{query}}\\s+(\\w+)", "{{", "}}", database));
-		findWordAfter.setReplacement(new Template("$1", "{{", "}}", database));
+		findWordAfter.setReplacement(new Template("I say $1", "{{", "}}", database));
 		Instruction whatDoYouSay = new Instruction(findWordAfter, database);
 		whatDoYouSay.setName(new Template("what do you say after '{{query}}'?", "{{", "}}", database));
 		
@@ -129,10 +129,10 @@ public class ScraperTest {
 		
 		new Expectations() {{
 			database.getDefaultScope(); result = defaults; times = 1;
-			database.storeOneToOne((Scope) with(defaults.matchFirst()), "query", "hello");
-			database.storeOneToOne((Scope) with(defaults.matchFirst()), withPrefix("http://www.google.com/"));
+			database.storeOneToOne((Scope) with(defaults.matchFirst()), "query", "hello"); times = 1;
+			database.storeOneToOne((Scope) with(defaults.matchFirst()), withPrefix("http://www.google.com/search")); times = 1;
 			database.storeOneToMany((Scope) with(defaults.matchFirst()), "what do you say after 'hello'?", withPrefix("I say "));
-					result = afterHello;
+				minTimes = 1; result = afterHello; 
 		}};
 		
 		Hashtable<String, String> input = new Hashtable<String, String>();
@@ -140,7 +140,10 @@ public class ScraperTest {
 		
 		Scraper scraper = new Scraper(simpleGoogle, database, input, null);
 		scraper.run();
-				
+		
+		assertTrue(scraper.hasBeenRun());
+		assertEquals(2, scraper.getExecutions().length);
+		
 		assertEquals(1, defaults.count());
 		assertTrue(afterHello.count() > 1);
 		
