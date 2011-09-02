@@ -33,7 +33,7 @@ public class RateLimitManager {
 	private final Hashtable hostBytesLoaded = new Hashtable();
 	private final Hashtable hostLastLoad = new Hashtable();
 	private final HttpUtils httpUtils;
-	private final int rateLimitKBps;
+	private int rateLimitKBps;
 	
 	/**
 	 * 
@@ -49,9 +49,9 @@ public class RateLimitManager {
 		}
 	}
 
-	public RateLimitManager(HttpUtils httpUtils, int rateLimitKBps) {
+	public RateLimitManager(HttpUtils httpUtils) {
 		this.httpUtils = httpUtils;
-		this.rateLimitKBps = rateLimitKBps;
+		this.rateLimitKBps = DEFAULT_RATE_LIMIT;
 	}
 	
 	/**
@@ -87,5 +87,13 @@ public class RateLimitManager {
 			Thread.sleep(DEFAULT_SLEEP_TIME);
 			obeyRateLimit(urlStr, log);
 		}
+	}
+	
+	/**
+	 * Change this {@link RateLimitManager}'s enforced rate limit.
+	 * @param rateLimitKBps The rate limit to use, in kilobytes per second.
+	 */
+	public void setRateLimit(int rateLimitKBps) {
+		this.rateLimitKBps = rateLimitKBps;
 	}
 }

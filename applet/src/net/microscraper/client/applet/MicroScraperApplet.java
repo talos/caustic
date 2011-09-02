@@ -6,7 +6,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 import net.microscraper.client.BasicMicroscraper;
-import net.microscraper.client.Microscraper;
+import net.microscraper.client.Scraper;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.JavaNetDecoder;
@@ -54,7 +54,7 @@ public class MicroScraperApplet extends Applet {
 				
 				database = new ThreadSafeDatabase();
 				logger = new ThreadSafeLogger();
-				Microscraper scraper = BasicMicroscraper.get(database, 100, 100);
+				Scraper scraper = BasicMicroscraper.get(database, 100, 100);
 				scraper.register(logger);
 								
 				Thread thread = new Thread(

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
 
+import net.microscraper.client.Scraper;
 import net.microscraper.database.Database;
 import net.microscraper.database.Scope;
 import net.microscraper.template.Template;
@@ -32,9 +33,18 @@ public class Instruction {
 	private Template name;
 	
 	/**
-	 * A {@link Vector} of {@link InstructionPromise}s dependent upon this {@link Instruction}.
+	 * A {@link Vector} of {@link InstructionPromise}s
+	 * dependent upon this {@link Instruction}.
 	 */
-	private final Vector children = new Vector();
+	private final Vector childPromises = new Vector();
+
+
+	/**
+	 * A {@link Vector} of {@link Instruction}s
+	 * dependent upon this {@link Instruction}.
+	 */
+	private final Vector childInstructions = new Vector();
+
 	
 	/**
 	 * The {@link Action} done by this {@link Instruction}.
@@ -75,14 +85,23 @@ public class Instruction {
 	 * @param child The {@link InstructionPromise} to add.
 	 */
 	public void addChild(InstructionPromise child) {
-		children.add(child);
+		childPromises.add(child);
+	}
+
+	/**
+	 * Add an {@link Instruction} that will be used to create {@link Executable}s
+	 * upon {@link #execute(String, Variables)}.
+	 * @param child The {@link InstructionPromise} to add.
+	 */
+	public void addChild(Instruction child) {
+		childInstructions.add(child);
 	}
 	
 	/**
 	 * Generate the {@link Executable} children of this
 	 * {@link Instruction} during execution.  There will be as many children
 	 * as the product of {@link Action#execute(String, Variables)}'s {@link Execution#getExecuted()}
-	 *  and {@link #children}.  Should be run by {@link Executable#execute()} as part of {@link InstructionRunner#run()}.
+	 *  and {@link #children}.  Should be run by {@link Executable#execute()} as part of {@link Scraper#run()}.
 	 * @param source The source {@link String} to use in the execution.
 	 * @param scope The {@link Scope} to use when substituting from a {@link Database}.
 	 * @return An {@link Execution} whose {@link Execution#getExecuted()} is an array of {@link Executable}s,
@@ -108,7 +127,9 @@ public class Instruction {
 		} else {
 		
 			String[] resultValues = (String[]) actionExecution.getExecuted();
-			Executable[] childExecutables = new Executable[resultValues.length * children.size()];
+			int numChildren = childInstructions.size() + childPromises.size();
+			Executable[] childExecutables =
+					new Executable[resultValues.length * numChildren];
 			for(int i = 0 ; i < resultValues.length ; i ++ ) {
 				final String resultValue = resultValues[i];
 				final Scope childScope;
@@ -129,15 +150,22 @@ public class Instruction {
 					}
 				}
 				
-				// Generate children.
-				int instructionPromiseNum = i * children.size();
-				Enumeration e = children.elements();
+				// Generate children from both promises and real instructions.
+				int childNum = i * numChildren;
+				Enumeration e;
+				e = childPromises.elements();
 				while(e.hasMoreElements()) {
 					InstructionPromise promise = (InstructionPromise) e.nextElement();
-					childExecutables[instructionPromiseNum] = new Executable(resultValue, childScope, promise);
-					instructionPromiseNum++;
+					childExecutables[childNum] = new Executable(resultValue, childScope, promise);
+					childNum++;
 				}
-			}
+				e = childInstructions.elements();
+				while(e.hasMoreElements()) {
+					Instruction instruction = (Instruction) e.nextElement();
+					childExecutables[childNum] = new Executable(resultValue, childScope, instruction);
+					childNum++;
+				}
+			}			
 
 			result = Execution.success(childExecutables);
 		}

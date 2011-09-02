@@ -47,4 +47,12 @@ public class Option  {
 	public String getValue() {
 		return value;
 	}
+	
+	/**
+	 * 
+	 * @return The {@link String} name of this {@link Option}.
+	 */
+	public Object getName() {
+		return name;
+	}
 }

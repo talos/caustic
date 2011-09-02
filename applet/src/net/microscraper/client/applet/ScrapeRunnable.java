@@ -4,14 +4,14 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Hashtable;
 
-import net.microscraper.client.Microscraper;
+import net.microscraper.client.Scraper;
 
 public class ScrapeRunnable implements Runnable {
-	private final Microscraper client;
+	private final Scraper client;
 	private final String instructionURI;
 	private final Hashtable<String, String> defaults;
 		
-	public ScrapeRunnable(Microscraper client, String instructionURI, Hashtable<String, String> defaults) {
+	public ScrapeRunnable(Scraper client, String instructionURI, Hashtable<String, String> defaults) {
 		this.client = client;
 		this.instructionURI = instructionURI;
 		this.defaults = defaults;

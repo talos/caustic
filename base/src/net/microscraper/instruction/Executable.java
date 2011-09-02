@@ -32,10 +32,29 @@ public class Executable {
 	private Execution prevExecution;
 	private Execution execution;
 	
+	/**
+	 * An {@link Executable} that has to load its {@link Instruction} from a {@link InstructionPromise}.
+	 * @param source
+	 * @param scope
+	 * @param instructionPromise
+	 */
 	public Executable(String source, Scope scope, InstructionPromise instructionPromise) {
 		this.source = source;
 		this.scope = scope;
 		this.promise = instructionPromise;
+	}
+	
+	/**
+	 * An {@link Executable} with an already-loaded {@link Instruction}.
+	 * @param source
+	 * @param scope
+	 * @param instruction
+	 */
+	public Executable(String source, Scope scope, Instruction instruction) {
+		this.source = source;
+		this.scope = scope;
+		this.promise = null;
+		this.instruction = instruction;
 	}
 	
 	/**
@@ -103,10 +122,10 @@ public class Executable {
 	/**
 	 * Provides information on the {@link #source}, {@link #instruction}, and {@link #variables}.
 	 */
-	public String toString() {
+	/*public String toString() {
 		return "Executable with " +
 				(source != null ? " source " + StringUtils.truncate(StringUtils.quote(source), SOURCE_TRUNCATE_LENGTH) + " and " : "" )
 				+ "instructions " + StringUtils.quote(promise.toString());
 			// +	" and variables " + StringUtils.quote(database.toString(sourceId));
-	}
+	}*/
 }

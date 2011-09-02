@@ -23,6 +23,7 @@ import net.microscraper.http.HttpRequester;
 import net.microscraper.http.JavaNetCookieManager;
 import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
+import net.microscraper.instruction.Find;
 import net.microscraper.json.JsonDeserializer;
 import net.microscraper.json.JsonMEParser;
 import net.microscraper.json.JsonParser;
@@ -100,7 +101,6 @@ public final class ConsoleOptions {
 			SQLITE_FORMAT
 		);
 	
-	
 	public static final String SAVE_TO_FILE = "save-to-file";
 	public static final String SAVE_TO_FILE_DEFAULT = TIMESTAMP;
 	private final Option saveToFile = Option.withDefault(SAVE_TO_FILE, TIMESTAMP);
@@ -111,6 +111,10 @@ public final class ConsoleOptions {
 	
 	public static final String SINGLE_TABLE = "single-table";
 	private final Option singleTable = Option.withoutDefault(SINGLE_TABLE);
+	
+	public static final String SOURCE = "source";
+	public static final String SOURCE_DEFAULT = "";
+	private final Option source = Option.withDefault(SOURCE, SOURCE_DEFAULT);
 	
 	public static final String TIMEOUT_MILLISECONDS = "timeout";
 	private final Option timeoutMilliseconds = Option.withDefault(TIMEOUT_MILLISECONDS, Integer.toString(HttpRequester.DEFAULT_TIMEOUT_MILLISECONDS));
@@ -155,6 +159,9 @@ public final class ConsoleOptions {
 "        Defaults to " + StringUtils.quote(RATE_LIMIT_DEFAULT) + " KBPS." + newline +
 "    " + SINGLE_TABLE + newline +
 "        Save all results to a single sqlite table, if using sqlite" + newline +
+"    " + SOURCE + "=<source>" + newline +
+"        A string to use as source for the instruction." + newline +
+"        Only Finds use sources." + newline +
 "    " + TIMEOUT_MILLISECONDS + "=<timeout>" + newline +
 "        How many milliseconds to wait before giving up on a" + newline + 
 "        request.  Defaults to " + TIMEOUT_MILLISECONDS + " milliseconds.");
@@ -182,10 +189,10 @@ public final class ConsoleOptions {
 	 * {@link Option} and it does not have a default value.
 	 */
 	private String getValue(Option option) throws InvalidOptionException {
-		if(isSpecified(option) && option.getValue() != null) {
+		if(option.getValue() != null) {
 			return option.getValue();
 		} else {
-			throw new InvalidOptionException("Did not define value for " + StringUtils.quote(option));
+			throw new InvalidOptionException("Did not define value for " + StringUtils.quote(option.getName()));
 		}
 	}
 	
@@ -226,38 +233,39 @@ public final class ConsoleOptions {
 	 * not supported.
 	 */
 	public Deserializer getDeserializer()
-				throws InvalidOptionException, UnsupportedEncodingException {				
-		final int rateLimit;
-		final int timeout;
-		
-		// Set rate limit.
-		try {
-			rateLimit = Integer.parseInt(getValue(this.rateLimit));
-		} catch(NumberFormatException e) {
-			throw new InvalidOptionException(RATE_LIMIT + " must be an integer");
-		}
-		
+				throws InvalidOptionException, UnsupportedEncodingException {
+		HttpRequester requester = new JavaNetHttpRequester();
+
 		// Set timeout.
 		try {
-			timeout = Integer.parseInt(getValue(timeoutMilliseconds));
+			requester.setTimeout(Integer.parseInt(getValue(timeoutMilliseconds)));
 		} catch(NumberFormatException e) {
 			throw new InvalidOptionException(TIMEOUT_MILLISECONDS + " must be an integer");
 		}
 		
-		HttpRequester requester = new JavaNetHttpRequester();
-		requester.setTimeout(timeout);
+		RateLimitManager memory = new RateLimitManager(new JavaNetHttpUtils());
+
+		// Set rate limit.
+		try {
+			memory.setRateLimit(Integer.parseInt(getValue(this.rateLimit)));
+		} catch(NumberFormatException e) {
+			throw new InvalidOptionException(RATE_LIMIT + " must be an integer");
+		}
 		
-		RateLimitManager memory = new RateLimitManager(new JavaNetHttpUtils(), rateLimit);
+		HttpBrowser browser = new HttpBrowser(requester, memory, new JavaNetCookieManager());
 		
-		HttpBrowser browser = new HttpBrowser(new JavaNetHttpRequester(),
-				memory, new JavaNetCookieManager());
-		
+		// Set max response size
+		try {
+			browser.setMaxResponseSize(Integer.parseInt(getValue(maxResponseSize)));
+		} catch (NumberFormatException e) {
+			throw new InvalidOptionException(MAX_RESPONSE_SIZE + " must be an integer");
+		}
 		
 		RegexpCompiler compiler = new JavaUtilRegexpCompiler();
 		URILoader uriLoader = new JavaNetURILoader(browser, new JavaIOFileLoader());
 		UriResolver uriResolver = new JavaNetUriResolver();
 		JsonParser parser = new JsonMEParser();
-		Encoder encoder = new JavaNetEncoder(Encoder.UTF_8);
+		Encoder encoder = new JavaNetEncoder(getValue(encoding));
 		Deserializer deserializer = new JsonDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
 		
 		return deserializer;
@@ -368,7 +376,7 @@ public final class ConsoleOptions {
 	/**
 	 * 
 	 * @return An {@link Input} whose elements are {@link Hashtable}s that can be used
-	 * as input for {@link Microscraper}.
+	 * as input for {@link Scraper}.
 	 */
 	public Input getInput() throws InvalidOptionException, UnsupportedEncodingException {
 		@SuppressWarnings("unchecked")
@@ -391,5 +399,14 @@ public final class ConsoleOptions {
 			}
 			return Input.fromShared(shared);
 		}
+	}
+
+	/**
+	 * 
+	 * @return A {@link String} to be used as the source for the executed {@link Instruction}.
+	 * Only {@link Find}s use a source string.
+	 */
+	public String getSource() throws InvalidOptionException {
+		return getValue(source);
 	}
 }

@@ -15,42 +15,70 @@ import mockit.NonStrict;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
 import mockit.VerificationsInOrder;
-import net.microscraper.client.Microscraper;
+import net.microscraper.client.Scraper;
 import net.microscraper.database.Database;
 import net.microscraper.database.Scope;
 import net.microscraper.file.FileLoader;
 import net.microscraper.http.HttpBrowser;
+import net.microscraper.http.JavaNetCookieManager;
+import net.microscraper.http.JavaNetHttpRequester;
+import net.microscraper.http.RateLimitManager;
+import net.microscraper.instruction.Action;
+import net.microscraper.instruction.Find;
+import net.microscraper.instruction.Instruction;
+import net.microscraper.instruction.Load;
 import net.microscraper.json.JsonParser;
+import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.template.Template;
+import net.microscraper.util.Encoder;
+import net.microscraper.util.JavaNetEncoder;
+import net.microscraper.util.JavaNetHttpUtils;
 import net.microscraper.util.ScopeGenerator;
 
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Test {@link Microscraper} using fixtures, with a live {@link HttpBrowser}, {@link
- * RegexpCompiler}, {@link JsonParser}, and {@link FileLoader}.
  * @author realest
  *
  */
-public abstract class MicroscraperImplementationTest {
-	private String simpleGoogle, complexGoogle, referenceGoogle,
+public class ScraperTest {
+	/*private String simpleGoogle, complexGoogle, referenceGoogle,
 	
 		nycPropertyOwner, nycIncentives, eventValidation;
 	
 	private static final String PATH_TO_FIXTURES = "../fixtures/json/";
-	
+	*/
 	/**
 	 * The mocked {@link Database}.
 	 */
 	@Mocked private Database database;
 	
-	/**
-	 * The tested {@link Microscraper} instance.
-	 */
-	private Microscraper scraper;
+	private HttpBrowser browser;
+	private Encoder encoder;
+	private RegexpCompiler compiler;
 	
-	protected abstract Microscraper getScraperToTest(Database database) throws Exception;
+	/**
+	 * The tested {@link Scraper} instance.
+	 */
+	//private Scraper scraper;
+	
+	//protected abstract Scraper getScraperToTest(Database database) throws Exception;
+	
+	protected HttpBrowser getBrowser() throws Exception {
+		return new HttpBrowser(new JavaNetHttpRequester(),
+				new RateLimitManager(new JavaNetHttpUtils()),
+				new JavaNetCookieManager());
+	}
+	
+	protected Encoder getEncoder() throws Exception {
+		return new JavaNetEncoder(Encoder.UTF_8);
+	}
+	
+	protected RegexpCompiler getRegexpCompiler() throws Exception {
+		return new JavaUtilRegexpCompiler();
+	}
 	
 	/**
 	 * Set up the {@link #client} before each test.
@@ -58,7 +86,7 @@ public abstract class MicroscraperImplementationTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		URI fixtures = new File(System.getProperty("user.dir")).toURI().resolve(PATH_TO_FIXTURES);
+		/*URI fixtures = new File(System.getProperty("user.dir")).toURI().resolve(PATH_TO_FIXTURES);
 		
 		simpleGoogle =       fixtures.resolve("simple-google.json").toString();
 		complexGoogle =      fixtures.resolve("complex-google.json").toString();
@@ -67,8 +95,11 @@ public abstract class MicroscraperImplementationTest {
 		nycPropertyOwner =   fixtures.resolve("nyc/nyc-property-owner.json").toString();
 		nycIncentives =      fixtures.resolve("nyc/nyc-incentives.json").toString();
 		eventValidation =     fixtures.resolve("event-validation.json").toString();
-		
-		scraper = getScraperToTest(database);
+		*/
+		//scraper = getScraperToTest(database);
+		browser = getBrowser();
+		encoder = getEncoder();
+		compiler = getRegexpCompiler();
 	}
 	
 	/**
@@ -79,6 +110,18 @@ public abstract class MicroscraperImplementationTest {
 	public void testScrapeSimpleGoogle() throws Exception {
 		final ScopeGenerator defaults = new ScopeGenerator();
 		final ScopeGenerator afterHello = new ScopeGenerator();
+
+		Load loadGoogle = new Load(browser, encoder,
+				new Template("http://www.google.com/?q={{query}}", "{{", "}}", database));
+		Instruction simpleGoogle = new Instruction(loadGoogle, database);
+		
+		Find findWordAfter = new Find(compiler,
+				new Template("{{query}}\\s+(\\w+)", "{{", "}}", database));
+		findWordAfter.setReplacement(new Template("$1", "{{", "}}", database));
+		Instruction whatDoYouSay = new Instruction(findWordAfter, database);
+		whatDoYouSay.setName(new Template("what do you say after '{{query}}'?", "{{", "}}", database));
+		
+		simpleGoogle.addChild(whatDoYouSay);
 		
 		new NonStrictExpectations() {{
 			database.get((Scope) any, "query"); result = "hello";
@@ -92,14 +135,17 @@ public abstract class MicroscraperImplementationTest {
 					result = afterHello;
 		}};
 		
-		Hashtable<String, String> defaultHash = new Hashtable<String, String>();
-		defaultHash.put("query", "hello");
-		scraper.scrape(simpleGoogle, defaultHash);
+		Hashtable<String, String> input = new Hashtable<String, String>();
+		input.put("query", "hello");
 		
+		Scraper scraper = new Scraper(simpleGoogle, database, input, null);
+		scraper.run();
+				
 		assertEquals(1, defaults.count());
 		assertTrue(afterHello.count() > 1);
+		
 	}
-	
+	/*
 	public void testScrapeComplexGoogle(String pathToFixture) throws Exception {
 		final ScopeGenerator defaults = new ScopeGenerator();
 		final ScopeGenerator afterHello = new ScopeGenerator();
@@ -132,7 +178,8 @@ public abstract class MicroscraperImplementationTest {
 		assertEquals("Google should have been requested for each 'after hello'.", afterHello.count(), recordGoogleAfters.count());
 		assertTrue(afterSomethingElse.count() > afterHello.count());
 	}
-	
+	*/
+	/*
 	@Test
 	public void testScrapeComplexGoogleNonReference() throws Exception {
 		testScrapeComplexGoogle(complexGoogle);
@@ -141,8 +188,8 @@ public abstract class MicroscraperImplementationTest {
 	@Test
 	public void testScrapeComplexGoogleReference() throws Exception {
 		testScrapeComplexGoogle(referenceGoogle);
-	}
-	
+	}*/
+	/*
 	@Test
 	public void testScrapeNYCPropertyOwners() throws Exception {
 		

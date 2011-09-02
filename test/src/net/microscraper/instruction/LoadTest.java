@@ -6,7 +6,6 @@ import static net.microscraper.util.TestUtils.*;
 import java.util.Hashtable;
 
 import mockit.Expectations;
-import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.database.Database;
@@ -44,7 +43,7 @@ public class LoadTest {
 		encoder = new JavaNetEncoder(Encoder.UTF_8);
 		load = new Load(browser, encoder, url);
 		liveBrowser = new HttpBrowser(new JavaNetHttpRequester(),
-				new RateLimitManager(new JavaNetHttpUtils(), RateLimitManager.DEFAULT_RATE_LIMIT),
+				new RateLimitManager(new JavaNetHttpUtils()),
 				new JavaNetCookieManager());
 		new NonStrictExpectations( ) {{
 			database.getDefaultScope(); result = scope;

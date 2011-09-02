@@ -6,9 +6,11 @@ import java.util.Hashtable;
 import java.util.List;
 
 import net.microscraper.client.Deserializer;
-import net.microscraper.client.Microscraper;
+import net.microscraper.client.Scraper;
 import net.microscraper.database.Database;
+import net.microscraper.instruction.Instruction;
 import net.microscraper.log.Logger;
+import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;
 
 /**
@@ -27,23 +29,27 @@ public class Console {
 	}
 	
 	public static void main (String[] stringArgs) {
-		Microscraper scraper;
 		List<Logger> loggers;
-		String instructionSerialized;
 		Database database;
 		Input input;
+
+		Deserializer deserializer;
+		String instructionSerialized;
+		String executionDir;
+		String source;
 		
 		// Extract implementations from arguments, exit if there's a bad argument or this
 		// system does not support the encoding.
 		try {
 			ConsoleOptions options = new ConsoleOptions(stringArgs);
-			Deserializer deserializer = options.getDeserializer();
 			database = options.getDatabase();
-			String executionDir = options.getExecutionDir();
-			instructionSerialized = options.getInstruction();
 			loggers = options.getLoggers();
 			input = options.getInput();
-			scraper = new Microscraper(deserializer, database, executionDir);
+
+			deserializer = options.getDeserializer();
+			executionDir = options.getExecutionDir();
+			instructionSerialized = options.getInstruction();
+			source = options.getSource();
 		} catch(InvalidOptionException e) {
 			println(e.getMessage());
 			println("");
@@ -58,7 +64,6 @@ public class Console {
 		for(Logger logger : loggers) {
 			try {
 				logger.open();
-				scraper.register(logger);
 			} catch (IOException e) {
 				println("Could not open logger " + StringUtils.quote(logger) + ": " + e.getMessage());
 			}
@@ -72,7 +77,13 @@ public class Console {
 			
 			Hashtable<String, String> inputRow;
 			while((inputRow = input.next()) != null) {
-				scraper.scrape(instructionSerialized, inputRow);
+				Scraper scraper = new Scraper(instructionSerialized, deserializer, executionDir,
+						database, inputRow, source);
+				for(Logger logger : loggers) {
+					scraper.register(logger);
+				}
+				scraper.run();
+				
 			}
 		} catch(IOException e) {
 			println("IO exception while scraping: " + e.getMessage());
