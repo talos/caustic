@@ -8,6 +8,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import net.microscraper.client.Deserializer;
 import net.microscraper.client.Scraper;
@@ -31,6 +33,13 @@ public class Console {
 		System.out.println(objToPrint);
 	}
 	
+	/**
+	 * Print blank line to console.
+	 */
+	private static void println() {
+		System.out.println();
+	}
+	
 	public static void main (String[] stringArgs) {
 		Logger logger;
 		Database database;
@@ -41,7 +50,7 @@ public class Console {
 		String executionDir;
 		String source;
 		
-		Executor executor;
+		ExecutorService executor;
 		
 		// Extract implementations from arguments, exit if there's a bad argument or this
 		// system does not support the encoding.
@@ -59,7 +68,7 @@ public class Console {
 			executor = options.getExecutor();
 		} catch(InvalidOptionException e) {
 			println(e.getMessage());
-			println("");
+			println();
 			println(ConsoleOptions.USAGE);
 			return;
 		} catch(UnsupportedEncodingException e) {
@@ -76,8 +85,9 @@ public class Console {
 			
 			Map<String, String> inputRow;
 			
-			List<Scraper> runningScrapers = new ArrayList<Scraper>();
-			List<Scraper> doneScrapers = new ArrayList<Scraper>();
+			//List<Scraper> runningScrapers = new ArrayList<Scraper>();
+			//List<Scraper> doneScrapers = new ArrayList<Scraper>();
+			List<Future<Scraper>> results = new ArrayList<Future<Scraper>>();
 			while((inputRow = input.next()) != null) {
 				Scraper scraper = new Scraper(
 						instructionSerialized,
@@ -87,21 +97,30 @@ public class Console {
 						new Hashtable<String, String>(inputRow),
 						source);
 				scraper.register(logger);
-				executor.execute(scraper);
-				runningScrapers.add(scraper);
+				results.add(executor.submit(scraper, scraper));
+				if(Thread.interrupted()) {
+					executor.shutdownNow();
+					throw new InterruptedException();
+				}
+				//runningScrapers.add(scraper);
 			}
 			
-			while(runningScrapers.size() > 0) {
-				Iterator<Scraper> iter = runningScrapers.iterator();
+			while(results.size() > 0) {
+				Iterator<Future<Scraper>> iter = results.iterator();
 				while(iter.hasNext()) {
-					Scraper scraper = iter.next();
-					if(scraper.hasBeenRun()) {
-						doneScrapers.add(scraper);
+					if(Thread.interrupted()) {
+						executor.shutdownNow();
+						throw new InterruptedException();
+					}
+					Future<Scraper> future = iter.next();
+					if(future.isDone()) {
 						iter.remove();
 					}
 				}
 			}
 			
+			executor.shutdown();
+			/*
 			for(Scraper scraper : doneScrapers) {
 				Execution[] executions = scraper.getExecutions();
 				for(Execution execution : executions) {
@@ -109,7 +128,9 @@ public class Console {
 						println(execution.failedBecause()[0]);
 					}
 				}
-			}
+			}*/
+		} catch(InterruptedException e) {
+			println("Interrupted");
 		} catch(IOException e) {
 			println("IO exception: " + e.getMessage());
 		} catch(RuntimeException e) {

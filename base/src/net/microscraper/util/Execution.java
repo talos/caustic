@@ -244,9 +244,9 @@ public class Execution {
 		if(isSuccessful()) {
 			return "Successful execution resulting in " + StringUtils.quote(getExecuted());
 		} else if(isMissingVariables()) {
-			return "Execution missing variables " + StringUtils.quoteJoin(getMissingVariables());			
+			return "Execution missing variables " + StringUtils.quoteJoin(getMissingVariables(), ", ");			
 		} else if(hasFailed()) {
-			return "Execution failed because " + StringUtils.quoteJoin(failedBecause());				
+			return "Execution failed because " + StringUtils.quoteJoin(failedBecause(), ", ");				
 		} else {
 			throw new IllegalStateException();
 		}

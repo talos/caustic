@@ -141,7 +141,6 @@ public class ScraperTest {
 		Scraper scraper = new Scraper(simpleGoogle, database, input, null);
 		scraper.run();
 		
-		assertTrue(scraper.hasBeenRun());
 		assertEquals(2, scraper.getExecutions().length);
 		
 		assertEquals(1, defaults.count());

@@ -10,7 +10,7 @@ import java.util.Vector;
  */
 public class StringUtils {
 	/**
-	 * Join an array of {@link String}s with another {@link String}.
+	 * Join an array of {@link String}s using another {@link String}.
 	 * @param strings The array of {@link String}s.
 	 * @param joinString The {@link String} to join <code>strings</code> with.
 	 * @return <code>strings</code> as a single {@link String} joined by
@@ -26,8 +26,7 @@ public class StringUtils {
 		return joined;
 	}
 	
-	
-	public static String join(int[] integers, String joinString) {
+	/*public static String join(int[] integers, String joinString) {
 		String joined = "";
 		for(int i = 0; i < integers.length; i++) {
 			joined += Integer.toString(integers[i]);
@@ -35,12 +34,26 @@ public class StringUtils {
 				joined += joinString;
 		}
 		return joined;
+	}*/
+	
+	/**
+	 * Join an array of {@link String}s using another {@link String}, and 
+	 * quote each element using {@link #quote(String)}.
+	 * @param strings The array of {@link String}s.
+	 * @param joinString The {@link String} to join <code>strings</code> with.
+	 * @return <code>strings</code> as a single {@link String} joined by
+	 * <code>joinString</code>.
+	 */
+	public static String quoteJoin(String[] strings, String joinString) {
+		return quote(join(strings, QUOTATION + joinString + QUOTATION));
 	}
 	
-	public static String quoteJoin(String[] strings) {
-		return quote(join(strings, QUOTATION + ", " + QUOTATION));
-	}
-	
+	/**
+	 * 
+	 * @param string A {@link String} to truncate.
+	 * @param length An <code>int</code> length to truncate <code>string</code> to.
+	 * @return The truncated {@link String}.
+	 */
 	public static String truncate(String string, int length) {
 		if(string == null)
 			return "";
@@ -97,7 +110,7 @@ public class StringUtils {
 	 * @see #quote(String)
 	 * @see #quote(int)
 	 */		
-	public final static char QUOTATION = '"';
+	public final static String QUOTATION = "\"";
 	
 	/**
 	 * Return the {@link Object} with {@link #QUOTATION}s around it.
@@ -122,4 +135,14 @@ public class StringUtils {
 	public static String quote(int integerToQuote) {
 		return quote(Integer.toString(integerToQuote));
 	}
+
+	/**
+	 * Convenient acccess to <code>System.getProperty("line.separator")</code>.
+	 */
+	public static final String NEWLINE = System.getProperty("line.separator");
+
+	/**
+	 * Convenient acccess to <code>System.getProperty("user.dir")</code>.
+	 */
+	public static final String USER_DIR = System.getProperty("user.dir");
 }

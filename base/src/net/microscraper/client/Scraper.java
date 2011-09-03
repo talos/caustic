@@ -147,35 +147,18 @@ public class Scraper implements Runnable, Loggable {
 			finishedExecutions.add(executable.getLastExecution());
 		}
 		
-//		synchronized(hasBeenRun) {
-			hasBeenRun = Boolean.TRUE;
-//		}
 		//queue.clear();
 	}
 	
 	/**
-	 * @return <code>true</code> if this {@link Scraper} has been run, <code>
-	 * false</code> otherwise.
-	 */
-	public boolean hasBeenRun() {
-//		synchronized(hasBeenRun) {
-			return hasBeenRun.booleanValue();
-//		}
-	}
-
-	/**
 	 * 
 	 * @return An array of the {@link Execution}s this {@link Scraper} generated
-	 * while running.  Should only be called if {@link #hasBeenRun()} is <code>true</code>.
+	 * while running.  Should only be called after {@link #run()} is finished.
 	 */
 	public Execution[] getExecutions() {
-		if(hasBeenRun() != true) {
-			throw new IllegalStateException("Still running this instruction.");
-		} else {
-			Execution[] result = new Execution[finishedExecutions.size()];
-			finishedExecutions.copyInto(result);
-			return result;
-		}
+		Execution[] result = new Execution[finishedExecutions.size()];
+		finishedExecutions.copyInto(result);
+		return result;
 	}
 	
 	public void register(Logger logger) {
