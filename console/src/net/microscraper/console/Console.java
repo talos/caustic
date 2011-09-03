@@ -6,13 +6,13 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 import net.microscraper.client.Deserializer;
 import net.microscraper.client.Scraper;
 import net.microscraper.database.Database;
 import net.microscraper.log.Logger;
-import net.microscraper.log.MultiLog;
 import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;
 
@@ -67,34 +67,31 @@ public class Console {
 			return;
 		}
 		
-		// Open up and register loggers.
-		try {
-			logger.open();
-		} catch (IOException e) {
-			println("Could not open logger " + StringUtils.quote(logger) + ": " + e.getMessage());
-		}
-		
 		// This opens a block that must be able to fail while ensuring that
 		// everything is closed.
 		try {
+			logger.open();
 			database.open();
 			input.open();
 			
-			Hashtable<String, String> inputRow;
+			Map<String, String> inputRow;
 			
 			List<Scraper> runningScrapers = new ArrayList<Scraper>();
 			List<Scraper> doneScrapers = new ArrayList<Scraper>();
 			while((inputRow = input.next()) != null) {
-				Scraper scraper = new Scraper(instructionSerialized, deserializer, executionDir,
-						database, inputRow, source);
-				System.out.println(inputRow);
+				Scraper scraper = new Scraper(
+						instructionSerialized,
+						deserializer,
+						executionDir,
+						database,
+						new Hashtable<String, String>(inputRow),
+						source);
 				scraper.register(logger);
 				executor.execute(scraper);
 				runningScrapers.add(scraper);
 			}
 			
 			while(runningScrapers.size() > 0) {
-				System.out.println(runningScrapers.size());
 				Iterator<Scraper> iter = runningScrapers.iterator();
 				while(iter.hasNext()) {
 					Scraper scraper = iter.next();
@@ -108,8 +105,6 @@ public class Console {
 			for(Scraper scraper : doneScrapers) {
 				Execution[] executions = scraper.getExecutions();
 				for(Execution execution : executions) {
-					println(execution.isSuccessful());
-					println(execution.isMissingVariables());
 					if(execution.hasFailed()) {
 						println(execution.failedBecause()[0]);
 					}

@@ -220,7 +220,7 @@ public final class ConsoleOptions {
 					"instruction by URI.");
 		}
 		
-		instruction.define(args[0]);
+		instruction.setValue(args[0]);
 		definedOptions.add(instruction);
 		
 		for(int i = 1 ; i < args.length ; i ++) {
@@ -230,7 +230,10 @@ public final class ConsoleOptions {
 				value = arg.substring(arg.indexOf('=') + 1);
 				arg = arg.substring(0, arg.indexOf('='));
 			}
-			Option.retrieve(arg).define(value);
+			Option option = Option.retrieve(arg);
+			if(value != null) {
+				option.setValue(value);
+			}
 		}
 	}
 	

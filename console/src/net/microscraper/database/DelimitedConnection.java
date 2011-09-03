@@ -41,7 +41,7 @@ public class DelimitedConnection implements InsertableConnection {
 		
 		@Override
 		public void write(char[] cbuf, int off, int len) throws IOException {
-			System.out.print(Arrays.copyOfRange(cbuf, off, off+len));
+			System.out.print(new String(Arrays.copyOfRange(cbuf, off, off+len)));
 		}
 	}
 	
