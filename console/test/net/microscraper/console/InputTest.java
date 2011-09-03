@@ -49,24 +49,44 @@ public class InputTest {
 	}
 	
 	@Test
-	public void mapAssignedCorrectly() throws Exception {
+	public void testHeadersAssignedCorrectly() throws Exception {
 		Input input = Input.fromSharedAndCSV(shared, PATH_TO_BBLS, ',');
 		input.open();
-		Map<String, String> row1 = input.next();
-		Map<String, String> row2 = input.next();
-				
-		assertTrue(row1.keySet().containsAll(Arrays.asList("Borough", "Block", "Lot")));
-		assertTrue(row2.keySet().containsAll(Arrays.asList("Borough", "Block", "Lot")));
+		Map<String, String> row;
 		
-		assertEquals("3", row1.get("Borough"));
-		assertEquals("1772", row1.get("Block"));
-		assertEquals("74", row1.get("Lot"));
+		row = input.next();
+		assertTrue(row.keySet().containsAll(Arrays.asList("Borough", "Block", "Lot")));
+		assertEquals("3", row.get("Borough"));
+		assertEquals("1772", row.get("Block"));
+		assertEquals("74", row.get("Lot"));
 
-		assertEquals("1", row2.get("Borough"));
-		assertEquals("1171", row2.get("Block"));
-		assertEquals("63", row2.get("Lot"));
+		row = input.next();
+		assertTrue(row.keySet().containsAll(Arrays.asList("Borough", "Block", "Lot")));
+		assertEquals("1", row.get("Borough"));
+		assertEquals("1171", row.get("Block"));
+		assertEquals("63", row.get("Lot"));
 	}
 
+	@Test
+	public void testRowsHaveCorrectValues() throws Exception {
+		Input input = Input.fromSharedAndCSV(new Hashtable<String, String>(), PATH_TO_QUERIES, ',');
+		input.open();
+		Map<String, String> row;
+				
+		row = input.next();
+		assertEquals("hello", row.get("query"));
+		assertEquals(1, row.size());
+
+		row = input.next();
+		assertEquals("meh", row.get("query"));
+		assertEquals(1, row.size());
+		
+		row = input.next();
+		assertEquals("bleh", row.get("query"));
+		assertEquals(1, row.size());
+	}
+	
+	
 	@Test(expected = IllegalStateException.class)
 	public void testOpenRequired() throws Exception {
 		Input input = Input.fromSharedAndCSV(

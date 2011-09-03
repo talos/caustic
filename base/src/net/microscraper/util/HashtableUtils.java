@@ -38,7 +38,7 @@ public class HashtableUtils {
 	 * @return A {@link Hashtable}.
 	 */
 	public static Hashtable fromFormEncoded(Decoder decoder, String formEncodedData)
-			throws UnsupportedEncodingException {
+			throws UnsupportedEncodingException, FormEncodedFormatException {
 		String[] splitByAmpersands = StringUtils.split(formEncodedData, "&");
 		Hashtable result = new Hashtable();
 		for(int i = 0 ; i < splitByAmpersands.length; i++) {
@@ -47,7 +47,7 @@ public class HashtableUtils {
 				result.put(decoder.decode(pair[0]),
 						decoder.decode(pair[1]));
 			} else {
-				throw new IllegalArgumentException(
+				throw new FormEncodedFormatException(
 						StringUtils.quote(splitByAmpersands[i]) + " is not a valid name-value pair.");
 			}
 		}

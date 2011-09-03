@@ -3,7 +3,6 @@ package net.microscraper.log;
 import java.io.IOException;
 import java.util.Vector;
 
-
 /**
  * A {@link MultiLog} is an implementation of {@link Loggable}
  * to coordinate many {@link Logger}s simultaneously through
@@ -38,7 +37,7 @@ public final class MultiLog implements Logger, Loggable {
 	public void open() throws IOException {
 		for(int i = 0; i < loggers.size(); i ++) {
 			((Logger) loggers.elementAt(i)).open();
-		}		
+		}
 	}
 	public void close() throws IOException {
 		for(int i = 0; i < loggers.size(); i ++) {

@@ -28,7 +28,6 @@ public class Scraper implements Runnable, Loggable {
 	 */
 	private final Vector queue = new Vector();
 
-	//private final Vector failedExecutables = new Vector();
 	private final MultiLog log = new MultiLog();
 	
 	/**
@@ -36,12 +35,6 @@ public class Scraper implements Runnable, Loggable {
 	 * {@link Executable}s won't be executed again.
 	 */
 	private final Vector finishedExecutions = new Vector();
-	
-	/**
-	 * Whether this {@link Scraper} has been run, should
-	 * be synchronized.
-	 */
-	private Boolean hasBeenRun = Boolean.FALSE;
 	
 	/**
 	 * 
@@ -63,6 +56,8 @@ public class Scraper implements Runnable, Loggable {
 		this.database = database;
 		this.input = input;
 		this.defaultScope = database.getDefaultScope();
+		
+		deserializer.register(log);
 		
 		InstructionPromise promise = new InstructionPromise(deserializer, database, serializedInstruction, executionDir);
 		this.start = new Executable(source, defaultScope, promise);

@@ -41,6 +41,7 @@ import net.microscraper.uri.URILoader;
 import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Decoder;
 import net.microscraper.util.Encoder;
+import net.microscraper.util.FormEncodedFormatException;
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.IntUUIDFactory;
 import net.microscraper.util.JavaNetDecoder;
@@ -137,7 +138,7 @@ public final class ConsoleOptions {
 "        Defaults to " + BATCH_SIZE_DEFAULT  + "." + StringUtils.NEWLINE + 
 "    " + ENCODING + "=<encoding>" + StringUtils.NEWLINE +
 "        What encoding should be used.  Defaults to " + StringUtils.quote(ENCODING_DEFAULT) + "." + StringUtils.NEWLINE +
-"    " + INPUT + "=\"<defaults>\"" + StringUtils.NEWLINE +
+"    " + INPUT + "=\"<form-encoded-name-value-pairs>\"" + StringUtils.NEWLINE +
 "        A form-encoded string of name value pairs to use as" + StringUtils.NEWLINE +
 "        a single input during execution." + StringUtils.NEWLINE +
 "    " + INPUT_FILE + "=<path> [" + INPUT_DELIMITER + "=<delimiter>]" + StringUtils.NEWLINE +
@@ -178,7 +179,7 @@ public final class ConsoleOptions {
 			"Must provide an instruction as JSON or a link to an " +
 			"instruction by URI.";
 	
-	private final List<Option> definedOptions = new ArrayList<Option>();
+	private final List<Option> specifiedOptions = new ArrayList<Option>();
 	//private final Map<Option, String> optionValues = new HashMap<Option, String>();
 
 	/**
@@ -188,15 +189,13 @@ public final class ConsoleOptions {
 	 * false</code> otherwise.
 	 */
 	private boolean isSpecified(Option option) {
-		return definedOptions.contains(option);
+		return specifiedOptions.contains(option);
 	}
 	
 	/**
 	 * 
 	 * @param option The {@link Option} whose value should be retrieved.
-	 * @return The {@link String} value of the {@link Option}.  If it is
-	 * not {@link #isSpecified(Option)}, then {@link Option#getDefault()}
-	 * is returned.
+	 * @return The {@link String} value of the {@link Option}.
 	 * @throws InvalidOptionException If the user did not specify this 
 	 * {@link Option} and it does not have a default value.
 	 */
@@ -221,7 +220,7 @@ public final class ConsoleOptions {
 		}
 		
 		instruction.setValue(args[0]);
-		definedOptions.add(instruction);
+		specifiedOptions.add(instruction);
 		
 		for(int i = 1 ; i < args.length ; i ++) {
 			String arg = args[i];
@@ -231,6 +230,7 @@ public final class ConsoleOptions {
 				arg = arg.substring(0, arg.indexOf('='));
 			}
 			Option option = Option.retrieve(arg);
+			specifiedOptions.add(option);
 			if(value != null) {
 				option.setValue(value);
 			}
@@ -396,20 +396,25 @@ public final class ConsoleOptions {
 		if(rawInputString.startsWith("\"") && rawInputString.endsWith("\"")) {
 			rawInputString = rawInputString.substring(1, rawInputString.length() - 1);
 		}
-		Hashtable<String, String> shared =
-				HashtableUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), rawInputString);
 		
-		if(isSpecified(inputFile)) {
-			char inputColumnDelimiter = getValue(inputDelimiter).charAt(0);
-			if(getValue(inputDelimiter).length() > 1) {
-				throw new InvalidOptionException(INPUT_DELIMITER + " must be a single character.");
+		try {
+			Hashtable<String, String> shared =
+					HashtableUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), rawInputString);
+			
+			if(isSpecified(inputFile)) {
+				char inputColumnDelimiter = getValue(inputDelimiter).charAt(0);
+				if(getValue(inputDelimiter).length() > 1) {
+					throw new InvalidOptionException(INPUT_DELIMITER + " must be a single character.");
+				}
+				return Input.fromSharedAndCSV(shared, getValue(inputFile), inputColumnDelimiter);
+			} else {
+				if(isSpecified(inputDelimiter)) {
+					throw new InvalidOptionException("Cannot define " + INPUT_DELIMITER + " without an input file.");
+				}
+				return Input.fromShared(shared);
 			}
-			return Input.fromSharedAndCSV(shared, getValue(inputFile), inputColumnDelimiter);
-		} else {
-			if(isSpecified(inputDelimiter)) {
-				throw new InvalidOptionException("Cannot define " + INPUT_DELIMITER + " without an input file.");
-			}
-			return Input.fromShared(shared);
+		} catch(FormEncodedFormatException e) {
+			throw new InvalidOptionException(e.getMessage());
 		}
 	}
 

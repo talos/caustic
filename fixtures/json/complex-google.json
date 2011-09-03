@@ -4,13 +4,13 @@
 	"then"  : {
 		"find"     : "{{query}}\\s+(\\w+)",
 		"replace" : "$1",
-		"name"   : "after",
+		"name"   : "query",
 		"then" : {
-			"load" : "http://www.google.com/search?q={{after}}",
+			"load" : "http://www.google.com/search?q={{query}}",
 			"then" : {
-				"find"     : "{{after}}\\s+(\\w+)",
+				"find"     : "{{query}}\\s+(\\w+)",
 				"replace" : "I say '$1'!",
-				"name"   : "what do you say after '{{after}}'?"
+				"name"   : "what do you say after '{{query}}'?"
 			}
 		}
 	}

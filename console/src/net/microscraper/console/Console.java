@@ -3,10 +3,12 @@ package net.microscraper.console;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -30,7 +32,8 @@ public class Console {
 	 * @param objToPrint The object to print to the console.
 	 */
 	private static void println(Object objToPrint) {
-		System.out.println(objToPrint);
+		System.out.print(objToPrint.toString());
+		println();
 	}
 	
 	/**
@@ -40,7 +43,19 @@ public class Console {
 		System.out.println();
 	}
 	
-	public static void main (String[] stringArgs) {
+	/**
+	 * Generate a readout of the relative success of the {@link Scraper}s' executions.
+	 * @param successful the number of successful executions.
+	 * @param stuck the number of executions that got stuck.
+	 * @param failed the number of failed executions.
+	 * @return A {@link String} summary.
+	 */
+	public static String statusLine(int successful, int stuck, int failed) {
+		return successful + " successful executions, " + stuck + " stuck executions, " + failed +
+				" failed executions.";
+	}
+	
+	public static void main (String... stringArgs) {
 		Logger logger;
 		Database database;
 		Input input;
@@ -51,6 +66,7 @@ public class Console {
 		String source;
 		
 		ExecutorService executor;
+		List<Execution> executions = new ArrayList<Execution>();
 		
 		// Extract implementations from arguments, exit if there's a bad argument or this
 		// system does not support the encoding.
@@ -84,11 +100,9 @@ public class Console {
 			input.open();
 			
 			Map<String, String> inputRow;
-			
-			//List<Scraper> runningScrapers = new ArrayList<Scraper>();
-			//List<Scraper> doneScrapers = new ArrayList<Scraper>();
 			List<Future<Scraper>> results = new ArrayList<Future<Scraper>>();
 			while((inputRow = input.next()) != null) {
+				println(inputRow.toString());
 				Scraper scraper = new Scraper(
 						instructionSerialized,
 						deserializer,
@@ -113,13 +127,21 @@ public class Console {
 						throw new InterruptedException();
 					}
 					Future<Scraper> future = iter.next();
+					
 					if(future.isDone()) {
+						try {
+							Scraper scraper = future.get();
+							executions.addAll(Arrays.asList(scraper.getExecutions()));
+						} catch(ExecutionException e) {
+							// scraper failed due to uncaught exception.
+						}
 						iter.remove();
 					}
 				}
 			}
 			
 			executor.shutdown();
+			
 			/*
 			for(Scraper scraper : doneScrapers) {
 				Execution[] executions = scraper.getExecutions();
@@ -138,7 +160,20 @@ public class Console {
 		} catch(Error e) {
 			e.printStackTrace(); // catch & log uncaught exceptions.
 		} finally {
-			// Finally block, try to close everything.
+			// Finally block, try to close everything & summarize what happened.
+			
+			int successful = 0, stuck = 0, failed = 0;
+			for(Execution execution : executions) {
+				if(execution.isSuccessful()) {
+					successful++;
+				} else if(execution.isMissingVariables()) {
+					stuck++;
+				} else if(execution.hasFailed()) {
+					failed++;
+				}
+			}
+			println(statusLine(successful, stuck, failed));
+			
 			try {
 				logger.close();
 			} catch (IOException e) {
