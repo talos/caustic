@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import net.microscraper.client.Deserializer;
 import net.microscraper.database.Database;
@@ -29,6 +31,7 @@ import net.microscraper.json.JsonMEParser;
 import net.microscraper.json.JsonParser;
 import net.microscraper.log.JavaIOFileLogger;
 import net.microscraper.log.Logger;
+import net.microscraper.log.MultiLog;
 import net.microscraper.log.SystemOutLogger;
 import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.regexp.RegexpCompiler;
@@ -116,6 +119,10 @@ public final class ConsoleOptions {
 	public static final String SOURCE_DEFAULT = "";
 	private final Option source = Option.withDefault(SOURCE, SOURCE_DEFAULT);
 	
+	public static final String THREADS = "threads";
+	public static final String THREADS_DEFAULT = "5";
+	private final Option threads = Option.withDefault(THREADS, THREADS_DEFAULT);
+	
 	public static final String TIMEOUT_MILLISECONDS = "timeout";
 	private final Option timeoutMilliseconds = Option.withDefault(TIMEOUT_MILLISECONDS, Integer.toString(HttpRequester.DEFAULT_TIMEOUT_MILLISECONDS));
 	
@@ -162,6 +169,9 @@ public final class ConsoleOptions {
 "    " + SOURCE + "=<source>" + newline +
 "        A string to use as source for the instruction." + newline +
 "        Only Finds use sources." + newline +
+"    " + THREADS + "=<num-threads>" + newline +
+"        How many threads to use.  Each thread runs one " + newline +
+"        row of input for one instruction." + newline +
 "    " + TIMEOUT_MILLISECONDS + "=<timeout>" + newline +
 "        How many milliseconds to wait before giving up on a" + newline + 
 "        request.  Defaults to " + TIMEOUT_MILLISECONDS + " milliseconds.");
@@ -348,20 +358,19 @@ public final class ConsoleOptions {
 		return executionDir;
 	}
 	
-	
 	/**
 	 * 
-	 * @return A {@link List} of loggers that should be used.
+	 * @return A {@link Logger}.
 	 */
-	public List<Logger> getLoggers() throws InvalidOptionException {
-		List<Logger> loggers = new ArrayList<Logger>();
+	public Logger getLogger() throws InvalidOptionException {
+		MultiLog multiLog = new MultiLog();
 		if(isSpecified(logToFile)) {
-			loggers.add(new JavaIOFileLogger(getValue(logToFile)));
+			multiLog.register(new JavaIOFileLogger(getValue(logToFile)));
 		}
 		if(isSpecified(logStdout)) {
-			loggers.add(new SystemOutLogger());
+			multiLog.register(new SystemOutLogger());
 		}
-		return loggers;
+		return multiLog;
 	}
 	
 	/**
@@ -378,8 +387,8 @@ public final class ConsoleOptions {
 	 * @return An {@link Input} whose elements are {@link Hashtable}s that can be used
 	 * as input for {@link Scraper}.
 	 */
+	@SuppressWarnings("unchecked")
 	public Input getInput() throws InvalidOptionException, UnsupportedEncodingException {
-		@SuppressWarnings("unchecked")
 		String rawInputString = getValue(input);
 		if(rawInputString.startsWith("\"") && rawInputString.endsWith("\"")) {
 			rawInputString = rawInputString.substring(1, rawInputString.length() - 1);
@@ -408,5 +417,13 @@ public final class ConsoleOptions {
 	 */
 	public String getSource() throws InvalidOptionException {
 		return getValue(source);
+	}
+	
+	public Executor getExecutor() throws InvalidOptionException {
+		try {
+			return Executors.newFixedThreadPool(Integer.valueOf(getValue(threads)));
+		} catch(NumberFormatException e) {
+			throw new InvalidOptionException(THREADS + " must be an integer.");
+		}
 	}
 }
