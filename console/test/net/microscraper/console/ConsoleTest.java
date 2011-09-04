@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
+import mockit.Verifications;
 import mockit.VerificationsInOrder;
 import net.microscraper.database.Database;
 import net.microscraper.database.Scope;
@@ -82,10 +83,13 @@ public class ConsoleTest {
 			out.print(Console.statusLine(2, 0, 0));
 		}};
 	}
-
-
-	@Test
-	public void testSimpleGoogleInputFile() throws Exception {
+	
+	/**
+	 * Record expectations and run the console for simple-google, with the queries input file.
+	 * @param numThreads The number of threads to execute with.
+	 * @throws Exception
+	 */
+	public void recordSimpleGoogleInputFile(int numThreads) throws Exception {
 		new Expectations() {
 			@Mocked({"head", "get", "post"}) HttpBrowser browser;
 			{
@@ -99,17 +103,39 @@ public class ConsoleTest {
 		};
 		Console.main(
 				"../fixtures/json/simple-google.json",
-				"--input-file=../fixtures/csv/queries.csv"
+				"--input-file=../fixtures/csv/queries.csv",
+				"--threads=" + numThreads
 					);
-		
+	}
+	
+	@Test
+	public void testSimpleGoogleInputFileSingleThread() throws Exception {
+		recordSimpleGoogleInputFile(1);
+		// In order, because this is synchronous
 		new VerificationsInOrder() {{
 			out.print(row("scope", "source", "name", "value"));
 			out.print(row("0", "0", "query", "hello"));
+			out.print(row("3", "0", "what do you say after 'hello'?", "I say 'world'!"));
 			out.print(row("1", "1", "query", "meh"));
 			out.print(row("2", "2", "query", "bleh"));
-			out.print(row("3", "0", "what do you say after 'hello'?", "I say 'world'!"));
 			out.print(row("4", "2", "what do you say after 'bleh'?", "I say 'this'!"));
-			out.print(row("4", "2", "what do you say after 'bleh'?", "I say 'that'!"));
+			out.print(row("5", "2", "what do you say after 'bleh'?", "I say 'that'!"));
+			out.print(Console.statusLine(5, 0, 1));
+		}};
+	}
+
+	@Test
+	public void testSimpleGoogleInputFileMultiThread() throws Exception {
+		recordSimpleGoogleInputFile(5);
+		// Out of order, because this is asynchronous
+		new Verifications() {{
+			out.print(row("scope", "source", "name", "value"));
+			out.print(row("0", "0", "query", "hello"));
+			out.print(row("3", "0", "what do you say after 'hello'?", "I say 'world'!"));
+			out.print(row("1", "1", "query", "meh"));
+			out.print(row("2", "2", "query", "bleh"));
+			out.print(row("4", "2", "what do you say after 'bleh'?", "I say 'this'!"));
+			out.print(row("5", "2", "what do you say after 'bleh'?", "I say 'that'!"));
 			out.print(Console.statusLine(5, 0, 1));
 		}};
 	}

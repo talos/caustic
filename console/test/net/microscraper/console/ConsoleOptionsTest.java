@@ -82,4 +82,20 @@ public class ConsoleOptionsTest {
 				INPUT_DELIMITER + "=" + randomString(10) });
 		options.getInput();
 	}
+	
+	@Test(expected=InvalidOptionException.class)
+	public void testThreadsCannotBeZero() throws Exception {
+		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
+				THREADS + "=0" });
+		options.getExecutor();
+	}
+	
+	@Test(expected=InvalidOptionException.class)
+	public void testThreadsCannotBeNegative() throws Exception {
+		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
+				THREADS + "=" + (-1 - randomInt()) });
+		options.getExecutor();
+	}
+	
+	
 }

@@ -1,5 +1,7 @@
 package net.microscraper.console;
 
+import static net.microscraper.util.StringUtils.NEWLINE;
+
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
@@ -111,6 +113,10 @@ public final class ConsoleOptions {
 	public static final String RATE_LIMIT_DEFAULT = Integer.toString(RateLimitManager.DEFAULT_RATE_LIMIT);
 	private final Option rateLimit = Option.withDefault(RATE_LIMIT, RATE_LIMIT_DEFAULT);
 	
+	public static final String REQUEST_WAIT = "--request-wait";
+	public static final String REQUEST_WAIT_DEFAULT = Integer.toString(RateLimitManager.DEFAULT_REQUEST_WAIT);
+	private final Option requestWait = Option.withDefault(REQUEST_WAIT, REQUEST_WAIT_DEFAULT);
+	
 	public static final String SINGLE_TABLE = "--single-table";
 	private final Option singleTable = Option.withoutDefault(SINGLE_TABLE);
 	
@@ -126,53 +132,56 @@ public final class ConsoleOptions {
 	private final Option timeoutMilliseconds = Option.withDefault(TIMEOUT_MILLISECONDS, Integer.toString(HttpRequester.DEFAULT_TIMEOUT_MILLISECONDS));
 	
 	public static final String USAGE = 
-"usage: microscraper <uri> [<options>]" + StringUtils.NEWLINE +
-"       microscraper <json> [<options>]" + StringUtils.NEWLINE + StringUtils.NEWLINE +
-"  uri" + StringUtils.NEWLINE +
-"    A URI that points to microscraper instruction JSON." + StringUtils.NEWLINE + StringUtils.NEWLINE +
-"  json" + StringUtils.NEWLINE +
-"    Microscraper instruction JSON." + StringUtils.NEWLINE + StringUtils.NEWLINE +
-"  options" + StringUtils.NEWLINE +
-"    " + BATCH_SIZE + "=<batch-size>" + StringUtils.NEWLINE +
-"        If saving to SQL, assigns the batch size.  " + StringUtils.NEWLINE +
-"        Defaults to " + BATCH_SIZE_DEFAULT  + "." + StringUtils.NEWLINE + 
-"    " + ENCODING + "=<encoding>" + StringUtils.NEWLINE +
-"        What encoding should be used.  Defaults to " + StringUtils.quote(ENCODING_DEFAULT) + "." + StringUtils.NEWLINE +
-"    " + INPUT + "=\"<form-encoded-name-value-pairs>\"" + StringUtils.NEWLINE +
-"        A form-encoded string of name value pairs to use as" + StringUtils.NEWLINE +
-"        a single input during execution." + StringUtils.NEWLINE +
-"    " + INPUT_FILE + "=<path> [" + INPUT_DELIMITER + "=<delimiter>]" + StringUtils.NEWLINE +
-"        Path to a file with any number of additional input" + StringUtils.NEWLINE +
-"        values.  Each row is executed separately.  The first" + StringUtils.NEWLINE +
-"        row contains column names." + StringUtils.NEWLINE +
-"        The default column delimiter is "+ StringUtils.quote(INPUT_DELIMITER_DEFAULT) + "." + StringUtils.NEWLINE +
-"    " + LOG_TO_FILE + "[=<path>]" + StringUtils.NEWLINE +
-"        Pipe the log to a file." + StringUtils.NEWLINE +
-"        Path is optional, defaults to " + StringUtils.quote(LOG_TO_FILE_DEFAULT)  + " in the" + StringUtils.NEWLINE +
-"        current directory." + StringUtils.NEWLINE +
-"    " + LOG_STDOUT + StringUtils.NEWLINE +
-"        Pipe the log to stdout." + StringUtils.NEWLINE +
-"    " + MAX_RESPONSE_SIZE + StringUtils.NEWLINE +
-"        How many KB of a response to load from a single request " + StringUtils.NEWLINE +
-"        before cutting off the response.  Defaults to " + MAX_RESPONSE_SIZE_DEFAULT + "KB." + StringUtils.NEWLINE +
-"    " + FORMAT + "=(" + StringUtils.join(validOutputFormats.toArray(new String[0]), "|") +")" + StringUtils.NEWLINE +
-"        How to format output.  Defaults to " + StringUtils.quote(FORMAT_DEFAULT) + "." + StringUtils.NEWLINE +
-"    " + SAVE_TO_FILE + "[=<path>], " + StringUtils.NEWLINE +
-"        Where to save the output.  Defaults to " + StringUtils.quote(SAVE_TO_FILE_DEFAULT + ".<format>" + StringUtils.NEWLINE +
-"        in the current directory output." + StringUtils.NEWLINE +
-"    " + RATE_LIMIT + "=<max-kbps>" + StringUtils.NEWLINE +
-"        The rate limit, in KBPS, for loading from a single host." + StringUtils.NEWLINE +
-"        Defaults to " + StringUtils.quote(RATE_LIMIT_DEFAULT) + " KBPS." + StringUtils.NEWLINE +
-"    " + SINGLE_TABLE + StringUtils.NEWLINE +
-"        Save all results to a single sqlite table, if using sqlite" + StringUtils.NEWLINE +
-"    " + SOURCE + "=<source>" + StringUtils.NEWLINE +
-"        A string to use as source for the instruction." + StringUtils.NEWLINE +
-"        Only Finds use sources." + StringUtils.NEWLINE +
-"    " + THREADS + "=<num-threads>" + StringUtils.NEWLINE +
-"        How many threads to use.  Each thread runs one " + StringUtils.NEWLINE +
-"        row of input for one instruction." + StringUtils.NEWLINE +
-"    " + TIMEOUT_MILLISECONDS + "=<timeout>" + StringUtils.NEWLINE +
-"        How many milliseconds to wait before giving up on a" + StringUtils.NEWLINE + 
+"usage: microscraper <uri> [<options>]" + NEWLINE +
+"       microscraper <json> [<options>]" + NEWLINE + NEWLINE +
+"  uri" + NEWLINE +
+"    A URI that points to microscraper instruction JSON." + NEWLINE + NEWLINE +
+"  json" + NEWLINE +
+"    Microscraper instruction JSON." + NEWLINE + NEWLINE +
+"  options" + NEWLINE +
+"    " + BATCH_SIZE + "=<batch-size>" + NEWLINE +
+"        If saving to SQL, assigns the batch size.  " + NEWLINE +
+"        Defaults to " + BATCH_SIZE_DEFAULT  + "." + NEWLINE + 
+"    " + ENCODING + "=<encoding>" + NEWLINE +
+"        What encoding should be used.  Defaults to " + StringUtils.quote(ENCODING_DEFAULT) + "." + NEWLINE +
+"    " + INPUT + "=\"<form-encoded-name-value-pairs>\"" + NEWLINE +
+"        A form-encoded string of name value pairs to use as" + NEWLINE +
+"        a single input during execution." + NEWLINE +
+"    " + INPUT_FILE + "=<path> [" + INPUT_DELIMITER + "=<delimiter>]" + NEWLINE +
+"        Path to a file with any number of additional input" + NEWLINE +
+"        values.  Each row is executed separately.  The first" + NEWLINE +
+"        row contains column names." + NEWLINE +
+"        The default column delimiter is "+ StringUtils.quote(INPUT_DELIMITER_DEFAULT) + "." + NEWLINE +
+"    " + LOG_TO_FILE + "[=<path>]" + NEWLINE +
+"        Pipe the log to a file." + NEWLINE +
+"        Path is optional, defaults to " + StringUtils.quote(LOG_TO_FILE_DEFAULT)  + " in the" + NEWLINE +
+"        current directory." + NEWLINE +
+"    " + LOG_STDOUT + NEWLINE +
+"        Pipe the log to stdout." + NEWLINE +
+"    " + MAX_RESPONSE_SIZE + NEWLINE +
+"        How many KB of a response to load from a single request " + NEWLINE +
+"        before cutting off the response.  Defaults to " + MAX_RESPONSE_SIZE_DEFAULT + "KB." + NEWLINE +
+"    " + FORMAT + "=(" + StringUtils.join(validOutputFormats.toArray(new String[0]), "|") +")" + NEWLINE +
+"        How to format output.  Defaults to " + StringUtils.quote(FORMAT_DEFAULT) + "." + NEWLINE +
+"    " + SAVE_TO_FILE + "[=<path>], " + NEWLINE +
+"        Where to save the output.  Defaults to " + StringUtils.quote(SAVE_TO_FILE_DEFAULT + ".<format>" + NEWLINE +
+"        in the current directory output." + NEWLINE +
+"    " + RATE_LIMIT + "=<max-kbps>" + NEWLINE +
+"        The rate limit, in KBPS, for loading from a single host." + NEWLINE +
+"        Defaults to " + StringUtils.quote(RATE_LIMIT_DEFAULT) + " KBPS." + NEWLINE +
+"    " + REQUEST_WAIT + "=<request-wait-milliseconds>" + NEWLINE +
+"        How many milliseconds to wait before placing a second " + NEWLINE +
+"        request with a single host.  Defaults to " + REQUEST_WAIT_DEFAULT + "ms." + NEWLINE +
+"    " + SINGLE_TABLE + NEWLINE +
+"        Save all results to a single sqlite table, if using sqlite" + NEWLINE +
+"    " + SOURCE + "=<source>" + NEWLINE +
+"        A string to use as source for the instruction." + NEWLINE +
+"        Only Finds use sources." + NEWLINE +
+"    " + THREADS + "=<num-threads>" + NEWLINE +
+"        How many threads to use.  Each thread runs one " + NEWLINE +
+"        row of input for one instruction." + NEWLINE +
+"    " + TIMEOUT_MILLISECONDS + "=<timeout>" + NEWLINE +
+"        How many milliseconds to wait before giving up on a" + NEWLINE + 
 "        request.  Defaults to " + TIMEOUT_MILLISECONDS + " milliseconds.");
 	
 	public static final String INSTRUCTION_MISSING_ERROR =
@@ -180,8 +189,7 @@ public final class ConsoleOptions {
 			"instruction by URI.";
 	
 	private final List<Option> specifiedOptions = new ArrayList<Option>();
-	//private final Map<Option, String> optionValues = new HashMap<Option, String>();
-
+	
 	/**
 	 * 
 	 * @param option The {@link Option} to check.
@@ -251,7 +259,11 @@ public final class ConsoleOptions {
 
 		// Set timeout.
 		try {
-			requester.setTimeout(Integer.parseInt(getValue(timeoutMilliseconds)));
+			int timeout = Integer.parseInt(getValue(timeoutMilliseconds));
+			if(timeout < 1) {
+				throw new InvalidOptionException(TIMEOUT_MILLISECONDS + " must be greater than 0.");
+			}
+			requester.setTimeout(timeout);
 		} catch(NumberFormatException e) {
 			throw new InvalidOptionException(TIMEOUT_MILLISECONDS + " must be an integer");
 		}
@@ -260,9 +272,24 @@ public final class ConsoleOptions {
 
 		// Set rate limit.
 		try {
-			memory.setRateLimit(Integer.parseInt(getValue(this.rateLimit)));
+			int limit = Integer.parseInt(getValue(rateLimit));
+			if(limit < 1) {
+				throw new InvalidOptionException(RATE_LIMIT + " must be greater than 0.");
+			}
+			memory.setRateLimit(limit);
 		} catch(NumberFormatException e) {
 			throw new InvalidOptionException(RATE_LIMIT + " must be an integer");
+		}
+		
+		// Set request wait.
+		try {
+			int wait = Integer.parseInt(getValue(requestWait));
+			if(wait < 0) {
+				throw new InvalidOptionException(REQUEST_WAIT + " must be greater or equal to 0.");
+			}
+			memory.setMinRequestWait(wait);
+		} catch(NumberFormatException e) {
+			throw new InvalidOptionException(REQUEST_WAIT + " must be an integer");
 		}
 		
 		HttpBrowser browser = new HttpBrowser(requester, memory, new JavaNetCookieManager());
@@ -434,7 +461,11 @@ public final class ConsoleOptions {
 	 */
 	public ExecutorService getExecutor() throws InvalidOptionException {
 		try {
-			return Executors.newFixedThreadPool(Integer.valueOf(getValue(threads)));
+			int numThreads = Integer.valueOf(getValue(threads));
+			if(numThreads < 1) {
+				throw new InvalidOptionException("Must have at least one thread.");
+			}
+			return Executors.newFixedThreadPool(numThreads);
 		} catch(NumberFormatException e) {
 			throw new InvalidOptionException(THREADS + " must be an integer.");
 		}

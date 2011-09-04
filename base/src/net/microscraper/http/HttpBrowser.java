@@ -100,6 +100,7 @@ public class HttpBrowser implements Loggable {
 	 */
 	private InputStreamReader request(String method, String urlStr, Hashtable headers, String postData, Vector redirectsFollowed)
 			throws InterruptedException, IOException {
+		rateLimitManager.obeyRateLimit(urlStr, log);
 		log.i("Requesting " + method + " from " + StringUtils.quote(urlStr));
 		
 		// Merge in generic headers.
@@ -121,6 +122,7 @@ public class HttpBrowser implements Loggable {
 		}
 		log.i("All headers: " + StringUtils.quote(headers));
 		
+
 		HttpResponse response;
 		if(method.equals(HEAD)) {
 			response = requester.head(urlStr, headers);
@@ -129,8 +131,10 @@ public class HttpBrowser implements Loggable {
 		} else {
 			response = requester.post(urlStr, headers, postData);
 			log.i("Post data: " + StringUtils.quote(postData));
-
 		}
+		
+		// Remember that the request has been made.
+		rateLimitManager.rememberRequest(urlStr);
 		
 		// Add cookies from the response.
 		try {
@@ -183,7 +187,6 @@ public class HttpBrowser implements Loggable {
 	 */
 	private String readResponseStream(String urlStr, InputStreamReader stream, Pattern[] terminates)
 			throws IOException, InterruptedException {
-		rateLimitManager.obeyRateLimit(urlStr, log);
 		
 		StringBuffer responseBody = new StringBuffer();
 		

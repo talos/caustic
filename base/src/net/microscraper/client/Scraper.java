@@ -56,9 +56,7 @@ public class Scraper implements Runnable, Loggable {
 		this.database = database;
 		this.input = input;
 		this.defaultScope = database.getDefaultScope();
-		
-		deserializer.register(log);
-		
+				
 		InstructionPromise promise = new InstructionPromise(deserializer, database, serializedInstruction, executionDir);
 		this.start = new Executable(source, defaultScope, promise);
 	}

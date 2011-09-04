@@ -77,6 +77,7 @@ public class Console {
 			input = options.getInput();
 
 			deserializer = options.getDeserializer();
+			deserializer.register(logger);
 			executionDir = options.getExecutionDir();
 			instructionSerialized = options.getInstruction();
 			source = options.getSource();
@@ -102,7 +103,6 @@ public class Console {
 			Map<String, String> inputRow;
 			List<Future<Scraper>> results = new ArrayList<Future<Scraper>>();
 			while((inputRow = input.next()) != null) {
-				println(inputRow.toString());
 				Scraper scraper = new Scraper(
 						instructionSerialized,
 						deserializer,
@@ -141,16 +141,6 @@ public class Console {
 			}
 			
 			executor.shutdown();
-			
-			/*
-			for(Scraper scraper : doneScrapers) {
-				Execution[] executions = scraper.getExecutions();
-				for(Execution execution : executions) {
-					if(execution.hasFailed()) {
-						println(execution.failedBecause()[0]);
-					}
-				}
-			}*/
 		} catch(InterruptedException e) {
 			println("Interrupted");
 		} catch(IOException e) {
