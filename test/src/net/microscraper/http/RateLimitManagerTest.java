@@ -2,11 +2,14 @@ package net.microscraper.http;
 
 import static org.junit.Assert.*;
 import static net.microscraper.http.RateLimitManager.*;
+import static net.microscraper.util.TestUtils.*;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
-import net.microscraper.log.Logger;
-import net.microscraper.log.SystemOutLogger;
 import net.microscraper.util.JavaNetHttpUtils;
 
 import org.junit.Before;
@@ -14,13 +17,60 @@ import org.junit.Test;
 
 public class RateLimitManagerTest {
 	
-	//private @Mocked Logger log;
-	private Logger log = new SystemOutLogger();
 	private RateLimitManager manager;
+	
+	/**
+	 * Private class to test rate limiting between threads.  When {@link #run()},
+	 * counts the number of consecutive delays from {@link #manager}.
+	 * @author talos
+	 *
+	 */
+	private static class RateLimitTestThread extends Thread {
+		private final RateLimitManager manager;
+		private final int delayTime;
+		private final String url;
+		private int numDelays = 0;
+		private boolean interrupted = false;
+		/**
+		 * @param manager The {@link RateLimitManager} to use.
+		 * @param delayTime The number of milliseconds to wait between
+		 * tries.
+		 * @param url The {@link String} url to use when checking.
+		 */
+		public RateLimitTestThread(RateLimitManager manager, int delayTime, String url) {
+			this.manager = manager;
+			this.delayTime = delayTime;
+			this.url = url;
+		}
+		
+		public void run() {
+			try {
+				while(manager.shouldDelay(url)) {
+					numDelays++;
+					Thread.sleep(delayTime);
+				}
+			} catch(InterruptedException e) {
+				interrupted = true;
+			}
+		}
+		
+		/**
+		 * 
+		 * @return How many times {@link #manager} delayed.
+		 * @throws InterruptedException If the thread was
+		 * interrupted.
+		 */
+		public int getNumDelays() throws InterruptedException {
+			if(interrupted == false) {
+				return numDelays;
+			} else {
+				throw new InterruptedException();
+			}
+		}
+	}
 	
 	@Before
 	public void setUp() throws Exception {
-		log.open();
 		manager = new RateLimitManager(new JavaNetHttpUtils());
 	}
 	
@@ -28,18 +78,9 @@ public class RateLimitManagerTest {
 		String url = "http://www.host.com/";
 		manager.setMinRequestWait(requestWait);
 		
-		long start;
-		
-		start = new Date().getTime();
-		manager.obeyRateLimit(url, log);
-		assertTrue("First rate limit obey shouldn't cause delay.",
-				new Date().getTime() - start < requestWait);
-		manager.rememberRequest(url);
-		
-		start = new Date().getTime();
-		manager.obeyRateLimit(url, log);
-		assertTrue("Second request to one host should cause delay.",
-				new Date().getTime() - start > requestWait);
+		assertFalse("First rate limit obey shouldn't cause delay.", manager.shouldDelay(url));
+		//manager.rememberRequest(url);
+		assertTrue("Second request to one host should cause delay.", manager.shouldDelay(url));
 	}
 
 	@Test
@@ -51,73 +92,45 @@ public class RateLimitManagerTest {
 	public void testRememberRequestDelaysForOneHostDefaultWait() throws Exception {
 		testRememberRequestDelaysForOneHost(DEFAULT_REQUEST_WAIT);
 	}
-
-	@Test
-	public void testRememberRequestDelaysForOneHostLongWait() throws Exception {
-		testRememberRequestDelaysForOneHost(4000);
-	}
-
+	
 	@Test
 	public void testRememberRequestDelaysForOneHostThreaded () throws Exception {
 		final String url = "http://www.host.com/";
-		final int requestWait = 2000;
+		final int requestWait = 20;
 		manager.setMinRequestWait(requestWait);
 		
-		final long start = new Date().getTime();
-		
-		Thread thread1 = new Thread(new Runnable() {
-			public void run() {
-				try {
-					manager.obeyRateLimit(url + "thread1", log);
-					assertTrue("First rate limit obey shouldn't cause delay.",
-							new Date().getTime() - start < requestWait);
-					manager.rememberRequest(url + "thread1");
-				} catch(InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		
-		Thread thread2 = new Thread(new Runnable() {
-			public void run() {
-				try {
-					manager.obeyRateLimit(url + "thread2", log);
-					assertTrue("Should be delayed.",
-							new Date().getTime() - start > requestWait);
-					manager.rememberRequest(url + "thread2");
-				} catch(InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		RateLimitTestThread thread1 = new RateLimitTestThread(manager, requestWait, url);
+		RateLimitTestThread thread2 = new RateLimitTestThread(manager, requestWait, url);
+		RateLimitTestThread thread3 = new RateLimitTestThread(manager, requestWait, url);
+		RateLimitTestThread thread4 = new RateLimitTestThread(manager, requestWait, url);
 		
 		thread1.start();
-		Thread.sleep(1);
 		thread2.start();
+		thread3.start();
+		thread4.start();
+		
+		thread1.join();
+		thread2.join();
+		thread3.join();
+		thread4.join();
+		
+		Set<Integer> setResults = new HashSet<Integer>();
+		setResults.addAll(Arrays.asList(
+				thread1.getNumDelays(),
+				thread2.getNumDelays(),
+				thread3.getNumDelays(),
+				thread4.getNumDelays()));
+		assertEquals("Each thread should have been delayed a different number of times.",
+				4, setResults.size());
 	}
 	
 	public void testRememberResponseDelaysForOneHost(int rateLimit) throws Exception {
 		String url = "http://www.google.com/";
 		manager.setRateLimit(rateLimit);
-		
-		long start;
-		
-		start = new Date().getTime();
-		manager.obeyRateLimit(url, log);
-		assertTrue("First rate limit obey shouldn't cause delay.",
-				new Date().getTime() - start < DEFAULT_SLEEP_TIME);
+				
+		assertFalse("First rate limit obey shouldn't cause delay.", manager.shouldDelay(url));
 		manager.rememberResponse(url, rateLimit);
-
-		start = new Date().getTime();
-		manager.obeyRateLimit(url, log);
-		assertTrue("Response load from this host shouldn't be delayed, tiny amount of data loaded.",
-				new Date().getTime() - start < DEFAULT_SLEEP_TIME);
-		manager.rememberResponse(url, rateLimit * 1000);
-		
-		start = new Date().getTime();
-		manager.obeyRateLimit(url, log);
-		assertTrue("Response load from this host should be delayed.",
-				new Date().getTime() - start > DEFAULT_SLEEP_TIME);
+		assertTrue("Response load from this host should be delayed.", manager.shouldDelay(url));
 	}
 	
 	@Test
@@ -131,7 +144,10 @@ public class RateLimitManagerTest {
 	}
 	
 	@Test
-	public void testRememberResponseDelaysForOneHostBigRateLimit() throws Exception {
-		testRememberRequestDelaysForOneHost(1000);
+	public void testRememberResponseDelaysForHostWithDifferentPaths() throws Exception {
+		String url = "http://www.google.com/";
+		
+		manager.rememberResponse(url + randomString(), 1000);
+		assertTrue("Response load from this host should be delayed.", manager.shouldDelay(url + randomString()));
 	}
 }

@@ -54,6 +54,13 @@ public class HttpBrowser implements Loggable {
 	private final MultiLog log = new MultiLog();
 
 	/**
+	 * How many milliseconds this {@link HttpBrowser} will sleep before
+	 * considering trying a host again, when its {@link RateLimitManager} tells
+	 * it that a request should be held off.
+	 */
+	public static final int DEFAULT_SLEEP_TIME = 500;
+
+	/**
 	 * Add generic headers.
 	 * @param referer The {@link String} URL to use as the referer.
 	 * @return A {@link Hashtable} of generic headers.
@@ -80,6 +87,8 @@ public class HttpBrowser implements Loggable {
 	 * @return A {@link InputStreamReader} to read response content, if it was a request that
 	 * should return content.
 	 * @throws IOException If there was an error generating the {@link HttpURLConnection}.
+	 * @throws InterruptedException If the user interrupted the request while it was being delayed
+	 * due to rate limiting, or while waiting for the host to respond.
 	 */
 	private InputStreamReader request(String method, String urlStr, Hashtable headers, String encodedPostData)
 			throws InterruptedException, IOException {
@@ -97,10 +106,22 @@ public class HttpBrowser implements Loggable {
 	 * @return A {@link InputStreamReader} to read response content, if it was a request that
 	 * should return content.
 	 * @throws IOException If there was an error generating the {@link HttpURLConnection}.
+	 * @throws InterruptedException If the user interrupted the request while it was being delayed
+	 * due to rate limiting, or while waiting for the host to respond.
 	 */
-	private InputStreamReader request(String method, String urlStr, Hashtable headers, String postData, Vector redirectsFollowed)
+	private InputStreamReader request(String method, String urlStr, Hashtable headers,
+					String postData, Vector redirectsFollowed)
 			throws InterruptedException, IOException {
-		rateLimitManager.obeyRateLimit(urlStr, log);
+
+		while(rateLimitManager.shouldDelay(urlStr) == true) {
+			Thread.sleep(DEFAULT_SLEEP_TIME);
+			if(Thread.interrupted()) {
+				throw new InterruptedException("Interrupted while waiting to not exceed rate limit.");
+			}
+		}
+		// Remember that the request has been made.
+		//rateLimitManager.rememberRequest(urlStr);
+				
 		log.i("Requesting " + method + " from " + StringUtils.quote(urlStr));
 		
 		// Merge in generic headers.
@@ -133,8 +154,6 @@ public class HttpBrowser implements Loggable {
 			log.i("Post data: " + StringUtils.quote(postData));
 		}
 		
-		// Remember that the request has been made.
-		rateLimitManager.rememberRequest(urlStr);
 		
 		// Add cookies from the response.
 		try {

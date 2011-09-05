@@ -3,9 +3,7 @@ package net.microscraper.http;
 import java.util.Date;
 import java.util.Hashtable;
 
-import net.microscraper.log.Logger;
 import net.microscraper.util.HttpUtils;
-import net.microscraper.util.StringUtils;
 
 /**
  * Keep track of how many bytes are loaded from hosts, and when.  Used to calculate rate
@@ -17,13 +15,6 @@ import net.microscraper.util.StringUtils;
  */
 public class RateLimitManager {
 
-	/**
-	 * How many milliseconds a {@link RateLimitManager} will sleep before
-	 * considering trying a host again, if when it last considered requesting
-	 * from a host it would have exceeded its rate limit.
-	 */
-	public static final int DEFAULT_SLEEP_TIME = 500;
-	
 	/**
 	 * The default rate limit a {@link RateLimitManager} interface imposes upon itself for
 	 * a single host.
@@ -65,16 +56,11 @@ public class RateLimitManager {
 	 * Remember that a request has been made of a URL.
 	 * @param urlStr
 	 */
+	/*
 	public void rememberRequest(String urlStr) {
-		synchronized(hostLastRequest) {
-			String host = getHost(urlStr);
-			if(hostLastRequest.containsKey(host)) {
-				synchronized(hostLastRequest.get(host)) {
-					hostLastRequest.put(host, Long.valueOf(new Date().getTime()));
-				}
-			}
-		}
-	}
+		String host = getHost(urlStr);
+		hostLastRequest.put(host, Long.valueOf(new Date().getTime()));
+	}*/
 	
 	/**
 	 * Remember that a response of a certain size was pulled from a URL.
@@ -82,56 +68,46 @@ public class RateLimitManager {
 	 * @param bytesLoaded The size of the response, in bytes.
 	 */
 	public void rememberResponse(String urlStr, int responseByteSize) {
-		synchronized(hostLastResponse) {
-			synchronized(hostLastResponseSize) {
-				String host = getHost(urlStr);
-				hostLastResponse.put(host, Long.valueOf(new Date().getTime()));
-				hostLastResponseSize.put(host, Integer.valueOf(responseByteSize));
-			}
-		}
+		String host = getHost(urlStr);
+		hostLastResponse.put(host, Long.valueOf(new Date().getTime()));
+		hostLastResponseSize.put(host, Integer.valueOf(responseByteSize));
 	}
 	
 	/**
-	 * Check to see whether a request to <code>urlStr</code> should be delayed,
-	 * and hold the thread accordingly.
+	 * Check to see whether a request to <code>urlStr</code> should be delayed.
+	 * When this returns <code>true</code>, assumption is that a request has been made --
+	 * the {@link #hostLastRequest} table will be set.
 	 * @param urlStr The {@link String} url whose host's rate should be calculated.
-	 * @param log The {@link Logger} to log delay information to.
-	 * @throws InterruptedException If the user interrupts during a delay.
+	 * @return <code>true</code> if the request should be delayed, <code>false</code>
+	 * otherwise.
 	 */
-	public void obeyRateLimit(String urlStr, Logger log) throws InterruptedException {
-		long now = new Date().getTime();
-		String host = getHost(urlStr);
-		// Check delay due to repeated requests.
-		synchronized(hostLastRequest) {
+	public boolean shouldDelay(String urlStr) {
+		synchronized(this) {
+			long now = new Date().getTime();
+			boolean shouldDelay = false;
+			String host = getHost(urlStr);
+			
+			// Check delay due to repeated requests.
 			if(hostLastRequest.containsKey(host)) {
-				synchronized(hostLastRequest.get(host)) {
-					long millisecondsSince = now - ((Long) hostLastRequest.get(host)).longValue();
-					log.i("Delaying request of " + StringUtils.quote(urlStr) + ", " +
-							" last request made " + millisecondsSince + "ms ago.");
-					if(millisecondsSince < minRequestWaitMilliseconds) {
-						Thread.sleep(DEFAULT_SLEEP_TIME);
-						obeyRateLimit(urlStr, log);
-					}
+				long millisecondsSince = now - ((Long) hostLastRequest.get(host)).longValue();
+				if(millisecondsSince < minRequestWaitMilliseconds) {
+					shouldDelay = true;
 				}
 			}
-		}
-		
-		// Check delay due to rate limit.
-		float rate = 0;
-		synchronized(hostLastResponse) {
-			synchronized(hostLastResponseSize) {
-				if(hostLastResponse.containsKey(host)) {
-					long millisecondsSince = now - ((Long) hostLastResponse.get(host)).longValue() + 1;
-					int bytesLastLoaded = ((Integer) hostLastResponseSize.get(host)).intValue();
-					rate = bytesLastLoaded / millisecondsSince;
-				}
-				if(rate > rateLimitKBps) {
-					log.i("Delaying load of " + StringUtils.quote(urlStr) + ", current KBPS " +
-							StringUtils.quote(Float.toString(rate)));
-					Thread.sleep(DEFAULT_SLEEP_TIME);
-					obeyRateLimit(urlStr, log);
+			
+			// Check delay due to rate limit.
+			if(hostLastResponse.containsKey(host)) {
+				long millisecondsSince = now - ((Long) hostLastResponse.get(host)).longValue() + 1;
+				int bytesLastLoaded = ((Integer) hostLastResponseSize.get(host)).intValue();
+				if(bytesLastLoaded / millisecondsSince > rateLimitKBps) {
+					shouldDelay = true;
 				}
 			}
+			
+			if(shouldDelay == false) {
+				hostLastRequest.put(host, Long.valueOf(now));
+			}
+			return shouldDelay;
 		}
 	}
 	
