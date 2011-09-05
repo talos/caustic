@@ -147,7 +147,7 @@ public class RateLimitManagerTest {
 	public void testRememberResponseDelaysForHostWithDifferentPaths() throws Exception {
 		String url = "http://www.google.com/";
 		
-		manager.rememberResponse(url + randomString(), 1000);
+		manager.shouldDelay(url);
 		assertTrue("Response load from this host should be delayed.", manager.shouldDelay(url + randomString()));
 	}
 }

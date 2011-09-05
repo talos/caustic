@@ -1,7 +1,6 @@
 
 {
     "find" : "<table\\s+id\\s*=\\s*\"insideTable\".*?</table>",
-    "name" : "Columbus Table",
     "then" : {
 	"extends" : "../shared/html-row.json",
 	"name" : "row",

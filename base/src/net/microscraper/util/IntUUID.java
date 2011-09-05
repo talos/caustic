@@ -7,12 +7,11 @@ public class IntUUID implements UUID {
 		this.id = id;
 	}
 	
-	public int asInt() {
-		return id;
-	}
-
 	public String asString() {
 		return Integer.toString(id);
 	}
-
+	
+	public int hashCode() {
+		return id;
+	}
 }

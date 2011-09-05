@@ -113,6 +113,7 @@ public class Console {
 				scraper.register(logger);
 				results.add(executor.submit(scraper, scraper));
 				if(Thread.interrupted()) {
+					println("Caught in input iteration.");
 					executor.shutdownNow();
 					throw new InterruptedException();
 				}
@@ -123,6 +124,7 @@ public class Console {
 				Iterator<Future<Scraper>> iter = results.iterator();
 				while(iter.hasNext()) {
 					if(Thread.interrupted()) {
+						println("Caught in results iteration.");
 						executor.shutdownNow();
 						throw new InterruptedException();
 					}

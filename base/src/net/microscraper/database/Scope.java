@@ -79,11 +79,11 @@ public class Scope {
 	}
 	
 	/**
-	 * {@link Scope} uses its {@link #getID}'s {@link UUID#asInt()} method to
-	 * provide a unique hash code.
+	 * {@link Scope} uses its {@link #getID}'s {@link UUID#hashCode()} method to
+	 * provide a hash code.
 	 */
 	public int hashCode() {
-		return getID().asInt();
+		return getID().hashCode();
 	}
 	
 	public boolean equals(Object obj) {
