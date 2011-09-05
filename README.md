@@ -10,7 +10,7 @@ cooperative scrapers for mobile apps
 
 The easiest way to try out microscraper is the precompiled utility. Run
 
-    $ utility/microscraper '{"load":"http://www.google.com","then":{"find":"Feeling\\s[\\w]*","name":"Feeling?"}}'
+    $ console/microscraper '{"load":"http://www.google.com","then":{"find":"Feeling\\s[\\w]*","name":"Feeling?"}}'
 
 in the terminal of your choice.  This executes the JSON instruction
 
@@ -27,9 +27,10 @@ and sends the results to stdout
 <table>
   <tr><th>scope<th>source <th>name     <th>value
   <tr><td>1    <td>0      <td>Feeling? <td>Feeling Lucky
+  <tr><td>2    <td>0      <td>Feeling? <td>Feeling Lucky
 </table>
 
-First, microscraper loads the URL in *load*.  Then it looks for the regular expression in *find*, and saves the match.
+First, microscraper loads the URL in *load*.  Then it looks for the regular expression in *find*, and saves all matches.
 
 ### The instruction format ###
 
@@ -53,7 +54,7 @@ Here's a simple instruction, which is one of the [fixtures](microscraper-client/
 
 For microscraper to execute this instruction, it needs a value to substitute for *{{query}}*.  Run the following
 
-    $ utility/microscraper fixtures/json/simple-google.json --defaults="query=hello"
+    $ console/microscraper fixtures/json/simple-google.json --input="query=hello"
 
 to replace *{{query}}* with *hello*.  We get the following
 
@@ -106,7 +107,7 @@ takes advantage of dynamic substitution, along with the ability to place any num
 
 Try it with
 
-    $ utility/microscraper fixtures/json/complex-google.json --defaults="query=hello"
+    $ console/microscraper fixtures/json/complex-google.json --input="query=hello"
 
 You'll see that this results in quite a few dozen rows, but here are some highlights:
 
@@ -153,7 +154,7 @@ This [fixture](microscraper-client/blob/master/fixtures/json/reference-google.js
 
 Running
 
-    $ utility/microscraper fixtures/json/complex-google.json --defaults="query=hello"
+    $ console/microscraper fixtures/json/complex-google.json --defaults="query=hello"
 
 should give you the same results as before.  Any string appearing inside *then* will be evaulated as a reference.
 
@@ -161,7 +162,7 @@ should give you the same results as before.  Any string appearing inside *then* 
 
 ---
 
-What if you want a scraper to run itself?  No problem!
+What if you want a scraper to run itself?  No problem:
 
     {
       "load"  : "http://www.google.com/search?q={{query}}",
@@ -175,6 +176,12 @@ What if you want a scraper to run itself?  No problem!
 
 When inside *then*, *$this* evaluates to be the entire object.  This evaluation is only performed when *then*
 operates.
+
+Remember that
+
+    $ console/microscraper fixtures/json/recursive-google.json --defaults="query=hello"
+
+will not stop on its own!
 
 ### Why? ###
 

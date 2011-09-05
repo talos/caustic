@@ -5,7 +5,6 @@ import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -19,7 +18,6 @@ import net.microscraper.http.BadURLException;
 import net.microscraper.http.CookieManager;
 import net.microscraper.http.ResponseHeaders;
 import net.microscraper.util.Encoder;
-import net.microscraper.util.JavaNetEncoder;
 
 public class JavaNetCookieManager implements CookieManager {
 

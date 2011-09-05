@@ -112,17 +112,13 @@ public class HttpBrowser implements Loggable {
 	private InputStreamReader request(String method, String urlStr, Hashtable headers,
 					String postData, Vector redirectsFollowed)
 			throws InterruptedException, IOException {
-
+		
 		while(rateLimitManager.shouldDelay(urlStr) == true) {
 			Thread.sleep(DEFAULT_SLEEP_TIME);
 			if(Thread.interrupted()) {
 				throw new InterruptedException("Interrupted while waiting to not exceed rate limit.");
 			}
 		}
-		// Remember that the request has been made.
-		//rateLimitManager.rememberRequest(urlStr);
-				
-		log.i("Requesting " + method + " from " + StringUtils.quote(urlStr));
 		
 		// Merge in generic headers.
 		headers = HashtableUtils.combine(new Hashtable[] { getGenericHeaders(urlStr), headers });
@@ -143,6 +139,8 @@ public class HttpBrowser implements Loggable {
 		}
 		log.i("All headers: " + StringUtils.quote(headers));
 		
+		
+		log.i("Requesting " + method + " from " + StringUtils.quote(urlStr));
 
 		HttpResponse response;
 		if(method.equals(HEAD)) {
@@ -240,7 +238,6 @@ public class HttpBrowser implements Loggable {
 			}
 		}
 		stream.close();
-		
 		rateLimitManager.rememberResponse(urlStr, responseBody.length());
 		return responseBody.toString();
 	}

@@ -52,20 +52,11 @@ public class RateLimitManager {
 		this.httpUtils = httpUtils;
 	}
 	
-	/**
-	 * Remember that a request has been made of a URL.
-	 * @param urlStr
-	 */
-	/*
-	public void rememberRequest(String urlStr) {
-		String host = getHost(urlStr);
-		hostLastRequest.put(host, Long.valueOf(new Date().getTime()));
-	}*/
 	
 	/**
 	 * Remember that a response of a certain size was pulled from a URL.
 	 * @param urlStr The {@link String} url that supplied the response.
-	 * @param bytesLoaded The size of the response, in bytes.
+	 * @param responseByteSize The size of the response, in bytes.
 	 */
 	public void rememberResponse(String urlStr, int responseByteSize) {
 		String host = getHost(urlStr);
@@ -82,9 +73,9 @@ public class RateLimitManager {
 	 * otherwise.
 	 */
 	public boolean shouldDelay(String urlStr) {
+		boolean shouldDelay = false;
 		synchronized(this) {
 			long now = new Date().getTime();
-			boolean shouldDelay = false;
 			String host = getHost(urlStr);
 			
 			// Check delay due to repeated requests.
@@ -107,8 +98,8 @@ public class RateLimitManager {
 			if(shouldDelay == false) {
 				hostLastRequest.put(host, Long.valueOf(now));
 			}
-			return shouldDelay;
 		}
+		return shouldDelay;
 	}
 	
 	/**
