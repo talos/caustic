@@ -89,7 +89,7 @@ public final class SingleTableDatabase implements Database {
 	public void open() throws IOException {
 		connection.open();
 		backingDatabase.open();
-		table = connection.getInsertable(TABLE_NAME, COLUMN_NAMES);
+		table = connection.newInsertable(TABLE_NAME, COLUMN_NAMES);
 		isOpen = true;
 	}
 	

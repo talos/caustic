@@ -2,6 +2,11 @@ package net.microscraper.database;
 
 import java.io.IOException;
 
+/**
+ * An {@link InsertableConnection} that can also generate {@link Updateable}s.
+ * @author talos
+ *
+ */
 public interface UpdateableConnection extends InsertableConnection {
 
 	/**
@@ -12,7 +17,7 @@ public interface UpdateableConnection extends InsertableConnection {
 	 * @return A {@link Updateable}.
 	 * @throws IOException if the {@link Updateable} cannot be created.
 	 */
-	public abstract Updateable getIOTable(String name, String[] textColumns)
+	public abstract Updateable newUpdateable(String name, String[] textColumns)
 			throws IOException;
 
 }

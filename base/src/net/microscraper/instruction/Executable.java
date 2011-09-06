@@ -118,14 +118,4 @@ public class Executable {
 		}
 		return false;
 	}
-	
-	/**
-	 * Provides information on the {@link #source}, {@link #instruction}, and {@link #variables}.
-	 */
-	/*public String toString() {
-		return "Executable with " +
-				(source != null ? " source " + StringUtils.truncate(StringUtils.quote(source), SOURCE_TRUNCATE_LENGTH) + " and " : "" )
-				+ "instructions " + StringUtils.quote(promise.toString());
-			// +	" and variables " + StringUtils.quote(database.toString(sourceId));
-	}*/
 }

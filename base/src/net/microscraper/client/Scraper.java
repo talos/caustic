@@ -74,6 +74,7 @@ public class Scraper implements Runnable, Loggable {
 	}
 	
 	public void run() {
+
 		// try - catch the entire loop for user interrupt and database IO problems.
 		try {
 			// Store default values in database
@@ -90,47 +91,32 @@ public class Scraper implements Runnable, Loggable {
 				queue.removeElementAt(0);
 				
 				// Try to execute the executable.
-				//log.i("Running " + StringUtils.quote(executable));
 				Execution execution = executable.execute();
 				
 				// Evaluate the execution's success.
 				if(execution.isSuccessful()) {
 					// It's successful -- add the resultant executables onto the queue.
 					Executable[] children = (Executable[]) execution.getExecuted();
-					/*log.i(StringUtils.quote(executable) + " successful." + 
-							" Adding its " + children.length + " children to the queue.");*/
 					VectorUtils.arrayIntoVector(children, queue);
 					
 					finishedExecutions.add(execution);
 				} else if(execution.isMissingVariables()) {
 					// Try it again later.
-				//	String[] missingVariables = execution.getMissingVariables();
-					/*log.i(StringUtils.quote(executable) + " is missing the " +
-							missingVariables.length + " following variables: " +
-							StringUtils.quoteJoin(missingVariables) + 
-							". Placing at the end of the queue. It is " +
-							(executable.isStuck() ? "stuck." : "not stuck."));*/
 					queue.add(executable);
 					
 				} else {
-					// Log that execution has failed.
-					/*log.i(StringUtils.quote(executable) + " has failed because " +
-							" of " + StringUtils.quoteJoin(execution.failedBecause()) +
-							". Removing it from the queue.");*/
-					//failedExecutables.add(executable);
-					
 					finishedExecutions.add(execution);
 				}
 				
 				// End the loop when we run out of executables, or if they're all
 				// stuck.
 			} while(queue.size() > 0 && getStuckExecutables().size() < queue.size());
-		
-			//log.i("Finished running " + StringUtils.quote(start));
 		} catch(InterruptedException e) {
-			log.i("Prematurely terminated execution because of user interrupt.");
+			//log.i("Prematurely terminated execution because of user interrupt.");
+			throw new RuntimeException(e);
 		} catch(IOException e) {
-			log.i("Prematurely terminated execution because the database could be saved: " + e.getMessage());
+			//log.i("Prematurely terminated execution because the database could be saved: " + e.getMessage());
+			throw new RuntimeException(e);
 		}
 		
 		// Copy the stuck executions into finished executions, as we now know they're
@@ -139,8 +125,6 @@ public class Scraper implements Runnable, Loggable {
 			Executable executable = (Executable) queue.elementAt(i);
 			finishedExecutions.add(executable.getLastExecution());
 		}
-		
-		//queue.clear();
 	}
 	
 	/**

@@ -49,37 +49,6 @@ public interface SQLConnection extends UpdateableConnection {
 	public abstract int defaultVarcharLength();
 	
 	/**
-	 * Disables auto-commit mode.  If auto-commit mode is on, each SQL statement
-	 * in this {@link SQLConnection} will be executed as a separate transaction.
-	 * If it is off, they will be executed as a batch when {@link #commit()} is 
-	 * called.
-	 * @throws SQLConnectionException if a database access error occurs.
-	 * @see #enableAutoCommit()
-	 * @see #commit()
-	 */
-	//public abstract void disableAutoCommit() throws SQLConnectionException;
-	
-	/**
-	 * Enables auto-commit mode.  If auto-commit mode is on, each SQL statement
-	 * in this {@link SQLConnection} will be executed as a separate transaction.
-	 * If it is off, they will be executed as a batch when {@link #commit()} is 
-	 * called.
-	 * @throws SQLConnectionException if a database access error occurs.
-	 * @see #disableAutoCommit()
-	 */
-	//public abstract void enableAutoCommit() throws SQLConnectionException;
-	
-	/**
-	 * If auto-commit mode is off, this will execute all pending statements for this
-	 * {@link SQLConnection} as a batch.
-	 * @throws SQLConnectionException if there is a problem committing the statements to
-	 * this {@link SQLConnection}, including if the {@link SQLConnection} is in 
-	 * auto-commit mode.
-	 * @see #disableAutoCommit()
-	 */
-	//public abstract void commit() throws SQLConnectionException;
-	
-	/**
 	 * Immediately execute all {@link SQLPreparedStatement}s currently in the batch for this
 	 * {@link SQLConnection}.
 	 * @throws SQLConnectionException If there is a problem executing one of the statements.

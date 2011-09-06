@@ -39,17 +39,6 @@ public interface Logger {
 	
 	/**
 	 * 
-	 * Log a {@link Throwable} as a warning.
-	 * @param w The {@link Throwable} to log.
-	 * @throws IllegalStateException if the {@link Logger} is not open,
-	 * or has already been closed.
-	 * @see #open()
-	 * @see #close()
-	 */
-	public abstract void w(Throwable w) throws IllegalStateException;
-	
-	/**
-	 * 
 	 * Log a {@link String}.
 	 * @param infoText The {@link String} to log.
 	 * @throws IllegalStateException if the {@link Logger} is not open,

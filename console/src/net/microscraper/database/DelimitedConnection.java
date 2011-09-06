@@ -78,7 +78,7 @@ public class DelimitedConnection implements InsertableConnection {
 	}
 	
 	@Override
-	public Insertable getInsertable(String name, String[] textColumns) {
+	public Insertable newInsertable(String name, String[] textColumns) {
 		return new DelimitedTable(csvWriter, textColumns);
 	}
 	

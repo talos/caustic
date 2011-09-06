@@ -5,12 +5,14 @@ import java.util.Map;
 
 public class Option  {
 	private static final Map<String, Option> validOptions = new HashMap<String, Option>();
-
+	
+	private final String defaultValue;
 	private final String name;
 	private String value;
 	private Option(String name, String defaultValue) {
 		this.name = name;
 		this.value = defaultValue;
+		this.defaultValue = defaultValue;
 		validOptions.put(this.name, this);
 	}
 	public static Option withoutDefault(String nonPrependedName) {
@@ -46,5 +48,14 @@ public class Option  {
 	 */
 	public Object getName() {
 		return name;
+	}
+	
+	/**
+	 * 
+	 * @return The {@link String} default value for this {@link Option},
+	 * or <code>null</code> if none was defined.
+	 */
+	public String getDefault() {
+		return defaultValue;
 	}
 }

@@ -17,7 +17,7 @@ public class SingleTableDatabaseTest extends DatabaseTest  {
 	@Override
 	public Database getDatabase() throws Exception {
 		new NonStrictExpectations() {{
-			connection.getInsertable(anyString, (String[]) any); result = table;
+			connection.newInsertable(anyString, (String[]) any); result = table;
 		}};
 		return new SingleTableDatabase(
 				new HashtableDatabase(new IntUUIDFactory()), connection);

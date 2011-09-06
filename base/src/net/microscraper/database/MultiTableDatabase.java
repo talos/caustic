@@ -54,16 +54,16 @@ public final class MultiTableDatabase implements Database {
 		SCOPE_COLUMN_NAME,
 		VALUE_COLUMN_NAME
 	};
-	
-	/**
-	 * Mapping of scopes to result tables.
-	 */
-	private final Hashtable scopeResultTables = new Hashtable();
 
 	/**
-	 * Mapping of scopes to join tables.
+	 * Mapping of names to result tables.
 	 */
-	private final Hashtable scopeJoinTables = new Hashtable();
+	private final Hashtable resultTables = new Hashtable();
+
+	/**
+	 * Mapping of names to join tables.
+	 */
+	private final Hashtable nameTables = new Hashtable();
 	
 	/**
 	 * A {@link UpdateableConnection} to use when generating tables.
@@ -130,14 +130,26 @@ public final class MultiTableDatabase implements Database {
 	 */
 	private void storeOneToMany(Scope source, Scope scope, String value)
 			throws TableManipulationException, IOException {
-		if(!scopeResultTables.containsKey(scope)) {
-			scopeResultTables.put(scope,
-					connection.getIOTable(cleanTableName(scope.getName()), RESULT_TABLE_COLUMNS));
-			scopeJoinTables.put(scope,
-					connection.getInsertable(source.getName() + PREPEND + cleanTableName(scope.getName()), JOIN_TABLE_COLUMNS));
+		String resultName = cleanTableName(scope.getName());
+		String joinName = cleanTableName(source.getName() + PREPEND + resultName);
+		
+		// Obtain the table for results
+		Updateable resultTable;
+		if(!resultTables.containsKey(resultName)) {
+			resultTable = connection.newUpdateable(resultName, RESULT_TABLE_COLUMNS);
+			resultTables.put(resultName, resultTable);
+		} else {
+			resultTable = (Updateable) resultTables.get(resultName);
 		}
-		Updateable resultTable = (Updateable) scopeResultTables.get(scope);
-		Insertable joinTable = (Insertable) scopeJoinTables.get(scope);
+		
+		// Obtain the table for joins
+		Insertable joinTable;
+		if(!nameTables.containsKey(joinName)) {
+			joinTable = connection.newInsertable(joinName, JOIN_TABLE_COLUMNS);
+			nameTables.put(joinName, joinTable);
+		} else {
+			joinTable = (Insertable) nameTables.get(joinName);
+		}
 		
 		// Insert new value into joinTable
 		Hashtable joinInsert = new Hashtable();
@@ -170,10 +182,9 @@ public final class MultiTableDatabase implements Database {
 	public void open() throws IOException {
 		connection.open();
 		backingDatabase.open();
-		defaultTable = connection.getIOTable(DEFAULT_TABLE_NAME, RESULT_TABLE_COLUMNS);
+		defaultTable = connection.newUpdateable(DEFAULT_TABLE_NAME, RESULT_TABLE_COLUMNS);
 		isOpen = true;
 	}
-	
 
 	/**
 	 * Closes {@link #connection} and {@link #backingDatabase}.
@@ -201,10 +212,13 @@ public final class MultiTableDatabase implements Database {
 		ensureOpen();
 		backingDatabase.storeOneToOne(source, name, value);
 		
-		Updateable table = (Updateable) scopeResultTables.get(source);
-		if(!table.hasColumn(cleanColumnName(name))) {
-			table.addColumn(cleanColumnName(name));
+		Updateable table = (Updateable) resultTables.get(cleanTableName(source.getName()));
+		synchronized(table) {
+			if(!table.hasColumn(cleanColumnName(name))) {
+				table.addColumn(cleanColumnName(name));
+			}
 		}
+		
 		Hashtable map = new Hashtable();
 		map.put(cleanColumnName(name), value);
 		
@@ -245,7 +259,7 @@ public final class MultiTableDatabase implements Database {
 	public Scope getDefaultScope() throws IOException {
 		ensureOpen();
 		Scope scope = backingDatabase.getDefaultScope();
-		scopeResultTables.put(scope, defaultTable);
+		resultTables.put(cleanTableName(scope.getName()), defaultTable);
 		
 		Hashtable map = new Hashtable();
 		map.put(SCOPE_COLUMN_NAME, scope.getID().asString());

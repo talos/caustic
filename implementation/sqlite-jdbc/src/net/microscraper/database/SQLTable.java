@@ -1,6 +1,7 @@
 package net.microscraper.database;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
@@ -30,7 +31,23 @@ public class SQLTable implements Updateable {
 	/**
 	 * The names of all this table's columns.
 	 */
-	private final List<String> columns = new ArrayList<String>();
+	private final List<String> columns = Collections.synchronizedList(new ArrayList<String>());
+
+	/**
+	 * Check a {@link String} for backticks, which cause problems in column or
+	 * table names.
+	 * @param stringToCheck The {@link String} to check.
+	 * @throws IllegalArgumentException If <code>stringToCheck</code>
+	 * contains a backtick.
+	 */
+	private void preventIllegalBacktick(String stringToCheck) throws IllegalArgumentException {
+		if(stringToCheck.indexOf('`') != -1 ) {
+			throw new IllegalArgumentException("Illegal name for SQL " +
+					StringUtils.quote(stringToCheck) +
+					" to  because it contains a backtick at index " +
+				Integer.toString(stringToCheck.indexOf('`')));
+		}
+	}
 	
 	public SQLTable(SQLConnection connection, String name,
 			String[] columns) throws SQLConnectionException {
@@ -46,17 +63,11 @@ public class SQLTable implements Updateable {
 		}
 		String columnDefinition = StringUtils.join(columnDefinitions, " , ");
 		
-		if(connection.tableExists(name)) {
-			
-		} else {
-			SQLPreparedStatement createTable = 
-					this.connection.prepareStatement("CREATE TABLE `" + name + "` (" +
-		/*			+ " (`" + ID_COLUMN_NAME + "` " + connection.intColumnType() +
-					" " + connection.keyColumnDefinition() + ", " + */
-					columnDefinition + ")");
-			createTable.execute();
-			connection.runBatch();
-		}
+		SQLPreparedStatement createTable = 
+				this.connection.prepareStatement("CREATE TABLE `" + name + "` (" +
+				columnDefinition + ")");
+		createTable.execute();
+		connection.runBatch();
 	}
 	
 	@Override
@@ -74,22 +85,6 @@ public class SQLTable implements Updateable {
 			columns.add(columnName);
 		} catch(SQLConnectionException e) {
 			throw new TableManipulationException(e);
-		}
-	}
-	
-	/**
-	 * Check a {@link String} for backticks, which cause problems in column or
-	 * table names.
-	 * @param stringToCheck The {@link String} to check.
-	 * @throws IllegalArgumentException If <code>stringToCheck</code>
-	 * contains a backtick.
-	 */
-	private void preventIllegalBacktick(String stringToCheck) throws IllegalArgumentException {
-		if(stringToCheck.indexOf('`') != -1 ) {
-			throw new IllegalArgumentException("Illegal name for SQL " +
-					StringUtils.quote(stringToCheck) +
-					" to  because it contains a backtick at index " +
-				Integer.toString(stringToCheck.indexOf('`')));
 		}
 	}
 	
@@ -159,7 +154,9 @@ public class SQLTable implements Updateable {
 
 	@Override
 	public String[] getColumnNames() {
-		return columns.toArray(new String[0]);
+		synchronized(columns) {
+			return columns.toArray(new String[0]);
+		}
 	}
 
 	@Override

@@ -347,7 +347,7 @@ public final class ConsoleOptions {
 		// Set up output and databases.
 		if(isSpecified(saveToFile)) {
 			String outputLocation = getValue(saveToFile);
-			if(outputLocation.equals(saveToFile)) { // TODO append appropriate format for default
+			if(outputLocation.equals(saveToFile.getDefault())) { 
 				outputLocation += '.' + format;
 			}
 			if(format.equals(SQLITE_FORMAT)) {

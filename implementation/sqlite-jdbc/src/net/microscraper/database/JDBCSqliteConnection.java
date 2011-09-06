@@ -56,7 +56,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 			try {
 				statement = connection.prepareStatement(sql);
 			} catch(SQLException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 				throw new SQLConnectionException(e);
 			}
 		}
@@ -214,7 +214,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 	}
 	
 	@Override
-	public Updateable getIOTable(String name, String[] textColumns)
+	public Updateable newUpdateable(String name, String[] textColumns)
 			throws IOException {
 		try {
 			Updateable table = new SQLTable(this, name, textColumns);
@@ -238,8 +238,8 @@ public class JDBCSqliteConnection implements SQLConnection {
 	}
 	
 	@Override
-	public Insertable getInsertable(String name, String[] textColumns)
+	public Insertable newInsertable(String name, String[] textColumns)
 			throws IOException {
-		return getIOTable(name, textColumns);
+		return newUpdateable(name, textColumns);
 	}
 }

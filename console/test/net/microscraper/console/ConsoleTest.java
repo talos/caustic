@@ -6,6 +6,7 @@ import static net.microscraper.util.TestUtils.*;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.Hashtable;
+import java.util.concurrent.Callable;
 
 import mockit.Expectations;
 import mockit.Mocked;
@@ -115,11 +116,11 @@ public class ConsoleTest {
 		new VerificationsInOrder() {{
 			out.print(row("scope", "source", "name", "value"));
 			out.print(row("0", "0", "query", "hello"));
-			out.print(row("3", "0", "what do you say after 'hello'?", "I say 'world'!"));
+			out.print(row("0", "0", "what do you say after 'hello'?", "I say 'world'!"));
 			out.print(row("1", "1", "query", "meh"));
 			out.print(row("2", "2", "query", "bleh"));
-			out.print(row("4", "2", "what do you say after 'bleh'?", "I say 'this'!"));
-			out.print(row("5", "2", "what do you say after 'bleh'?", "I say 'that'!"));
+			out.print(row("3", "2", "what do you say after 'bleh'?", "I say 'this'!"));
+			out.print(row("4", "2", "what do you say after 'bleh'?", "I say 'that'!"));
 			out.print(Console.statusLine(5, 0, 1));
 		}};
 	}
@@ -130,12 +131,12 @@ public class ConsoleTest {
 		// Out of order, because this is asynchronous
 		new Verifications() {{
 			out.print(row("scope", "source", "name", "value"));
-			out.print(row("0", "0", "query", "hello"));
-			out.print(row("3", "0", "what do you say after 'hello'?", "I say 'world'!"));
-			out.print(row("1", "1", "query", "meh"));
-			out.print(row("2", "2", "query", "bleh"));
-			out.print(row("4", "2", "what do you say after 'bleh'?", "I say 'this'!"));
-			out.print(row("5", "2", "what do you say after 'bleh'?", "I say 'that'!"));
+			out.print(withSuffix(row("query", "hello")));
+			out.print(withSuffix(row("what do you say after 'hello'?", "I say 'world'!")));
+			out.print(withSuffix(row("query", "meh")));
+			out.print(withSuffix(row("query", "bleh")));
+			out.print(withSuffix(row("what do you say after 'bleh'?", "I say 'this'!")));
+			out.print(withSuffix(row("what do you say after 'bleh'?", "I say 'that'!")));
 			out.print(Console.statusLine(5, 0, 1));
 		}};
 	}

@@ -1,6 +1,9 @@
 package net.microscraper.log;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.Date;
 
 
@@ -40,17 +43,17 @@ public abstract class BasicLogger implements Logger {
 	
 	public final void e(Throwable e) throws IllegalStateException {
 		ensureOpen();
-		write(now() + " Error: " + e.getMessage());
+		write(now() + ": " + e.toString() + (e.getMessage() == null ? "" : e.getMessage()));
+		StackTraceElement[] traces = e.getStackTrace();
+		for(int i = 0 ; i < traces.length ; i++) {
+			StackTraceElement trace = traces[i];
+			write("    " + trace.toString());
+		}
 	}
-
-	public final void w(Throwable w) throws IllegalStateException {
-		ensureOpen();
-		write(now() + " Warning: " + w.getMessage());
-	}
-
+	
 	public final void i(String infoText) throws IllegalStateException {
 		ensureOpen();
-		write(now() + " Info: " + infoText);
+		write(now() + ": " + infoText);
 	}
 	
 	public void open() throws IOException {

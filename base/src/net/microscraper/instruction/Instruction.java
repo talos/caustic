@@ -100,7 +100,7 @@ public class Instruction {
 	/**
 	 * Generate the {@link Executable} children of this
 	 * {@link Instruction} during execution.  There will be as many children
-	 * as the product of {@link Action#execute(String, Variables)}'s {@link Execution#getExecuted()}
+	 * as the product of {@link Action#execute(String, Scope)}'s {@link Execution#getExecuted()}
 	 *  and {@link #children}.  Should be run by {@link Executable#execute()} as part of {@link Scraper#run()}.
 	 * @param source The source {@link String} to use in the execution.
 	 * @param scope The {@link Scope} to use when substituting from a {@link Database}.
@@ -110,7 +110,8 @@ public class Instruction {
 	 * @throws IOException If there was an error persisting to the {@link Database}.
 	 * @see Executable#execute()
 	 */
-	public Execution execute(String source, Scope scope) throws InterruptedException, IOException {
+	public Execution execute(String source, Scope scope)
+				throws InterruptedException, IOException {
 		final Execution result;
 		final String nameStr;
 		Execution nameSub = name.sub(scope);

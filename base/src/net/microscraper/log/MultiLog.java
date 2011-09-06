@@ -24,11 +24,6 @@ public final class MultiLog implements Logger, Loggable {
 			((Logger) loggers.elementAt(i)).e(e);
 		}
 	}
-	public void w(Throwable w) {
-		for(int i = 0; i < loggers.size(); i ++) {
-			((Logger) loggers.elementAt(i)).w(w);
-		}
-	}
 	public void i(String infoText) {
 		for(int i = 0; i < loggers.size(); i ++) {
 			((Logger) loggers.elementAt(i)).i(infoText);

@@ -27,9 +27,9 @@ public class MultiTableDatabaseTest extends DatabaseTest  {
 	protected Database getDatabase() throws Exception {
 		new NonStrictExpectations() {{
 
-			connection.getIOTable(anyString, (String[]) any);
+			connection.newUpdateable(anyString, (String[]) any);
 				result = resultTable;
-			connection.getInsertable(anyString, (String[]) any);
+			connection.newInsertable(anyString, (String[]) any);
 				result = joinTable;
 		}};
 		return new MultiTableDatabase(new HashtableDatabase(new IntUUIDFactory()), connection);
@@ -38,11 +38,13 @@ public class MultiTableDatabaseTest extends DatabaseTest  {
 	@Test
 	public void testCreatesDefaultResultTableOnInstantiation() throws Exception {
 		new Expectations() {{
-			otherConn.getIOTable(DEFAULT_TABLE_NAME, withSameInstance(RESULT_TABLE_COLUMNS));
+			otherConn.open();
+			otherConn.newUpdateable(DEFAULT_TABLE_NAME, withSameInstance(RESULT_TABLE_COLUMNS));
 				result = resultTable;
-				$ = "Should create root table on instantiation.";
+				$ = "Should create root table on getting default scope.";
 		}};
-		new MultiTableDatabase(new HashtableDatabase(new IntUUIDFactory()), otherConn);
+		Database db = new MultiTableDatabase(new HashtableDatabase(new IntUUIDFactory()), otherConn);
+		db.open();
 	}
 	
 	@Test
