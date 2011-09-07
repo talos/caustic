@@ -74,6 +74,8 @@ public class ConsoleTest {
 				"../fixtures/json/simple-google.json",
 				"--input=query=hello"
 					);
+		Console.shutdownThread.start();
+		Console.shutdownThread.join();
 		
 		new VerificationsInOrder() {{
 			out.print(row("scope", "source", "name", "value"));

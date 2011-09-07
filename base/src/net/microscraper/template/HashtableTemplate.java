@@ -2,12 +2,12 @@ package net.microscraper.template;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
 
-import net.microscraper.util.Encoder;
-import net.microscraper.util.Execution;
 import net.microscraper.util.HashtableUtils;
+import net.microscraper.util.VectorUtils;
 import net.microscraper.database.Scope;
-import net.microscraper.template.Template;
+import net.microscraper.template.StringTemplate;
 
 public class HashtableTemplate {
 	private Hashtable table;
@@ -15,7 +15,7 @@ public class HashtableTemplate {
 		this.table = new Hashtable();
 	}
 	
-	public void put(Template key, Template value) {
+	public void put(StringTemplate key, StringTemplate value) {
 		table.put(key, value);
 	}
 	
@@ -27,61 +27,40 @@ public class HashtableTemplate {
 	 * Substitute this {@link HashtableTemplate} with values from {@link Database} accessible
 	 * to <code>sourceId</code>.
 	 * @param scope
-	 * @return An {@link Execution} whose {@link Execution#getExecuted()} object, if successful, is an
-	 * {@link Hashtable} with all names and values substituted from {@link Variables}.
+	 * @return An {@link HashtableSubstitution} whose
+	 * {@link Hashtable} has been substituted with tags accessible to <code>scope</code>.
 	 */
-	/*public Execution sub(Scope scope) {
-		return subEncoded(scope, null);
-	}*/
-	
-	/**
-	 * Substitute this {@link HashtableTemplate} with values from {@link Database} accessible
-	 * to <code>sourceId</code>.
-	 * @param scope
-	 * @param encoder
-	 * @return An {@link Execution} whose {@link Execution#getExecuted()} object, if successful, is an
-	 * {@link Hashtable} with all names and values substituted from {@link Variables}.
-	 */
-	public Execution sub(Scope scope) {
-		Execution[] componentExecutions = new Execution[table.size() * 2];
+	public HashtableSubstitution sub(Scope scope) throws HashtableSubstitutionOverwriteException {
+		Vector missingTags = new Vector();
 		Hashtable subbedTable = new Hashtable();
 		Enumeration keys = table.keys();
-		int i = 0;
 		while(keys.hasMoreElements()) {
-			Template key = (Template) keys.nextElement();
-			Template value = (Template) table.get(key);
-			Execution subbedKey;
+			StringTemplate key = (StringTemplate) keys.nextElement();
+			StringSubstitution subbedKey;
 			subbedKey = key.sub(scope);
-			/*if(encoder != null) {
-				subbedKey = key.subEncoded(scope, encoder);
-			} else {
-				subbedKey = key.sub(scope);
-			}*/
-			componentExecutions[i] = subbedKey;
-			i++;
-			Execution subbedValue;
+			
+			StringTemplate value = (StringTemplate) table.get(key);
+			StringSubstitution subbedValue;
 			subbedValue = value.sub(scope);
-			/*if(encoder != null) {
-				subbedValue = value.subEncoded(scope, encoder);
-			} else {
-				subbedValue = value.sub(scope);
-			}*/
-			componentExecutions[i] = subbedValue;
-			i++;
-			if(subbedKey.isSuccessful() && subbedValue.isSuccessful()) {
-				String subbedKeyStr = (String) subbedKey.getExecuted();
+			
+			if(!subbedKey.isMissingTags() && !subbedValue.isMissingTags()) {
+				String subbedKeyStr = (String) subbedKey.getSubstituted();
 				if(subbedTable.containsKey(subbedKeyStr)) {
-					componentExecutions[i - 2] = Execution.templateOverwrites(key, subbedKeyStr);
+					throw new HashtableSubstitutionOverwriteException(subbedKeyStr, key);
 				} else {
-					subbedTable.put( subbedKeyStr, (String) subbedValue.getExecuted());
+					subbedTable.put( subbedKeyStr, (String) subbedValue.getSubstituted());
 				}
+			} else {
+				VectorUtils.arrayIntoVector(subbedKey.getMissingTags(), missingTags);
+				VectorUtils.arrayIntoVector(subbedValue.getMissingTags(), missingTags);
 			}
 		}
-		Execution combined = Execution.combine(componentExecutions);
-		if(combined.isSuccessful()) {
-			return Execution.success(subbedTable);
+		if(missingTags.size() == 0) {
+			return HashtableSubstitution.newSuccess(subbedTable);
 		} else {
-			return combined;
+			String[] missingTagsAry = new String[missingTags.size()];
+			missingTags.copyInto(missingTagsAry);
+			return HashtableSubstitution.newMissingTags(missingTagsAry);
 		}
 	}
 	

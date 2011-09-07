@@ -87,45 +87,45 @@ public class JsonDeserializerTest {
 	
 	@Test
 	public void testDeserializeSimpleLoadFromJsonSucceeds() throws Exception {
-		Execution exc = deserializer.deserializeString(load.toString(), database, scope, userDir);
+		Execution exc = deserializer.deserialize(load.toString(), database, scope, userDir);
 		assertTrue(exc + " should be a Load.", exc.isSuccessful());
 	}
 	
 	@Test
 	public void testDeserializeSimpleLoadFromUriSucceeds() throws Exception {
-		Execution exc = deserializer.deserializeString(loadPath, database, scope, userDir);
+		Execution exc = deserializer.deserialize(loadPath, database, scope, userDir);
 		assertTrue(exc + " should be a Load.", exc.isSuccessful());
 	}
 
 	@Test
 	public void testDeserializeSimpleFindFromJsonSucceeds() throws Exception {
-		Execution exc = deserializer.deserializeString(find.toString(), database, scope, userDir);
+		Execution exc = deserializer.deserialize(find.toString(), database, scope, userDir);
 		assertTrue(exc + " should be a Find.", exc.isSuccessful());
 	}
 
 	@Test
 	public void testDeserializeSimpleFindFromUriSucceeds() throws Exception {
-		Execution exc = deserializer.deserializeString(findPath, database, scope, userDir);
+		Execution exc = deserializer.deserialize(findPath, database, scope, userDir);
 		assertTrue(exc + " should be a Find.", exc.isSuccessful());
 	}
 
 	@Test
 	public void testEmptyObjFails() throws Exception {
-		Execution exc = deserializer.deserializeString(emptyJson, database, scope, userDir);
+		Execution exc = deserializer.deserialize(emptyJson, database, scope, userDir);
 		assertTrue(exc + " should have failed because neither Find nor Load were defined.", exc.hasFailed());
 	}
 	
 	@Test
 	public void testRandomKeyFails() throws Exception {
 		find.put(randomString(), randomString());
-		Execution exc = deserializer.deserializeString(find.toString(), database, scope, userDir);
+		Execution exc = deserializer.deserialize(find.toString(), database, scope, userDir);
 		assertTrue(exc + " should have failed because a random key-value was added.", exc.hasFailed());
 	}
 	
 	@Test
 	public void testLoadAndFindInInstructionFails() throws Exception {
 		find.put(LOAD, randomString());
-		Execution exc = deserializer.deserializeString(find.toString(), database, scope, userDir);
+		Execution exc = deserializer.deserialize(find.toString(), database, scope, userDir);
 		assertTrue(exc + " should have failed because both a Find and a Load were defined.", exc.hasFailed());
 	}
 	
@@ -134,7 +134,7 @@ public class JsonDeserializerTest {
 		find.put(MAX_MATCH, 10);
 		find.put(MATCH, 5);
 		
-		Execution exc = deserializer.deserializeString(find.toString(), database, scope, userDir);
+		Execution exc = deserializer.deserialize(find.toString(), database, scope, userDir);
 		assertTrue(exc + " should have failed because both " + MAX_MATCH + " and " + MATCH + " were defined.", exc.hasFailed());
 	}
 
@@ -143,7 +143,7 @@ public class JsonDeserializerTest {
 		find.put(MIN_MATCH, 0);
 		find.put(MATCH, 5);
 		
-		Execution exc = deserializer.deserializeString(find.toString(), database, scope, userDir);
+		Execution exc = deserializer.deserialize(find.toString(), database, scope, userDir);
 		assertTrue(exc + " should have failed because both " + MIN_MATCH + " and " + MATCH + " were defined.", exc.hasFailed());
 	}
 	
@@ -155,7 +155,7 @@ public class JsonDeserializerTest {
 			compiler.compile(patternString, anyBoolean, anyBoolean, anyBoolean); result = pattern;
 		}};
 		
-		Instruction instruction = (Instruction) deserializer.deserializeString(find.toString(), database, scope, userDir).getExecuted();
+		Instruction instruction = (Instruction) deserializer.deserialize(find.toString(), database, scope, userDir).getExecuted();
 		instruction.execute(stringSource, scope);
 		
 		new Verifications() {{
@@ -170,7 +170,7 @@ public class JsonDeserializerTest {
 		find.put(MIN_MATCH, min);
 		find.put(MAX_MATCH, max);
 		
-		Execution exc = deserializer.deserializeString(find.toString(), database, scope, userDir);
+		Execution exc = deserializer.deserialize(find.toString(), database, scope, userDir);
 		assertTrue(exc + " should have failed because of invalid positive " + MIN_MATCH + " to " +MAX_MATCH + " range.", exc.hasFailed());
 	}
 	
@@ -181,7 +181,7 @@ public class JsonDeserializerTest {
 		find.put(MIN_MATCH, min);
 		find.put(MAX_MATCH, max);
 		
-		Execution exc = deserializer.deserializeString(find.toString(), database, scope, userDir);
+		Execution exc = deserializer.deserialize(find.toString(), database, scope, userDir);
 		assertTrue(exc + " should have failed because of invalid negative " + MIN_MATCH + " to " +MAX_MATCH + " range.", exc.hasFailed());
 	}
 	
@@ -189,7 +189,7 @@ public class JsonDeserializerTest {
 	public void testExtendsObjectSetsFindAttribute() throws Exception {
 		JSONObject extendedFind = new JSONObject().put(EXTENDS, find);
 		
-		Execution exc = deserializer.deserializeString(extendedFind.toString(), database, scope, userDir);
+		Execution exc = deserializer.deserialize(extendedFind.toString(), database, scope, userDir);
 		assertTrue(exc + " should be a Find.", exc.isSuccessful());
 	}
 	
@@ -198,7 +198,7 @@ public class JsonDeserializerTest {
 	public void testExtendsStringSetsFindAttribute() throws Exception {
 		JSONObject extendedFind = new JSONObject().put(EXTENDS, findPath);
 				
-		Execution exc = deserializer.deserializeString(extendedFind.toString(), database, scope, userDir);
+		Execution exc = deserializer.deserialize(extendedFind.toString(), database, scope, userDir);
 		assertTrue(exc + " should be a Find.", exc.isSuccessful());
 	}
 	
@@ -206,7 +206,7 @@ public class JsonDeserializerTest {
 	public void testExtendsArrayObjectSetsFindAttribute() throws Exception {
 		JSONObject extendedFind = new JSONObject().put(EXTENDS, new JSONArray().put(find));
 		
-		Execution exc = deserializer.deserializeString(extendedFind.toString(), database, scope, userDir);
+		Execution exc = deserializer.deserialize(extendedFind.toString(), database, scope, userDir);
 		assertTrue(exc + " should be a Find.", exc.isSuccessful());
 	}	
 	/*
@@ -252,7 +252,7 @@ public class JsonDeserializerTest {
 		}};
 		
 		Execution exc;
-		exc = deserializer.deserializeString(find.toString(), database, scope, userDir);
+		exc = deserializer.deserialize(find.toString(), database, scope, userDir);
 		Instruction instruction = (Instruction) exc.getExecuted();
 		
 		Executable child = ((Executable[]) instruction.execute(source, scope).getExecuted())[0];
@@ -280,7 +280,7 @@ public class JsonDeserializerTest {
 		}};
 		
 		Execution exc;
-		exc = deserializer.deserializeString(find.toString(), database, scope, userDir);
+		exc = deserializer.deserialize(find.toString(), database, scope, userDir);
 		Instruction instruction = (Instruction) exc.getExecuted();
 		
 		Vector<Executable> children = new Vector<Executable>();

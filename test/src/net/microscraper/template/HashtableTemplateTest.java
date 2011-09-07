@@ -45,12 +45,12 @@ public class HashtableTemplateTest {
 	@Test
 	public void testSubSuccessful() throws Exception {
 		HashtableTemplate hash = new HashtableTemplate();
-		hash.put(new Template("{{" + key + "}}", "{{" ,"}}", database),
-				new Template("{{" + value + "}}", "{{", "}}", database));
-		hash.put(new Template("{{" + multiWordKey + "}}", "{{" ,"}}", database),
-				new Template("{{" + multiWordValue + "}}", "{{", "}}", database));
-		hash.put(new Template("{{" + alreadyEncodedKey + "}}", "{{" ,"}}", database),
-				new Template("{{" + alreadyEncodedValue + "}}", "{{", "}}", database));
+		hash.put(new StringTemplate("{{" + key + "}}", "{{" ,"}}", database),
+				new StringTemplate("{{" + value + "}}", "{{", "}}", database));
+		hash.put(new StringTemplate("{{" + multiWordKey + "}}", "{{" ,"}}", database),
+				new StringTemplate("{{" + multiWordValue + "}}", "{{", "}}", database));
+		hash.put(new StringTemplate("{{" + alreadyEncodedKey + "}}", "{{" ,"}}", database),
+				new StringTemplate("{{" + alreadyEncodedValue + "}}", "{{", "}}", database));
 		Execution exc = hash.sub(scope);
 		
 		assertTrue(exc.isSuccessful());

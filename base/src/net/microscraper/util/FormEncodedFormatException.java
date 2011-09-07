@@ -7,6 +7,11 @@ package net.microscraper.util;
  *
  */
 public class FormEncodedFormatException extends Exception {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2647491655991329747L;
+
 	public FormEncodedFormatException(String message) {
 		super(message);
 	}

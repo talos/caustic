@@ -12,7 +12,7 @@ import mockit.NonStrictExpectations;
 import net.microscraper.database.Scope;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.template.Template;
+import net.microscraper.template.StringTemplate;
 import net.microscraper.util.Execution;
 
 import org.junit.Before;
@@ -20,7 +20,7 @@ import org.junit.Test;
 
 public class FindTest  {
 	@Mocked RegexpCompiler compiler;
-	@Injectable Template pattern, replacement;
+	@Injectable StringTemplate pattern, replacement;
 	@Mocked private Scope scope;
 	private Find find;
 	

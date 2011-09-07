@@ -3,22 +3,25 @@ package net.microscraper.instruction;
 import net.microscraper.database.Scope;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.template.Template;
-import net.microscraper.util.Execution;
+import net.microscraper.template.DependsOnTemplate;
+import net.microscraper.template.MissingTags;
+import net.microscraper.template.StringSubstitution;
+import net.microscraper.template.StringTemplate;
+import net.microscraper.util.StringUtils;
 
 /**
  * An {@link Executable} for extracting matches from a source string according to
- * a {@link Pattern} and replacement {@link Template}.
+ * a {@link Pattern} and replacement {@link StringTemplate}.
  * @author john
  *
  */
 public class Find implements Action {
 
 	/**
-	 * The {@link Template} that will be substituted into a {@link String}
+	 * The {@link StringTemplate} that will be substituted into a {@link String}
 	 * to use as the pattern.
 	 */
-	private final Template pattern;
+	private final StringTemplate pattern;
 	
 	/**
 	 * Flag equivalent to {@link java.util.regex.Pattern#CASE_INSENSITIVE}
@@ -41,10 +44,10 @@ public class Find implements Action {
 	private final RegexpCompiler compiler;
 	
 	/**
-	 * The {@link Template} that should be substituted evaluated for backreferences,
-	 * then returned once for each match, if it is assigned by {@link #setReplacement(Template)}.
+	 * The {@link StringTemplate} that should be substituted evaluated for backreferences,
+	 * then returned once for each match, if it is assigned by {@link #setReplacement(StringTemplate)}.
 	 */
-	private Template nonDefaultReplacement = null;
+	private StringTemplate nonDefaultReplacement = null;
 
 	/**
 	 * {@link PatternTemplate}s that test the sanity of the parser's output.
@@ -72,12 +75,12 @@ public class Find implements Action {
 	 */
 	private int maxMatch = Pattern.LAST_MATCH;
 	
-	public Find(RegexpCompiler compiler, Template pattern) {
+	public Find(RegexpCompiler compiler, StringTemplate pattern) {
 		this.compiler = compiler;
 		this.pattern = pattern;
 	}
 	
-	public void setReplacement(Template replacement) {
+	public void setReplacement(StringTemplate replacement) {
 		this.nonDefaultReplacement = replacement;
 	}
 	
@@ -102,74 +105,45 @@ public class Find implements Action {
 	}
 	
 	/**
-	 * Add a {@link Find} that will be used to test the substitutions.
-	 * {@link #execute(String, Variables)} will return a {@link Execution#failedTests(String, Pattern)}
-	 * if one of these fails to {@link Pattern#matches(String, int)}.
-	 * @param test The {@link PatternTemplate} to add as a test.
-	 */
-	/*public void addTest(Find test) {
-		tests.add(test);
-	}*/
-	
-	/**
 	 * Use {@link #pattern}, substituted with {@link Variables}, to match against <code>source</code>.
-	 * Will return {@link Execution#failedTests(String, Pattern)} if at least one of the {@link #tests}
-	 * does not match against at least one of the result {@link String}s.
 	 */
-	public Execution execute(String source, Scope scope) {
+	public ActionResult execute(String source, Scope scope) {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
 		
-		final Execution result;
-		Execution subPattern = pattern.sub(scope);
+		final ActionResult result;
+		StringSubstitution subPattern = pattern.sub(scope);
 		
-		Execution subReplacement;
+		StringSubstitution subReplacement;
 		if(nonDefaultReplacement != null) {
 			subReplacement = nonDefaultReplacement.sub(scope);
 		} else {
-			subReplacement = Execution.success(ENTIRE_MATCH);
+			subReplacement = StringSubstitution.newSuccess(ENTIRE_MATCH);
 		}
 				
-		if(!subPattern.isSuccessful() || !subReplacement.isSuccessful()) {
+		if(subPattern.isMissingTags() || !subReplacement.isMissingTags()) {
 			// One of the substitutions was not OK.
-			result = Execution.combine( new Execution[] { subPattern, subReplacement } );
+			result = ActionResult.newMissingTags(
+					MissingTags.combine( new DependsOnTemplate[] { subPattern, subReplacement } ));
 
 		} else {
 			// All the substitutions were OK.
-			String patternString = (String) subPattern.getExecuted();
+			String patternString = (String) subPattern.getSubstituted();
 			Pattern pattern = compiler.compile(patternString, isCaseInsensitive, isMultiline, doesDotMatchNewline);
 			
-			String replacement = (String) subReplacement.getExecuted();
+			String replacement = (String) subReplacement.getSubstituted();
 			String[] matches = pattern.match(source, replacement, minMatch, maxMatch);
 			
 			if(matches.length == 0) {
-				result = Execution.noMatches(source, pattern, minMatch, maxMatch);
+				result = ActionResult.newFailure("Match " + StringUtils.quote(pattern) +
+					" did not have a match between " + 
+					StringUtils.quote(minMatch) + " and " + 
+					StringUtils.quote(maxMatch) + " against " +
+					StringUtils.truncate(StringUtils.quote(source), 100));
 			// We got at least 1 match.
 			} else {
-				// Run the tests.
-				/*Vector failedExecutions = new Vector();
-				for(int i = 0 ; i < tests.length ; i ++) {
-					Pattern test = (Pattern) tests[i];
-					for(int j = 0 ; j < matches.length ; j ++) {
-						String tested = matches[j];
-						boolean passed = test.matches(tested, Pattern.FIRST_MATCH);
-						if(passed == false) {
-							failedExecutions.add(Execution.failedTests(tested, test));
-						}
-					}
-				}
-				
-				// Failed a test :(
-				if(failedExecutions.size() > 0) {
-					Execution[] failedExecutionsAry = new Execution[failedExecutions.size()];
-					failedExecutions.copyInto(failedExecutionsAry);
-					//result = Execution.failedTests(matches[j], failedTestsAry);
-					result = Execution.combine(failedExecutionsAry);
-				} else { // Passed all tests! :)
-					result = Execution.success(matches);
-				}*/
-				result = Execution.success(matches);
+				result = ActionResult.newSuccess(matches);
 			}
 		}
 		return result;
@@ -178,7 +152,7 @@ public class Find implements Action {
 	/**
 	 * Defaults to {@link #pattern}.
 	 */
-	public Template getDefaultName() {
+	public StringTemplate getDefaultName() {
 		return pattern;
 	}
 }

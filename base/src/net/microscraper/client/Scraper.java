@@ -16,7 +16,7 @@ import net.microscraper.log.Logger;
 import net.microscraper.util.Execution;
 import net.microscraper.util.VectorUtils;
 
-public class Scraper implements Runnable, Loggable {
+public class Scraper implements Loggable {
 	
 	private final Executable start;
 	private final Database database;
@@ -35,6 +35,18 @@ public class Scraper implements Runnable, Loggable {
 	 * {@link Executable}s won't be executed again.
 	 */
 	private final Vector finishedExecutions = new Vector();
+
+	private Vector getStuckExecutables() {
+		Vector stuckExecutables = new Vector();
+		Enumeration e = queue.elements();
+		while(e.hasMoreElements()) {
+			Executable executable = (Executable) e.nextElement();
+			if(executable.isStuck()) {
+				stuckExecutables.add(executable);
+			}
+		}
+		return stuckExecutables;
+	}
 	
 	/**
 	 * 
@@ -56,68 +68,53 @@ public class Scraper implements Runnable, Loggable {
 		this.database = database;
 		this.input = input;
 		this.defaultScope = database.getDefaultScope();
-				
+		
 		InstructionPromise promise = new InstructionPromise(deserializer, database, serializedInstruction, executionDir);
 		this.start = new Executable(source, defaultScope, promise);
 	}
 	
-	private Vector getStuckExecutables() {
-		Vector stuckExecutables = new Vector();
-		Enumeration e = queue.elements();
-		while(e.hasMoreElements()) {
-			Executable executable = (Executable) e.nextElement();
-			if(executable.isStuck()) {
-				stuckExecutables.add(executable);
-			}
+	/**
+	 * 
+	 * @return An array of the {@link Execution}s this {@link Scraper} generated
+	 * while running.
+	 * @throws InterruptedException If {@link Scraper} is interrupted.
+	 * @throws IOException If {@link Scraper} has problems persisting to its {@link #database}.
+	 */
+	public Execution[] scrape() throws InterruptedException, IOException {
+		// Store default values in database
+		Enumeration keys = input.keys();
+		while(keys.hasMoreElements()) {
+			String key = (String) keys.nextElement();
+			database.storeOneToOne(defaultScope, key, (String) input.get(key));
 		}
-		return stuckExecutables;
-	}
-	
-	public void run() {
-
-		// try - catch the entire loop for user interrupt and database IO problems.
-		try {
-			// Store default values in database
-			Enumeration keys = input.keys();
-			while(keys.hasMoreElements()) {
-				String key = (String) keys.nextElement();
-				database.storeOneToOne(defaultScope, key, (String) input.get(key));
+		
+		queue.add(start);
+		
+		do {
+			Executable executable = (Executable) queue.elementAt(0);
+			queue.removeElementAt(0);
+			
+			// Try to execute the executable.
+			Execution execution = executable.execute();
+			
+			// Evaluate the execution's success.
+			if(execution.isSuccessful()) {
+				// It's successful -- add the resultant executables onto the queue.
+				Executable[] children = (Executable[]) execution.getExecuted();
+				VectorUtils.arrayIntoVector(children, queue);
+				
+				finishedExecutions.add(execution);
+			} else if(execution.isMissingVariables()) {
+				// Try it again later.
+				queue.add(executable);
+				
+			} else {
+				finishedExecutions.add(execution);
 			}
 			
-			queue.add(start);
-			
-			do {
-				Executable executable = (Executable) queue.elementAt(0);
-				queue.removeElementAt(0);
-				
-				// Try to execute the executable.
-				Execution execution = executable.execute();
-				
-				// Evaluate the execution's success.
-				if(execution.isSuccessful()) {
-					// It's successful -- add the resultant executables onto the queue.
-					Executable[] children = (Executable[]) execution.getExecuted();
-					VectorUtils.arrayIntoVector(children, queue);
-					
-					finishedExecutions.add(execution);
-				} else if(execution.isMissingVariables()) {
-					// Try it again later.
-					queue.add(executable);
-					
-				} else {
-					finishedExecutions.add(execution);
-				}
-				
-				// End the loop when we run out of executables, or if they're all
-				// stuck.
-			} while(queue.size() > 0 && getStuckExecutables().size() < queue.size());
-		} catch(InterruptedException e) {
-			//log.i("Prematurely terminated execution because of user interrupt.");
-			throw new RuntimeException(e);
-		} catch(IOException e) {
-			//log.i("Prematurely terminated execution because the database could be saved: " + e.getMessage());
-			throw new RuntimeException(e);
-		}
+			// End the loop when we run out of executables, or if they're all
+			// stuck.
+		} while(queue.size() > 0 && getStuckExecutables().size() < queue.size());
 		
 		// Copy the stuck executions into finished executions, as we now know they're
 		// definitely stuck.
@@ -125,14 +122,7 @@ public class Scraper implements Runnable, Loggable {
 			Executable executable = (Executable) queue.elementAt(i);
 			finishedExecutions.add(executable.getLastExecution());
 		}
-	}
-	
-	/**
-	 * 
-	 * @return An array of the {@link Execution}s this {@link Scraper} generated
-	 * while running.  Should only be called after {@link #run()} is finished.
-	 */
-	public Execution[] getExecutions() {
+		
 		Execution[] result = new Execution[finishedExecutions.size()];
 		finishedExecutions.copyInto(result);
 		return result;

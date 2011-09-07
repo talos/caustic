@@ -4,30 +4,29 @@ import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.client.DeserializationException;
-import net.microscraper.client.Deserializer;
+import net.microscraper.client.SerializedInstruction;
 import net.microscraper.database.Database;
 import net.microscraper.database.Scope;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Action;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
-import net.microscraper.instruction.InstructionPromise;
 import net.microscraper.instruction.Load;
 import net.microscraper.log.Logger;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpUtils;
 import net.microscraper.template.HashtableTemplate;
-import net.microscraper.template.Template;
+import net.microscraper.template.StringSubstitution;
+import net.microscraper.template.StringTemplate;
 import net.microscraper.template.TemplateCompilationException;
 import net.microscraper.uri.MalformedUriException;
 import net.microscraper.uri.RemoteToLocalSchemeResolutionException;
 import net.microscraper.uri.URILoader;
 import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
-import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;
 
-public class JsonDeserializer implements Deserializer {
+public class JsonDeserializer implements SerializedInstruction {
 	
 	/**
 	 * The {@link UriResolver} to use when resolving URIs.
@@ -59,54 +58,58 @@ public class JsonDeserializer implements Deserializer {
 	 */
 	private final Encoder encoder;
 	
-	private Execution deserialize(String jsonString, Database database, Scope scope, String baseUri,
+	private Instruction deserialize(String jsonString, Database database, Scope scope, String baseUri,
 			String openTagString, String closeTagString)
 			throws DeserializationException, JsonException, TemplateCompilationException,
 			IOException, MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException {
-		final Execution result;
+		final Instruction result;
 		
-		// Parse non-objects as URIs after substitution with variables
+		// Parse non-objects as URIs.  Any substitution should have been done beforehand.
 		if(!parser.isJsonObject(jsonString)) {
+			final String uri;
 			if(jsonString.equalsIgnoreCase(SELF)) {
-				String loadedJSONString = uriLoader.load(baseUri);
-				result = deserialize(loadedJSONString, database, scope, baseUri, openTagString, closeTagString);
+				uri = baseUri;
 			} else {
-				Execution uriSub = new Template(jsonString, openTagString, closeTagString, database)
+				uri = uriResolver.resolve(baseUri, jsonString);
+			}
+			result = deserialize(uriLoader.load(uri), database, scope, uri, openTagString, closeTagString);
+				/*
+				StringSubstitution uriSub = new StringTemplate(jsonString, openTagString, closeTagString, database)
 						.subEncoded(scope, encoder);
-				if(uriSub.isSuccessful()) {
-					String uriPath = (String) uriSub.getExecuted();
+				if(!uriSub.isMissingTags()) {
+					String uriPath = uriSub.getSubstituted();
 					String uriToLoad = uriResolver.resolve(baseUri, uriPath);
 					String loadedJSONString = uriLoader.load(uriToLoad);
 					
 					result = deserialize(loadedJSONString, database, scope, uriToLoad, openTagString, closeTagString);
 				} else {
 					result = uriSub;
-				}
-			}
+				}*/
+			
 		} else {
 			
 			JsonObject initialObj = parser.parse(jsonString);
 			
-			Template name = null;
+			StringTemplate name = null;
 			//Boolean shouldPersistValue = null;
 			
 			// InstructionPromise children.
 			Vector children = new Vector();
 			
 			// populated for Load action
-			Template url = null;
+			StringTemplate url = null;
 			String method = null;
-			Template postData = null;
+			StringTemplate postData = null;
 			HashtableTemplate posts = new HashtableTemplate();
 			HashtableTemplate cookies = new HashtableTemplate();
 			HashtableTemplate headers = new HashtableTemplate();
 			
 			// Populated for Find action
-			Template pattern = null;
+			StringTemplate pattern = null;
 			Boolean isCaseInsensitive = null;
 			Boolean isMultiline = null;
 			Boolean doesDotMatchNewline = null;
-			Template replace = null;
+			StringTemplate replace = null;
 			Integer min = null;
 			Integer max = null;
 			Integer match = null;
@@ -149,7 +152,9 @@ public class JsonDeserializer implements Deserializer {
 							jsonObjects.add(extendsObjects.elementAt(j));
 						}
 						for(int j = 0 ; j < extendsStrings.size() ; j ++) {
-							Template extendsUriTemplate = new Template(obj.getString(key), openTagString, closeTagString, database);
+							String uri = uriResolver.resolve(baseUri, (String) extendsStrings.elementAt(j));
+							jsonObjects.add(parser.parse(uriLoader.load(uri)));
+							/*StringTemplate extendsUriTemplate = new StringTemplate(obj.getString(key), openTagString, closeTagString, database);
 							Execution uriSubstitution = extendsUriTemplate.subEncoded(scope, encoder);
 							if(uriSubstitution.isSuccessful()) {
 								String uriPath = (String) uriSubstitution.getExecuted();
@@ -159,7 +164,7 @@ public class JsonDeserializer implements Deserializer {
 								jsonObjects.add(parser.parse(loadedJSONString));
 							} else {
 								return uriSubstitution; // can't substitute uri to load EXTENDS reference, missing-variable out.
-							}
+							}*/
 						}
 					} else if(key.equalsIgnoreCase(THEN)) {
 						Vector thenStrings = new Vector();
@@ -189,32 +194,31 @@ public class JsonDeserializer implements Deserializer {
 						
 						for(int j = 0 ; j < thenStrings.size(); j ++) {
 							String thenString = (String) thenStrings.elementAt(j);
-							if(thenString.equalsIgnoreCase(SELF)) {
+							
+							/*if(thenString.equalsIgnoreCase(SELF)) {
 								//children.add(new InstructionPromise(this, jsonString, baseUri.toString()));
 								children.add(new InstructionPromise(this, database, SELF, baseUri));
 							} else {
 								children.add(new InstructionPromise(this, database, thenString, baseUri));
-							}
+							}*/
 						}
 						for(int j = 0 ; j < thenObjects.size(); j ++ ) {
 							String thenObjectAsString = (String) thenObjects.elementAt(j);
 							children.add(new InstructionPromise(this, database, thenObjectAsString, baseUri));
 						}
 					} else if(key.equalsIgnoreCase(NAME)) {
-						name = new Template(obj.getString(key), openTagString, closeTagString, database);
-					/*} else if(key.equalsIgnoreCase(SAVE)) {
-						shouldPersistValue = Boolean.valueOf(obj.getBoolean(key));
-						*/
+						name = new StringTemplate(obj.getString(key), openTagString, closeTagString, database);
+						
 					/** Load-only attributes. **/
 					} else if(key.equalsIgnoreCase(LOAD)) {
-						url = new Template(obj.getString(key), openTagString, closeTagString, database);
+						url = new StringTemplate(obj.getString(key), openTagString, closeTagString, database);
 					} else if(key.equalsIgnoreCase(METHOD)) {
 						method = obj.getString(key);
 					} else if(key.equalsIgnoreCase(POSTS)) {
 						if(obj.isJsonObject(key)) {
 							posts.merge(deserializeHashtableTemplate(obj.getJsonObject(key), database, openTagString, closeTagString));
 						} else if(obj.isString(key)) {
-							postData = new Template(obj.getString(key), openTagString, closeTagString, database);
+							postData = new StringTemplate(obj.getString(key), openTagString, closeTagString, database);
 						} else {
 							throw new DeserializationException(StringUtils.quote(key) +
 									" must be a String with post data or an object with name-value-pairs.");				
@@ -226,7 +230,7 @@ public class JsonDeserializer implements Deserializer {
 						
 					/** Pattern attributes. **/
 					} else if(key.equalsIgnoreCase(FIND)) {
-						pattern = new Template(obj.getString(key), openTagString, closeTagString, database);
+						pattern = new StringTemplate(obj.getString(key), openTagString, closeTagString, database);
 					} else if(key.equalsIgnoreCase(IS_CASE_INSENSITIVE)) {
 						isCaseInsensitive = Boolean.valueOf(obj.getBoolean(key));
 					} else if(key.equalsIgnoreCase(DOES_DOT_MATCH_ALL)) {
@@ -237,7 +241,7 @@ public class JsonDeserializer implements Deserializer {
 						
 					/** Find-only attributes. **/
 					} else if(key.equalsIgnoreCase(REPLACE)) {
-						replace = new Template(obj.getString(key), openTagString, closeTagString, database);
+						replace = new StringTemplate(obj.getString(key), openTagString, closeTagString, database);
 					} else if(key.equalsIgnoreCase(MIN_MATCH)) {
 						min = Integer.valueOf(obj.getInt(key));
 					} else if(key.equalsIgnoreCase(MAX_MATCH)) {
@@ -341,7 +345,7 @@ public class JsonDeserializer implements Deserializer {
 	 * @param closeTagString
 	 * @return A {@link HashtableTemplate}.
 	 * @throws JsonException If there was a problem parsing the JSON.
-	 * @throws TemplateCompilationException If a {@link Template} could not be compiled.
+	 * @throws TemplateCompilationException If a {@link StringTemplate} could not be compiled.
 	 */
 	private HashtableTemplate deserializeHashtableTemplate(JsonObject jsonObject,
 			Database database, String openTagString, String closeTagString)
@@ -351,8 +355,8 @@ public class JsonDeserializer implements Deserializer {
 		while(iter.hasNext()) {
 			String key = (String) iter.next();
 			String value = jsonObject.getString(key);
-			result.put(new Template(key, openTagString, closeTagString, database),
-					new Template(value, openTagString, closeTagString, database));
+			result.put(new StringTemplate(key, openTagString, closeTagString, database),
+					new StringTemplate(value, openTagString, closeTagString, database));
 		}
 		return result;
 	}
@@ -486,11 +490,11 @@ public class JsonDeserializer implements Deserializer {
 		this.uriLoader = uriLoader;
 	}
 	
-	public Execution deserializeString(String serializedString, Database database, Scope scope, String uri) {
+	public Execution deserialize(String serializedString, Database database, Scope scope, String uri) {
 		
 		try {
 			return deserialize(serializedString, database, scope, uri,
-					Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG);
+					StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG);
 		} catch(JsonException e) {
 			return Execution.deserializationException(new DeserializationException(e));
 		} catch (MalformedUriException e) {

@@ -17,7 +17,7 @@ import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
 import net.microscraper.http.ResponseHeaders;
 import net.microscraper.regexp.Pattern;
-import net.microscraper.template.Template;
+import net.microscraper.template.StringTemplate;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
 import net.microscraper.util.JavaNetEncoder;
@@ -35,11 +35,11 @@ public class LoadTest {
 	private HttpBrowser liveBrowser;
 	private Encoder encoder;
 	private Load load;
-	private Template url;
+	private StringTemplate url;
 	
 	@Before
 	public void setUp() throws Exception {
-		url = new Template(randomString(), Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		url = new StringTemplate(randomString(), StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG, database);
 		encoder = new JavaNetEncoder(Encoder.UTF_8);
 		load = new Load(browser, encoder, url);
 		liveBrowser = new HttpBrowser(new JavaNetHttpRequester(),
@@ -80,7 +80,7 @@ public class LoadTest {
 	public void testUrlIsSubstituted() throws Exception {
 		final String value = randomString();
 		final String name = "query";
-		final Template url = new Template("http://www.google.com/?q={{" + value + "}}", "{{", "}}", database);
+		final StringTemplate url = new StringTemplate("http://www.google.com/?q={{" + value + "}}", "{{", "}}", database);
 		new Expectations() {{
 			database.get(scope, name); result = value;
 			browser.get("http://www.google.com/?q=" + value, (Hashtable) any, (Pattern[]) any);
@@ -91,7 +91,7 @@ public class LoadTest {
 	
 	@Test // This test requires a live internet connection.
 	public void testLiveBrowserSetsCookies() throws Exception {
-		final Template url = new Template("http://www.nytimes.com", "{{", "}}", database);
+		final StringTemplate url = new StringTemplate("http://www.nytimes.com", "{{", "}}", database);
 		new Expectations() {
 			@Mocked CookieManager cookieManager;
 			{
@@ -114,7 +114,7 @@ public class LoadTest {
 	
 	@Test
 	public void testPostDataSetsPostMethod() throws Exception {
-		final Template postData = new Template(randomString(), Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG,database);
+		final StringTemplate postData = new StringTemplate(randomString(), StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG,database);
 		new Expectations() {{
 			browser.post(url.toString(), (Hashtable) any, (Pattern[]) any, postData.toString());
 				$ = "Post data should be set by setting post data.";
@@ -127,8 +127,8 @@ public class LoadTest {
 	public void testPostDataIsSubbed() throws Exception {
 		final String key = randomString();
 		final String value = randomString();
-		final Template postData = new Template(Template.DEFAULT_OPEN_TAG + key + Template.DEFAULT_CLOSE_TAG,
-				Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		final StringTemplate postData = new StringTemplate(StringTemplate.DEFAULT_OPEN_TAG + key + StringTemplate.DEFAULT_CLOSE_TAG,
+				StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG, database);
 		new Expectations() {{
 			database.get(scope, key); result = value;
 			browser.post(url.toString(), (Hashtable) any, (Pattern[]) any, value);

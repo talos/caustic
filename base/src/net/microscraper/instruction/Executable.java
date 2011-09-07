@@ -2,15 +2,16 @@ package net.microscraper.instruction;
 
 import java.io.IOException;
 
+import net.microscraper.client.Deserializer;
+import net.microscraper.database.Database;
 import net.microscraper.database.Scope;
-import net.microscraper.util.Execution;
-import net.microscraper.util.StringUtils;
 
 /**
- * An {@link Executable} is an execution-time binding of an {@link InstructionPromise} to
- * the data it needs to run.
- * @see Load
- * @see Find
+ * An {@link Executable} is binds an {@link InstructionPromise} or
+ * {@link Instruction} to a {@link Scope} and {@link String} source,
+ * for the purpose of repeatedly trying the {@link Instruction} with
+ * an evolving set of data until it succeeds.
+ * @see Instruction
  * @author talos
  *
  */
@@ -23,8 +24,9 @@ public class Executable {
 	
 	private final String source;
 	private final Scope scope;
-	private final InstructionPromise promise;
 	
+	private SerializedInstruction serializedInstruction;
+		
 	/**
 	 * The {@link Instruction} that this {@link Executable} runs.
 	 */
@@ -33,15 +35,12 @@ public class Executable {
 	private Execution execution;
 	
 	/**
-	 * An {@link Executable} that has to load its {@link Instruction} from a {@link InstructionPromise}.
-	 * @param source
-	 * @param scope
-	 * @param instructionPromise
+	 * An {@link Executable} that has to load its {@link Instruction} using {@link Deserializer}.
 	 */
-	public Executable(String source, Scope scope, InstructionPromise instructionPromise) {
+	public Executable(String source, Scope scope, SerializedInstruction serializedInstruction) {
 		this.source = source;
 		this.scope = scope;
-		this.promise = instructionPromise;
+		this.serializedInstruction = serializedInstruction;
 	}
 	
 	/**
@@ -53,16 +52,16 @@ public class Executable {
 	public Executable(String source, Scope scope, Instruction instruction) {
 		this.source = source;
 		this.scope = scope;
-		this.promise = null;
 		this.instruction = instruction;
 	}
 	
 	/**
-	 * Runs {@link InstructionPromise#execute(Variables)} using the {@link #variables}
-	 * to which this {@link Executable} is bound to get {@link #instruction}.<p>
+	 * Runs {@link InstructionPromise#load(Scope)} using the {@link #scope}
+	 * to which this {@link Executable} is bound to get {@link #instruction},
+	 * unless {@link Executable} was created with an {@link Instruction}.<p>
 	 * Once it has this {@link Instruction}, it performs
-	 * {@link Instruction#execute(String, Variables)} using the {@link #source}
-	 * and {@link #variables} that this {@link Executable} is bound to.
+	 * {@link Instruction#execute(String, Scope)} using the {@link #source}
+	 * and {@link #scope} that this {@link Executable} is bound to.
 	 * @return An {@link Execution} object resulting from {@link Instruction#execute},
 	 * whose {@link Execution#getExecuted()} is an array of {@link Executable}s.
 	 * @throws InterruptedException If the user interrupts the execution.
@@ -73,10 +72,14 @@ public class Executable {
 		
 		// If instruction is not yet loaded, try to get it.
 		if(instruction == null) {
+			serializedInstruction.deserialize(source, scope);
+			
+			/*
+			deserializer.deserialize(serializedString, database, scope, uri);
 			execution = promise.load(scope);
 			if(execution.isSuccessful()) {
 				instruction = (Instruction) execution.getExecuted();
-			}
+			}*/
 		}
 		
 		// If instruction is loaded, execute it.
@@ -101,8 +104,8 @@ public class Executable {
 	
 	/**
 	 * Determine whether this {@link Executable} is stuck on the same missing
-	 * {@link Variable}s.
-	 * @return <code>true</code> if the same {@link Variables} are missing from
+	 * tags.
+	 * @return <code>true</code> if the same tags are missing from
 	 * the most recent execution and the one immediately before; <code>false</code>
 	 * otherwise.
 	 */

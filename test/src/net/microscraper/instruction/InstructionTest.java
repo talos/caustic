@@ -12,7 +12,7 @@ import mockit.Tested;
 import net.microscraper.database.Database;
 import net.microscraper.database.Scope;
 import static net.microscraper.util.TestUtils.*;
-import net.microscraper.template.Template;
+import net.microscraper.template.StringTemplate;
 import net.microscraper.util.Execution;
 
 import org.junit.Before;
@@ -25,7 +25,7 @@ public final class InstructionTest {
 	@Mocked private Scope scope;
 	
 	private String source;
-	private Template defaultName;
+	private StringTemplate defaultName;
 	
 	@Tested private Instruction instruction;
 	
@@ -35,7 +35,7 @@ public final class InstructionTest {
 			database.getDefaultScope(); result = scope;
 		}};
 		source = randomString();
-		defaultName = new Template(randomString(), Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		defaultName = new StringTemplate(randomString(), StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG, database);
 		instruction = new Instruction(action, database);
 		instruction.setName(defaultName);
 	}
@@ -45,7 +45,7 @@ public final class InstructionTest {
 		new Expectations() {{
 			action.execute(source, scope); times = 0; $ = "Should not execute the action if name is missing variables.";
 		}};
-		instruction.setName(new Template("{{requires}} {{variables}}", "{{", "}}", database));
+		instruction.setName(new StringTemplate("{{requires}} {{variables}}", "{{", "}}", database));
 		
 		Execution exc = instruction.execute(source, scope);
 		assertTrue(exc.isMissingVariables());
@@ -127,7 +127,7 @@ public final class InstructionTest {
 				database.storeOneToMany(scope, nameStr, actionResults[2]);
 			}
 		};
-		instruction.setName(new Template(nameStr, "{{", "}}", database));
+		instruction.setName(new StringTemplate(nameStr, "{{", "}}", database));
 		instruction.execute(source, scope);
 	}
 	
@@ -143,7 +143,7 @@ public final class InstructionTest {
 				database.storeOneToMany(scope, anyString, anyString); result = new IOException();
 			}
 		};
-		instruction.setName(new Template(randomString(), "{{", "}}", database));
+		instruction.setName(new StringTemplate(randomString(), "{{", "}}", database));
 		instruction.execute(source, scope);
 	}
 }

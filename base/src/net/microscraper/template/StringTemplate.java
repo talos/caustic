@@ -5,16 +5,15 @@ import java.util.Vector;
 import net.microscraper.database.Database;
 import net.microscraper.database.Scope;
 import net.microscraper.util.Encoder;
-import net.microscraper.util.Execution;
 
 /**
- * Substitutions using {@link Database}.
+ * {@link String} substitutions using {@link Database}.
  * This substitutes a key within {@link #openTag} and
  * {@link #closeTag} with a value from {@link HashtableDatabase}.
  * @author john
  *
  */
-public final class Template {
+public final class StringTemplate {
 
 	/**
 	 * Default {@link #openTag}.
@@ -46,15 +45,15 @@ public final class Template {
 	private final String closeTag;
 
 	/**
-	 * Compile a {@link Template} from a {@link String}.
-	 * @param template The {@link String} to convert into a {@link Template}.
+	 * Compile a {@link StringTemplate} from a {@link String}.
+	 * @param template The {@link String} to convert into a {@link StringTemplate}.
 	 * @param openTag The {@link String} that opens a tag.
 	 * @param closeTag The {@link String} that closes a tag.
 	 * @param database The {@link Database} to use to pull values for substitutions.
 	 * @throws TemplateCompilationException If <code>template</code> cannot be turned into a
-	 * {@link Template}.
+	 * {@link StringTemplate}.
 	 */
-	public Template(String template, String openTag, String closeTag, Database database)
+	public StringTemplate(String template, String openTag, String closeTag, Database database)
 			throws TemplateCompilationException {
 		this.template = template;
 		this.openTag = openTag;
@@ -75,27 +74,26 @@ public final class Template {
 	}
 
 	/**
-	 * Substitute the values from a {@link Variables} into the {@link Template}.
+	 * Substitute the values from a {@link Variables} into the {@link StringTemplate}.
 	 * @param scope The {@link Scope} to use getting data from {@link #database}.
-	 * @return A {@link Execution} whose {@link Execution#getExecuted()} is the {@link String}
-	 * result of the substitution.
+	 * @return A {@link StringSubstitution} with the results of the substitution.
 	 */
-	public Execution sub(Scope scope) {
+	public StringSubstitution sub(Scope scope) {
 		return subEncoded(scope, null);
 	}
 	
 	/**
-	 * Substitute the values from a {@link HashtableDatabase} into the {@link Template},
+	 * Substitute the values from a {@link HashtableDatabase} into the {@link StringTemplate},
 	 * and encode each value upon inserting it.
 	 * @param scope The {@link Scope} to use getting data from {@link #database}.
 	 * @param encoder The {@link Encoder} to use when encoding values.
-	 * @return A {@link Execution} with the results of the substitution.
+	 * @return A {@link StringSubstitution} with the results of the substitution.
 	 */
-	public Execution subEncoded(Scope scope, Encoder encoder) {
+	public StringSubstitution subEncoded(Scope scope, Encoder encoder) {
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
 		String result = "";
-		Vector missingVariables = new Vector();
+		Vector missingTags = new Vector();
 		while((open_tag_start_pos = template.indexOf(openTag, close_tag_end_pos)) != -1) {
 			
 			// Pass unmodified text from the end of the last closed tag to the start of the current open tag.
@@ -117,22 +115,22 @@ public final class Template {
 				}
 			} else {
 				//return Substitution.fail(tag);
-				missingVariables.add(tag);
+				missingTags.add(tag);
 			}
 		}
 		
-		if(missingVariables.size() == 0) {
-			return Execution.success(result + template.substring(close_tag_end_pos));
+		if(missingTags.size() == 0) {
+			return StringSubstitution.newSuccess(result + template.substring(close_tag_end_pos));
 		} else {
-			String[] missingVariablesAry = new String[missingVariables.size()];
-			missingVariables.copyInto(missingVariablesAry);
-			return Execution.missingVariables(missingVariablesAry);
+			String[] missingTagsAry = new String[missingTags.size()];
+			missingTags.copyInto(missingTagsAry);
+			return StringSubstitution.newMissingTags(missingTagsAry);
 		}
 		
 	}
 	
 	/**
-	 * @return The raw, uncompiled {@link String} for this {@link Template}.
+	 * @return The raw, uncompiled {@link String} for this {@link StringTemplate}.
 	 */
 	public String toString() {
 		return template;

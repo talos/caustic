@@ -1,7 +1,7 @@
 package net.microscraper.template;
 
 /**
- * This is thrown when a {@link String} cannot be turned into a {@link Template}.
+ * This is thrown when a {@link String} cannot be turned into a {@link StringTemplate}.
  * @author john
  *
  */

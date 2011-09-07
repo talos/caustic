@@ -9,7 +9,7 @@ import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.database.Database;
 import net.microscraper.database.Scope;
-import net.microscraper.template.Template;
+import net.microscraper.template.StringTemplate;
 import net.microscraper.template.TemplateCompilationException;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
@@ -27,7 +27,7 @@ public class TemplateTest {
 	private static final String value = "has been substituted";
 	private static final String encodedValue = "has+been+substituted";
 	private static final String validTemplateRaw =
-			"A valid " + Template.DEFAULT_OPEN_TAG + key + Template.DEFAULT_CLOSE_TAG + ".";
+			"A valid " + StringTemplate.DEFAULT_OPEN_TAG + key + StringTemplate.DEFAULT_CLOSE_TAG + ".";
 	private static final String validTemplateCompiled = "A valid " + value + ".";
 	private static final String validTemplateCompiledEncoded = "A valid " + encodedValue + ".";
 	
@@ -42,17 +42,17 @@ public class TemplateTest {
 	
 	@Test
 	public void testMustacheTemplateCompiles() throws TemplateCompilationException {
-		new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		new StringTemplate(validTemplateRaw, StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG, database);
 	}
 	
 	@Test(expected = TemplateCompilationException.class)
 	public void testInvalidMustacheDoesNotCompile() throws TemplateCompilationException {
-		new Template(Template.DEFAULT_OPEN_TAG, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		new StringTemplate(StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG, database);
 	}
 	
 	@Test
 	public void testSubSuccessful() throws TemplateCompilationException {
-		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		StringTemplate template = new StringTemplate(validTemplateRaw, StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG, database);
 		Execution sub = template.sub(scope);
 		assertTrue(sub.isSuccessful());
 		assertEquals(validTemplateCompiled, sub.getExecuted());
@@ -60,7 +60,7 @@ public class TemplateTest {
 	
 	@Test
 	public void testSubUnsuccessful() throws TemplateCompilationException {
-		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, empty);
+		StringTemplate template = new StringTemplate(validTemplateRaw, StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG, empty);
 		Execution sub = template.sub(scope);
 		assertFalse(sub.isSuccessful());
 		assertArrayEquals(new String[] { key }, sub.getMissingVariables());
@@ -71,7 +71,7 @@ public class TemplateTest {
 		new Expectations() {{
 			encoder.encode(value); result = encodedValue;
 		}};
-		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		StringTemplate template = new StringTemplate(validTemplateRaw, StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG, database);
 		Execution sub = template.subEncoded(scope, encoder);
 		assertTrue(sub.isSuccessful());
 		assertEquals(validTemplateCompiledEncoded, sub.getExecuted());
@@ -82,7 +82,7 @@ public class TemplateTest {
 		new Expectations() {{
 			encoder.encode(value); result = encodedValue; times = 0;
 		}};
-		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, empty);
+		StringTemplate template = new StringTemplate(validTemplateRaw, StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG, empty);
 		Execution sub = template.subEncoded(scope, encoder);
 		assertFalse(sub.isSuccessful());
 		assertArrayEquals(new String[] {key}, sub.getMissingVariables());
@@ -94,13 +94,13 @@ public class TemplateTest {
 		new Expectations() {{
 			encoder.encode(value); result = new UnsupportedEncodingException();
 		}};
-		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		StringTemplate template = new StringTemplate(validTemplateRaw, StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG, database);
 		template.subEncoded(scope, encoder);
 	}
 
 	@Test
 	public void testToString() throws TemplateCompilationException {
-		Template template = new Template(validTemplateRaw, Template.DEFAULT_OPEN_TAG, Template.DEFAULT_CLOSE_TAG, database);
+		StringTemplate template = new StringTemplate(validTemplateRaw, StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG, database);
 		assertEquals(validTemplateRaw, template.toString());
 	}
 

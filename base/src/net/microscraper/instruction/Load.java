@@ -6,10 +6,14 @@ import java.util.Hashtable;
 import net.microscraper.database.Scope;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.regexp.Pattern;
+import net.microscraper.template.DependsOnTemplate;
+import net.microscraper.template.HashtableSubstitution;
+import net.microscraper.template.HashtableSubstitutionOverwriteException;
 import net.microscraper.template.HashtableTemplate;
-import net.microscraper.template.Template;
+import net.microscraper.template.MissingTags;
+import net.microscraper.template.StringSubstitution;
+import net.microscraper.template.StringTemplate;
 import net.microscraper.util.Encoder;
-import net.microscraper.util.Execution;
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.StringUtils;
 
@@ -38,26 +42,19 @@ public final class Load implements Action {
 	private final HashtableTemplate headers = new HashtableTemplate();
 	
 	/**
-	 * {@link PatternTemplate}s that terminate the loading of this page's body.
+	 * A {@link StringTemplate} of post data.  Exclusive of {@link #postTable}.
 	 */
-	//private final Vector stops = new Vector();
-	
-	private final Pattern[] stops = new Pattern[] {};
+	private StringTemplate postString;
 	
 	/**
-	 * A {@link Template} of post data.  Exclusive of {@link #postTable}.
-	 */
-	private Template postData;
-	
-	/**
-	 * {@link HashtableTemplate}s of post data.  Exclusive of {@link #postData}.
+	 * {@link HashtableTemplate}s of post data.  Exclusive of {@link #postString}.
 	 */
 	private final HashtableTemplate postTable = new HashtableTemplate();
 	
 	/**
 	 * A string that will be templated and evaulated as a URL.
 	 */
-	private final Template url;
+	private final StringTemplate url;
 	
 	/**
 	 * The {@link HttpBrowser} to use when loading.
@@ -75,7 +72,7 @@ public final class Load implements Action {
 	 * @param encoder
 	 * @param url
 	 */
-	public Load(HttpBrowser browser, Encoder encoder, Template url) {
+	public Load(HttpBrowser browser, Encoder encoder, StringTemplate url) {
 		this.browser = browser;
 		this.encoder = encoder;
 		this.url = url;
@@ -102,7 +99,7 @@ public final class Load implements Action {
 	 * @param posts A {@link HashtableTemplate} of posts to add.
 	 */
 	public void addPosts(HashtableTemplate posts) {
-		if(postData != null) {
+		if(postString != null) {
 			throw new IllegalArgumentException("Cannot have both postData and postTable");
 		}
 		if(posts.size() > 0) {
@@ -114,14 +111,14 @@ public final class Load implements Action {
 	/**
 	 * Set the post data for this {@link Load}.
 	 * If {@link #method} is not {@link HttpBrowser.POST}, this changes it to be so.
-	 * @param postData The {@link Template} to use as a post.
+	 * @param postData The {@link StringTemplate} to use as a post.
 	 */
-	public void setPostData(Template postData) {
+	public void setPostData(StringTemplate postData) {
 		if(postTable.size() > 0) {
-			throw new IllegalArgumentException("Cannot have both postData and postNameValuePairs");
+			throw new IllegalArgumentException("Cannot have both postData and postTable");
 		}
 		setMethod(HttpBrowser.POST);
-		this.postData = postData;
+		this.postString = postData;
 	}
 
 	/**
@@ -139,41 +136,46 @@ public final class Load implements Action {
 	public void addCookies(HashtableTemplate cookies) {
 		this.cookies.merge(cookies);
 	}
-
-	/**
-	 * Add a {@link Find} to this {@link Load}'s {@link #stops}.
-	 * @param cookie The {@link NameValuePairTemplate} to add as a cookie.
-	 */
-	/*public void addStop(Find stop) {
-		this.stops.add(stop);
-	}*/
 	
 	/**
 	 * Make the request and retrieve the response body specified by this {@link Load}.
-	 * @return An {@link Execution} whose {@link Execution#getExecuted()} is a one-length
+	 * @return An {@link ActionResult} whose {@link ActionResult#getResults()} is a one-length
 	 * {@link String} array containing the response body, which is a zero-length
 	 * {@link String} if the {@link Load}'s method is {@link HttpBrowser#HEAD}.
 	 */
-	public Execution execute(String source, Scope scope)
+	public ActionResult execute(String source, Scope scope)
 			throws InterruptedException {
-		try {			
-			Execution urlSub = url.subEncoded(scope, encoder);
-			Execution headersSub = headers.sub(scope);
-			Execution cookiesSub = cookies.sub(scope);
+		try {
+			final ActionResult result;
+			
+			final Pattern[] stops = new Pattern[] { };
+			final StringSubstitution urlSub = url.subEncoded(scope, encoder);
+			final HashtableSubstitution headersSub = headers.sub(scope);
+			final HashtableSubstitution cookiesSub = cookies.sub(scope);
+			final DependsOnTemplate postData;
+			
+			if(postTable.size() > 0) {
+				postData = postTable.sub(scope);
+			} else {
+				postData = postString.sub(scope);
+			}
 			
 			// Cannot execute if any of these substitutions was not successful
-			if(!urlSub.isSuccessful() || !headersSub.isSuccessful() || !cookiesSub.isSuccessful()) {
-				return Execution.combine(new Execution[] {
-						urlSub, headersSub, cookiesSub
-				});
+			if(urlSub.isMissingTags()
+					|| headersSub.isMissingTags()
+					|| cookiesSub.isMissingTags()
+					|| postData.isMissingTags()) {
+				result = ActionResult.newMissingTags(
+					MissingTags.combine(new DependsOnTemplate[] {
+						urlSub, headersSub, cookiesSub, postData}));
 			} else {
 				
 				final String responseBody;
 
-				String url = (String) urlSub.getExecuted();
+				String url = (String) urlSub.getSubstituted();
 				
-				Hashtable headers = (Hashtable) headersSub.getExecuted();
-				Hashtable cookies = (Hashtable) cookiesSub.getExecuted();
+				Hashtable headers = (Hashtable) headersSub.getSubstituted();
+				Hashtable cookies = (Hashtable) cookiesSub.getSubstituted();
 				if(cookies.size() > 0) {
 					browser.addCookies(url, cookies, encoder);
 				}
@@ -183,42 +185,33 @@ public final class Load implements Action {
 					responseBody = "";
 				} else {
 					if(method.equalsIgnoreCase(HttpBrowser.POST)) {
-						String postDataStr;
+						final String postDataStr;
 						if(postTable.size() > 0) {
-							Execution postsSub = postTable.sub(scope);
-							if(!postsSub.isSuccessful()) {
-								return Execution.missingVariables(postsSub.getMissingVariables());
-							} else {
-								Hashtable posts = (Hashtable) postsSub.getExecuted();
-								postDataStr = HashtableUtils.toFormEncoded(encoder, posts);
-							}
-						} else if(postData != null) {
-							Execution postsSub = postData.sub(scope);
-							if(!postsSub.isSuccessful()) {
-								return Execution.missingVariables(postsSub.getMissingVariables());
-							} else {
-								postDataStr = (String) postsSub.getExecuted();
-							}
+							Hashtable posts = ((HashtableSubstitution) postData).getSubstituted();
+							postDataStr = HashtableUtils.toFormEncoded(encoder, posts);
 						} else {
-							postDataStr = "";
+							postDataStr = ((StringSubstitution) postData).getSubstituted();
 						}
+						
 						responseBody = browser.post(url, headers, stops, postDataStr);
 					} else {
 						responseBody = browser.get(url, headers, stops);
 					}
 				}
-				return Execution.success(new String[] { responseBody } );
+				result = ActionResult.newSuccess(new String[] { responseBody } );
 			}
-			//return result;
+			return result;
 		} catch(IOException e) {
-			return Execution.ioException(e);
+			return ActionResult.newFailure("IO Failure while loading: " + e.getMessage());
+		} catch(HashtableSubstitutionOverwriteException e) {
+			return ActionResult.newFailure(e.getMessage());
 		}
 	}
 
 	/**
 	 * Defaults to {@link #url}.
 	 */
-	public Template getDefaultName() {
+	public StringTemplate getDefaultName() {
 		return url;
 	}
 	

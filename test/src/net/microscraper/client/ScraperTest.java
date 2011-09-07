@@ -30,7 +30,7 @@ import net.microscraper.instruction.Load;
 import net.microscraper.json.JsonParser;
 import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.template.Template;
+import net.microscraper.template.StringTemplate;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.util.JavaNetHttpUtils;
@@ -112,14 +112,14 @@ public class ScraperTest {
 		final ScopeGenerator afterHello = new ScopeGenerator();
 
 		Load loadGoogle = new Load(browser, encoder,
-				new Template("http://www.google.com/search?q={{query}}", "{{", "}}", database));
+				new StringTemplate("http://www.google.com/search?q={{query}}", "{{", "}}", database));
 		Instruction simpleGoogle = new Instruction(loadGoogle, database);
 		
 		Find findWordAfter = new Find(compiler,
-				new Template("{{query}}\\s+(\\w+)", "{{", "}}", database));
-		findWordAfter.setReplacement(new Template("I say $1", "{{", "}}", database));
+				new StringTemplate("{{query}}\\s+(\\w+)", "{{", "}}", database));
+		findWordAfter.setReplacement(new StringTemplate("I say $1", "{{", "}}", database));
 		Instruction whatDoYouSay = new Instruction(findWordAfter, database);
-		whatDoYouSay.setName(new Template("what do you say after '{{query}}'?", "{{", "}}", database));
+		whatDoYouSay.setName(new StringTemplate("what do you say after '{{query}}'?", "{{", "}}", database));
 		
 		simpleGoogle.addChild(whatDoYouSay);
 		
