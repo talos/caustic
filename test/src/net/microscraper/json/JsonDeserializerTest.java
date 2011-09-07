@@ -19,7 +19,7 @@ import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
 import net.microscraper.util.VectorUtils;
-import static net.microscraper.json.JsonDeserializer.*;
+import static net.microscraper.json.JSONSerializedInstruction.*;
 import static net.microscraper.util.TestUtils.randomInt;
 import static net.microscraper.util.TestUtils.randomString;
 import static org.junit.Assert.*;
@@ -39,7 +39,7 @@ public class JsonDeserializerTest {
 	private @Mocked Pattern pattern;
 	
 	private JsonParser parser;
-	private JsonDeserializer deserializer;
+	private JSONSerializedInstruction deserializer;
 	
 	private static final String urlString = "URL " + randomString();
 	private static final String patternString = "PATTERN " + randomString();
@@ -60,7 +60,7 @@ public class JsonDeserializerTest {
 		load = new JSONObject().put(LOAD, urlString);
 		findPath = "FIND PATH " + randomString();
 		find = new JSONObject().put(FIND, patternString);
-		deserializer = new JsonDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
+		deserializer = new JSONSerializedInstruction(parser, compiler, browser, encoder, uriResolver, uriLoader);
 		emptyJson = new JSONObject().toString();
 		userDir = "USER DIR " + randomString();
 		

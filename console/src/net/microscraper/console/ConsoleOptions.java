@@ -28,7 +28,7 @@ import net.microscraper.http.JavaNetCookieManager;
 import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
 import net.microscraper.instruction.Find;
-import net.microscraper.json.JsonDeserializer;
+import net.microscraper.json.JSONSerializedInstruction;
 import net.microscraper.json.JsonMEParser;
 import net.microscraper.json.JsonParser;
 import net.microscraper.log.JavaIOFileLogger;
@@ -306,7 +306,7 @@ public final class ConsoleOptions {
 		UriResolver uriResolver = new JavaNetUriResolver();
 		JsonParser parser = new JsonMEParser();
 		Encoder encoder = new JavaNetEncoder(getValue(encoding));
-		Deserializer deserializer = new JsonDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
+		Deserializer deserializer = new JSONSerializedInstruction(parser, compiler, browser, encoder, uriResolver, uriLoader);
 		
 		return deserializer;
 	

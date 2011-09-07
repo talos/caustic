@@ -26,7 +26,14 @@ import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.StringUtils;
 
-public class JsonDeserializer implements SerializedInstruction {
+public class JSONSerializedInstruction implements SerializedInstruction {
+	
+	/**
+	 * 
+	 */
+	private final String jsonString;
+	
+	private final String uri;
 	
 	/**
 	 * The {@link UriResolver} to use when resolving URIs.
@@ -58,8 +65,10 @@ public class JsonDeserializer implements SerializedInstruction {
 	 */
 	private final Encoder encoder;
 	
-	private Instruction deserialize(String jsonString, Database database, Scope scope, String baseUri,
-			String openTagString, String closeTagString)
+	private Instruction instruction;
+	private Vector missingTags;
+	
+	private Instruction deserialize(Database database, Scope scope, String openTagString, String closeTagString)
 			throws DeserializationException, JsonException, TemplateCompilationException,
 			IOException, MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException {
 		final Instruction result;
@@ -93,8 +102,8 @@ public class JsonDeserializer implements SerializedInstruction {
 			StringTemplate name = null;
 			//Boolean shouldPersistValue = null;
 			
-			// InstructionPromise children.
-			Vector children = new Vector();
+			// JSONSerializedInstruction children.
+			Vector serializedChildren = new Vector();
 			
 			// populated for Load action
 			StringTemplate url = null;
@@ -204,7 +213,11 @@ public class JsonDeserializer implements SerializedInstruction {
 						}
 						for(int j = 0 ; j < thenObjects.size(); j ++ ) {
 							String thenObjectAsString = (String) thenObjects.elementAt(j);
-							children.add(new InstructionPromise(this, database, thenObjectAsString, baseUri));
+							serializedChildren.add(
+									new JSONSerializedInstruction(parser, browser, compiler, 
+											
+											
+											this, database, thenObjectAsString, baseUri));
 						}
 					} else if(key.equalsIgnoreCase(NAME)) {
 						name = new StringTemplate(obj.getString(key), openTagString, closeTagString, database);
@@ -480,8 +493,10 @@ public class JsonDeserializer implements SerializedInstruction {
 	 * @param uriFactory
 	 * @param database
 	 */
-	public JsonDeserializer(JsonParser parser, RegexpCompiler compiler, HttpBrowser browser,
-			Encoder encoder, UriResolver uriResolver, URILoader uriLoader) {
+	public JSONSerializedInstruction(String jsonString, String uri, JsonParser parser, RegexpCompiler compiler,
+			HttpBrowser browser, Encoder encoder, UriResolver uriResolver, URILoader uriLoader) {
+		this.jsonString = jsonString;
+		this.uri = uri;
 		this.compiler = compiler;
 		this.parser = parser;
 		this.browser = browser;
@@ -490,11 +505,10 @@ public class JsonDeserializer implements SerializedInstruction {
 		this.uriLoader = uriLoader;
 	}
 	
-	public Execution deserialize(String serializedString, Database database, Scope scope, String uri) {
-		
+	public boolean deserialize(Database database, Scope scope) {
 		try {
-			return deserialize(serializedString, database, scope, uri,
-					StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG);
+			deserialize(database, scope, StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG);
+			return true;
 		} catch(JsonException e) {
 			return Execution.deserializationException(new DeserializationException(e));
 		} catch (MalformedUriException e) {
