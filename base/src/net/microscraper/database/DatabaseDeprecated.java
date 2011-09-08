@@ -5,11 +5,11 @@ import java.io.IOException;
 /**
  * Implementations of {@link Database} store the results of an {@link Executable}s and return
  * unique {@link Scope}.
- * @see Result
+ * @see ScraperResult
  * @author john
  *
  */
-public interface Database {
+public interface DatabaseDeprecated {
 
 	/**
 	 * Store one result from an {@link Action} without a value.  This result will be shared with its

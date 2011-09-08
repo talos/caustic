@@ -23,7 +23,7 @@ public class StringSubstitution extends MissingTags {
 	 * @param substitutedString The successful substituted {@link String}.
 	 * @return A {@link StringSubstitution} with a successful substitution.
 	 */
-	public static StringSubstitution newSuccess(String substitutedString) {
+	public static StringSubstitution success(String substitutedString) {
 		return new StringSubstitution(substitutedString);
 	}
 
@@ -32,7 +32,7 @@ public class StringSubstitution extends MissingTags {
 	 * @param missingTags An array of {@link String} missing tags.
 	 * @return A {@link StringSubstitution} with missing tags.
 	 */
-	public static StringSubstitution newMissingTags(String[] missingTags) {
+	public static StringSubstitution missingTags(String[] missingTags) {
 		return new StringSubstitution(missingTags);
 	}
 	

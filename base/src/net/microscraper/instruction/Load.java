@@ -3,7 +3,6 @@ package net.microscraper.instruction;
 import java.io.IOException;
 import java.util.Hashtable;
 
-import net.microscraper.database.Scope;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.DependsOnTemplate;
@@ -15,6 +14,7 @@ import net.microscraper.template.StringSubstitution;
 import net.microscraper.template.StringTemplate;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.HashtableUtils;
+import net.microscraper.util.StringMap;
 import net.microscraper.util.StringUtils;
 
 /**
@@ -23,7 +23,7 @@ import net.microscraper.util.StringUtils;
  * @author realest
  *
  */
-public final class Load implements Action {
+public final class Load {
 	
 	/**
 	 * The HTTP request type that will be used. Either {@link HttpBrowser#GET},
@@ -143,21 +143,20 @@ public final class Load implements Action {
 	 * {@link String} array containing the response body, which is a zero-length
 	 * {@link String} if the {@link Load}'s method is {@link HttpBrowser#HEAD}.
 	 */
-	public ActionResult execute(String source, Scope scope)
-			throws InterruptedException {
+	public LoadResult execute(StringMap input) throws InterruptedException {
 		try {
-			final ActionResult result;
+			final LoadResult result;
 			
 			final Pattern[] stops = new Pattern[] { };
-			final StringSubstitution urlSub = url.subEncoded(scope, encoder);
-			final HashtableSubstitution headersSub = headers.sub(scope);
-			final HashtableSubstitution cookiesSub = cookies.sub(scope);
+			final StringSubstitution urlSub = url.subEncoded(input, encoder);
+			final HashtableSubstitution headersSub = headers.sub(input);
+			final HashtableSubstitution cookiesSub = cookies.sub(input);
 			final DependsOnTemplate postData;
 			
 			if(postTable.size() > 0) {
-				postData = postTable.sub(scope);
+				postData = postTable.sub(input);
 			} else {
-				postData = postString.sub(scope);
+				postData = postString.sub(input);
 			}
 			
 			// Cannot execute if any of these substitutions was not successful
@@ -165,7 +164,7 @@ public final class Load implements Action {
 					|| headersSub.isMissingTags()
 					|| cookiesSub.isMissingTags()
 					|| postData.isMissingTags()) {
-				result = ActionResult.newMissingTags(
+				result = LoadResult.missingTags(
 					MissingTags.combine(new DependsOnTemplate[] {
 						urlSub, headersSub, cookiesSub, postData}));
 			} else {
@@ -198,13 +197,13 @@ public final class Load implements Action {
 						responseBody = browser.get(url, headers, stops);
 					}
 				}
-				result = ActionResult.newSuccess(new String[] { responseBody } );
+				result = LoadResult.success(responseBody);
 			}
 			return result;
 		} catch(IOException e) {
-			return ActionResult.newFailure("IO Failure while loading: " + e.getMessage());
+			return LoadResult.failed("IO Failure while loading: " + e.getMessage());
 		} catch(HashtableSubstitutionOverwriteException e) {
-			return ActionResult.newFailure(e.getMessage());
+			return LoadResult.failed(e.getMessage());
 		}
 	}
 

@@ -5,8 +5,8 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.util.HashtableUtils;
+import net.microscraper.util.StringMap;
 import net.microscraper.util.VectorUtils;
-import net.microscraper.database.Scope;
 import net.microscraper.template.StringTemplate;
 
 public class HashtableTemplate {
@@ -26,22 +26,22 @@ public class HashtableTemplate {
 	/**
 	 * Substitute this {@link HashtableTemplate} with values from {@link Database} accessible
 	 * to <code>sourceId</code>.
-	 * @param scope
+	 * @param input
 	 * @return An {@link HashtableSubstitution} whose
 	 * {@link Hashtable} has been substituted with tags accessible to <code>scope</code>.
 	 */
-	public HashtableSubstitution sub(Scope scope) throws HashtableSubstitutionOverwriteException {
+	public HashtableSubstitution sub(StringMap input) throws HashtableSubstitutionOverwriteException {
 		Vector missingTags = new Vector();
 		Hashtable subbedTable = new Hashtable();
 		Enumeration keys = table.keys();
 		while(keys.hasMoreElements()) {
 			StringTemplate key = (StringTemplate) keys.nextElement();
 			StringSubstitution subbedKey;
-			subbedKey = key.sub(scope);
+			subbedKey = key.sub(input);
 			
 			StringTemplate value = (StringTemplate) table.get(key);
 			StringSubstitution subbedValue;
-			subbedValue = value.sub(scope);
+			subbedValue = value.sub(input);
 			
 			if(!subbedKey.isMissingTags() && !subbedValue.isMissingTags()) {
 				String subbedKeyStr = (String) subbedKey.getSubstituted();

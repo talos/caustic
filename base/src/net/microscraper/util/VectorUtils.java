@@ -1,5 +1,6 @@
 package net.microscraper.util;
 
+import java.util.Enumeration;
 import java.util.Vector;
 
 /**
@@ -31,8 +32,27 @@ public class VectorUtils {
 		}
 	}
 
-	public VectorUtils() {
-		super();
+	/**
+	 * Compare two {@link Vector}s to see if they have the same elements.  Uses
+	 * {@link Vector#contains(Object)} for each element of one in the other, and
+	 * checks to see that their length is the same.
+	 * @param vector1 A {@link Vector}.
+	 * @param vector2 A {@link Vector} to compare.
+	 * @return <code>true</code> if <code>vector2</code> has all the elements in 
+	 * <code>vector1</code> and is the same length. <code>false</code> otherwise.
+	 */
+	public static final boolean haveSameElements(Vector vector1, Vector vector2) {
+		if(vector1.size() == vector2.size()) {
+			Enumeration e = vector1.elements();
+			while(e.hasMoreElements()) {
+				Object element = e.nextElement();
+				if(!vector2.contains(element)) {
+					return false; // early exit from enumeration.
+				}
+			}
+			return true; // if the enumeration is complete without an early exit
+		}
+		return false;
 	}
 
 }

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import net.microscraper.client.Deserializer;
 import net.microscraper.database.Database;
 import net.microscraper.database.DelimitedConnection;
 import net.microscraper.database.HashtableDatabase;
@@ -21,6 +20,7 @@ import net.microscraper.database.JDBCSqliteConnection;
 import net.microscraper.database.MultiTableDatabase;
 import net.microscraper.database.SingleTableDatabase;
 import net.microscraper.database.UpdateableConnection;
+import net.microscraper.deserializer.Deserializer;
 import net.microscraper.file.JavaIOFileLoader;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.http.HttpRequester;

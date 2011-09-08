@@ -1,12 +1,12 @@
 package net.microscraper.instruction;
 
-import net.microscraper.database.Scope;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.template.DependsOnTemplate;
 import net.microscraper.template.MissingTags;
 import net.microscraper.template.StringSubstitution;
 import net.microscraper.template.StringTemplate;
+import net.microscraper.util.StringMap;
 import net.microscraper.util.StringUtils;
 
 /**
@@ -15,7 +15,7 @@ import net.microscraper.util.StringUtils;
  * @author john
  *
  */
-public class Find implements Action {
+public class Find {
 
 	/**
 	 * The {@link StringTemplate} that will be substituted into a {@link String}
@@ -48,12 +48,7 @@ public class Find implements Action {
 	 * then returned once for each match, if it is assigned by {@link #setReplacement(StringTemplate)}.
 	 */
 	private StringTemplate nonDefaultReplacement = null;
-
-	/**
-	 * {@link PatternTemplate}s that test the sanity of the parser's output.
-	 */
-	//private final Vector tests = new Vector();
-
+	
 	/**
 	 * Value for when {@link #replacement} is the entire match.
 	 */
@@ -107,24 +102,24 @@ public class Find implements Action {
 	/**
 	 * Use {@link #pattern}, substituted with {@link Variables}, to match against <code>source</code>.
 	 */
-	public ActionResult execute(String source, Scope scope) {
+	public FindResult execute(String source, StringMap input) {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
 		
-		final ActionResult result;
-		StringSubstitution subPattern = pattern.sub(scope);
+		final FindResult result;
+		StringSubstitution subPattern = pattern.sub(input);
 		
 		StringSubstitution subReplacement;
 		if(nonDefaultReplacement != null) {
-			subReplacement = nonDefaultReplacement.sub(scope);
+			subReplacement = nonDefaultReplacement.sub(input);
 		} else {
-			subReplacement = StringSubstitution.newSuccess(ENTIRE_MATCH);
+			subReplacement = StringSubstitution.success(ENTIRE_MATCH);
 		}
 				
 		if(subPattern.isMissingTags() || !subReplacement.isMissingTags()) {
 			// One of the substitutions was not OK.
-			result = ActionResult.newMissingTags(
+			result = FindResult.missingTags(
 					MissingTags.combine( new DependsOnTemplate[] { subPattern, subReplacement } ));
 
 		} else {
@@ -136,14 +131,14 @@ public class Find implements Action {
 			String[] matches = pattern.match(source, replacement, minMatch, maxMatch);
 			
 			if(matches.length == 0) {
-				result = ActionResult.newFailure("Match " + StringUtils.quote(pattern) +
+				result = FindResult.failed("Match " + StringUtils.quote(pattern) +
 					" did not have a match between " + 
 					StringUtils.quote(minMatch) + " and " + 
 					StringUtils.quote(maxMatch) + " against " +
 					StringUtils.truncate(StringUtils.quote(source), 100));
 			// We got at least 1 match.
 			} else {
-				result = ActionResult.newSuccess(matches);
+				result = FindResult.success(matches);
 			}
 		}
 		return result;

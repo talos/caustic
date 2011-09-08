@@ -5,7 +5,7 @@ import java.util.Hashtable;
 
 /**
  * An implementation of {@link Database} whose subclasses store
- * {@link Result}s into separate tables, based off of their source's name.
+ * {@link ScraperResult}s into separate tables, based off of their source's name.
  * @author talos
  *
  */

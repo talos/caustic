@@ -15,9 +15,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import net.microscraper.client.Deserializer;
 import net.microscraper.client.Scraper;
 import net.microscraper.database.Database;
+import net.microscraper.deserializer.Deserializer;
 import net.microscraper.log.Logger;
 import net.microscraper.util.Execution;
 import net.microscraper.util.StringUtils;

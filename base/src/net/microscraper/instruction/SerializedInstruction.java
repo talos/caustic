@@ -1,41 +1,47 @@
 package net.microscraper.instruction;
 
-import net.microscraper.client.Deserializer;
-import net.microscraper.database.Database;
-import net.microscraper.template.DependsOnTemplate;
-import net.microscraper.template.MissingTags;
+import net.microscraper.client.ScraperResult;
+import net.microscraper.deserializer.Deserializer;
+import net.microscraper.deserializer.DeserializerResult;
+import net.microscraper.util.StringMap;
 
-public class SerializedInstruction implements DependsOnTemplate {
+public class SerializedInstruction implements Instruction {
 	private final String serializedString;
 	private final Deserializer deserializer;
 	private final String uri;
+	
+	private DeserializedInstruction deserializedInstruction;
+	
+	private ScraperResult executeWithDeserialized(String source, StringMap input) throws InterruptedException {
+		return deserializedInstruction.execute(source, input);
+	}
 	
 	public SerializedInstruction(String serializedString, Deserializer deserializer, String uri) {
 		this.serializedString = serializedString;
 		this.deserializer = deserializer;
 		this.uri = uri;
 	}
-	
-	/**
-	 * 
-	 * @return <code>true</code> if deserialization was successful, <code>false</code> otherwise.
-	 */
-	public boolean deserialize(Database database, String scope) {
-		deserializer.deserialize(scope, database, scope, uri);
-	}
-	
-	public Instruction getInstruction() {
-		
-	}
-	
-	public boolean isMissingTags() {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
-	public String[] getMissingTags() {
-		// TODO Auto-generated method stub
-		return null;
+	public ScraperResult execute(String source, StringMap input) throws InterruptedException {
+		
+		final ScraperResult result;
+		
+		// Attempt to deserialize the string if this has not yet been done.
+		if(deserializedInstruction == null) {
+			DeserializerResult deserializerResult = deserializer.deserialize(serializedString, input, uri);
+			
+			if(deserializerResult.isSuccess()) {
+				deserializedInstruction = deserializerResult.getInstruction();
+				result = executeWithDeserialized(source, input);
+			} else if(deserializerResult.isMissingTags()) {
+				result = ScraperResult.missingTags(deserializerResult.getMissingTags());
+			} else {
+				result = ScraperResult.failure(deserializerResult.getFailedBecause());
+			}
+		} else {
+			result = executeWithDeserialized(source, input);
+		}
+		
+		return result;
 	}
-	
 }
