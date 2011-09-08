@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import net.microscraper.util.IntUUIDFactory;
+import net.microscraper.console.IntUUIDFactory;
 
 import org.junit.Before;
 import org.junit.Test;

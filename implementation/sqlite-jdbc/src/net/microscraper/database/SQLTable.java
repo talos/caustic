@@ -5,8 +5,8 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
-import net.microscraper.util.UUID;
 
+import net.microscraper.console.UUID;
 import net.microscraper.database.Updateable;
 import net.microscraper.util.StringUtils;
 

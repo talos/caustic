@@ -1,7 +1,5 @@
-package net.microscraper.util;
+package net.microscraper.console;
 
-import net.microscraper.util.UUID;
-import net.microscraper.util.UUIDFactory;
 
 /**
  * {@link UUIDFactory} implementation that creates

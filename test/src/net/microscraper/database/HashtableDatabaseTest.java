@@ -2,7 +2,7 @@ package net.microscraper.database;
 
 import static org.junit.Assert.*;
 
-import net.microscraper.util.IntUUIDFactory;
+import net.microscraper.console.IntUUIDFactory;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -45,11 +45,9 @@ import net.microscraper.util.Decoder;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.FormEncodedFormatException;
 import net.microscraper.util.HashtableUtils;
-import net.microscraper.util.IntUUIDFactory;
 import net.microscraper.util.JavaNetDecoder;
 import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.util.JavaNetHttpUtils;
-import net.microscraper.util.JavaUtilUUIDFactory;
 import net.microscraper.util.StringUtils;
 
 public final class ConsoleOptions {

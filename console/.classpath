@@ -11,6 +11,5 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JDBC SQLite Implementation"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JSON ME Implementation"/>
 	<classpathentry kind="src" path="/MicroScraper Base Test"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Microscraper Java Util UUID"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

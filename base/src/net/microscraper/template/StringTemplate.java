@@ -2,7 +2,6 @@ package net.microscraper.template;
 
 import java.util.Vector;
 
-import net.microscraper.database.Scope;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.StringMap;
 
@@ -68,7 +67,7 @@ public final class StringTemplate {
 
 	/**
 	 * Substitute the values from a {@link Variables} into the {@link StringTemplate}.
-	 * @param scope The {@link Scope} to use getting data from {@link #database}.
+	 * @param input The {@link StringMap} to use when substituting.
 	 * @return A {@link StringSubstitution} with the results of the substitution.
 	 */
 	public StringSubstitution sub(StringMap input) {
@@ -78,7 +77,7 @@ public final class StringTemplate {
 	/**
 	 * Substitute the values from a {@link HashtableDatabase} into the {@link StringTemplate},
 	 * and encode each value upon inserting it.
-	 * @param scope The {@link Scope} to use getting data from {@link #database}.
+	 * @param input The {@link StringMap} to use when substituting.
 	 * @param encoder The {@link Encoder} to use when encoding values.
 	 * @return A {@link StringSubstitution} with the results of the substitution.
 	 */

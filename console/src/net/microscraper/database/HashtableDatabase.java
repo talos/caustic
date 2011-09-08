@@ -3,8 +3,8 @@ package net.microscraper.database;
 import java.io.IOException;
 import java.util.Hashtable;
 
+import net.microscraper.console.UUIDFactory;
 import net.microscraper.util.StringUtils;
-import net.microscraper.util.UUIDFactory;
 
 /**
  * {@link HashtableDatabase} hold information collected through the execution of {@link Instruction}s,

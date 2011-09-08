@@ -3,12 +3,12 @@ package net.microscraper.template;
 import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
 
+import net.microscraper.console.IntUUIDFactory;
 import net.microscraper.database.Database;
 import net.microscraper.database.HashtableDatabase;
 import net.microscraper.database.Scope;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.Execution;
-import net.microscraper.util.IntUUIDFactory;
 import net.microscraper.util.JavaNetEncoder;
 
 import org.junit.Before;

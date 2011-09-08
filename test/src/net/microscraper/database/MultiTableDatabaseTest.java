@@ -10,10 +10,10 @@ import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
+import net.microscraper.console.IntUUIDFactory;
 import net.microscraper.database.UpdateableConnection;
 import net.microscraper.database.Updateable;
 import net.microscraper.database.MultiTableDatabase;
-import net.microscraper.util.IntUUIDFactory;
 
 import org.junit.Test;
 
@@ -57,7 +57,7 @@ public class MultiTableDatabaseTest extends DatabaseTest  {
 				resultTable.addColumn(name); $ = "Should add name column to root table.";
 				resultTable.update(SCOPE_COLUMN_NAME, scope.getID(), (Hashtable) any);
 					forEachInvocation = new Object() {
-						void validate(String columnName, net.microscraper.util.UUID id, Hashtable map) {
+						void validate(String columnName, net.microscraper.console.UUID id, Hashtable map) {
 							assertEquals("Should update name and value in root table.", 1, map.size());
 							assertTrue(map.containsKey(name));
 							assertEquals(value, map.get(name));

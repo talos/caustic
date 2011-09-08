@@ -1,4 +1,4 @@
-package net.microscraper.util;
+package net.microscraper.console;
 
 
 /**

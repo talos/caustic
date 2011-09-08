@@ -1,4 +1,5 @@
-package net.microscraper.util;
+package net.microscraper.console;
+
 
 /**
  * Implementation of {@link UUID} that uses {@link java.util.UUID} to generate

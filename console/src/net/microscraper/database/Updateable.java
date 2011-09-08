@@ -2,7 +2,7 @@ package net.microscraper.database;
 
 import java.util.Hashtable;
 
-import net.microscraper.util.UUID;
+import net.microscraper.console.UUID;
 
 /**
  * A {@link Updateable} interface supports adding columns updating certain columns by ID,

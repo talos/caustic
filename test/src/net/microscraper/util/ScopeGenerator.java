@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import net.microscraper.console.JavaUtilUUIDFactory;
+import net.microscraper.console.UUIDFactory;
 import net.microscraper.database.Scope;
 import static net.microscraper.util.TestUtils.*;
 

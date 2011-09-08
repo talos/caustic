@@ -1,6 +1,6 @@
 package net.microscraper.database;
 
-import net.microscraper.util.UUID;
+import net.microscraper.console.UUID;
 
 /**
  * {@link Scope} is used by {@link Database} to determine what is visible.
