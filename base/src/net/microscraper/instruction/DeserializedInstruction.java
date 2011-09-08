@@ -46,9 +46,8 @@ public class DeserializedInstruction implements Instruction {
 		Scraper[] children = new Scraper[sources.length * childInstructions.size()];
 		for(int i = 0 ; i < sources.length ; i ++ ) {
 			final String source = sources[i];
-			final StringMap spawnedInput = input.spawnChild();
-			spawnedInput.put(name, source);
-						
+			final StringMap spawnedInput = input.spawnChild(name, source);
+			
 			// Generate children from both promises and real instructions.
 			int childNum = i * childInstructions.size();
 			Enumeration e = childInstructions.elements();

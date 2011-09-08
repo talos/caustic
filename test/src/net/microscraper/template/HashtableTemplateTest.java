@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
 
 import net.microscraper.util.Encoder;
+import net.microscraper.util.HashtableStringMap;
 import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.util.StringMap;
 
@@ -25,7 +26,7 @@ public class HashtableTemplateTest {
 		multiWordValue = randomString() + " " + randomString();
 		alreadyEncodedKey = encoder.encode(multiWordKey);
 		alreadyEncodedValue = encoder.encode(multiWordValue);
-		input = new StringMap();
+		input = new HashtableStringMap();
 		input.put(key, value);
 		input.put(multiWordKey, multiWordValue);
 		input.put(alreadyEncodedKey, alreadyEncodedValue);
