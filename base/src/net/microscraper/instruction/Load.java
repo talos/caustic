@@ -3,6 +3,8 @@ package net.microscraper.instruction;
 import java.io.IOException;
 import java.util.Hashtable;
 
+import net.microscraper.client.Scraper;
+import net.microscraper.client.ScraperResult;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.DependsOnTemplate;
@@ -23,7 +25,7 @@ import net.microscraper.util.StringUtils;
  * @author realest
  *
  */
-public final class Load {
+public final class Load implements Instruction {
 	
 	/**
 	 * The HTTP request type that will be used. Either {@link HttpBrowser#GET},
@@ -65,17 +67,20 @@ public final class Load {
 	 * The {@link Encoder} to use when encoding the URL.
 	 */
 	private final Encoder encoder;
-
+	
+	private final Instruction[] children;
+	
 	/**
 	 * Instantiate a {@link Load}.
 	 * @param browser
 	 * @param encoder
 	 * @param url
 	 */
-	public Load(HttpBrowser browser, Encoder encoder, StringTemplate url) {
+	public Load(HttpBrowser browser, Encoder encoder, StringTemplate url, Instruction[] children) {
 		this.browser = browser;
 		this.encoder = encoder;
 		this.url = url;
+		this.children = children;
 	}
 	
 	/**
@@ -139,13 +144,11 @@ public final class Load {
 	
 	/**
 	 * Make the request and retrieve the response body specified by this {@link Load}.
-	 * @return An {@link ActionResult} whose {@link ActionResult#getResults()} is a one-length
-	 * {@link String} array containing the response body, which is a zero-length
-	 * {@link String} if the {@link Load}'s method is {@link HttpBrowser#HEAD}.
 	 */
-	public LoadResult execute(StringMap input) throws InterruptedException {
+	public ScraperResult execute(String source, StringMap input)
+			throws InterruptedException {
 		try {
-			final LoadResult result;
+			final ScraperResult result;
 			
 			final Pattern[] stops = new Pattern[] { };
 			final StringSubstitution urlSub = url.subEncoded(input, encoder);
@@ -164,15 +167,13 @@ public final class Load {
 					|| headersSub.isMissingTags()
 					|| cookiesSub.isMissingTags()
 					|| postData.isMissingTags()) {
-				result = LoadResult.missingTags(
+				result = ScraperResult.missingTags(
 					MissingTags.combine(new DependsOnTemplate[] {
 						urlSub, headersSub, cookiesSub, postData}));
 			} else {
-				
+				final String url = (String) urlSub.getSubstituted();
 				final String responseBody;
 
-				String url = (String) urlSub.getSubstituted();
-				
 				Hashtable headers = (Hashtable) headersSub.getSubstituted();
 				Hashtable cookies = (Hashtable) cookiesSub.getSubstituted();
 				if(cookies.size() > 0) {
@@ -181,7 +182,7 @@ public final class Load {
 				
 				if(method.equalsIgnoreCase(HttpBrowser.HEAD)){
 					browser.head(url, headers);
-					responseBody = "";
+					responseBody = ""; // launch children with a blank source.
 				} else {
 					if(method.equalsIgnoreCase(HttpBrowser.POST)) {
 						final String postDataStr;
@@ -197,21 +198,21 @@ public final class Load {
 						responseBody = browser.get(url, headers, stops);
 					}
 				}
-				result = LoadResult.success(responseBody);
+				
+				// Each instruction is turned into one Scraper child, launched with the
+				// responseBody as the source.
+				Scraper[] scraperChildren = new Scraper[children.length];
+				for(int i = 0 ; i < children.length ; i ++) {
+					scraperChildren[i] = new Scraper(children[i], input, responseBody);
+				}
+				
+				result = ScraperResult.successWithoutValues(scraperChildren);
 			}
 			return result;
 		} catch(IOException e) {
-			return LoadResult.failed("IO Failure while loading: " + e.getMessage());
+			return ScraperResult.failure("IO Failure while loading: " + e.getMessage());
 		} catch(HashtableSubstitutionOverwriteException e) {
-			return LoadResult.failed(e.getMessage());
+			return ScraperResult.failure(e.getMessage());
 		}
 	}
-
-	/**
-	 * Defaults to {@link #url}.
-	 */
-	public StringTemplate getDefaultName() {
-		return url;
-	}
-	
 }

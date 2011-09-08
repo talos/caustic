@@ -21,6 +21,7 @@ import net.microscraper.http.HttpBrowser;
 import net.microscraper.http.JavaNetCookieManager;
 import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
+import net.microscraper.instruction.DeserializedInstruction;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Load;
@@ -47,11 +48,6 @@ public class ScraperTest {
 	
 	private static final String PATH_TO_FIXTURES = "../fixtures/json/";
 	*/
-	/**
-	 * The mocked {@link Database}.
-	 */
-	@Mocked private Database database;
-	
 	private HttpBrowser browser;
 	private Encoder encoder;
 	private RegexpCompiler compiler;
@@ -105,12 +101,9 @@ public class ScraperTest {
 	 */
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {
-		final ScopeGenerator defaults = new ScopeGenerator();
-		final ScopeGenerator afterHello = new ScopeGenerator();
-
 		Load loadGoogle = new Load(browser, encoder,
 				new StringTemplate("http://www.google.com/search?q={{query}}", "{{", "}}", database));
-		Instruction simpleGoogle = new Instruction(loadGoogle, database);
+		Instruction simpleGoogle = new DeserializedInstruction(loadGoogle);
 		
 		Find findWordAfter = new Find(compiler,
 				new StringTemplate("{{query}}\\s+(\\w+)", "{{", "}}", database));

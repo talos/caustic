@@ -21,8 +21,9 @@ public interface Instruction {
 	 * for template substitutions.
 	 * @return A {@link ScraperResult} object with either successful
 	 * values and children, or information about why
-	 * {@link #execute(String, Hashtable)} did not work.
-	 * @throws InterruptedException
+	 * this method did not work.
+	 * @throws InterruptedException if the user interrupted during
+	 * the method.
 	 */
 	public ScraperResult execute(String source, StringMap input) throws InterruptedException;
 }

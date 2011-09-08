@@ -1,11 +1,7 @@
 package net.microscraper.log;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.util.Date;
-
 
 /**
  * An abstract implementation of {@link Logger} that truncates entries and

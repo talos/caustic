@@ -5,15 +5,22 @@ import net.microscraper.deserializer.Deserializer;
 import net.microscraper.deserializer.DeserializerResult;
 import net.microscraper.util.StringMap;
 
+/**
+ * An implementation of {@link Instruction} that wraps the deserialization of
+ * a String into an {@link DeserializedInstruction} within
+ * {@link Instruction#execute(String, StringMap)}.
+ * @author realest
+ *
+ */
 public class SerializedInstruction implements Instruction {
 	private final String serializedString;
 	private final Deserializer deserializer;
 	private final String uri;
 	
-	private DeserializedInstruction deserializedInstruction;
+	private Instruction instruction;
 	
 	private ScraperResult executeWithDeserialized(String source, StringMap input) throws InterruptedException {
-		return deserializedInstruction.execute(source, input);
+		return instruction.execute(source, input);
 	}
 	
 	public SerializedInstruction(String serializedString, Deserializer deserializer, String uri) {
@@ -27,18 +34,18 @@ public class SerializedInstruction implements Instruction {
 		final ScraperResult result;
 		
 		// Attempt to deserialize the string if this has not yet been done.
-		if(deserializedInstruction == null) {
+		if(instruction == null) {
 			DeserializerResult deserializerResult = deserializer.deserialize(serializedString, input, uri);
 			
 			if(deserializerResult.isSuccess()) {
-				deserializedInstruction = deserializerResult.getInstruction();
+				instruction = deserializerResult.getInstruction();
 				result = executeWithDeserialized(source, input);
 			} else if(deserializerResult.isMissingTags()) {
 				result = ScraperResult.missingTags(deserializerResult.getMissingTags());
 			} else {
 				result = ScraperResult.failure(deserializerResult.getFailedBecause());
 			}
-		} else {
+		} else { // don't duplicate effort in deserializing
 			result = executeWithDeserialized(source, input);
 		}
 		

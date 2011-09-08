@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.http.HttpBrowser;
-import net.microscraper.instruction.DeserializedInstruction;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Load;
@@ -29,6 +28,12 @@ import net.microscraper.util.Encoder;
 import net.microscraper.util.StringMap;
 import net.microscraper.util.StringUtils;
 
+/**
+ * An implementation of {@link Deserializer} to create {@link Instruction}s
+ * from JSON {@link String}s.
+ * @author realest
+ *
+ */
 public class JSONDeserializer implements Deserializer {
 	
 	/**
@@ -83,11 +88,8 @@ public class JSONDeserializer implements Deserializer {
 			
 			JsonObject initialObj = parser.parse(jsonString);
 			
-			StringTemplate name = null;
-			//Boolean shouldPersistValue = null;
-			
-			// JSONSerializedInstruction children.
-			Vector children = new Vector();
+			// populated for all instructions
+			Vector children = new Vector(); // Vector of instructions
 			
 			// populated for Load action
 			StringTemplate url = null;
@@ -99,6 +101,7 @@ public class JSONDeserializer implements Deserializer {
 			
 			// Populated for Find action
 			StringTemplate pattern = null;
+			StringTemplate name = null;
 			Boolean isCaseInsensitive = null;
 			Boolean isMultiline = null;
 			Boolean doesDotMatchNewline = null;
@@ -173,7 +176,8 @@ public class JSONDeserializer implements Deserializer {
 								} else if(array.isString(j)) {
 									thenStrings.add(array.getString(j));
 								} else {
-									return DeserializerResult.failure(THEN + " array elements must be strings or objects.");
+									return DeserializerResult.failure(THEN + " array elements " +
+											"must be strings or objects.");
 								}
 							}
 						} else if(obj.isString(key)) {
@@ -181,7 +185,8 @@ public class JSONDeserializer implements Deserializer {
 						} else {
 							return DeserializerResult.failure(StringUtils.quote(key) +
 									" must be a String reference to another " +
-									" instruction, an object with another instruction, or an array with any number " +
+									" instruction, an object with another instruction," +
+									" or an array with any number " +
 									" of both.");
 						}
 						
@@ -250,14 +255,14 @@ public class JSONDeserializer implements Deserializer {
 				}
 			}
 			
-			Find find = null;
-			Load load = null;
+			final Instruction[] childrenAry = new Instruction[children.size()];
+			children.copyInto(childrenAry);
 			if(url != null && pattern != null) {
 				// Can't define two actions.
 				return DeserializerResult.failure("Cannot define both " + FIND + " and " + LOAD);
 			} else if(url != null) {
 				// We have a Load
-				load = new Load(browser, encoder, url);
+				Load load = new Load(browser, encoder, url, childrenAry);
 				
 				if(method != null) {
 					load.setMethod(method);
@@ -269,9 +274,11 @@ public class JSONDeserializer implements Deserializer {
 				}
 				load.addCookies(cookies);
 				load.addHeaders(headers);
+
+				result = DeserializerResult.success(load);
 			} else if(pattern != null) {
 				// We have a Find
-				find = new Find(compiler, pattern);
+				Find find = new Find(compiler, pattern, childrenAry);
 				
 				if(replace != null) {
 					find.setReplacement(replace);
@@ -305,22 +312,14 @@ public class JSONDeserializer implements Deserializer {
 				if(isMultiline != null) {
 					find.setIsMultiline(isMultiline.booleanValue());
 				}
-			}
-			
-			DeserializedInstruction instruction;
-			if(find != null) {
-				instruction = new DeserializedInstruction(name, find);
-			} else if(load != null) {
-				instruction = new DeserializedInstruction(name, load);
+				if(name != null) {
+					find.setName(name);
+				}
 				
+				result = DeserializerResult.success(find);
 			} else {
 				return DeserializerResult.failure("Must define " + FIND + " or " + LOAD);
 			}
-			
-			for(int i = 0 ; i < children.size(); i ++ ) {
-				instruction.addChild((Instruction) children.elementAt(i));
-			}
-			result = DeserializerResult.success(instruction);
 		}
 		return result;
 	}
@@ -328,7 +327,6 @@ public class JSONDeserializer implements Deserializer {
 	/**
 	 * Deserialize a {@link HashtableTemplate} from a {@link JsonObject} hash.
 	 * @param jsonObject Input {@link JsonObject} hash.
-	 * @param database
 	 * @param openTagString
 	 * @param closeTagString
 	 * @return A {@link HashtableTemplate}.
@@ -352,11 +350,6 @@ public class JSONDeserializer implements Deserializer {
 	 * Key for {@link Find#replacement} value deserializing from JSON.
 	 */
 	public static final String REPLACE = "replace";
-	
-	/**
-	 * Key for {@link Find#tests} value deserializing from JSON.
-	 */
-	//public static final String TESTS = "tests";
 
 	/**
 	 * Conveniently deserialize {@link Find#minMatch} and {@link Find#maxMatch}.
@@ -379,11 +372,6 @@ public class JSONDeserializer implements Deserializer {
 	 * Key for {@link Load#headers} when deserializing.
 	 */
 	public static final String HEADERS = "headers";
-	
-	/**
-	 * Key for {@link Load#stops} when deserializing.
-	 */
-	//public static final String STOP = "stop";
 		
 	/**
 	 * Key for {@link Load#posts} when deserializing. 
@@ -414,11 +402,6 @@ public class JSONDeserializer implements Deserializer {
 	 * Key for {@link Instruction#name} value when deserializing {@link Instruction} from JSON.
 	 */
 	public static final String NAME = "name";
-	
-	/**
-	 * Key for {@link Instruction#shouldSaveValue} value when deserializing from JSON.
-	 */
-	//public static final String SAVE = "save";
 	
 	/**
 	 * Key for deserializing {@link PatternTemplate#pattern}.

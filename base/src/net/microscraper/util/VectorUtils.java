@@ -12,8 +12,8 @@ public class VectorUtils {
 
 	/**
 	 * Add one vector to the end of another.
-	 * @param vector1 The vector to add.  Is not modified.
-	 * @param vector2 The vector to add to.  <b>Is</b> modified.
+	 * @param vector1 The vector to add.  Is <strong>not</strong> modified.
+	 * @param vector2 The vector to add to.  <strong>Is</strong> modified.
 	 */
 	public static final void vectorIntoVector(Vector vector1, Vector vector2) {
 		for(int i = 0; i < vector1.size(); i++) {
@@ -25,11 +25,13 @@ public class VectorUtils {
 	 * Copy an array into a vector.
 	 * @param array The array to add.
 	 * @param vector The vector to add the arry to.  Is modified.
+	 * @return The modified {@link Vector}, for convenience purposes.
 	 */
-	public static final void arrayIntoVector(Object[] array, Vector vector) {
+	public static final Vector arrayIntoVector(Object[] array, Vector vector) {
 		for(int i = 0; i < array.length; i++) {
 			vector.addElement(array[i]);
 		}
+		return vector;
 	}
 
 	/**

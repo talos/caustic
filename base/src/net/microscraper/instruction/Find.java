@@ -1,5 +1,7 @@
 package net.microscraper.instruction;
 
+import net.microscraper.client.Scraper;
+import net.microscraper.client.ScraperResult;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.template.DependsOnTemplate;
@@ -9,19 +11,15 @@ import net.microscraper.template.StringTemplate;
 import net.microscraper.util.StringMap;
 import net.microscraper.util.StringUtils;
 
-/**
- * An {@link Executable} for extracting matches from a source string according to
- * a {@link Pattern} and replacement {@link StringTemplate}.
- * @author john
- *
- */
-public class Find {
-
+public class Find implements Instruction {
+	
 	/**
 	 * The {@link StringTemplate} that will be substituted into a {@link String}
 	 * to use as the pattern.
 	 */
 	private final StringTemplate pattern;
+	
+	private StringTemplate name;
 	
 	/**
 	 * Flag equivalent to {@link java.util.regex.Pattern#CASE_INSENSITIVE}
@@ -69,10 +67,17 @@ public class Find {
 	 * @see #minMatch
 	 */
 	private int maxMatch = Pattern.LAST_MATCH;
+
+	private final Instruction[] children;
 	
-	public Find(RegexpCompiler compiler, StringTemplate pattern) {
+	public Find(RegexpCompiler compiler, StringTemplate pattern, Instruction[] children) {
 		this.compiler = compiler;
 		this.pattern = pattern;
+		this.children = children;
+	}
+	
+	public void setName(StringTemplate name) {
+		this.name = name;
 	}
 	
 	public void setReplacement(StringTemplate replacement) {
@@ -102,52 +107,79 @@ public class Find {
 	/**
 	 * Use {@link #pattern}, substituted with {@link Variables}, to match against <code>source</code>.
 	 */
-	public FindResult execute(String source, StringMap input) {
+	public ScraperResult execute(String source, StringMap input) {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
 		
-		final FindResult result;
-		StringSubstitution subPattern = pattern.sub(input);
+		final ScraperResult result;
+		final String nameStr;
+		final StringSubstitution subPattern = pattern.sub(input);
+		final StringSubstitution subReplacement;
 		
-		StringSubstitution subReplacement;
 		if(nonDefaultReplacement != null) {
 			subReplacement = nonDefaultReplacement.sub(input);
 		} else {
 			subReplacement = StringSubstitution.success(ENTIRE_MATCH);
 		}
-				
-		if(subPattern.isMissingTags() || !subReplacement.isMissingTags()) {
-			// One of the substitutions was not OK.
-			result = FindResult.missingTags(
-					MissingTags.combine( new DependsOnTemplate[] { subPattern, subReplacement } ));
-
+		
+		if(name == null) {
+			nameStr = null;
 		} else {
-			// All the substitutions were OK.
+			StringSubstitution nameSub = name.sub(input);
+			if(nameSub.isMissingTags()) {
+				return ScraperResult.missingTags(nameSub.getMissingTags()); // break out early
+			} else {
+				nameStr = nameSub.getSubstituted();
+			}
+		}
+				
+		if(subPattern.isMissingTags() || subReplacement.isMissingTags()) { // One of the substitutions was not OK.
+			result = ScraperResult.missingTags(
+					MissingTags.combine( new DependsOnTemplate[] { subPattern, subReplacement } ));
+			
+		} else { // All the substitutions were OK.
 			String patternString = (String) subPattern.getSubstituted();
 			Pattern pattern = compiler.compile(patternString, isCaseInsensitive, isMultiline, doesDotMatchNewline);
 			
 			String replacement = (String) subReplacement.getSubstituted();
 			String[] matches = pattern.match(source, replacement, minMatch, maxMatch);
 			
-			if(matches.length == 0) {
-				result = FindResult.failed("Match " + StringUtils.quote(pattern) +
+			if(matches.length == 0) { // No matches, fail out.
+				result = ScraperResult.failure("Match " + StringUtils.quote(pattern) +
 					" did not have a match between " + 
 					StringUtils.quote(minMatch) + " and " + 
 					StringUtils.quote(maxMatch) + " against " +
 					StringUtils.truncate(StringUtils.quote(source), 100));
 			// We got at least 1 match.
 			} else {
-				result = FindResult.success(matches);
+				Scraper[] scraperChildren = new Scraper[children.length * matches.length];
+				for(int i = 0 ; i < children.length ; i ++) {
+					Instruction childInstruction = children[i];
+					for(int j = 0 ; j < matches.length ; j ++) {
+						StringMap childInput;
+						String childSource = matches[j];
+						if(matches.length == 1) {
+							childInput = input;
+						} else {
+							if(nameStr == null) { // default to using the pattern as a name for the spawned child
+								childInput = input.spawnChild(pattern.toString());
+							} else {
+								childInput = input.spawnChild(nameStr, childSource);
+							}
+						}
+						scraperChildren[i * matches.length + j] =
+								new Scraper(childInstruction, childInput, childSource);
+					}
+				}
+				
+				if(nameStr == null) {
+					result = ScraperResult.successWithoutValues(scraperChildren);
+				} else {
+					result = ScraperResult.successWithValues(nameStr, matches, scraperChildren);
+				}
 			}
 		}
 		return result;
-	}
-
-	/**
-	 * Defaults to {@link #pattern}.
-	 */
-	public StringTemplate getDefaultName() {
-		return pattern;
 	}
 }
