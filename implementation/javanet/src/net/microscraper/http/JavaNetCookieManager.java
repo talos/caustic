@@ -61,7 +61,7 @@ public class JavaNetCookieManager implements CookieManager {
 			}
 			*/
 		} catch(URISyntaxException e) {
-			throw new BadURLException(e);
+			throw new BadURLException(urlString, e.getMessage());
 		}
 	}
 	
@@ -89,7 +89,7 @@ public class JavaNetCookieManager implements CookieManager {
 		try {
 			cookieManager.put(new URI(url), headerMap);
 		} catch(URISyntaxException e) {
-			throw new BadURLException(e);
+			throw new BadURLException(url, e.getMessage());
 		}
 	}
 
@@ -106,7 +106,7 @@ public class JavaNetCookieManager implements CookieManager {
 				cookieStore.add(new URI(url), cookie);
 			}
 		} catch(URISyntaxException e) {
-			throw new BadURLException(e);
+			throw new BadURLException(url, e.getMessage());
 		}
 	}
 

@@ -1,14 +1,16 @@
 package net.microscraper.instruction;
 
+import java.io.IOException;
+
 import net.microscraper.client.ScraperResult;
+import net.microscraper.database.DatabaseView;
 import net.microscraper.deserializer.Deserializer;
 import net.microscraper.deserializer.DeserializerResult;
-import net.microscraper.util.StringMap;
 
 /**
  * An implementation of {@link Instruction} that wraps the deserialization of
  * a String into an {@link DeserializedInstruction} within
- * {@link Instruction#execute(String, StringMap)}.
+ * {@link Instruction#execute(String, DatabaseView)}.
  * @author realest
  *
  */
@@ -19,7 +21,7 @@ public class SerializedInstruction implements Instruction {
 	
 	private Instruction instruction;
 	
-	private ScraperResult executeWithDeserialized(String source, StringMap input) throws InterruptedException {
+	private ScraperResult executeWithDeserialized(String source, DatabaseView input) throws InterruptedException, IOException {
 		return instruction.execute(source, input);
 	}
 	
@@ -29,7 +31,7 @@ public class SerializedInstruction implements Instruction {
 		this.uri = uri;
 	}
 
-	public ScraperResult execute(String source, StringMap input) throws InterruptedException {
+	public ScraperResult execute(String source, DatabaseView input) throws InterruptedException, IOException {
 		
 		final ScraperResult result;
 		

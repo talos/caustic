@@ -1,38 +1,28 @@
 package net.microscraper.client;
 
 import static org.junit.Assert.*;
-import static net.microscraper.util.TestUtils.*;
 
-import java.io.File;
-import java.net.URI;
-import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Iterator;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.NonStrict;
-import mockit.NonStrictExpectations;
-import mockit.Verifications;
-import mockit.VerificationsInOrder;
 import net.microscraper.client.Scraper;
-import net.microscraper.file.FileLoader;
+import net.microscraper.database.DatabaseView;
+import net.microscraper.database.HashtableDatabaseView;
+import net.microscraper.http.CookieManager;
 import net.microscraper.http.HttpBrowser;
+import net.microscraper.http.HttpRequester;
 import net.microscraper.http.JavaNetCookieManager;
 import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
-import net.microscraper.instruction.DeserializedInstruction;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Load;
-import net.microscraper.json.JsonParser;
 import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.template.StringTemplate;
 import net.microscraper.util.Encoder;
+import net.microscraper.util.HttpUtils;
 import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.util.JavaNetHttpUtils;
-import net.microscraper.util.ScopeGenerator;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,33 +32,51 @@ import org.junit.Test;
  *
  */
 public class ScraperTest {
-	/*private String simpleGoogle, complexGoogle, referenceGoogle,
-	
-		nycPropertyOwner, nycIncentives, eventValidation;
-	
-	private static final String PATH_TO_FIXTURES = "../fixtures/json/";
-	*/
 	private HttpBrowser browser;
 	private Encoder encoder;
 	private RegexpCompiler compiler;
 	
 	/**
-	 * The tested {@link Scraper} instance.
+	 * Override this method to test a specific {@link HttpRequester}.
+	 * @return An {@link HttpRequester}
+	 * @throws Exception
 	 */
-	//private Scraper scraper;
-	
-	//protected abstract Scraper getScraperToTest(Database database) throws Exception;
-	
-	protected HttpBrowser getBrowser() throws Exception {
-		return new HttpBrowser(new JavaNetHttpRequester(),
-				new RateLimitManager(new JavaNetHttpUtils()),
-				new JavaNetCookieManager());
+	protected HttpRequester getHttpRequester() throws Exception {
+		return new JavaNetHttpRequester();
 	}
-	
+
+	/**
+	 * Override this method to test a specific {@link CookieManager}.
+	 * @return An {@link CookieManager}
+	 * @throws Exception
+	 */
+	protected CookieManager getCookieManager() throws Exception {
+		return new JavaNetCookieManager();
+	}
+
+	/**
+	 * Override this method to test a specific {@link HttpUtils}.
+	 * @return An {@link HttpUtils}
+	 * @throws Exception
+	 */
+	protected HttpUtils getHttpUtils() throws Exception {
+		return new JavaNetHttpUtils();
+	}
+
+	/**
+	 * Override this method to test a specific {@link Encoder}.
+	 * @return An {@link Encoder}
+	 * @throws Exception
+	 */
 	protected Encoder getEncoder() throws Exception {
 		return new JavaNetEncoder(Encoder.UTF_8);
 	}
-	
+
+	/**
+	 * Override this method to test a specific {@link RegexpCompiler}.
+	 * @return An {@link RegexpCompiler}
+	 * @throws Exception
+	 */
 	protected RegexpCompiler getRegexpCompiler() throws Exception {
 		return new JavaUtilRegexpCompiler();
 	}
@@ -79,18 +87,10 @@ public class ScraperTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		/*URI fixtures = new File(System.getProperty("user.dir")).toURI().resolve(PATH_TO_FIXTURES);
 		
-		simpleGoogle =       fixtures.resolve("simple-google.json").toString();
-		complexGoogle =      fixtures.resolve("complex-google.json").toString();
-		referenceGoogle =    fixtures.resolve("reference-google.json").toString();
-		
-		nycPropertyOwner =   fixtures.resolve("nyc/nyc-property-owner.json").toString();
-		nycIncentives =      fixtures.resolve("nyc/nyc-incentives.json").toString();
-		eventValidation =     fixtures.resolve("event-validation.json").toString();
-		*/
-		//scraper = getScraperToTest(database);
-		browser = getBrowser();
+		browser = new HttpBrowser(new JavaNetHttpRequester(),
+				new RateLimitManager(getHttpUtils()),
+				getCookieManager());
 		encoder = getEncoder();
 		compiler = getRegexpCompiler();
 	}
@@ -101,41 +101,42 @@ public class ScraperTest {
 	 */
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {
-		Load loadGoogle = new Load(browser, encoder,
-				new StringTemplate("http://www.google.com/search?q={{query}}", "{{", "}}", database));
-		Instruction simpleGoogle = new DeserializedInstruction(loadGoogle);
+		StringTemplate googleTemplate = new StringTemplate("http://www.google.com/search?q={{query}}", "{{", "}}");
+		Load loadGoogle = new Load(browser, encoder, googleTemplate);
 		
+		StringTemplate whatDoYouSayTemplate = new StringTemplate("what do you say after '{{query}}'?", "{{", "}}");
 		Find findWordAfter = new Find(compiler,
-				new StringTemplate("{{query}}\\s+(\\w+)", "{{", "}}", database));
-		findWordAfter.setReplacement(new StringTemplate("I say $1", "{{", "}}", database));
-		Instruction whatDoYouSay = new Instruction(findWordAfter, database);
-		whatDoYouSay.setName(new StringTemplate("what do you say after '{{query}}'?", "{{", "}}", database));
+				new StringTemplate("{{query}}\\s+(\\w+)", "{{", "}}"));
+		findWordAfter.setReplacement(new StringTemplate("I say $1", "{{", "}}"));
+		findWordAfter.setName(whatDoYouSayTemplate);
 		
-		simpleGoogle.addChild(whatDoYouSay);
+		loadGoogle.setChildren(new Instruction[] { findWordAfter } );
+
+		Hashtable<String, String> inputTable = new Hashtable<String, String>();
+		inputTable.put("query", "hello");
+		DatabaseView input = new HashtableDatabaseView(inputTable);
 		
-		new NonStrictExpectations() {{
-			database.get((Scope) any, "query"); result = "hello";
-		}};
+		Scraper scraper = new Scraper(loadGoogle, input);
 		
-		new Expectations() {{
-			database.getDefaultScope(); result = defaults; times = 1;
-			database.storeOneToOne((Scope) with(defaults.matchFirst()), "query", "hello"); times = 1;
-			database.storeOneToOne((Scope) with(defaults.matchFirst()), withPrefix("http://www.google.com/search")); times = 1;
-			database.storeOneToMany((Scope) with(defaults.matchFirst()), "what do you say after 'hello'?", withPrefix("I say "));
-				minTimes = 1; result = afterHello; 
-		}};
+		ScraperResult result;
 		
-		Hashtable<String, String> input = new Hashtable<String, String>();
-		input.put("query", "hello");
+		result = scraper.scrape();
+		assertTrue(result.isSuccess());
+		assertEquals(googleTemplate.subEncoded(input, encoder).getSubstituted(), result.getName());
 		
-		Scraper scraper = new Scraper(simpleGoogle, database, input, null);
-		scraper.run();
+		Scraper[] children = result.getChildren();
+		assertEquals("Should have one child", 1, children.length);
 		
-		assertEquals(2, scraper.getExecutions().length);
+		result = children[0].scrape();
+		assertTrue(result.isSuccess());
+		assertEquals(whatDoYouSayTemplate.sub(input).getSubstituted(), result.getName());
+		assertEquals("Should not have children", 0, result.getChildren().length);
 		
-		assertEquals(1, defaults.count());
-		assertTrue(afterHello.count() > 1);
-		
+		String[] results = result.getValues();
+		assertTrue(results.length > 0);
+		for(int i = 0 ; i < results.length ; i ++) {
+			assertTrue(results[i].startsWith("I say "));
+		}
 	}
 	/*
 	public void testScrapeComplexGoogle(String pathToFixture) throws Exception {

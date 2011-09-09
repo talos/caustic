@@ -13,12 +13,16 @@ public abstract class MissingTags implements DependsOnTemplate {
 	final String[] missingTags;
 	
 	/**
-	 * Provides an empty {@link #missingTags} array.
+	 * Constructor for a {@link MissingTags} that is not missing tags.
 	 */
 	protected MissingTags() {
 		this.missingTags = new String[] {};
 	}
 	
+	/**
+	 * Constructor for a {@link MissingTags} that is missing tags.
+	 * @param missingTags
+	 */
 	public MissingTags(String[] missingTags) {
 		this.missingTags = missingTags;
 	}

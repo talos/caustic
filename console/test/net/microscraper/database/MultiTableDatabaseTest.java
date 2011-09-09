@@ -11,17 +11,17 @@ import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.console.IntUUIDFactory;
-import net.microscraper.database.UpdateableConnection;
-import net.microscraper.database.Updateable;
+import net.microscraper.database.IOConnection;
+import net.microscraper.database.IOTable;
 import net.microscraper.database.MultiTableDatabase;
 
 import org.junit.Test;
 
 public class MultiTableDatabaseTest extends DatabaseTest  {
 
-	@Mocked Updateable resultTable;
-	@Mocked Insertable joinTable;
-	@Mocked UpdateableConnection connection, otherConn;
+	@Mocked IOTable resultTable;
+	@Mocked WritableTable joinTable;
+	@Mocked IOConnection connection, otherConn;
 		
 	@Override
 	protected Database getDatabase() throws Exception {
@@ -29,7 +29,7 @@ public class MultiTableDatabaseTest extends DatabaseTest  {
 
 			connection.newUpdateable(anyString, (String[]) any);
 				result = resultTable;
-			connection.newInsertable(anyString, (String[]) any);
+			connection.newWritable(anyString, (String[]) any);
 				result = joinTable;
 		}};
 		return new MultiTableDatabase(new HashtableDatabase(new IntUUIDFactory()), connection);

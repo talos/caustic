@@ -1,7 +1,7 @@
 package net.microscraper.deserializer;
 
+import net.microscraper.database.DatabaseView;
 import net.microscraper.instruction.Instruction;
-import net.microscraper.util.StringMap;
 
 /**
  * Interface to generate {@link Instruction}s from {@link String}s.
@@ -14,7 +14,7 @@ public interface Deserializer {
 	 * Try to deserialize a {@link String} into an {@link Instruction}, which
 	 * would be contained in {@link DeserializerResult}.
 	 * @param serializedString The {@link String} to try to deserialize.
-	 * @param input A {@link StringMap} to use for reference substitutions
+	 * @param input A {@link DatabaseView} to use for reference substitutions
 	 * inside <code>serializedString</code>.
 	 * @param uri A {@link String} URI to use when resolving references from
 	 * <code>serializedString</code>.
@@ -23,5 +23,5 @@ public interface Deserializer {
 	 * @throws InterruptedException if the user interrupted during deserialization.
 	 */
 	public abstract DeserializerResult deserialize(String serializedString,
-			StringMap input, String uri) throws InterruptedException;
+			DatabaseView input, String uri) throws InterruptedException;
 }

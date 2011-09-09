@@ -1,7 +1,11 @@
 package net.microscraper.database;
 
 import java.io.IOException;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
+
+import net.microscraper.console.UUID;
+import net.microscraper.console.UUIDFactory;
 
 /**
  * An implementation of {@link Database} whose subclasses store
@@ -9,9 +13,9 @@ import java.util.Hashtable;
  * @author talos
  *
  */
-public final class SingleTableDatabase implements Database {
+public class SingleTableDatabase implements Database {
 	
-	public static final String TABLE_NAME = "result";
+	private static final String TABLE_NAME = "result";
 	
 	private static final String SCOPE_COLUMN_NAME = "scope";
 	private static final String SOURCE_COLUMN_NAME = "source";
@@ -19,46 +23,26 @@ public final class SingleTableDatabase implements Database {
 	private static final String VALUE_COLUMN_NAME = "value";
 	
 	/**
-	 * Names of columns in {@link Insertable}
+	 * Names of columns in the table.
 	 */
 	private static final String[] COLUMN_NAMES = new String[] {
 		SCOPE_COLUMN_NAME, SOURCE_COLUMN_NAME, NAME_COLUMN_NAME, VALUE_COLUMN_NAME
 	};
 	
 	/**
-	 * The {@link Insertable} used by this {@link SingleTableDatabase}.
+	 * The {@link WritableTable} used by this {@link SingleTableDatabase}.
 	 */
-	private Insertable table;
+	private WritableTable table;
 
 	/**
 	 * Whether {@link #open()} has been called.
 	 */
 	private boolean isOpen = false;
 	
-	private final InsertableConnection connection;
+	private final WritableConnection connection;
 	private final Database backingDatabase;
+	private final UUIDFactory idFactory;
 		
-	/**
-	 * Generate insert appropriate columns into {@link #table}.
-	 * @param scope
-	 * @param source
-	 * @param name
-	 * @param value {@link String} can be <code>null</code>
-	 * @throws TableManipulationException
-	 */
-	private void insert(Scope scope, Scope source, String name, String value)
-				throws TableManipulationException {
-		ensureOpen();
-		Hashtable map = new Hashtable();
-		map.put(SCOPE_COLUMN_NAME, scope.getID().asString());
-		map.put(SOURCE_COLUMN_NAME, source.getID().asString());
-		map.put(NAME_COLUMN_NAME, name);
-		if(value != null) {
-			map.put(VALUE_COLUMN_NAME, value);
-		}
-		table.insert(map);
-	}
-
 	/**
 	 * 
 	 * @throws IllegalStateException If {@link MultiTableDatabase} has not been opened.
@@ -68,19 +52,44 @@ public final class SingleTableDatabase implements Database {
 			throw new IllegalStateException("Must open database before using it.");
 		}
 	}
+
+	/**
+	 * Generate insert appropriate columns into {@link #table}.
+	 * @param scope
+	 * @param source
+	 * @param name
+	 * @param value {@link String} can be <code>null</code>
+	 * @throws TableManipulationException
+	 */
+	protected void insert(UUID scope, UUID source, String name, String value)
+				throws TableManipulationException {
+		ensureOpen();
+		Map<String, String> map = new HashMap<String, String>();
+		map.put(SCOPE_COLUMN_NAME, scope.asString());
+		if(source != null) {
+			map.put(SOURCE_COLUMN_NAME, source.asString());
+		}
+		map.put(NAME_COLUMN_NAME, name);
+		if(value != null) {
+			map.put(VALUE_COLUMN_NAME, value);
+		}
+		table.insert(map);
+	}
 	
 	/**
 	 * Create a {@link SingleTableDatabase} using another database for
 	 * retrieving values.
 	 * @param backingDatabase The {@link Database} to use when retrieving values.
-	 * @param connection A {@link InsertableConnection} to use when inserting
+	 * @param connection A {@link WritableConnection} to use when inserting
 	 * values.
 	 * @throws IOException if there was a problem creating the table by
 	 * <code>connection</code>.
 	 */
-	public SingleTableDatabase(Database backingDatabase, InsertableConnection connection) {
+	public SingleTableDatabase(Database backingDatabase, WritableConnection connection,
+			UUIDFactory idFactory) {
 		this.connection = connection;
 		this.backingDatabase = backingDatabase;
+		this.idFactory = idFactory;
 	}
 
 	/**
@@ -89,7 +98,7 @@ public final class SingleTableDatabase implements Database {
 	public void open() throws IOException {
 		connection.open();
 		backingDatabase.open();
-		table = connection.newInsertable(TABLE_NAME, COLUMN_NAMES);
+		table = connection.newWritable(TABLE_NAME, COLUMN_NAMES);
 		isOpen = true;
 	}
 	
@@ -101,40 +110,11 @@ public final class SingleTableDatabase implements Database {
 		connection.close();
 	}
 	
-	public void storeOneToOne(Scope source, String name)
-			throws TableManipulationException, IOException {
-		backingDatabase.storeOneToOne(source, name);
-	}
-	
-	public void storeOneToOne(Scope source, String name, String value)
-			throws TableManipulationException, IOException {
-		backingDatabase.storeOneToOne(source, name, value);
-		insert(source, source, name, value);
-	}
-
-	public Scope storeOneToMany(Scope source, String name)
-			throws TableManipulationException, IOException {
-		Scope scope = backingDatabase.storeOneToMany(source, name);
-		insert(scope, source, name, null);
-		return scope;
-	}
-
-	public Scope storeOneToMany(Scope source, String name, String value)
-			throws TableManipulationException, IOException {
-		Scope scope = backingDatabase.storeOneToMany(source, name, value);
-		insert(scope, source, name, value);
-		return scope;
-	}
-	
-	public String get(Scope scope, String key) {
-		return backingDatabase.get(scope, key);
-	}
-	
-	public Scope getDefaultScope() throws IOException {
-		return backingDatabase.getDefaultScope();
-	}
-	
-	public String toString(Scope scope) {
-		return backingDatabase.toString(scope);
+	@Override
+	public DatabaseView newView() {
+		return new SingleTableDatabaseView(
+				backingDatabase.newView(),
+				idFactory,
+				this);
 	}
 }

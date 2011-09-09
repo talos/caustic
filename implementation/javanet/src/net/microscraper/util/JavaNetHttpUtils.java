@@ -12,7 +12,7 @@ public class JavaNetHttpUtils implements HttpUtils {
 		try {
 			return new URL(urlStr).getHost();
 		} catch(MalformedURLException e) {
-			throw new BadURLException(e);
+			throw new BadURLException(urlStr, e.getMessage());
 		}
 	}
 

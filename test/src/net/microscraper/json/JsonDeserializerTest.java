@@ -12,6 +12,8 @@ import mockit.NonStrictExpectations;
 import mockit.Verifications;
 import net.microscraper.client.Scraper;
 import net.microscraper.client.ScraperResult;
+import net.microscraper.database.DatabaseView;
+import net.microscraper.database.HashtableDatabaseView;
 import net.microscraper.deserializer.DeserializerResult;
 import net.microscraper.deserializer.JSONDeserializer;
 import net.microscraper.http.HttpBrowser;
@@ -21,7 +23,6 @@ import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.uri.URILoader;
 import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
-import net.microscraper.util.StringMap;
 import static net.microscraper.util.TestUtils.randomInt;
 import static net.microscraper.util.TestUtils.randomString;
 import static net.microscraper.deserializer.JSONDeserializer.*;
@@ -50,14 +51,14 @@ public class JsonDeserializerTest {
 	private String userDir;
 	private String loadPath;
 	private String findPath;
-	private StringMap input;
+	private DatabaseView input;
 	private JSONObject load;
 	private JSONObject find;
 	
 	@Before
 	public void setUp() throws Exception {
 		parser = new JsonMEParser();
-		input = new StringMap(new Hashtable<String, String>());
+		input = new HashtableDatabaseView(new Hashtable<String, String>());
 		
 		loadPath = "LOAD PATH " + randomString();
 		load = new JSONObject().put(LOAD, urlString);
@@ -284,7 +285,7 @@ public class JsonDeserializerTest {
 		
 		new Expectations() {{
 			pattern.match(source, anyString, anyInt, anyInt); result = matches;
-					times = Double.valueOf(Math.pow(2, recursions)).intValue() -1;
+					times = Double.valueOf(Math.pow(2, recursions)).intValue();
 		}};
 		
 		Instruction instruction = deserializer.deserialize(find.toString(), input, userDir).getInstruction();

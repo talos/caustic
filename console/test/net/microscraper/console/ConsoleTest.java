@@ -3,23 +3,14 @@ package net.microscraper.console;
 import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
 
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.Hashtable;
-import java.util.concurrent.Callable;
 
 import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 import mockit.Verifications;
 import mockit.VerificationsInOrder;
-import net.microscraper.database.Database;
-import net.microscraper.database.Scope;
-import net.microscraper.http.BadURLException;
 import net.microscraper.http.HttpBrowser;
-import net.microscraper.http.HttpRequester;
-import net.microscraper.http.HttpResponse;
-import net.microscraper.http.ResponseHeaders;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.util.StringUtils;
 

@@ -1,10 +1,13 @@
 package net.microscraper.console;
 
-import java.io.Closeable;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
+
+import net.microscraper.database.Database;
+import net.microscraper.database.DatabaseView;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -94,17 +97,18 @@ public class Input {
 	
 	/**
 	 * 
-	 * @return <code>null</code> if there are no more values, a {@link Map}
-	 * of the next row of input values otherwise.  Must call {@link #open()} before.
-	 * @throws IOException if there is an error reading from the input file.
+	 * @return <code>null</code> if there are no more values, a {@link DatabaseView}
+	 * to use next otherwise.
+	 * @throws IOException if there is an error reading from the input file or persisting
+	 * to the {@link Database}.
 	 */
-	public Map<String, String> next() throws IOException {
-		final Map<String, String> result;
+	public DatabaseView next(Database database) throws IOException {
+		Map<String, String> map;
 		if(!hasCSV) { // return the shared map on the first run if there's no CSV.
 			if(rowsRead > 0) {
-				result = null;
+				map = null;
 			} else {
-				result = shared;
+				map = shared;
 			}
 		} else {
 			if(!isOpen) {
@@ -116,12 +120,22 @@ public class Input {
 				for(int i = 0 ; i < values.length ; i ++) {
 					rowInput.put(headers[i], values[i]);
 				}
-				result = rowInput;
+				map = rowInput;
 			} else {
-				result = null; // no more rows
+				map = null; // no more rows
 			}
 		}
 		rowsRead++;
-		return result;
+		if(map == null) {
+			return null;
+		} else {
+			DatabaseView view = database.newView();
+			Iterator<String> keys = map.keySet().iterator();
+			while(keys.hasNext()) {
+				String key = keys.next();
+				view.put(key, map.get(key));
+			}
+			return view;
+		}
 	}
 }

@@ -5,8 +5,8 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.util.HashtableUtils;
-import net.microscraper.util.StringMap;
 import net.microscraper.util.VectorUtils;
+import net.microscraper.database.DatabaseView;
 import net.microscraper.template.StringTemplate;
 
 public class HashtableTemplate {
@@ -30,7 +30,7 @@ public class HashtableTemplate {
 	 * @return An {@link HashtableSubstitution} whose
 	 * {@link Hashtable} has been substituted with tags accessible to <code>scope</code>.
 	 */
-	public HashtableSubstitution sub(StringMap input) throws HashtableSubstitutionOverwriteException {
+	public HashtableSubstitution sub(DatabaseView input) throws HashtableSubstitutionOverwriteException {
 		Vector missingTags = new Vector();
 		Hashtable subbedTable = new Hashtable();
 		Enumeration keys = table.keys();

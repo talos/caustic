@@ -13,14 +13,12 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import net.microscraper.database.CSVConnection;
 import net.microscraper.database.Database;
-import net.microscraper.database.DelimitedConnection;
 import net.microscraper.database.HashtableDatabase;
-import net.microscraper.database.JDBCSqliteConnection;
-import net.microscraper.database.MultiTableDatabase;
 import net.microscraper.database.SingleTableDatabase;
-import net.microscraper.database.UpdateableConnection;
 import net.microscraper.deserializer.Deserializer;
+import net.microscraper.deserializer.JSONDeserializer;
 import net.microscraper.file.JavaIOFileLoader;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.http.HttpRequester;
@@ -28,7 +26,8 @@ import net.microscraper.http.JavaNetCookieManager;
 import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
 import net.microscraper.instruction.Find;
-import net.microscraper.json.JSONSerializedInstruction;
+import net.microscraper.instruction.Instruction;
+import net.microscraper.instruction.SerializedInstruction;
 import net.microscraper.json.JsonMEParser;
 import net.microscraper.json.JsonParser;
 import net.microscraper.log.JavaIOFileLogger;
@@ -245,14 +244,98 @@ public final class ConsoleOptions {
 	
 	/**
 	 * 
-	 * @return A {@link Deserializer} based off the user-passed {@link ConsoleOptions}.
-	 * @throws InvalidOptionException if the user specified a {@link Deserializer} related
+	 * @return A {@link Database} based off the user-passed {@link ConsoleOptions}.
+	 * @throws InvalidOptionException if the user specified a {@link Database} related
 	 * option that is invalid.
-	 * @throws UnsupportedEncodingException if the specified {@link #ENCODING} is
-	 * not supported.
 	 */
-	public Deserializer getDeserializer()
-				throws InvalidOptionException, UnsupportedEncodingException {
+	public Database getDatabase() throws InvalidOptionException {
+		final Database result;
+		
+		// Determine format.
+		String format = getValue(this.format);
+		if(!validOutputFormats.contains(format)) {
+			throw new InvalidOptionException(StringUtils.quote(format)
+					+ " is not a valid output format.");
+		}
+			
+		// Determine delimiter.
+		char delimiter;
+		if(format.equals(CSV_FORMAT)) {
+			delimiter = COMMA_DELIMITER;
+		} else { // (format.equals(TAB_OUTPUT_COLUMN_DELIMITER)) {
+			delimiter = TAB_DELIMITER;
+		}
+		
+		// Determine batch size.
+		int batchSize;
+		try {
+			batchSize = Integer.parseInt(getValue(this.batchSize));
+		} catch(NumberFormatException e) {
+			throw new InvalidOptionException(BATCH_SIZE + " must be an integer.");
+		}
+		
+		// Set up output and databases.
+		
+		 // TODO: reimplement saving files!
+		 
+		if(isSpecified(saveToFile)) {
+			String outputLocation = getValue(saveToFile);
+			if(outputLocation.equals(saveToFile.getDefault())) { 
+				outputLocation += '.' + format;
+			}
+			if(format.equals(SQLITE_FORMAT)) {
+				/*Database backing = new HashtableDatabase(new JavaUtilUUIDFactory());
+				
+				UpdateableConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
+				if(isSpecified(singleTable)) {
+					result = new SingleTableDatabase(backing, connection);
+				} else {
+					result = new MultiTableDatabase(backing, connection);
+				}*/
+				
+				// TODO :*(
+				throw new InvalidOptionException("SQL temporarily disabled");
+				
+			} else {
+				result = new SingleTableDatabase(
+						new HashtableDatabase(),
+						CSVConnection.toFile(outputLocation, delimiter),
+						new IntUUIDFactory());
+			}
+		} else { // output to STDOUT
+			result = new SingleTableDatabase(new HashtableDatabase(),
+					CSVConnection.toSystemOut(delimiter), new IntUUIDFactory());
+		}
+		
+		if(isSpecified(this.batchSize) && !format.equals(SQLITE_FORMAT)) {
+			throw new InvalidOptionException("Should only specify " + BATCH_SIZE + " when " +
+					" outputting to " + SQLITE_FORMAT);
+		}
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @return A {@link Logger}.
+	 */
+	public Logger getLogger() throws InvalidOptionException {
+		MultiLog multiLog = new MultiLog();
+		if(isSpecified(logToFile)) {
+			multiLog.register(new JavaIOFileLogger(getValue(logToFile)));
+		}
+		if(isSpecified(logStdout)) {
+			multiLog.register(new SystemOutLogger());
+		}
+		return multiLog;
+	}
+	
+	/**
+	 * 
+	 * @return The serialized instruction {@link String}.
+	 * @throws InvalidOptionException
+	 * @throws UnsupportedEncodingException 
+	 */
+	public Instruction getInstruction() throws InvalidOptionException, UnsupportedEncodingException {
 		HttpRequester requester = new JavaNetHttpRequester();
 
 		// Set timeout.
@@ -304,110 +387,14 @@ public final class ConsoleOptions {
 		UriResolver uriResolver = new JavaNetUriResolver();
 		JsonParser parser = new JsonMEParser();
 		Encoder encoder = new JavaNetEncoder(getValue(encoding));
-		Deserializer deserializer = new JSONSerializedInstruction(parser, compiler, browser, encoder, uriResolver, uriLoader);
+		Deserializer deserializer = new JSONDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
 		
-		return deserializer;
-	
-	}
-	
-	/**
-	 * 
-	 * @return A {@link Database} based off the user-passed {@link ConsoleOptions}.
-	 * @throws InvalidOptionException if the user specified a {@link Database} related
-	 * option that is invalid.
-	 */
-	public Database getDatabase() throws InvalidOptionException {
-		final Database result;
-		
-		// Determine format.
-		String format = getValue(this.format);
-		if(!validOutputFormats.contains(format)) {
-			throw new InvalidOptionException(StringUtils.quote(format)
-					+ " is not a valid output format.");
-		}
-			
-		// Determine delimiter.
-		char delimiter;
-		if(format.equals(CSV_FORMAT)) {
-			delimiter = COMMA_DELIMITER;
-		} else { // (format.equals(TAB_OUTPUT_COLUMN_DELIMITER)) {
-			delimiter = TAB_DELIMITER;
-		}
-		
-		// Determine batch size.
-		int batchSize;
-		try {
-			batchSize = Integer.parseInt(getValue(this.batchSize));
-		} catch(NumberFormatException e) {
-			throw new InvalidOptionException(BATCH_SIZE + " must be an integer.");
-		}
-		
-		// Set up output and databases.
-		if(isSpecified(saveToFile)) {
-			String outputLocation = getValue(saveToFile);
-			if(outputLocation.equals(saveToFile.getDefault())) { 
-				outputLocation += '.' + format;
-			}
-			if(format.equals(SQLITE_FORMAT)) {
-				Database backing = new HashtableDatabase(new JavaUtilUUIDFactory());
-				
-				UpdateableConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
-				if(isSpecified(singleTable)) {
-					result = new SingleTableDatabase(backing, connection);
-				} else {
-					result = new MultiTableDatabase(backing, connection);
-				}
-				
-			} else {
-				result = new SingleTableDatabase(
-						new HashtableDatabase(new IntUUIDFactory()), DelimitedConnection.toFile(outputLocation, delimiter));
-			}
-			
-		} else { // output to STDOUT
-			result = new SingleTableDatabase(new HashtableDatabase(new IntUUIDFactory()), DelimitedConnection.toSystemOut(delimiter));
-		}
-		
-		if(isSpecified(this.batchSize) && !format.equals(SQLITE_FORMAT)) {
-			throw new InvalidOptionException("Should only specify " + BATCH_SIZE + " when " +
-					" outputting to " + SQLITE_FORMAT);
-		}
-		return result;
-	}
-	
-	/**
-	 * 
-	 * @return The {@link String} path to the directory where the user is executing.
-	 */
-	public String getExecutionDir() throws InvalidOptionException {
 		String executionDir = new File(StringUtils.USER_DIR).toURI().toString();
 		if(!executionDir.endsWith("/")) {
 			executionDir += "/";
 		}
-		return executionDir;
-	}
-	
-	/**
-	 * 
-	 * @return A {@link Logger}.
-	 */
-	public Logger getLogger() throws InvalidOptionException {
-		MultiLog multiLog = new MultiLog();
-		if(isSpecified(logToFile)) {
-			multiLog.register(new JavaIOFileLogger(getValue(logToFile)));
-		}
-		if(isSpecified(logStdout)) {
-			multiLog.register(new SystemOutLogger());
-		}
-		return multiLog;
-	}
-	
-	/**
-	 * 
-	 * @return The serialized instruction {@link String}.
-	 * @throws InvalidOptionException
-	 */
-	public String getInstruction() throws InvalidOptionException {
-		return getValue(instruction);
+		
+		return new SerializedInstruction(getValue(instruction), deserializer, executionDir);
 	}
 	
 	/**
@@ -457,13 +444,13 @@ public final class ConsoleOptions {
 	 * @return An fixed thread pool {@link ExecutorService} with a user-defined number of threads.
 	 * @throws InvalidOptionException if an invalid {@link #threads} option was passed.
 	 */
-	public ExecutorService getExecutor() throws InvalidOptionException {
+	public ScraperRunner getScraperRunner() throws InvalidOptionException {
 		try {
 			int numThreads = Integer.valueOf(getValue(threads));
 			if(numThreads < 1) {
 				throw new InvalidOptionException("Must have at least one thread.");
 			}
-			return Executors.newFixedThreadPool(numThreads);
+			return new ScraperRunner(Executors.newFixedThreadPool(numThreads));
 		} catch(NumberFormatException e) {
 			throw new InvalidOptionException(THREADS + " must be an integer.");
 		}

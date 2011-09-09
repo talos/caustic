@@ -87,7 +87,7 @@ public class JavaNetHttpResponse implements HttpResponse {
 			try {
 				return url.toURI().resolve(redirectLocation).toString();
 			} catch(URISyntaxException e) {
-				throw new BadURLException(e);
+				throw new BadURLException(url.toString(), e.getMessage());
 			}
 		} else {
 			throw new IllegalStateException();

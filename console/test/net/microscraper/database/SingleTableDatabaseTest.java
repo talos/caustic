@@ -11,13 +11,13 @@ import org.junit.Test;
 
 public class SingleTableDatabaseTest extends DatabaseTest  {
 
-	@Mocked InsertableConnection connection;
-	@Mocked Insertable table;
+	@Mocked WritableConnection connection;
+	@Mocked WritableTable table;
 	
 	@Override
 	public Database getDatabase() throws Exception {
 		new NonStrictExpectations() {{
-			connection.newInsertable(anyString, (String[]) any); result = table;
+			connection.newWritable(anyString, (String[]) any); result = table;
 		}};
 		return new SingleTableDatabase(
 				new HashtableDatabase(new IntUUIDFactory()), connection);

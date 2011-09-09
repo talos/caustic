@@ -13,13 +13,11 @@ import net.microscraper.util.Result;
 public class ScraperResult extends Result {
 	private String name;
 	private String[] values;
-	private Scraper[] children;
 	
 	private ScraperResult(String name, String[] values, Scraper[] children) {
-		super((Object) null); // force 'successful' constructor.
+		super((Object) children); // force 'successful' constructor.
 		this.name = name;
 		this.values = values;
-		this.children = children;
 	}
 	
 	private ScraperResult(String[] missingTags) {
@@ -32,24 +30,11 @@ public class ScraperResult extends Result {
 	
 	/**
 	 * 
-	 * @return <code>True</code> if this {@link #getName()} and {@link #getValues()}
-	 * can be called.
-	 */
-	public boolean hasNameAndValues() {
-		return name != null && values != null;
-	}
-	
-	/**
-	 * 
 	 * @return The {@link String} name attached to the results of the scrape.
 	 */
 	public String getName() {
 		getSuccess();
-		if(hasNameAndValues()) {
-			return name;
-		} else {
-			throw new IllegalStateException("Has no name.");
-		}
+		return name;
 	}
 	
 	/**
@@ -59,11 +44,7 @@ public class ScraperResult extends Result {
 	 */
 	public String[] getValues() {
 		getSuccess();
-		if(hasNameAndValues()) {
-			return values;
-		} else {
-			throw new IllegalStateException("Has no values.");
-		}
+		return values;
 	}
 	
 	/**
@@ -72,20 +53,9 @@ public class ScraperResult extends Result {
 	 * of the successful scrape.
 	 */
 	public Scraper[] getChildren() {
-		getSuccess();
-		return children;
+		return (Scraper[]) getSuccess();
 	}
 	
-	/**
-	 * Obtain a successful {@link ScraperResult}.
-	 * @param children An array of {@link Scraper} children, accessible through
-	 * {@link #getChildren()}.
-	 * @return A successful {@link ScraperResult}.
-	 */
-	public static ScraperResult successWithoutValues(Scraper[] children) {
-		return new ScraperResult(null, null, children);
-	}
-
 	/**
 	 * Obtain a successful {@link ScraperResult}.
 	 * @param name The {@link String} name, accessible through {@link #getName()}
@@ -95,7 +65,7 @@ public class ScraperResult extends Result {
 	 * {@link #getChildren()}.
 	 * @return A successful {@link ScraperResult}.
 	 */
-	public static ScraperResult successWithValues(String name, String[] values, Scraper[] children) {
+	public static ScraperResult success(String name, String[] values, Scraper[] children) {
 		return new ScraperResult(name, values, children);
 	}
 	

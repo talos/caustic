@@ -2,13 +2,13 @@ package net.microscraper.template;
 
 import java.util.Vector;
 
+import net.microscraper.database.DatabaseView;
 import net.microscraper.util.Encoder;
-import net.microscraper.util.StringMap;
 
 /**
- * {@link String} substitutions using {@link StringMap}.
+ * {@link String} substitutions using {@link DatabaseView}.
  * This substitutes a key within {@link #openTag} and
- * {@link #closeTag} with a value from {@link StringMap}.
+ * {@link #closeTag} with a value from {@link DatabaseView}.
  * @author john
  *
  */
@@ -28,16 +28,30 @@ public final class StringTemplate {
 	
 	/**
 	 * {@link String} to mark the start of a key that will be substituted with a value
-	 * from {@link StringMap}.
+	 * from {@link DatabaseView}.
 	 */
 	private final String openTag;
 	
 	/**
 	 * {@link String} to mark the end of a key that will be substituted with a value
-	 * from {@link StringMap}.
+	 * from {@link DatabaseView}.
 	 */
 	private final String closeTag;
-
+	
+	private final boolean isStatic;
+	
+	/**
+	 * Compile an always-successful {@link StringTemplate} from a {@link String}.
+	 * @param template The {@link String} to convert into a {@link StringTemplate},
+	 * which will always be returned as the success value of {@link StringSubstitution}.
+	 */
+	private StringTemplate(String template) {
+		this.template = template;
+		this.openTag = null;
+		this.closeTag = null;
+		this.isStatic = true;
+	}
+	
 	/**
 	 * Compile a {@link StringTemplate} from a {@link String}.
 	 * @param template The {@link String} to convert into a {@link StringTemplate}.
@@ -51,6 +65,7 @@ public final class StringTemplate {
 		this.template = template;
 		this.openTag = openTag;
 		this.closeTag = closeTag;
+		this.isStatic = false;
 		
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
@@ -67,21 +82,24 @@ public final class StringTemplate {
 
 	/**
 	 * Substitute the values from a {@link Variables} into the {@link StringTemplate}.
-	 * @param input The {@link StringMap} to use when substituting.
+	 * @param input The {@link DatabaseView} to use when substituting.
 	 * @return A {@link StringSubstitution} with the results of the substitution.
 	 */
-	public StringSubstitution sub(StringMap input) {
+	public StringSubstitution sub(DatabaseView input) {
 		return subEncoded(input, null);
 	}
 	
 	/**
 	 * Substitute the values from a {@link HashtableDatabase} into the {@link StringTemplate},
 	 * and encode each value upon inserting it.
-	 * @param input The {@link StringMap} to use when substituting.
+	 * @param input The {@link DatabaseView} to use when substituting.
 	 * @param encoder The {@link Encoder} to use when encoding values.
 	 * @return A {@link StringSubstitution} with the results of the substitution.
 	 */
-	public StringSubstitution subEncoded(StringMap input, Encoder encoder) {
+	public StringSubstitution subEncoded(DatabaseView input, Encoder encoder) {
+		if(isStatic == true) {
+			return StringSubstitution.success(template);
+		}
 		int close_tag_end_pos = 0;
 		int open_tag_start_pos;
 		String result = "";
@@ -126,5 +144,16 @@ public final class StringTemplate {
 	 */
 	public String toString() {
 		return template;
+	}
+	
+	/**
+	 * Creates a {@link StringTemplate} that will run successfully no matter what
+	 * {@link DatabaseView} is passed to {@link #sub}.
+	 * @param alwaysSubbed The {@link String} that will always be returned from
+	 * the returned object's {@link StringSubstitution}
+	 * @return an always-successful {@link StringTemplate}.
+	 */
+	public static StringTemplate staticTemplate(String alwaysSubbed) {
+		return new StringTemplate(alwaysSubbed);
 	}
 }

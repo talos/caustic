@@ -3,6 +3,7 @@ package net.microscraper.deserializer;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.microscraper.database.DatabaseView;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
@@ -13,7 +14,6 @@ import net.microscraper.json.JsonException;
 import net.microscraper.json.JsonIterator;
 import net.microscraper.json.JsonObject;
 import net.microscraper.json.JsonParser;
-import net.microscraper.log.Logger;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.RegexpUtils;
 import net.microscraper.template.HashtableTemplate;
@@ -25,7 +25,6 @@ import net.microscraper.uri.RemoteToLocalSchemeResolutionException;
 import net.microscraper.uri.URILoader;
 import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
-import net.microscraper.util.StringMap;
 import net.microscraper.util.StringUtils;
 
 /**
@@ -66,7 +65,7 @@ public class JSONDeserializer implements Deserializer {
 	 */
 	private final Encoder encoder;
 	
-	private DeserializerResult deserialize(String jsonString, StringMap input, String uri, String openTagString, String closeTagString)
+	private DeserializerResult deserialize(String jsonString, DatabaseView input, String uri, String openTagString, String closeTagString)
 			throws JsonException, TemplateCompilationException,
 			IOException, MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException {
 		final DeserializerResult result;
@@ -262,7 +261,7 @@ public class JSONDeserializer implements Deserializer {
 				return DeserializerResult.failure("Cannot define both " + FIND + " and " + LOAD);
 			} else if(url != null) {
 				// We have a Load
-				Load load = new Load(browser, encoder, url, childrenAry);
+				Load load = new Load(browser, encoder, url);
 				
 				if(method != null) {
 					load.setMethod(method);
@@ -274,11 +273,12 @@ public class JSONDeserializer implements Deserializer {
 				}
 				load.addCookies(cookies);
 				load.addHeaders(headers);
-
+				load.setChildren(childrenAry);
+				
 				result = DeserializerResult.success(load);
 			} else if(pattern != null) {
 				// We have a Find
-				Find find = new Find(compiler, pattern, childrenAry);
+				Find find = new Find(compiler, pattern);
 				
 				if(replace != null) {
 					find.setReplacement(replace);
@@ -316,6 +316,7 @@ public class JSONDeserializer implements Deserializer {
 					find.setName(name);
 				}
 				
+				find.setChildren(childrenAry);
 				result = DeserializerResult.success(find);
 			} else {
 				return DeserializerResult.failure("Must define " + FIND + " or " + LOAD);
@@ -460,7 +461,7 @@ public class JSONDeserializer implements Deserializer {
 		this.uriLoader = uriLoader;
 	}
 	
-	public DeserializerResult deserialize(String serializedString, StringMap input, String uri) 
+	public DeserializerResult deserialize(String serializedString, DatabaseView input, String uri) 
 			throws InterruptedException {
 		try {
 			return deserialize(serializedString, input, uri,
@@ -476,9 +477,5 @@ public class JSONDeserializer implements Deserializer {
 		} catch (RemoteToLocalSchemeResolutionException e) {
 			return DeserializerResult.failure(e.getMessage());
 		}
-	}
-
-	public void register(Logger logger) {
-		browser.register(logger);
 	}
 }

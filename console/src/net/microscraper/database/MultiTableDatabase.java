@@ -39,7 +39,7 @@ public final class MultiTableDatabase implements Database {
 	public static final String VALUE_COLUMN_NAME = "value";
 	
 	/**
-	 * Default column names for {@link Updateable}s result table
+	 * Default column names for {@link IOTable}s result table
 	 * in {@link MultiTableDatabase}.
 	 */
 	public static final String[] RESULT_TABLE_COLUMNS = new String[] {
@@ -47,7 +47,7 @@ public final class MultiTableDatabase implements Database {
 	};
 	
 	/**
-	 * Fixed columns for {@link Insertable} join table in {@link MultiTableDatabase}.
+	 * Fixed columns for {@link WritableTable} join table in {@link MultiTableDatabase}.
 	 */
 	public static final String[] JOIN_TABLE_COLUMNS = new String[] {
 		SOURCE_COLUMN_NAME,
@@ -66,17 +66,17 @@ public final class MultiTableDatabase implements Database {
 	private final Hashtable nameTables = new Hashtable();
 	
 	/**
-	 * A {@link UpdateableConnection} to use when generating tables.
+	 * A {@link IOConnection} to use when generating tables.
 	 */
-	private final UpdateableConnection connection;
+	private final IOConnection connection;
 	
 	/**
 	 * The default result table.
 	 */
-	private Updateable defaultTable;
+	private IOTable defaultTable;
 	
 	/**
-	 * Performs read operations, as {@link UpdateableConnection} does not support these.
+	 * Performs read operations, as {@link IOConnection} does not support these.
 	 */
 	private final Database backingDatabase;
 	
@@ -134,21 +134,21 @@ public final class MultiTableDatabase implements Database {
 		String joinName = cleanTableName(source.getName() + PREPEND + resultName);
 		
 		// Obtain the table for results
-		Updateable resultTable;
+		IOTable resultTable;
 		if(!resultTables.containsKey(resultName)) {
 			resultTable = connection.newUpdateable(resultName, RESULT_TABLE_COLUMNS);
 			resultTables.put(resultName, resultTable);
 		} else {
-			resultTable = (Updateable) resultTables.get(resultName);
+			resultTable = (IOTable) resultTables.get(resultName);
 		}
 		
 		// Obtain the table for joins
-		Insertable joinTable;
+		WritableTable joinTable;
 		if(!nameTables.containsKey(joinName)) {
-			joinTable = connection.newInsertable(joinName, JOIN_TABLE_COLUMNS);
+			joinTable = connection.newWritable(joinName, JOIN_TABLE_COLUMNS);
 			nameTables.put(joinName, joinTable);
 		} else {
-			joinTable = (Insertable) nameTables.get(joinName);
+			joinTable = (WritableTable) nameTables.get(joinName);
 		}
 		
 		// Insert new value into joinTable
@@ -171,7 +171,7 @@ public final class MultiTableDatabase implements Database {
 	 * retrieving values.
 	 */
 	public MultiTableDatabase(Database backingDatabase,
-			UpdateableConnection connection) {
+			IOConnection connection) {
 		this.backingDatabase = backingDatabase;
 		this.connection = connection;
 	}
@@ -212,7 +212,7 @@ public final class MultiTableDatabase implements Database {
 		ensureOpen();
 		backingDatabase.storeOneToOne(source, name, value);
 		
-		Updateable table = (Updateable) resultTables.get(cleanTableName(source.getName()));
+		IOTable table = (IOTable) resultTables.get(cleanTableName(source.getName()));
 		synchronized(table) {
 			if(!table.hasColumn(cleanColumnName(name))) {
 				table.addColumn(cleanColumnName(name));

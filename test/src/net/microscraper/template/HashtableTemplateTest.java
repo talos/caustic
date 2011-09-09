@@ -3,16 +3,16 @@ package net.microscraper.template;
 import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
 
+import net.microscraper.database.DatabaseView;
+import net.microscraper.database.HashtableDatabaseView;
 import net.microscraper.util.Encoder;
-import net.microscraper.util.HashtableStringMap;
 import net.microscraper.util.JavaNetEncoder;
-import net.microscraper.util.StringMap;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class HashtableTemplateTest {
-	StringMap input;
+	DatabaseView input;
 	Encoder encoder;
 	
 	String key, value, multiWordKey, multiWordValue, alreadyEncodedKey, alreadyEncodedValue;
@@ -26,7 +26,7 @@ public class HashtableTemplateTest {
 		multiWordValue = randomString() + " " + randomString();
 		alreadyEncodedKey = encoder.encode(multiWordKey);
 		alreadyEncodedValue = encoder.encode(multiWordValue);
-		input = new HashtableStringMap();
+		input = new HashtableDatabaseView();
 		input.put(key, value);
 		input.put(multiWordKey, multiWordValue);
 		input.put(alreadyEncodedKey, alreadyEncodedValue);

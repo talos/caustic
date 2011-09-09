@@ -5,6 +5,7 @@ import java.util.Hashtable;
 
 import net.microscraper.client.Scraper;
 import net.microscraper.client.ScraperResult;
+import net.microscraper.database.DatabaseView;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.DependsOnTemplate;
@@ -16,7 +17,6 @@ import net.microscraper.template.StringSubstitution;
 import net.microscraper.template.StringTemplate;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.HashtableUtils;
-import net.microscraper.util.StringMap;
 import net.microscraper.util.StringUtils;
 
 /**
@@ -46,7 +46,7 @@ public final class Load implements Instruction {
 	/**
 	 * A {@link StringTemplate} of post data.  Exclusive of {@link #postTable}.
 	 */
-	private StringTemplate postString;
+	private StringTemplate postString = StringTemplate.staticTemplate("");
 	
 	/**
 	 * {@link HashtableTemplate}s of post data.  Exclusive of {@link #postString}.
@@ -68,7 +68,20 @@ public final class Load implements Instruction {
 	 */
 	private final Encoder encoder;
 	
-	private final Instruction[] children;
+	private Instruction[] children = new Instruction[] { };
+	
+	private StringSubstitution getPosts(DatabaseView input) throws HashtableSubstitutionOverwriteException {
+		if(postTable.size() > 0) {
+			HashtableSubstitution tableSub = postTable.sub(input);
+			if(tableSub.isMissingTags()) {
+				return StringSubstitution.missingTags(tableSub.getMissingTags());
+			} else {
+				return StringSubstitution.success(HashtableUtils.toFormEncoded(encoder, tableSub.getSubstituted()));
+			}
+		} else {
+			return postString.sub(input);
+		}
+	}
 	
 	/**
 	 * Instantiate a {@link Load}.
@@ -76,10 +89,13 @@ public final class Load implements Instruction {
 	 * @param encoder
 	 * @param url
 	 */
-	public Load(HttpBrowser browser, Encoder encoder, StringTemplate url, Instruction[] children) {
+	public Load(HttpBrowser browser, Encoder encoder, StringTemplate url) {
 		this.browser = browser;
 		this.encoder = encoder;
 		this.url = url;
+	}
+	
+	public void setChildren(Instruction[] children) {
 		this.children = children;
 	}
 	
@@ -104,13 +120,8 @@ public final class Load implements Instruction {
 	 * @param posts A {@link HashtableTemplate} of posts to add.
 	 */
 	public void addPosts(HashtableTemplate posts) {
-		if(postString != null) {
-			throw new IllegalArgumentException("Cannot have both postData and postTable");
-		}
-		if(posts.size() > 0) {
-			setMethod(HttpBrowser.POST);
-			postTable.merge(posts);
-		}
+		setMethod(HttpBrowser.POST);
+		postTable.merge(posts);
 	}
 
 	/**
@@ -145,8 +156,7 @@ public final class Load implements Instruction {
 	/**
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 */
-	public ScraperResult execute(String source, StringMap input)
-			throws InterruptedException {
+	public ScraperResult execute(String source, DatabaseView input) throws InterruptedException {
 		try {
 			final ScraperResult result;
 			
@@ -154,13 +164,7 @@ public final class Load implements Instruction {
 			final StringSubstitution urlSub = url.subEncoded(input, encoder);
 			final HashtableSubstitution headersSub = headers.sub(input);
 			final HashtableSubstitution cookiesSub = cookies.sub(input);
-			final DependsOnTemplate postData;
-			
-			if(postTable.size() > 0) {
-				postData = postTable.sub(input);
-			} else {
-				postData = postString.sub(input);
-			}
+			final StringSubstitution postData = getPosts(input);
 			
 			// Cannot execute if any of these substitutions was not successful
 			if(urlSub.isMissingTags()
@@ -173,9 +177,10 @@ public final class Load implements Instruction {
 			} else {
 				final String url = (String) urlSub.getSubstituted();
 				final String responseBody;
-
-				Hashtable headers = (Hashtable) headersSub.getSubstituted();
-				Hashtable cookies = (Hashtable) cookiesSub.getSubstituted();
+				
+				final String postStr = postData.getSubstituted();
+				Hashtable headers = headersSub.getSubstituted();
+				Hashtable cookies = cookiesSub.getSubstituted();
 				if(cookies.size() > 0) {
 					browser.addCookies(url, cookies, encoder);
 				}
@@ -183,20 +188,10 @@ public final class Load implements Instruction {
 				if(method.equalsIgnoreCase(HttpBrowser.HEAD)){
 					browser.head(url, headers);
 					responseBody = ""; // launch children with a blank source.
+				} else if(method.equalsIgnoreCase(HttpBrowser.POST)) {
+					responseBody = browser.post(url, headers, stops, postStr);
 				} else {
-					if(method.equalsIgnoreCase(HttpBrowser.POST)) {
-						final String postDataStr;
-						if(postTable.size() > 0) {
-							Hashtable posts = ((HashtableSubstitution) postData).getSubstituted();
-							postDataStr = HashtableUtils.toFormEncoded(encoder, posts);
-						} else {
-							postDataStr = ((StringSubstitution) postData).getSubstituted();
-						}
-						
-						responseBody = browser.post(url, headers, stops, postDataStr);
-					} else {
-						responseBody = browser.get(url, headers, stops);
-					}
+					responseBody = browser.get(url, headers, stops);
 				}
 				
 				// Each instruction is turned into one Scraper child, launched with the
@@ -206,7 +201,7 @@ public final class Load implements Instruction {
 					scraperChildren[i] = new Scraper(children[i], input, responseBody);
 				}
 				
-				result = ScraperResult.successWithoutValues(scraperChildren);
+				result = ScraperResult.success(url, new String[] { responseBody}, scraperChildren);
 			}
 			return result;
 		} catch(IOException e) {
