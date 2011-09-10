@@ -2,22 +2,38 @@ package net.microscraper.uri;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-public abstract class UriResolverTest {
-	
+@RunWith(Parameterized.class)
+public class UriResolverTest {
+	private final Class<UriResolver> klass;
 	private static final String filePathWithFragment = "file:/path/to/file#fragment";
 	private static final String pathWithoutFragment = "path/to/file";
 	private static final String httpWithFragment = "http://www.site.com/#fragment";
 	
 	private UriResolver resolver;
 	
-	protected abstract UriResolver getUriResolver();
+	public UriResolverTest(Class<UriResolver> klass) {
+		this.klass = klass;
+	}
+	
+	@Parameters
+	public static List<Class<?>[]> implementations() {
+		return Arrays.asList(new Class<?>[][] {
+				{	JavaNetUriResolver.class }
+		});
+	}
 	
 	@Before
 	public void setUp() throws Exception {
-		resolver = getUriResolver();
+		resolver = klass.newInstance();
 	}
 	
 	/*

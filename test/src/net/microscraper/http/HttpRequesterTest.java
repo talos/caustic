@@ -3,27 +3,38 @@ package net.microscraper.http;
 import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.CharBuffer;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Hashtable;
-
-import net.microscraper.util.StringUtils;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-public abstract class HttpRequesterTest {
+@RunWith(Parameterized.class)
+public class HttpRequesterTest {
 	
+	private final Class<HttpRequester> klass;
 	private HttpRequester requester;
 	
-	protected abstract HttpRequester getHttpRequester() throws Exception;
+	public HttpRequesterTest(Class<HttpRequester> klass) {
+		this.klass = klass;
+	}
+	
+	@Parameters
+	public static Collection<Class<?>[]> implementations() {
+		return Arrays.asList(new Class<?>[][] {
+				{ JavaNetHttpRequester.class  }
+		});
+	}
 	
 	@Before
 	public void setUp() throws Exception {
-		requester = getHttpRequester();
+		requester = klass.newInstance();
 	}
 	
 	private String getString(InputStreamReader inputStream) throws IOException {

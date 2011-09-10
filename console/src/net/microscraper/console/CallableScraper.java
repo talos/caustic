@@ -7,9 +7,9 @@ import net.microscraper.client.Scraper;
 import net.microscraper.client.ScraperResult;
 
 /**
- * A {@link Callable} wrapper for {@link Scraper}.
- * {@link CallableScraper#call()} is equivalent to
- * {@link Scraper#scrape()}.
+ * A {@link Callable} wrapper for {@link Scraper} that adds children
+ * scrapers onto the {@link ScraperRunner} queue, and resubmits if
+ * the scraping was stopped by missing tags.
  * @author talos
  *
  */

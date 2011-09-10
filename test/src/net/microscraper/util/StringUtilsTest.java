@@ -38,7 +38,8 @@ public class StringUtilsTest {
 		int originalLength = 1000;
 		int truncatedLength = 500;
 		
-		assertEquals("Error truncating string.", truncatedLength, StringUtils.truncate(randomString(originalLength), truncatedLength).length());
+		assertEquals("Unexpected length.", truncatedLength,
+				StringUtils.quoteAndTruncate(randomString(originalLength), truncatedLength).length());
 	}
 
 	@Test

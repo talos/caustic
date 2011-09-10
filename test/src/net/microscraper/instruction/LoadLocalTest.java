@@ -25,25 +25,19 @@ import net.microscraper.util.JavaNetHttpUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LoadTest {
+public class LoadLocalTest {
 	
 	@Mocked private DatabaseView input;
 	@Injectable private HttpBrowser mockBrowser;
-	private HttpBrowser liveBrowser;
 	private Encoder encoder;
 	private Load load;
 	private StringTemplate url;
-	private CookieManager cookieManager;
 	
 	@Before
 	public void setUp() throws Exception {
 		url = StringTemplate.staticTemplate(randomString());
 		encoder = new JavaNetEncoder(Encoder.UTF_8);
 		load = new Load(mockBrowser, encoder, url);
-		cookieManager = new JavaNetCookieManager();
-		liveBrowser = new HttpBrowser(new JavaNetHttpRequester(),
-				new RateLimitManager(new JavaNetHttpUtils()),
-				cookieManager);
 	}
 	
 	@Test
@@ -85,15 +79,6 @@ public class LoadTest {
 		load.execute(null, input);
 	}
 	
-	@Test // This test requires a live internet connection.
-	public void testLiveBrowserSetsCookies() throws Exception {
-		final StringTemplate url = StringTemplate.staticTemplate("http://www.nytimes.com");
-		
-		Load load = new Load(liveBrowser, encoder, url);
-		ScraperResult result = load.execute(null, input);
-		assertTrue(result.isSuccess());
-		assertTrue(cookieManager.getCookiesFor(url.toString(), new Hashtable()).length > 0);
-	}
 	
 	@Test
 	public void testPostMethodSetsZeroLengthPost() throws Exception {

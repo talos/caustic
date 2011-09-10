@@ -3,6 +3,8 @@ package net.microscraper.http;
 import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Hashtable;
 
 import net.microscraper.util.Encoder;
@@ -10,16 +12,30 @@ import net.microscraper.util.JavaNetEncoder;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-public abstract class CookieManagerTest {
+@RunWith(Parameterized.class)
+public class CookieManagerLocalTest {
+	private final Class<CookieManager> klass;
 	private CookieManager cookieManager;
 	private Encoder encoder;
+
+	public CookieManagerLocalTest(Class<CookieManager> klass) {
+		this.klass = klass;
+	}
 	
-	protected abstract CookieManager getCookieManager() throws Exception;
+	@Parameters
+	public static Collection<Class<?>[]> implementations() {
+		return Arrays.asList(new Class<?>[][] {
+				{ JavaNetCookieManager.class  }
+		});
+	}
 	
 	@Before
 	public void setUp() throws Exception {
-		cookieManager = getCookieManager();
+		cookieManager = klass.newInstance();
 		encoder = new JavaNetEncoder(Encoder.UTF_8);
 	}
 
@@ -34,17 +50,6 @@ public abstract class CookieManagerTest {
 		assertArrayEquals(new String[] { },
 				cookieManager.getCookie2sFor("http://www.empty.com/", new Hashtable<String, String>()));
 	}
-
-	@Test
-	public void testAddCookiesFromGoogleResponseHeaders() throws Exception {
-		String google = "http://www.google.com/";
-		HttpResponse resp = new JavaNetHttpRequester().get(google, new Hashtable<String, String>());
-		cookieManager.addCookiesFromResponseHeaders(google, resp.getResponseHeaders());
-		
-		assertTrue("Should have received at least one set-cookie from Google.",
-				cookieManager.getCookiesFor(google, new Hashtable<String, String>()).length > 0);
-	}
-
 	@Test
 	public void testAddCookies() throws Exception {
 		String exampleSite = "http://www." + randomString(10) + ".com/";

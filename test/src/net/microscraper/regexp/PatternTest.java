@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.util.Arrays;
 import java.util.Collection;
 
-import net.microscraper.regexp.InvalidRangeException;
 import net.microscraper.regexp.JakartaRegexpCompiler;
 import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.regexp.Pattern;

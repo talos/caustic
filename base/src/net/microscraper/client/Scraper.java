@@ -8,6 +8,7 @@ import net.microscraper.database.DatabaseView;
 import net.microscraper.database.HashtableDatabaseView;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Load;
+import net.microscraper.util.StringUtils;
 import net.microscraper.util.VectorUtils;
 
 /**
@@ -17,6 +18,8 @@ import net.microscraper.util.VectorUtils;
  *
  */
 public class Scraper {
+	
+	private static final int SOURCE_TOSTRING_TRUNCATE = 100;
 	
 	private final Instruction instruction;
 	private final DatabaseView input;
@@ -114,5 +117,19 @@ public class Scraper {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Returns a {@link String} containing information about the {@link Instruction}
+	 * this {@link Scraper} executes, in addition to the state of its {@link DatabaseView}
+	 * and source, if any.
+	 */
+	public String toString() {
+		return "Scraper running " + StringUtils.quote(instruction.getClass()) + " " +
+				StringUtils.quote(instruction.toString()) + " with tags substituted from " +
+				StringUtils.quote(input.toString()) +
+				(source == null ?
+						"" :
+						" and source " + StringUtils.quote(StringUtils.quoteAndTruncate(source, SOURCE_TOSTRING_TRUNCATE)));
 	}
 }

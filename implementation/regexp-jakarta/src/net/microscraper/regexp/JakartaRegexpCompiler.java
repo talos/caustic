@@ -70,6 +70,16 @@ public class JakartaRegexpCompiler implements RegexpCompiler {
 			if(lastIndex < firstIndex)
 				return new String[] {};
 			
+			// First index is after total length
+			if(matchesList.size() < firstIndex) {
+				return new String[] {};
+			}
+			
+			// Last index must be truncated.
+			if(matchesList.size() < lastIndex) {
+				lastIndex = matchesList.size() - 1;
+			}
+			
 			String[] matches = new String[1 + lastIndex - firstIndex];
 			for(int i = 0 ; i < matches.length ; i ++) {
 				matches[i] = (String) matchesList.get(i + firstIndex);

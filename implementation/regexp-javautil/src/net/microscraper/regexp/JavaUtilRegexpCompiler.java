@@ -58,12 +58,23 @@ public class JavaUtilRegexpCompiler implements RegexpCompiler {
 				return new String[] {};
 			
 			// Determine the first and last indices relative to our list.
+			// Adding a negative match to the total size counts backwards.
 			int firstIndex = minMatch >= 0 ? minMatch : matchesList.size() + minMatch;
 			int lastIndex  = maxMatch >= 0 ? maxMatch : matchesList.size() + maxMatch;
-			
+
 			// Range excludes all matches.
 			if(lastIndex < firstIndex)
 				return new String[] {};
+			
+			// First index is after total length
+			if(matchesList.size() < firstIndex) {
+				return new String[] {};
+			}
+			
+			// Last index must be truncated.
+			if(matchesList.size() < lastIndex) {
+				lastIndex = matchesList.size() - 1;
+			}
 			
 			String[] matches = new String[1 + lastIndex - firstIndex];
 			for(int i = 0 ; i < matches.length ; i ++) {

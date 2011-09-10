@@ -153,7 +153,7 @@ public class Find implements Instruction {
 					" did not have a match between " + 
 					StringUtils.quote(minMatch) + " and " + 
 					StringUtils.quote(maxMatch) + " against " +
-					StringUtils.truncate(StringUtils.quote(source), 100));
+					StringUtils.quoteAndTruncate(StringUtils.quote(source), 100));
 			// We got at least 1 match.
 			} else {
 				Scraper[] scraperChildren = new Scraper[children.length * matches.length];

@@ -3,7 +3,10 @@ package net.microscraper.uri;
 import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
 
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
@@ -13,8 +16,14 @@ import net.microscraper.regexp.Pattern;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-public abstract class URILoaderTest {
+@RunWith(Parameterized.class)
+public class URILoaderTest {
+	
+	private final Constructor<URILoader> constructor;
 	
 	@Mocked private HttpBrowser browser;
 	@Mocked private FileLoader fileLoader;
@@ -27,12 +36,21 @@ public abstract class URILoaderTest {
 	private String fileContents = randomString();
 	private String httpContents = randomString();
 	
-	protected abstract URILoader getURILoader(HttpBrowser browser,
-			FileLoader fileLoader) throws Exception;
+	public URILoaderTest(Constructor<URILoader> constructor) {
+		this.constructor = constructor;
+	}
+	
+	@Parameters
+	public static List<Constructor<?>[]> implementations() throws Exception {
+		return Arrays.asList(new Constructor<?>[][] {
+				{ JavaNetURILoader.class.getConstructor(HttpBrowser.class, FileLoader.class) }
+		});
+	}
 	
 	@Before
 	public void setUp() throws Exception {
-		uriLoader = getURILoader(browser, fileLoader);
+		uriLoader = constructor.newInstance(browser, fileLoader);
+		//uriLoader = getURILoader(browser, fileLoader);
 		
 		new NonStrictExpectations() {{
 			fileLoader.load(filePath); result = fileContents;

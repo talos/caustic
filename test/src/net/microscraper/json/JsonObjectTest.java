@@ -2,13 +2,20 @@ package net.microscraper.json;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 import net.microscraper.json.JsonParser;
-import net.microscraper.json.JsonObject;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-public abstract class JsonObjectTest {
+@RunWith(Parameterized.class)
+public class JsonObjectTest {
+	private final Class<JsonParser> klass;
 	private JsonParser parser;
 	
 	private static final String jsonStringSimpleObject = 
@@ -18,14 +25,22 @@ public abstract class JsonObjectTest {
 	private static final String jsonStringComplexObject =
 			"{ \"object\" : " + jsonStringSimpleObject + ", \"array\" : " + jsonStringSimpleArray + " }";
 	
+	public JsonObjectTest(Class<JsonParser> klass) {
+		this.klass = klass;
+	}
+	
+	@Parameters
+	public static List<Class<?>[]> implementations() {
+		return Arrays.asList(new Class<?>[][] {
+				{	JsonMEParser.class }
+		});
+	}
 	
 	@Before
 	public void setUp() throws Exception {
-		parser = getJSONParser();
+		parser = klass.newInstance();
 	}
-	
-	protected abstract JsonParser getJSONParser();
-	
+		
 	@Test
 	public void testGetJSONArray() throws Exception {
 		assertEquals(4, parser.parse(jsonStringComplexObject).getJsonArray("array").length());

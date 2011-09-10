@@ -4,20 +4,37 @@ import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.junit.Before;
 import org.junit.Test;
-
-public abstract class FileLoaderTest {
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 	
+	
+@RunWith(Parameterized.class)
+public class FileLoaderTest {
+	
+	private final Class<FileLoader> klass;
 	private FileLoader fileLoader;
 	private String userDir;
 	
-	protected abstract FileLoader getFileLoader() throws Exception;
+	public FileLoaderTest(final Class<FileLoader> klass) {
+		this.klass = klass;
+	}
+
+	@Parameters
+	public static Collection<Class<?>[]> implementations() {
+		return Arrays.asList(new Class<?>[][] {
+				{ JavaIOFileLoader.class  }
+		});
+	}
 	
 	@Before
 	public void setUp() throws Exception {
-		fileLoader = getFileLoader();
+		fileLoader = klass.newInstance();
 		userDir = System.getProperty("user.dir");
 	}
 

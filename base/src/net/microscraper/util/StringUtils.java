@@ -49,21 +49,36 @@ public class StringUtils {
 	}
 	
 	/**
-	 * 
-	 * @param string A {@link String} to truncate.
+	 * Truncate and quote a string as follows:<p>
+	 * <code>A very very long string</code><p>
+	 * would be returned as <p>
+	 * <code>"A very very lo..."</code><p>
+	 * @param string A {@link String} to truncate and quote.
 	 * @param length An <code>int</code> length to truncate <code>string</code> to.
-	 * @return The truncated {@link String}.
+	 * This includes the characters added by the quotations and ellipses.  This
+	 * number thus can't be less than <code>5</code>, as the shortest string
+	 * that can be returned is "...".
+	 * @return The truncated and quoted {@link String}.
 	 */
-	public static String truncate(String string, int length) {
-		if(string == null)
-			return "";
-		if(string.length() < length) {
-			return string;
-		} else {
-			return quote(string.substring(0, length) + "...");
+	public static String quoteAndTruncate(String string, int length) {
+		String ellipses = "...";
+		String stringToQuote;
+		int extraCharLength = ellipses.length() + 2;
+		if(length < extraCharLength) {
+			throw new IllegalArgumentException();
 		}
+		if(string == null) {
+			string = "null";
+		}
+		
+		if(string.length() > length - extraCharLength) {
+			stringToQuote = string.substring(0, length - extraCharLength);
+		} else {
+			stringToQuote = string;
+		}
+		return quote(stringToQuote + ellipses);
 	}
-
+	
 	/**
 	 * Split a string into words based off of spaces without using {@link java.util.regex.Pattern}
 	 * or {@link String#split(String)}
