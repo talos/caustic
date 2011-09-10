@@ -83,4 +83,17 @@ public class HashtableDatabaseView implements DatabaseView {
 	public void put(String key, String value) {
 		hashtable.put(key, value);
 	}
+	
+	/**
+	 * Show a {@link String} representation of this {@link HashtableDatabaseView}
+	 * in addition to all its parents.
+	 */
+	public String toString() {
+		String result = "";
+		if(parent != null) {
+			result += parent.toString();
+		}
+		result += "<< " + hashtable.toString();
+		return result;
+	}
 }

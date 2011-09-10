@@ -125,7 +125,7 @@ public class Scraper {
 	 * and source, if any.
 	 */
 	public String toString() {
-		return "Scraper running " + StringUtils.quote(instruction.getClass()) + " " +
+		return "Scraper running " + StringUtils.quote(StringUtils.simpleClassName(instruction)) + " " +
 				StringUtils.quote(instruction.toString()) + " with tags substituted from " +
 				StringUtils.quote(input.toString()) +
 				(source == null ?

@@ -10,9 +10,13 @@ import java.util.concurrent.TimeUnit;
 
 import net.microscraper.client.Scraper;
 import net.microscraper.client.ScraperResult;
+import net.microscraper.log.Loggable;
+import net.microscraper.log.Logger;
+import net.microscraper.log.MultiLog;
 
-public class ScraperRunner {
+public class ScraperRunner implements Loggable {
 	private final ExecutorService executor;
+	private final MultiLog log = new MultiLog();
 	
 	private final List<Future<ScraperResult>> futures = Collections.synchronizedList(
 			new ArrayList<Future<ScraperResult>>());
@@ -74,7 +78,7 @@ public class ScraperRunner {
 	
 	public void submit(Scraper scraper) {
 		synchronized(futures) {
-			executor.submit(new CallableScraper(scraper, this));
+			executor.submit(new CallableScraper(scraper, this, log));
 		}
 	}
 	
@@ -103,5 +107,10 @@ public class ScraperRunner {
 		} while(prevStuckResubmits != curStuckResubmits);
 		executor.shutdown();
 		executor.awaitTermination(100, TimeUnit.DAYS);
+	}
+
+	@Override
+	public void register(Logger logger) {
+		log.register(logger);
 	}
 }

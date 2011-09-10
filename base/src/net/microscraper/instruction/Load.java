@@ -210,4 +210,11 @@ public final class Load implements Instruction {
 			return ScraperResult.failure(e.getMessage());
 		}
 	}
+	
+	/**
+	 * @return The raw URL template.
+	 */
+	public String toString() {
+		return url.toString();
+	}
 }

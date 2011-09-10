@@ -185,4 +185,11 @@ public class Find implements Instruction {
 		}
 		return result;
 	}
+	
+	/**
+	 * @return The raw pattern template.
+	 */
+	public String toString() {
+		return pattern.toString();
+	}
 }

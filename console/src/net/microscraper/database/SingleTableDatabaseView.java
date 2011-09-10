@@ -39,5 +39,9 @@ public class SingleTableDatabaseView implements DatabaseView {
 	public void put(String key, String value) throws TableManipulationException {
 		db.insert(id, null, key, value);
 	}
-
+	
+	@Override
+	public String toString() {
+		return view.toString();
+	}
 }

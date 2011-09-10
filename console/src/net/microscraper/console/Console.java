@@ -112,6 +112,7 @@ public class Console {
 			source = options.getSource();
 			
 			runner = options.getScraperRunner();
+			runner.register(logger);
 			
 		} catch(InvalidOptionException e) {
 			println(e.getMessage());
@@ -128,6 +129,7 @@ public class Console {
 			logger.open();
 			database.open();
 			input.open();
+			
 		} catch(IOException e) {
 			println("Could not open necessary file: " + e.getMessage());
 			return;

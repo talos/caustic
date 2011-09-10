@@ -160,4 +160,19 @@ public class StringUtils {
 	 * Convenient acccess to <code>System.getProperty("user.dir")</code>.
 	 */
 	public static final String USER_DIR = System.getProperty("user.dir");
+	
+	/**
+	 * 
+	 * @param obj An {@link Object} to get the simple class name for.
+	 * @return The simple class name.
+	 */
+	public static String simpleClassName(Object obj) {
+		String className = obj.getClass().toString();
+		int lastIndex = 0;
+		while(className.indexOf(".", lastIndex) != -1) {
+			lastIndex = className.indexOf(".", lastIndex) + 1;
+		}
+		className = className.substring(lastIndex, className.length());
+		return className;
+	}
 }

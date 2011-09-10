@@ -80,5 +80,10 @@ public class StringUtilsTest {
 		assertEquals(true, quoted.endsWith(StringUtils.QUOTATION));
 	}
 
+	@Test
+	public void testSimpleClassName() {
+		Object obj = new Object();
+		assertEquals("Object", StringUtils.simpleClassName(obj));
+	}
 
 }

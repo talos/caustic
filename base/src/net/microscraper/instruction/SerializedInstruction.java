@@ -53,4 +53,11 @@ public class SerializedInstruction implements Instruction {
 		
 		return result;
 	}
+	
+	/**
+	 * @return the original serialized {@link String}.
+	 */
+	public String toString() {
+		return serializedString;
+	}
 }
