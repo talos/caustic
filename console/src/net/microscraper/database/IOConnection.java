@@ -6,7 +6,7 @@ import java.io.IOException;
  * @author talos
  *
  */
-public interface IOConnection {
+public interface IOConnection extends WritableConnection {
 
 	/**
 	 * Obtain a new {@link IOTable} using this {@link IOConnection}.
@@ -16,7 +16,7 @@ public interface IOConnection {
 	 * @return A {@link IOTable}.
 	 * @throws IOException if the {@link IOTable} cannot be created.
 	 */
-	public abstract IOTable newUpdateable(String name, String[] textColumns)
+	public abstract IOTable newIOTable(String name, String[] textColumns)
 			throws IOException;
 
 }

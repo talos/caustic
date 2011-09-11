@@ -1,12 +1,9 @@
 package net.microscraper.console;
 
+import static net.microscraper.util.TestUtils.randomString;
 import static org.junit.Assert.*;
-import static net.microscraper.util.TestUtils.*;
 
-import java.util.Arrays;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Map;
 
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseView;
@@ -42,7 +39,7 @@ public class InputTest {
 			for(String key : shared.keySet()) {
 				assertEquals(shared.get(key), view.get(key));
 			}
-			assertNotNull(shared.get("query"));
+			assertNotNull(view.get("query"));
 		}
 	}
 
@@ -60,38 +57,33 @@ public class InputTest {
 	public void testHeadersAssignedCorrectly() throws Exception {
 		Input input = Input.fromSharedAndCSV(shared, PATH_TO_BBLS, ',');
 		input.open();
-		Map<String, String> row;
+		DatabaseView view;
 		
-		row = input.next(database);
-		assertTrue(row.keySet().containsAll(Arrays.asList("Borough", "Block", "Lot")));
-		assertEquals("3", row.get("Borough"));
-		assertEquals("1772", row.get("Block"));
-		assertEquals("74", row.get("Lot"));
+		view = input.next(database);
+		assertEquals("3", view.get("Borough"));
+		assertEquals("1772", view.get("Block"));
+		assertEquals("74", view.get("Lot"));
 
-		row = input.next(database);
-		assertTrue(row.keySet().containsAll(Arrays.asList("Borough", "Block", "Lot")));
-		assertEquals("1", row.get("Borough"));
-		assertEquals("1171", row.get("Block"));
-		assertEquals("63", row.get("Lot"));
+		view = input.next(database);
+		assertEquals("1", view.get("Borough"));
+		assertEquals("1171", view.get("Block"));
+		assertEquals("63", view.get("Lot"));
 	}
 
 	@Test
 	public void testRowsHaveCorrectValues() throws Exception {
 		Input input = Input.fromSharedAndCSV(new Hashtable<String, String>(), PATH_TO_QUERIES, ',');
 		input.open();
-		Map<String, String> row;
+		DatabaseView view;
 				
-		row = input.next();
-		assertEquals("hello", row.get("query"));
-		assertEquals(1, row.size());
+		view = input.next(database);
+		assertEquals("hello", view.get("query"));
 
-		row = input.next();
-		assertEquals("meh", row.get("query"));
-		assertEquals(1, row.size());
+		view = input.next(database);
+		assertEquals("meh", view.get("query"));
 		
-		row = input.next();
-		assertEquals("bleh", row.get("query"));
-		assertEquals(1, row.size());
+		view = input.next(database);
+		assertEquals("bleh", view.get("query"));
 	}
 	
 	
@@ -100,7 +92,7 @@ public class InputTest {
 		Input input = Input.fromSharedAndCSV(
 				new Hashtable<String, String>(),
 				PATH_TO_QUERIES, ',');
-		input.next();
+		input.next(database);
 	}
 
 }

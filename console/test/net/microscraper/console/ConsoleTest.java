@@ -1,8 +1,5 @@
 package net.microscraper.console;
 
-import static org.junit.Assert.*;
-import static net.microscraper.util.TestUtils.*;
-
 import java.io.PrintStream;
 import java.util.Hashtable;
 
@@ -14,7 +11,6 @@ import net.microscraper.http.HttpBrowser;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.util.StringUtils;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class ConsoleTest {

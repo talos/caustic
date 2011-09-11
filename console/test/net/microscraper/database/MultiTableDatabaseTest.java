@@ -1,23 +1,24 @@
 package net.microscraper.database;
 
-import static org.junit.Assert.*;
-import static net.microscraper.util.TestUtils.*;
-import static net.microscraper.database.MultiTableDatabase.*;
+import static net.microscraper.database.MultiTableDatabase.DEFAULT_TABLE_NAME;
+import static net.microscraper.database.MultiTableDatabase.RESULT_TABLE_COLUMNS;
+import static net.microscraper.database.MultiTableDatabase.SCOPE_COLUMN_NAME;
+import static net.microscraper.database.MultiTableDatabase.SOURCE_COLUMN_NAME;
+import static net.microscraper.database.MultiTableDatabase.VALUE_COLUMN_NAME;
+import static net.microscraper.util.TestUtils.randomString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Hashtable;
 
 import mockit.Expectations;
-import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import net.microscraper.console.IntUUIDFactory;
-import net.microscraper.database.IOConnection;
-import net.microscraper.database.IOTable;
-import net.microscraper.database.MultiTableDatabase;
 
 import org.junit.Test;
 
-public class MultiTableDatabaseTest extends DatabaseTest  {
+public class MultiTableDatabaseTest extends DatabaseViewTest  {
 
 	@Mocked IOTable resultTable;
 	@Mocked WritableTable joinTable;
@@ -27,7 +28,7 @@ public class MultiTableDatabaseTest extends DatabaseTest  {
 	protected Database getDatabase() throws Exception {
 		new NonStrictExpectations() {{
 
-			connection.newUpdateable(anyString, (String[]) any);
+			connection.newIOTable(anyString, (String[]) any);
 				result = resultTable;
 			connection.newWritable(anyString, (String[]) any);
 				result = joinTable;
@@ -39,7 +40,7 @@ public class MultiTableDatabaseTest extends DatabaseTest  {
 	public void testCreatesDefaultResultTableOnInstantiation() throws Exception {
 		new Expectations() {{
 			otherConn.open();
-			otherConn.newUpdateable(DEFAULT_TABLE_NAME, withSameInstance(RESULT_TABLE_COLUMNS));
+			otherConn.newIOTable(DEFAULT_TABLE_NAME, withSameInstance(RESULT_TABLE_COLUMNS));
 				result = resultTable;
 				$ = "Should create root table on getting default scope.";
 		}};

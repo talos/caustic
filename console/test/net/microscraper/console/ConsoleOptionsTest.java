@@ -1,14 +1,22 @@
 package net.microscraper.console;
 
-import static net.microscraper.console.ConsoleOptions.*;
-import static net.microscraper.util.TestUtils.*;
+import static net.microscraper.console.ConsoleOptions.BATCH_SIZE;
+import static net.microscraper.console.ConsoleOptions.CSV_FORMAT;
+import static net.microscraper.console.ConsoleOptions.FORMAT;
+import static net.microscraper.console.ConsoleOptions.INPUT;
+import static net.microscraper.console.ConsoleOptions.INPUT_DELIMITER;
+import static net.microscraper.console.ConsoleOptions.SAVE_TO_FILE;
+import static net.microscraper.console.ConsoleOptions.SQLITE_FORMAT;
+import static net.microscraper.console.ConsoleOptions.THREADS;
+import static net.microscraper.util.TestUtils.randomInt;
+import static net.microscraper.util.TestUtils.randomString;
 import static org.junit.Assert.*;
 
 import java.util.Hashtable;
-import java.util.Map;
 
-import net.microscraper.console.ConsoleOptions;
-import net.microscraper.console.InvalidOptionException;
+import net.microscraper.database.Database;
+import net.microscraper.database.DatabaseView;
+import net.microscraper.database.HashtableDatabase;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.JavaNetEncoder;
@@ -50,6 +58,7 @@ public class ConsoleOptionsTest {
 	
 	@Test
 	public void testInputIsTheSameWithQuotesOrWithout() throws Exception {
+		Database database = new HashtableDatabase();
 		Hashtable<String, String> origHash = new Hashtable<String, String>();
 		for(int i = 0 ; i < 10 ; i ++) {
 			origHash.put(randomString(), randomString());
@@ -62,11 +71,13 @@ public class ConsoleOptionsTest {
 		ConsoleOptions withoutQuotes = new ConsoleOptions(new String[] { randomString(),
 				INPUT + "=" + defaults });
 		
-		Map<String, String> withQuotesInput = withQuotes.getInput().next();
-		Map<String, String> withoutQuotesInput = withoutQuotes.getInput().next();
-				
-		assertTrue(withQuotesInput.keySet().containsAll(withoutQuotesInput.keySet()));
-		assertTrue(withQuotesInput.values().containsAll(withoutQuotesInput.values()));
+		DatabaseView viewWithQuotes = withQuotes.getInput().next(database);
+		DatabaseView viewWithoutQuotes = withoutQuotes.getInput().next(database);
+		
+		for(String key : origHash.keySet()) {
+			assertEquals(origHash.get(key), viewWithQuotes.get(key));
+			assertEquals(origHash.get(key), viewWithoutQuotes.get(key));
+		}
 	}
 	
 	@Test(expected=InvalidOptionException .class)
@@ -87,14 +98,14 @@ public class ConsoleOptionsTest {
 	public void testThreadsCannotBeZero() throws Exception {
 		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
 				THREADS + "=0" });
-		options.getExecutor();
+		options.getScraperRunner();
 	}
 	
 	@Test(expected=InvalidOptionException.class)
 	public void testThreadsCannotBeNegative() throws Exception {
 		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
 				THREADS + "=" + (-1 - randomInt()) });
-		options.getExecutor();
+		options.getScraperRunner();
 	}
 	
 	

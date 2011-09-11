@@ -5,12 +5,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import net.microscraper.console.UUID;
 import net.microscraper.util.StringUtils;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
 public class CSVTable implements WritableTable {
 
+	public static final String ID_COLUMN = "id";
+	
 	private final CSVWriter writer;
 
 	private final List<String> headers;
@@ -18,12 +21,12 @@ public class CSVTable implements WritableTable {
 	public CSVTable(CSVWriter writer, String[] columns) {
 		this.writer = writer;
 		this.headers = new ArrayList<String>(Arrays.asList(columns));
-		// Prepend ID to the array of column names.		
+		this.headers.add(0, ID_COLUMN);
 		writer.writeNext(this.headers.toArray(new String[0]));
 	}
 
 	@Override
-	public void insert(Map<String, String> insertMap) throws TableManipulationException {
+	public void insert(UUID id, Map<String, String> insertMap) throws TableManipulationException {
 		/*if(insertMap.size() > headers.size()) {
 			throw new TableManipulationException(StringUtils.quote(insertMap.toString()) + " is too wide for " +
 					StringUtils.join(headers.toArray(new String[0]), ", "));

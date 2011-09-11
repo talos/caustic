@@ -1,7 +1,6 @@
 package net.microscraper.database;
 
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 
 import net.microscraper.console.UUID;
@@ -34,34 +33,24 @@ public interface IOTable extends WritableTable {
 	 */
 	public abstract String[] getColumnNames();
 	
-
 	/**
-	 * Select rows of data from {@link IOTable}.
-	 * @param idColumnName the {@link String} name of the ID column.
+	 * Select a single column of data from  {@link IOTable}.
 	 * @param uuid the {@link UUID} of the row to update.
-	 * @param map A {@link Hashtable} mapping columns names to values to insert
-	 * into {@link IOTable}.
+	 * 
 	 * @throws TableManipulationException if the row could not be updated.
 	 */
-	public abstract Map<UUID, Map<String, String>> select(String idColumnName, UUID uuid,
-						List<String> columnNames)
-			throws TableManipulationException;
+	//public abstract String select(UUID uuid, String columnName);
+
+	public abstract String select(String id, String valueColumnName);
 	
 	/**
 	 * Update an existing row in the {@link IOTable}.
-	 * @param idColumnName the {@link String} name of the ID column.
 	 * @param uuid the {@link UUID} of the row to update.
 	 * @param map A {@link Hashtable} mapping columns names to values to insert
 	 * into {@link IOTable}.
 	 * @throws TableManipulationException if the row could not be updated.
 	 */
-	public abstract void update(String idColumnName, UUID uuid, Map<String, String> map)
+	public abstract void update(UUID uuid, Map<String, String> map)
 			throws TableManipulationException;
-	
-	/**
-	 * Delete this {@link IOTable}.
-	 * @throws TableManipulationException If the {@link IOTable} could not be dropped.
-	 */
-	//public void drop() throws TableManipulationException;
 	
 }
