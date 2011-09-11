@@ -100,7 +100,7 @@ public class Input {
 	 * @return <code>null</code> if there are no more values, a {@link DatabaseView}
 	 * to use next otherwise.
 	 * @throws IOException if there is an error reading from the input file or persisting
-	 * to the {@link Database}.
+	 * to the {@link PersistedDatabase}.
 	 */
 	public DatabaseView next(Database database) throws IOException {
 		Map<String, String> map;

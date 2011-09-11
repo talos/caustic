@@ -1,5 +1,6 @@
 package net.microscraper.template;
 
+import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.database.DatabaseView;
@@ -84,8 +85,9 @@ public final class StringTemplate {
 	 * Substitute the values from a {@link Variables} into the {@link StringTemplate}.
 	 * @param input The {@link DatabaseView} to use when substituting.
 	 * @return A {@link StringSubstitution} with the results of the substitution.
+	 * @throws IOException 
 	 */
-	public StringSubstitution sub(DatabaseView input) {
+	public StringSubstitution sub(DatabaseView input) throws IOException {
 		return subEncoded(input, null);
 	}
 	
@@ -95,8 +97,9 @@ public final class StringTemplate {
 	 * @param input The {@link DatabaseView} to use when substituting.
 	 * @param encoder The {@link Encoder} to use when encoding values.
 	 * @return A {@link StringSubstitution} with the results of the substitution.
+	 * @throws IOException 
 	 */
-	public StringSubstitution subEncoded(DatabaseView input, Encoder encoder) {
+	public StringSubstitution subEncoded(DatabaseView input, Encoder encoder) throws IOException {
 		if(isStatic == true) {
 			return StringSubstitution.success(template);
 		}

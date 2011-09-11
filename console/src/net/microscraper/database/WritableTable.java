@@ -13,10 +13,10 @@ public interface WritableTable {
 
 	/**
 	 * Insert a new row into the {@link WritableTable}.
-	 * @param id
+	 * @param scope
 	 * @param map A {@link Hashtable} mapping columns names to values to insert
 	 * into {@link WritableTable}.
 	 * @throws TableManipulationException if the row could not be inserted.
 	 */
-	public abstract void insert(UUID id, Map<String, String> map) throws TableManipulationException;
+	public abstract void insert(UUID scope, Map<String, String> map) throws TableManipulationException;
 }

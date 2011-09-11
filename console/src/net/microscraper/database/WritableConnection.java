@@ -7,7 +7,7 @@ import java.io.IOException;
  * @author talos
  *
  */
-public interface WritableConnection {
+public interface WritableConnection extends Connection {
 	/**
 	 * Obtain a new {@link WritableTable} using this {@link WritableConnection}.
 	 * @param name The {@link String} name of the {@link WritableTable}.
@@ -17,17 +17,5 @@ public interface WritableConnection {
 	 * @throws IOException if the {@link WritableTable} cannot be created.
 	 */
 	public abstract WritableTable newWritable(String name, String[] columnNames) throws IOException;
-	
-	/**
-	 * Open the {@link WritableConnection}.
-	 * @throws IOException If there is a problem opening the {@link WritableConnection}.
-	 */
-	public abstract void open() throws IOException;
-	
-	/**
-	 * Close the {@link WritableConnection}.
-	 * @throws IOException If there is a problem closing the {@link WritableConnection}.
-	 */
-	public abstract void close() throws IOException;
 
 }

@@ -70,7 +70,8 @@ public final class Load implements Instruction {
 	
 	private Instruction[] children = new Instruction[] { };
 	
-	private StringSubstitution getPosts(DatabaseView input) throws HashtableSubstitutionOverwriteException {
+	private StringSubstitution getPosts(DatabaseView input)
+			throws HashtableSubstitutionOverwriteException, IOException {
 		if(postTable.size() > 0) {
 			HashtableSubstitution tableSub = postTable.sub(input);
 			if(tableSub.isMissingTags()) {

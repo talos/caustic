@@ -34,11 +34,11 @@ public class DatabaseViewTest {
 	@Parameters
 	public static List<Database[]> implementations() {
 		return Arrays.asList(new Database[][] {
-				{ new SingleTableWritableDatabase(CSVConnection.toSystemOut(DELIMITER),
+				{ new NonPersistedDatabase(CSVConnection.toSystemOut(DELIMITER),
 						new IntUUIDFactory() )  },
-				{ new SingleTableIODatabase(JDBCSqliteConnection.inMemory(BATCH_SIZE),
+				{ new SingleTableDatabase(JDBCSqliteConnection.inMemory(BATCH_SIZE),
 						new JavaUtilUUIDFactory() )  },
-				{ new MultiTableIODatabase(JDBCSqliteConnection.inMemory(BATCH_SIZE),
+				{ new MultiTableDatabase(JDBCSqliteConnection.inMemory(BATCH_SIZE),
 						new JavaUtilUUIDFactory() )  }
 		});
 	}

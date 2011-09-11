@@ -1,5 +1,6 @@
 package net.microscraper.database;
 
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -25,29 +26,22 @@ public interface IOTable extends WritableTable {
 	 * Check whether a column exists already.
 	 * @param columnName The {@link String} name of the column to check.
 	 * @return <code>true</code> if the column exists, <code>false</code> otherwise.
+	 * @throws IOException 
 	 */
-	public abstract boolean hasColumn(String columnName);
-	
-	/**
-	 * 
-	 * @return A {@link String} array of the names of columns in the {@link IOTable}.
-	 */
-	public abstract String[] getColumnNames();
+	public abstract boolean hasColumn(String columnName) throws IOException;
 	
 	/**
 	 * Select several columns of data from  {@link IOTable}.
-	 * 
-	 * @throws TableManipulationException if the row could not be updated.
+	 * @throws IOException 
 	 */
-	public abstract List<Map<String, String>> select(String id, String[] columnNames);
+	public abstract List<Map<String, String>> select(UUID scope, String[] columnNames) throws IOException;
 	
 
 	/**
 	 * Select one column of data from  {@link IOTable}.
-	 * 
-	 * @throws TableManipulationException if the row could not be updated.
+	 * @throws IOException 
 	 */
-	public abstract List<String> select(String id, String columnName);
+	public abstract List<String> select(UUID scope, String columnName) throws IOException;
 	
 	
 	/**
@@ -57,7 +51,7 @@ public interface IOTable extends WritableTable {
 	 * into {@link IOTable}.
 	 * @throws TableManipulationException if the row could not be updated.
 	 */
-	public abstract void update(UUID uuid, Map<String, String> map)
+	public abstract void update(UUID scope, Map<String, String> map)
 			throws TableManipulationException;
 	
 }

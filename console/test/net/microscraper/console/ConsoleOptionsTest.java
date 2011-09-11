@@ -14,11 +14,10 @@ import static org.junit.Assert.*;
 
 import java.util.Hashtable;
 
-import mockit.Mocked;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseView;
-import net.microscraper.database.SingleTableWritableDatabase;
-import net.microscraper.database.WritableConnection;
+import net.microscraper.database.NonPersistedDatabase;
+import net.microscraper.database.csv.CSVConnection;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.JavaNetEncoder;
@@ -60,10 +59,9 @@ public class ConsoleOptionsTest {
 	}
 	
 	@Test
-	public void testInputIsTheSameWithQuotesOrWithout(
-			@Mocked final WritableConnection connection
-			) throws Exception {
-		Database db = new SingleTableWritableDatabase(connection, new IntUUIDFactory());
+	public void testInputIsTheSameWithQuotesOrWithout() throws Exception {
+		Database db = new NonPersistedDatabase(CSVConnection.toSystemOut(','), new IntUUIDFactory());
+		db.open();
 		
 		Hashtable<String, String> origHash = new Hashtable<String, String>();
 		for(int i = 0 ; i < 10 ; i ++) {

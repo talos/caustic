@@ -1,15 +1,12 @@
 package net.microscraper.database.sql;
 
-import java.sql.SQLException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import javax.management.RuntimeErrorException;
 
 import net.microscraper.database.IOTable;
 import net.microscraper.database.TableManipulationException;
@@ -34,13 +31,11 @@ public class SQLTable implements IOTable {
 	 */
 	private final String name;
 
-	private final String idColumnName;
-	
 	/**
-	 * The names of all this table's columns.
+	 * The {@link String} name of the scope column.
 	 */
-	private final List<String> columns = Collections.synchronizedList(new ArrayList<String>());
-
+	private final String scopeColumnName;
+	
 	/**
 	 * Check a {@link String} for backticks, which cause problems in column or
 	 * table names.
@@ -56,42 +51,32 @@ public class SQLTable implements IOTable {
 				Integer.toString(stringToCheck.indexOf('`')));
 		}
 	}
-
-	public SQLResultSet getResultSet(String id, String[] columnNames) {
+	
+	/**
+	 * Obtain a {@link SQLResultSet} a scope and set of columns.  Remember to
+	 * close {@link SQLResultSet}.
+	 * @param scope
+	 * @param columnNames
+	 * @return
+	 * @throws IOException
+	 */
+	private SQLResultSet getResultSet(UUID scope, String[] columnNames)  throws IOException {
 		try {
 			SQLPreparedStatement select = connection.prepareStatement(
 					"SELECT `" + StringUtils.join(columnNames, "`, `") + "` " +
-					"WHERE `" + idColumnName + "` = ?");
-			select.bindStrings(new String[] { id });
+					"FROM `" + name + "` " +
+					"WHERE `" + scopeColumnName + "` = ?");
+			select.bindStrings(new String[] { scope.asString() });
 			return select.executeQuery();
 		} catch(SQLConnectionException e) {
-			e.printStackTrace();
-			throw new RuntimeException(); // TODO
+			throw new IOException(e);
 		}
 	}
 	
-	public SQLTable(SQLConnection connection, String name, String idColumnName,
-			String[] columns) throws SQLConnectionException {
-		
-		preventIllegalBacktick(name);
-		this.idColumnName = idColumnName;
-		this.connection = connection;
+	public SQLTable(SQLConnection connection, String name, String idColumnName) throws SQLConnectionException {
 		this.name = name;
-		
-		String[] columnDefinitions = new String[columns.length + 1];
-		for(int i = 0 ; i < columns.length; i ++) {
-			columnDefinitions[i + 1] = columns[i] + " " + connection.textColumnType();
-			this.columns.add(columns[i]);
-		}
-		this.columns.add(idColumnName);
-		columnDefinitions[0] = idColumnName + " " + connection.textColumnType();
-		String columnDefinition = StringUtils.join(columnDefinitions, " , ");
-		
-		SQLPreparedStatement createTable = 
-				this.connection.prepareStatement("CREATE TABLE `" + name + "` (" +
-				columnDefinition + ")");
-		createTable.execute();
-		connection.runBatch();
+		this.connection = connection;
+		this.scopeColumnName = idColumnName;
 	}
 	
 	@Override
@@ -99,22 +84,33 @@ public class SQLTable implements IOTable {
 		preventIllegalBacktick(columnName);
 		
 		try {
+			String type = connection.textColumnType();
 			SQLPreparedStatement alterTable = 
-					connection.prepareStatement("" +
+					connection.prepareStatement(
 							"ALTER TABLE `" + name + "` " +
 							" ADD COLUMN `" + columnName + "`" + 
-							connection.textColumnType());
+							type);
 			alterTable.execute();
 			connection.runBatch();
-			columns.add(columnName);
 		} catch(SQLConnectionException e) {
 			throw new TableManipulationException(e);
 		}
 	}
 	
 	@Override
-	public boolean hasColumn(String columnName) {
-		return columns.contains(columnName);
+	public boolean hasColumn(String columnName) throws IOException {
+		try {
+			SQLPreparedStatement select =
+					connection.prepareStatement(
+							"SELECT * FROM `" + name + "`");
+			SQLResultSet rs = select.executeQuery();
+			boolean hasColumn = rs.hasColumnName(columnName);
+			rs.close();
+			
+			return hasColumn;
+		} catch(SQLConnectionException e) {
+			throw new IOException(e);
+		}
 	}
 	
 	@Override
@@ -130,7 +126,7 @@ public class SQLTable implements IOTable {
 			columnValues[i] = entry.getValue();
 			i++;
 		}
-		columnNames[0] = idColumnName;
+		columnNames[0] = scopeColumnName;
 		parameters[0] = "?";
 		columnValues[0] = id.asString();
 		
@@ -164,7 +160,7 @@ public class SQLTable implements IOTable {
 		try {
 			SQLPreparedStatement update = connection.prepareStatement(
 					"UPDATE `" + name + "` " + set +
-					"WHERE `" + idColumnName + "` = ?");
+					"WHERE `" + scopeColumnName + "` = ?");
 			update.bindStrings(values);
 			update.execute();
 		} catch (SQLConnectionException e) {
@@ -173,16 +169,9 @@ public class SQLTable implements IOTable {
 	}
 
 	@Override
-	public String[] getColumnNames() {
-		synchronized(columns) {
-			return columns.toArray(new String[0]);
-		}
-	}
-
-	@Override
-	public List<Map<String, String>> select(String id, String[] columnNames) {
+	public List<Map<String, String>> select(UUID scope, String[] columnNames) throws IOException {
 		try  {
-			SQLResultSet rs = getResultSet(id, columnNames);
+			SQLResultSet rs = getResultSet(scope, columnNames);
 			
 			List<Map<String, String>> results = new ArrayList<Map<String, String>>();
 			while(rs.next()) {
@@ -192,24 +181,26 @@ public class SQLTable implements IOTable {
 				}
 				results.add(map);
 			}
+			rs.close();
 			return results;
 		} catch(SQLConnectionException e) {
-			throw new RuntimeException(e); //TODO
+			throw new IOException(e);
 		}
 	}
 
 	@Override
-	public List<String> select(String id, String columnName) {
+	public List<String> select(UUID scope, String columnName) throws IOException {
 		try  {
-			SQLResultSet rs = getResultSet(id, new String[] { columnName} );
+			SQLResultSet rs = getResultSet(scope, new String[] { columnName} );
 			
 			List<String> results = new ArrayList<String>();
 			while(rs.next()) {
 				results.add(rs.getString(columnName));
 			}
+			rs.close();
 			return results;
 		} catch(SQLConnectionException e) {
-			throw new RuntimeException(e); //TODO
+			throw new IOException(e);
 		}
 		
 	}

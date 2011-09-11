@@ -50,7 +50,7 @@ public class TemplateTest {
 	}
 	
 	@Test
-	public void testSubSuccessful() throws TemplateCompilationException {
+	public void testSubSuccessful() throws Exception {
 		StringTemplate template = new StringTemplate(validTemplateRaw, StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG);
 		StringSubstitution sub = template.sub(input);
 		assertFalse(sub.isMissingTags());
@@ -58,7 +58,7 @@ public class TemplateTest {
 	}
 	
 	@Test
-	public void testSubUnsuccessful() throws TemplateCompilationException {
+	public void testSubUnsuccessful() throws Exception {
 		StringTemplate template = new StringTemplate(validTemplateMissingTag, StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG);
 		StringSubstitution sub = template.sub(input);
 		assertTrue(sub.isMissingTags());
@@ -66,7 +66,7 @@ public class TemplateTest {
 	}
 	
 	@Test
-	public void testSubSuccessfulEncoded() throws TemplateCompilationException, UnsupportedEncodingException {
+	public void testSubSuccessfulEncoded() throws Exception {
 		new Expectations() {{
 			encoder.encode(value); result = encodedValue;
 		}};
@@ -77,7 +77,7 @@ public class TemplateTest {
 	}
 	
 	@Test
-	public void testSubUnsuccessfulEncoded() throws TemplateCompilationException, UnsupportedEncodingException {
+	public void testSubUnsuccessfulEncoded() throws Exception {
 		new Expectations() {{
 			encoder.encode(value); result = encodedValue; times = 0;
 		}};
@@ -89,7 +89,7 @@ public class TemplateTest {
 	
 	
 	@Test(expected = UnsupportedEncodingException.class)
-	public void testSubEncodedInvalidEncoding() throws TemplateCompilationException, UnsupportedEncodingException {
+	public void testSubEncodedInvalidEncoding() throws Exception {
 		new Expectations() {{
 			encoder.encode(value); result = new UnsupportedEncodingException();
 		}};

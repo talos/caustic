@@ -1,5 +1,6 @@
 package net.microscraper.database;
 
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -14,14 +15,14 @@ import net.microscraper.client.Scraper;
  * @see Scraper#Scraper(net.microscraper.instruction.Instruction, Hashtable, String)
  *
  */
-public class HashtableDatabaseView implements DatabaseView {
+public class InMemoryDatabaseView implements DatabaseView {
 	private final Hashtable hashtable;
 	private final DatabaseView parent;
 
 	/**
 	 * Construct a new {@link DatabaseView} without any values.
 	 */
-	public HashtableDatabaseView() {
+	public InMemoryDatabaseView() {
 		this.hashtable = new Hashtable();
 		this.parent = null;
 	}
@@ -32,7 +33,7 @@ public class HashtableDatabaseView implements DatabaseView {
 	 * and not modified.
 	 * @param hashtable A backing {@link Hashtable}.
 	 */
-	public HashtableDatabaseView(Hashtable hashtable) {
+	public InMemoryDatabaseView(Hashtable hashtable) {
 		Enumeration keys = hashtable.keys();
 		Hashtable clone = new Hashtable();
 		try {
@@ -54,23 +55,23 @@ public class HashtableDatabaseView implements DatabaseView {
 	 * @param parent The parent {@link DatabaseView} to check
 	 * if the backing {@link Hashtable} has no entry.
 	 */
-	private HashtableDatabaseView(DatabaseView parent) {
+	private InMemoryDatabaseView(DatabaseView parent) {
 		this.parent = parent;
 		this.hashtable = new Hashtable();
 	}
 	
 	public DatabaseView spawnChild(String name) {
-		return new HashtableDatabaseView(this);
+		return new InMemoryDatabaseView(this);
 	}
 
 	
 	public DatabaseView spawnChild(String name, String value) {
-		HashtableDatabaseView child = new HashtableDatabaseView(this);
+		InMemoryDatabaseView child = new InMemoryDatabaseView(this);
 		child.put(name, value);
 		return child;
 	}
 	
-	public String get(String key) {
+	public String get(String key) throws IOException {
 		if(hashtable.containsKey(key)) {
 			return (String) hashtable.get(key);
 		} else if(parent != null) {
@@ -85,7 +86,7 @@ public class HashtableDatabaseView implements DatabaseView {
 	}
 	
 	/**
-	 * Show a {@link String} representation of this {@link HashtableDatabaseView}
+	 * Show a {@link String} representation of this {@link InMemoryDatabaseView}
 	 * in addition to all its parents.
 	 */
 	public String toString() {

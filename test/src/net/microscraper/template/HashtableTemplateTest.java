@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
 
 import net.microscraper.database.DatabaseView;
-import net.microscraper.database.HashtableDatabaseView;
+import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.JavaNetEncoder;
 
@@ -26,7 +26,7 @@ public class HashtableTemplateTest {
 		multiWordValue = randomString() + " " + randomString();
 		alreadyEncodedKey = encoder.encode(multiWordKey);
 		alreadyEncodedValue = encoder.encode(multiWordValue);
-		input = new HashtableDatabaseView();
+		input = new InMemoryDatabaseView();
 		input.put(key, value);
 		input.put(multiWordKey, multiWordValue);
 		input.put(alreadyEncodedKey, alreadyEncodedValue);

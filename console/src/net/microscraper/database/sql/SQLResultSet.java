@@ -22,6 +22,15 @@ public interface SQLResultSet {
 	public abstract boolean next() throws SQLConnectionException;
 	
 	/**
+	 * Determine whether {@link SQLResultSet} contains a column.
+	 * @param columnName The {@link String} column name whose existence should be checked.
+	 * @return <code>true</code> if the {@link SQLResultSet} contains a column named
+	 * <code>columnName</code>, <code>false</code> otherwise.
+	 * @throws SQLConnectionException
+	 */
+	public abstract boolean hasColumnName(String columnName) throws SQLConnectionException;
+	
+	/**
 	 * Get the {@link String} value of the supplied <code>columnName</code> for the
 	 * current row.
 	 * @param columnName The {@link String} name of the column whose value should be obtained.

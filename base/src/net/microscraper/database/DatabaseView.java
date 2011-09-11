@@ -42,7 +42,7 @@ public interface DatabaseView {
 	 * in this {@link DatabaseView} or one of its parents,
 	 * <code>null</code> otherwise.
 	 */
-	public abstract String get(String key);
+	public abstract String get(String key) throws IOException;
 
 	/**
 	 * Map a {@link String} value to a {@link String} key.

@@ -13,7 +13,7 @@ import mockit.Verifications;
 import net.microscraper.client.Scraper;
 import net.microscraper.client.ScraperResult;
 import net.microscraper.database.DatabaseView;
-import net.microscraper.database.HashtableDatabaseView;
+import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.deserializer.DeserializerResult;
 import net.microscraper.deserializer.JSONDeserializer;
 import net.microscraper.http.HttpBrowser;
@@ -58,7 +58,7 @@ public class JsonDeserializerTest {
 	@Before
 	public void setUp() throws Exception {
 		parser = new JsonMEParser();
-		input = new HashtableDatabaseView(new Hashtable<String, String>());
+		input = new InMemoryDatabaseView(new Hashtable<String, String>());
 		
 		loadPath = "LOAD PATH " + randomString();
 		load = new JSONObject().put(LOAD, urlString);

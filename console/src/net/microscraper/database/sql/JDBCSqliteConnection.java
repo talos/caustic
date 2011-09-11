@@ -5,12 +5,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import net.microscraper.database.IOTable;
-import net.microscraper.database.WritableTable;
 
 /**
  * An implementation of {@link SQLConnection} for org.sqlite.JDBC
@@ -141,6 +141,24 @@ public class JDBCSqliteConnection implements SQLConnection {
 			}
 		}
 
+		@Override
+		public boolean hasColumnName(String columnName) throws SQLConnectionException {
+			try {
+				ResultSetMetaData meta = resultSet.getMetaData();
+				
+				int numCol = meta.getColumnCount();
+	
+				for (int i = 1; i < numCol+1; i++) {
+				    if(meta.getColumnName(i).equals(columnName)) {
+				    	return true;
+				    }
+				}
+				return false;
+			} catch(SQLException e) {
+				throw new SQLConnectionException(e);
+			}
+		}
+
 	}
 	
 	public void runBatch() throws SQLConnectionException {
@@ -190,16 +208,16 @@ public class JDBCSqliteConnection implements SQLConnection {
 		return new JDBCSqliteStatement(connection, sql);
 	}
 	
-	/*
-	@Override
-	public boolean tableExists(String tableName) throws SQLConnectionException {
+	
+	//@Override
+	private boolean tableExists(String tableName) throws SQLConnectionException {
 		SQLPreparedStatement checkTableExistence =
 				prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=?;");
 
 		checkTableExistence.bindStrings(new String[] { tableName });
 		SQLResultSet results = checkTableExistence.executeQuery();
 		return results.next();
-	}*/
+	}
 
 	/**
 	 * Open {@link JDBCSqliteConnection} using org.sqlite.JDBC.
@@ -218,21 +236,26 @@ public class JDBCSqliteConnection implements SQLConnection {
 	}
 	
 	@Override
-	public IOTable newIOTable(String name, String[] textColumns)
+	public IOTable newIOTable(String name, String[] columnNames)
 			throws IOException {
 		try {
-			IOTable table = new SQLTable(this, name, ID_COLUMN_NAME, textColumns);
+			
+			String definitionStr = "`" + ID_COLUMN_NAME + "` " + textColumnType();
+			for(String columnName : columnNames) {
+				definitionStr += "`" + columnName + "` " + textColumnType() + ",";
+			}
+			definitionStr = definitionStr.substring(0, definitionStr.length() - 1);
+			
+			SQLPreparedStatement createTable = 
+					prepareStatement("CREATE TABLE `" + name + "` (" +
+							definitionStr + ")");
+			createTable.execute();
+			
 			runBatch();
-			return table;
+			return new SQLTable(this, name, ID_COLUMN_NAME);
 		} catch(SQLConnectionException e) {
 			throw new IOException(e);
 		}
-	}
-
-	@Override
-	public WritableTable newWritable(String name, String[] columnNames)
-			throws IOException {
-		return newIOTable(name, columnNames);
 	}
 
 	@Override
@@ -243,6 +266,19 @@ public class JDBCSqliteConnection implements SQLConnection {
 		} catch(SQLConnectionException e) {
 			throw new IOException(e);
 		} catch(SQLException e) {
+			throw new IOException(e);
+		}
+	}
+	
+	@Override
+	public IOTable getIOTable(String name) throws IOException {
+		try {
+			if(tableExists(name)) {
+				return new SQLTable(this, name, ID_COLUMN_NAME);
+			} else {
+				return null;
+			}
+		} catch(SQLConnectionException e) {
 			throw new IOException(e);
 		}
 	}

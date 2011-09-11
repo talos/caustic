@@ -1,35 +1,63 @@
 package net.microscraper.database;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
 
 import net.microscraper.uuid.UUID;
+import net.microscraper.uuid.UUIDFactory;
 
-public class SingleTableDatabase {
+public class SingleTableDatabase implements PersistedDatabase {
+	private final UUIDFactory idFactory;
+	private final IOConnection connection;
+	private IOTable table;
+	
+	public SingleTableDatabase(IOConnection connection, UUIDFactory idFactory) {
+		this.idFactory = idFactory;
+		this.connection = connection;
+	}
 
-	protected void insert(WritableTable table, UUID id, UUID source, String name, String value) throws TableManipulationException {
-		Map<String, String> insertMap = new HashMap<String, String>();
-		if(source != null) {
-			insertMap.put(SOURCE_COLUMN_NAME, source.asString());
-		}
-		insertMap.put(NAME_COLUMN_NAME, name);
-		if(value != null) {
-			insertMap.put(VALUE_COLUMN_NAME, value);
-		}
-		
-		table.insert(id, insertMap);
+	@Override
+	public void open() throws IOException {
+		this.connection.open();
+		this.table = SingleTable.get(connection);
 	}
 	
-	public static final String TABLE_NAME = "result";
+	@Override
+	public DatabaseView newView() throws IOException {
+		return new PersistedDatabaseView(this, idFactory.get());
+	}
 	
-	public static final String SOURCE_COLUMN_NAME = "source";
-	public static final String NAME_COLUMN_NAME = "name";
-	public static final String VALUE_COLUMN_NAME = "value";
+	@Override
+	public String get(UUID id, String name) throws IOException {
+		return SingleTable.select(table, id, name);
+	}
 	
-	/**
-	 * Names of columns in the table.
-	 */
-	public static final String[] COLUMN_NAMES = new String[] {
-		SOURCE_COLUMN_NAME, NAME_COLUMN_NAME, VALUE_COLUMN_NAME
-	};
+	@Override
+	public void insertOneToOne(UUID id, String name)
+			throws TableManipulationException {
+		SingleTable.insert(table, id, null, name, null);
+	}
+
+	@Override
+	public void insertOneToOne(UUID id, String name, String value) throws TableManipulationException {
+		SingleTable.insert(table, id, null, name, value);
+	}
+
+	@Override
+	public PersistedDatabaseView insertOneToMany(UUID source, String name) throws TableManipulationException, IOException {
+		return insertOneToMany(source, name, null);
+	}
+
+	@Override
+	public PersistedDatabaseView insertOneToMany(UUID source, String name, String value) throws TableManipulationException,
+			IOException {
+		UUID scope = idFactory.get();
+		SingleTable.insert(table, scope, source, name, value);
+		return new PersistedDatabaseView(this, scope);
+	}
+
+
+	@Override
+	public void close() throws IOException {
+		connection.close();
+	}
 }

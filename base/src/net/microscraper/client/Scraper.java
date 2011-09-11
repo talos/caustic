@@ -5,7 +5,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.database.DatabaseView;
-import net.microscraper.database.HashtableDatabaseView;
+import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Load;
 import net.microscraper.util.StringUtils;
@@ -44,15 +44,15 @@ public class Scraper {
 	/**
 	 * Create a new {@link Scraper} without a source.  This is only possible
 	 * for {@link Load}.  Also uses a {@link Hashtable} with string-string
-	 * mappings as input.  This will be converted into a {@link HashtableDatabaseView}.
+	 * mappings as input.  This will be converted into a {@link InMemoryDatabaseView}.
 	 * @param instruction The {@link Instruction} to execute when scraping.
 	 * @param input The {@link Hashtable} to use as input when scraping.  This will
-	 * be converted into a {@link HashtableDatabaseView}.
+	 * be converted into a {@link InMemoryDatabaseView}.
 	 * @see #scrape()
 	 */
 	public Scraper(Load load, Hashtable input)  {
 		this.instruction = load;
-		this.input = new HashtableDatabaseView(input);
+		this.input = new InMemoryDatabaseView(input);
 		this.source = null;
 	}
 	
@@ -71,16 +71,16 @@ public class Scraper {
 
 	/**
 	 * Create a new {@link Scraper} using a {@link Hashtable} with string-string
-	 * mappings as input.  This will be converted into a {@link HashtableDatabaseView}.
+	 * mappings as input.  This will be converted into a {@link InMemoryDatabaseView}.
 	 * @param instruction The {@link Instruction} to execute when scraping.
 	 * @param input The {@link Hashtable} to use as input when scraping.  This will
-	 * be converted into a {@link HashtableDatabaseView}.
+	 * be converted into a {@link InMemoryDatabaseView}.
 	 * @param source The {@link String} to use as a source when scraping.
 	 * @see #scrape()
 	 */
 	public Scraper(Instruction instruction, Hashtable input, String source)  {
 		this.instruction = instruction;
-		this.input = new HashtableDatabaseView(input);
+		this.input = new InMemoryDatabaseView(input);
 		this.source = source;
 	}
 	

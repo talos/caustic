@@ -10,14 +10,15 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import net.microscraper.database.Database;
+import net.microscraper.database.NonPersistedDatabase;
 import net.microscraper.database.IOConnection;
-import net.microscraper.database.MultiTableIODatabase;
-import net.microscraper.database.SingleTableIODatabase;
-import net.microscraper.database.SingleTableWritableDatabase;
+import net.microscraper.database.MultiTableDatabase;
+import net.microscraper.database.SingleTableDatabase;
 import net.microscraper.database.csv.CSVConnection;
 import net.microscraper.database.sql.JDBCSqliteConnection;
 import net.microscraper.deserializer.Deserializer;
@@ -46,10 +47,10 @@ import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Decoder;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.FormEncodedFormatException;
-import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.JavaNetDecoder;
 import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.util.JavaNetHttpUtils;
+import net.microscraper.util.MapUtils;
 import net.microscraper.util.StringUtils;
 import net.microscraper.uuid.IntUUIDFactory;
 import net.microscraper.uuid.JavaUtilUUIDFactory;
@@ -250,8 +251,8 @@ public final class ConsoleOptions {
 	
 	/**
 	 * 
-	 * @return A {@link Database} based off the user-passed {@link ConsoleOptions}.
-	 * @throws InvalidOptionException if the user specified a {@link Database} related
+	 * @return A {@link PersistedDatabase} based off the user-passed {@link ConsoleOptions}.
+	 * @throws InvalidOptionException if the user specified a {@link PersistedDatabase} related
 	 * option that is invalid.
 	 */
 	public Database getDatabase() throws InvalidOptionException {
@@ -293,19 +294,19 @@ public final class ConsoleOptions {
 				IOConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
 				UUIDFactory idFactory = new JavaUtilUUIDFactory();
 				if(isSpecified(singleTable)) {
-					result = new SingleTableIODatabase(connection, idFactory);
+					result = new SingleTableDatabase(connection, idFactory);
 				} else {
-					result = new MultiTableIODatabase(connection, idFactory);
+					result = new MultiTableDatabase(connection, idFactory);
 				}
 				throw new InvalidOptionException("SQL temporarily disabled");
 				
 			} else {
-				result = new SingleTableWritableDatabase(
+				result = new NonPersistedDatabase(
 						CSVConnection.toFile(outputLocation, delimiter), new IntUUIDFactory());
 				
 			}
 		} else { // output to STDOUT
-			result = new SingleTableWritableDatabase(
+			result = new NonPersistedDatabase(
 					CSVConnection.toSystemOut(delimiter), new IntUUIDFactory());
 		}
 		
@@ -404,7 +405,6 @@ public final class ConsoleOptions {
 	 * @return An {@link Input} whose elements are {@link Hashtable}s that can be used
 	 * as input for {@link Scraper}.
 	 */
-	@SuppressWarnings("unchecked")
 	public Input getInput() throws InvalidOptionException, UnsupportedEncodingException {
 		String rawInputString = getValue(input);
 		if(rawInputString.startsWith("\"") && rawInputString.endsWith("\"")) {
@@ -412,8 +412,8 @@ public final class ConsoleOptions {
 		}
 		
 		try {
-			Hashtable<String, String> shared =
-					HashtableUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), rawInputString);
+			Map<String, String> shared =
+					MapUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), rawInputString);
 			
 			if(isSpecified(inputFile)) {
 				char inputColumnDelimiter = getValue(inputDelimiter).charAt(0);

@@ -1,6 +1,5 @@
 package net.microscraper.util;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -28,30 +27,6 @@ public class HashtableUtils {
 		}
 		return result.substring(0, result.length() -1); // trim trailing ampersand
 		
-	}
-	
-	/**
-	 * Turn a form-encoded {@link String} into {@link Hashtable}.
-	 * @param decoder The {@link Decoder} to use for decoding.
-	 * @param formEncodedData A {@link String} of form-encoded data to convert.  It must be 
-	 * correctly formatted.
-	 * @return A {@link Hashtable}.
-	 */
-	public static Hashtable fromFormEncoded(Decoder decoder, String formEncodedData)
-			throws UnsupportedEncodingException, FormEncodedFormatException {
-		String[] splitByAmpersands = StringUtils.split(formEncodedData, "&");
-		Hashtable result = new Hashtable();
-		for(int i = 0 ; i < splitByAmpersands.length; i++) {
-			String[] pair = StringUtils.split(splitByAmpersands[i], "=");
-			if(pair.length == 2) {
-				result.put(decoder.decode(pair[0]),
-						decoder.decode(pair[1]));
-			} else {
-				throw new FormEncodedFormatException(
-						StringUtils.quote(splitByAmpersands[i]) + " is not a valid name-value pair.");
-			}
-		}
-		return result;
 	}
 	
 	/**

@@ -5,20 +5,16 @@ import static org.junit.Assert.*;
 
 import java.util.Hashtable;
 
-import mockit.Mocked;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseView;
-import net.microscraper.database.SingleTableWritableDatabase;
-import net.microscraper.database.WritableConnection;
-import net.microscraper.uuid.UUIDFactory;
+import net.microscraper.database.NonPersistedDatabase;
+import net.microscraper.database.csv.CSVConnection;
+import net.microscraper.uuid.IntUUIDFactory;
 
 import org.junit.Before;
 import org.junit.Test;
 
-public class InputTest {
-	@Mocked private WritableConnection conn;
-	@Mocked private UUIDFactory idFactory;
-	
+public class InputTest {		
 	public static final String PATH_TO_CSVS = "../fixtures/csv/";
 	public static final String PATH_TO_QUERIES = PATH_TO_CSVS + "queries.csv";
 	public static final String PATH_TO_BBLS = PATH_TO_CSVS + "bbls.csv";
@@ -32,7 +28,8 @@ public class InputTest {
 		for(int i = 0 ; i < 4 ; i ++) {
 			shared.put(randomString(), randomString());
 		}
-		database = new SingleTableWritableDatabase(conn, idFactory);
+		database = new NonPersistedDatabase(CSVConnection.toSystemOut(','), new IntUUIDFactory());
+		database.open();
 	}
 	
 	@Test

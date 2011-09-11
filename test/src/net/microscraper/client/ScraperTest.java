@@ -6,7 +6,7 @@ import java.util.Hashtable;
 
 import net.microscraper.client.Scraper;
 import net.microscraper.database.DatabaseView;
-import net.microscraper.database.HashtableDatabaseView;
+import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.http.CookieManager;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.http.HttpRequester;
@@ -114,7 +114,7 @@ public class ScraperTest {
 
 		Hashtable<String, String> inputTable = new Hashtable<String, String>();
 		inputTable.put("query", "hello");
-		DatabaseView input = new HashtableDatabaseView(inputTable);
+		DatabaseView input = new InMemoryDatabaseView(inputTable);
 		
 		Scraper scraper = new Scraper(loadGoogle, input);
 		
