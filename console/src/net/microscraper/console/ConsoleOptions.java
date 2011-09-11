@@ -13,10 +13,13 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import net.microscraper.database.CSVConnection;
 import net.microscraper.database.Database;
-import net.microscraper.database.HashtableDatabase;
-import net.microscraper.database.SingleTableDatabase;
+import net.microscraper.database.IOConnection;
+import net.microscraper.database.MultiTableIODatabase;
+import net.microscraper.database.SingleTableIODatabase;
+import net.microscraper.database.SingleTableWritableDatabase;
+import net.microscraper.database.csv.CSVConnection;
+import net.microscraper.database.sql.JDBCSqliteConnection;
 import net.microscraper.deserializer.Deserializer;
 import net.microscraper.deserializer.JSONDeserializer;
 import net.microscraper.file.JavaIOFileLoader;
@@ -48,6 +51,9 @@ import net.microscraper.util.JavaNetDecoder;
 import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.util.JavaNetHttpUtils;
 import net.microscraper.util.StringUtils;
+import net.microscraper.uuid.IntUUIDFactory;
+import net.microscraper.uuid.JavaUtilUUIDFactory;
+import net.microscraper.uuid.UUIDFactory;
 
 public final class ConsoleOptions {
 	public static final String TIMESTAMP_STR = "yyyyMMddkkmmss";
@@ -283,27 +289,23 @@ public final class ConsoleOptions {
 			if(outputLocation.equals(saveToFile.getDefault())) { 
 				outputLocation += '.' + format;
 			}
-			if(format.equals(SQLITE_FORMAT)) {
-				/*Database backing = new HashtableDatabase(new JavaUtilUUIDFactory());
-				
-				UpdateableConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
+			if(format.equals(SQLITE_FORMAT)) {				
+				IOConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
+				UUIDFactory idFactory = new JavaUtilUUIDFactory();
 				if(isSpecified(singleTable)) {
-					result = new SingleTableDatabase(backing, connection);
+					result = new SingleTableIODatabase(connection, idFactory);
 				} else {
-					result = new MultiTableDatabase(backing, connection);
-				}*/
-				
-				// TODO :*(
+					result = new MultiTableIODatabase(connection, idFactory);
+				}
 				throw new InvalidOptionException("SQL temporarily disabled");
 				
 			} else {
-				result = new SingleTableDatabase(
-						new HashtableDatabase(),
-						CSVConnection.toFile(outputLocation, delimiter),
-						new IntUUIDFactory());
+				result = new SingleTableWritableDatabase(
+						CSVConnection.toFile(outputLocation, delimiter), new IntUUIDFactory());
+				
 			}
 		} else { // output to STDOUT
-			result = new SingleTableDatabase(new HashtableDatabase(),
+			result = new SingleTableWritableDatabase(
 					CSVConnection.toSystemOut(delimiter), new IntUUIDFactory());
 		}
 		

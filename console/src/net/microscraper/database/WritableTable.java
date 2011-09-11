@@ -2,7 +2,7 @@ package net.microscraper.database;
 
 import java.util.Map;
 
-import net.microscraper.console.UUID;
+import net.microscraper.uuid.UUID;
 
 /**
  * An interface for writing to a table via {@link #insert(Map)}.

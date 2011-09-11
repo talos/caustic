@@ -15,10 +15,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import net.microscraper.console.IntUUIDFactory;
-import net.microscraper.console.JavaUtilUUIDFactory;
-import net.microscraper.console.UUID;
-import net.microscraper.console.UUIDFactory;
+import net.microscraper.uuid.IntUUIDFactory;
+import net.microscraper.uuid.JavaUtilUUIDFactory;
+import net.microscraper.uuid.UUID;
+import net.microscraper.uuid.UUIDFactory;
 
 import org.junit.Before;
 import org.junit.Test;

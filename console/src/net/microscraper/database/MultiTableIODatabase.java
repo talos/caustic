@@ -2,10 +2,11 @@ package net.microscraper.database;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import net.microscraper.console.UUID;
-import net.microscraper.console.UUIDFactory;
+import net.microscraper.uuid.UUID;
+import net.microscraper.uuid.UUIDFactory;
 
 /**
  * An implementation of {@link Database} whose subclasses store
@@ -13,7 +14,7 @@ import net.microscraper.console.UUIDFactory;
  * @author talos
  *
  */
-public final class MultiTableDatabase implements IODatabase {
+public final class MultiTableIODatabase implements IODatabase {
 	
 	/**
 	 * String to prepend before table names to prevent collision
@@ -39,12 +40,12 @@ public final class MultiTableDatabase implements IODatabase {
 	
 	/**
 	 * Default column names for {@link IOTable}s result table
-	 * in {@link MultiTableDatabase}.
+	 * in {@link MultiTableIODatabase}.
 	 */
 	public static final String[] RESULT_TABLE_COLUMNS = new String[] { };
 	
 	/**
-	 * Fixed columns for {@link WritableTable} join table in {@link MultiTableDatabase}.
+	 * Fixed columns for {@link WritableTable} join table in {@link MultiTableIODatabase}.
 	 */
 	public static final String[] JOIN_TABLE_COLUMNS = new String[] {
 		SOURCE_COLUMN_NAME,
@@ -109,7 +110,7 @@ public final class MultiTableDatabase implements IODatabase {
 	
 	/**
 	 * 
-	 * @throws IllegalStateException If {@link MultiTableDatabase} has not been opened.
+	 * @throws IllegalStateException If {@link MultiTableIODatabase} has not been opened.
 	 */
 	private void ensureOpen() throws IllegalStateException {
 		if(isOpen == false) {
@@ -118,8 +119,7 @@ public final class MultiTableDatabase implements IODatabase {
 	}
 	
 	
-	public MultiTableDatabase(UUIDFactory idFactory,
-			IOConnection connection) {
+	public MultiTableIODatabase(IOConnection connection, UUIDFactory idFactory) {
 		this.idFactory = idFactory;
 		this.connection = connection;
 	}
@@ -154,21 +154,21 @@ public final class MultiTableDatabase implements IODatabase {
 
 	private String get(String viewName, String id, String name) {
 		ensureOpen();
-		String result;
+		List<String> result;
 		
 		IOTable table = resultTables.get(cleanTableName(viewName));
 		result = table.select(id, name);
-		if(result == null) {
+		if(result.size() == 0) {
 			IOTable joinTable = joinTables.get(cleanTableName(viewName));
 			if(joinTable == null) {
 				result = null;
 			} else {
 				String sourceTableName = sourceTableNames.get(cleanTableName(viewName));
-				String sourceID = joinTable.select(id, VALUE_COLUMN_NAME);
+				String sourceID = joinTable.select(id, VALUE_COLUMN_NAME).get(0);
 				return get(sourceTableName, sourceID, name);
 			}
 		}
-		return result;
+		return result.get(0);
 	}
 	
 	@Override

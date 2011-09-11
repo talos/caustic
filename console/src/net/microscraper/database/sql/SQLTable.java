@@ -1,14 +1,20 @@
-package net.microscraper.database;
+package net.microscraper.database.sql;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
-import net.microscraper.console.UUID;
-import net.microscraper.database.Updateable;
+import javax.management.RuntimeErrorException;
+
+import net.microscraper.database.IOTable;
+import net.microscraper.database.TableManipulationException;
 import net.microscraper.util.StringUtils;
+import net.microscraper.uuid.UUID;
 
 /**
  * A SQL implementation of {@link Updateable} using {@link SQLConnection}.
@@ -16,7 +22,7 @@ import net.microscraper.util.StringUtils;
  * @author talos
  *
  */
-public class SQLTable implements Updateable {
+public class SQLTable implements IOTable {
 	
 	/**
 	 * {@link SQLConnection} used in this {@link SQLTable}.
@@ -28,6 +34,8 @@ public class SQLTable implements Updateable {
 	 */
 	private final String name;
 
+	private final String idColumnName;
+	
 	/**
 	 * The names of all this table's columns.
 	 */
@@ -48,19 +56,34 @@ public class SQLTable implements Updateable {
 				Integer.toString(stringToCheck.indexOf('`')));
 		}
 	}
+
+	public SQLResultSet getResultSet(String id, String[] columnNames) {
+		try {
+			SQLPreparedStatement select = connection.prepareStatement(
+					"SELECT `" + StringUtils.join(columnNames, "`, `") + "` " +
+					"WHERE `" + idColumnName + "` = ?");
+			select.bindStrings(new String[] { id });
+			return select.executeQuery();
+		} catch(SQLConnectionException e) {
+			throw new RuntimeException(); // TODO
+		}
+	}
 	
-	public SQLTable(SQLConnection connection, String name,
+	public SQLTable(SQLConnection connection, String name, String idColumnName,
 			String[] columns) throws SQLConnectionException {
-				
+		
 		preventIllegalBacktick(name);
+		this.idColumnName = idColumnName;
 		this.connection = connection;
 		this.name = name;
 		
-		String[] columnDefinitions = new String[columns.length];
-		for(int i = 0 ; i < columns.length ; i ++) {
+		String[] columnDefinitions = new String[columns.length + 1];
+		for(int i = 1 ; i < columns.length + 1; i ++) {
 			columnDefinitions[i] = columns[i] + " " + connection.textColumnType();
 			this.columns.add(columns[i]);
 		}
+		this.columns.add(idColumnName);
+		columnDefinitions[0] = idColumnName + " " + connection.textColumnType();
 		String columnDefinition = StringUtils.join(columnDefinitions, " , ");
 		
 		SQLPreparedStatement createTable = 
@@ -93,21 +116,17 @@ public class SQLTable implements Updateable {
 		return columns.contains(columnName);
 	}
 	
-	@SuppressWarnings("rawtypes")
 	@Override
-	public void insert(Hashtable map) throws TableManipulationException {
+	public void insert(UUID id, Map<String, String> map) throws TableManipulationException {
 		String[] columnNames = new String[map.size()];
 		String[] parameters = new String[map.size()];
 		String[] columnValues = new String[map.size()];
 		
 		int i = 0;
-		Enumeration enumeration = map.keys();
-		while(enumeration.hasMoreElements()) {
-			String name = (String) enumeration.nextElement();
-			String value =(String) map.get(name);
-			columnNames[i] = "`" + name + "`";
+		for(Map.Entry<String, String> entry : map.entrySet()) {
+			columnNames[i] = "`" + entry.getKey() + "`";
 			parameters[i] = "?";
-			columnValues[i] = value;
+			columnValues[i] = entry.getValue();
 			i++;
 		}
 		
@@ -123,19 +142,16 @@ public class SQLTable implements Updateable {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
-	public void update(String idColumnName, UUID id, Hashtable map)
+	public void update(UUID id, Map<String, String> map)
 			throws TableManipulationException {
 		String[] setStatements = new String[map.size()];
 		String[] values = new String[map.size() + 1];
 		
-		Enumeration enumeration = map.keys();
 		int i = 0;
-		while(enumeration.hasMoreElements()) {
-			String name = (String) enumeration.nextElement();
-			setStatements[i] = "`" + name + "` = ? ";
-			values[i] = (String) map.get(name);
+		for(Map.Entry<String, String> entry : map.entrySet()) {
+			setStatements[i] = "`" + entry.getKey() + "` = ? ";
+			values[i] = entry.getValue();
 		}
 		values[values.length - 1] = id.asString();
 		
@@ -160,14 +176,37 @@ public class SQLTable implements Updateable {
 	}
 
 	@Override
-	public void drop() throws TableManipulationException {
-		try {
-			SQLPreparedStatement drop = connection.prepareStatement(
-					"DROP TABLE `" + name + "`");
-			drop.execute();
-			connection.runBatch();
+	public List<Map<String, String>> select(String id, String[] columnNames) {
+		try  {
+			SQLResultSet rs = getResultSet(id, columnNames);
+			
+			List<Map<String, String>> results = new ArrayList<Map<String, String>>();
+			while(rs.next()) {
+				Map<String, String> map = new HashMap<String, String>();
+				for(String columnName : columnNames) {
+					map.put(columnName, rs.getString(columnName));
+				}
+				results.add(map);
+			}
+			return results;
 		} catch(SQLConnectionException e) {
-			throw new TableManipulationException(e);
+			throw new RuntimeException(e); //TODO
 		}
+	}
+
+	@Override
+	public List<String> select(String id, String columnName) {
+		try  {
+			SQLResultSet rs = getResultSet(id, new String[] { columnName} );
+			
+			List<String> results = new ArrayList<String>();
+			while(rs.next()) {
+				results.add(rs.getString(columnName));
+			}
+			return results;
+		} catch(SQLConnectionException e) {
+			throw new RuntimeException(e); //TODO
+		}
+		
 	}
 }

@@ -5,14 +5,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 
-import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.List;
 
 import mockit.Mocked;
-import mockit.Tested;
-import net.microscraper.console.IntUUIDFactory;
-import net.microscraper.console.UUIDFactory;
+import net.microscraper.database.sql.JDBCSqliteConnection;
+import net.microscraper.uuid.IntUUIDFactory;
+import net.microscraper.uuid.JavaUtilUUIDFactory;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,10 +19,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.sun.javadoc.Type;
 
 @RunWith(Parameterized.class)
 public class DatabaseViewTest {
+	private static final int BATCH_SIZE = 100;
 	@Mocked static private WritableConnection writableConnection;
 	private final Database db;
 	private DatabaseView view;
@@ -35,9 +34,11 @@ public class DatabaseViewTest {
 	@Parameters
 	public static List<Database[]> implementations() {
 		return Arrays.asList(new Database[][] {
-				{ new HashtableDatabase() },
-				{ new SingleTableDatabase(new HashtableDatabase(), writableConnection, new IntUUIDFactory())  },
-				{ new MultiTableDatabase(new HashtableDatabase(), ioConnection ) }
+				{ new SingleTableWritableDatabase(writableConnection, new IntUUIDFactory() )  },
+				{ new SingleTableIODatabase(JDBCSqliteConnection.inMemory(BATCH_SIZE),
+						new JavaUtilUUIDFactory() )  },
+				{ new MultiTableIODatabase(JDBCSqliteConnection.inMemory(BATCH_SIZE),
+						new JavaUtilUUIDFactory() )  }
 		});
 	}
 	

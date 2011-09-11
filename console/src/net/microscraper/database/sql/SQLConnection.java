@@ -1,13 +1,14 @@
-package net.microscraper.database;
+package net.microscraper.database.sql;
 
-import net.microscraper.database.UpdateableConnection;
+import net.microscraper.database.IOConnection;
+
 
 /**
  * An interface to a SQL connection.  Methods similar to {@link java.sql}.
  * @author talos
  *
  */
-public interface SQLConnection extends UpdateableConnection {
+public interface SQLConnection extends IOConnection {
 	
 	/**
 	 * @return A {@link String} to define a primary key, for example <code>
@@ -70,6 +71,6 @@ public interface SQLConnection extends UpdateableConnection {
 	 * @return <code>True</code> if the table exists, <code>false</code> otherwise.
 	 * @throws SQLConnectionException if there is a problem with the {@link SQLConnection}.
 	 */
-	public boolean tableExists(String tableName) throws SQLConnectionException;
+	//public boolean tableExists(String tableName) throws SQLConnectionException;
 
 }

@@ -1,4 +1,4 @@
-package net.microscraper.console;
+package net.microscraper.uuid;
 
 public class IntUUID implements UUID {
 

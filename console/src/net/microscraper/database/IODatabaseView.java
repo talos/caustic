@@ -2,7 +2,7 @@ package net.microscraper.database;
 
 import java.io.IOException;
 
-import net.microscraper.console.UUID;
+import net.microscraper.uuid.UUID;
 
 public class IODatabaseView implements DatabaseView {
 	

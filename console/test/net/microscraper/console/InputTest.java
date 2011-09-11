@@ -5,14 +5,19 @@ import static org.junit.Assert.*;
 
 import java.util.Hashtable;
 
+import mockit.Mocked;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseView;
-import net.microscraper.database.HashtableDatabase;
+import net.microscraper.database.SingleTableWritableDatabase;
+import net.microscraper.database.WritableConnection;
+import net.microscraper.uuid.UUIDFactory;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class InputTest {
+	@Mocked private WritableConnection conn;
+	@Mocked private UUIDFactory idFactory;
 	
 	public static final String PATH_TO_CSVS = "../fixtures/csv/";
 	public static final String PATH_TO_QUERIES = PATH_TO_CSVS + "queries.csv";
@@ -27,7 +32,7 @@ public class InputTest {
 		for(int i = 0 ; i < 4 ; i ++) {
 			shared.put(randomString(), randomString());
 		}
-		database = new HashtableDatabase();
+		database = new SingleTableWritableDatabase(conn, idFactory);
 	}
 	
 	@Test

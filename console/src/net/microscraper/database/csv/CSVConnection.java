@@ -1,9 +1,12 @@
-package net.microscraper.database;
+package net.microscraper.database.csv;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+
+import net.microscraper.database.WritableConnection;
+import net.microscraper.database.WritableTable;
 
 import au.com.bytecode.opencsv.CSVWriter;
 

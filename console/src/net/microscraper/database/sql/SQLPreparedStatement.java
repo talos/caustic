@@ -1,4 +1,4 @@
-package net.microscraper.database;
+package net.microscraper.database.sql;
 
 /**
  * A precompiled SQL statement.  Obtained from {@link SQLConnection#prepareStatement(String)}.

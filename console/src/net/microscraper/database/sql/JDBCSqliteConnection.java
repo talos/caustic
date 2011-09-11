@@ -1,4 +1,4 @@
-package net.microscraper.database;
+package net.microscraper.database.sql;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -9,8 +9,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.microscraper.database.Updateable;
-import net.microscraper.database.Insertable;
+import net.microscraper.database.IOTable;
+import net.microscraper.database.WritableTable;
 
 /**
  * An implementation of {@link SQLConnection} for org.sqlite.JDBC
@@ -19,6 +19,8 @@ import net.microscraper.database.Insertable;
  *
  */
 public class JDBCSqliteConnection implements SQLConnection {
+	public static final String ID_COLUMN_NAME = "id";
+	
 	private Connection connection;
 	private final int batchSize;
 	private final String connectionPath;
@@ -70,6 +72,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 			runBatch(); // queries should be executed against updated data.
 			try {
 				return new JDBCSQLiteCursor(statement.executeQuery());
+				
 			} catch(SQLException e) {
 				throw new SQLConnectionException(e);
 			}
@@ -186,7 +189,8 @@ public class JDBCSqliteConnection implements SQLConnection {
 			throws SQLConnectionException {
 		return new JDBCSqliteStatement(connection, sql);
 	}
-
+	
+	/*
 	@Override
 	public boolean tableExists(String tableName) throws SQLConnectionException {
 		SQLPreparedStatement checkTableExistence =
@@ -195,7 +199,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 		checkTableExistence.bindStrings(new String[] { tableName });
 		SQLResultSet results = checkTableExistence.executeQuery();
 		return results.next();
-	}
+	}*/
 
 	/**
 	 * Open {@link JDBCSqliteConnection} using org.sqlite.JDBC.
@@ -214,15 +218,21 @@ public class JDBCSqliteConnection implements SQLConnection {
 	}
 	
 	@Override
-	public Updateable newUpdateable(String name, String[] textColumns)
+	public IOTable newIOTable(String name, String[] textColumns)
 			throws IOException {
 		try {
-			Updateable table = new SQLTable(this, name, textColumns);
+			IOTable table = new SQLTable(this, name, ID_COLUMN_NAME, textColumns);
 			runBatch();
 			return table;
 		} catch(SQLConnectionException e) {
 			throw new IOException(e);
 		}
+	}
+
+	@Override
+	public WritableTable newWritable(String name, String[] columnNames)
+			throws IOException {
+		return newIOTable(name, columnNames);
 	}
 
 	@Override
@@ -236,10 +246,5 @@ public class JDBCSqliteConnection implements SQLConnection {
 			throw new IOException(e);
 		}
 	}
-	
-	@Override
-	public Insertable newInsertable(String name, String[] textColumns)
-			throws IOException {
-		return newUpdateable(name, textColumns);
-	}
+
 }

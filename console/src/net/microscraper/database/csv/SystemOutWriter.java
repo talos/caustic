@@ -1,4 +1,4 @@
-package net.microscraper.database;
+package net.microscraper.database.csv;
 
 import java.io.IOException;
 import java.io.Writer;

@@ -1,9 +1,10 @@
 package net.microscraper.database;
 
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
-import net.microscraper.console.UUID;
+import net.microscraper.uuid.UUID;
 
 /**
  * A {@link IOTable} interface supports reading, updating, and adding columns
@@ -34,14 +35,20 @@ public interface IOTable extends WritableTable {
 	public abstract String[] getColumnNames();
 	
 	/**
-	 * Select a single column of data from  {@link IOTable}.
-	 * @param uuid the {@link UUID} of the row to update.
+	 * Select several columns of data from  {@link IOTable}.
 	 * 
 	 * @throws TableManipulationException if the row could not be updated.
 	 */
-	//public abstract String select(UUID uuid, String columnName);
+	public abstract List<Map<String, String>> select(String id, String[] columnNames);
+	
 
-	public abstract String select(String id, String valueColumnName);
+	/**
+	 * Select one column of data from  {@link IOTable}.
+	 * 
+	 * @throws TableManipulationException if the row could not be updated.
+	 */
+	public abstract List<String> select(String id, String columnName);
+	
 	
 	/**
 	 * Update an existing row in the {@link IOTable}.

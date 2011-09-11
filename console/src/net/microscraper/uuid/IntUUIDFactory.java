@@ -1,4 +1,4 @@
-package net.microscraper.console;
+package net.microscraper.uuid;
 
 public class IntUUIDFactory implements UUIDFactory {
 	private int curId = -1;

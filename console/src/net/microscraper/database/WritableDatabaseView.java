@@ -2,7 +2,7 @@ package net.microscraper.database;
 
 import java.io.IOException;
 
-import net.microscraper.console.UUID;
+import net.microscraper.uuid.UUID;
 
 /**
  * A {@link DatabaseView} backed by another {@link DatabaseView}, most likely an
@@ -10,12 +10,12 @@ import net.microscraper.console.UUID;
  * @author talos
  *
  */
-public class BackedWritableDatabaseView implements DatabaseView {
+public class WritableDatabaseView implements DatabaseView {
 	private final WritableDatabase db;
 	private final UUID id;
 	private final DatabaseView view;
 	
-	public BackedWritableDatabaseView(DatabaseView view, WritableDatabase db, UUID id) {
+	public WritableDatabaseView(DatabaseView view, WritableDatabase db, UUID id) {
 		this.db = db;
 		this.id = id;
 		this.view = view;
@@ -24,13 +24,13 @@ public class BackedWritableDatabaseView implements DatabaseView {
 	@Override
 	public DatabaseView spawnChild(String name) throws TableManipulationException {
 		UUID childId = db.insertOneToMany(id, name);
-		return new BackedWritableDatabaseView(view, db, childId);
+		return new WritableDatabaseView(view, db, childId);
 	}
 
 	@Override
 	public DatabaseView spawnChild(String name, String value) throws TableManipulationException {
 		UUID childId = db.insertOneToMany(id, name, value);
-		return new BackedWritableDatabaseView(view, db, childId);
+		return new WritableDatabaseView(view, db, childId);
 	}
 	
 	@Override

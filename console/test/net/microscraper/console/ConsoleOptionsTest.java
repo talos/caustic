@@ -14,12 +14,15 @@ import static org.junit.Assert.*;
 
 import java.util.Hashtable;
 
+import mockit.Mocked;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseView;
-import net.microscraper.database.HashtableDatabase;
+import net.microscraper.database.SingleTableWritableDatabase;
+import net.microscraper.database.WritableConnection;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.JavaNetEncoder;
+import net.microscraper.uuid.IntUUIDFactory;
 
 import org.junit.Test;
 
@@ -57,8 +60,11 @@ public class ConsoleOptionsTest {
 	}
 	
 	@Test
-	public void testInputIsTheSameWithQuotesOrWithout() throws Exception {
-		Database database = new HashtableDatabase();
+	public void testInputIsTheSameWithQuotesOrWithout(
+			@Mocked final WritableConnection connection
+			) throws Exception {
+		Database db = new SingleTableWritableDatabase(connection, new IntUUIDFactory());
+		
 		Hashtable<String, String> origHash = new Hashtable<String, String>();
 		for(int i = 0 ; i < 10 ; i ++) {
 			origHash.put(randomString(), randomString());
@@ -71,8 +77,8 @@ public class ConsoleOptionsTest {
 		ConsoleOptions withoutQuotes = new ConsoleOptions(new String[] { randomString(),
 				INPUT + "=" + defaults });
 		
-		DatabaseView viewWithQuotes = withQuotes.getInput().next(database);
-		DatabaseView viewWithoutQuotes = withoutQuotes.getInput().next(database);
+		DatabaseView viewWithQuotes = withQuotes.getInput().next(db);
+		DatabaseView viewWithoutQuotes = withoutQuotes.getInput().next(db);
 		
 		for(String key : origHash.keySet()) {
 			assertEquals(origHash.get(key), viewWithQuotes.get(key));

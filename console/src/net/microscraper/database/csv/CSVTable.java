@@ -1,12 +1,14 @@
-package net.microscraper.database;
+package net.microscraper.database.csv;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import net.microscraper.console.UUID;
+import net.microscraper.database.TableManipulationException;
+import net.microscraper.database.WritableTable;
 import net.microscraper.util.StringUtils;
+import net.microscraper.uuid.UUID;
 
 import au.com.bytecode.opencsv.CSVWriter;
 

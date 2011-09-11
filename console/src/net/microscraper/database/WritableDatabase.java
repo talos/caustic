@@ -1,6 +1,6 @@
 package net.microscraper.database;
 
-import net.microscraper.console.UUID;
+import net.microscraper.uuid.UUID;
 
 public interface WritableDatabase extends Database {
 	public void insertOneToOne(UUID id, String name) throws TableManipulationException;
