@@ -23,33 +23,25 @@ public class CSVTable implements WritableTable {
 	public CSVTable(CSVWriter writer, String[] columns) {
 		this.writer = writer;
 		this.headers = new ArrayList<String>(Arrays.asList(columns));
-		this.headers.add(0, ID_COLUMN);
-		writer.writeNext(this.headers.toArray(new String[0]));
+		this.writer.writeNext(this.headers.toArray(new String[this.headers.size()]));
 	}
 
 	@Override
 	public void insert(UUID id, Map<String, String> insertMap) throws TableManipulationException {
-		/*if(insertMap.size() > headers.size()) {
-			throw new TableManipulationException(StringUtils.quote(insertMap.toString()) + " is too wide for " +
-					StringUtils.join(headers.toArray(new String[0]), ", "));
-		}*/
 		if(!headers.containsAll(insertMap.keySet())) {
 			throw new TableManipulationException(StringUtils.quote(insertMap.toString()) +
 					" has key not contained in " + StringUtils.quote(headers.toString()));
 		}
 		
 		// CSVWriter can handle null elements.
-		String[] valuesInOrder = new String[headers.size()];
+		String[] valuesInOrder = new String[headers.size() + 1];
 		for(int i = 0 ; i < headers.size(); i ++) {
 			String columnName = headers.get(i);
 			if(insertMap.containsKey(columnName)) {
-				valuesInOrder[i] = (String) insertMap.get(columnName);
-			}/* else {
-				throw new TableManipulationException(StringUtils.quote(columnName) +
-						" could not be found in " +
-						StringUtils.quote(insertMap.toString()));
-			}*/
+				valuesInOrder[i + 1] = (String) insertMap.get(columnName);
+			}
 		}
+		valuesInOrder[0] = id.asString();
 		writer.writeNext(valuesInOrder);
 	}
 }

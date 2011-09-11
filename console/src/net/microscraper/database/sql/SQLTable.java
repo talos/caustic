@@ -65,6 +65,7 @@ public class SQLTable implements IOTable {
 			select.bindStrings(new String[] { id });
 			return select.executeQuery();
 		} catch(SQLConnectionException e) {
+			e.printStackTrace();
 			throw new RuntimeException(); // TODO
 		}
 	}
@@ -78,8 +79,8 @@ public class SQLTable implements IOTable {
 		this.name = name;
 		
 		String[] columnDefinitions = new String[columns.length + 1];
-		for(int i = 1 ; i < columns.length + 1; i ++) {
-			columnDefinitions[i] = columns[i] + " " + connection.textColumnType();
+		for(int i = 0 ; i < columns.length; i ++) {
+			columnDefinitions[i + 1] = columns[i] + " " + connection.textColumnType();
 			this.columns.add(columns[i]);
 		}
 		this.columns.add(idColumnName);
@@ -118,17 +119,20 @@ public class SQLTable implements IOTable {
 	
 	@Override
 	public void insert(UUID id, Map<String, String> map) throws TableManipulationException {
-		String[] columnNames = new String[map.size()];
-		String[] parameters = new String[map.size()];
-		String[] columnValues = new String[map.size()];
+		String[] columnNames = new String[map.size() + 1];
+		String[] parameters = new String[map.size() + 1];
+		String[] columnValues = new String[map.size() + 1];
 		
-		int i = 0;
+		int i = 1;
 		for(Map.Entry<String, String> entry : map.entrySet()) {
 			columnNames[i] = "`" + entry.getKey() + "`";
 			parameters[i] = "?";
 			columnValues[i] = entry.getValue();
 			i++;
 		}
+		columnNames[0] = idColumnName;
+		parameters[0] = "?";
+		columnValues[0] = id.asString();
 		
 		try {
 			SQLPreparedStatement insert = connection.prepareStatement(

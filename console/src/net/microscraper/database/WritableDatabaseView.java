@@ -22,15 +22,15 @@ public class WritableDatabaseView implements DatabaseView {
 	}
 	
 	@Override
-	public DatabaseView spawnChild(String name) throws TableManipulationException {
+	public DatabaseView spawnChild(String name) throws IOException {
 		UUID childId = db.insertOneToMany(id, name);
-		return new WritableDatabaseView(view, db, childId);
+		return new WritableDatabaseView(view.spawnChild(name), db, childId);
 	}
 
 	@Override
-	public DatabaseView spawnChild(String name, String value) throws TableManipulationException {
+	public DatabaseView spawnChild(String name, String value) throws IOException {
 		UUID childId = db.insertOneToMany(id, name, value);
-		return new WritableDatabaseView(view, db, childId);
+		return new WritableDatabaseView(view.spawnChild(name, value), db, childId);
 	}
 	
 	@Override

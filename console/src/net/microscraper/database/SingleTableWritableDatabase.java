@@ -19,8 +19,8 @@ public class SingleTableWritableDatabase extends SingleTableDatabase implements
 	
 	@Override
 	public void open() throws IOException {
-		table = connection.newWritable(TABLE_NAME, COLUMN_NAMES);
 		connection.open();
+		table = connection.newWritable(TABLE_NAME, COLUMN_NAMES);
 	}
 
 	@Override

@@ -8,7 +8,7 @@ import static org.junit.Assert.assertNull;
 import java.util.Arrays;
 import java.util.List;
 
-import mockit.Mocked;
+import net.microscraper.database.csv.CSVConnection;
 import net.microscraper.database.sql.JDBCSqliteConnection;
 import net.microscraper.uuid.IntUUIDFactory;
 import net.microscraper.uuid.JavaUtilUUIDFactory;
@@ -23,7 +23,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class DatabaseViewTest {
 	private static final int BATCH_SIZE = 100;
-	@Mocked static private WritableConnection writableConnection;
+	private static final char DELIMITER = ',';
 	private final Database db;
 	private DatabaseView view;
 	
@@ -34,7 +34,8 @@ public class DatabaseViewTest {
 	@Parameters
 	public static List<Database[]> implementations() {
 		return Arrays.asList(new Database[][] {
-				{ new SingleTableWritableDatabase(writableConnection, new IntUUIDFactory() )  },
+				{ new SingleTableWritableDatabase(CSVConnection.toSystemOut(DELIMITER),
+						new IntUUIDFactory() )  },
 				{ new SingleTableIODatabase(JDBCSqliteConnection.inMemory(BATCH_SIZE),
 						new JavaUtilUUIDFactory() )  },
 				{ new MultiTableIODatabase(JDBCSqliteConnection.inMemory(BATCH_SIZE),
