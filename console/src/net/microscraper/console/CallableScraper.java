@@ -34,14 +34,17 @@ public class CallableScraper implements Callable<ScraperResult> {
 			Scraper[] children = result.getChildren();
 			log.i("Scraper " + StringUtils.quote(scraper) + " is successful, adding "
 					+ children.length + " children to queue.");
-			for(int i = 0 ; i < children.length ; i ++) {
-				runner.submit(children[i]);
+			for(Scraper child : children) {
+				runner.submit(child);
 			}
 		} else if(result.isMissingTags()) { // resubmit if missing tags
 			log.i("Scraper " + scraper + " is missing tags " + 
-					StringUtils.quoteJoin(result.getMissingTags(), ", ") + ", trying" +
+					StringUtils.quoteJoin(result.getMissingTags(), ", ") + ", trying " +
 					"again later.");
 			runner.resubmit(scraper);
+		} else {
+			log.i("Scraper " + scraper + " failed: " + 
+					StringUtils.quote(result.getFailedBecause()));
 		}
 		
 		return result;

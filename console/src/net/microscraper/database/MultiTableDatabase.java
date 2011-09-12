@@ -1,6 +1,7 @@
 package net.microscraper.database;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -133,16 +134,14 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	private void addLink(UUID scope, UUID optSource, String name, String optValue)
 				throws TableManipulationException{
 		Map<String, String> insertMap = new HashMap<String, String>();
-		insertMap.put(NAME_COLUMN_NAME, DEFAULT_TABLE_NAME);
+		insertMap.put(NAME_COLUMN_NAME, name);
 		if(optSource != null) {
 			insertMap.put(SOURCE_COLUMN_NAME, optSource.asString());
 		}
 		if(optValue != null) {
 			insertMap.put(VALUE_COLUMN_NAME, optValue);
 		}
-		
 		relationshipTable.insert(scope, insertMap);
-		
 	}
 	
 	/**
@@ -181,11 +180,16 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	}
 	
 	@Override
-	public DatabaseView newView() throws TableManipulationException {
+	public DatabaseView newView() throws IOException {
 		ensureOpen();
 		UUID scope = idFactory.get();
 		// insert the fact that this is a default scope into joinTable
 		addLink(scope, null, DEFAULT_TABLE_NAME, null);
+		
+		// insert blank row into default table
+		IOTable defaultTable = getResultTable(scope);
+		Map<String, String> emptyMap = Collections.emptyMap();
+		defaultTable.insert(scope, emptyMap);
 		
 		return new PersistedDatabaseView(this, scope);
 	}
@@ -193,18 +197,19 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	/**
 	 * Retrieve a particular value from scope and name.
 	 * @param id The {@link UUID} scope of the value to retrieve.
-	 * @param name The {@link String} name of the value.
+	 * @param columnName The {@link String} name of the value.
 	 * @return The {@link String} value, or <code>null</code> if it does not exist.
 	 */
 	@Override
-	public String get(UUID scope, String name) throws IOException {
+	public String get(UUID scope, String tagName) throws IOException {
 		ensureOpen();
 		
+		String columnName = cleanColumnName(tagName);
 		IOTable resultTable = getResultTable(scope);
 		
 		if(resultTable != null) {
-			if(resultTable.hasColumn(name)) { // has the column
-				List<String> values = resultTable.select(scope, name);
+			if(resultTable.hasColumn(columnName)) { // has the column
+				List<String> values = resultTable.select(scope, columnName);
 				if(values.size() == 1 && values.get(0) != null) {
 					return values.get(0);
 				} else if(values.size() > 1) {
@@ -214,35 +219,54 @@ public final class MultiTableDatabase implements PersistedDatabase {
 		}
 		
 		// not there, check source tables
-		List<String> sources = relationshipTable.select(scope, SOURCE_COLUMN_NAME);
-		if(sources.size() == 1) {
-			if(sources.get(0) == null) { // already at highest level
-				return null;
-			} else {
-				return get(new DeserializedUUID(sources.get(0)), name);
+		List<Map<String, String>> links = relationshipTable.select(scope,
+				new String[] { NAME_COLUMN_NAME, SOURCE_COLUMN_NAME, VALUE_COLUMN_NAME } );
+		if(links.size() == 1) {
+			Map<String, String> link = links.get(0);
+			// check the link itself for the value.
+			
+			if(link.get(NAME_COLUMN_NAME).equals(columnName)) {
+				String linkValue = link.get(VALUE_COLUMN_NAME);
+				if(linkValue != null) {
+					return link.get(VALUE_COLUMN_NAME);
+				}
 			}
-		} else if(sources.size() == 0) {
-			throw new IOException("Missing entry in join table for scope " + scope);
+			
+			// not in the link itself, check the source table.
+			if(link.get(SOURCE_COLUMN_NAME) != null) {
+				return get(new DeserializedUUID(link.get(SOURCE_COLUMN_NAME)), columnName);
+			} else {
+				return null;
+			}
+		} else if(links.size() == 0) {
+			throw new IOException("Missing source in relationships table for scope " + scope);
 		} else {
-			throw new IOException("Multiple entries in join table for scope " + scope);
+			throw new IOException("Multiple sources in relationships table for scope " + scope);
 		}
 		
 	}
 	
 	@Override
 	public void insertOneToOne(UUID id, String name)
-			throws TableManipulationException {
-		// no-op
+			throws IOException {
+		insertOneToOne(id, name, null);
 	}
 
 	@Override
-	public void insertOneToOne(UUID id, String name, String value)
+	public void insertOneToOne(UUID scope, String name, String optValue)
 			throws IOException {
-		IOTable table = getResultTable(id);
+		IOTable table = getResultTable(scope);
+		String columnName = cleanColumnName(name);
+		
+		// add column if it doesn't exist in table yet. luxury!
+		if(!table.hasColumn(columnName)) {
+			table.addColumn(columnName);
+		}
 		
 		Map<String, String> updateMap = new HashMap<String, String>();
-		updateMap.put(cleanColumnName(name), value);
-		table.update(id, updateMap);
+		updateMap.put(columnName, optValue);
+		
+		table.update(scope, updateMap);
 	}
 
 	@Override
@@ -253,14 +277,20 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	@Override
 	public PersistedDatabaseView insertOneToMany(UUID source, String name, String value) throws IOException {
 		UUID scope = idFactory.get();
+		String tableName = cleanTableName(name);
 		
 		// add to relationship table
-		addLink(scope, source, name, value);
+		addLink(scope, source, tableName, value);
 		
-		// create new result table
-		connection.newIOTable(name, RESULT_TABLE_COLUMNS);
+		// create new result table, insert row
+		IOTable table = connection.getIOTable(tableName);
+		if(table == null) {
+			table = connection.newIOTable(tableName, RESULT_TABLE_COLUMNS);
+		}
+		Map<String, String> emptyMap = Collections.emptyMap();
+		table.insert(scope, emptyMap);
 		
-		// insert into result table
+		// update result table
 		insertOneToOne(scope, name, value);
 		
 		return new PersistedDatabaseView(this, scope);

@@ -3,6 +3,8 @@ package net.microscraper.template;
 import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
 
+import java.util.Hashtable;
+
 import net.microscraper.database.DatabaseView;
 import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.util.Encoder;
@@ -36,32 +38,66 @@ public class HashtableTemplateTest {
 	public void testSizeStartsZero() {
 		assertEquals(0, new HashtableTemplate().size());
 	}
-
+	
 	@Test
 	public void testSubSuccessful() throws Exception {
 		HashtableTemplate hash = new HashtableTemplate();
 		hash.put(new StringTemplate("{{" + key + "}}", "{{" ,"}}"),
-				new StringTemplate("{{" + value + "}}", "{{", "}}"));
-		hash.put(new StringTemplate("{{" + multiWordKey + "}}", "{{" ,"}}"),
-				new StringTemplate("{{" + multiWordValue + "}}", "{{", "}}"));
+				StringTemplate.staticTemplate(value));
+		hash.put(StringTemplate.staticTemplate(multiWordKey), 
+				new StringTemplate("{{" + multiWordKey + "}}", "{{" ,"}}"));
 		hash.put(new StringTemplate("{{" + alreadyEncodedKey + "}}", "{{" ,"}}"),
-				new StringTemplate("{{" + alreadyEncodedValue + "}}", "{{", "}}"));
+				new StringTemplate("{{" + alreadyEncodedKey + "}}", "{{" ,"}}"));
 		HashtableSubstitution exc = hash.sub(input);
 		
 		assertFalse(exc.isMissingTags());
 		
-		exc.getSubstituted();
+		@SuppressWarnings("unchecked")
+		Hashtable<String, String> subbed = exc.getSubstituted();
 		
-	}
-	
-	@Test
-	public void testSubEncoded() {
-		fail("Not yet implemented");
+		assertTrue(subbed.containsKey(value));
+		assertEquals(value, subbed.get(value));
+		
+		assertTrue(subbed.containsKey(multiWordKey));
+		assertEquals(multiWordValue, subbed.get(multiWordKey));
+		
+		assertTrue(subbed.containsKey(alreadyEncodedValue));
+		assertEquals(alreadyEncodedValue, subbed.get(alreadyEncodedValue));
+
 	}
 
 	@Test
-	public void testMerge() {
-		fail("Not yet implemented");
+	public void testMerge() throws Exception {
+		HashtableTemplate hash1 = new HashtableTemplate();
+		HashtableTemplate hash2 = new HashtableTemplate();
+		
+		hash1.put(StringTemplate.staticTemplate(key),
+				new StringTemplate("{{" + key + "}}", "{{", "}}"));
+		hash2.put(StringTemplate.staticTemplate(multiWordKey), 
+				new StringTemplate("{{" + multiWordKey + "}}", "{{", "}}"));
+		
+		hash1.merge(hash2);
+		
+		HashtableSubstitution sub = hash1.sub(input);
+		assertFalse(sub.isMissingTags());
+		
+		@SuppressWarnings("unchecked")
+		Hashtable<String, String> subbed = sub.getSubstituted();
+		assertTrue(subbed.containsKey(key));
+		assertEquals(value, subbed.get(key));
+		assertTrue(subbed.containsKey(multiWordKey));
+		assertEquals(multiWordValue, subbed.get(multiWordKey));
 	}
 
+	@Test(expected = HashtableSubstitutionOverwriteException.class)
+	public void testOverwriteException() throws Exception {
+		HashtableTemplate hash = new HashtableTemplate();
+		
+		hash.put(StringTemplate.staticTemplate(value),
+				new StringTemplate("{{" + key + "}}", "{{", "}}"));
+		hash.put(new StringTemplate("{{" + key + "}}", "{{", "}}"), 
+				new StringTemplate("{{" + multiWordKey + "}}", "{{", "}}"));
+				
+		hash.sub(input);
+	}
 }

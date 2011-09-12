@@ -66,10 +66,24 @@ public class HttpRequesterTest {
 	
 	@Test
 	public void testGetGoogleContent() throws Exception {
-		HttpResponse response = requester.get("http://www.google.com", new Hashtable() {});
+		HttpResponse response = requester.get("http://www.google.com", new Hashtable());
 		assertTrue(response.isSuccess());
 		InputStreamReader contentStream = response.getContentStream();
 		assertTrue(getString(contentStream).contains("google"));
+	}
+
+	@Test
+	public void testGetGoogleContentQueryWithHeaders() throws Exception {
+		Hashtable<String, String> headers = new Hashtable<String, String>();
+		headers.put(HttpBrowser.ACCEPT_HEADER_NAME, HttpBrowser.ACCEPT_HEADER_DEFAULT_VALUE);
+		headers.put(HttpBrowser.ACCEPT_LANGUAGE_HEADER_NAME, HttpBrowser.ACCEPT_LANGUAGE_HEADER_DEFAULT_VALUE);
+		headers.put(HttpBrowser.REFERER_HEADER_NAME, "http://www.google.com/search?q=bleh");
+		headers.put(HttpBrowser.USER_AGENT_HEADER_NAME, HttpBrowser.USER_AGENT_HEADER_DEFAULT_VALUE);
+		HttpResponse response = requester.get("http://www.google.com/search?q=bleh", headers);
+		
+		assertTrue(response.isSuccess());
+		InputStreamReader contentStream = response.getContentStream();
+		assertTrue(getString(contentStream).contains("bleh"));
 	}
 	
 	@Test

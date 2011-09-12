@@ -78,7 +78,7 @@ public class ScraperRunner implements Loggable {
 	
 	public void submit(Scraper scraper) {
 		synchronized(futures) {
-			executor.submit(new CallableScraper(scraper, this, log));
+			futures.add(executor.submit(new CallableScraper(scraper, this, log)));
 		}
 	}
 	

@@ -176,6 +176,17 @@ public class Find implements Instruction {
 					}
 				}
 				
+				// TODO move this to above, invert children/matches
+				/*if(children.length == 0) {
+					for(int i = 0 ; i < matches.length ; i ++) {
+						if(nameStr == null) {
+							input.spawnChild(pattern.toString());
+						} else{ 
+							input.spawnChild(nameStr, matches[i]);
+						}
+					}
+				}*/
+				
 				if(nameStr == null) {
 					result = ScraperResult.success(pattern.toString(), matches, scraperChildren);
 				} else {

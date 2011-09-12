@@ -2,11 +2,9 @@ package net.microscraper.database.sql;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 
 import net.microscraper.database.IOTable;
 import net.microscraper.database.TableManipulationException;
@@ -115,6 +113,7 @@ public class SQLTable implements IOTable {
 	
 	@Override
 	public void insert(UUID id, Map<String, String> map) throws TableManipulationException {
+		
 		String[] columnNames = new String[map.size() + 1];
 		String[] parameters = new String[map.size() + 1];
 		String[] columnValues = new String[map.size() + 1];
@@ -143,24 +142,31 @@ public class SQLTable implements IOTable {
 	}
 
 	@Override
-	public void update(UUID id, Map<String, String> map)
+	public void update(UUID scope, Map<String, String> map)
 			throws TableManipulationException {
+		if(map.size() == 0) {
+			throw new TableManipulationException("Must provide values to update.");
+		}
+		
 		String[] setStatements = new String[map.size()];
-		String[] values = new String[map.size() + 1];
+		String[] values = new String[map.size() + 1]; // extra value for scope
 		
 		int i = 0;
 		for(Map.Entry<String, String> entry : map.entrySet()) {
 			setStatements[i] = "`" + entry.getKey() + "` = ? ";
 			values[i] = entry.getValue();
+			i++;
 		}
-		values[values.length - 1] = id.asString();
+		
+		// bind the very last parameter to scope
+		values[values.length - 1] = scope.asString();
 		
 		String set = " SET " + StringUtils.join(setStatements, ", ");
 		
 		try {
 			SQLPreparedStatement update = connection.prepareStatement(
-					"UPDATE `" + name + "` " + set +
-					"WHERE `" + scopeColumnName + "` = ?");
+					" UPDATE `" + name + "` " + set +
+					" WHERE `" + scopeColumnName + "` = ?");
 			update.bindStrings(values);
 			update.execute();
 		} catch (SQLConnectionException e) {

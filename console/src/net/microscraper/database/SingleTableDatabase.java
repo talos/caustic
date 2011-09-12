@@ -32,16 +32,15 @@ public class SingleTableDatabase implements PersistedDatabase {
 	}
 	
 	@Override
-	public void insertOneToOne(UUID id, String name)
-			throws TableManipulationException {
-		SingleTable.insert(table, id, null, name, null);
+	public void insertOneToOne(UUID id, String name) throws IOException {
+		SingleTable.update(table, id, null, name, null);
 	}
 
 	@Override
-	public void insertOneToOne(UUID id, String name, String value) throws TableManipulationException {
-		SingleTable.insert(table, id, null, name, value);
+	public void insertOneToOne(UUID id, String name, String value) throws IOException {
+		SingleTable.update(table, id, null, name, value);
 	}
-
+	
 	@Override
 	public PersistedDatabaseView insertOneToMany(UUID source, String name) throws TableManipulationException, IOException {
 		return insertOneToMany(source, name, null);
@@ -51,7 +50,7 @@ public class SingleTableDatabase implements PersistedDatabase {
 	public PersistedDatabaseView insertOneToMany(UUID source, String name, String value) throws TableManipulationException,
 			IOException {
 		UUID scope = idFactory.get();
-		SingleTable.insert(table, scope, source, name, value);
+		SingleTable.update(table, scope, source, name, value);
 		return new PersistedDatabaseView(this, scope);
 	}
 

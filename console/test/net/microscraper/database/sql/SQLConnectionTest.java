@@ -53,7 +53,6 @@ public class SQLConnectionTest {
 		
 		List<Map<String, String>> selectedMaps = table.select(scope, columns);
 		assertEquals("Should only return one row", 1, selectedMaps.size());
-		
 		for(Map<String, String> selectedMap : selectedMaps) {
 			assertTrue("Selected map missing key(s).", selectedMap.keySet().containsAll(map.keySet()));
 			assertTrue("Selected map missing value(s).", selectedMap.values().containsAll(map.values()));
@@ -67,6 +66,16 @@ public class SQLConnectionTest {
 				assertEquals("Unexpected value retrieved.", map.get(column), value);
 			}
 		}
+		
+		String addColumn = randomString();
+		String addValue = randomString();
+		Map<String, String> addColumnMap = new HashMap<String, String>();
+		addColumnMap.put(addColumn, addValue);
+		
+		table.addColumn(addColumn);
+		table.update(scope, addColumnMap);
+		assertEquals("Should have updated row", 1, table.select(scope, addColumn).size());
+		assertEquals("Should have populated added column", addValue, table.select(scope, addColumn).get(0));
 	}
 
 }

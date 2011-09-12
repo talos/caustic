@@ -18,7 +18,8 @@ import org.junit.runners.Suite.SuiteClasses;
 	DatabaseViewTest.class,
 	MapUtilsTest.class,
 	UUIDFactoryTest.class,
-	SQLConnectionTest.class
+	SQLConnectionTest.class,
+	DatabaseViewTest.class
 })
 public class LocalTests {
 

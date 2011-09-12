@@ -14,7 +14,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 
 public class CSVTable implements WritableTable {
 
-	public static final String ID_COLUMN = "id";
+	public static final String SCOPE_COLUMN = "scope";
 	
 	private final CSVWriter writer;
 
@@ -23,7 +23,15 @@ public class CSVTable implements WritableTable {
 	public CSVTable(CSVWriter writer, String[] columns) {
 		this.writer = writer;
 		this.headers = new ArrayList<String>(Arrays.asList(columns));
-		this.writer.writeNext(this.headers.toArray(new String[this.headers.size()]));
+		
+		// headersAry has to include scope column
+		String[] headersAry = new String[columns.length + 1];
+		headersAry[0] = SCOPE_COLUMN;
+		for(int i = 0 ; i < columns.length ; i ++) {
+			headersAry[i + 1] = columns[i];
+		}
+		
+		this.writer.writeNext(headersAry);
 	}
 
 	@Override

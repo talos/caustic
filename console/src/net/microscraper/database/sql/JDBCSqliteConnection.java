@@ -242,9 +242,8 @@ public class JDBCSqliteConnection implements SQLConnection {
 			
 			String definitionStr = "`" + ID_COLUMN_NAME + "` " + textColumnType();
 			for(String columnName : columnNames) {
-				definitionStr += "`" + columnName + "` " + textColumnType() + ",";
+				definitionStr += ",`" + columnName + "` " + textColumnType();
 			}
-			definitionStr = definitionStr.substring(0, definitionStr.length() - 1);
 			
 			SQLPreparedStatement createTable = 
 					prepareStatement("CREATE TABLE `" + name + "` (" +

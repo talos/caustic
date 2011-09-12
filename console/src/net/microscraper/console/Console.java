@@ -53,50 +53,53 @@ public class Console {
 	 * giving a readout of what happened.
 	 *
 	 */
-	public static final Thread shutdownThread = new Thread() {
-		public void run() {
-			
-			
-			//println(statusLine(successful, stuck, failed));
-			
-			try {
-				logger.close();
-			} catch (IOException e) {
-				println("Could not close logger " + StringUtils.quote(logger) + ": " + e.getMessage());
+	public static Thread getShutdownThread() {
+		return new Thread() {
+			public void run() {
+				
+				//println(statusLine(successful, stuck, failed));
+				
+				try {
+					logger.close();
+				} catch (IOException e) {
+					println("Could not close logger " + StringUtils.quote(logger) + ": " + e.getMessage());
+				}
+				
+				try {
+					input.close();
+				} catch(IOException e) {
+					println("Could not close input " + StringUtils.quote(input) + ": " + e.getMessage());
+				}
+				try {
+					database.close();
+				} catch(IOException e) {
+					println("Could not close database " + StringUtils.quote(database) + ": " + e.getMessage());
+				}
 			}
-			
-			try {
-				input.close();
-			} catch(IOException e) {
-				println("Could not close input " + StringUtils.quote(input) + ": " + e.getMessage());
-			}
-			try {
-				database.close();
-			} catch(IOException e) {
-				println("Could not close database " + StringUtils.quote(database) + ": " + e.getMessage());
-			}
-		}
-	};
+		};
+	}
 	
 	/**
 	 * 
 	 */
-	public static final Thread inputThread = new Thread() {
-		@Override
-		public void run() {
-			DatabaseView view;
-			try {
-				while((view = input.next(database)) != null) {
-					runner.submit(new Scraper(
-							instruction, view,
-							source));
+	public static Thread getInputThread() {
+		return new Thread() {
+			@Override
+			public void run() {
+				DatabaseView view;
+				try {
+					while((view = input.next(database)) != null) {
+						runner.submit(new Scraper(
+								instruction, view,
+								source));
+					}
+				} catch(IOException e) {
+					logger.i("Terminated input");
+					logger.e(e);
 				}
-			} catch(IOException e) {
-				logger.i("Terminated input");
-				logger.e(e);
 			}
-		}
-	};
+		};
+	}
 	
 	public static void main (String... stringArgs) {
 		
@@ -124,7 +127,7 @@ public class Console {
 			return;
 		}
 		
-		Runtime.getRuntime().addShutdownHook(shutdownThread);
+		Runtime.getRuntime().addShutdownHook(getShutdownThread());
 		try {
 			logger.open();
 			database.open();
@@ -136,6 +139,7 @@ public class Console {
 		}
 		
 		// Start to read input.
+		Thread inputThread = getInputThread();
 		inputThread.start();
 		
 		try {

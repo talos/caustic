@@ -11,6 +11,7 @@ import net.microscraper.http.HttpBrowser;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.util.StringUtils;
 
+import org.junit.After;
 import org.junit.Test;
 
 public class ConsoleTest {
@@ -24,6 +25,12 @@ public class ConsoleTest {
 	 */
 	private static String row(String... strings) {
 		return StringUtils.quoteJoin(strings, "\t") + StringUtils.NEWLINE;
+	}
+	
+	@After
+	public void tearDown() throws Exception {
+		// have to call this or else it is added repeatedly
+		//Runtime.getRuntime().removeShutdownHook(Console.shutdownThread);
 	}
 	
 	@Test
@@ -61,8 +68,8 @@ public class ConsoleTest {
 				"../fixtures/json/simple-google.json",
 				"--input=query=hello"
 					);
-		Console.shutdownThread.start();
-		Console.shutdownThread.join();
+		//Console.shutdownThread.start();
+		//Console.shutdownThread.join();
 		
 		new VerificationsInOrder() {{
 			out.print(row("scope", "source", "name", "value"));

@@ -64,8 +64,8 @@ public class DatabaseViewTest {
 		String value = randomString();
 		DatabaseView child = view.spawnChild(name, value);
 		
-		assertNull(view.get(name));
-		assertEquals(value, child.get(name));
+		assertNull("Parent should not have value.", view.get(name));
+		assertEquals("Child does not have correct value", value, child.get(name));
 	}
 	
 	@Test
@@ -74,7 +74,7 @@ public class DatabaseViewTest {
 		String value = randomString();
 		
 		view.put(name, value);
-		assertEquals(value, view.get(name));
+		assertEquals("View does not have correct value.", value, view.get(name));
 	}
 	
 
@@ -85,7 +85,7 @@ public class DatabaseViewTest {
 		DatabaseView child = view.spawnChild(randomString());
 		
 		view.put(name, value);
-		assertEquals(value, child.get(name));
+		assertEquals("Child should have access to parent value.", value, child.get(name));
 	}
 	
 
@@ -96,7 +96,7 @@ public class DatabaseViewTest {
 		DatabaseView child = view.spawnChild(randomString());
 		
 		child.put(name, value);
-		assertNull(value, view.get(name));
+		assertNull("Parent should not have access to child value.", view.get(name));
 	}
 	
 	@Test
@@ -109,7 +109,7 @@ public class DatabaseViewTest {
 		view.put(name, value);
 		view.put(name, value2);
 		
-		assertEquals(value2, view.get(name));
-		assertNotSame(value, view.get(name));
+		assertEquals("Overwritten value not present.", value2, view.get(name));
+		assertNotSame("Old value still present.", value, view.get(name));
 	}
 }

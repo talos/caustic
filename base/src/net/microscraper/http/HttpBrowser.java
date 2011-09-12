@@ -122,7 +122,7 @@ public class HttpBrowser implements Loggable {
 		
 		// Merge in generic headers.
 		headers = HashtableUtils.combine(new Hashtable[] { getGenericHeaders(urlStr), headers });
-		
+				
 		// Add cookies into the headers.
 		try {
 			String[] cookies = cookieManager.getCookiesFor(urlStr, headers);
@@ -139,9 +139,8 @@ public class HttpBrowser implements Loggable {
 		}
 		log.i("All headers: " + StringUtils.quote(headers));
 		
-		
 		log.i("Requesting " + method + " from " + StringUtils.quote(urlStr));
-
+				
 		HttpResponse response;
 		if(method.equals(HEAD)) {
 			response = requester.head(urlStr, headers);
@@ -151,7 +150,6 @@ public class HttpBrowser implements Loggable {
 			response = requester.post(urlStr, headers, postData);
 			log.i("Post data: " + StringUtils.quote(postData));
 		}
-		
 		
 		// Add cookies from the response.
 		try {

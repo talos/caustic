@@ -8,6 +8,11 @@ import java.util.Map;
 import net.microscraper.uuid.DeserializedUUID;
 import net.microscraper.uuid.UUID;
 
+/**
+ * A set of static functions to persist a {@link Database} in a single table.
+ * @author talos
+ *
+ */
 class SingleTable {	
 	public static final String TABLE_NAME = "result";
 	
@@ -37,8 +42,25 @@ class SingleTable {
 		
 		table.insert(scope, insertMap);
 	}
-	
 
+	public static void update(IOTable table,
+			UUID scope, UUID source, String name, String value) throws IOException {
+		Map<String, String> map = new HashMap<String, String>();
+		map.put(NAME_COLUMN_NAME, name);
+		if(source != null) {
+			map.put(SOURCE_COLUMN_NAME, source.asString());
+		}
+		if(value != null) {
+			map.put(VALUE_COLUMN_NAME, value);
+		}
+		
+		if(table.select(scope, NAME_COLUMN_NAME).size() == 0) { // insert the row
+			table.insert(scope, map);
+		} else { // update the existing row.
+			table.update(scope, map);
+		}
+	}
+	
 	public static String select(IOTable table, UUID scope, String name) throws IOException {
 		List<Map<String, String>> rows = table.select(scope,
 				new String[] { SOURCE_COLUMN_NAME, NAME_COLUMN_NAME, VALUE_COLUMN_NAME } );
@@ -63,6 +85,11 @@ class SingleTable {
 	}
 
 	public static IOTable get(IOConnection connection) throws IOException {
-		return connection.newIOTable(TABLE_NAME, COLUMN_NAMES);
+		IOTable table = connection.getIOTable(TABLE_NAME);
+		if(table != null) {
+			return table;
+		} else {
+			return connection.newIOTable(TABLE_NAME, COLUMN_NAMES);
+		}
 	}
 }
