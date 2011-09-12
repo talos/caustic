@@ -7,9 +7,14 @@ import java.util.Hashtable;
 
 import net.microscraper.file.FileLoader;
 import net.microscraper.http.HttpBrowser;
-import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.regexp.Pattern;
 
+/**
+ * Implementation of {@link URILoader} that determines URI scheme using
+ * {@link java.net.URI}.
+ * @author realest
+ *
+ */
 public class JavaNetURILoader implements URILoader {
 	
 	private final HttpBrowser browser;
@@ -33,7 +38,7 @@ public class JavaNetURILoader implements URILoader {
 			} else if(uri.getScheme().equalsIgnoreCase(UriResolver.FILE_SCHEME)) {
 				return fileLoader.load(uri.getSchemeSpecificPart());
 			} else {
-				return browser.get(uriStr, new Hashtable(), new Pattern[] {});
+				return browser.get(uriStr, new Hashtable<String, String>(), new Pattern[] {});
 			}
 		} catch (URISyntaxException e) {
 			throw new IOException(e);

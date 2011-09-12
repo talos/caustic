@@ -8,13 +8,16 @@ import java.util.Hashtable;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-public class CookieManagerRemoteTest {
+@RunWith(Parameterized.class)
+public class CookieManagerNetworkTest {
 	private final Class<CookieManager> klass;
 	private CookieManager cookieManager;
 
-	public CookieManagerRemoteTest(Class<CookieManager> klass) {
+	public CookieManagerNetworkTest(Class<CookieManager> klass) {
 		this.klass = klass;
 	}
 	

@@ -3,7 +3,7 @@ package net.microscraper;
 import net.microscraper.client.ScraperResultTest;
 import net.microscraper.file.FileLoaderTest;
 import net.microscraper.http.CookieManagerLocalTest;
-import net.microscraper.http.HttpBrowserTest;
+import net.microscraper.http.HttpBrowserLocalTest;
 import net.microscraper.http.RateLimitManagerTest;
 import net.microscraper.http.ResponseHeadersTest;
 import net.microscraper.instruction.FindTest;
@@ -33,7 +33,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	ScraperResultTest.class,
 	FileLoaderTest.class,
 	CookieManagerLocalTest.class,
-	HttpBrowserTest.class,
+	HttpBrowserLocalTest.class,
 	RateLimitManagerTest.class,
 	ResponseHeadersTest.class,
 	FindTest.class,

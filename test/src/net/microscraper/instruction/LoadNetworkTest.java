@@ -20,7 +20,7 @@ import net.microscraper.util.JavaNetHttpUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LoadRemoteTest {
+public class LoadNetworkTest {
 	@Mocked private DatabaseView input;
 	private HttpBrowser liveBrowser;
 	private CookieManager cookieManager;
@@ -43,7 +43,7 @@ public class LoadRemoteTest {
 		Load load = new Load(liveBrowser, encoder, url);
 		ScraperResult result = load.execute(null, input);
 		assertTrue(result.isSuccess());
-		assertTrue(cookieManager.getCookiesFor(url.toString(), new Hashtable()).length > 0);
+		assertTrue(cookieManager.getCookiesFor(url.toString(), new Hashtable<String, String>()).length > 0);
 	}
 
 }

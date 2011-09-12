@@ -67,4 +67,59 @@ public class VectorUtilsTest {
 			}
 		}
 	}
+	
+	@Test
+	public void testHaveSameElementsInDifferentOrder() {
+		String alpha = randomString();
+		String beta = randomString();
+		String gaga = randomString();
+		
+		Vector<String> vector1 = new Vector<String>();
+		vector1.add(alpha);
+		vector1.add(beta);
+		vector1.add(gaga);
+
+		Vector<String> vector2 = new Vector<String>();
+		vector2.add(gaga);
+		vector2.add(alpha);
+		vector2.add(beta);
+		
+		assertTrue("Same elements in different order, should return true.",
+				VectorUtils.haveSameElements(vector1, vector2));
+	}
+
+	@Test
+	public void testOneVectorEncompassedByOther() {
+		String alpha = randomString();
+		String beta = randomString();
+		String gaga = randomString();
+		
+		Vector<String> vector1 = new Vector<String>();
+		vector1.add(alpha);
+		vector1.add(beta);
+		
+		Vector<String> vector2 = new Vector<String>();
+		vector2.add(alpha);
+		vector2.add(gaga);
+		
+		assertFalse("Share some but not all elements, should return false.",
+				VectorUtils.haveSameElements(vector1, vector2));
+	}
+	
+	@Test
+	public void testOneVectorExclusiveOfOther() {
+		String alpha = randomString();
+		String beta = randomString();
+		String gaga = randomString();
+		
+		Vector<String> vector1 = new Vector<String>();
+		vector1.add(alpha);
+		vector1.add(beta);
+		
+		Vector<String> vector2 = new Vector<String>();
+		vector2.add(gaga);
+		
+		assertFalse("Share no elements, should return false.",
+				VectorUtils.haveSameElements(vector1, vector2));
+	}
 }

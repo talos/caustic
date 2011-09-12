@@ -31,7 +31,7 @@ import org.junit.Test;
  * @author realest
  *
  */
-public class ScraperTest {
+public class ScraperNetworkTest {
 	private HttpBrowser browser;
 	private Encoder encoder;
 	private RegexpCompiler compiler;
@@ -119,23 +119,32 @@ public class ScraperTest {
 		Scraper scraper = new Scraper(loadGoogle, input);
 		
 		ScraperResult result;
+		String name;
+		DatabaseView[] views;
+		Scraper[] children;
 		
+		// Test first scraper.
 		result = scraper.scrape();
 		assertTrue(result.isSuccess());
-		assertEquals(googleTemplate.subEncoded(input, encoder).getSubstituted(), result.getName());
 		
-		Scraper[] children = result.getChildren();
+		name = result.getName();
+		assertEquals(googleTemplate.subEncoded(input, encoder).getSubstituted(), name);
+		
+		children = result.getChildren();
 		assertEquals("Should have one child", 1, children.length);
 		
+		// Test child scraper.
 		result = children[0].scrape();
 		assertTrue(result.isSuccess());
+		
+		name = result.getName();
 		assertEquals(whatDoYouSayTemplate.sub(input).getSubstituted(), result.getName());
 		assertEquals("Should not have children", 0, result.getChildren().length);
 		
-		String[] results = result.getValues();
-		assertTrue(results.length > 0);
-		for(int i = 0 ; i < results.length ; i ++) {
-			assertTrue(results[i].startsWith("I say "));
+		views = result.getResultViews();
+		assertTrue(views.length > 0);
+		for(int i = 0 ; i < views.length ; i ++) {
+			assertTrue(views[i].get(name).startsWith("I say"));
 		}
 	}
 	/*

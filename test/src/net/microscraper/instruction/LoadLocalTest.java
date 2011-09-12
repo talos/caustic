@@ -48,9 +48,9 @@ public class LoadLocalTest {
 		load.setMethod(HttpBrowser.HEAD);
 		ScraperResult result = load.execute(null, input);
 		assertTrue(result.isSuccess());
-		String[] results = (String[]) result.getValues();
-		assertEquals("Result should be one-length array.", 1, results.length);
-		assertEquals("Result from head should be zero-length string.", 0, results[0].length());
+		DatabaseView[] views = result.getResultViews();
+		assertEquals("Result should be one-length array.", 1, views.length);
+		assertEquals("Result view should be input view.", input, views[0]);
 	}
 
 	@Test
@@ -61,9 +61,9 @@ public class LoadLocalTest {
 		}};
 		ScraperResult result = load.execute(null, input);
 		assertTrue(result.isSuccess());
-		String[] results = (String[]) result.getValues();
-		assertEquals("Result should be one-length array.", 1, results.length);
-		assertEquals("Result from get should be response body.", response, results[0]);
+		DatabaseView[] views = result.getResultViews();
+		assertEquals("Result should be one-length array.", 1, views.length);
+		assertEquals("Result view should be input view.", input, views[0]);
 	}
 	
 	@Test

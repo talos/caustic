@@ -5,7 +5,7 @@
     <target name="create_run_jar">
         <jar destfile="../console/microscraper.jar" filesetmanifest="mergewithoutmain">
             <manifest>
-                <attribute name="Main-Class" value="net.microscraper.console.Console"/>
+                <attribute name="Main-Class" value="net.microscraper.console.MainClass"/>
                 <attribute name="Class-Path" value="."/>
             </manifest>
             <fileset dir="../console/bin"/>

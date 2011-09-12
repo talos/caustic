@@ -12,8 +12,10 @@ import net.microscraper.util.StringUtils;
 import net.microscraper.util.VectorUtils;
 
 /**
- * The {@link Scraper} class can be used to scrape an {@link Instruction} with
+ * The {@link Scraper} class can be used to repeatedly scrape an {@link Instruction} with
  * an input {@link DatabaseView} and {@link String} source.<p>
+ * This makes it easier to retry when tags are missing, and keep track of 
+ * (if {@link #isStuck()} is <code>true</code> when a retry should be delayed.
  * @author realest
  *
  */
@@ -109,7 +111,7 @@ public class Scraper {
 			if(curResult.isMissingTags() && lastResult.isMissingTags()) {
 				String[] curMissingTags = curResult.getMissingTags();
 				String[] lastMissingTags = lastResult.getMissingTags();
-				if(curMissingTags.length != lastMissingTags.length) {
+				if(curMissingTags.length == lastMissingTags.length) { // only bother testing if the same length
 					Vector curVector = VectorUtils.arrayIntoVector(curMissingTags, new Vector());
 					Vector lastVector = VectorUtils.arrayIntoVector(lastMissingTags, new Vector());
 					return VectorUtils.haveSameElements(curVector, lastVector);

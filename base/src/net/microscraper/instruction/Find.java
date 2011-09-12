@@ -116,32 +116,31 @@ public class Find implements Instruction {
 	/**
 	 * Use {@link #pattern}, substituted with {@link Variables}, to match against <code>source</code>.
 	 */
-	public ScraperResult execute(String source, DatabaseView input) throws IOException {
+	public ScraperResult execute(String source, DatabaseView inputView) throws IOException {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
 		
 		final ScraperResult result;
-		final String nameStr;
-		final StringSubstitution subPattern = pattern.sub(input);
-		final StringSubstitution subReplacement = replacement.sub(input);
+		final StringSubstitution subName;
+		final StringSubstitution subPattern = pattern.sub(inputView);
+		final StringSubstitution subReplacement = replacement.sub(inputView);
 		
 		if(hasName) {
-			StringSubstitution nameSub = name.sub(input);
-			if(nameSub.isMissingTags()) {
-				return ScraperResult.missingTags(nameSub.getMissingTags()); // break out early
-			} else {
-				nameStr = nameSub.getSubstituted();
-			}
+			subName = name.sub(inputView);
 		} else {
-			nameStr = null;
+			subName = subPattern; // if no name defined, default to the pattern.
 		}
 				
-		if(subPattern.isMissingTags() || subReplacement.isMissingTags()) { // One of the substitutions was not OK.
-			result = ScraperResult.missingTags(
-					MissingTags.combine( new DependsOnTemplate[] { subPattern, subReplacement } ));
+		if(subName.isMissingTags() ||
+				subPattern.isMissingTags() ||
+				subReplacement.isMissingTags()) { // One of the substitutions was not OK.
+			result = ScraperResult.missingTags(MissingTags.combine(
+					new DependsOnTemplate[] { subName, subPattern, subReplacement } ));
 			
 		} else { // All the substitutions were OK.
+			String resultName = subName.getSubstituted();
+			
 			String patternString = (String) subPattern.getSubstituted();
 			Pattern pattern = compiler.compile(patternString, isCaseInsensitive, isMultiline, doesDotMatchNewline);
 			
@@ -156,42 +155,29 @@ public class Find implements Instruction {
 					StringUtils.quoteAndTruncate(StringUtils.quote(source), 100));
 			// We got at least 1 match.
 			} else {
+				DatabaseView[] resultViews = new DatabaseView[matches.length];
 				Scraper[] scraperChildren = new Scraper[children.length * matches.length];
-				for(int i = 0 ; i < children.length ; i ++) {
-					Instruction childInstruction = children[i];
-					for(int j = 0 ; j < matches.length ; j ++) {
-						DatabaseView childInput;
-						String childSource = matches[j];
-						if(matches.length == 1) {
-							childInput = input;
-						} else {
-							if(nameStr == null) { // default to using the pattern as a name for the spawned child
-								childInput = input.spawnChild(pattern.toString());
-							} else {
-								childInput = input.spawnChild(nameStr, childSource);
-							}
-						}
-						scraperChildren[i * matches.length + j] =
-								new Scraper(childInstruction, childInput, childSource);
+				for(int i = 0 ; i < matches.length ; i ++) {
+					
+					// generate result views.
+					String childSource = matches[i];
+					if(matches.length == 1) { // don't spawn a new result for single match
+						resultViews[i] = inputView;
+					} else {
+						resultViews[i] = inputView.spawnChild(resultName, childSource);
+					}
+					
+					// generate children from result views
+					DatabaseView childView = resultViews[i];
+					for(int j = 0 ; j < children.length ; j ++) {
+						Instruction childInstruction = children[j];
+						
+						scraperChildren[i * children.length + j] =
+								new Scraper(childInstruction, childView, childSource);
 					}
 				}
 				
-				// TODO move this to above, invert children/matches
-				/*if(children.length == 0) {
-					for(int i = 0 ; i < matches.length ; i ++) {
-						if(nameStr == null) {
-							input.spawnChild(pattern.toString());
-						} else{ 
-							input.spawnChild(nameStr, matches[i]);
-						}
-					}
-				}*/
-				
-				if(nameStr == null) {
-					result = ScraperResult.success(pattern.toString(), matches, scraperChildren);
-				} else {
-					result = ScraperResult.success(nameStr, matches, scraperChildren);
-				}
+				result = ScraperResult.success(resultName, resultViews, scraperChildren);
 			}
 		}
 		return result;

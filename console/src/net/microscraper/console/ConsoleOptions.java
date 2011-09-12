@@ -11,8 +11,6 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import net.microscraper.database.Database;
 import net.microscraper.database.NonPersistedDatabase;
@@ -443,16 +441,16 @@ public final class ConsoleOptions {
 	
 	/**
 	 * 
-	 * @return An fixed thread pool {@link ExecutorService} with a user-defined number of threads.
+	 * @return A {@link ScraperExecutor} with a user-defined number of threads.
 	 * @throws InvalidOptionException if an invalid {@link #threads} option was passed.
 	 */
-	public ScraperRunner getScraperRunner() throws InvalidOptionException {
+	public ScraperExecutor getExecutor() throws InvalidOptionException {
 		try {
 			int numThreads = Integer.valueOf(getValue(threads));
 			if(numThreads < 1) {
 				throw new InvalidOptionException("Must have at least one thread.");
 			}
-			return new ScraperRunner(Executors.newFixedThreadPool(numThreads));
+			return new ScraperExecutor(numThreads);
 		} catch(NumberFormatException e) {
 			throw new InvalidOptionException(THREADS + " must be an integer.");
 		}

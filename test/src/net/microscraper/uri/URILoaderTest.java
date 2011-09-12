@@ -29,9 +29,12 @@ public class URILoaderTest {
 	@Mocked private FileLoader fileLoader;
 	
 	private URILoader uriLoader;
-	
+
 	private String filePath = randomString();
 	private String httpPath = randomString();
+
+	private String fileURI = "file:" + filePath;
+	private String httpURI = "http://" + httpPath;
 	
 	private String fileContents = randomString();
 	private String httpContents = randomString();
@@ -54,18 +57,23 @@ public class URILoaderTest {
 		
 		new NonStrictExpectations() {{
 			fileLoader.load(filePath); result = fileContents;
-			browser.get(httpPath, (Hashtable) any, (Pattern[]) any);
+			browser.get(httpURI, (Hashtable) any, (Pattern[]) any);
 				result = httpContents;
 		}};
 	}
 
 	@Test
-	public void testLoadFile() throws Exception {
+	public void testLoadFilePath() throws Exception {
 		assertEquals(fileContents, uriLoader.load(filePath));
+	}
+
+	@Test
+	public void testLoadFileURI() throws Exception {
+		assertEquals(fileContents, uriLoader.load(fileURI));
 	}
 	
 	@Test
 	public void testLoadHttp() throws Exception {
-		assertEquals(httpContents, uriLoader.load(httpPath));
+		assertEquals(httpContents, uriLoader.load(httpURI));
 	}
 }

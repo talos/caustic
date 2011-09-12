@@ -1,5 +1,6 @@
 package net.microscraper.client;
 
+import net.microscraper.database.DatabaseView;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.util.Result;
 
@@ -12,12 +13,12 @@ import net.microscraper.util.Result;
  */
 public class ScraperResult extends Result {
 	private String name;
-	private String[] values;
+	private DatabaseView[] views;
 	
-	private ScraperResult(String name, String[] values, Scraper[] children) {
+	private ScraperResult(String name, DatabaseView[] views, Scraper[] children) {
 		super((Object) children); // force 'successful' constructor.
 		this.name = name;
-		this.values = values;
+		this.views = views;
 	}
 	
 	private ScraperResult(String[] missingTags) {
@@ -39,12 +40,11 @@ public class ScraperResult extends Result {
 	
 	/**
 	 * 
-	 * @return An array of {@link String} values that are the results of a 
-	 * scrape.
+	 * @return An array of {@link DatabaseView}s created from the scrape.
 	 */
-	public String[] getValues() {
+	public DatabaseView[] getResultViews() {
 		getSuccess();
-		return values;
+		return views;
 	}
 	
 	/**
@@ -59,14 +59,14 @@ public class ScraperResult extends Result {
 	/**
 	 * Obtain a successful {@link ScraperResult}.
 	 * @param name The {@link String} name, accessible through {@link #getName()}
-	 * @param values An array of {@link String} values, accessible through
-	 * {@link #getValues()}.
+	 * @param resultViews An array of {@link DatabaseView} values, accessible through
+	 * {@link #getResultViews()}.
 	 * @param children An array of {@link Scraper} children, accessible through
 	 * {@link #getChildren()}.
 	 * @return A successful {@link ScraperResult}.
 	 */
-	public static ScraperResult success(String name, String[] values, Scraper[] children) {
-		return new ScraperResult(name, values, children);
+	public static ScraperResult success(String name, DatabaseView[] resultViews, Scraper[] children) {
+		return new ScraperResult(name, resultViews, children);
 	}
 	
 	/**

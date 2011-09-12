@@ -41,16 +41,16 @@ public class ConsoleTest {
 			out.print(ConsoleOptions.USAGE);
 			out.println();
 		}};
-		Console.main(new String[] { });
+		new Console();
 	}
 
 	@Test
 	public void testSimpleGoogleMissingInput() throws Exception {
-		Console.main("../fixtures/json/simple-google.json");
-		
+		final Console console = new Console("../fixtures/json/simple-google.json", "--log-stdout");
+		console.execute();
 		new VerificationsInOrder() {{
 			out.print(row("scope", "source", "name", "value"));
-			out.print(Console.statusLine(0, 1, 0));
+			out.print(ScraperExecutor.formatStatusLine(0, 1, 0, 0, 0));
 		}};
 	}
 	
@@ -64,10 +64,11 @@ public class ConsoleTest {
 			}
 		};
 		
-		Console.main(
+		final Console console = new Console(
 				"../fixtures/json/simple-google.json",
 				"--input=query=hello"
 					);
+		
 		//Console.shutdownThread.start();
 		//Console.shutdownThread.join();
 		
@@ -77,7 +78,7 @@ public class ConsoleTest {
 			out.print(row("1", "0", "what do you say after 'hello'?", "I say 'world'!"));
 			out.print(row("2", "0", "what do you say after 'hello'?", "I say 'tree'!"));
 			out.print(row("3", "0", "what do you say after 'hello'?", "I say 'whee'!"));
-			out.print(Console.statusLine(2, 0, 0));
+			out.print(ScraperExecutor.formatStatusLine(2, 0, 0, 0, 0));
 		}};
 	}
 	
@@ -86,7 +87,7 @@ public class ConsoleTest {
 	 * @param numThreads The number of threads to execute with.
 	 * @throws Exception
 	 */
-	public void recordSimpleGoogleInputFile(int numThreads) throws Exception {
+	public Console recordSimpleGoogleInputFile(int numThreads) throws Exception {
 		new Expectations() {
 			@Mocked({"head", "get", "post"}) HttpBrowser browser;
 			{
@@ -98,7 +99,7 @@ public class ConsoleTest {
 					result = "bleh this bleh that";
 			}
 		};
-		Console.main(
+		return new Console(
 				"../fixtures/json/simple-google.json",
 				"--input-file=../fixtures/csv/queries.csv",
 				"--threads=" + numThreads
@@ -107,7 +108,8 @@ public class ConsoleTest {
 	
 	@Test
 	public void testSimpleGoogleInputFileSingleThread() throws Exception {
-		recordSimpleGoogleInputFile(1);
+		
+		final Console console = recordSimpleGoogleInputFile(1);
 		// In order, because this is synchronous
 		new VerificationsInOrder() {{
 			out.print(row("scope", "source", "name", "value"));
@@ -117,13 +119,13 @@ public class ConsoleTest {
 			out.print(row("2", "2", "query", "bleh"));
 			out.print(row("3", "2", "what do you say after 'bleh'?", "I say 'this'!"));
 			out.print(row("4", "2", "what do you say after 'bleh'?", "I say 'that'!"));
-			out.print(Console.statusLine(5, 0, 1));
+			out.print(ScraperExecutor.formatStatusLine(5, 0, 1, 0, 0));
 		}};
 	}
 
 	@Test
 	public void testSimpleGoogleInputFileMultiThread() throws Exception {
-		recordSimpleGoogleInputFile(5);
+		final Console console = recordSimpleGoogleInputFile(5);
 		// Out of order, because this is asynchronous
 		new Verifications() {{
 			out.print(row("scope", "source", "name", "value"));
@@ -133,7 +135,7 @@ public class ConsoleTest {
 			out.print(withSuffix(row("query", "bleh")));
 			out.print(withSuffix(row("what do you say after 'bleh'?", "I say 'this'!")));
 			out.print(withSuffix(row("what do you say after 'bleh'?", "I say 'that'!")));
-			out.print(Console.statusLine(5, 0, 1));
+			out.print(ScraperExecutor.formatStatusLine(5, 0, 1, 0, 0));
 		}};
 	}
 	
@@ -151,7 +153,7 @@ public class ConsoleTest {
 				result = "";
 		}};
 		
-		Console.main(
+		final Console console = new Console(
 				pathToFixture,
 				"--input=query=hello"
 					);
@@ -166,7 +168,7 @@ public class ConsoleTest {
 			out.print(row("5", "1", "what do you say after 'world'?", "I say 'domination'!"));
 			out.print(row("2", "2", "what do you say after 'tree'?", "I say 'planting'!"));
 				$ = "Single match, should share scope.";
-			out.print(Console.statusLine(7, 0, 1));
+			out.print(ScraperExecutor.formatStatusLine(7, 0, 1, 0, 0));
 				$ = "The lack of matches for 'whee' should count as a failure.";
 		}};
 	}

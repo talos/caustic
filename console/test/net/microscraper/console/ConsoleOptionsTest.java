@@ -102,14 +102,14 @@ public class ConsoleOptionsTest {
 	public void testThreadsCannotBeZero() throws Exception {
 		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
 				THREADS + "=0" });
-		options.getScraperRunner();
+		options.getExecutor();
 	}
 	
 	@Test(expected=InvalidOptionException.class)
 	public void testThreadsCannotBeNegative() throws Exception {
 		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
 				THREADS + "=" + (-1 - randomInt()) });
-		options.getScraperRunner();
+		options.getExecutor();
 	}
 	
 	

@@ -202,7 +202,7 @@ public final class Load implements Instruction {
 					scraperChildren[i] = new Scraper(children[i], input, responseBody);
 				}
 				
-				result = ScraperResult.success(url, new String[] { responseBody}, scraperChildren);
+				result = ScraperResult.success(url, new DatabaseView[] { input } , scraperChildren);
 			}
 			return result;
 		} catch(IOException e) {
