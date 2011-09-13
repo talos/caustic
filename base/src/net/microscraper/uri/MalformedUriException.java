@@ -7,12 +7,12 @@ package net.microscraper.uri;
  * @author realest
  *
  */
-public class MalformedUriException extends Exception {
+public class MalformedUriException extends URILoaderException {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -7340201757487228364L;
 	public MalformedUriException(String message ) {super(message); }
-	public MalformedUriException(Throwable e ) {super(e); }
+	public MalformedUriException(Throwable e ) { super(e.getMessage()); }
 }

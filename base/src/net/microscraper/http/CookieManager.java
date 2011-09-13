@@ -48,12 +48,14 @@ public interface CookieManager {
 	
 	/**
 	 * Add cookies from {@link ResponseHeaders} to the {@link CookieManager}.
-	 * @param urlString The <code>urlString</code> from which {@link ResponseHeaders} originated.
+	 * @param urlStr The <code>urlString</code> from which {@link ResponseHeaders} originated.
 	 * @param responseHeaders The {@link ResponseHeaders} that may contain cookies.
 	 * @throws BadURLException If <code>urlString</code> cannot be parsed as a URL.
+	 * @throws CookieStorageException If cookies cannot be added, even though <code>
+	 * urlString</code> is valid.
 	 */
-	public void addCookiesFromResponseHeaders(String urlString,
-			ResponseHeaders responseHeaders) throws BadURLException;
+	public void addCookiesFromResponseHeaders(String urlStr,
+			ResponseHeaders responseHeaders) throws BadURLException, CookieStorageException;
 
 	/**
 	 * Add cookies to the {@link CookieManager}.

@@ -78,7 +78,7 @@ public class JavaNetCookieManager implements CookieManager {
 
 	@Override
 	public void addCookiesFromResponseHeaders(String url,
-			ResponseHeaders responseHeaders) throws BadURLException, IOException {
+			ResponseHeaders responseHeaders) throws BadURLException, CookieStorageException {
 		Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
 		String[] headerNames = responseHeaders.getHeaderNames();
 		for(int i = 0 ; i < headerNames.length ; i ++) {
@@ -90,6 +90,8 @@ public class JavaNetCookieManager implements CookieManager {
 			cookieManager.put(new URI(url), headerMap);
 		} catch(URISyntaxException e) {
 			throw new BadURLException(url, e.getMessage());
+		} catch(IOException e) {
+			throw new CookieStorageException(e.getMessage());
 		}
 	}
 

@@ -1,7 +1,5 @@
 package net.microscraper.uri;
 
-import java.io.IOException;
-
 /**
  * Interface to load the {@link String} contents of a URI, either local or remote.
  * @author talos
@@ -14,8 +12,10 @@ public interface URILoader {
 	 * @param uriStr The {@link String} of the URI to load from.
 	 * @return A {@link String} with the contents of the file at
 	 * the <code>uriStr</code>.
-	 * @throws IOException If the contents from the file at <code>uriStr</code>
-	 * could not be loaded.
+	 * @throws URILoaderException if the file at <code>uriStr</code> cannot
+	 * be loaded.
+	 * @throws InterruptedException if the user interrupted while loading the file
+	 * at <code>uriStr</code>.
 	 */
-	public String load(String uriStr) throws IOException;
+	public String load(String uriStr) throws URILoaderException, InterruptedException;
 }

@@ -88,12 +88,11 @@ public class HttpBrowser implements Loggable {
 	 * should return content.
 	 * @throws InterruptedException If the user interrupted the request while it was being delayed
 	 * due to rate limiting, or while waiting for the host to respond.
-	 * @throws BadHttpResponseCode If the response code could not be handled.
-	 * @throws BadURLException If <code>urlStr</code> cannot be parsed as a URL.
-	 * @throws HttpRedirectException If redirects could not be followed.
+	 * @throws HttpRequestException If the request could not be completed.
+	 * @throws CookieStorageException If a cookie could not be stored from one of the responses.
 	 */
 	private InputStreamReader request(String method, String urlStr, Hashtable headers, String encodedPostData)
-			throws InterruptedException, BadHttpResponseCode, BadURLException, HttpRedirectException {
+			throws InterruptedException, HttpRequestException, CookieStorageException {
 		return request(method, urlStr, headers, encodedPostData, new Vector());
 	}
 
@@ -109,13 +108,12 @@ public class HttpBrowser implements Loggable {
 	 * should return content.
 	 * @throws InterruptedException If the user interrupted the request while it was being delayed
 	 * due to rate limiting, or while waiting for the host to respond.
-	 * @throws BadHttpResponseCode If the response code could not be handled.
-	 * @throws BadURLException If <code>urlStr</code> cannot be parsed as a URL.
-	 * @throws HttpRedirectException If redirects could not be followed.
+	 * @throws HttpRequestException If the request could not be completed.
+	 * @throws CookieStorageException If a cookie could not be stored from one of the responses.
 	 */
 	private InputStreamReader request(String method, String urlStr, Hashtable headers,
 					String postData, Vector redirectsFollowed)
-			throws InterruptedException, BadHttpResponseCode, BadURLException, HttpRedirectException {
+			throws InterruptedException, HttpRequestException, CookieStorageException {
 		
 		while(rateLimitManager.shouldDelay(urlStr) == true) {
 			Thread.sleep(DEFAULT_SLEEP_TIME);
@@ -266,9 +264,9 @@ public class HttpBrowser implements Loggable {
 	 * @param urlStr the URL to HTTP Head.
 	 * @param headers {@link Hashtable} extra headers.
 	 * @throws InterruptedException If the user interrupted the request.
-	 * @throws HttpRequestException if there was an exception that prevented the request from being completed.
+	 * @throws HttpException if there was an exception that prevented the request from being completed.
 	 */
-	public void head(String urlStr, Hashtable headers) throws InterruptedException, HttpRequestException {
+	public void head(String urlStr, Hashtable headers) throws InterruptedException, HttpException {
 		request(HEAD, urlStr, headers, null);
 	}
 	

@@ -23,10 +23,10 @@ public interface HttpRequester {
 	 * @param requestHeaders {@link Hashtable} of headers, mapping {@link String} to {@link String}.
 	 * @return A {@link HttpResponse}.
 	 * @throws InterruptedException If the user interrupted the request.
-	 * @throws BadHttpResponseCode If the response code could not be handled.
+	 * @throws HttpRequestException If the request could not be made.
 	 */
 	public abstract HttpResponse head(String url, Hashtable requestHeaders)
-			throws InterruptedException, BadHttpResponseCode;
+			throws InterruptedException, HttpRequestException;
 	
 	/**
 	 * Make an HTTP Get request.  This returns the body of the response, and adds cookies to the cookie jar.
@@ -34,9 +34,10 @@ public interface HttpRequester {
 	 * @param requestHeaders {@link Hashtable} of headers, mapping {@link String} to {@link String}.
 	 * @return A {@link HttpResponse}.
 	 * @throws InterruptedException If the user interrupted the request.
-	 * @throws BadHttpResponseCode If the response code could not be handled.
+	 * @throws HttpRequestException If the request could not be made.
 	 */
-	public abstract HttpResponse get(String url, Hashtable requestHeaders) throws InterruptedException, BadHttpResponseCode;
+	public abstract HttpResponse get(String url, Hashtable requestHeaders)
+			throws InterruptedException, HttpRequestException;
 	
 	/**
 	 * Make an HTTP Post request with a {@link String} to encode into post data.
@@ -46,10 +47,10 @@ public interface HttpRequester {
 	 * @param encodedPostData {@link String} of post data.  Should already be encoded.
 	 * @return A {@link HttpResponse}.
 	 * @throws InterruptedException If the user interrupted the request.
-	 * @throws BadHttpResponseCode If the response code could not be handled.
+	 * @throws HttpRequestException If the request could not be made.
 	 */
 	public abstract HttpResponse post(String url, Hashtable requestHeaders, String encodedPostData)
-			throws InterruptedException, BadHttpResponseCode;
+			throws InterruptedException, HttpRequestException;
 
 	/**
 	 * @param timeoutMilliseconds How many milliseconds to wait for a response from the remote server

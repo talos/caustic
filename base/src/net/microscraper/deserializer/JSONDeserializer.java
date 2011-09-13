@@ -1,6 +1,5 @@
 package net.microscraper.deserializer;
 
-import java.io.IOException;
 import java.util.Vector;
 
 import net.microscraper.database.DatabaseReadException;
@@ -24,6 +23,7 @@ import net.microscraper.template.TemplateCompilationException;
 import net.microscraper.uri.MalformedUriException;
 import net.microscraper.uri.RemoteToLocalSchemeResolutionException;
 import net.microscraper.uri.URILoader;
+import net.microscraper.uri.URILoaderException;
 import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.StringUtils;
@@ -69,7 +69,7 @@ public class JSONDeserializer implements Deserializer {
 	private DeserializerResult deserialize(String jsonString, DatabaseView input, String uri, String openTagString, String closeTagString)
 			throws JsonException, TemplateCompilationException,
 			MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException,
-			DatabaseReadException, IOException {
+			DatabaseReadException, URILoaderException {
 		final DeserializerResult result;
 		
 		// Parse non-objects as URIs.  Any substitution should have been done beforehand.
@@ -472,7 +472,7 @@ public class JSONDeserializer implements Deserializer {
 			return DeserializerResult.failure(e.getMessage());
 		} catch (MalformedUriException e) {
 			return DeserializerResult.failure(e.getMessage());
-		} catch(IOException e) {
+		} catch(URILoaderException e) {
 			return DeserializerResult.failure(e.getMessage());
 		} catch(TemplateCompilationException e) {
 			return DeserializerResult.failure(e.getMessage());

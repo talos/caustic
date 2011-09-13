@@ -29,59 +29,57 @@ public class JavaNetHttpRequester implements HttpRequester {
 	 * @param headers A {@link Hashtable} of additional headers.
 	 * @param encodedPostData A {@link String} of post data to send, already encoded.
 	 * @return A {@link HttpResponse}.
-	 * @throws IOException If there was an error generating the {@link HttpURLConnection}.
 	 */
 	private HttpResponse getResponse(String method, String urlStr, Hashtable requestHeaders,
-			String encodedPostData) throws IOException {
-		HttpURLConnection.setFollowRedirects(false); // this is handled manually
-		HttpURLConnection conn = (HttpURLConnection) (new URL(urlStr)).openConnection();	
+			String encodedPostData) throws HttpRequestException {
+		HttpURLConnection.setFollowRedirects(false); // we handle this manually
 		
-		// Add additional headers
-		Enumeration<String> headerNames = requestHeaders.keys();
-		while(headerNames.hasMoreElements()) {
-			String headerName = (String) headerNames.nextElement();
-			String headerValue = (String) requestHeaders.get(headerName);
-			conn.setRequestProperty(headerName, headerValue);
-		}
-		
-		conn.setDoInput(true);
-		conn.setReadTimeout(timeoutMilliseconds);
-		
-		// Set method
-		if(method.equalsIgnoreCase(HttpBrowser.POST)) {
-			conn.setDoOutput(true);
-			conn.setRequestMethod("POST");
-			OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-			writer.write(encodedPostData);
-			writer.flush();
-		} else {
-			conn.setRequestMethod(method.toUpperCase());
-		}
-
-		// Try to connect.
 		try {
+			HttpURLConnection conn = (HttpURLConnection) (new URL(urlStr)).openConnection();	
+			
+			// Add additional headers
+			Enumeration<String> headerNames = requestHeaders.keys();
+			while(headerNames.hasMoreElements()) {
+				String headerName = (String) headerNames.nextElement();
+				String headerValue = (String) requestHeaders.get(headerName);
+				conn.setRequestProperty(headerName, headerValue);
+			}
+			
+			conn.setDoInput(true);
+			conn.setReadTimeout(timeoutMilliseconds);
+			
+			// Set method
+			if(method.equalsIgnoreCase(HttpBrowser.POST)) {
+				conn.setDoOutput(true);
+				conn.setRequestMethod("POST");
+				OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
+				writer.write(encodedPostData);
+				writer.flush();
+			} else {
+				conn.setRequestMethod(method.toUpperCase());
+			}
+			
 			return new JavaNetHttpResponse(conn);
-		} catch(SocketTimeoutException e) {
-			throw new IOException("Timeout after " + conn.getReadTimeout() + " milliseconds " +
-					", " + e.bytesTransferred + " bytes transferred.");
+		} catch(IOException e) {
+			throw new HttpRequestException(e.getMessage());
 		}
 	}
 	
 	@Override
 	public HttpResponse head(String url, Hashtable requestHeaders)
-			throws InterruptedException, BadHttpResponseCode {
+			throws InterruptedException, HttpRequestException {
 		return getResponse("HEAD", url, requestHeaders, null);
 	}
 
 	@Override
 	public HttpResponse get(String url, Hashtable requestHeaders)
-			throws InterruptedException, BadHttpResponseCode {
+			throws InterruptedException, HttpRequestException {
 		return getResponse("GET", url, requestHeaders, null);
 	}
 
 	@Override
 	public HttpResponse post(String url, Hashtable requestHeaders,
-			String encodedPostData) throws InterruptedException, BadHttpResponseCode {
+			String encodedPostData) throws InterruptedException, HttpRequestException {
 		return getResponse("POST", url, requestHeaders, encodedPostData);
 	}
 

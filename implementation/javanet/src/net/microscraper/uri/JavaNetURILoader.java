@@ -7,6 +7,7 @@ import java.util.Hashtable;
 
 import net.microscraper.file.FileLoader;
 import net.microscraper.http.HttpBrowser;
+import net.microscraper.http.HttpException;
 import net.microscraper.regexp.Pattern;
 
 /**
@@ -30,7 +31,7 @@ public class JavaNetURILoader implements URILoader {
 		this.fileLoader = fileLoader;
 	}
 	
-	public String load(String uriStr) throws IOException {
+	public String load(String uriStr) throws URILoaderException, InterruptedException {
 		try {
 			URI uri = new URI(uriStr);
 			if(uri.getScheme() == null) {
@@ -40,10 +41,12 @@ public class JavaNetURILoader implements URILoader {
 			} else {
 				return browser.get(uriStr, new Hashtable<String, String>(), new Pattern[] {});
 			}
+		} catch (IOException e) {
+			throw URILoaderException.fromLocal(e);
 		} catch (URISyntaxException e) {
-			throw new IOException(e);
-		} catch (InterruptedException e) {
-			throw new IOException(e);
+			throw new MalformedUriException(e);
+		} catch (HttpException e) {
+			throw URILoaderException.fromRemote(e);
 		}
 	}
 }

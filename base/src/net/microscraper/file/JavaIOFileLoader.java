@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import net.microscraper.file.FileLoader;
-
 /**
  * An implementation of {@link FileLoader} using {@link java.io.FileReader}.
  * @author talos
@@ -21,6 +19,6 @@ public class JavaIOFileLoader implements FileLoader {
 		char[] buffer = new char[(int) file.length()];  
 		fileReader.read(buffer);
 		fileReader.close();
-		return new String(buffer);		
+		return new String(buffer);
 	}
 }
