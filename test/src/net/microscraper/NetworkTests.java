@@ -4,6 +4,7 @@ import net.microscraper.client.ScraperNetworkTest;
 import net.microscraper.http.CookieManagerNetworkTest;
 import net.microscraper.http.HttpBrowserNetworkTest;
 import net.microscraper.http.HttpRequesterTest;
+import net.microscraper.instruction.LoadNetworkTest;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -18,7 +19,8 @@ import org.junit.runners.Suite.SuiteClasses;
 	CookieManagerNetworkTest.class,
 	HttpBrowserNetworkTest.class,
 	HttpRequesterTest.class,
-	ScraperNetworkTest.class
+	ScraperNetworkTest.class,
+	LoadNetworkTest.class
 })
 public class NetworkTests {
 

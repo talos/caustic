@@ -14,9 +14,10 @@ import net.microscraper.util.StringUtils;
 import org.junit.After;
 import org.junit.Test;
 
-public class ConsoleTest {
+public class MainClassTest {
 
-	private @Mocked({"print", "println"}) PrintStream out;
+	//private @Mocked(inverse=true, methods={"print", "println"}) PrintStream out;
+	private @Mocked(methods={"lsdkjflsdkjf"}) PrintStream out;
 	
 	/**
 	 * 
@@ -41,17 +42,20 @@ public class ConsoleTest {
 			out.print(ConsoleOptions.USAGE);
 			out.println();
 		}};
-		new Console();
+		//new Console();
+		MainClass.main();
 	}
 
 	@Test
 	public void testSimpleGoogleMissingInput() throws Exception {
-		final Console console = new Console("../fixtures/json/simple-google.json", "--log-stdout");
-		console.execute();
+		//final Console console = new Console("../fixtures/json/simple-google.json", "--log-stdout");
+		//console.execute();
 		new VerificationsInOrder() {{
 			out.print(row("scope", "source", "name", "value"));
 			out.print(ScraperExecutor.formatStatusLine(0, 1, 0, 0, 0));
 		}};
+		
+		MainClass.main("../fixtures/json/simple-google.json", "--log-stdout");
 	}
 	
 	@Test
@@ -64,7 +68,7 @@ public class ConsoleTest {
 			}
 		};
 		
-		final Console console = new Console(
+		MainClass.main(
 				"../fixtures/json/simple-google.json",
 				"--input=query=hello"
 					);
@@ -87,7 +91,7 @@ public class ConsoleTest {
 	 * @param numThreads The number of threads to execute with.
 	 * @throws Exception
 	 */
-	public Console recordSimpleGoogleInputFile(int numThreads) throws Exception {
+	public void recordSimpleGoogleInputFile(int numThreads) throws Exception {
 		new Expectations() {
 			@Mocked({"head", "get", "post"}) HttpBrowser browser;
 			{
@@ -99,7 +103,7 @@ public class ConsoleTest {
 					result = "bleh this bleh that";
 			}
 		};
-		return new Console(
+		MainClass.main(
 				"../fixtures/json/simple-google.json",
 				"--input-file=../fixtures/csv/queries.csv",
 				"--threads=" + numThreads
@@ -109,7 +113,7 @@ public class ConsoleTest {
 	@Test
 	public void testSimpleGoogleInputFileSingleThread() throws Exception {
 		
-		final Console console = recordSimpleGoogleInputFile(1);
+		recordSimpleGoogleInputFile(1);
 		// In order, because this is synchronous
 		new VerificationsInOrder() {{
 			out.print(row("scope", "source", "name", "value"));
@@ -125,7 +129,7 @@ public class ConsoleTest {
 
 	@Test
 	public void testSimpleGoogleInputFileMultiThread() throws Exception {
-		final Console console = recordSimpleGoogleInputFile(5);
+		recordSimpleGoogleInputFile(5);
 		// Out of order, because this is asynchronous
 		new Verifications() {{
 			out.print(row("scope", "source", "name", "value"));
@@ -153,7 +157,7 @@ public class ConsoleTest {
 				result = "";
 		}};
 		
-		final Console console = new Console(
+		MainClass.main(
 				pathToFixture,
 				"--input=query=hello"
 					);

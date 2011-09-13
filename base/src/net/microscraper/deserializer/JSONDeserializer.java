@@ -268,7 +268,7 @@ public class JSONDeserializer implements Deserializer {
 				}
 				if(postData != null) {
 					load.setPostData(postData);
-				} else {
+				} else if (posts.size() > 0) {
 					load.addPosts(posts);
 				}
 				load.addCookies(cookies);

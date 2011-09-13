@@ -163,8 +163,15 @@ public class Find implements Instruction {
 					String childSource = matches[i];
 					if(matches.length == 1) { // don't spawn a new result for single match
 						resultViews[i] = inputView;
+						if(hasName) {
+							inputView.put(resultName, childSource);
+						}
 					} else {
-						resultViews[i] = inputView.spawnChild(resultName, childSource);
+						if(hasName) {
+							resultViews[i] = inputView.spawnChild(resultName, childSource);
+						} else {
+							resultViews[i] = inputView.spawnChild(resultName);							
+						}
 					}
 					
 					// generate children from result views

@@ -295,9 +295,7 @@ public final class ConsoleOptions {
 					result = new SingleTableDatabase(connection, idFactory);
 				} else {
 					result = new MultiTableDatabase(connection, idFactory);
-				}
-				throw new InvalidOptionException("SQL temporarily disabled");
-				
+				}				
 			} else {
 				result = new NonPersistedDatabase(
 						CSVConnection.toFile(outputLocation, delimiter), new IntUUIDFactory());

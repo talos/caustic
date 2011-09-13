@@ -1,7 +1,8 @@
-package net.microscraper.json;
+package net.microscraper.deserializer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -18,11 +19,14 @@ import net.microscraper.deserializer.DeserializerResult;
 import net.microscraper.deserializer.JSONDeserializer;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Instruction;
+import net.microscraper.json.JsonMEParser;
+import net.microscraper.json.JsonParser;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.uri.URILoader;
 import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
+import net.microscraper.util.StringUtils;
 import static net.microscraper.util.TestUtils.randomInt;
 import static net.microscraper.util.TestUtils.randomString;
 import static net.microscraper.deserializer.JSONDeserializer.*;
@@ -32,31 +36,71 @@ import org.json.me.JSONArray;
 import org.json.me.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+@RunWith(Parameterized.class)
 public class JsonDeserializerTest {
-	private @Mocked RegexpCompiler compiler;
-	private @Mocked HttpBrowser browser;
-	private @Mocked Encoder encoder;
+
+	private final Class<JsonParser> klass;
+	
+	//@Mocked static JsonParser parser;
+	@Mocked RegexpCompiler compiler;
+	@Mocked HttpBrowser browser;
+	@Mocked Encoder encoder;
+	@Mocked UriResolver resolver;
+	@Mocked URILoader loader;
 	private @Mocked UriResolver uriResolver;
 	private @Mocked URILoader uriLoader;
 	private @Mocked Pattern pattern;
 	
-	private JsonParser parser;
 	private JSONDeserializer deserializer;
 	
 	private static final String urlString = "URL " + randomString();
 	private static final String patternString = "PATTERN " + randomString();
 	
 	private String emptyJson;
-	private String userDir;
 	private String loadPath;
 	private String findPath;
-	private DatabaseView input;
 	private JSONObject load;
 	private JSONObject find;
 	
+		
+	private final String userDir = StringUtils.USER_DIR;
+	
+	private DatabaseView input;
+	
+	/**
+	 * Convenience method to assert and return Instruction from 
+	 * deserialize method.
+	 * @param obj The {@link JSONObject} to deserialize
+	 * @return the deserialized {@link Instruction}.
+	 */
+	private Instruction deserialize(JSONObject obj) throws InterruptedException {
+		DeserializerResult result = deserializer.deserialize(obj.toString(), input, userDir);
+		assertTrue(result.isSuccess());
+		return result.getInstruction();
+	}
+	
+	@Parameters
+	public static Collection<Class<?>[]> implementations() {
+		return Arrays.asList(new Class<?>[][] {
+			{ JsonMEParser.class }
+		});
+	}
+	
+	public JsonDeserializerTest(Class<JsonParser> klass) {
+		this.klass = klass;
+	}
+	
 	@Before
 	public void setUp() throws Exception {
+		
+		JsonParser parser = klass.newInstance();
+		deserializer = new JSONDeserializer(parser, compiler, browser, encoder, resolver, loader);
+		input = new InMemoryDatabaseView();
+
 		parser = new JsonMEParser();
 		input = new InMemoryDatabaseView(new Hashtable<String, String>());
 		
@@ -66,7 +110,6 @@ public class JsonDeserializerTest {
 		find = new JSONObject().put(FIND, patternString);
 		deserializer = new JSONDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
 		emptyJson = new JSONObject().toString();
-		userDir = "USER DIR " + randomString();
 		
 		final String loadUri = "LOAD URI " + randomString();
 		final String findUri = "FIND URI " + randomString();
@@ -306,6 +349,80 @@ public class JsonDeserializerTest {
 			children.clear();
 			children = recursedChildren;
 		}
+	}
+	
+
+	@Test
+	public void testDeserializeSimpleHead() throws Exception {
+		final String url = randomString();
+		new Expectations() {{
+			browser.head(url, (Hashtable) any);
+		}};
+		
+		JSONObject simpleHead =
+				new JSONObject().put(JSONDeserializer.LOAD, url).put(METHOD, HttpBrowser.HEAD);
+		Instruction instruction = deserialize(simpleHead);
+		instruction.execute(null, input);
+	}
+
+	
+	@Test
+	public void testDeserializeSimpleGetDefaultMethod() throws Exception {
+		final String url = randomString();
+		new Expectations() {{
+			browser.get(url, (Hashtable) any, (Pattern[]) any);
+		}};
+		
+		JSONObject simpleGet =
+				new JSONObject().put(LOAD, url);
+		Instruction instruction = deserialize(simpleGet);
+		instruction.execute(null, input);
+	}
+
+	@Test
+	public void testDeserializeSimpleGetExplicitMethod() throws Exception {
+		final String url = randomString();
+		new Expectations() {{
+			browser.get(url, (Hashtable) any, (Pattern[]) any);
+		}};
+		
+		JSONObject simpleGet =
+				new JSONObject().put(LOAD, url).put(METHOD, HttpBrowser.GET);
+		Instruction instruction = deserialize(simpleGet);
+		instruction.execute(null, input);
+	}
+	
+
+	@Test
+	public void testDeserializeSimplePostWithoutData() throws Exception {
+		final String url = randomString();
+		new Expectations() {{
+			browser.post(url, (Hashtable) any, (Pattern[]) any, "");
+		}};
+		
+		JSONObject simplePost =
+				new JSONObject().put(LOAD, url).put(METHOD, HttpBrowser.POST);		
+		Instruction instruction = deserialize(simplePost);
+		instruction.execute(null, input);
+	}
+	
+	@Test
+	public void testDeserializeSimpleFind() throws Exception {
+		final String patternStr = randomString();
+		final String source = randomString();
+		new Expectations() {
+			Pattern pattern;
+			{
+			compiler.compile(patternStr, anyBoolean, anyBoolean, anyBoolean); result = pattern;
+			pattern.match(source, anyString, anyInt, anyInt);
+		}};
+		
+		JSONObject simpleFind = new JSONObject().put(FIND, patternStr);
+		DeserializerResult result = deserializer.deserialize(simpleFind.toString(), input, userDir);
+		assertTrue(result.isSuccess());
+		
+		Instruction instruction = result.getInstruction();
+		instruction.execute(source, input);
 	}
 	
 }

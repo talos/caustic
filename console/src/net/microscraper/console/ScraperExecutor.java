@@ -49,6 +49,7 @@ public class ScraperExecutor {
 							numFailed++;
 						}
 					} catch(ExecutionException e) {
+						e.printStackTrace();
 						numCrashed++;
 					} catch(InterruptedException e) {
 						numCrashed++;

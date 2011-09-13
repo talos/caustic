@@ -1,6 +1,8 @@
 package net.microscraper;
 
+import net.microscraper.client.ScraperLocalTest;
 import net.microscraper.client.ScraperResultTest;
+import net.microscraper.deserializer.JsonDeserializerTest;
 import net.microscraper.file.FileLoaderTest;
 import net.microscraper.http.CookieManagerLocalTest;
 import net.microscraper.http.HttpBrowserLocalTest;
@@ -8,7 +10,6 @@ import net.microscraper.http.RateLimitManagerTest;
 import net.microscraper.http.ResponseHeadersTest;
 import net.microscraper.instruction.FindTest;
 import net.microscraper.instruction.LoadLocalTest;
-import net.microscraper.json.JsonDeserializerTest;
 import net.microscraper.json.JsonObjectTest;
 import net.microscraper.regexp.PatternTest;
 import net.microscraper.template.HashtableTemplateTest;
@@ -46,6 +47,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	URILoaderTest.class,
 	UriResolverTest.class,
 	HashtableUtilsTest.class,
+	ScraperLocalTest.class,
 	StringUtilsTest.class,
 	VectorUtilsTest.class
 })

@@ -5,7 +5,9 @@ import static net.microscraper.util.TestUtils.*;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 
 import net.microscraper.http.HttpBrowser;
 
@@ -78,5 +80,34 @@ public class HashtableUtilsTest {
 		assertTrue(combined.containsKey(sharedKey));
 		assertEquals(value2, combined.get(sharedKey));
 		assertNotSame(value1, combined.get(sharedKey));
+	}
+	
+	@Test
+	public void testEmptyIsEmpty() {
+		Hashtable empty = HashtableUtils.EMPTY;
+		assertTrue(empty.isEmpty());
+		assertEquals(0, empty.size());
+	}
+	
+	@Test
+	public void testEmptyEqualsEmpty() {
+		Hashtable empty1 = HashtableUtils.EMPTY;
+		Hashtable empty2 = HashtableUtils.EMPTY;
+		assertTrue(empty1.equals(empty2));
+	}
+	
+	@Test(expected = UnsupportedOperationException.class)
+	public void testEmptyCantBeModifiedWithPut() {
+		Hashtable empty = HashtableUtils.EMPTY;
+		empty.put(randomString(), randomString());
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testEmptyCantBeModifiedWithPutAll() {
+		Hashtable empty = HashtableUtils.EMPTY;
+		Map<String, String> map = new HashMap<String, String>();
+		map.put(randomString(), randomString());
+		map.put(randomString(), randomString());
+		empty.putAll(map);
 	}
 }

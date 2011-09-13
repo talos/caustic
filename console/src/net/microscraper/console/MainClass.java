@@ -23,10 +23,13 @@ public class MainClass {
 		System.out.println();
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String... args) {
 		try {
 			Console console = new Console(args);
 			Runtime.getRuntime().addShutdownHook(console.getShutdownThread());
+			/*
+			String statusLine = console.execute();
+			println(statusLine);*/
 			console.execute();
 		} catch(InvalidOptionException e) {
 			println(e.getMessage());

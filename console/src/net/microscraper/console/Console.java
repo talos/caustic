@@ -40,7 +40,7 @@ public class Console {
 		executor = options.getExecutor();
 	}
 	
-	public String execute() throws IOException  {
+	public void execute() throws IOException  {
 		logger.open();
 		database.open();
 		input.open();
@@ -59,7 +59,6 @@ public class Console {
 		} catch(InterruptedException e) {
 			executor.kill();
 		}
-		return executor.getStatusLine();
 	}
 	
 	/**
@@ -71,6 +70,9 @@ public class Console {
 	public Thread getShutdownThread() {
 		return new Thread() {
 			public void run() {
+				executor.kill();
+				System.out.println(executor.getStatusLine());
+				
 				try {
 					logger.close();
 				} catch (IOException e) {

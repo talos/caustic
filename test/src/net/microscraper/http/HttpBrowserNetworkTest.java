@@ -77,6 +77,8 @@ public class HttpBrowserNetworkTest {
 		browser.get(url, new Hashtable<String, String>(), new Pattern[] {});
 	}
 	
+	// If this doesn't throw IOException, it's possible that your ISP throws up
+	// some kind of pseudopage when DNS fails.
 	@Test(expected=IOException.class)
 	public void testGetFakeValidFormatURL() throws Exception {
 		String url = "http://www." + randomString(30) + ".com/";

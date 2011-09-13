@@ -71,6 +71,12 @@ public class HttpRequesterTest {
 		InputStreamReader contentStream = response.getContentStream();
 		assertTrue(getString(contentStream).contains("google"));
 	}
+	
+	@Test
+	public void testGetGoogleContentQueryWithoutHeadersFails() throws Exception {
+		HttpResponse response = requester.get("http://www.google.com/search?q=bleh", new Hashtable());
+		assertFalse(response.isSuccess());
+	}
 
 	@Test
 	public void testGetGoogleContentQueryWithHeaders() throws Exception {

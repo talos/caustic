@@ -39,6 +39,11 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	 * Column name for the name of the scope, in relationship tables.
 	 */
 	public static final String NAME_COLUMN_NAME = "name";
+
+	/**
+	 * Column name for the name of the source, in relationship tables.
+	 */
+	public static final String SOURCE_NAME_COLUMN_NAME = "source_name";
 	
 	/**
 	 * Column name for the scope of the source, in relationship tables.
@@ -60,6 +65,7 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	 * Fixed columns for {@link #relationshipTable} in {@link MultiTableDatabase}.
 	 */
 	public static final String[] RELATIONSHIP_TABLE_COLUMNS = new String[] {
+		SOURCE_NAME_COLUMN_NAME,
 		NAME_COLUMN_NAME,
 		SOURCE_COLUMN_NAME,
 		VALUE_COLUMN_NAME
@@ -131,10 +137,13 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	 * @param name
 	 * @param optValue
 	 */
-	private void addLink(UUID scope, UUID optSource, String name, String optValue)
+	private void addLink(UUID scope, UUID optSource, String optSourceName, String name, String optValue)
 				throws TableManipulationException{
 		Map<String, String> insertMap = new HashMap<String, String>();
 		insertMap.put(NAME_COLUMN_NAME, name);
+		if(optSourceName != null) {
+			insertMap.put(SOURCE_NAME_COLUMN_NAME, optSourceName);
+		}
 		if(optSource != null) {
 			insertMap.put(SOURCE_COLUMN_NAME, optSource.asString());
 		}
@@ -184,7 +193,7 @@ public final class MultiTableDatabase implements PersistedDatabase {
 		ensureOpen();
 		UUID scope = idFactory.get();
 		// insert the fact that this is a default scope into joinTable
-		addLink(scope, null, DEFAULT_TABLE_NAME, null);
+		addLink(scope, null, null, DEFAULT_TABLE_NAME, null);
 		
 		// insert blank row into default table
 		IOTable defaultTable = getResultTable(scope);
@@ -280,7 +289,8 @@ public final class MultiTableDatabase implements PersistedDatabase {
 		String tableName = cleanTableName(name);
 		
 		// add to relationship table
-		addLink(scope, source, tableName, value);
+		String sourceName = relationshipTable.select(source, NAME_COLUMN_NAME).get(0);
+		addLink(scope, source, sourceName, tableName, value);
 		
 		// create new result table, insert row
 		IOTable table = connection.getIOTable(tableName);

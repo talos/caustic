@@ -40,6 +40,7 @@ class SingleTable {
 			insertMap.put(VALUE_COLUMN_NAME, value);
 		}
 		
+		
 		table.insert(scope, insertMap);
 	}
 

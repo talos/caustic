@@ -21,15 +21,15 @@ class NonPersistedDatabaseView implements DatabaseView {
 	
 	private NonPersistedDatabaseView(NonPersistedDatabaseView parent, String name, String value)
 			throws IOException {
+		this.idFactory = parent.idFactory;
+		this.scope = idFactory.get();
+		this.table = parent.table;
 		if(value == null) {
 			this.view = (InMemoryDatabaseView) parent.view.spawnChild(name);
 		} else {
 			this.view = (InMemoryDatabaseView) parent.view.spawnChild(name, value);
 		}
-		this.idFactory = parent.idFactory;
-		this.scope = idFactory.get();
-		this.table = parent.table;
-		//SingleTable.insert(table, scope, parent.scope, name, value);
+		SingleTable.insert(table, scope, parent.scope, name, value);
 	}
 	
 	public NonPersistedDatabaseView(UUIDFactory idFactory, WritableTable table)
@@ -38,7 +38,6 @@ class NonPersistedDatabaseView implements DatabaseView {
 		this.idFactory = idFactory;
 		this.scope = idFactory.get();
 		this.table = table;
-		//this.table = SingleTable.get(connection);
 	}
 	
 	@Override

@@ -49,4 +49,19 @@ public class HashtableUtils {
 		return result;
 	}
 	
+	/**
+	 * An empty {@link Hashtable} on demand.  Throws {@link UnsupportedOperationException}
+	 * on attempted modification.
+	 */
+	public final static Hashtable EMPTY = new Hashtable() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -1296778405412009351L;
+
+		public Object put(Object key, Object value) {
+			throw new UnsupportedOperationException();
+		}
+	};
+	
 }

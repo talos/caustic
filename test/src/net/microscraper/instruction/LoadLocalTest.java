@@ -115,4 +115,22 @@ public class LoadLocalTest {
 		load.setPostData(postData);
 		load.execute(null, input);
 	}
+	
+
+	@Test
+	public void testSendsResponseBodyToFind(@Mocked final Find find) throws Exception {
+		final String response = randomString();
+		new Expectations() {{
+			mockBrowser.get(url.toString(), (Hashtable) any, (Pattern[]) any); result = response;
+			find.execute(response, input);
+		}};
+		
+		load.setChildren(new Instruction[] { find });
+		ScraperResult result = load.execute(null, input);
+		
+		assertTrue(result.isSuccess());
+		assertEquals(1, result.getChildren().length);
+		
+		result.getChildren()[0].scrape();
+	}
 }
