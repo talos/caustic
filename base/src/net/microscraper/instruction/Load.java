@@ -209,9 +209,9 @@ public final class Load implements Instruction {
 			}
 			return result;
 		} catch(HashtableSubstitutionOverwriteException e) {
-			return ScraperResult.failure(e.getMessage());
+			return ScraperResult.fromSubstitutionOverwrite(e);
 		} catch (HttpException e) {
-			return ScraperResult.failure(e.getMessage());
+			return ScraperResult.fromHttpException(e);
 		}
 	}
 	

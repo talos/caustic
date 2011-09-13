@@ -37,7 +37,7 @@ public class ScraperResultTest {
 	@Test
 	public void testFailure() {
 		String failedBecause = randomString();
-		ScraperResult result = ScraperResult.failure(failedBecause);
+		ScraperResult result = ScraperResult.fromSubstitutionOverwrite(failedBecause);
 		assertEquals(failedBecause, result.getFailedBecause());
 	}
 

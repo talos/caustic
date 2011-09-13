@@ -12,7 +12,6 @@ import net.microscraper.template.DependsOnTemplate;
 import net.microscraper.template.MissingTags;
 import net.microscraper.template.StringSubstitution;
 import net.microscraper.template.StringTemplate;
-import net.microscraper.util.StringUtils;
 
 public class Find implements Instruction {
 	
@@ -149,11 +148,7 @@ public class Find implements Instruction {
 			String[] matches = pattern.match(source, replacement, minMatch, maxMatch);
 			
 			if(matches.length == 0) { // No matches, fail out.
-				result = ScraperResult.failure("Match " + StringUtils.quote(pattern) +
-					" did not have a match between " + 
-					StringUtils.quote(minMatch) + " and " + 
-					StringUtils.quote(maxMatch) + " against " +
-					StringUtils.quoteAndTruncate(StringUtils.quote(source), 100));
+				result = ScraperResult.noMatchesFailure(pattern, minMatch, maxMatch, source);
 			// We got at least 1 match.
 			} else {
 				DatabaseView[] resultViews = new DatabaseView[matches.length];

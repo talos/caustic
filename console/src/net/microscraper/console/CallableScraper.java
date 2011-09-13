@@ -4,6 +4,7 @@ import java.util.concurrent.Callable;
 
 import net.microscraper.client.Scraper;
 import net.microscraper.client.ScraperResult;
+import net.microscraper.database.DatabaseException;
 
 /**
  * A {@link Callable} wrapper for {@link Scraper}, that calls {@link Scraper#scrape()}
@@ -11,7 +12,7 @@ import net.microscraper.client.ScraperResult;
  * @author talos
  *
  */
-public class CallableScraper implements Callable<ScraperResult> {
+public class CallableScraper implements Callable<Scraper[]> {
 	private final Scraper scraper;
 	
 	public CallableScraper(Scraper scraper) {
@@ -19,7 +20,14 @@ public class CallableScraper implements Callable<ScraperResult> {
 	}
 
 	@Override
-	public ScraperResult call() throws Exception {
-		return scraper.scrape();
+	public Scraper[] call() throws InterruptedException, DatabaseException {
+		ScraperResult result = scraper.scrape();
+		if(result.isSuccess()) {
+			return result.getChildren();
+		} else if(result.isMissingTags()) {
+			return new Scraper[] { scraper };
+		} else {
+			return new Scraper[] {};
+		}
 	}
 }

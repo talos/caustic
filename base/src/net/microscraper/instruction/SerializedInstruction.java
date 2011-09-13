@@ -46,7 +46,7 @@ public class SerializedInstruction implements Instruction {
 			} else if(deserializerResult.isMissingTags()) {
 				result = ScraperResult.missingTags(deserializerResult.getMissingTags());
 			} else {
-				result = ScraperResult.failure(deserializerResult.getFailedBecause());
+				result = ScraperResult.fromDeserializerFailure(deserializerResult);
 			}
 		} else { // don't duplicate effort in deserializing
 			result = executeWithDeserialized(source, input);

@@ -1,6 +1,5 @@
 package net.microscraper.console;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,21 +11,21 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import net.microscraper.client.Scraper;
-import net.microscraper.client.ScraperResult;
+import net.microscraper.database.DatabaseException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.log.Loggable;
 import net.microscraper.log.Logger;
 import net.microscraper.log.MultiLog;
-import net.microscraper.util.StringUtils;
 
 public class AsyncScraper implements Loggable, Callable<AsyncScraperStatus> {
 	private final ExecutorService executor;
-	private final List<Future<ScraperResult>> submitted =
-			Collections.synchronizedList(new ArrayList<Future<ScraperResult>>());
+	private final List<Future<Scraper[]>> submitted =
+			Collections.synchronizedList(new ArrayList<Future<Scraper[]>>());
 	private final MultiLog log = new MultiLog();
 	private final Scraper rootScraper;
 
+	/*
 	private void logSuccess(Scraper scraper, int numChildren) {
 		log.i("Scraper " + StringUtils.quote(scraper) + " is successful, adding "
 				+ numChildren + " children to queue.");
@@ -48,52 +47,41 @@ public class AsyncScraper implements Loggable, Callable<AsyncScraperStatus> {
 				StringUtils.quote(failedBecause));
 	}
 	
-	private Future<ScraperResult> submit(CallableScraper scraper) {
-		Future<ScraperResult> future = executor.submit(scraper);
+	private Future<Scraper[]> submit(CallableScraper scraper) {
+		Future<Scraper[]> future = executor.submit(scraper);
 		synchronized(submitted) {
 			submitted.add(future);
 		}
 		return future;
 	}
-	
-	private boolean workThroughSubmitList() {
+	*/
+	private boolean workThroughSubmitList() throws ExecutionException, InterruptedException {
 		boolean allSubmittedDone = true;
 		allSubmittedDone = true;
+		
+		List<CallableScraper> tryAgainLater = new ArrayList<CallableScraper>();
+		List<CallableScraper> tryNow = new ArrayList<CallableScraper>();
+		
 		synchronized(submitted) {
-			for(Future<ScraperResult> future : submitted) {
+			for(Future<Scraper[]> future : submitted) {
 				if(future.isDone() == false) {
 					allSubmittedDone = false;
 				} else {
-					try {
-						ScraperResult result = future.get();
-						
-						if(result.isSuccess()) {  // submit children if success
-							Scraper[] scraperChildren = result.getChildren();
-							logSuccess(scraperChildren.length);
-							
-							for(Scraper child : scraperChildren) {
-								executor.submit(new CallableScraper(child, log));
-							}
-							
-						} else if(result.isMissingTags()) { 
-							String[] missingTags = result.getMissingTags();
-							
-							if(scraper.isStuck()) {// do not resubmit if missing tags and stuck
-								logStuck(missingTags);
-							} else {// resubmit if missing tags but not stuck
-								logMissingTags(missingTags);
-								executor.submit(this);
-							}
-							
+					Scraper[] scrapers = future.get();
+					for(Scraper scraper : scrapers) {
+						if(scraper.isStuck()) {
+							tryAgainLater.add(new CallableScraper(scraper));
 						} else {
-							logFailure(result.getFailedBecause());
+							tryNow.add(new CallableScraper(scraper));
 						}
-					} catch(ExecutionException e) {
-						
 					}
 				}
 			}
 		}
+		
+		executor.invokeAll(tryNow);
+		executor.invokeAll(tryAgainLater);
+		
 	}
 	
 	public AsyncScraper(Instruction instruction, DatabaseView input,
@@ -102,6 +90,7 @@ public class AsyncScraper implements Loggable, Callable<AsyncScraperStatus> {
 		rootScraper = new Scraper(instruction, input, source);
 	}
 	
+	/*
 	public AsyncScraperStatus getStatus() {
 		int numSuccess = 0;
 		int numMissingTags = 0;
@@ -109,7 +98,7 @@ public class AsyncScraper implements Loggable, Callable<AsyncScraperStatus> {
 		int numCrashed = 0;
 		int numWaiting = 0;
 		synchronized(submitted) {
-			for(Future<ScraperResult> future : submitted) {
+			for(Future<Scraper[]> future : submitted) {
 				if(future.isDone() == false) {
 					numWaiting++;
 				} else {
@@ -133,32 +122,14 @@ public class AsyncScraper implements Loggable, Callable<AsyncScraperStatus> {
 		}
 		return new AsyncScraperStatus(numSuccess, numMissingTags, numFailed, numCrashed, numWaiting);
 	}
-	
-	public void join() throws InterruptedException {
-		boolean allSubmittedDone = false;
-		while(allSubmittedDone == false) {
-			allSubmittedDone = true;
-			synchronized(submitted) {
-				for(Future<ScraperResult> future : submitted) {
-					if(future.isDone() == false) {
-						allSubmittedDone = false;
-						break;
-					}
-				}
-			}
-			Thread.sleep(500);
-		}
+	*/
 
-		executor.shutdown();
-		executor.awaitTermination(100, TimeUnit.DAYS);
-	}
-
-	public AsyncScraperStatus call() throws IOException, InterruptedException {
+	public AsyncScraperStatus call() throws InterruptedException, DatabaseException {
 		log.i("Scraping " + rootScraper);
 		
-		CallableScraper rootCallable = new CallableScraper(rootScraper);
+		CallableScraper rootCallableScraper = new CallableScraper(rootScraper);
 		
-		executor.submit(rootCallable);
+		executor.submit(rootCallableScraper);
 		
 		// monitor
 		
