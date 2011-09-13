@@ -1,6 +1,5 @@
 package net.microscraper.database;
 
-import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -60,18 +59,18 @@ public class InMemoryDatabaseView implements DatabaseView {
 		this.hashtable = new Hashtable();
 	}
 	
-	public DatabaseView spawnChild(String name) {
+	public DatabaseView spawnChild(String name) throws DatabasePersistException {
 		return new InMemoryDatabaseView(this);
 	}
 
 	
-	public DatabaseView spawnChild(String name, String value) {
+	public DatabaseView spawnChild(String name, String value) throws DatabasePersistException {
 		InMemoryDatabaseView child = new InMemoryDatabaseView(this);
 		child.put(name, value);
 		return child;
 	}
 	
-	public String get(String key) throws IOException {
+	public String get(String key) throws DatabaseReadException {
 		if(hashtable.containsKey(key)) {
 			return (String) hashtable.get(key);
 		} else if(parent != null) {
@@ -81,7 +80,7 @@ public class InMemoryDatabaseView implements DatabaseView {
 		}
 	}
 	
-	public void put(String key, String value) {
+	public void put(String key, String value) throws DatabasePersistException {
 		hashtable.put(key, value);
 	}
 	

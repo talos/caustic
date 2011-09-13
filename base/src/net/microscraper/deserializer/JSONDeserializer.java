@@ -3,6 +3,7 @@ package net.microscraper.deserializer;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Find;
@@ -67,7 +68,8 @@ public class JSONDeserializer implements Deserializer {
 	
 	private DeserializerResult deserialize(String jsonString, DatabaseView input, String uri, String openTagString, String closeTagString)
 			throws JsonException, TemplateCompilationException,
-			IOException, MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException {
+			MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException,
+			DatabaseReadException, IOException {
 		final DeserializerResult result;
 		
 		// Parse non-objects as URIs.  Any substitution should have been done beforehand.
@@ -475,6 +477,8 @@ public class JSONDeserializer implements Deserializer {
 		} catch(TemplateCompilationException e) {
 			return DeserializerResult.failure(e.getMessage());
 		} catch (RemoteToLocalSchemeResolutionException e) {
+			return DeserializerResult.failure(e.getMessage());
+		} catch (DatabaseReadException e) {
 			return DeserializerResult.failure(e.getMessage());
 		}
 	}

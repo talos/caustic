@@ -1,9 +1,9 @@
 package net.microscraper.client;
 
-import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.microscraper.database.DatabaseException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.instruction.Instruction;
@@ -93,9 +93,9 @@ public class Scraper {
 	 * @return A {@link ScraperResult} with the results of this {@link Scraper},
 	 * or information about why it didn't work.
 	 * @throws InterruptedException If {@link Scraper} is interrupted.
-	 * @throws IOException If there was an error persisting to the {@link DatabaseView}.
+	 * @throws DatabaseException If there was an error persisting to the {@link DatabaseView}.
 	 */
-	public ScraperResult scrape() throws InterruptedException, IOException {
+	public ScraperResult scrape() throws InterruptedException, DatabaseException {
 		lastResult = curResult;
 		curResult = instruction.execute(source, input);
 		return curResult;

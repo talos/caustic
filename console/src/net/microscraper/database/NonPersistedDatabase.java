@@ -1,7 +1,5 @@
 package net.microscraper.database;
 
-import java.io.IOException;
-
 import net.microscraper.uuid.UUIDFactory;
 
 public class NonPersistedDatabase implements Database {
@@ -15,18 +13,18 @@ public class NonPersistedDatabase implements Database {
 	}
 	
 	@Override
-	public void open() throws IOException {
+	public void open() throws ConnectionException {
 		connection.open();
 		table = SingleTable.get(connection);
 	}
 
 	@Override
-	public DatabaseView newView() throws IOException {
+	public DatabaseView newView() throws DatabasePersistException {
 		return new NonPersistedDatabaseView(idFactory, table);
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() throws ConnectionException {
 		connection.close();
 	}
 

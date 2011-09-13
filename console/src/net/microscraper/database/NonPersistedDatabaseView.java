@@ -1,7 +1,5 @@
 package net.microscraper.database;
 
-import java.io.IOException;
-
 import net.microscraper.uuid.UUID;
 import net.microscraper.uuid.UUIDFactory;
 
@@ -20,7 +18,7 @@ class NonPersistedDatabaseView implements DatabaseView {
 	private final UUID scope;
 	
 	private NonPersistedDatabaseView(NonPersistedDatabaseView parent, String name, String value)
-			throws IOException {
+			throws DatabasePersistException {
 		this.idFactory = parent.idFactory;
 		this.scope = idFactory.get();
 		this.table = parent.table;
@@ -33,7 +31,7 @@ class NonPersistedDatabaseView implements DatabaseView {
 	}
 	
 	public NonPersistedDatabaseView(UUIDFactory idFactory, WritableTable table)
-			throws IOException {
+			throws DatabasePersistException {
 		this.view = new InMemoryDatabaseView();
 		this.idFactory = idFactory;
 		this.scope = idFactory.get();
@@ -41,23 +39,23 @@ class NonPersistedDatabaseView implements DatabaseView {
 	}
 	
 	@Override
-	public NonPersistedDatabaseView spawnChild(String name) throws IOException {
+	public NonPersistedDatabaseView spawnChild(String name) throws DatabasePersistException {
 		return spawnChild(name, null);
 	}
 
 	@Override
 	public NonPersistedDatabaseView spawnChild(String name, String value)
-			throws IOException {
+			throws DatabasePersistException {
 		return new NonPersistedDatabaseView(this, name, value);
 	}
 
 	@Override
-	public String get(String key) throws IOException {
+	public String get(String key) throws DatabaseReadException {
 		return view.get(key);
 	}
 
 	@Override
-	public void put(String key, String value) throws IOException {
+	public void put(String key, String value) throws DatabasePersistException {
 		SingleTable.insert(table, scope, null, key, value);
 		view.put(key, value);
 	}

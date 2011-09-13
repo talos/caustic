@@ -1,7 +1,5 @@
 package net.microscraper.database;
 
-import java.io.IOException;
-
 /**
  * A {@link Connection} that can obtain {@link IOTable}s.
  * @author talos
@@ -16,10 +14,16 @@ public interface IOConnection extends Connection {
 	 * @param columnNames An array of {@link String} columns to include in this 
 	 * {@link IOTable}.
 	 * @return A {@link IOTable}.
-	 * @throws IOException if the {@link IOTable} cannot be created.
+	 * @throws ConnectionException if the {@link IOTable} cannot be created.
 	 */
 	public abstract IOTable newIOTable(String name, String[] columnNames)
-			throws IOException;
-	
-	public abstract IOTable getIOTable(String name) throws IOException;
+			throws ConnectionException;
+
+	/**
+	 * Obtain an existing {@link IOTable} using this {@link IOConnection}.
+	 * @param name The {@link String} name of the new {@link IOTable}.
+	 * @return A {@link IOTable} if the table exists, <code>null</code> otherwise.
+	 * @throws ConnectionException if the {@link IOTable} cannot be created.
+	 */
+	public abstract IOTable getIOTable(String name) throws ConnectionException;
 }

@@ -1,12 +1,14 @@
 package net.microscraper.instruction;
 
-import java.io.IOException;
 import java.util.Hashtable;
 
 import net.microscraper.client.Scraper;
 import net.microscraper.client.ScraperResult;
+import net.microscraper.database.DatabasePersistException;
+import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.http.HttpBrowser;
+import net.microscraper.http.HttpException;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.template.DependsOnTemplate;
 import net.microscraper.template.HashtableSubstitution;
@@ -71,7 +73,7 @@ public final class Load implements Instruction {
 	private Instruction[] children = new Instruction[] { };
 	
 	private StringSubstitution getPosts(DatabaseView input)
-			throws HashtableSubstitutionOverwriteException, IOException {
+			throws HashtableSubstitutionOverwriteException, DatabaseReadException {
 		if(postTable.size() > 0) {
 			HashtableSubstitution tableSub = postTable.sub(input);
 			if(tableSub.isMissingTags()) {
@@ -157,7 +159,8 @@ public final class Load implements Instruction {
 	/**
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 */
-	public ScraperResult execute(String source, DatabaseView input) throws InterruptedException {
+	public ScraperResult execute(String source, DatabaseView input)
+			throws InterruptedException, DatabasePersistException, DatabaseReadException {
 		try {
 			final ScraperResult result;
 			
@@ -205,9 +208,9 @@ public final class Load implements Instruction {
 				result = ScraperResult.success(url, new DatabaseView[] { input } , scraperChildren);
 			}
 			return result;
-		} catch(IOException e) {
-			return ScraperResult.failure("IO Failure while loading: " + e.getMessage());
 		} catch(HashtableSubstitutionOverwriteException e) {
+			return ScraperResult.failure(e.getMessage());
+		} catch (HttpException e) {
 			return ScraperResult.failure(e.getMessage());
 		}
 	}

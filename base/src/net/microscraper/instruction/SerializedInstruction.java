@@ -1,8 +1,7 @@
 package net.microscraper.instruction;
 
-import java.io.IOException;
-
 import net.microscraper.client.ScraperResult;
+import net.microscraper.database.DatabaseException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.deserializer.Deserializer;
 import net.microscraper.deserializer.DeserializerResult;
@@ -21,7 +20,8 @@ public class SerializedInstruction implements Instruction {
 	
 	private Instruction instruction;
 	
-	private ScraperResult executeWithDeserialized(String source, DatabaseView input) throws InterruptedException, IOException {
+	private ScraperResult executeWithDeserialized(String source, DatabaseView input)
+			throws InterruptedException, DatabaseException {
 		return instruction.execute(source, input);
 	}
 	
@@ -31,7 +31,8 @@ public class SerializedInstruction implements Instruction {
 		this.uri = uri;
 	}
 
-	public ScraperResult execute(String source, DatabaseView input) throws InterruptedException, IOException {
+	public ScraperResult execute(String source, DatabaseView input)
+			throws InterruptedException, DatabaseException {
 		
 		final ScraperResult result;
 		

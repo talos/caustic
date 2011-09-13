@@ -1,12 +1,12 @@
 package net.microscraper.template;
 
-import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.VectorUtils;
+import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.template.StringTemplate;
 
@@ -30,9 +30,12 @@ public class HashtableTemplate {
 	 * @param input
 	 * @return An {@link HashtableSubstitution} whose
 	 * {@link Hashtable} has been substituted with tags accessible to <code>scope</code>.
-	 * @throws IOException 
+	 * @throws HashtableSubstitutionOverwriteException if the substitution caused a mapping to
+	 * be overwritten.
+	 * @throws DatabaseReadException if <code>input</code> could not be read.
 	 */
-	public HashtableSubstitution sub(DatabaseView input) throws HashtableSubstitutionOverwriteException, IOException {
+	public HashtableSubstitution sub(DatabaseView input)
+			throws HashtableSubstitutionOverwriteException, DatabaseReadException {
 		Vector missingTags = new Vector();
 		Hashtable subbedTable = new Hashtable();
 		Enumeration keys = table.keys();

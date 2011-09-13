@@ -1,6 +1,5 @@
 package net.microscraper.http;
 
-import java.io.IOException;
 import java.util.Hashtable;
 
 import net.microscraper.util.Encoder;
@@ -30,10 +29,9 @@ public interface CookieManager {
 	 * @return An array of {@link String}s, each a single complete Cookie usable for the request.
 	 * Is a zero-length array if there are none.
 	 * @throws BadURLException If <code>urlString</code> can't be parsed as a URL.
-	 * @throws IOException If there is some other problem with the {@link CookieManager}
 	 */
 	public String[] getCookiesFor(String urlString, Hashtable requestHeaders)
-			throws BadURLException, IOException;
+			throws BadURLException;
 	
 	/**
 	 * Retrieve the cookie2s applicable to a request for <code>urlString</code>
@@ -44,20 +42,18 @@ public interface CookieManager {
 	 * @return An array of {@link String}s, each a single complete Cookie2 usable for the request.
 	 * Is a zero-length array if there are none.
 	 * @throws BadURLException If <code>urlString</code> can't be parsed as a URL.
-	 * @throws IOException If there is some other problem with the {@link CookieManager}
 	 */
 	public String[] getCookie2sFor(String urlString, Hashtable requestHeaders)
-			throws BadURLException, IOException;
+			throws BadURLException;
 	
 	/**
 	 * Add cookies from {@link ResponseHeaders} to the {@link CookieManager}.
 	 * @param urlString The <code>urlString</code> from which {@link ResponseHeaders} originated.
 	 * @param responseHeaders The {@link ResponseHeaders} that may contain cookies.
 	 * @throws BadURLException If <code>urlString</code> cannot be parsed as a URL.
-	 * @throws IOException If there is some other problem with the {@link CookieManager}
 	 */
 	public void addCookiesFromResponseHeaders(String urlString,
-			ResponseHeaders responseHeaders) throws BadURLException, IOException;
+			ResponseHeaders responseHeaders) throws BadURLException;
 
 	/**
 	 * Add cookies to the {@link CookieManager}.

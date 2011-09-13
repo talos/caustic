@@ -69,19 +69,19 @@ public class JavaNetHttpRequester implements HttpRequester {
 	
 	@Override
 	public HttpResponse head(String url, Hashtable requestHeaders)
-			throws IOException, InterruptedException {
+			throws InterruptedException, BadHttpResponseCode {
 		return getResponse("HEAD", url, requestHeaders, null);
 	}
 
 	@Override
 	public HttpResponse get(String url, Hashtable requestHeaders)
-			throws IOException, InterruptedException {
+			throws InterruptedException, BadHttpResponseCode {
 		return getResponse("GET", url, requestHeaders, null);
 	}
 
 	@Override
 	public HttpResponse post(String url, Hashtable requestHeaders,
-			String encodedPostData) throws IOException, InterruptedException {
+			String encodedPostData) throws InterruptedException, BadHttpResponseCode {
 		return getResponse("POST", url, requestHeaders, encodedPostData);
 	}
 

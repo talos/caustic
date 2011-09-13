@@ -86,12 +86,14 @@ public class HttpBrowser implements Loggable {
 	 * none.
 	 * @return A {@link InputStreamReader} to read response content, if it was a request that
 	 * should return content.
-	 * @throws IOException If there was an error generating the {@link HttpURLConnection}.
 	 * @throws InterruptedException If the user interrupted the request while it was being delayed
 	 * due to rate limiting, or while waiting for the host to respond.
+	 * @throws BadHttpResponseCode If the response code could not be handled.
+	 * @throws BadURLException If <code>urlStr</code> cannot be parsed as a URL.
+	 * @throws HttpRedirectException If redirects could not be followed.
 	 */
 	private InputStreamReader request(String method, String urlStr, Hashtable headers, String encodedPostData)
-			throws InterruptedException, IOException {
+			throws InterruptedException, BadHttpResponseCode, BadURLException, HttpRedirectException {
 		return request(method, urlStr, headers, encodedPostData, new Vector());
 	}
 
@@ -105,13 +107,15 @@ public class HttpBrowser implements Loggable {
 	 * none.
 	 * @return A {@link InputStreamReader} to read response content, if it was a request that
 	 * should return content.
-	 * @throws IOException If there was an error generating the {@link HttpURLConnection}.
 	 * @throws InterruptedException If the user interrupted the request while it was being delayed
 	 * due to rate limiting, or while waiting for the host to respond.
+	 * @throws BadHttpResponseCode If the response code could not be handled.
+	 * @throws BadURLException If <code>urlStr</code> cannot be parsed as a URL.
+	 * @throws HttpRedirectException If redirects could not be followed.
 	 */
 	private InputStreamReader request(String method, String urlStr, Hashtable headers,
 					String postData, Vector redirectsFollowed)
-			throws InterruptedException, IOException {
+			throws InterruptedException, BadHttpResponseCode, BadURLException, HttpRedirectException {
 		
 		while(rateLimitManager.shouldDelay(urlStr) == true) {
 			Thread.sleep(DEFAULT_SLEEP_TIME);
@@ -124,19 +128,16 @@ public class HttpBrowser implements Loggable {
 		headers = HashtableUtils.combine(new Hashtable[] { getGenericHeaders(urlStr), headers });
 				
 		// Add cookies into the headers.
-		try {
-			String[] cookies = cookieManager.getCookiesFor(urlStr, headers);
-			String[] cookie2s = cookieManager.getCookie2sFor(urlStr, headers);
-			
-			if(cookies.length > 0) {
-				headers.put(CookieManager.COOKIE_HEADER_NAME, StringUtils.join(cookies, "; "));
-			}
-			if(cookie2s.length > 0) {
-				headers.put(CookieManager.COOKIE_2_HEADER_NAME, StringUtils.join(cookie2s, "; "));
-			}
-		} catch(BadURLException e) {
-			throw new IOException("Bad URL for adding cookie: " + e);
+		String[] cookies = cookieManager.getCookiesFor(urlStr, headers);
+		String[] cookie2s = cookieManager.getCookie2sFor(urlStr, headers);
+		
+		if(cookies.length > 0) {
+			headers.put(CookieManager.COOKIE_HEADER_NAME, StringUtils.join(cookies, "; "));
 		}
+		if(cookie2s.length > 0) {
+			headers.put(CookieManager.COOKIE_2_HEADER_NAME, StringUtils.join(cookie2s, "; "));
+		}
+		
 		log.i("All headers: " + StringUtils.quote(headers));
 		
 		log.i("Requesting " + method + " from " + StringUtils.quote(urlStr));
@@ -166,17 +167,20 @@ public class HttpBrowser implements Loggable {
 				return response.getContentStream();
 			}
 		} else if(!response.isRedirect()) {
-			throw new IOException("Bad response code from " + StringUtils.quote(urlStr) +
-					": " + response.getResponseCode());
+			throw new BadHttpResponseCode(response.getResponseCode());
 		} else {
-			if(redirectsFollowed.size() >= MAX_REDIRECTS) {
-				throw new IOException("Max redirects exhausted.");
-			}
 			try {
 				String redirectURLStr = response.getRedirectLocation();
+				
+				if(redirectsFollowed.size() >= MAX_REDIRECTS) {
+					String[] redirectsFollowedAry = new String[redirectsFollowed.size()];
+					redirectsFollowed.copyInto(redirectsFollowedAry);
+					throw HttpRedirectException.newMaxRedirects(redirectsFollowedAry, redirectsFollowed.size());
+				}
 				if(redirectsFollowed.contains(redirectURLStr)) {
-					throw new IOException("Not following circular redirect from " +
-							StringUtils.quote(urlStr) + " to " + StringUtils.quote(redirectURLStr));
+					String[] redirectsFollowedAry = new String[redirectsFollowed.size()];
+					redirectsFollowed.copyInto(redirectsFollowedAry);
+					throw HttpRedirectException.newCircular(redirectsFollowedAry);
 				} else {		
 					redirectsFollowed.add(redirectURLStr);
 				}
@@ -186,7 +190,7 @@ public class HttpBrowser implements Loggable {
 				
 				return request(GET, redirectURLStr, headers, null, redirectsFollowed);
 			} catch(BadURLException e) {
-				throw new IOException("Could not follow redirect: " + e.getMessage());
+				throw HttpRedirectException.fromBadURL(e);
 			}
 		}	
 	}
@@ -197,11 +201,11 @@ public class HttpBrowser implements Loggable {
 	 * @param stream An {@link InputStreamReader} response from <code>url</code>
 	 * @param terminates array of {@link Pattern}s to interrupt the load.
 	 * @return A {@link String}.
-	 * @throws IOException if there was an exception requesting.
 	 * @throws InterruptedException if the user interrupted the load.
+	 * @throws HttpResponseContentException if the response could not be fully read.
 	 */
 	private String readResponseStream(String urlStr, InputStreamReader stream, Pattern[] terminates)
-			throws IOException, InterruptedException {
+			throws InterruptedException, HttpResponseContentException {
 		
 		StringBuffer responseBody = new StringBuffer();
 		
@@ -210,32 +214,42 @@ public class HttpBrowser implements Loggable {
 		int lastTotalReadBytes = totalReadBytes;
 		int readBytes;
 		boolean terminate = false;
-		while((readBytes = stream.read(buffer)) != -1 && terminate == false) {
+		
+		try { // try/catch for reading the stream
+			while((readBytes = stream.read(buffer)) != -1 && terminate == false) {
 
-			if(Thread.interrupted()) {
-				throw new InterruptedException();
-			}
-			totalReadBytes += readBytes;
-			// log every 51.2 kB
-			if(totalReadBytes - lastTotalReadBytes > buffer.length * 100) { 
-				log.i("Have loaded " + totalReadBytes + " bytes from " + StringUtils.quote(urlStr));
-				lastTotalReadBytes = totalReadBytes;
-			}
-			
-			responseBody.append(buffer, 0, readBytes);
-			
-			if(totalReadBytes > maxResponseSize * 1024) {
-				throw new IOException("Exceeded maximum response size of " + maxResponseSize + "KB.");
-			}
-			
-			for(int i = 0 ; i < terminates.length && terminate == false ; i++) {
-				if(terminates[i].matches(responseBody.toString(), Pattern.FIRST_MATCH)) {
-					log.i("Terminating " + urlStr.toString() + " due to pattern " + terminates[i].toString());
-					terminate = true;
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
+				totalReadBytes += readBytes;
+				// log every 51.2 kB
+				if(totalReadBytes - lastTotalReadBytes > buffer.length * 100) { 
+					log.i("Have loaded " + totalReadBytes + " bytes from " + StringUtils.quote(urlStr));
+					lastTotalReadBytes = totalReadBytes;
+				}
+				
+				responseBody.append(buffer, 0, readBytes);
+				
+				if(totalReadBytes > maxResponseSize * 1024) {
+					throw new IOException("Exceeded maximum response size of " + maxResponseSize + "KB.");
+				}
+				
+				for(int i = 0 ; i < terminates.length && terminate == false ; i++) {
+					if(terminates[i].matches(responseBody.toString(), Pattern.FIRST_MATCH)) {
+						log.i("Terminating " + urlStr.toString() + " due to pattern " + terminates[i].toString());
+						terminate = true;
+					}
 				}
 			}
+		} catch (IOException e) {
+			throw HttpResponseContentException.fromIOException(e);
 		}
-		stream.close();
+		
+		try { // try/catch for closing the stream.
+			stream.close();
+		} catch (IOException e) {
+			throw HttpResponseContentException.fromIOException(e);
+		}
 		rateLimitManager.rememberResponse(urlStr, responseBody.length());
 		return responseBody.toString();
 	}
@@ -251,10 +265,10 @@ public class HttpBrowser implements Loggable {
 	 * from response headers to the {@link HttpBrowser}'s cookie store.
 	 * @param urlStr the URL to HTTP Head.
 	 * @param headers {@link Hashtable} extra headers.
-	 * @throws IOException If there was an exception requesting the page.
 	 * @throws InterruptedException If the user interrupted the request.
+	 * @throws HttpRequestException if there was an exception that prevented the request from being completed.
 	 */
-	public void head(String urlStr, Hashtable headers) throws IOException, InterruptedException {
+	public void head(String urlStr, Hashtable headers) throws InterruptedException, HttpRequestException {
 		request(HEAD, urlStr, headers, null);
 	}
 	
@@ -264,11 +278,12 @@ public class HttpBrowser implements Loggable {
 	 * @param headers {@link Hashtable} extra headers.
 	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.
 	 * @return The body of the response.
-	 * @throws IOException If there was an exception making or during the request.
 	 * @throws InterruptedException If the user interrupted the request.
+	 * @throws HttpException if there was an exception that prevented the request from being completed or
+	 * its response from being read.
 	 */
 	public String get(String urlStr, Hashtable headers, Pattern[] terminates)
-				throws IOException, InterruptedException {
+				throws InterruptedException, HttpException {
 		InputStreamReader stream = request(GET, urlStr, headers, null);
 		return readResponseStream(urlStr, stream, terminates);
 	}
@@ -281,11 +296,12 @@ public class HttpBrowser implements Loggable {
 	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.
 	 * @param encodedPostData {@link String} of post data.  Should already be encoded.
 	 * @return The body of the response.
-	 * @throws IOException If there was an exception making or during the request.
 	 * @throws InterruptedException If the user interrupted the request.
+	 * @throws HttpException if there was an exception that prevented the request from being completed or
+	 * its response from being read.
 	 */
 	public String post(String urlStr, Hashtable headers, Pattern[] terminates, String encodedPostData)
-				throws IOException, InterruptedException {
+				throws InterruptedException, HttpException {
 		InputStreamReader stream = request(POST, urlStr, headers, encodedPostData);
 		return readResponseStream(urlStr, stream, terminates);
 	}

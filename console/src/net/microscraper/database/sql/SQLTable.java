@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.microscraper.database.IOTable;
+import net.microscraper.database.IOTableReadException;
 import net.microscraper.database.TableManipulationException;
 import net.microscraper.util.StringUtils;
 import net.microscraper.uuid.UUID;
@@ -91,12 +92,12 @@ public class SQLTable implements IOTable {
 			alterTable.execute();
 			connection.runBatch();
 		} catch(SQLConnectionException e) {
-			throw new TableManipulationException(e);
+			throw new TableManipulationException(e.getMessage());
 		}
 	}
 	
 	@Override
-	public boolean hasColumn(String columnName) throws IOException {
+	public boolean hasColumn(String columnName) throws IOTableReadException {
 		try {
 			SQLPreparedStatement select =
 					connection.prepareStatement(
@@ -107,7 +108,7 @@ public class SQLTable implements IOTable {
 			
 			return hasColumn;
 		} catch(SQLConnectionException e) {
-			throw new IOException(e);
+			throw new IOTableReadException(e);
 		}
 	}
 	
@@ -137,7 +138,7 @@ public class SQLTable implements IOTable {
 			insert.bindStrings(columnValues);
 			insert.execute();
 		} catch(SQLConnectionException e) {
-			throw new TableManipulationException(e);
+			throw new TableManipulationException(e.getMessage());
 		}
 	}
 
@@ -170,12 +171,12 @@ public class SQLTable implements IOTable {
 			update.bindStrings(values);
 			update.execute();
 		} catch (SQLConnectionException e) {
-			throw new TableManipulationException(e);
+			throw new TableManipulationException(e.getMessage());
 		}
 	}
 
 	@Override
-	public List<Map<String, String>> select(UUID scope, String[] columnNames) throws IOException {
+	public List<Map<String, String>> select(UUID scope, String[] columnNames) throws IOTableReadException {
 		try  {
 			SQLResultSet rs = getResultSet(scope, columnNames);
 			
@@ -189,13 +190,15 @@ public class SQLTable implements IOTable {
 			}
 			rs.close();
 			return results;
-		} catch(SQLConnectionException e) {
-			throw new IOException(e);
+		} catch(IOException e) {
+			throw new IOTableReadException(e);
+		} catch (SQLConnectionException e) {
+			throw new IOTableReadException(e);
 		}
 	}
 
 	@Override
-	public List<String> select(UUID scope, String columnName) throws IOException {
+	public List<String> select(UUID scope, String columnName) throws IOTableReadException {
 		try  {
 			SQLResultSet rs = getResultSet(scope, new String[] { columnName} );
 			
@@ -206,8 +209,9 @@ public class SQLTable implements IOTable {
 			rs.close();
 			return results;
 		} catch(SQLConnectionException e) {
-			throw new IOException(e);
+			throw new IOTableReadException(e);
+		} catch (IOException e) {
+			throw new IOTableReadException(e);
 		}
-		
 	}
 }

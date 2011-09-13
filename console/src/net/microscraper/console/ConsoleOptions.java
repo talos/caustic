@@ -439,16 +439,16 @@ public final class ConsoleOptions {
 	
 	/**
 	 * 
-	 * @return A {@link ScraperExecutor} with a user-defined number of threads.
+	 * @return A {@link AsyncScraper} with a user-defined number of threads.
 	 * @throws InvalidOptionException if an invalid {@link #threads} option was passed.
 	 */
-	public ScraperExecutor getExecutor() throws InvalidOptionException {
+	public AsyncScraper getExecutor() throws InvalidOptionException {
 		try {
 			int numThreads = Integer.valueOf(getValue(threads));
 			if(numThreads < 1) {
 				throw new InvalidOptionException("Must have at least one thread.");
 			}
-			return new ScraperExecutor(numThreads);
+			return new AsyncScraper(numThreads);
 		} catch(NumberFormatException e) {
 			throw new InvalidOptionException(THREADS + " must be an integer.");
 		}

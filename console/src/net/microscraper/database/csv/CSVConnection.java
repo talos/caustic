@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 
+import net.microscraper.database.ConnectionException;
 import net.microscraper.database.WritableConnection;
 import net.microscraper.database.WritableTable;
 
@@ -55,18 +56,26 @@ public class CSVConnection implements WritableConnection {
 	}
 	
 	@Override
-	public void open() throws IOException {
+	public void open() throws ConnectionException {
 		Writer writer;
 		if(isToStdout) {
 			writer = new SystemOutWriter();
 		} else {
-			writer = new FileWriter(new File(pathToFile));
+			try {
+				writer = new FileWriter(new File(pathToFile));
+			} catch (IOException e) {
+				throw new ConnectionException(e);
+			}
 		}
 		this.csvWriter = new CSVWriter(writer, delimiter);
 	}
 
 	@Override
-	public void close() throws IOException {
-		csvWriter.close();
+	public void close() throws ConnectionException {
+		try {
+			csvWriter.close();
+		} catch (IOException e) {
+			throw new ConnectionException(e);
+		}
 	}
 }

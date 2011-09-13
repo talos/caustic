@@ -23,7 +23,7 @@ public class Console {
 	private final Instruction instruction;
 	private final String source;
 	
-	private final ScraperExecutor executor;
+	private final AsyncScraper executor;
 
 	public Console(String... stringArgs) throws InvalidOptionException, UnsupportedEncodingException {
 		
@@ -71,7 +71,7 @@ public class Console {
 		return new Thread() {
 			public void run() {
 				executor.kill();
-				System.out.println(executor.getStatusLine());
+				System.out.println(executor.getStatus());
 				
 				try {
 					logger.close();

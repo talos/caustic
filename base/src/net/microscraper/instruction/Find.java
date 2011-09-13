@@ -1,9 +1,10 @@
 package net.microscraper.instruction;
 
-import java.io.IOException;
 
 import net.microscraper.client.Scraper;
 import net.microscraper.client.ScraperResult;
+import net.microscraper.database.DatabasePersistException;
+import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
@@ -116,7 +117,7 @@ public class Find implements Instruction {
 	/**
 	 * Use {@link #pattern}, substituted with {@link Variables}, to match against <code>source</code>.
 	 */
-	public ScraperResult execute(String source, DatabaseView inputView) throws IOException {
+	public ScraperResult execute(String source, DatabaseView inputView) throws DatabasePersistException, DatabaseReadException {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}

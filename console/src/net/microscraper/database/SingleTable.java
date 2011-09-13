@@ -1,6 +1,5 @@
 package net.microscraper.database;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +44,7 @@ class SingleTable {
 	}
 
 	public static void update(IOTable table,
-			UUID scope, UUID source, String name, String value) throws IOException {
+			UUID scope, UUID source, String name, String value) throws DatabasePersistException {
 		Map<String, String> map = new HashMap<String, String>();
 		map.put(NAME_COLUMN_NAME, name);
 		if(source != null) {
@@ -55,14 +54,18 @@ class SingleTable {
 			map.put(VALUE_COLUMN_NAME, value);
 		}
 		
-		if(table.select(scope, NAME_COLUMN_NAME).size() == 0) { // insert the row
-			table.insert(scope, map);
-		} else { // update the existing row.
-			table.update(scope, map);
+		try {
+			if(table.select(scope, NAME_COLUMN_NAME).size() == 0) { // insert the row
+				table.insert(scope, map);
+			} else { // update the existing row.
+				table.update(scope, map);
+			}
+		} catch (IOTableReadException e) {
+			throw new DatabasePersistException(e.getMessage());
 		}
 	}
 	
-	public static String select(IOTable table, UUID scope, String name) throws IOException {
+	public static String select(IOTable table, UUID scope, String name) throws DatabaseReadException {
 		List<Map<String, String>> rows = table.select(scope,
 				new String[] { SOURCE_COLUMN_NAME, NAME_COLUMN_NAME, VALUE_COLUMN_NAME } );
 		
@@ -81,11 +84,11 @@ class SingleTable {
 		}
 	}
 	
-	public static WritableTable get(WritableConnection connection) throws IOException {
+	public static WritableTable get(WritableConnection connection) throws ConnectionException {
 		return connection.newWritable(TABLE_NAME, COLUMN_NAMES);
 	}
-
-	public static IOTable get(IOConnection connection) throws IOException {
+	
+	public static IOTable get(IOConnection connection) throws ConnectionException {
 		IOTable table = connection.getIOTable(TABLE_NAME);
 		if(table != null) {
 			return table;

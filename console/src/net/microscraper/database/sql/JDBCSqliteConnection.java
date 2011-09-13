@@ -1,6 +1,5 @@
 package net.microscraper.database.sql;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,6 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.microscraper.database.ConnectionException;
 import net.microscraper.database.IOTable;
 
 /**
@@ -223,62 +223,53 @@ public class JDBCSqliteConnection implements SQLConnection {
 	 * Open {@link JDBCSqliteConnection} using org.sqlite.JDBC.
 	 */
 	@Override
-	public void open() throws IOException {
+	public void open() throws ConnectionException {
 		try {
 			Class.forName("org.sqlite.JDBC"); // Make sure we have this class.
 			connection = DriverManager.getConnection(connectionPath);
 			connection.setAutoCommit(false);
 		} catch(SQLException e) {
-			throw new IOException(e);
+			throw new SQLConnectionException(e);
 		} catch(ClassNotFoundException e) {
-			throw new IOException(e);
+			throw new SQLConnectionException(e);
 		}
 	}
 	
 	@Override
 	public IOTable newIOTable(String name, String[] columnNames)
-			throws IOException {
-		try {
-			
-			String definitionStr = "`" + ID_COLUMN_NAME + "` " + textColumnType();
-			for(String columnName : columnNames) {
-				definitionStr += ",`" + columnName + "` " + textColumnType();
-			}
-			
-			SQLPreparedStatement createTable = 
-					prepareStatement("CREATE TABLE `" + name + "` (" +
-							definitionStr + ")");
-			createTable.execute();
-			
-			runBatch();
-			return new SQLTable(this, name, ID_COLUMN_NAME);
-		} catch(SQLConnectionException e) {
-			throw new IOException(e);
+			throws ConnectionException {
+		String definitionStr = "`" + ID_COLUMN_NAME + "` " + textColumnType();
+		for(String columnName : columnNames) {
+			definitionStr += ",`" + columnName + "` " + textColumnType();
 		}
+		
+		SQLPreparedStatement createTable = 
+				prepareStatement("CREATE TABLE `" + name + "` (" +
+						definitionStr + ")");
+		createTable.execute();
+		
+		runBatch();
+		return new SQLTable(this, name, ID_COLUMN_NAME);
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() throws ConnectionException {
 		try {
 			runBatch();
 			connection.commit();
 		} catch(SQLConnectionException e) {
-			throw new IOException(e);
+			throw new SQLConnectionException(e);
 		} catch(SQLException e) {
-			throw new IOException(e);
+			throw new SQLConnectionException(e);
 		}
 	}
 	
 	@Override
-	public IOTable getIOTable(String name) throws IOException {
-		try {
-			if(tableExists(name)) {
-				return new SQLTable(this, name, ID_COLUMN_NAME);
-			} else {
-				return null;
-			}
-		} catch(SQLConnectionException e) {
-			throw new IOException(e);
+	public IOTable getIOTable(String name) throws ConnectionException {
+		if(tableExists(name)) {
+			return new SQLTable(this, name, ID_COLUMN_NAME);
+		} else {
+			return null;
 		}
 	}
 

@@ -1,6 +1,5 @@
 package net.microscraper.database;
 
-import java.io.IOException;
 
 import net.microscraper.template.StringTemplate;
 
@@ -18,9 +17,9 @@ public interface DatabaseView {
 	 * @return A new {@link DatabaseView} that will check
 	 * this {@link DatabaseView} only if it cannot find a key
 	 * in itself.
-	 * @throws IOException if there was a problem persisting.
+	 * @throws DatabasePersistException if there was a problem persisting
 	 */
-	public abstract DatabaseView spawnChild(String name) throws IOException;
+	public abstract DatabaseView spawnChild(String name) throws DatabasePersistException;
 
 	/**
 	 * 
@@ -31,18 +30,9 @@ public interface DatabaseView {
 	 * @return A new {@link DatabaseView} that will check
 	 * this {@link DatabaseView} only if it cannot find a key
 	 * in itself.
-	 * @throws IOException if there was a problem persisting.
+	 * @throws DatabasePersistException if there was a problem persisting
 	 */
-	public abstract DatabaseView spawnChild(String name, String value) throws IOException;
-
-	/**
-	 * Get a {@link String} value mapped to a key.
-	 * @param key The {@link String} key to look for.
-	 * @return The {@link String} value if it is contained
-	 * in this {@link DatabaseView} or one of its parents,
-	 * <code>null</code> otherwise.
-	 */
-	public abstract String get(String key) throws IOException;
+	public abstract DatabaseView spawnChild(String name, String value) throws DatabasePersistException;
 
 	/**
 	 * Map a {@link String} value to a {@link String} key.
@@ -51,8 +41,18 @@ public interface DatabaseView {
 	 * is not allowed for the key or value.
 	 * @param key the {@link String} key.
 	 * @param value the {@link String} value.
-	 * @throws IOException if there was a problem persisting.
+	 * @throws DatabasePersistException if there was a problem persisting
 	 */
-	public abstract void put(String key, String value) throws IOException;
+	public abstract void put(String key, String value) throws DatabasePersistException;
+
+	/**
+	 * Get a {@link String} value mapped to a key.
+	 * @param key The {@link String} key to look for.
+	 * @return The {@link String} value if it is contained
+	 * in this {@link DatabaseView} or one of its parents,
+	 * <code>null</code> otherwise.
+	 * @throws DatabasePersistException if there was a problem reading
+	 */
+	public abstract String get(String key) throws DatabaseReadException;
 
 }

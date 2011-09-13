@@ -3,12 +3,12 @@ package net.microscraper.http;
 import net.microscraper.util.StringUtils;
 
 /**
- * This {@link Exception} is thrown when a {@link String} is not a valid
+ * This {@link HttpRequestException} is thrown when a {@link String} is not a valid
  * URL.
  * @author talos
  *
  */
-public class BadURLException extends Exception {
+public class BadURLException extends HttpRequestException {
 
 	/**
 	 * 
@@ -23,5 +23,4 @@ public class BadURLException extends Exception {
 	public BadURLException(String url, String message) {
 		super(StringUtils.quote(url) + " could not be parsed as a URL: " + message);
 	}
-	
 }

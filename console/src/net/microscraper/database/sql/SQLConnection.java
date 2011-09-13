@@ -2,7 +2,6 @@ package net.microscraper.database.sql;
 
 import net.microscraper.database.IOConnection;
 
-
 /**
  * An interface to a SQL connection.  Methods similar to {@link java.sql}.
  * @author talos

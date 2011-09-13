@@ -25,7 +25,7 @@ public class JavaNetCookieManager implements CookieManager {
 	//private final java.net.CookieStore cookieStore = new java.net.CookieManager().getCookieStore();
 	
 	private String[] getCookiesFor(String urlString, Hashtable requestHeaders, String cookieType) 
-			throws BadURLException, IOException {
+			throws BadURLException {
 		try {
 			CookieStore cookieStore = cookieManager.getCookieStore();
 			List<HttpCookie> cookies = cookieStore.get(new URI(urlString));
@@ -66,12 +66,12 @@ public class JavaNetCookieManager implements CookieManager {
 	}
 	
 	@Override
-	public String[] getCookiesFor(String urlString, Hashtable requestHeaders) throws BadURLException, IOException {
+	public String[] getCookiesFor(String urlString, Hashtable requestHeaders) throws BadURLException {
 		return getCookiesFor(urlString, requestHeaders, COOKIE_HEADER_NAME);
 	}
 	
 	@Override
-	public String[] getCookie2sFor(String urlString, Hashtable requestHeaders) throws BadURLException, IOException {
+	public String[] getCookie2sFor(String urlString, Hashtable requestHeaders) throws BadURLException {
 		//return getCookiesFor(urlString, requestHeaders, COOKIE_2_HEADER_NAME);
 		return new String[] {};
 	}
