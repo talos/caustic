@@ -3,8 +3,6 @@ package net.microscraper.console;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-import net.microscraper.client.Scraper;
-
 public class MainClass {
 
 	/**
@@ -26,10 +24,10 @@ public class MainClass {
 	public static void main(String... args) {
 		try {
 			Console console = new Console(args);
+			
 			Runtime.getRuntime().addShutdownHook(console.getShutdownThread());
-			/*
-			String statusLine = console.execute();
-			println(statusLine);*/
+			
+			console.open();
 			console.execute();
 		} catch(InvalidOptionException e) {
 			println(e.getMessage());
@@ -39,18 +37,8 @@ public class MainClass {
 			println("Your computer does not support the required encoding: " + e.getMessage());
 		} catch(IOException e) {
 			e.printStackTrace();
+		} catch(InterruptedException e) {
+			println("Interrupt");
 		}
-	}
-
-	/**
-	 * Generate a readout of the relative success of the {@link Scraper}s' executions.
-	 * @param successful the number of successful executions.
-	 * @param stuck the number of executions that got stuck.
-	 * @param failed the number of failed executions.
-	 * @return A {@link String} summary.
-	 */
-	public String statusLine(int successful, int stuck, int failed) {
-		return successful + " successful instructions, " + stuck + " stuck instructions, " + failed +
-				" failed instructions.";
 	}
 }

@@ -56,8 +56,8 @@ public class HashtableTemplate {
 					subbedTable.put( subbedKeyStr, (String) subbedValue.getSubstituted());
 				}
 			} else {
-				VectorUtils.arrayIntoVector(subbedKey.getMissingTags(), missingTags);
-				VectorUtils.arrayIntoVector(subbedValue.getMissingTags(), missingTags);
+				VectorUtils.arrayIntoVector( StringTemplate.combine(
+						new DependsOnTemplate[] {subbedKey, subbedValue } ), missingTags);
 			}
 		}
 		if(missingTags.size() == 0) {

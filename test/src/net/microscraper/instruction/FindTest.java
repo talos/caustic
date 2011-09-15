@@ -9,7 +9,6 @@ import java.util.List;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import net.microscraper.client.ScraperResult;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
@@ -53,7 +52,7 @@ public class FindTest  {
 				patternSub.getMissingTags(); result = missingVariables1;
 		}};
 		find.setReplacement(replacement);
-		ScraperResult result = find.execute(randomString(), input);
+		FindResult result = find.execute(randomString(), input);
 		
 		assertTrue(result.isMissingTags());
 		List<String> list1 = Arrays.asList(missingVariables1);
@@ -81,9 +80,9 @@ public class FindTest  {
 				regexpPattern.match(source, replacementString, anyInt, anyInt); result = new String[] {};
 		}};
 		find.setReplacement(replacement);
-		ScraperResult result = find.execute(randomString(), input);
+		FindResult result = find.execute(randomString(), input);
 		
-		assertFalse(result.isSuccess());
+		assertNull(result.getMatches());
 		assertFalse(result.isMissingTags());
 		
 		assertTrue(result.getFailedBecause() + " should contain 'match'", result.getFailedBecause().contains("match"));

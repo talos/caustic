@@ -52,7 +52,7 @@ public class MainClassTest {
 		//console.execute();
 		new VerificationsInOrder() {{
 			out.print(row("scope", "source", "name", "value"));
-			out.print(ScraperExecutor.formatStatusLine(0, 1, 0, 0, 0));
+			//out.print(ScraperExecutor.formatStatusLine(0, 1, 0, 0, 0));
 		}};
 		
 		MainClass.main("../fixtures/json/simple-google.json", "--log-stdout");
@@ -82,7 +82,7 @@ public class MainClassTest {
 			out.print(row("1", "0", "what do you say after 'hello'?", "I say 'world'!"));
 			out.print(row("2", "0", "what do you say after 'hello'?", "I say 'tree'!"));
 			out.print(row("3", "0", "what do you say after 'hello'?", "I say 'whee'!"));
-			out.print(ScraperExecutor.formatStatusLine(2, 0, 0, 0, 0));
+			//out.print(ScraperExecutor.formatStatusLine(2, 0, 0, 0, 0));
 		}};
 	}
 	
@@ -123,7 +123,7 @@ public class MainClassTest {
 			out.print(row("2", "2", "query", "bleh"));
 			out.print(row("3", "2", "what do you say after 'bleh'?", "I say 'this'!"));
 			out.print(row("4", "2", "what do you say after 'bleh'?", "I say 'that'!"));
-			out.print(ScraperExecutor.formatStatusLine(5, 0, 1, 0, 0));
+			//out.print(ScraperExecutor.formatStatusLine(5, 0, 1, 0, 0));
 		}};
 	}
 
@@ -139,7 +139,7 @@ public class MainClassTest {
 			out.print(withSuffix(row("query", "bleh")));
 			out.print(withSuffix(row("what do you say after 'bleh'?", "I say 'this'!")));
 			out.print(withSuffix(row("what do you say after 'bleh'?", "I say 'that'!")));
-			out.print(ScraperExecutor.formatStatusLine(5, 0, 1, 0, 0));
+			//out.print(ScraperExecutor.formatStatusLine(5, 0, 1, 0, 0));
 		}};
 	}
 	
@@ -172,8 +172,8 @@ public class MainClassTest {
 			out.print(row("5", "1", "what do you say after 'world'?", "I say 'domination'!"));
 			out.print(row("2", "2", "what do you say after 'tree'?", "I say 'planting'!"));
 				$ = "Single match, should share scope.";
-			out.print(ScraperExecutor.formatStatusLine(7, 0, 1, 0, 0));
-				$ = "The lack of matches for 'whee' should count as a failure.";
+			//out.print(ScraperExecutor.formatStatusLine(7, 0, 1, 0, 0));
+			//	$ = "The lack of matches for 'whee' should count as a failure.";
 		}};
 	}
 	

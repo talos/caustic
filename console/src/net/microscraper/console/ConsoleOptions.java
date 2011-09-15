@@ -29,7 +29,6 @@ import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
-import net.microscraper.instruction.SerializedInstruction;
 import net.microscraper.json.JsonMEParser;
 import net.microscraper.json.JsonParser;
 import net.microscraper.log.JavaIOFileLogger;
@@ -119,6 +118,10 @@ public final class ConsoleOptions {
 	public static final String REQUEST_WAIT_DEFAULT = Integer.toString(RateLimitManager.DEFAULT_REQUEST_WAIT);
 	private final Option requestWait = Option.withDefault(REQUEST_WAIT, REQUEST_WAIT_DEFAULT);
 	
+	public static final String ROWS = "--rows";
+	public static final String ROWS_DEFAULT = "5";
+	private final Option rows = Option.withDefault(ROWS, ROWS_DEFAULT);
+	
 	public static final String SINGLE_TABLE = "--single-table";
 	private final Option singleTable = Option.withoutDefault(SINGLE_TABLE);
 	
@@ -127,7 +130,7 @@ public final class ConsoleOptions {
 	private final Option source = Option.withDefault(SOURCE, SOURCE_DEFAULT);
 	
 	public static final String THREADS = "--threads";
-	public static final String THREADS_DEFAULT = "3";
+	public static final String THREADS_DEFAULT = "6";
 	private final Option threads = Option.withDefault(THREADS, THREADS_DEFAULT);
 	
 	public static final String TIMEOUT_MILLISECONDS = "--timeout";
@@ -174,14 +177,17 @@ public final class ConsoleOptions {
 "    " + REQUEST_WAIT + "=<request-wait-milliseconds>" + NEWLINE +
 "        How many milliseconds to wait before placing a second " + NEWLINE +
 "        request with a single host.  Defaults to " + REQUEST_WAIT_DEFAULT + "ms." + NEWLINE +
+"    " + ROWS + "=<num-rows>" + NEWLINE +
+"        How many rows of input to read at once.  Defaults to " + NEWLINE +
+"        " + ROWS_DEFAULT + " rows." + NEWLINE+
 "    " + SINGLE_TABLE + NEWLINE +
 "        Save all results to a single sqlite table, if using sqlite" + NEWLINE +
 "    " + SOURCE + "=<source>" + NEWLINE +
 "        A string to use as source for the instruction." + NEWLINE +
 "        Only Finds use sources." + NEWLINE +
 "    " + THREADS + "=<num-threads>" + NEWLINE +
-"        How many threads to use.  Each thread runs one " + NEWLINE +
-"        row of input for one instruction." + NEWLINE +
+"        How many threads to use per row of input.  Defaults to " + NEWLINE +
+"        " + THREADS_DEFAULT + " threads." + NEWLINE +
 "    " + TIMEOUT_MILLISECONDS + "=<timeout>" + NEWLINE +
 "        How many milliseconds to wait before giving up on a" + NEWLINE + 
 "        request.  Defaults to " + TIMEOUT_MILLISECONDS + " milliseconds.");
@@ -328,13 +334,7 @@ public final class ConsoleOptions {
 		return multiLog;
 	}
 	
-	/**
-	 * 
-	 * @return The serialized instruction {@link String}.
-	 * @throws InvalidOptionException
-	 * @throws UnsupportedEncodingException 
-	 */
-	public Instruction getInstruction() throws InvalidOptionException, UnsupportedEncodingException {
+	public HttpBrowser getBrowser() throws InvalidOptionException {
 		HttpRequester requester = new JavaNetHttpRequester();
 
 		// Set timeout.
@@ -381,19 +381,30 @@ public final class ConsoleOptions {
 			throw new InvalidOptionException(MAX_RESPONSE_SIZE + " must be an integer");
 		}
 		
+		return browser;
+	}
+	
+	/**
+	 * 
+	 * @return The serialized instruction {@link String}.
+	 * @throws InvalidOptionException
+	 * @throws UnsupportedEncodingException 
+	 */
+	public Instruction getInstruction() throws InvalidOptionException, UnsupportedEncodingException {
+
 		RegexpCompiler compiler = new JavaUtilRegexpCompiler();
-		URILoader uriLoader = new JavaNetURILoader(browser, new JavaIOFileLoader());
+		URILoader uriLoader = new JavaNetURILoader(getBrowser(), new JavaIOFileLoader());
 		UriResolver uriResolver = new JavaNetUriResolver();
 		JsonParser parser = new JsonMEParser();
 		Encoder encoder = new JavaNetEncoder(getValue(encoding));
-		Deserializer deserializer = new JSONDeserializer(parser, compiler, browser, encoder, uriResolver, uriLoader);
+		Deserializer deserializer = new JSONDeserializer(parser, compiler, encoder, uriResolver, uriLoader);
 		
 		String executionDir = new File(StringUtils.USER_DIR).toURI().toString();
 		if(!executionDir.endsWith("/")) {
 			executionDir += "/";
 		}
 		
-		return new SerializedInstruction(getValue(instruction), deserializer, executionDir);
+		return new Instruction(getValue(instruction), deserializer, executionDir);
 	}
 	
 	/**
@@ -437,20 +448,30 @@ public final class ConsoleOptions {
 		return getValue(source);
 	}
 	
-	/**
-	 * 
-	 * @return A {@link AsyncScraper} with a user-defined number of threads.
-	 * @throws InvalidOptionException if an invalid {@link #threads} option was passed.
-	 */
-	public AsyncScraper getExecutor() throws InvalidOptionException {
+	public int getNumRowsToRead() throws InvalidOptionException {
 		try {
-			int numThreads = Integer.valueOf(getValue(threads));
-			if(numThreads < 1) {
-				throw new InvalidOptionException("Must have at least one thread.");
+			int numRowsToRead = Integer.valueOf(getValue(rows));
+			if(numRowsToRead <= 0) {
+				throw new InvalidOptionException(ROWS + " must be greater than 0");
+			} else {
+				return numRowsToRead;
 			}
-			return new AsyncScraper(numThreads);
+		} catch(NumberFormatException e) {
+			throw new InvalidOptionException(ROWS + " must be an integer.");
+		}
+	}
+	
+	public int getThreadsPerRow() throws InvalidOptionException {
+		try {
+			int threadsPerRow = Integer.valueOf(getValue(threads));
+			if(threadsPerRow <= 0) {
+				throw new InvalidOptionException(THREADS + " must be greater than 0");
+			} else {
+				return threadsPerRow;
+			}
 		} catch(NumberFormatException e) {
 			throw new InvalidOptionException(THREADS + " must be an integer.");
 		}
 	}
+	
 }

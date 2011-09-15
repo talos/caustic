@@ -1,6 +1,5 @@
 
 {
-    "name"        : "viewstate",
     "find"     : "name\\s*=\\s*\"__VIEWSTATE\"\\s+value\\s*=\\s*\"([^\"]+)\"",
     "replace" : "$1",
     "match" : 0

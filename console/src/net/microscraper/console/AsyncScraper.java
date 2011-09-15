@@ -15,6 +15,7 @@ import net.microscraper.client.ScraperResult;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
 import net.microscraper.database.DatabaseView;
+import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.log.Loggable;
 import net.microscraper.log.Logger;
@@ -26,6 +27,7 @@ public class AsyncScraper implements Loggable, Runnable {
 	/*private final List<Future<Scraper[]>> submitted =
 			Collections.synchronizedList(new ArrayList<Future<Scraper[]>>());*/
 	private final MultiLog log = new MultiLog();
+	private final HttpBrowser browser;
 	private final Instruction instruction;
 	private final Database database;
 	private final Map<String, String> input;
@@ -58,9 +60,9 @@ public class AsyncScraper implements Loggable, Runnable {
 	private void logIncomplete(List<CallableScraper> stuckScrapers, List<String> missingTags) {
 		log.i("Couldn't complete scraping of " + StringUtils.quote(instruction) +
 				" with input " + StringUtils.quote(input.toString()) + " because" + 
-				" these " + StringUtils.quote(stuckScrapers) + " were missing " +
-				" the tags " + StringUtils.quote(missingTags) + " " +
-				" There were " + successes.size() + " successful instructions, " + 
+				" these " + StringUtils.quote(stuckScrapers) + " were missing" +
+				" the tags " + StringUtils.quote(missingTags) +
+				" There were " + successes.size() + " successful instructions," + 
 				" and " + failures.size() + " failed instructions.  The failures" +
 				" were as follows: " + failures.toString());
 	}
@@ -72,36 +74,13 @@ public class AsyncScraper implements Loggable, Runnable {
 				" with input " + StringUtils.quote(input.toString()) + " because" + 
 				" of " + terminatingThrowable + ". There were " + notYetRun.size() + 
 				" instructions in the queue." +
-				" " + StringUtils.quote(stuckScrapers) + " were missing the tags " +
+				" " + StringUtils.quote(stuckScrapers) + " were missing the tags" +
 				" " + StringUtils.quote(missingTags) + " " +
-				" There were " + successes.size() + " successful instructions, " + 
+				" There were " + successes.size() + " successful instructions," + 
 				" and " + failures.size() + " failed instructions.  The failures" +
 				" were as follows: " + failures.toString());
 	}
 	
-	/*
-	private void logSuccess(Scraper scraper, int numChildren) {
-		log.i("Scraper " + StringUtils.quote(scraper) + " is successful, adding "
-				+ numChildren + " children to queue.");
-	}
-	
-	private void logMissingTags(Scraper scraper, String[] missingTags) {
-		log.i("Scraper " + scraper + " is missing tags " + 
-				StringUtils.quoteJoin(missingTags, ", ") +
-				", trying again later.");
-	}
-	
-	private void logStuck(Scraper scraper, String[] missingTags) {
-		log.i("Scraper " + scraper + " is stuck on tags " + 
-				StringUtils.quoteJoin(missingTags, "."));
-	}
-	
-	private void logFailure(Scraper scraper, String failedBecause) {
-		log.i("Scraper " + scraper + " failed: " + 
-				StringUtils.quote(failedBecause));
-	}
-	
-	*/
 	
 	/**
 	 * Invoke a {@link List} of {@link CallableScraper}s.
@@ -145,6 +124,7 @@ public class AsyncScraper implements Loggable, Runnable {
 				}
 			}
 		} catch(ExecutionException e) {
+			e.printStackTrace();
 			prematureTermination = e.getCause();
 		} catch(InterruptedException e) {
 			prematureTermination = e;
@@ -166,7 +146,7 @@ public class AsyncScraper implements Loggable, Runnable {
 				executor.shutdown();
 			// continue invoking iff there were some non-stuck scrapers, or
 			// the missing tags changed.
-			} else if(invokeNext.size() > reinvoke.size() && !missingTagsAreSame) {
+			} else if(invokeNext.size() > reinvoke.size() || !missingTagsAreSame) {
 				invoke(invokeNext, nowMissingTags);
 			} else {
 				logIncomplete(reinvoke, nowMissingTags);
@@ -176,14 +156,16 @@ public class AsyncScraper implements Loggable, Runnable {
 	}
 	
 	public AsyncScraper(Instruction instruction, Map<String, String> input, Database database,
-			String source, int nThreads) {
+			String source, HttpBrowser browser, int nThreads) {
 		this.executor = Executors.newFixedThreadPool(nThreads);
 		this.instruction = instruction;
 		this.input = input;
+		this.browser = browser;
 		this.database = database;
 		this.source = source;
 	}
 
+	@Override
 	public void run() {
 		log.i("Scraping " + StringUtils.quote(instruction));
 		
@@ -194,7 +176,7 @@ public class AsyncScraper implements Loggable, Runnable {
 			}
 
 			// the starting callable scraper.
-			CallableScraper cScraper = new CallableScraper(new Scraper(instruction, view, source));
+			CallableScraper cScraper = new CallableScraper(new Scraper(instruction, view, source, browser));
 			List<String> noMissingTags = Collections.emptyList();
 			invoke(Arrays.asList(new CallableScraper[] { cScraper }), noMissingTags);
 			

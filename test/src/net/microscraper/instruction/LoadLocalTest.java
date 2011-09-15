@@ -8,6 +8,7 @@ import java.util.Hashtable;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
+import mockit.NonStrictExpectations;
 import net.microscraper.client.ScraperResult;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.http.CookieManager;
@@ -37,7 +38,11 @@ public class LoadLocalTest {
 	public void setUp() throws Exception {
 		url = StringTemplate.staticTemplate(randomString());
 		encoder = new JavaNetEncoder(Encoder.UTF_8);
-		load = new Load(mockBrowser, encoder, url);
+		load = new Load(encoder, url);
+		
+		new NonStrictExpectations() {{
+			mockBrowser.copy(); result = mockBrowser;
+		}};
 	}
 	
 	@Test
@@ -46,11 +51,9 @@ public class LoadLocalTest {
 			mockBrowser.head(url.toString(), (Hashtable) any);
 		}};
 		load.setMethod(HttpBrowser.HEAD);
-		ScraperResult result = load.execute(null, input);
-		assertTrue(result.isSuccess());
-		DatabaseView[] views = result.getResultViews();
-		assertEquals("Result should be one-length array.", 1, views.length);
-		assertEquals("Result view should be input view.", input, views[0]);
+		LoadResult result = load.execute(mockBrowser, input);
+		assertNotNull(result.getResponseBody());
+		assertEquals(url.toString(), result.getUrl());
 	}
 
 	@Test
@@ -59,11 +62,9 @@ public class LoadLocalTest {
 		new Expectations() {{
 			mockBrowser.get(url.toString(), (Hashtable) any, (Pattern[]) any); result = response;
 		}};
-		ScraperResult result = load.execute(null, input);
-		assertTrue(result.isSuccess());
-		DatabaseView[] views = result.getResultViews();
-		assertEquals("Result should be one-length array.", 1, views.length);
-		assertEquals("Result view should be input view.", input, views[0]);
+		LoadResult result = load.execute(mockBrowser, input);
+		assertEquals(url.toString(), result.getUrl());
+		assertEquals(response, result.getResponseBody());
 	}
 	
 	@Test
@@ -71,12 +72,14 @@ public class LoadLocalTest {
 		final String value = randomString();
 		final String name = "query";
 		final StringTemplate url = new StringTemplate("http://www.google.com/?q={{" + name + "}}", "{{", "}}");
+		final String subbed = "http://www.google.com/?q=" + value;
 		new Expectations() {{
 			input.get(name); result = value;
-			mockBrowser.get("http://www.google.com/?q=" + value, (Hashtable) any, (Pattern[]) any);
+			mockBrowser.get(subbed, (Hashtable) any, (Pattern[]) any);
 		}};
-		Load load = new Load(mockBrowser, encoder, url);
-		load.execute(null, input);
+		Load load = new Load(encoder, url);
+		LoadResult result = load.execute(mockBrowser, input);
+		assertEquals(subbed, result.getUrl());
 	}
 	
 	
@@ -87,7 +90,7 @@ public class LoadLocalTest {
 				$ = "Post data should be a zero-length string.";
 		}};
 		load.setMethod(HttpBrowser.POST);
-		load.execute(null, input);
+		load.execute(mockBrowser, input);
 	}
 	
 	@Test
@@ -98,7 +101,7 @@ public class LoadLocalTest {
 				$ = "Post data should be set by setting post data.";
 		}};
 		load.setPostData(postData);
-		load.execute(null, input);
+		load.execute(mockBrowser, input);
 	}
 	
 	@Test
@@ -113,24 +116,29 @@ public class LoadLocalTest {
 				$ = "Post data should be substituted.";
 		}};
 		load.setPostData(postData);
-		load.execute(null, input);
+		load.execute(mockBrowser, input);
 	}
 	
 
 	@Test
 	public void testSendsResponseBodyToFind(@Mocked final Find find) throws Exception {
 		final String response = randomString();
-		new Expectations() {{
+		new Expectations() {
+			FindResult findResult;
+			{
 			mockBrowser.get(url.toString(), (Hashtable) any, (Pattern[]) any); result = response;
-			find.execute(response, input);
+			find.execute(response, input); result = findResult;
 		}};
 		
-		load.setChildren(new Instruction[] { find });
-		ScraperResult result = load.execute(null, input);
+		Instruction instruction = new Instruction(load);
+		instruction.setChildren(new Instruction[] { new Instruction(find) });
+
+		
+		InstructionResult result = instruction.execute(null, input, mockBrowser);
 		
 		assertTrue(result.isSuccess());
 		assertEquals(1, result.getChildren().length);
 		
-		result.getChildren()[0].scrape();
+		result.getChildren()[0].execute(result.getResults()[0], input, mockBrowser);
 	}
 }

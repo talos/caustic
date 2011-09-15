@@ -30,6 +30,7 @@ public class Instruction {
 	public Instruction(String serializedString, Deserializer deserializer, String uri) {
 		this.serializedString = serializedString;
 		this.deserializer = deserializer;
+		this.uri = uri;
 	}
 	
 	public void setChildren(Instruction[] children) {
@@ -103,5 +104,18 @@ public class Instruction {
 		}
 		
 		throw new RuntimeException();
+	}
+	
+	public String toString() {
+		if(serializedString != null) {
+			return serializedString;
+		};
+		if(find != null) {
+			return find.toString();
+		}
+		if(load != null) {
+			return load.toString();
+		}
+		return super.toString();
 	}
 }

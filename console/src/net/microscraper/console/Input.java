@@ -2,12 +2,8 @@ package net.microscraper.console;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
-
-import net.microscraper.database.Database;
-import net.microscraper.database.DatabaseView;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -97,12 +93,12 @@ public class Input {
 	
 	/**
 	 * 
-	 * @return <code>null</code> if there are no more values, a {@link DatabaseView}
+	 * @return <code>null</code> if there are no more values, a {@link Map}
 	 * to use next otherwise.
 	 * @throws IOException if there is an error reading from the input file or persisting
 	 * to the {@link PersistedDatabase}.
 	 */
-	public DatabaseView next(Database database) throws IOException {
+	public Map<String, String> next() throws IOException {
 		Map<String, String> map;
 		if(!hasCSV) { // return the shared map on the first run if there's no CSV.
 			if(rowsRead > 0) {
@@ -126,16 +122,6 @@ public class Input {
 			}
 		}
 		rowsRead++;
-		if(map == null) {
-			return null;
-		} else {
-			DatabaseView view = database.newView();
-			Iterator<String> keys = map.keySet().iterator();
-			while(keys.hasNext()) {
-				String key = keys.next();
-				view.put(key, map.get(key));
-			}
-			return view;
-		}
+		return map;
 	}
 }

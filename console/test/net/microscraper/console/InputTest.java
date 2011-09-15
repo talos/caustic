@@ -4,9 +4,9 @@ import static net.microscraper.util.TestUtils.randomString;
 import static org.junit.Assert.*;
 
 import java.util.Hashtable;
+import java.util.Map;
 
 import net.microscraper.database.Database;
-import net.microscraper.database.DatabaseView;
 import net.microscraper.database.NonPersistedDatabase;
 import net.microscraper.database.csv.CSVConnection;
 import net.microscraper.uuid.IntUUIDFactory;
@@ -36,12 +36,12 @@ public class InputTest {
 	public void testFromSharedAndCSVCombinesMaps() throws Exception {
 		Input input = Input.fromSharedAndCSV(shared, PATH_TO_QUERIES, ',');
 		input.open();
-		DatabaseView view;
-		while((view = input.next(database)) != null) {
+		Map<String, String> map;
+		while((map = input.next()) != null) {
 			for(String key : shared.keySet()) {
-				assertEquals(shared.get(key), view.get(key));
+				assertEquals(shared.get(key), map.get(key));
 			}
-			assertNotNull(view.get("query"));
+			assertNotNull(map.get("query"));
 		}
 	}
 
@@ -50,8 +50,8 @@ public class InputTest {
 		Hashtable<String, String> shared = new Hashtable<String, String>();
 		Input input = Input.fromShared(shared);
 		input.open();
-		input.next(database);
-		assertNull(input.next(database));
+		input.next();
+		assertNull(input.next());
 		input.close();
 	}
 	
@@ -59,33 +59,33 @@ public class InputTest {
 	public void testHeadersAssignedCorrectly() throws Exception {
 		Input input = Input.fromSharedAndCSV(shared, PATH_TO_BBLS, ',');
 		input.open();
-		DatabaseView view;
+		Map<String, String> map;
 		
-		view = input.next(database);
-		assertEquals("3", view.get("Borough"));
-		assertEquals("1772", view.get("Block"));
-		assertEquals("74", view.get("Lot"));
+		map = input.next();
+		assertEquals("3", map.get("Borough"));
+		assertEquals("1772", map.get("Block"));
+		assertEquals("74", map.get("Lot"));
 
-		view = input.next(database);
-		assertEquals("1", view.get("Borough"));
-		assertEquals("1171", view.get("Block"));
-		assertEquals("63", view.get("Lot"));
+		map = input.next();
+		assertEquals("1", map.get("Borough"));
+		assertEquals("1171", map.get("Block"));
+		assertEquals("63", map.get("Lot"));
 	}
 
 	@Test
 	public void testRowsHaveCorrectValues() throws Exception {
 		Input input = Input.fromSharedAndCSV(new Hashtable<String, String>(), PATH_TO_QUERIES, ',');
 		input.open();
-		DatabaseView view;
+		Map<String, String> map;
 				
-		view = input.next(database);
-		assertEquals("hello", view.get("query"));
+		map = input.next();
+		assertEquals("hello", map.get("query"));
 
-		view = input.next(database);
-		assertEquals("meh", view.get("query"));
+		map = input.next();
+		assertEquals("meh", map.get("query"));
 		
-		view = input.next(database);
-		assertEquals("bleh", view.get("query"));
+		map = input.next();
+		assertEquals("bleh", map.get("query"));
 	}
 	
 	
@@ -94,7 +94,7 @@ public class InputTest {
 		Input input = Input.fromSharedAndCSV(
 				new Hashtable<String, String>(),
 				PATH_TO_QUERIES, ',');
-		input.next(database);
+		input.next();
 	}
 
 }

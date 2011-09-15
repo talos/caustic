@@ -15,11 +15,11 @@ public class Option  {
 		this.defaultValue = defaultValue;
 		validOptions.put(this.name, this);
 	}
-	public static Option withoutDefault(String nonPrependedName) {
-		return new Option(nonPrependedName, null);
+	public static Option withoutDefault(String prependedName) {
+		return new Option(prependedName, null);
 	}
-	public static Option withDefault(String nonPrependedName, String defaultValue) {
-		return new Option(nonPrependedName, defaultValue);
+	public static Option withDefault(String prependedName, String defaultValue) {
+		return new Option(prependedName, defaultValue);
 	}
 	public static Option retrieve(String name) throws InvalidOptionException {
 		if(validOptions.containsKey(name)) {

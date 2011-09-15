@@ -24,6 +24,9 @@ public class JDBCSqliteConnection implements SQLConnection {
 	private Connection connection;
 	private final int batchSize;
 	private final String connectionPath;
+	
+	/*private final Map<String, IOTable> tables = Collections.synchronizedMap(
+			new HashMap<String, IOTable>());*/
 		
 	/**
 	 * Statements yet to be executed.
@@ -147,7 +150,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 				ResultSetMetaData meta = resultSet.getMetaData();
 				
 				int numCol = meta.getColumnCount();
-	
+				
 				for (int i = 1; i < numCol+1; i++) {
 				    if(meta.getColumnName(i).equals(columnName)) {
 				    	return true;
@@ -250,6 +253,8 @@ public class JDBCSqliteConnection implements SQLConnection {
 		
 		runBatch();
 		return new SQLTable(this, name, ID_COLUMN_NAME);
+		//tables.put(name, table);
+		//return table;
 	}
 
 	@Override
@@ -257,6 +262,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 		try {
 			runBatch();
 			connection.commit();
+			
 		} catch(SQLConnectionException e) {
 			throw new SQLConnectionException(e);
 		} catch(SQLException e) {
@@ -272,5 +278,4 @@ public class JDBCSqliteConnection implements SQLConnection {
 			return null;
 		}
 	}
-
 }

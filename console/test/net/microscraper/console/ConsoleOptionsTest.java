@@ -1,21 +1,14 @@
 package net.microscraper.console;
 
-import static net.microscraper.console.ConsoleOptions.BATCH_SIZE;
-import static net.microscraper.console.ConsoleOptions.CSV_FORMAT;
-import static net.microscraper.console.ConsoleOptions.FORMAT;
-import static net.microscraper.console.ConsoleOptions.INPUT;
-import static net.microscraper.console.ConsoleOptions.INPUT_DELIMITER;
-import static net.microscraper.console.ConsoleOptions.SAVE_TO_FILE;
-import static net.microscraper.console.ConsoleOptions.SQLITE_FORMAT;
-import static net.microscraper.console.ConsoleOptions.THREADS;
+import static net.microscraper.console.ConsoleOptions.*;
 import static net.microscraper.util.TestUtils.randomInt;
 import static net.microscraper.util.TestUtils.randomString;
 import static org.junit.Assert.*;
 
 import java.util.Hashtable;
+import java.util.Map;
 
 import net.microscraper.database.Database;
-import net.microscraper.database.DatabaseView;
 import net.microscraper.database.NonPersistedDatabase;
 import net.microscraper.database.csv.CSVConnection;
 import net.microscraper.util.Encoder;
@@ -75,12 +68,12 @@ public class ConsoleOptionsTest {
 		ConsoleOptions withoutQuotes = new ConsoleOptions(new String[] { randomString(),
 				INPUT + "=" + defaults });
 		
-		DatabaseView viewWithQuotes = withQuotes.getInput().next(db);
-		DatabaseView viewWithoutQuotes = withoutQuotes.getInput().next(db);
+		Map<String, String> mapWithQuotes = withQuotes.getInput().next();
+		Map<String, String> mapWithoutQuotes = withoutQuotes.getInput().next();
 		
 		for(String key : origHash.keySet()) {
-			assertEquals(origHash.get(key), viewWithQuotes.get(key));
-			assertEquals(origHash.get(key), viewWithoutQuotes.get(key));
+			assertEquals(origHash.get(key), mapWithQuotes.get(key));
+			assertEquals(origHash.get(key), mapWithoutQuotes.get(key));
 		}
 	}
 	
@@ -102,14 +95,29 @@ public class ConsoleOptionsTest {
 	public void testThreadsCannotBeZero() throws Exception {
 		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
 				THREADS + "=0" });
-		options.getExecutor();
+		options.getThreadsPerRow();
 	}
 	
 	@Test(expected=InvalidOptionException.class)
 	public void testThreadsCannotBeNegative() throws Exception {
 		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
 				THREADS + "=" + (-1 - randomInt()) });
-		options.getExecutor();
+		options.getThreadsPerRow();
+	}
+	
+
+	@Test(expected=InvalidOptionException.class)
+	public void testRowsToReadCannotBeZero() throws Exception {
+		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
+				ROWS + "=0" });
+		options.getNumRowsToRead();
+	}
+	
+	@Test(expected=InvalidOptionException.class)
+	public void testRowsToReadCannotBeNegative() throws Exception {
+		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
+				ROWS + "=" + (-1 - randomInt()) });
+		options.getNumRowsToRead();
 	}
 	
 	

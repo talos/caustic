@@ -71,15 +71,15 @@ public class HttpBrowserNetworkTest {
 				responseBody.contains(query));
 	}
 
-	@Test(expected=IOException.class)
+	@Test(expected=HttpRequestException.class)
 	public void testGetFakeInvalidFormatURL() throws Exception {
 		String url = randomString(30);
 		browser.get(url, new Hashtable<String, String>(), new Pattern[] {});
 	}
 	
-	// If this doesn't throw IOException, it's possible that your ISP throws up
+	// If this doesn't throw HttpRequestException, it's possible that your ISP throws up
 	// some kind of pseudopage when DNS fails.
-	@Test(expected=IOException.class)
+	@Test(expected=HttpRequestException.class)
 	public void testGetFakeValidFormatURL() throws Exception {
 		String url = "http://www." + randomString(30) + ".com/";
 		browser.get(url, new Hashtable<String, String>(), new Pattern[] {});

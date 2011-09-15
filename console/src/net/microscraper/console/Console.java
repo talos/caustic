@@ -2,10 +2,15 @@ package net.microscraper.console;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-import net.microscraper.client.Scraper;
+import net.microscraper.database.ConnectionException;
 import net.microscraper.database.Database;
-import net.microscraper.database.DatabaseView;
+import net.microscraper.database.DatabaseException;
+import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.log.Logger;
 import net.microscraper.util.StringUtils;
@@ -22,9 +27,11 @@ public class Console {
 
 	private final Instruction instruction;
 	private final String source;
+	private final HttpBrowser browser;
 	
-	private final AsyncScraper executor;
-
+	private final int threadsPerRow;
+	private final ExecutorService executor;
+	
 	public Console(String... stringArgs) throws InvalidOptionException, UnsupportedEncodingException {
 		
 		// Extract implementations from arguments, exit if there's a bad argument or this
@@ -33,32 +40,40 @@ public class Console {
 		database = options.getDatabase();
 		logger = options.getLogger();
 		input = options.getInput();
+		browser = options.getBrowser();
+		
+		executor = Executors.newFixedThreadPool(options.getNumRowsToRead());
+		threadsPerRow = options.getThreadsPerRow();
 		
 		instruction = options.getInstruction();
 		source = options.getSource();
-		
-		executor = options.getExecutor();
 	}
 	
-	public void execute() throws IOException  {
-		logger.open();
-		database.open();
-		input.open();
+	public void open() throws IOException {
+		try {
+			logger.open();
+			database.open();
+			input.open();
+		} catch(ConnectionException e) {
+			throw new IOException(e);
+		} catch(DatabaseException e) {
+			throw new IOException(e);
+		}
+	}
+	
+	public void execute() throws IOException, InterruptedException {
 		
 		// Start to read input.
-		DatabaseView view;
-		while((view = input.next(database)) != null) {
-			Scraper scraper = new Scraper(instruction, view, source);
-			CallableScraper cScraper = new CallableScraper(scraper, executor, logger);
-			executor.submit(cScraper);
+		Map<String, String> inputMap;
+		while((inputMap = input.next()) != null) {
+			AsyncScraper scraper = new AsyncScraper(
+					instruction, inputMap, database, source, browser.copy(), threadsPerRow);
+			scraper.register(logger);
+			executor.submit(scraper);
 		}
 		
-		// wait for executor to finish
-		try {
-			executor.join();
-		} catch(InterruptedException e) {
-			executor.kill();
-		}
+		executor.shutdown();
+		executor.awaitTermination(100, TimeUnit.DAYS);
 	}
 	
 	/**
@@ -70,8 +85,7 @@ public class Console {
 	public Thread getShutdownThread() {
 		return new Thread() {
 			public void run() {
-				executor.kill();
-				System.out.println(executor.getStatus());
+				executor.shutdownNow();
 				
 				try {
 					logger.close();
@@ -86,8 +100,10 @@ public class Console {
 				}
 				try {
 					database.close();
-				} catch(IOException e) {
+				} catch(ConnectionException e) {
 					System.out.println("Could not close database " + StringUtils.quote(database) + ": " + e.getMessage());
+				} catch(DatabaseException e) {
+					System.out.println("Could not close database " + StringUtils.quote(database) + ": " + e.getMessage());					
 				}
 			}
 		};

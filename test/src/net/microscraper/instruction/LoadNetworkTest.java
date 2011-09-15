@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.util.Hashtable;
 
 import mockit.Mocked;
-import net.microscraper.client.ScraperResult;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.http.CookieManager;
 import net.microscraper.http.HttpBrowser;
@@ -40,9 +39,9 @@ public class LoadNetworkTest {
 	public void testLiveBrowserSetsCookies() throws Exception {
 		final StringTemplate url = StringTemplate.staticTemplate("http://www.nytimes.com");
 		
-		Load load = new Load(liveBrowser, encoder, url);
-		ScraperResult result = load.execute(null, input);
-		assertTrue(result.isSuccess());
+		Load load = new Load(encoder, url);
+		LoadResult result = load.execute(liveBrowser, input);
+		assertNotNull(result.getResponseBody());
 		assertTrue(cookieManager.getCookiesFor(url.toString(), new Hashtable<String, String>()).length > 0);
 	}
 
