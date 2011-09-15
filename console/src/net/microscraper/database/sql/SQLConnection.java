@@ -7,7 +7,7 @@ import net.microscraper.database.IOConnection;
  * @author talos
  *
  */
-public interface SQLConnection extends IOConnection {
+interface SQLConnection extends IOConnection {
 	
 	/**
 	 * @return A {@link String} to define a primary key, for example <code>
@@ -49,11 +49,26 @@ public interface SQLConnection extends IOConnection {
 	public abstract int defaultVarcharLength();
 	
 	/**
-	 * Immediately execute all {@link SQLPreparedStatement}s currently in the batch for this
+	 * 
+	 * @return The {@link String} name of the scope column for all tables in 
+	 * {@link SQLConnection}.
+	 */
+	public abstract String getScopeColumnName();
+	
+	/**
+	 * Immediately commit all {@link SQLPreparedStatement}s that have not yet been executed in
 	 * {@link SQLConnection}.
 	 * @throws SQLConnectionException If there is a problem executing one of the statements.
 	 */
-	public abstract void runBatch() throws SQLConnectionException;
+	public abstract void commit() throws SQLConnectionException;
+	
+	public abstract SQLResultSet executeSelect(String sql) throws SQLConnectionException;
+	
+	public abstract SQLResultSet executeSelect(String sql, String[] parameters) throws SQLConnectionException;
+	
+	public abstract void executeModification(String sql) throws SQLConnectionException;
+	
+	public abstract void executeModification(String sql, String[] parameters) throws SQLConnectionException;
 	
 	/**
 	 * 
@@ -62,7 +77,7 @@ public interface SQLConnection extends IOConnection {
 	 * @return the {@link SQLPreparedStatement}.
 	 * @throws SQLConnectionException if there is a problem generating the {@link SQLPreparedStatement}.
 	 */
-	public abstract SQLPreparedStatement prepareStatement(String sql) throws SQLConnectionException;
+	//public abstract SQLPreparedStatement prepareStatement(String sql) throws SQLConnectionException;
 	
 	/**
 	 * Check whether a table exists.

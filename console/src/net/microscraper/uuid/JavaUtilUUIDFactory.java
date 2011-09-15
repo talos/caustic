@@ -7,7 +7,7 @@ package net.microscraper.uuid;
  * @author talos
  *
  */
-public class JavaUtilUUIDFactory implements UUIDFactory {
+public final class JavaUtilUUIDFactory implements UUIDFactory {
 
 	@Override
 	public UUID get() {

@@ -8,7 +8,7 @@ package net.microscraper.database.sql;
  * @see SQLPreparedStatement#executeQuery()
  *
  */
-public interface SQLResultSet {
+interface SQLResultSet {
 	
 	/**
 	 * Advance to the next row of the {@link SQLResultSet}.  {@link SQLResultSet}

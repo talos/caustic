@@ -32,6 +32,8 @@ public interface IOTable extends WritableTable {
 	
 	/**
 	 * Select several columns of data from  {@link IOTable}.
+	 * @param scope The {@link UUID} scope of the rows to select.
+	 * @param columnNames A {@link String} array of columns to select.
 	 * @throws IOTableReadException if the {@link IOTable} cannot be read from.
 	 */
 	public abstract List<Map<String, String>> select(UUID scope, String[] columnNames)
@@ -39,17 +41,18 @@ public interface IOTable extends WritableTable {
 	
 	/**
 	 * Select one column of data from  {@link IOTable}.
+	 * @param scope The {@link UUID} scope of the rows to select.
+	 * @param columnNames A {@link String} name of the column to select.
 	 * @throws IOTableReadException if the {@link IOTable} cannot be read from.
 	 */
 	public abstract List<String> select(UUID scope, String columnName) throws IOTableReadException;
 	
-	
 	/**
-	 * Update an existing row in the {@link IOTable}.
-	 * @param uuid the {@link UUID} of the row to update.
-	 * @param map A {@link Hashtable} mapping columns names to values to insert
-	 * into {@link IOTable}.
-	 * @throws TableManipulationException if the row could not be updated.
+	 * Update the rows of a scope in the {@link IOTable}.
+	 * @param uuid the {@link UUID} of the rows to update.
+	 * @param map A {@link Hashtable} mapping columns names to values to update
+	 * in {@link IOTable}.
+	 * @throws TableManipulationException if the rows could not be updated.
 	 */
 	public abstract void update(UUID scope, Map<String, String> map)
 			throws TableManipulationException;

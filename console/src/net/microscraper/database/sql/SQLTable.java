@@ -18,7 +18,7 @@ import net.microscraper.uuid.UUID;
  * @author talos
  *
  */
-public class SQLTable implements IOTable {
+class SQLTable implements IOTable {
 	
 	/**
 	 * {@link SQLConnection} used in this {@link SQLTable}.
@@ -29,11 +29,6 @@ public class SQLTable implements IOTable {
 	 * {@link String} name of the table in SQL.
 	 */
 	private final String name;
-
-	/**
-	 * The {@link String} name of the scope column.
-	 */
-	private final String scopeColumnName;
 	
 	/**
 	 * Check a {@link String} for backticks, which cause problems in column or
@@ -61,21 +56,19 @@ public class SQLTable implements IOTable {
 	 */
 	private SQLResultSet getResultSet(UUID scope, String[] columnNames)  throws IOException {
 		try {
-			SQLPreparedStatement select = connection.prepareStatement(
+			return connection.executeSelect(
 					"SELECT `" + StringUtils.join(columnNames, "`, `") + "` " +
 					"FROM `" + name + "` " +
-					"WHERE `" + scopeColumnName + "` = ?");
-			select.bindStrings(new String[] { scope.asString() });
-			return select.executeQuery();
+					"WHERE `" + connection.getScopeColumnName() + "` = ?",
+					new String[] { scope.asString() });
 		} catch(SQLConnectionException e) {
 			throw new IOException(e);
 		}
 	}
 	
-	public SQLTable(SQLConnection connection, String name, String idColumnName) throws SQLConnectionException {
+	public SQLTable(SQLConnection connection, String name) throws SQLConnectionException {
 		this.name = name;
 		this.connection = connection;
-		this.scopeColumnName = idColumnName;
 	}
 	
 	@Override
@@ -84,13 +77,10 @@ public class SQLTable implements IOTable {
 		
 		try {
 			String type = connection.textColumnType();
-			SQLPreparedStatement alterTable = 
-					connection.prepareStatement(
+			connection.executeModification(
 							"ALTER TABLE `" + name + "` " +
 							" ADD COLUMN `" + columnName + "`" + 
 							type);
-			alterTable.execute();
-			connection.runBatch();
 		} catch(SQLConnectionException e) {
 			throw new TableManipulationException(e.getMessage());
 		}
@@ -99,10 +89,8 @@ public class SQLTable implements IOTable {
 	@Override
 	public boolean hasColumn(String columnName) throws IOTableReadException {
 		try {
-			SQLPreparedStatement select =
-					connection.prepareStatement(
+			SQLResultSet rs = connection.executeSelect(
 							"SELECT * FROM `" + name + "`");
-			SQLResultSet rs = select.executeQuery();
 			boolean hasColumn = rs.hasColumnName(columnName);
 			rs.close();
 			
@@ -113,7 +101,7 @@ public class SQLTable implements IOTable {
 	}
 	
 	@Override
-	public void insert(UUID id, Map<String, String> map) throws TableManipulationException {
+	public void insert(UUID scope, Map<String, String> map) throws TableManipulationException {
 		
 		String[] columnNames = new String[map.size() + 1];
 		String[] parameters = new String[map.size() + 1];
@@ -126,17 +114,15 @@ public class SQLTable implements IOTable {
 			columnValues[i] = entry.getValue();
 			i++;
 		}
-		columnNames[0] = scopeColumnName;
+		columnNames[0] = connection.getScopeColumnName();
 		parameters[0] = "?";
-		columnValues[0] = id.asString();
+		columnValues[0] = scope.asString();
 		
 		try {
-			SQLPreparedStatement insert = connection.prepareStatement(
-					"INSERT INTO `" + name + "` " +
+			connection.executeModification("INSERT INTO `" + name + "` " +
 							"(" + StringUtils.join(columnNames, ", ") + ") " +
-							"VALUES (" + StringUtils.join(parameters, ", ") + ")");
-			insert.bindStrings(columnValues);
-			insert.execute();
+							"VALUES (" + StringUtils.join(parameters, ", ") + ")",
+							columnValues);
 		} catch(SQLConnectionException e) {
 			throw new TableManipulationException(e.getMessage());
 		}
@@ -165,11 +151,8 @@ public class SQLTable implements IOTable {
 		String set = " SET " + StringUtils.join(setStatements, ", ");
 		
 		try {
-			SQLPreparedStatement update = connection.prepareStatement(
-					" UPDATE `" + name + "` " + set +
-					" WHERE `" + scopeColumnName + "` = ?");
-			update.bindStrings(values);
-			update.execute();
+			connection.executeModification(" UPDATE `" + name + "` " + set +
+					" WHERE `" + connection.getScopeColumnName() + "` = ?", values);
 		} catch (SQLConnectionException e) {
 			throw new TableManipulationException(e.getMessage());
 		}
@@ -201,7 +184,7 @@ public class SQLTable implements IOTable {
 	public List<String> select(UUID scope, String columnName) throws IOTableReadException {
 		try  {
 			SQLResultSet rs = getResultSet(scope, new String[] { columnName} );
-			
+
 			List<String> results = new ArrayList<String>();
 			while(rs.next()) {
 				results.add(rs.getString(columnName));

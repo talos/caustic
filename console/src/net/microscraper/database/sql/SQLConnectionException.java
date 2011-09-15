@@ -9,7 +9,11 @@ import net.microscraper.database.ConnectionException;
  *
  */
 public final class SQLConnectionException extends ConnectionException {
-	private static final long serialVersionUID = 1L;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8852343677241001261L;
+
 	//public SQLConnectionException(String message) { super(message); }
 	public SQLConnectionException(Throwable e) { super(e); }
 	//public SQLConnectionException(String message, Throwable e) { super(message, e); }

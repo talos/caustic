@@ -1,6 +1,6 @@
 package net.microscraper.uuid;
 
-public class IntUUID implements UUID {
+final class IntUUID implements UUID {
 
 	private final int id;
 	public IntUUID(int id) {

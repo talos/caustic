@@ -12,7 +12,7 @@ import net.microscraper.uuid.UUID;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
-public class CSVTable implements WritableTable {
+class CSVTable implements WritableTable {
 
 	public static final String SCOPE_COLUMN = "scope";
 	

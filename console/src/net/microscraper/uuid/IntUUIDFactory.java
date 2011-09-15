@@ -1,7 +1,15 @@
 package net.microscraper.uuid;
 
-public class IntUUIDFactory implements UUIDFactory {
+/**
+ * Implementation of {@link UUIDFactory} using an incremented
+ * integer.  Is synchronized.
+ * @author realest
+ *
+ */
+public final class IntUUIDFactory implements UUIDFactory {
 	private int curId = -1;
+	
+	@Override
 	public UUID get() {
 		synchronized(this) {
 			curId++;

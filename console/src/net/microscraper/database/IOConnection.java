@@ -9,7 +9,9 @@ package net.microscraper.database;
 public interface IOConnection extends Connection {
 
 	/**
-	 * Obtain a new {@link IOTable} using this {@link IOConnection}.
+	 * Obtain a new {@link IOTable} using this {@link IOConnection}.  If the table
+	 * may exist already, {@link #getIOTable(String)} should be called to check
+	 * and obtain the {@link IOTable} instead.
 	 * @param name The {@link String} name of the new {@link IOTable}.
 	 * @param columnNames An array of {@link String} columns to include in this 
 	 * {@link IOTable}.
