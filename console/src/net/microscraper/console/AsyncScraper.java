@@ -24,8 +24,6 @@ import net.microscraper.util.StringUtils;
 
 public class AsyncScraper implements Loggable, Runnable {
 	private final ExecutorService executor;
-	/*private final List<Future<Scraper[]>> submitted =
-			Collections.synchronizedList(new ArrayList<Future<Scraper[]>>());*/
 	private final MultiLog log = new MultiLog();
 	private final HttpBrowser browser;
 	private final Instruction instruction;

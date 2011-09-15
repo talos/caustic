@@ -34,4 +34,5 @@ public interface SQLPreparedStatement {
 	 */
 	public abstract void bindStrings(String[] strings) throws SQLConnectionException;
 	
+	public abstract void close() throws SQLConnectionException;
 }

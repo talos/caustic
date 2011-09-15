@@ -99,6 +99,15 @@ public class JDBCSqliteConnection implements SQLConnection {
 				throw new SQLConnectionException(e);
 			}
 		}
+
+		@Override
+		public void close() throws SQLConnectionException {
+			try {
+				statement.close();
+			} catch (SQLException e) {
+				throw new SQLConnectionException(e);
+			}
+		}
 	}
 	
 	private class JDBCSQLiteCursor implements SQLResultSet {
@@ -139,6 +148,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 		public void close() throws SQLConnectionException {
 			try {
 				resultSet.close();
+				
 			} catch (SQLException e) {
 				throw new SQLConnectionException(e);
 			}
@@ -167,7 +177,9 @@ public class JDBCSqliteConnection implements SQLConnection {
 	public void runBatch() throws SQLConnectionException {
 		try {
 			while(batch.size() > 0) {
-				batch.remove(0).execute();
+				PreparedStatement stmt = batch.remove(0);
+				stmt.execute();
+				stmt.close();
 			}
 			connection.commit();
 		} catch(SQLException e) {
