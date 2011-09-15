@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.microscraper.database.Database;
 import net.microscraper.database.IOTable;
 import net.microscraper.uuid.DeserializedUUID;
 import net.microscraper.uuid.UUID;
@@ -16,12 +17,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class SQLConnectionTest {
-	private final int BATCH_SIZE = 1;
 	private SQLConnection conn;
 	
 	@Before
 	public void setUp() throws Exception {
-		conn = JDBCSqliteConnection.inMemory(BATCH_SIZE);
+		conn = JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME);
 		conn.open();
 	}
 	
@@ -50,6 +50,7 @@ public class SQLConnectionTest {
 		}
 		
 		table.insert(scope, map);
+		conn.commit();
 		
 		List<Map<String, String>> selectedMaps = table.select(scope, columns);
 		assertEquals("Should only return one row", 1, selectedMaps.size());
@@ -60,10 +61,10 @@ public class SQLConnectionTest {
 		
 		for(String column : columns) {
 			assertTrue(table.hasColumn(column));
-			List<String> selectedColumn = table.select(scope, column);
-			assertEquals("Should only return one row.", 1, selectedColumn.size());
-			for(String value : selectedColumn) {
-				assertEquals("Unexpected value retrieved.", map.get(column), value);
+			List<Map<String, String>> rows = table.select(scope, new String[] { column } );
+			assertEquals("Should only return one row.", 1, rows.size());
+			for(Map<String, String> row : rows) {
+				assertEquals("Unexpected value retrieved.", map.get(column), row.get(column));
 			}
 		}
 		
@@ -74,8 +75,12 @@ public class SQLConnectionTest {
 		
 		table.addColumn(addColumn);
 		table.update(scope, addColumnMap);
-		assertEquals("Should have updated row", 1, table.select(scope, addColumn).size());
-		assertEquals("Should have populated added column", addValue, table.select(scope, addColumn).get(0));
+		conn.commit();
+		
+		assertEquals("Should have updated row", 1, table.select(scope,
+				new String[] { addColumn }).size());
+		assertEquals("Should have populated added column", addValue,
+				table.select(scope, new String[] { addColumn } ).get(0).get(addColumn));
 	}
 
 }

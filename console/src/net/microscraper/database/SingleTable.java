@@ -55,7 +55,7 @@ class SingleTable {
 		}
 		
 		try {
-			if(table.select(scope, NAME_COLUMN_NAME).size() == 0) { // insert the row
+			if(table.select(scope, new String[] { NAME_COLUMN_NAME }).size() == 0) { // insert the row
 				table.insert(scope, map);
 			} else { // update the existing row.
 				table.update(scope, map);

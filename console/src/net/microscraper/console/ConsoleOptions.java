@@ -60,10 +60,6 @@ public final class ConsoleOptions {
 	public static final String INSTRUCTION = "--instruction";
 	private final Option instruction = Option.withoutDefault(INSTRUCTION);
 	
-	public static final String BATCH_SIZE = "--batch-size";
-	public static final String BATCH_SIZE_DEFAULT = "100";
-	private final Option batchSize = Option.withDefault(BATCH_SIZE, BATCH_SIZE_DEFAULT);
-	
 	public static final String INPUT = "--input";
 	public static final String INPUT_DEFAULT = "";
 	private final Option input = Option.withDefault(INPUT, INPUT_DEFAULT);
@@ -144,9 +140,6 @@ public final class ConsoleOptions {
 "  json" + NEWLINE +
 "    Microscraper instruction JSON." + NEWLINE + NEWLINE +
 "  options" + NEWLINE +
-"    " + BATCH_SIZE + "=<batch-size>" + NEWLINE +
-"        If saving to SQL, assigns the batch size.  " + NEWLINE +
-"        Defaults to " + BATCH_SIZE_DEFAULT  + "." + NEWLINE + 
 "    " + ENCODING + "=<encoding>" + NEWLINE +
 "        What encoding should be used.  Defaults to " + StringUtils.quote(ENCODING_DEFAULT) + "." + NEWLINE +
 "    " + INPUT + "=\"<form-encoded-name-value-pairs>\"" + NEWLINE +
@@ -277,31 +270,21 @@ public final class ConsoleOptions {
 			delimiter = TAB_DELIMITER;
 		}
 		
-		// Determine batch size.
-		int batchSize;
-		try {
-			batchSize = Integer.parseInt(getValue(this.batchSize));
-		} catch(NumberFormatException e) {
-			throw new InvalidOptionException(BATCH_SIZE + " must be an integer.");
-		}
-		
 		// Set up output and databases.
-		
-		 // TODO: reimplement saving files!
-		 
 		if(isSpecified(saveToFile)) {
 			String outputLocation = getValue(saveToFile);
 			if(outputLocation.equals(saveToFile.getDefault())) { 
 				outputLocation += '.' + format;
 			}
 			if(format.equals(SQLITE_FORMAT)) {				
-				IOConnection connection = JDBCSqliteConnection.toFile(outputLocation, batchSize);
+				IOConnection connection = JDBCSqliteConnection.toFile(outputLocation,
+						Database.SCOPE_COLUMN_NAME);
 				UUIDFactory idFactory = new JavaUtilUUIDFactory();
 				if(isSpecified(singleTable)) {
 					result = new SingleTableDatabase(connection, idFactory);
 				} else {
 					result = new MultiTableDatabase(connection, idFactory);
-				}				
+				}
 			} else {
 				result = new NonPersistedDatabase(
 						CSVConnection.toFile(outputLocation, delimiter), new IntUUIDFactory());
@@ -312,10 +295,6 @@ public final class ConsoleOptions {
 					CSVConnection.toSystemOut(delimiter), new IntUUIDFactory());
 		}
 		
-		if(isSpecified(this.batchSize) && !format.equals(SQLITE_FORMAT)) {
-			throw new InvalidOptionException("Should only specify " + BATCH_SIZE + " when " +
-					" outputting to " + SQLITE_FORMAT);
-		}
 		return result;
 	}
 	

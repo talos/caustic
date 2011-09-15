@@ -1,5 +1,8 @@
 package net.microscraper.database.sql;
 
+import java.util.List;
+import java.util.Map;
+
 import net.microscraper.database.IOConnection;
 
 /**
@@ -62,29 +65,16 @@ interface SQLConnection extends IOConnection {
 	 */
 	public abstract void commit() throws SQLConnectionException;
 	
-	public abstract SQLResultSet executeSelect(String sql) throws SQLConnectionException;
+	public abstract boolean doesTableHaveColumn(String tableName, String columnName)
+			throws SQLConnectionException;
 	
-	public abstract SQLResultSet executeSelect(String sql, String[] parameters) throws SQLConnectionException;
+	public abstract List<Map<String, String>> select(String sql, String[] columnNames)
+			throws SQLConnectionException;
 	
-	public abstract void executeModification(String sql) throws SQLConnectionException;
+	public abstract List<Map<String, String>> select(String sql, String[] parameters,
+			String[] columnNames) throws SQLConnectionException;
 	
-	public abstract void executeModification(String sql, String[] parameters) throws SQLConnectionException;
+	public abstract void executeNow(String sql) throws SQLConnectionException;
 	
-	/**
-	 * 
-	 * Generate a {@link SQLPreparedStatement} to execute upon this {@link SQLConnection}.
-	 * @param sql The SQL statement as a {@link String}.
-	 * @return the {@link SQLPreparedStatement}.
-	 * @throws SQLConnectionException if there is a problem generating the {@link SQLPreparedStatement}.
-	 */
-	//public abstract SQLPreparedStatement prepareStatement(String sql) throws SQLConnectionException;
-	
-	/**
-	 * Check whether a table exists.
-	 * @param tableName The {@link String} name of the table to check.
-	 * @return <code>True</code> if the table exists, <code>false</code> otherwise.
-	 * @throws SQLConnectionException if there is a problem with the {@link SQLConnection}.
-	 */
-	//public boolean tableExists(String tableName) throws SQLConnectionException;
-
+	public abstract void batchModify(String sql, String[] parameters) throws SQLConnectionException;
 }

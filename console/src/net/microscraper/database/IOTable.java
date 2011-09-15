@@ -40,14 +40,6 @@ public interface IOTable extends WritableTable {
 			throws IOTableReadException;
 	
 	/**
-	 * Select one column of data from  {@link IOTable}.
-	 * @param scope The {@link UUID} scope of the rows to select.
-	 * @param columnNames A {@link String} name of the column to select.
-	 * @throws IOTableReadException if the {@link IOTable} cannot be read from.
-	 */
-	public abstract List<String> select(UUID scope, String columnName) throws IOTableReadException;
-	
-	/**
 	 * Update the rows of a scope in the {@link IOTable}.
 	 * @param uuid the {@link UUID} of the rows to update.
 	 * @param map A {@link Hashtable} mapping columns names to values to update

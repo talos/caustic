@@ -46,24 +46,10 @@ class SQLTable implements IOTable {
 		}
 	}
 	
-	/**
-	 * Obtain a {@link SQLResultSet} a scope and set of columns.  Remember to
-	 * close {@link SQLResultSet}.
-	 * @param scope
-	 * @param columnNames
-	 * @return
-	 * @throws IOException
-	 */
-	private SQLResultSet getResultSet(UUID scope, String[] columnNames)  throws IOException {
-		try {
-			return connection.executeSelect(
-					"SELECT `" + StringUtils.join(columnNames, "`, `") + "` " +
+	private String getSelectQuery(UUID scope, String[] columnNames)  throws IOException {
+		return "SELECT `" + StringUtils.join(columnNames, "`, `") + "` " +
 					"FROM `" + name + "` " +
-					"WHERE `" + connection.getScopeColumnName() + "` = ?",
-					new String[] { scope.asString() });
-		} catch(SQLConnectionException e) {
-			throw new IOException(e);
-		}
+					"WHERE `" + connection.getScopeColumnName() + "` = ?";
 	}
 	
 	public SQLTable(SQLConnection connection, String name) throws SQLConnectionException {
@@ -77,7 +63,7 @@ class SQLTable implements IOTable {
 		
 		try {
 			String type = connection.textColumnType();
-			connection.executeModification(
+			connection.executeNow(
 							"ALTER TABLE `" + name + "` " +
 							" ADD COLUMN `" + columnName + "`" + 
 							type);
@@ -89,12 +75,7 @@ class SQLTable implements IOTable {
 	@Override
 	public boolean hasColumn(String columnName) throws IOTableReadException {
 		try {
-			SQLResultSet rs = connection.executeSelect(
-							"SELECT * FROM `" + name + "`");
-			boolean hasColumn = rs.hasColumnName(columnName);
-			rs.close();
-			
-			return hasColumn;
+			return connection.doesTableHaveColumn(name, columnName);
 		} catch(SQLConnectionException e) {
 			throw new IOTableReadException(e);
 		}
@@ -119,7 +100,7 @@ class SQLTable implements IOTable {
 		columnValues[0] = scope.asString();
 		
 		try {
-			connection.executeModification("INSERT INTO `" + name + "` " +
+			connection.batchModify("INSERT INTO `" + name + "` " +
 							"(" + StringUtils.join(columnNames, ", ") + ") " +
 							"VALUES (" + StringUtils.join(parameters, ", ") + ")",
 							columnValues);
@@ -151,7 +132,7 @@ class SQLTable implements IOTable {
 		String set = " SET " + StringUtils.join(setStatements, ", ");
 		
 		try {
-			connection.executeModification(" UPDATE `" + name + "` " + set +
+			connection.batchModify(" UPDATE `" + name + "` " + set +
 					" WHERE `" + connection.getScopeColumnName() + "` = ?", values);
 		} catch (SQLConnectionException e) {
 			throw new TableManipulationException(e.getMessage());
@@ -161,39 +142,10 @@ class SQLTable implements IOTable {
 	@Override
 	public List<Map<String, String>> select(UUID scope, String[] columnNames) throws IOTableReadException {
 		try  {
-			SQLResultSet rs = getResultSet(scope, columnNames);
-			
-			List<Map<String, String>> results = new ArrayList<Map<String, String>>();
-			while(rs.next()) {
-				Map<String, String> map = new HashMap<String, String>();
-				for(String columnName : columnNames) {
-					map.put(columnName, rs.getString(columnName));
-				}
-				results.add(map);
-			}
-			rs.close();
-			return results;
+			return connection.select(getSelectQuery(scope, columnNames), columnNames);
 		} catch(IOException e) {
 			throw new IOTableReadException(e);
 		} catch (SQLConnectionException e) {
-			throw new IOTableReadException(e);
-		}
-	}
-
-	@Override
-	public List<String> select(UUID scope, String columnName) throws IOTableReadException {
-		try  {
-			SQLResultSet rs = getResultSet(scope, new String[] { columnName} );
-
-			List<String> results = new ArrayList<String>();
-			while(rs.next()) {
-				results.add(rs.getString(columnName));
-			}
-			rs.close();
-			return results;
-		} catch(SQLConnectionException e) {
-			throw new IOTableReadException(e);
-		} catch (IOException e) {
 			throw new IOTableReadException(e);
 		}
 	}

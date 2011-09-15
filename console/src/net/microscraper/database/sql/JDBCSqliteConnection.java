@@ -4,8 +4,13 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.microscraper.database.ConnectionException;
@@ -21,7 +26,6 @@ public class JDBCSqliteConnection implements SQLConnection {
 	public static final int CACHE_SIZE = 100;
 	
 	private Connection connection;
-	final int maxStatementsBeforeCommit;
 	private final String connectionPath;
 	
 	/**
@@ -30,57 +34,38 @@ public class JDBCSqliteConnection implements SQLConnection {
 	 * @author realest
 	 *
 	 */
-	private static final class StatementCache extends LinkedHashMap<String, PreparedStatement> {
+	private static final class StatementCache<T extends Statement>
+					extends LinkedHashMap<String, T> {
 		private static final long serialVersionUID = 2660881239439328558L;
 		public StatementCache() {
 			super(CACHE_SIZE, 1, true);
 		}
 		
 		@Override
-		protected boolean removeEldestEntry(Map.Entry<String, PreparedStatement> eldest) {
-			PreparedStatement stmt = eldest.getValue();
-			try {
-				stmt.executeBatch();
-				stmt.close();
-				return true;
-			} catch(SQLException e) {
-				e.printStackTrace(); // TODO
+		protected boolean removeEldestEntry(Map.Entry<String, T> eldest) {
+			T stmt = eldest.getValue();
+			if(size() > CACHE_SIZE) {
+				try {
+					stmt.executeBatch();
+					stmt.close();
+					return true;
+				} catch(SQLException e) {
+					e.printStackTrace(); // TODO
+					return false;
+				}
+			} else {
 				return false;
 			}
 		}
 	}
 	
-	private final StatementCache selects = new StatementCache();
-	private final StatementCache modifications = new StatementCache();
-	
+	private final Map<String, PreparedStatement> prepSelects =
+			new StatementCache<PreparedStatement>();
+	private final Map<String, PreparedStatement> prepMods =
+			new StatementCache<PreparedStatement>();
 	private PreparedStatement tableExistsStmt;
 	
 	private final String scopeColumnName;
-	
-	private PreparedStatement getSelect(String sql) throws SQLException {
-		synchronized(selects) {
-			if(selects.containsKey(sql)) {
-				return selects.get(sql);
-			} else {
-				PreparedStatement stmt = connection.prepareStatement(sql);
-				selects.put(sql, stmt);
-				return stmt;
-			}
-		}
-	}
-	
-	private PreparedStatement getModification(String sql) throws SQLException {
-		synchronized(modifications) {
-			if(modifications.containsKey(sql)) {
-				// modification statement is cached, increment counter and retrieve it.
-				return modifications.get(sql);
-			} else {
-				PreparedStatement stmt = connection.prepareStatement(sql);
-				modifications.put(sql, stmt);
-				return stmt;
-			}
-		}
-	}
 	
 	/**
 	 * Check to see whether a table exists using the reused {@link #tableExistsStmt}
@@ -102,22 +87,51 @@ public class JDBCSqliteConnection implements SQLConnection {
 		}
 	}
 
-	private JDBCSqliteConnection(String connectionPath, String scopeColumnName,
-			int maxStatementsBeforeCommit) {
+	/**
+	 * Remember to close the returned result set! Don't have to worry about closing
+	 * the statement because it's part of the cache.
+	 * @param sql
+	 * @param parameters
+	 * @return
+	 * @throws SQLException
+	 */
+	private ResultSet getPreparedSelect(String sql, String[] parameters) throws SQLException {
+		PreparedStatement stmt;
+		synchronized(prepSelects) {
+			if(prepSelects.containsKey(sql)) {
+				stmt = prepSelects.get(sql);
+			} else {
+				stmt = connection.prepareStatement(sql);
+				prepSelects.put(sql, stmt);
+			}
+		}
+		setParams(stmt, parameters);
+		
+		return stmt.executeQuery();
+	}
+	
+	private JDBCSqliteConnection(String connectionPath, String scopeColumnName) {
 		this.scopeColumnName = scopeColumnName;
-		this.maxStatementsBeforeCommit = maxStatementsBeforeCommit;
 		this.connectionPath = connectionPath;
 	}
 
 	@Override
 	public void commit() throws SQLConnectionException {
 		try {
-			synchronized(modifications) {
-				for(PreparedStatement stmt : modifications.values()) {
-					stmt.executeBatch();
+			/*for(PreparedStatement stmt : prepMods.values()) {
+				stmt.executeBatch();
+			}*/
+			synchronized(prepMods) {
+				for(Map.Entry<String, PreparedStatement> entry : prepMods.entrySet()) {
+					System.out.println("Executing " + entry.getKey() + " with various batch values.");
+					entry.getValue().executeBatch();
 				}
 			}
-			connection.commit();
+			synchronized(connection) {
+				System.out.println("committing...");
+				connection.commit();
+				System.out.println("finished committing.");
+			}
 		} catch(SQLException e) {
 			throw new SQLConnectionException(e);
 		}
@@ -164,7 +178,6 @@ public class JDBCSqliteConnection implements SQLConnection {
 			connection.setAutoCommit(false);
 			tableExistsStmt =
 					connection.prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=?;");
-			
 		} catch(SQLException e) {
 			throw new SQLConnectionException(e);
 		} catch(ClassNotFoundException e) {
@@ -177,13 +190,11 @@ public class JDBCSqliteConnection implements SQLConnection {
 			throws ConnectionException {
 		String definitionStr = "`" + scopeColumnName + "` " + textColumnType();
 		for(String columnName : columnNames) {
-			definitionStr += ", `" + columnName + "`" + textColumnType();
+			definitionStr += ", `" + columnName + "` " + textColumnType();
 		}
 		
-		executeModification("CREATE TABLE `" + name + "` (" +
-						definitionStr + ")");
+		executeNow("CREATE TABLE `" + name + "` (" + definitionStr + ")");
 		
-		commit();
 		return new SQLTable(this, name);
 	}
 
@@ -191,10 +202,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 	public void close() throws ConnectionException {
 		try {
 			commit();
-			connection.commit();
-			
-		} catch(SQLConnectionException e) {
-			throw new SQLConnectionException(e);
+			connection.close();
 		} catch(SQLException e) {
 			throw new SQLConnectionException(e);
 		}
@@ -213,52 +221,101 @@ public class JDBCSqliteConnection implements SQLConnection {
 	public String getScopeColumnName() {
 		return scopeColumnName;
 	}
-
+	
 	@Override
-	public SQLResultSet executeSelect(String sql) throws SQLConnectionException {
-		commit(); // commit any lingering changes before selecting
-		try {
-			return new JDBCSQLiteResultSet(getSelect(sql).executeQuery());
-		} catch(SQLException e) {
-			throw new SQLConnectionException(e);
+	public boolean doesTableHaveColumn(String tableName, String columnName)
+				throws SQLConnectionException{
+		synchronized(connection) {
+			commit();
+			try {
+				boolean result = false;
+				ResultSet rs = getPreparedSelect("SELECT * FROM `" + tableName + "`",
+						new String[] { } ); 
+				ResultSetMetaData meta = rs.getMetaData();
+				
+				int numCol = meta.getColumnCount();
+				
+				for (int i = 1; i < numCol+1; i++) {
+				    if(meta.getColumnName(i).equals(columnName)) {
+				    	result = true;
+				    }
+				}
+				rs.close();
+				return result;
+			} catch(SQLException e) {
+				throw new SQLConnectionException(e);
+			}
 		}
+	}
+	
+	@Override
+	public List<Map<String, String>> select(String sql, String[] columns) throws SQLConnectionException {
+		return select(sql, new String[] { }, columns );
 	}
 
 	@Override
-	public SQLResultSet executeSelect(String sql, String[] parameters)
+	public List<Map<String, String>> select(String sql, String[] parameters, String[] columnNames)
 			throws SQLConnectionException {
-		commit(); // commit any lingering changes before selecting
-		try {
-			PreparedStatement stmt = getSelect(sql);
-			setParams(stmt, parameters);
-			return new JDBCSQLiteResultSet(stmt.executeQuery());
-		} catch(SQLException e) {
-			throw new SQLConnectionException(e);
+		synchronized(connection) { // hold the connection for the whole process.
+			commit(); // commit any lingering changes before selecting
+			try {
+				ResultSet rs = getPreparedSelect(sql, parameters);
+				List<Map<String, String>> rows = new ArrayList<Map<String, String>>();
+				
+				while(rs.next()) {
+					Map<String, String> row = new HashMap<String, String>();
+					for(String columnName : columnNames) {
+						row.put(columnName, rs.getString(columnName));
+					}
+					rows.add(row);
+				}
+				rs.close();
+				return rows;
+			} catch(SQLException e) {
+				throw new SQLConnectionException(e);
+			}
 		}
 	}
 
 	@Override
-	public void executeModification(String sql) throws SQLConnectionException {
+	public void executeNow(String sql) throws SQLConnectionException {
 		try {
-			getModification(sql).addBatch();
+			synchronized(connection) {
+				System.out.println(sql);
+				commit();
+				Statement stmt = connection.createStatement();
+				stmt.execute(sql);
+				stmt.close();
+				
+				connection.commit();
+			}
 		} catch(SQLException e) {
 			throw new SQLConnectionException(e);
 		}
 	}
 	
 	@Override
-	public void executeModification(String sql, String[] parameters)
+	public void batchModify(String sql, String[] parameters)
 			throws SQLConnectionException {
 		try {
-			PreparedStatement stmt = getModification(sql);
+			PreparedStatement stmt;
+			synchronized(prepMods) {
+				if(prepMods.containsKey(sql)) {
+					stmt = prepMods.get(sql);
+				} else {
+					stmt = connection.prepareStatement(sql);
+					prepMods.put(sql, stmt);
+				}
+			}
 			setParams(stmt, parameters);
+			stmt.addBatch();	
 		} catch(SQLException e) {
 			throw new SQLConnectionException(e);
 		}
 	}
 	
 	/**
-	 * Static convenience method to bind an array of {@link String} params to
+	 * Convenience method to bind an array of {@link String} params to
 	 * a {@link PreparedStatement}.
 	 * @param stmt The {@link PreparedStatement} on which to set the parameters.
 	 * @param params A {@link String} list of parameters to set.
@@ -274,21 +331,16 @@ public class JDBCSqliteConnection implements SQLConnection {
 	 * Produce a {@link JDBCSqliteConnection} using a path to a database.
 	 * @param pathToDB {@link String} path to database.
 	 * @param scopeColumnName The name of the scope column in tables.
-	 * @param maxStatementsBeforeCommit How many statements to make before committing.
 	 */
-	public static JDBCSqliteConnection toFile(String pathToDB, String scopeColumnName,
-			int maxStatementsBeforeCommit) {
-		return new JDBCSqliteConnection("jdbc:sqlite:" + pathToDB, scopeColumnName,
-				maxStatementsBeforeCommit);
+	public static JDBCSqliteConnection toFile(String pathToDB, String scopeColumnName) {
+		return new JDBCSqliteConnection("jdbc:sqlite:" + pathToDB, scopeColumnName);
 	}
 
 	/**
 	 * Produce a {@link JDBCSqliteConnection} in-memory.
 	 * @param scopeColumnName The name of the scope column in tables.
-	 * @param maxStatementsBeforeCommit How many statements to make before committing.
 	 */
-	public static JDBCSqliteConnection inMemory(String scopeColumnName, int maxStatementsBeforeCommit) {
-		return new JDBCSqliteConnection("jdbc:sqlite::memory:", scopeColumnName,
-				maxStatementsBeforeCommit);
+	public static JDBCSqliteConnection inMemory(String scopeColumnName) {
+		return new JDBCSqliteConnection("jdbc:sqlite::memory:", scopeColumnName);
 	}
 }

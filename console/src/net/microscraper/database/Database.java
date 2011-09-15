@@ -8,7 +8,12 @@ package net.microscraper.database;
  *
  */
 public interface Database {
-
+	
+	/**
+	 * A default name for the {@link UUID} scope column.
+	 */
+	public static String SCOPE_COLUMN_NAME = "scope";
+	
 	/**
 	 * Open the {@link Database}, creating any necessary tables and opening
 	 * any connections.

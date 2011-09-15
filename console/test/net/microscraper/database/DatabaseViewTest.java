@@ -22,7 +22,6 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class DatabaseViewTest {
-	private static final int BATCH_SIZE = 100;
 	private static final char DELIMITER = ',';
 	private final Database db;
 	private DatabaseView view;
@@ -36,10 +35,10 @@ public class DatabaseViewTest {
 		return Arrays.asList(new Database[][] {
 				{ new NonPersistedDatabase(CSVConnection.toSystemOut(DELIMITER),
 						new IntUUIDFactory() )  },
-				{ new SingleTableDatabase(JDBCSqliteConnection.inMemory(BATCH_SIZE),
+				{ new SingleTableDatabase(JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME),
 						new JavaUtilUUIDFactory() )  },
-				{ new MultiTableDatabase(JDBCSqliteConnection.inMemory(BATCH_SIZE),
-						new JavaUtilUUIDFactory() )  }
+				{ new MultiTableDatabase(JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME),
+						new IntUUIDFactory() )  }
 		});
 	}
 	

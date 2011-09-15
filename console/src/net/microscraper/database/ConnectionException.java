@@ -16,5 +16,4 @@ public class ConnectionException extends DatabaseException {
 	public ConnectionException(Throwable e) {
 		super(e.getMessage());
 	}
-
 }

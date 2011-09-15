@@ -118,12 +118,13 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	 */
 	private IOTable getResultTable(UUID scope) throws DatabaseException {
 		// check in result table
-		List<String> tableNames = relationshipTable.select(scope, NAME_COLUMN_NAME);
+		List<Map<String, String>> tableNames = relationshipTable.select(scope,
+				new String[] { NAME_COLUMN_NAME });
 		// we must have a results table
 		if(tableNames.size() == 1) {
-			return connection.getIOTable(tableNames.get(0));
+			return connection.getIOTable(tableNames.get(0).get(NAME_COLUMN_NAME));
 		} else if(tableNames.size() == 0) {
-			return null;
+			throw new DatabaseException("Missing result table for " + scope);
 		} else {
 			throw new DatabaseException("More than one result table for scope " + scope);
 		}
@@ -219,9 +220,10 @@ public final class MultiTableDatabase implements PersistedDatabase {
 			
 			if(resultTable != null) {
 				if(resultTable.hasColumn(columnName)) { // has the column
-					List<String> values = resultTable.select(scope, columnName);
+					List<Map<String, String>> values =
+							resultTable.select(scope, new String[] { columnName });
 					if(values.size() == 1 && values.get(0) != null) {
-						return values.get(0);
+						return values.get(0).get(columnName);
 					} else if(values.size() > 1) {
 						throw new DatabaseReadException("Should not have stored multiple values for a scope ID");
 					}
@@ -298,7 +300,8 @@ public final class MultiTableDatabase implements PersistedDatabase {
 		
 		try {
 			// add to relationship table
-			String sourceName = relationshipTable.select(source, NAME_COLUMN_NAME).get(0);
+			String sourceName = relationshipTable.select(source,
+					new String[] { NAME_COLUMN_NAME }).get(0).get(NAME_COLUMN_NAME);
 			addLink(scope, source, sourceName, tableName, value);
 			
 			// create new result table, insert row

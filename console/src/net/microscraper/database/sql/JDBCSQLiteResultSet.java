@@ -1,5 +1,5 @@
 package net.microscraper.database.sql;
-
+/*
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -66,4 +66,4 @@ class JDBCSQLiteResultSet implements SQLResultSet {
 		}
 	}
 
-}
+}*/

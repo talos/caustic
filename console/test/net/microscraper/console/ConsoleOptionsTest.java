@@ -31,26 +31,6 @@ public class ConsoleOptionsTest {
 		new ConsoleOptions(new String[] {"not", "options=bleh"});
 	}
 	
-
-	@Test(expected=InvalidOptionException.class)
-	public void testBatchSizeMustBeInt() throws Exception {
-		String notAnInt = randomString();
-		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
-				BATCH_SIZE + "=" + notAnInt,
-				SAVE_TO_FILE.toString(),
-				FORMAT.toString() + "=" + SQLITE_FORMAT});
-		options.getDatabase();
-	}
-	
-	@Test(expected=InvalidOptionException.class)
-	public void testBatchSizeOnlyWithSQLOutput() throws Exception {
-		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
-				BATCH_SIZE + "=" + randomInt(),
-				FORMAT.toString() + "=" + CSV_FORMAT});
-		
-		options.getDatabase();
-	}
-	
 	@Test
 	public void testInputIsTheSameWithQuotesOrWithout() throws Exception {
 		Database db = new NonPersistedDatabase(CSVConnection.toSystemOut(','), new IntUUIDFactory());
