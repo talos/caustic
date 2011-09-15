@@ -259,6 +259,16 @@ public class HttpBrowser implements Loggable {
 	}
 	
 	/**
+	 * 
+	 * @return A copy of this {@link HttpBrowser} with a copied {@link CookieManager}.
+	 * This cookie manager will have a copy of old cookies in it, but new cookies
+	 * will not affect other scrapers.
+	 */
+	public HttpBrowser copy() {
+		return new HttpBrowser(requester, rateLimitManager, cookieManager.copy());
+	}
+	
+	/**
 	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies
 	 * from response headers to the {@link HttpBrowser}'s cookie store.
 	 * @param urlStr the URL to HTTP Head.

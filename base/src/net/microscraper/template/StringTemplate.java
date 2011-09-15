@@ -5,6 +5,7 @@ import java.util.Vector;
 import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.util.Encoder;
+import net.microscraper.util.VectorUtils;
 
 /**
  * {@link String} substitutions using {@link DatabaseView}.
@@ -158,5 +159,24 @@ public final class StringTemplate {
 	 */
 	public static StringTemplate staticTemplate(String alwaysSubbed) {
 		return new StringTemplate(alwaysSubbed);
+	}
+	
+
+	/**
+	 * 
+	 * @param couldBeMissingTags An array of {@link DependsOnTemplate} whose {@link #missingTags}
+	 * should be combined.
+	 * @return A {@link String} array of all the missing tags.  Zero-length if there are none.
+	 */
+	public static String[] combine(DependsOnTemplate[] couldBeMissingTags) {
+		Vector missingTags = new Vector();
+		for(int i = 0 ; i < couldBeMissingTags.length ; i ++) {
+			if(couldBeMissingTags[i].isMissingTags()) {
+				VectorUtils.arrayIntoVector(couldBeMissingTags[i].getMissingTags(), missingTags);
+			}
+		}
+		String[] missingTagsAry = new String[missingTags.size()];
+		missingTags.copyInto(missingTagsAry);
+		return missingTagsAry;
 	}
 }

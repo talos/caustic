@@ -8,12 +8,12 @@ import java.util.Hashtable;
  * @author talos
  *
  */
-public class HashtableSubstitution extends MissingTags {
-	private final Hashtable substituted;
+public class HashtableSubstitution implements DependsOnTemplate {
+	private Hashtable substituted;
+	private String[] missingTags;
 	
 	private HashtableSubstitution(String[] missingTags) {
-		super(missingTags);
-		this.substituted = null;
+		this.missingTags = missingTags;
 	}
 
 	private HashtableSubstitution(Hashtable substituted) {
@@ -49,6 +49,14 @@ public class HashtableSubstitution extends MissingTags {
 		} else {
 			return substituted;
 		}
+	}
+
+	public boolean isMissingTags() {
+		return missingTags != null;
+	}
+
+	public String[] getMissingTags() {
+		return missingTags;
 	}
 
 }

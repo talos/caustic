@@ -7,8 +7,10 @@ import mockit.Expectations;
 import mockit.Mocked;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.database.InMemoryDatabaseView;
+import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
+import net.microscraper.instruction.InstructionResult;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.template.StringTemplate;
@@ -17,19 +19,18 @@ import net.microscraper.util.HashtableUtils;
 import org.junit.Test;
 
 public class ScraperLocalTest {
-	@Mocked private Instruction instruction;
-	@Mocked private DatabaseView input;
+	@Mocked private HttpBrowser browser;
 
 	@Test
-	public void testIsStuck() throws Exception {
+	public void testIsStuck(@Mocked final Instruction instruction, @Mocked final DatabaseView input) throws Exception {
 
 		final String missingTag = randomString();
 		new Expectations() {{
-			instruction.execute(null, input); result = ScraperResult.missingTags(new String[] { missingTag} );
-			instruction.execute(null, input); result = ScraperResult.missingTags(new String[] { missingTag} );
+			instruction.execute(null, input, browser); result = InstructionResult.missingTags(new String[] { missingTag} );
+			instruction.execute(null, input, browser); result = InstructionResult.missingTags(new String[] { missingTag} );
 		}};
 		
-		Scraper scraper = new Scraper(instruction, input, null);
+		Scraper scraper = new Scraper(instruction, input, null, browser);
 		scraper.scrape();
 		scraper.scrape();
 		
@@ -51,8 +52,12 @@ public class ScraperLocalTest {
 				pattern.match(input, anyString, anyInt, anyInt); result = mockResultValues;
 			}
 		};
+		
 		Find find = new Find(compiler, StringTemplate.staticTemplate(search));
-		Scraper scraper = new Scraper(find, HashtableUtils.EMPTY, input);
+		find.setName(StringTemplate.staticTemplate(randomString()));
+		Instruction instruction = new Instruction(find);
+		
+		Scraper scraper = new Scraper(instruction, HashtableUtils.EMPTY, input, browser);
 		ScraperResult result = scraper.scrape();
 		assertTrue(result.isSuccess());
 		DatabaseView[] resultViews = result.getResultViews();
@@ -79,8 +84,10 @@ public class ScraperLocalTest {
 			}
 		};
 		Find find = new Find(compiler, StringTemplate.staticTemplate(search));
+		find.setName(StringTemplate.staticTemplate(randomString()));
+		Instruction instruction = new Instruction(find);
 		DatabaseView view = new InMemoryDatabaseView();
-		Scraper scraper = new Scraper(find, view, input);
+		Scraper scraper = new Scraper(instruction, view, input, browser);
 		ScraperResult result = scraper.scrape();
 		assertTrue(result.isSuccess());
 		DatabaseView[] resultViews = result.getResultViews();

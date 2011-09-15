@@ -20,9 +20,26 @@ import net.microscraper.http.ResponseHeaders;
 import net.microscraper.util.Encoder;
 
 public class JavaNetCookieManager implements CookieManager {
-
+	
 	private final java.net.CookieManager cookieManager = new java.net.CookieManager();
-	//private final java.net.CookieStore cookieStore = new java.net.CookieManager().getCookieStore();
+	
+	/**
+	 * Create a new {@link JavaNetCookieManager} without any cookies in it.
+	 */
+	public JavaNetCookieManager() { }
+	
+	/**
+	 * Create a new {@link JavaNetCookieManager} pre-stocked with cookies.
+	 * @param uriCookieMap Map of {@link URI}s {@link HttpCookie} {@link List}s.
+	 */
+	private JavaNetCookieManager(Map<URI, List<HttpCookie>> uriCookieMap) {
+		CookieStore store = cookieManager.getCookieStore();
+		for(URI uri : uriCookieMap.keySet()) {
+			for(HttpCookie cookie : uriCookieMap.get(uri)) {
+				store.add(uri, cookie);				
+			}
+		}
+	}
 	
 	private String[] getCookiesFor(String urlString, Hashtable requestHeaders, String cookieType) 
 			throws BadURLException {
@@ -110,6 +127,18 @@ public class JavaNetCookieManager implements CookieManager {
 		} catch(URISyntaxException e) {
 			throw new BadURLException(url, e.getMessage());
 		}
+	}
+
+	@Override
+	public CookieManager copy() {
+		//List<HttpCookie> prevCookies = cookieManager.getCookieStore().getCookies();
+		CookieStore store = cookieManager.getCookieStore();
+		List<URI> uris = store.getURIs();
+		Map<URI, List<HttpCookie>> uriCookieMap = new HashMap<URI, List<HttpCookie>>();
+		for(URI uri : uris) {
+			uriCookieMap.put(uri, store.get(uri));
+		}
+		return new JavaNetCookieManager(uriCookieMap);
 	}
 
 }

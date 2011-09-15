@@ -1,13 +1,9 @@
 package net.microscraper.client;
 
 import net.microscraper.database.DatabaseView;
-import net.microscraper.deserializer.DeserializerResult;
-import net.microscraper.http.HttpException;
 import net.microscraper.instruction.Instruction;
-import net.microscraper.regexp.Pattern;
-import net.microscraper.template.HashtableSubstitutionOverwriteException;
+import net.microscraper.instruction.InstructionResult;
 import net.microscraper.util.Result;
-import net.microscraper.util.StringUtils;
 
 /**
  * This class provides access to the results of scraping
@@ -16,22 +12,34 @@ import net.microscraper.util.StringUtils;
  * @see Instruction#execute(String, net.microscraper.util.StringMap)
  *
  */
-public class ScraperResult extends Result {
+public class ScraperResult implements Result {
+	private String[] missingTags;
+	private String failedBecause;
 	private String name;
 	private DatabaseView[] views;
+	private Scraper scraperToRetry;
+	private Scraper[] children;
+	private boolean isSuccess = false;
 	
 	private ScraperResult(String name, DatabaseView[] views, Scraper[] children) {
-		super((Object) children); // force 'successful' constructor.
+		this.isSuccess = true;
 		this.name = name;
 		this.views = views;
+		this.children = children;
 	}
 	
-	private ScraperResult(String[] missingTags) {
-		super(missingTags);
+	private ScraperResult(String[] missingTags, Scraper scraperToRetry) {
+		this.missingTags = missingTags;
+		this.scraperToRetry = scraperToRetry;
 	}
 	
 	private ScraperResult(String failedBecause) {
-		super(failedBecause);
+		this.failedBecause = failedBecause;
+	}
+	
+	
+	public boolean isSuccess() {
+		return isSuccess;
 	}
 	
 	/**
@@ -39,7 +47,6 @@ public class ScraperResult extends Result {
 	 * @return The {@link String} name attached to the results of the scrape.
 	 */
 	public String getName() {
-		getSuccess();
 		return name;
 	}
 	
@@ -48,7 +55,6 @@ public class ScraperResult extends Result {
 	 * @return An array of {@link DatabaseView}s created from the scrape.
 	 */
 	public DatabaseView[] getResultViews() {
-		getSuccess();
 		return views;
 	}
 	
@@ -56,9 +62,23 @@ public class ScraperResult extends Result {
 	 * 
 	 * @return An array of {@link Scraper}s that should be launched because
 	 * of the successful scrape.
+	 * Should only be called when {@link #isSuccess()}
+	 * is <code>true</code>
 	 */
 	public Scraper[] getChildren() {
-		return (Scraper[]) getSuccess();
+		return children;
+	}
+	
+	/**
+	 * 
+	 * @return The {@link Scraper} that should be retried because its previous
+	 * scrape was stopped by missing tags.
+	 * Should only be called when {@link #isMissingTags()}
+	 * is <code>true</code>
+	 */
+	public Scraper getScraperToRetry() {
+		getMissingTags();
+		return scraperToRetry;
 	}
 	
 	/**
@@ -78,59 +98,27 @@ public class ScraperResult extends Result {
 	 * Obtain a {@link ScraperResult} with missing tag information.
 	 * @param missingTags A {@link String} array of the tags that prevented
 	 * a successful scrape.
+	 * @param scraperToRetry The {@link Scraper} that could be retried once
+	 * more tags are available.
 	 * @return A {@link ScraperResult} with missing tag information.
 	 */
-	public static ScraperResult missingTags(String[] missingTags) {
-		return new ScraperResult(missingTags);
+	public static ScraperResult missingTags(String[] missingTags, Scraper scraperToRetry) {
+		return new ScraperResult(missingTags, scraperToRetry);
 	}
 
-	/**
-	 * Failed because of an HTTP exception.
-	 * @param e A {@link HttpException} that caused this scrape to
-	 * fail.
-	 * @return A {@link ScraperResult} with failure information.
-	 */
-	public static ScraperResult fromHttpException(HttpException e) {
-		return new ScraperResult("Failure during HTTP request or response: " + e.getMessage());
+	public static ScraperResult failed(InstructionResult failedInstructionResult) {
+		return new ScraperResult(failedInstructionResult.getFailedBecause());
 	}
 
-	/**
-	 * Failed because of substitution causing an ambiguous mapping.
-	 * @param e A {@link HashtableSubstitutionOverwriteException} of the overwrite.
-	 * @return A {@link ScraperResult} with failure information.
-	 */
-	public static ScraperResult fromSubstitutionOverwrite(
-			HashtableSubstitutionOverwriteException e) {
-		return new ScraperResult("Instruction template substitution caused ambiguous mapping: "
-			+ e.getMessage());
+	public boolean isMissingTags() {
+		return missingTags != null;
 	}
 
-	/**
-	 * Obtain a {@link ScraperResult} with failure information.
-	 * @param pattern
-	 * @param minMatch
-	 * @param maxMatch
-	 * @param source
-	 * @return A {@link ScraperResult} with failure information.
-	 */
-	public static ScraperResult noMatchesFailure(Pattern pattern, int minMatch,
-			int maxMatch, String source) {
-		 return new ScraperResult("Match " + StringUtils.quote(pattern) +
-					" did not have a match between " + 
-					StringUtils.quote(minMatch) + " and " + 
-					StringUtils.quote(maxMatch) + " against " +
-					StringUtils.quoteAndTruncate(StringUtils.quote(source), 100));
+	public String[] getMissingTags() {
+		return missingTags;
 	}
-	
 
-	/**
-	 * Failed because of a deserialization error.
-	 * @param e A failed {@link DeserializerResult}.
-	 * @return A {@link ScraperResult} with failure information.
-	 */
-	public static ScraperResult fromDeserializerFailure(
-			DeserializerResult result) {
-		return new ScraperResult("Failed because of deserialization error: "
-			+ result.getFailedBecause());
+	public String getFailedBecause() {
+		return failedBecause;
 	}
 }

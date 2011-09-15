@@ -1,6 +1,8 @@
 package net.microscraper.deserializer;
 
+import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
+import net.microscraper.instruction.Load;
 import net.microscraper.util.Result;
 
 /**
@@ -9,37 +11,65 @@ import net.microscraper.util.Result;
  * @author realest
  *
  */
-public class DeserializerResult extends Result {
+public class DeserializerResult implements Result {
+	private Find find;
+	private Load load;
+	private Instruction[] children;
+	private String[] missingTags;
+	private String failedBecause;
 	
-	private DeserializerResult(Instruction deserializedInstruction) {
-		super(deserializedInstruction);
+	private DeserializerResult(Find find, Load load, Instruction[] children) {
+		this.find = find;
+		this.load = load;
+		this.children = children;
 	}
 	
 	private DeserializerResult(String[] missingTags) {
-		super(missingTags);
+		this.missingTags = missingTags;
 	}
 	
 	private DeserializerResult(String failedBecause) {
-		super(failedBecause);
+		this.failedBecause = failedBecause;
+	}
+	
+	/**
+	 * 
+	 * @return The successfully deserialized {@link Load}.
+	 */
+	public Load getLoad() {
+		return load;
+	}
+	
+	/**
+	 * 
+	 * @return The successfully deserialized {@link Find}.
+	 */
+	public Find getFind() {
+		return find;
 	}
 	
 	/**
 	 * 
 	 * @return The successfully deserialized {@link Instruction}.
 	 */
-	public Instruction getInstruction() {
-		return (Instruction) getSuccess();
+	public Instruction[] getChildren() {
+		return children;
 	}
 	
 	/**
-	 * Generate a successful {@link DeserializerResult}.
-	 * @param deserializedInstruction The {@link Instruction} to return
-	 * from {@link #getInstruction()}.
 	 * @return A successful {@link DeserializerResult}.
 	 */
-	public static DeserializerResult success(Instruction instruction) {
-		return new DeserializerResult(instruction);
+	public static DeserializerResult find(Find find, Instruction[] children) {
+		return new DeserializerResult(find, null, children);
 	}
+
+	/**
+	 * @return A successful {@link DeserializerResult}.
+	 */
+	public static DeserializerResult load(Load load, Instruction[] children) {
+		return new DeserializerResult(null, load, children);
+	}
+
 
 	/**
 	 * Obtain a {@link DeserializerResult} with missing tag information.
@@ -59,5 +89,17 @@ public class DeserializerResult extends Result {
 	 */
 	public static DeserializerResult failure(String failedBecause) {
 		return new DeserializerResult(failedBecause);
+	}
+
+	public boolean isMissingTags() {
+		return missingTags != null;
+	}
+
+	public String[] getMissingTags() {
+		return missingTags;
+	}
+
+	public String getFailedBecause() {
+		return failedBecause;
 	}
 }

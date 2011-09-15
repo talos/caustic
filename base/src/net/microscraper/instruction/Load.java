@@ -2,8 +2,6 @@ package net.microscraper.instruction;
 
 import java.util.Hashtable;
 
-import net.microscraper.client.Scraper;
-import net.microscraper.client.ScraperResult;
 import net.microscraper.database.DatabasePersistException;
 import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
@@ -14,7 +12,6 @@ import net.microscraper.template.DependsOnTemplate;
 import net.microscraper.template.HashtableSubstitution;
 import net.microscraper.template.HashtableSubstitutionOverwriteException;
 import net.microscraper.template.HashtableTemplate;
-import net.microscraper.template.MissingTags;
 import net.microscraper.template.StringSubstitution;
 import net.microscraper.template.StringTemplate;
 import net.microscraper.util.Encoder;
@@ -27,7 +24,7 @@ import net.microscraper.util.StringUtils;
  * @author realest
  *
  */
-public final class Load implements Instruction {
+public final class Load {
 	
 	/**
 	 * The HTTP request type that will be used. Either {@link HttpBrowser#GET},
@@ -61,17 +58,10 @@ public final class Load implements Instruction {
 	private final StringTemplate url;
 	
 	/**
-	 * The {@link HttpBrowser} to use when loading.
-	 */
-	private final HttpBrowser browser;
-
-	/**
 	 * The {@link Encoder} to use when encoding the URL.
 	 */
 	private final Encoder encoder;
-	
-	private Instruction[] children = new Instruction[] { };
-	
+			
 	private StringSubstitution getPosts(DatabaseView input)
 			throws HashtableSubstitutionOverwriteException, DatabaseReadException {
 		if(postTable.size() > 0) {
@@ -88,18 +78,12 @@ public final class Load implements Instruction {
 	
 	/**
 	 * Instantiate a {@link Load}.
-	 * @param browser
 	 * @param encoder
 	 * @param url
 	 */
-	public Load(HttpBrowser browser, Encoder encoder, StringTemplate url) {
-		this.browser = browser;
+	public Load(Encoder encoder, StringTemplate url) {
 		this.encoder = encoder;
 		this.url = url;
-	}
-	
-	public void setChildren(Instruction[] children) {
-		this.children = children;
 	}
 	
 	/**
@@ -159,10 +143,10 @@ public final class Load implements Instruction {
 	/**
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 */
-	public ScraperResult execute(String source, DatabaseView input)
+	public LoadResult execute(HttpBrowser browser, DatabaseView input)
 			throws InterruptedException, DatabasePersistException, DatabaseReadException {
 		try {
-			final ScraperResult result;
+			final LoadResult result;
 			
 			final Pattern[] stops = new Pattern[] { };
 			final StringSubstitution urlSub = url.subEncoded(input, encoder);
@@ -175,8 +159,8 @@ public final class Load implements Instruction {
 					|| headersSub.isMissingTags()
 					|| cookiesSub.isMissingTags()
 					|| postData.isMissingTags()) {
-				result = ScraperResult.missingTags(
-					MissingTags.combine(new DependsOnTemplate[] {
+				result = LoadResult.missingTags(
+					StringTemplate.combine(new DependsOnTemplate[] {
 						urlSub, headersSub, cookiesSub, postData}));
 			} else {
 				final String url = (String) urlSub.getSubstituted();
@@ -198,20 +182,13 @@ public final class Load implements Instruction {
 					responseBody = browser.get(url, headers, stops);
 				}
 				
-				// Each instruction is turned into one Scraper child, launched with the
-				// responseBody as the source.
-				Scraper[] scraperChildren = new Scraper[children.length];
-				for(int i = 0 ; i < children.length ; i ++) {
-					scraperChildren[i] = new Scraper(children[i], input, responseBody);
-				}
-				
-				result = ScraperResult.success(url, new DatabaseView[] { input } , scraperChildren);
+				result = LoadResult.success(url, responseBody);
 			}
 			return result;
 		} catch(HashtableSubstitutionOverwriteException e) {
-			return ScraperResult.fromSubstitutionOverwrite(e);
+			return LoadResult.fromSubstitutionOverwrite(e);
 		} catch (HttpException e) {
-			return ScraperResult.fromHttpException(e);
+			return LoadResult.fromHttpException(e);
 		}
 	}
 	

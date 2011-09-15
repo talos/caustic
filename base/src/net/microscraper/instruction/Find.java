@@ -1,19 +1,15 @@
 package net.microscraper.instruction;
 
-
-import net.microscraper.client.Scraper;
-import net.microscraper.client.ScraperResult;
 import net.microscraper.database.DatabasePersistException;
 import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.template.DependsOnTemplate;
-import net.microscraper.template.MissingTags;
 import net.microscraper.template.StringSubstitution;
 import net.microscraper.template.StringTemplate;
 
-public class Find implements Instruction {
+public class Find {
 	
 	/**
 	 * The {@link StringTemplate} that will be substituted into a {@link String}
@@ -73,16 +69,16 @@ public class Find implements Instruction {
 	 */
 	private int maxMatch = Pattern.LAST_MATCH;
 
-	private Instruction[] children = new Instruction[] { };
+	//private Instruction[] children = new Instruction[] { };
 	
 	public Find(RegexpCompiler compiler, StringTemplate pattern) {
 		this.compiler = compiler;
 		this.pattern = pattern;
 	}
-	
+	/*
 	public void setChildren(Instruction[] children) {
 		this.children = children;
-	}
+	}*/
 	
 	public void setName(StringTemplate name) {
 		this.hasName = true;
@@ -116,12 +112,13 @@ public class Find implements Instruction {
 	/**
 	 * Use {@link #pattern}, substituted with {@link Variables}, to match against <code>source</code>.
 	 */
-	public ScraperResult execute(String source, DatabaseView inputView) throws DatabasePersistException, DatabaseReadException {
+	public FindResult execute(String source, DatabaseView inputView)
+			throws DatabasePersistException, DatabaseReadException {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
 		
-		final ScraperResult result;
+		final FindResult result;
 		final StringSubstitution subName;
 		final StringSubstitution subPattern = pattern.sub(inputView);
 		final StringSubstitution subReplacement = replacement.sub(inputView);
@@ -135,8 +132,8 @@ public class Find implements Instruction {
 		if(subName.isMissingTags() ||
 				subPattern.isMissingTags() ||
 				subReplacement.isMissingTags()) { // One of the substitutions was not OK.
-			result = ScraperResult.missingTags(MissingTags.combine(
-					new DependsOnTemplate[] { subName, subPattern, subReplacement } ));
+			result = FindResult.missingTags(StringTemplate.combine(
+					new DependsOnTemplate[] { subName, subPattern, subReplacement } ) );
 			
 		} else { // All the substitutions were OK.
 			String resultName = subName.getSubstituted();
@@ -147,40 +144,12 @@ public class Find implements Instruction {
 			String replacement = (String) subReplacement.getSubstituted();
 			String[] matches = pattern.match(source, replacement, minMatch, maxMatch);
 			
+			
 			if(matches.length == 0) { // No matches, fail out.
-				result = ScraperResult.noMatchesFailure(pattern, minMatch, maxMatch, source);
+				result = FindResult.noMatchesFailure(pattern, minMatch, maxMatch, source);
 			// We got at least 1 match.
 			} else {
-				DatabaseView[] resultViews = new DatabaseView[matches.length];
-				Scraper[] scraperChildren = new Scraper[children.length * matches.length];
-				for(int i = 0 ; i < matches.length ; i ++) {
-					
-					// generate result views.
-					String childSource = matches[i];
-					if(matches.length == 1) { // don't spawn a new result for single match
-						resultViews[i] = inputView;
-						if(hasName) {
-							inputView.put(resultName, childSource);
-						}
-					} else {
-						if(hasName) {
-							resultViews[i] = inputView.spawnChild(resultName, childSource);
-						} else {
-							resultViews[i] = inputView.spawnChild(resultName);							
-						}
-					}
-					
-					// generate children from result views
-					DatabaseView childView = resultViews[i];
-					for(int j = 0 ; j < children.length ; j ++) {
-						Instruction childInstruction = children[j];
-						
-						scraperChildren[i * children.length + j] =
-								new Scraper(childInstruction, childView, childSource);
-					}
-				}
-				
-				result = ScraperResult.success(resultName, resultViews, scraperChildren);
+				result = FindResult.success(resultName, matches, hasName);
 			}
 		}
 		return result;

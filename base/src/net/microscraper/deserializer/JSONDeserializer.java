@@ -4,11 +4,9 @@ import java.util.Vector;
 
 import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
-import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Load;
-import net.microscraper.instruction.SerializedInstruction;
 import net.microscraper.json.JsonArray;
 import net.microscraper.json.JsonException;
 import net.microscraper.json.JsonIterator;
@@ -55,12 +53,7 @@ public class JSONDeserializer implements Deserializer {
 	 * The {@link RegexpCompiler} to use when deserializing {@link Find}s.
 	 */
 	private final RegexpCompiler compiler;
-	
-	/**
-	 * The {@link HttpBrowser} to use when deserializing {@link Load}s.
-	 */
-	private final HttpBrowser browser;
-	
+		
 	/**
 	 * The {@link Encoder} to use when deserializing {@link Load}s.
 	 */
@@ -195,14 +188,14 @@ public class JSONDeserializer implements Deserializer {
 							String thenString = (String) thenStrings.elementAt(j);
 							
 							if(thenString.equalsIgnoreCase(SELF)) {
-								children.add(new SerializedInstruction(jsonString, this, uri));
+								children.add(new Instruction(jsonString, this, uri));
 							} else {
-								children.add(new SerializedInstruction(thenString, this, uri));
+								children.add(new Instruction(thenString, this, uri));
 							}
 						}
 						for(int j = 0 ; j < thenObjects.size(); j ++ ) {
 							String thenObjectAsString = (String) thenObjects.elementAt(j);
-							children.add(new SerializedInstruction(thenObjectAsString, this, uri));
+							children.add(new Instruction(thenObjectAsString, this, uri));
 						}
 					} else if(key.equalsIgnoreCase(NAME)) {
 						name = new StringTemplate(obj.getString(key), openTagString, closeTagString);
@@ -263,7 +256,7 @@ public class JSONDeserializer implements Deserializer {
 				return DeserializerResult.failure("Cannot define both " + FIND + " and " + LOAD);
 			} else if(url != null) {
 				// We have a Load
-				Load load = new Load(browser, encoder, url);
+				Load load = new Load(encoder, url);
 				
 				if(method != null) {
 					load.setMethod(method);
@@ -275,9 +268,8 @@ public class JSONDeserializer implements Deserializer {
 				}
 				load.addCookies(cookies);
 				load.addHeaders(headers);
-				load.setChildren(childrenAry);
 				
-				result = DeserializerResult.success(load);
+				result = DeserializerResult.load(load, childrenAry);
 			} else if(pattern != null) {
 				// We have a Find
 				Find find = new Find(compiler, pattern);
@@ -318,8 +310,7 @@ public class JSONDeserializer implements Deserializer {
 					find.setName(name);
 				}
 				
-				find.setChildren(childrenAry);
-				result = DeserializerResult.success(find);
+				result = DeserializerResult.find(find, childrenAry);
 			} else {
 				return DeserializerResult.failure("Must define " + FIND + " or " + LOAD);
 			}
@@ -454,10 +445,9 @@ public class JSONDeserializer implements Deserializer {
 	 * @param database
 	 */
 	public JSONDeserializer(JsonParser parser, RegexpCompiler compiler,
-			HttpBrowser browser, Encoder encoder, UriResolver uriResolver, URILoader uriLoader) {
+			Encoder encoder, UriResolver uriResolver, URILoader uriLoader) {
 		this.compiler = compiler;
 		this.parser = parser;
-		this.browser = browser;
 		this.encoder = encoder;
 		this.uriResolver = uriResolver;
 		this.uriLoader = uriLoader;

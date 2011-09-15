@@ -6,12 +6,12 @@ package net.microscraper.template;
  * @author talos
  *
  */
-public class StringSubstitution extends MissingTags {
-	private final String substituted;
+public class StringSubstitution implements DependsOnTemplate {
+	private String substituted;
+	private String[] missingTags;
 	
 	private StringSubstitution(String[] missingTags) {
-		super(missingTags);
-		substituted = null;
+		this.missingTags = missingTags;
 	}
 
 	private StringSubstitution(String substituted) {
@@ -47,5 +47,13 @@ public class StringSubstitution extends MissingTags {
 		} else {
 			return substituted;
 		}
+	}
+	
+	public boolean isMissingTags() {
+		return missingTags != null;
+	}
+
+	public String[] getMissingTags() {
+		return missingTags;
 	}
 }

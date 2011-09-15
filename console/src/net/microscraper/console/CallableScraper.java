@@ -12,22 +12,15 @@ import net.microscraper.database.DatabaseException;
  * @author talos
  *
  */
-public class CallableScraper implements Callable<Scraper[]> {
+public class CallableScraper implements Callable<ScraperResult> {
 	private final Scraper scraper;
 	
 	public CallableScraper(Scraper scraper) {
 		this.scraper = scraper;
 	}
-
+	
 	@Override
-	public Scraper[] call() throws InterruptedException, DatabaseException {
-		ScraperResult result = scraper.scrape();
-		if(result.isSuccess()) {
-			return result.getChildren();
-		} else if(result.isMissingTags()) {
-			return new Scraper[] { scraper };
-		} else {
-			return new Scraper[] {};
-		}
+	public ScraperResult call() throws InterruptedException, DatabaseException {
+		return scraper.scrape();
 	}
 }

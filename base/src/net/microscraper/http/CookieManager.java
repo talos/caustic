@@ -66,4 +66,10 @@ public interface CookieManager {
 	 * @throws BadURLException If the <code>urlStr</code> can't be parsed as a URL.
 	 */
 	public void addCookies(String urlStr, Hashtable cookies, Encoder encoder) throws BadURLException;
+	
+	/**
+	 * 
+	 * @return A copy of this {@link CookieManager}, stocked with the same cookies.
+	 */
+	public CookieManager copy();
 }

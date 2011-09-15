@@ -102,7 +102,7 @@ public class ScraperNetworkTest {
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {
 		StringTemplate googleTemplate = new StringTemplate("http://www.google.com/search?q={{query}}", "{{", "}}");
-		Load loadGoogle = new Load(browser, encoder, googleTemplate);
+		Load loadGoogle = new Load(encoder, googleTemplate);
 		
 		StringTemplate whatDoYouSayTemplate = new StringTemplate("what do you say after '{{query}}'?", "{{", "}}");
 		Find findWordAfter = new Find(compiler,
@@ -110,13 +110,14 @@ public class ScraperNetworkTest {
 		findWordAfter.setReplacement(new StringTemplate("I say $1", "{{", "}}"));
 		findWordAfter.setName(whatDoYouSayTemplate);
 		
-		loadGoogle.setChildren(new Instruction[] { findWordAfter } );
+		Instruction instruction = new Instruction(loadGoogle);
+		instruction.setChildren(new Instruction[] { new Instruction(findWordAfter) } );
 
 		Hashtable<String, String> inputTable = new Hashtable<String, String>();
 		inputTable.put("query", "hello");
 		DatabaseView input = new InMemoryDatabaseView(inputTable);
 		
-		Scraper scraper = new Scraper(loadGoogle, input);
+		Scraper scraper = new Scraper(instruction, input, null, browser);
 		
 		ScraperResult result;
 		String name;

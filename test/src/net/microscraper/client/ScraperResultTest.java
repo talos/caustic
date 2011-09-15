@@ -3,6 +3,7 @@ package net.microscraper.client;
 import static net.microscraper.util.TestUtils.*;
 import static org.junit.Assert.*;
 
+import mockit.Mocked;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.database.InMemoryDatabaseView;
 
@@ -23,22 +24,16 @@ public class ScraperResultTest {
 	}
 
 	@Test
-	public void testMissingTags() {
+	public void testMissingTags(@Mocked final Scraper scraper) {
 		String[] missingTags = new String[] {
 				randomString(),
 				randomString(),
 				randomString()
 		};
-		ScraperResult result = ScraperResult.missingTags(missingTags);
+		ScraperResult result = ScraperResult.missingTags(missingTags, scraper);
 		assertTrue(result.isMissingTags());
 		assertArrayEquals(missingTags, result.getMissingTags());
-	}
-
-	@Test
-	public void testFailure() {
-		String failedBecause = randomString();
-		ScraperResult result = ScraperResult.fromSubstitutionOverwrite(failedBecause);
-		assertEquals(failedBecause, result.getFailedBecause());
+		assertEquals(scraper, result.getScraperToRetry());
 	}
 
 }
