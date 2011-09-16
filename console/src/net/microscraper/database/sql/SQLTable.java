@@ -74,7 +74,8 @@ class SQLTable implements IOTable {
 							" ADD COLUMN `" + columnName + "`" + 
 							connection.textColumnType());
 		} catch(SQLConnectionException e) {
-			throw new TableManipulationException(e.getMessage());
+			throw new TableManipulationException("Couldn't add column " + 
+					StringUtils.quote(columnName) + " to " + StringUtils.quote(name), e);
 		}
 	}
 	
@@ -83,7 +84,8 @@ class SQLTable implements IOTable {
 		try {
 			return connection.doesTableHaveColumn(name, columnName);
 		} catch(SQLConnectionException e) {
-			throw new IOTableReadException("Error determining whether table " + name + " has column " + columnName, e);
+			throw new IOTableReadException("Error determining whether table " +
+					StringUtils.quote(name) + " has column " + StringUtils.quote(columnName), e);
 		}
 	}
 	
@@ -122,25 +124,24 @@ class SQLTable implements IOTable {
 			throw new TableManipulationException("Must provide values to update.");
 		}
 		
-		String[] setStatements = new String[updateMap.size()];
-		
-		int i = 0;
+		String set = " SET ";
 		for(Map.Entry<String, String> entry : updateMap.entrySet()) {
-			setStatements[i] = "`" + entry.getKey() + "` = ? ";
+			set += "`" + entry.getKey() + "` = ? ,";
 		}
-		
-		String set = " SET " + StringUtils.join(setStatements, ", ");
+		set = set.substring(0, set.length() -1); // clip trailing comma
 		
 		List<String> params = new ArrayList<String>();
 		params.addAll(updateMap.values());
 		params.add(scope.asString()); // this is an extra where clause before the others.
 		params.addAll(whereMap.values());
 		
+		String sql = " UPDATE `" + name + "` " + set + " " + buildWhereClause(whereMap.keySet());
+		
 		try {
-			connection.batchModify(" UPDATE `" + name + "` " + set + buildWhereClause(whereMap.keySet()),
+			connection.batchModify(sql,
 					params.toArray(new String[params.size()]));
 		} catch (SQLConnectionException e) {
-			throw new TableManipulationException(e.getMessage());
+			throw new TableManipulationException("Could not update with " + sql, e);
 		}
 	}
 	
@@ -148,8 +149,13 @@ class SQLTable implements IOTable {
 	public List<Map<String, String>> select(UUID scope, Map<String, String> whereMap,
 			String[] columnNames) throws IOTableReadException {
 		try  {
-			String sql = "SELECT `" + StringUtils.join(columnNames, "`, `") + "` " +
-					"FROM `" + name + "` " + buildWhereClause(whereMap.keySet());
+			String columnsClause = "";
+			for(String columnName : columnNames) {
+				columnsClause += ", `"+ columnName + "` ";
+			}
+			// always select the scope column
+			String sql = "SELECT `" + connection.getScopeColumnName() + "` "
+					 + columnsClause + " FROM `" + name + "` " + buildWhereClause(whereMap.keySet());
 			List<String> params = new ArrayList<String>();
 			params.add(scope.asString());
 			params.addAll(whereMap.values());

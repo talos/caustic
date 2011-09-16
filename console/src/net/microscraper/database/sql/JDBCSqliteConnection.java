@@ -68,29 +68,10 @@ public class JDBCSqliteConnection implements SQLConnection {
 	
 	private final String scopeColumnName;
 	
-	/**
-	 * Check to see whether a table exists using the reused {@link #tableExistsStmt}
-	 * statement.  Commits before, in case a table was created.
-	 * @param tableName {@link String} name of table to check.
-	 * @return <code>True</code> if the table exists, <code>false</code> otherwise.
-	 * @throws SQLConnectionException
-	 */
-	private boolean tableExists(String tableName) throws SQLConnectionException {
-		try {
-			commit();
-			tableExistsStmt.setString(1, tableName);
-			ResultSet result = tableExistsStmt.executeQuery();
-			boolean tableExists = result.next();
-			result.close();
-			return tableExists;
-		} catch(SQLException e) {
-			throw new SQLConnectionException(e);
-		}
-	}
 
 	/**
 	 * Remember to close the returned result set! Don't have to worry about closing
-	 * the statement because it's part of the cache.
+	 * the statement because it's part of the cache. 
 	 * @param sql
 	 * @param parameters
 	 * @return
@@ -98,17 +79,15 @@ public class JDBCSqliteConnection implements SQLConnection {
 	 */
 	private ResultSet getResultSet(String sql, String[] parameters) throws SQLException {
 		PreparedStatement stmt;
-		synchronized(prepSelects) {
-			if(prepSelects.containsKey(sql)) {
-				stmt = prepSelects.get(sql);
-			} else {
-				stmt = connection.prepareStatement(sql);
-				prepSelects.put(sql, stmt);
-			}
+		if(prepSelects.containsKey(sql)) {
+			stmt = prepSelects.get(sql);
+		} else {
+			stmt = connection.prepareStatement(sql);
+			prepSelects.put(sql, stmt);
 		}
 		setParams(stmt, parameters);
 		//stmt.addBatch();
-		System.out.println("About to retrieve resultSet");
+		//System.out.println("About to retrieve resultSet");
 		return stmt.executeQuery();
 	}
 	
@@ -120,22 +99,12 @@ public class JDBCSqliteConnection implements SQLConnection {
 	@Override
 	public void commit() throws SQLConnectionException {
 		try {
-			/*for(PreparedStatement stmt : prepMods.values()) {
+			for(PreparedStatement stmt : prepMods.values()) {
 				stmt.executeBatch();
-			}*/
-			synchronized(prepMods) {
-				for(Map.Entry<String, PreparedStatement> entry : prepMods.entrySet()) {
-					int[] updateCounts = entry.getValue().executeBatch();
-					for(int updateCount : updateCounts) {
-						System.out.println(entry.getKey() + " modified " + updateCount + " rows." );
-					}
-				}
 			}
-			synchronized(connection) {
-				System.out.println("committing...");
-				connection.commit();
-				System.out.println("finished committing.");
-			}
+			//System.out.println("committing...");
+			connection.commit();
+			//System.out.println("finished committing.");
 		} catch(SQLException e) {
 			throw new SQLConnectionException(e);
 		}
@@ -214,10 +183,22 @@ public class JDBCSqliteConnection implements SQLConnection {
 	
 	@Override
 	public IOTable getIOTable(String name) throws ConnectionException {
-		if(tableExists(name)) {
-			return new SQLTable(this, name);
-		} else {
-			return null;
+		try {
+			//System.out.println("testing whether " + name + " exists...");
+			commit();
+			tableExistsStmt.setString(1, name);
+			ResultSet result = tableExistsStmt.executeQuery();
+			boolean tableExists = result.next();
+			result.close();
+			//System.out.println("does table " + name + " exist?: " + tableExists);
+			
+			if(tableExists) {
+				return new SQLTable(this, name);
+			} else {
+				return null;
+			}
+		} catch(SQLException e) {
+			throw new SQLConnectionException(e);
 		}
 	}
 
@@ -229,26 +210,28 @@ public class JDBCSqliteConnection implements SQLConnection {
 	@Override
 	public boolean doesTableHaveColumn(String tableName, String columnName)
 				throws SQLConnectionException{
-		synchronized(connection) {
+		try {
 			commit();
-			try {
-				boolean result = false;
-				ResultSet rs = getResultSet("SELECT * FROM `" + tableName + "`",
-						new String[] { } ); 
-				ResultSetMetaData meta = rs.getMetaData();
-				
-				int numCol = meta.getColumnCount();
-				
-				for (int i = 1; i < numCol+1; i++) {
-				    if(meta.getColumnName(i).equals(columnName)) {
-				    	result = true;
-				    }
-				}
-				rs.close();
-				return result;
-			} catch(SQLException e) {
-				throw new SQLConnectionException(e);
+			//System.out.println("does table " +tableName +" have column " + columnName + 
+			//	": " + "SELECT * FROM `" + tableName + "`");
+			boolean result = false;
+			ResultSet rs = getResultSet("SELECT * FROM `" + tableName + "`",
+					new String[] { } ); 
+			ResultSetMetaData meta = rs.getMetaData();
+			
+			int numCol = meta.getColumnCount();
+			//System.out.println("Table " + tableName + " has " + numCol + " columns.");
+			for (int i = 1; i < numCol+1; i++) {
+				//System.out.println(meta.getColumnName(i) + " is a column");
+			    if(meta.getColumnName(i).equals(columnName)) {
+					//System.out.println(meta.getColumnName(i) + " is the column we want");
+			    	result = true;
+			    }
 			}
+			rs.close();
+			return result;
+		} catch(SQLException e) {
+			throw new SQLConnectionException(e);
 		}
 	}
 	
@@ -260,47 +243,39 @@ public class JDBCSqliteConnection implements SQLConnection {
 	@Override
 	public List<Map<String, String>> select(String sql, String[] columnNames, String[] parameters)
 			throws SQLConnectionException {
-		synchronized(connection) { // hold the connection for the whole process.
 			
-			
-			
-			System.out.println("before select commit");
+		try {
 			commit(); // commit any lingering changes before selecting
-			System.out.println("after select commit");
-			try {
-				System.out.println("Selecting " + sql + " with params " + Arrays.asList(parameters));
-				ResultSet rs = getResultSet(sql, parameters);
-				List<Map<String, String>> rows = new ArrayList<Map<String, String>>();
-				
-				while(rs.next()) {
-					System.out.println("advanced through resultset.");
-					Map<String, String> row = new HashMap<String, String>();
-					for(String columnName : columnNames) {
-						row.put(columnName, rs.getString(columnName));
-					}
-					rows.add(row);
+			//System.out.println("Selecting " + sql + " with params " + Arrays.asList(parameters));
+			ResultSet rs = getResultSet(sql, parameters);
+			List<Map<String, String>> rows = new ArrayList<Map<String, String>>();
+			
+			while(rs.next()) {
+				//System.out.println("advanced through resultset.");
+				Map<String, String> row = new HashMap<String, String>();
+				for(String columnName : columnNames) {
+					row.put(columnName, rs.getString(columnName));
 				}
-				rs.close();
-				
-				System.out.println("row results: " + rows);
-				return rows;
-			} catch(SQLException e) {
-				throw new SQLConnectionException(e);
+				rows.add(row);
 			}
+			rs.close();
+			
+			//System.out.println("row results: " + rows);
+			return rows;
+		} catch(SQLException e) {
+			throw new SQLConnectionException(e);
 		}
 	}
 
 	@Override
 	public void executeNow(String sql) throws SQLConnectionException {
 		try {
-			synchronized(connection) {
-				System.out.println(sql);
-				commit();
-				Statement stmt = connection.createStatement();
-				stmt.execute(sql);
-				connection.commit();
-				stmt.close();
-			}
+			commit();
+			//System.out.println(sql);
+			Statement stmt = connection.createStatement();
+			stmt.execute(sql);
+			connection.commit();
+			stmt.close();
 		} catch(SQLException e) {
 			throw new SQLConnectionException(e);
 		}
@@ -311,16 +286,14 @@ public class JDBCSqliteConnection implements SQLConnection {
 			throws SQLConnectionException {
 		try {
 			PreparedStatement stmt;
-			synchronized(prepMods) {
-				if(prepMods.containsKey(sql)) {
-					stmt = prepMods.get(sql);
-				} else {
-					stmt = connection.prepareStatement(sql);
-					prepMods.put(sql, stmt);
-				}
+			if(prepMods.containsKey(sql)) {
+				stmt = prepMods.get(sql);
+			} else {
+				stmt = connection.prepareStatement(sql);
+				prepMods.put(sql, stmt);
 			}
 			setParams(stmt, parameters);
-			stmt.addBatch();	
+			stmt.addBatch();
 		} catch(SQLException e) {
 			throw new SQLConnectionException(e);
 		}
@@ -335,7 +308,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 	 */
 	private static void setParams(PreparedStatement stmt, String[] params) throws SQLException {
 		for(int i = 0 ; i < params.length ; i ++) {
-			System.out.println("Setting param " + (i+1) + " to " + params[i]);
+			//System.out.println("Setting param " + (i+1) + " to " + params[i]);
 			stmt.setString(i + 1, params[i]);
 		}
 	}

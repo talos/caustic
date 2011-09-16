@@ -77,7 +77,8 @@ class SingleTable {
 		whereMap.put(NAME_COLUMN_NAME, name);
 		
 		try {
-			if(table.select(scope, whereMap, new String[] { }).size() == 0) { // insert the row
+			if(table.select(scope, whereMap,
+					new String[] { NAME_COLUMN_NAME }).size() == 0) { // insert the row
 				table.insert(scope, updateMap);
 			} else { // update the existing row.
 				table.update(scope, whereMap, updateMap);

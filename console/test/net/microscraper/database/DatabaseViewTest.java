@@ -5,8 +5,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import net.microscraper.database.csv.CSVConnection;
 import net.microscraper.database.sql.JDBCSqliteConnection;
@@ -21,17 +27,26 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 
-@RunWith(Parameterized.class)
+//@RunWith(Parameterized.class)
 public class DatabaseViewTest {
-	private static final char DELIMITER = ',';
-	private final Database db;
-	private DatabaseView view;
 	
+	private ExecutorService exc;
+	private static final char DELIMITER = ',';
+//	private final Database db;
+	private DatabaseView view;
+	private Database db;
+
+	public DatabaseViewTest() throws Exception {
+		db = new MultiTableDatabase(JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME),
+				new IntUUIDFactory() );
+		db.open();
+	}
+	/*
 	public DatabaseViewTest(Database db) throws Exception {
 		this.db = db;
 		db.open();
 	}
-	
+	/*
 	@Parameters
 	public static List<Database[]> implementations() {
 		return Arrays.asList(new Database[][] {
@@ -43,16 +58,17 @@ public class DatabaseViewTest {
 						new IntUUIDFactory() )  }
 		});
 	}
-	
+	*/
 	@Before
 	public void setUp() throws Exception {
 		//db.open();
 		view = db.newView();
+		exc = Executors.newCachedThreadPool();
 	}
 	
 	@After
 	public void tearDown() throws Exception {
-		//db.close();
+		db.close();
 	}
 
 	@Test
@@ -69,13 +85,10 @@ public class DatabaseViewTest {
 		String name = randomString();
 		String value = randomString();
 		
-		System.out.println("spawn child:");
 		DatabaseView child = view.spawnChild(name, value);
 		
-		System.out.println("get parent should not have value: ");
 		assertNull("Parent should not have value.", view.get(name));
 		
-		System.out.println("get child should have value");
 		String childValue = child.get(name);
 		assertEquals("Child does not have correct value", value, childValue);
 	}
@@ -86,6 +99,7 @@ public class DatabaseViewTest {
 		String value = randomString();
 		
 		view.put(name, value);
+
 		assertEquals("View does not have correct value.", value, view.get(name));
 	}
 	
@@ -123,5 +137,70 @@ public class DatabaseViewTest {
 		
 		assertEquals("Overwritten value not present.", value2, view.get(name));
 		assertNotSame("Old value still present.", value, view.get(name));
+	}
+	
+	@Test
+	public void testConcurrentPut() throws Exception {
+
+		final String name = randomString();
+		final String value = randomString();
+		
+		exc.submit(new Callable<Void>() {
+			@Override
+			public Void call() throws DatabasePersistException {
+				view.put(name, value);
+				return null;
+			}
+		});
+		
+		exc.submit(new Callable<String>() {
+			@Override
+			public String call() throws DatabaseReadException {
+				return view.get(name);
+			}
+		});
+		
+		exc.shutdown();
+		exc.awaitTermination(3, TimeUnit.SECONDS);
+		assertEquals(value, view.get(name));
+	}
+	
+
+	@Test
+	public void testConcurrentSpawnChildren() throws Exception {
+		
+		final String name = randomString();
+		final String value = randomString();
+		
+		final String nameToOverwrite = randomString();
+		final String overwrittenValue = randomString();
+		final String overwritingValue = randomString();
+		
+		final String childName = randomString();
+		final String childValue = randomString();
+		view.put(name, value);
+		view.put(nameToOverwrite, overwrittenValue);
+		final int threads = 150;
+		
+		List<Callable<DatabaseView>> callables = new ArrayList<Callable<DatabaseView>>();
+		for(int i = 0 ; i < threads ; i ++) {
+			callables.add(new Callable<DatabaseView>() {
+				@Override
+				public DatabaseView call() throws DatabasePersistException {
+					DatabaseView child = view.spawnChild(childName, childValue);
+					child.put(nameToOverwrite, overwritingValue);
+					return child;
+				}
+			});
+		}
+		List<Future<DatabaseView>> futures = exc.invokeAll(callables);
+		
+		assertEquals("should not be overwritten in original view.", overwrittenValue, view.get(nameToOverwrite));
+		assertNull("should not have child name/value in original view", view.get(childName));
+		for(Future<DatabaseView> future : futures) {
+			DatabaseView child = future.get();
+			assertEquals("should be overwritten", overwritingValue, child.get(nameToOverwrite));
+			assertEquals("child should have its name/value", childValue, child.get(childName));
+		}
 	}
 }

@@ -6,12 +6,19 @@ final class IntUUID implements UUID {
 	public IntUUID(int id) {
 		this.id = id;
 	}
-	
+
+	@Override
 	public String asString() {
 		return Integer.toString(id);
 	}
-	
+
+	@Override
 	public int hashCode() {
 		return id;
+	}
+	
+	@Override
+	public String toString() {
+		return asString();
 	}
 }
