@@ -3,7 +3,7 @@ package net.microscraper.database;
 
 import net.microscraper.uuid.UUID;
 
-public class PersistedDatabaseView implements DatabaseView {
+class PersistedDatabaseView implements DatabaseView {
 	
 	private final UUID scope;
 	private final PersistedDatabase database;

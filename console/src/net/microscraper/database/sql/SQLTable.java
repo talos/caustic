@@ -1,10 +1,10 @@
 package net.microscraper.database.sql;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import net.microscraper.database.IOTable;
 import net.microscraper.database.IOTableReadException;
@@ -45,11 +45,18 @@ class SQLTable implements IOTable {
 				Integer.toString(stringToCheck.indexOf('`')));
 		}
 	}
-	
-	private String getSelectQuery(UUID scope, String[] columnNames)  throws IOException {
-		return "SELECT `" + StringUtils.join(columnNames, "`, `") + "` " +
-					"FROM `" + name + "` " +
-					"WHERE `" + connection.getScopeColumnName() + "` = ?";
+
+	/**
+	 * 
+	 * @param whereMap a parameterized WHERE clause, where scope is the first WHERE.
+	 * @return
+	 */
+	private String buildWhereClause(Set<String> whereColumns) {
+		String result = "WHERE `" + connection.getScopeColumnName() + "` = ?";
+		for(String whereColumn : whereColumns) {
+			result += " AND `" + whereColumn + "` = ? ";
+		}
+		return result;
 	}
 	
 	public SQLTable(SQLConnection connection, String name) throws SQLConnectionException {
@@ -62,11 +69,10 @@ class SQLTable implements IOTable {
 		preventIllegalBacktick(columnName);
 		
 		try {
-			String type = connection.textColumnType();
 			connection.executeNow(
 							"ALTER TABLE `" + name + "` " +
 							" ADD COLUMN `" + columnName + "`" + 
-							type);
+							connection.textColumnType());
 		} catch(SQLConnectionException e) {
 			throw new TableManipulationException(e.getMessage());
 		}
@@ -77,7 +83,7 @@ class SQLTable implements IOTable {
 		try {
 			return connection.doesTableHaveColumn(name, columnName);
 		} catch(SQLConnectionException e) {
-			throw new IOTableReadException(e);
+			throw new IOTableReadException("Error determining whether table " + name + " has column " + columnName, e);
 		}
 	}
 	
@@ -110,43 +116,47 @@ class SQLTable implements IOTable {
 	}
 
 	@Override
-	public void update(UUID scope, Map<String, String> map)
+	public void update(UUID scope, Map<String, String> whereMap, Map<String, String> updateMap)
 			throws TableManipulationException {
-		if(map.size() == 0) {
+		if(updateMap.size() == 0) {
 			throw new TableManipulationException("Must provide values to update.");
 		}
 		
-		String[] setStatements = new String[map.size()];
-		String[] values = new String[map.size() + 1]; // extra value for scope
+		String[] setStatements = new String[updateMap.size()];
 		
 		int i = 0;
-		for(Map.Entry<String, String> entry : map.entrySet()) {
+		for(Map.Entry<String, String> entry : updateMap.entrySet()) {
 			setStatements[i] = "`" + entry.getKey() + "` = ? ";
-			values[i] = entry.getValue();
-			i++;
 		}
-		
-		// bind the very last parameter to scope
-		values[values.length - 1] = scope.asString();
 		
 		String set = " SET " + StringUtils.join(setStatements, ", ");
 		
+		List<String> params = new ArrayList<String>();
+		params.addAll(updateMap.values());
+		params.add(scope.asString()); // this is an extra where clause before the others.
+		params.addAll(whereMap.values());
+		
 		try {
-			connection.batchModify(" UPDATE `" + name + "` " + set +
-					" WHERE `" + connection.getScopeColumnName() + "` = ?", values);
+			connection.batchModify(" UPDATE `" + name + "` " + set + buildWhereClause(whereMap.keySet()),
+					params.toArray(new String[params.size()]));
 		} catch (SQLConnectionException e) {
 			throw new TableManipulationException(e.getMessage());
 		}
 	}
-
+	
 	@Override
-	public List<Map<String, String>> select(UUID scope, String[] columnNames) throws IOTableReadException {
+	public List<Map<String, String>> select(UUID scope, Map<String, String> whereMap,
+			String[] columnNames) throws IOTableReadException {
 		try  {
-			return connection.select(getSelectQuery(scope, columnNames), columnNames);
-		} catch(IOException e) {
-			throw new IOTableReadException(e);
+			String sql = "SELECT `" + StringUtils.join(columnNames, "`, `") + "` " +
+					"FROM `" + name + "` " + buildWhereClause(whereMap.keySet());
+			List<String> params = new ArrayList<String>();
+			params.add(scope.asString());
+			params.addAll(whereMap.values());
+			
+			return connection.select(sql, columnNames, params.toArray(new String[params.size()]));
 		} catch (SQLConnectionException e) {
-			throw new IOTableReadException(e);
+			throw new IOTableReadException("Error inserting " + Arrays.asList(columnNames) + " into " + name, e);
 		}
 	}
 }

@@ -16,4 +16,9 @@ public class DatabaseException extends Exception {
 	protected DatabaseException(String message) {
 		super(message);
 	}
+	
+	protected DatabaseException(String message, Throwable e) {
+		super(message);
+		e.printStackTrace();
+	}
 }

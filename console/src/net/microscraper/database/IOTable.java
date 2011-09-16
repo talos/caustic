@@ -1,6 +1,5 @@
 package net.microscraper.database;
 
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -33,20 +32,27 @@ public interface IOTable extends WritableTable {
 	/**
 	 * Select several columns of data from  {@link IOTable}.
 	 * @param scope The {@link UUID} scope of the rows to select.
+	 * @param whereMap A {@link Map} mapping the WHERE clause to
+	 * narrow the selection.
 	 * @param columnNames A {@link String} array of columns to select.
 	 * @throws IOTableReadException if the {@link IOTable} cannot be read from.
 	 */
-	public abstract List<Map<String, String>> select(UUID scope, String[] columnNames)
+	public abstract List<Map<String, String>> select(UUID scope, Map<String, String> whereMap,
+					String[] columnNames)
 			throws IOTableReadException;
 	
 	/**
 	 * Update the rows of a scope in the {@link IOTable}.
-	 * @param uuid the {@link UUID} of the rows to update.
-	 * @param map A {@link Hashtable} mapping columns names to values to update
+	 * @param scope the {@link UUID} of the rows to update.
+	 * @param whereMap A {@link Map} mapping the WHERE clause to
+	 * narrow the update.  Provide an empty map to update everything in <code>
+	 * scope</code> with the same values.
+	 * @param updateMap A {@link Map} mapping columns names to values to update
 	 * in {@link IOTable}.
 	 * @throws TableManipulationException if the rows could not be updated.
 	 */
-	public abstract void update(UUID scope, Map<String, String> map)
+	public abstract void update(UUID scope, Map<String, String> whereMap,
+				Map<String, String> updateMap)
 			throws TableManipulationException;
 	
 }

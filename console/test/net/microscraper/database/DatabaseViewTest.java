@@ -13,6 +13,7 @@ import net.microscraper.database.sql.JDBCSqliteConnection;
 import net.microscraper.uuid.IntUUIDFactory;
 import net.microscraper.uuid.JavaUtilUUIDFactory;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +29,7 @@ public class DatabaseViewTest {
 	
 	public DatabaseViewTest(Database db) throws Exception {
 		this.db = db;
+		db.open();
 	}
 	
 	@Parameters
@@ -36,7 +38,7 @@ public class DatabaseViewTest {
 				{ new NonPersistedDatabase(CSVConnection.toSystemOut(DELIMITER),
 						new IntUUIDFactory() )  },
 				{ new SingleTableDatabase(JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME),
-						new JavaUtilUUIDFactory() )  },
+						new IntUUIDFactory() )  },
 				{ new MultiTableDatabase(JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME),
 						new IntUUIDFactory() )  }
 		});
@@ -44,8 +46,13 @@ public class DatabaseViewTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		db.open();
+		//db.open();
 		view = db.newView();
+	}
+	
+	@After
+	public void tearDown() throws Exception {
+		//db.close();
 	}
 
 	@Test
@@ -61,10 +68,16 @@ public class DatabaseViewTest {
 	public void testSpawnChildWithNameAndValueStoresOnlyInChild() throws Exception {
 		String name = randomString();
 		String value = randomString();
+		
+		System.out.println("spawn child:");
 		DatabaseView child = view.spawnChild(name, value);
 		
+		System.out.println("get parent should not have value: ");
 		assertNull("Parent should not have value.", view.get(name));
-		assertEquals("Child does not have correct value", value, child.get(name));
+		
+		System.out.println("get child should have value");
+		String childValue = child.get(name);
+		assertEquals("Child does not have correct value", value, childValue);
 	}
 	
 	@Test

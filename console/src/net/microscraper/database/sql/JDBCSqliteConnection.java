@@ -8,6 +8,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -95,7 +96,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 	 * @return
 	 * @throws SQLException
 	 */
-	private ResultSet getPreparedSelect(String sql, String[] parameters) throws SQLException {
+	private ResultSet getResultSet(String sql, String[] parameters) throws SQLException {
 		PreparedStatement stmt;
 		synchronized(prepSelects) {
 			if(prepSelects.containsKey(sql)) {
@@ -106,7 +107,8 @@ public class JDBCSqliteConnection implements SQLConnection {
 			}
 		}
 		setParams(stmt, parameters);
-		
+		//stmt.addBatch();
+		System.out.println("About to retrieve resultSet");
 		return stmt.executeQuery();
 	}
 	
@@ -123,8 +125,10 @@ public class JDBCSqliteConnection implements SQLConnection {
 			}*/
 			synchronized(prepMods) {
 				for(Map.Entry<String, PreparedStatement> entry : prepMods.entrySet()) {
-					System.out.println("Executing " + entry.getKey() + " with various batch values.");
-					entry.getValue().executeBatch();
+					int[] updateCounts = entry.getValue().executeBatch();
+					for(int updateCount : updateCounts) {
+						System.out.println(entry.getKey() + " modified " + updateCount + " rows." );
+					}
 				}
 			}
 			synchronized(connection) {
@@ -229,7 +233,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 			commit();
 			try {
 				boolean result = false;
-				ResultSet rs = getPreparedSelect("SELECT * FROM `" + tableName + "`",
+				ResultSet rs = getResultSet("SELECT * FROM `" + tableName + "`",
 						new String[] { } ); 
 				ResultSetMetaData meta = rs.getMetaData();
 				
@@ -249,20 +253,27 @@ public class JDBCSqliteConnection implements SQLConnection {
 	}
 	
 	@Override
-	public List<Map<String, String>> select(String sql, String[] columns) throws SQLConnectionException {
-		return select(sql, new String[] { }, columns );
+	public List<Map<String, String>> select(String sql, String[] columnNames) throws SQLConnectionException {
+		return select(sql, new String[] { }, columnNames );
 	}
 
 	@Override
-	public List<Map<String, String>> select(String sql, String[] parameters, String[] columnNames)
+	public List<Map<String, String>> select(String sql, String[] columnNames, String[] parameters)
 			throws SQLConnectionException {
 		synchronized(connection) { // hold the connection for the whole process.
+			
+			
+			
+			System.out.println("before select commit");
 			commit(); // commit any lingering changes before selecting
+			System.out.println("after select commit");
 			try {
-				ResultSet rs = getPreparedSelect(sql, parameters);
+				System.out.println("Selecting " + sql + " with params " + Arrays.asList(parameters));
+				ResultSet rs = getResultSet(sql, parameters);
 				List<Map<String, String>> rows = new ArrayList<Map<String, String>>();
 				
 				while(rs.next()) {
+					System.out.println("advanced through resultset.");
 					Map<String, String> row = new HashMap<String, String>();
 					for(String columnName : columnNames) {
 						row.put(columnName, rs.getString(columnName));
@@ -270,6 +281,8 @@ public class JDBCSqliteConnection implements SQLConnection {
 					rows.add(row);
 				}
 				rs.close();
+				
+				System.out.println("row results: " + rows);
 				return rows;
 			} catch(SQLException e) {
 				throw new SQLConnectionException(e);
@@ -285,9 +298,8 @@ public class JDBCSqliteConnection implements SQLConnection {
 				commit();
 				Statement stmt = connection.createStatement();
 				stmt.execute(sql);
-				stmt.close();
-				
 				connection.commit();
+				stmt.close();
 			}
 		} catch(SQLException e) {
 			throw new SQLConnectionException(e);
@@ -323,6 +335,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 	 */
 	private static void setParams(PreparedStatement stmt, String[] params) throws SQLException {
 		for(int i = 0 ; i < params.length ; i ++) {
+			System.out.println("Setting param " + (i+1) + " to " + params[i]);
 			stmt.setString(i + 1, params[i]);
 		}
 	}
