@@ -1,9 +1,7 @@
 package net.microscraper.database;
 
 import static net.microscraper.util.TestUtils.randomString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -199,7 +197,8 @@ public class DatabaseViewTest {
 		assertNull("should not have child name/value in original view", view.get(childName));
 		for(Future<DatabaseView> future : futures) {
 			DatabaseView child = future.get();
-			assertEquals("should be overwritten", overwritingValue, child.get(nameToOverwrite));
+			assertFalse("should have been overwritten", overwrittenValue.equals(child.get(nameToOverwrite)));
+			assertEquals("not overwritten with expected value", overwritingValue, child.get(nameToOverwrite));
 			assertEquals("child should have its name/value", childValue, child.get(childName));
 		}
 	}

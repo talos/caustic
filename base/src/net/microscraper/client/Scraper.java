@@ -26,7 +26,7 @@ public class Scraper {
 	
 	private final Instruction instruction;
 	private final DatabaseView input;
-	private final String source;
+	private String source;
 	private final HttpBrowser browser;
 	
 	private ScraperResult curResult;
@@ -76,6 +76,8 @@ public class Scraper {
 		
 		InstructionResult instructionResult = instruction.execute(source, input, browser);
 		if(instructionResult.isSuccess()) {
+			source = null; // this could be quite a large hunk of String, want to clean it up ASAP.
+			
 			final String name = instructionResult.getName();
 			final String[] results = instructionResult.getResults();
 			final boolean shouldStoreValues = instructionResult.shouldStoreValues();

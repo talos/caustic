@@ -130,6 +130,7 @@ public class AsyncScraper implements Loggable, Runnable {
 		
 		if(prematureTermination != null) {
 			List<Runnable> notYetRun = executor.shutdownNow();
+			
 			logTermination(reinvoke, nowMissingTags, prematureTermination, notYetRun);
 		} else {
 			
@@ -183,10 +184,6 @@ public class AsyncScraper implements Loggable, Runnable {
 		}
 	}
 	
-	public void kill() {
-		executor.shutdownNow();
-	}
-
 	@Override
 	public void register(Logger logger) {
 		log.register(logger);

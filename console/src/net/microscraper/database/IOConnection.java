@@ -9,6 +9,13 @@ package net.microscraper.database;
 public interface IOConnection extends Connection {
 
 	/**
+	 * 
+	 * @return The {@link String} name of the scope column for all tables in 
+	 * {@link SQLConnection}.
+	 */
+	public abstract String getScopeColumnName();
+	
+	/**
 	 * Obtain a new {@link IOTable} using this {@link IOConnection}.  If the table
 	 * may exist already, {@link #getIOTable(String)} should be called to check
 	 * and obtain the {@link IOTable} instead.

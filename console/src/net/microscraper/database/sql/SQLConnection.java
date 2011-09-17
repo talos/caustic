@@ -52,13 +52,6 @@ interface SQLConnection extends IOConnection {
 	public abstract int defaultVarcharLength();
 	
 	/**
-	 * 
-	 * @return The {@link String} name of the scope column for all tables in 
-	 * {@link SQLConnection}.
-	 */
-	public abstract String getScopeColumnName();
-	
-	/**
 	 * Immediately commit all {@link SQLPreparedStatement}s that have not yet been executed in
 	 * {@link SQLConnection}.
 	 * @throws SQLConnectionException If there is a problem executing one of the statements.

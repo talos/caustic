@@ -17,6 +17,7 @@ import net.microscraper.uuid.UUIDFactory;
  *
  */
 public final class MultiTableDatabase implements PersistedDatabase {
+	private static final Map<String, String> emptyMap = Collections.emptyMap();
 	
 	/**
 	 * String to prepend before table names to prevent collision
@@ -31,30 +32,30 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	public static final String DEFAULT_TABLE = "default";
 	
 	/**
-	 * Name of {@link #relationshipTable}.
+	 * Name of {@link #links}.
 	 */
-	public static final String RELATIONSHIP_TABLE = "relationships";
+	public static final String LINK_TABLE = "links";
 
 	/**
-	 * Column name for the result table name of the scope, in relationship tables.
+	 * Column name for the result table name of the scope, in {@link #links}.
 	 * Cannot be null.
 	 */
 	public static final String RESULT_TABLE = "name";
 
 	/**
-	 * Column name for the result table name of the source, in relationship tables.
+	 * Column name for the result table name of the source, in {@link #links}.
 	 * Only null for default scope.
 	 */
 	public static final String SOURCE_RESULT_TABLE = "source_name";
 	
 	/**
-	 * Column name for the scope of the source, in relationship tables.
+	 * Column name for the scope of the source, in {@link #links}.
 	 * Only null for default scope.
 	 */
 	public static final String SOURCE_SCOPE = "source";
 	
 	/**
-	 * Column name for the source join value in a relationship table.  Can be
+	 * Column name for the source join value in a {@link #links}.  Can be
 	 * <code>null</code>.
 	 */
 	public static final String VALUE = "value";
@@ -66,9 +67,9 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	public static final String[] RESULT_TABLE_COLUMNS = new String[] { };
 	
 	/**
-	 * Fixed columns for {@link #relationshipTable} in {@link MultiTableDatabase}.
+	 * Static columns for {@link #links} in {@link MultiTableDatabase}.
 	 */
-	public static final String[] RELATIONSHIP_TABLE_COLUMNS = new String[] {
+	public static final String[] LINK_TABLE_COLUMNS = new String[] {
 		SOURCE_SCOPE,
 		SOURCE_RESULT_TABLE,
 		RESULT_TABLE,
@@ -80,7 +81,7 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	 * this also includes their source scope, scope source name, and (optionally) the
 	 * value that joins them.
 	 */
-	private IOTable relationshipTable;
+	private IOTable links;
 	
 	/**
 	 * A {@link IOConnection} to use when generating tables.
@@ -95,10 +96,18 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	private boolean isOpen = false;
 
 	/**
+	 * Prevent a column name from overlapping with the scope column name.
+	 * @param columnName A {@link String} column name to check.
+	 * @return <code>columnName</code>, unless it overlaps with 
+	 * {@link IOConnection#getScopeColumnName()}, in which case 
+	 * it is prepended with {@link #PREPEND}.
 	 */
 	private String cleanColumnName(String columnName) {
-		// TODO
-		return columnName;
+		if(columnName.equals(connection.getScopeColumnName())) {
+			return PREPEND + columnName;
+		} else {
+			return columnName;
+		}
 	}
 	
 	/**
@@ -108,39 +117,69 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	 */
 	private String cleanTableName(String tableName) {
 		return tableName.equals(DEFAULT_TABLE) ||
-				tableName.equals(RELATIONSHIP_TABLE)
+				tableName.equals(LINK_TABLE)
 				? PREPEND + tableName : tableName;
 	}
-	
-	/**
-	 * Obtain the result table from a {@link UUID} scope.
-	 * @param scope
-	 * @return The {@link IOTable} results table, or <code>null</code>
-	 * if there is none.
-	 */
-	private IOTable getResultTable(UUID scope) throws DatabaseReadException {
-		
-		// select only based off of scope
-		Map<String, String> emptyMap = Collections.emptyMap();
-		List<Map<String, String>> tableNames = relationshipTable.select(scope,
-				emptyMap, new String[] { RESULT_TABLE });
-		
-		// we must have a results table
-		if(tableNames.size() == 1) {
-			try {
-				return connection.getIOTable(tableNames.get(0).get(RESULT_TABLE));
-			} catch(ConnectionException e) {
-				throw new DatabaseReadException("Error reading from connection", e);
-			}
-		} else if(tableNames.size() == 0) {
-			throw new DatabaseReadException("Missing result table for " + scope);
+
+	private Map<String, String> getLink(UUID scope) throws DatabaseReadException {
+		List<Map<String, String>> results = links
+				.select(scope, emptyMap, LINK_TABLE_COLUMNS);
+		if(results.size() == 1) {
+			return results.get(0);
+		} else if(results.size() > 1) {
+			throw new DatabaseReadException("Multiple entries for " + scope +
+							" in links table.");
 		} else {
-			throw new DatabaseReadException("More than one result table for scope " + scope);
+			throw new DatabaseReadException("No entries for " + scope +
+							" in links table.");
 		}
 	}
 	
 	/**
-	 * Insert a row into {@link #relationshipTable}.
+	 * Create the result table for a {@link UUID} scope if it doesn't already
+	 * exist.  Should be called from somewhere already synchronized to
+	 * {@link #connection}.
+	 * @param scope
+	 * @return
+	 * @throws DatabasePersistException
+	 */
+	private IOTable newResultTable(UUID scope) throws DatabasePersistException {
+		
+		// find the name of the scope from links.
+		try {
+			String resultTableName = getLink(scope).get(RESULT_TABLE);
+			try {
+				return connection.newIOTable(resultTableName, RESULT_TABLE_COLUMNS);
+			} catch(ConnectionException e) {
+				throw new DatabasePersistException("Could not create result table " + StringUtils.quote(resultTableName), e);
+			}
+		} catch(DatabaseReadException e) {
+			throw new DatabasePersistException("Could not read links table", e);
+		}
+	}
+	
+	/**
+	 * Obtain the result table for a {@link UUID} scope if it already exists.
+	 * Should be called from somewhere already synchronized to {@link #connection}.
+	 * @param scope
+	 * @return The {@link IOTable} results table, or <code>null</code>
+	 * if there is none.
+	 * @throws DatabaseReadException if there is a problem with {@link #connection},
+	 * or if there are multiple result tables specified for <code>scope</code>.
+	 */
+	private IOTable getResultTable(UUID scope) throws DatabaseReadException {
+		
+		// we must have a results table
+		try {
+			String resultTableName = getLink(scope).get(RESULT_TABLE);
+			return connection.getIOTable(resultTableName);
+		} catch(ConnectionException e) {
+			throw new DatabaseReadException("Error reading from connection", e);
+		}
+	}
+	
+	/**
+	 * Insert a row into {@link #links}.
 	 * @param scope
 	 * @param optSource
 	 * @param name
@@ -159,7 +198,7 @@ public final class MultiTableDatabase implements PersistedDatabase {
 		if(optValue != null) {
 			insertMap.put(VALUE, optValue);
 		}
-		relationshipTable.insert(scope, insertMap);
+		links.insert(scope, insertMap);
 	}
 	
 	/**
@@ -183,7 +222,7 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	 */
 	public void open() throws DatabaseException {
 		connection.open();
-		relationshipTable = connection.newIOTable(RELATIONSHIP_TABLE, RELATIONSHIP_TABLE_COLUMNS);
+		links = connection.newIOTable(LINK_TABLE, LINK_TABLE_COLUMNS);
 		
 		// create default table
 		connection.newIOTable(DEFAULT_TABLE, RESULT_TABLE_COLUMNS);
@@ -229,50 +268,37 @@ public final class MultiTableDatabase implements PersistedDatabase {
 			
 			IOTable resultTable = getResultTable(scope);
 			
-			if(resultTable == null) {
-				throw new DatabaseReadException("No result table created for " + tagName + " at " + scope);
-			}
-			
-			if(resultTable.hasColumn(columnName)) { // has the column
-					
-				// there should be only one row per scope in results tables.
-				Map<String, String> whereMap = Collections.emptyMap();
-				List<Map<String, String>> values =
-						resultTable.select(scope, whereMap, new String[] { columnName });
-				if(values.size() == 1 && values.get(0) != null) {
-					return values.get(0).get(columnName);
-				} else if(values.size() > 1) {
-					throw new DatabaseReadException("Should not have stored multiple values for a scope ID");
-				}
-			}
-			
-			// not there, check source tables
-			Map<String, String> whereMap = Collections.emptyMap();
-			List<Map<String, String>> links = relationshipTable.select(scope,
-					whereMap, new String[] { RESULT_TABLE, SOURCE_SCOPE, VALUE } );
-			if(links.size() == 1) { // should only be one entry in relationships table per scope
-				Map<String, String> link = links.get(0);
-				// check the link itself for the value.
-				if(link.get(RESULT_TABLE).equals(columnName)) {
-					String linkValue = link.get(VALUE);
-					if(linkValue != null) {
-						return link.get(VALUE);
+			// if there is a result table, look through it.
+			if(resultTable != null) {
+				if(resultTable.hasColumn(columnName)) { // must have the column to have the value
+					// there should be only one row per scope in results tables.
+					List<Map<String, String>> rows =
+							resultTable.select(scope, emptyMap, new String[] { columnName });
+					if(rows.size() == 1) {
+						return rows.get(0).get(columnName);
+					} else if(rows.size() > 1) {
+						throw new DatabaseReadException("Should not have stored multiple values for a scope ID");
 					}
 				}
-				
-				// not in the link itself, check the source table.
-				String sourceScope = link.get(SOURCE_SCOPE);
-				if(sourceScope != null) {
-					// loop back using sourceScope
-					return get(new DeserializedUUID(sourceScope), columnName);
-				} else {
-					// we're already at a default scope, this columnName doesn't exist.
-					return null;
+			}
+			
+			// if the result table shares a name with the tag, should check the linking value.
+			Map<String, String> link = getLink(scope);
+			if(link.get(RESULT_TABLE).equals(columnName)) {
+				String linkValue = link.get(VALUE);
+				if(linkValue != null) {
+					return link.get(VALUE);
 				}
-			} else if(links.size() == 0) {
-				throw new DatabaseReadException("Missing source in relationships table for scope " + scope);
+			}
+			
+			// not in the linking value, check the source table.
+			String sourceScope = link.get(SOURCE_SCOPE);
+			if(sourceScope != null) {
+				// loop back using sourceScope
+				return get(new DeserializedUUID(sourceScope), columnName);
 			} else {
-				throw new DatabaseReadException("Multiple sources in relationships table for scope " + scope);
+				// we're already at a default scope, this columnName doesn't exist.
+				return null;
 			}
 		}
 	}
@@ -288,20 +314,26 @@ public final class MultiTableDatabase implements PersistedDatabase {
 			throws DatabasePersistException {
 		synchronized(connection) {
 			try {
-				IOTable table = getResultTable(scope);
+				System.out.println("insert one to one: " + scope);
+				// if the result table for this scope doesn't exist yet, create it.
+				IOTable resultTable = getResultTable(scope);
+				if(resultTable == null) {
+					System.out.println("new result table: " + name);
+					resultTable = newResultTable(scope);
+				}
+				
 				String columnName = cleanColumnName(name);
 				
 				// add column if it doesn't exist in table yet. luxury!
-				if(!table.hasColumn(columnName)) {
-					table.addColumn(columnName);
+				if(!resultTable.hasColumn(columnName)) {
+					resultTable.addColumn(columnName);
 				}
 	
 				Map<String, String> updateMap = new HashMap<String, String>();
 				updateMap.put(columnName, optValue);
 				
 				// only one row in result tables per scope, don't need to filter by where.
-				Map<String, String> whereMap = Collections.emptyMap();
-				table.update(scope, whereMap, updateMap);
+				resultTable.update(scope, emptyMap, updateMap);
 			} catch(TableManipulationException e) {
 				e.printStackTrace();
 				throw new DatabasePersistException("Could not add column for new value name.", e);
@@ -323,47 +355,15 @@ public final class MultiTableDatabase implements PersistedDatabase {
 			UUID scope = idFactory.get();
 			String tableName = cleanTableName(name);
 			
-			// add to relationship table
+			// add to links
 			try {
-				Map<String, String> whereMap = Collections.emptyMap();
-				List<Map<String, String>> results = relationshipTable
-						.select(source, whereMap, new String[] { RESULT_TABLE });
-				if(results.size() == 1) {
-					String sourceName = results.get(0).get(RESULT_TABLE);
-					addLink(scope, source, sourceName, tableName, value);
-				} else if(results.size() > 1) {
-					throw new DatabasePersistException("Multiple entries for " +
-									StringUtils.quote(name) + ": " + source +
-									" in relationships table.");
-				} else {
-					throw new DatabasePersistException("No entries for " +
-									StringUtils.quote(name) + ": " + source +
-									" in relationships table.");				
-				}
+				String sourceName = getLink(source).get(SOURCE_RESULT_TABLE);
+				addLink(scope, source, sourceName, tableName, value);
 			} catch(DatabaseReadException e) {
-				throw new DatabasePersistException("Error reading from relationships table", e);
+				throw new DatabasePersistException("Error reading from links table", e);
 			}
-			
-			// create new result table, insert row
-			try {
-				IOTable table = connection.getIOTable(tableName);
-				if(table == null) {
-					table = connection.newIOTable(tableName, RESULT_TABLE_COLUMNS);
-				}
-				
-				Map<String, String> emptyMap = Collections.emptyMap();
-				table.insert(scope, emptyMap);
-			} catch(ConnectionException e) {
-				e.printStackTrace();
-				throw new DatabasePersistException("Could not create result table " +
-						StringUtils.quote(tableName), e);
-			}
-			
-			// update result table
-			insertOneToOne(scope, name, value);
 			
 			return new PersistedDatabaseView(this, scope);
-	
 		}
 	}
 }
