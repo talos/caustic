@@ -198,6 +198,8 @@ public final class MultiTableDatabase implements PersistedDatabase {
 		if(optValue != null) {
 			insertMap.put(VALUE, optValue);
 		}
+		
+		System.out.println("adding link to " + scope + " : " + insertMap);
 		links.insert(scope, insertMap);
 	}
 	
@@ -320,6 +322,7 @@ public final class MultiTableDatabase implements PersistedDatabase {
 				if(resultTable == null) {
 					System.out.println("new result table: " + name);
 					resultTable = newResultTable(scope);
+					resultTable.insert(scope, emptyMap); // create stub row, updated later
 				}
 				
 				String columnName = cleanColumnName(name);
@@ -331,11 +334,11 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	
 				Map<String, String> updateMap = new HashMap<String, String>();
 				updateMap.put(columnName, optValue);
+				System.out.println("update " + scope + " with " + updateMap);
 				
 				// only one row in result tables per scope, don't need to filter by where.
 				resultTable.update(scope, emptyMap, updateMap);
 			} catch(TableManipulationException e) {
-				e.printStackTrace();
 				throw new DatabasePersistException("Could not add column for new value name.", e);
 			} catch(DatabaseReadException e) {
 				throw new DatabasePersistException("Could not get result table.", e);
@@ -353,12 +356,12 @@ public final class MultiTableDatabase implements PersistedDatabase {
 			throws DatabasePersistException {
 		synchronized(connection) {
 			UUID scope = idFactory.get();
-			String tableName = cleanTableName(name);
+			String childName = cleanTableName(name);
 			
 			// add to links
 			try {
 				String sourceName = getLink(source).get(SOURCE_RESULT_TABLE);
-				addLink(scope, source, sourceName, tableName, value);
+				addLink(scope, source, sourceName, childName, value);
 			} catch(DatabaseReadException e) {
 				throw new DatabasePersistException("Error reading from links table", e);
 			}
