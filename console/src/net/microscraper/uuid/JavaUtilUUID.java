@@ -24,4 +24,16 @@ final class JavaUtilUUID implements UUID {
 	public int hashCode() {
 		return uuid.hashCode();
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj == this) {
+			return true;
+		} else if(obj instanceof JavaUtilUUID) {
+			JavaUtilUUID that = (JavaUtilUUID) obj;
+			return this.uuid.equals(that.uuid);
+		} else {
+			return false;
+		}
+	}
 }

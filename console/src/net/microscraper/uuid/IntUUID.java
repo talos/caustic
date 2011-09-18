@@ -21,4 +21,16 @@ final class IntUUID implements UUID {
 	public String toString() {
 		return asString();
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj == this) {
+			return true;
+		} else if(obj instanceof IntUUID) {
+			IntUUID that = (IntUUID) obj;
+			return this.id == that.id;
+		} else {
+			return false;
+		}
+	}
 }

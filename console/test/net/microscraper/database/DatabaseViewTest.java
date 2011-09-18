@@ -3,6 +3,8 @@ package net.microscraper.database;
 import static net.microscraper.util.TestUtils.randomString;
 import static org.junit.Assert.*;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,10 +14,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import mockit.Mocked;
 import net.microscraper.database.csv.CSVConnection;
+import net.microscraper.database.csv.SystemOutWriter;
 import net.microscraper.database.sql.JDBCSqliteConnection;
+import net.microscraper.log.SystemOutLogger;
 import net.microscraper.uuid.IntUUIDFactory;
 import net.microscraper.uuid.JavaUtilUUIDFactory;
+import net.microscraper.uuid.UUIDFactory;
 
 import org.junit.After;
 import org.junit.Before;
@@ -25,40 +31,40 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 
-//@RunWith(Parameterized.class)
+@RunWith(Parameterized.class)
 public class DatabaseViewTest {
 	
+	@Mocked("out") private System mockOut;
 	private ExecutorService exc;
 	private static final char DELIMITER = ',';
-//	private final Database db;
+	private final Database db;
 	private DatabaseView view;
-	private Database db;
-
-	public DatabaseViewTest() throws Exception {
-		db = new MultiTableDatabase(JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME),
-				new IntUUIDFactory() );
+	
+	public DatabaseViewTest(Constructor<Database> dbConstructor,
+			Method connStaticConstructor, Object connStaticArg,
+			UUIDFactory idFactory) throws Exception {
+		Connection conn = (Connection) connStaticConstructor.invoke(null, connStaticArg);
+		db = dbConstructor.newInstance(conn, idFactory);
 		db.open();
 	}
-	/*
-	public DatabaseViewTest(Database db) throws Exception {
-		this.db = db;
-		db.open();
-	}
-	/*
+	
 	@Parameters
-	public static List<Database[]> implementations() {
-		return Arrays.asList(new Database[][] {
-				{ new NonPersistedDatabase(CSVConnection.toSystemOut(DELIMITER),
-						new IntUUIDFactory() )  },
-				{ new SingleTableDatabase(JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME),
-						new IntUUIDFactory() )  },
-				{ new MultiTableDatabase(JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME),
-						new IntUUIDFactory() )  }
+	public static List<Object[]> implementations() throws Exception {
+		// Reflection, yay! :/
+		// this must be done because @Parameters must be static, and this wrecks with opening connections.
+		return Arrays.asList(new Object[][] {
+				{ NonPersistedDatabase.class.getConstructor(WritableConnection.class, UUIDFactory.class),
+					CSVConnection.class.getMethod("toSystemOut", char.class), DELIMITER, new IntUUIDFactory() },
+				{ SingleTableDatabase.class.getConstructor(IOConnection.class, UUIDFactory.class),
+					JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String")), Database.SCOPE_COLUMN_NAME, new IntUUIDFactory() },
+				{ MultiTableDatabase.class.getConstructor(IOConnection.class, UUIDFactory.class),
+						JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String")), Database.SCOPE_COLUMN_NAME, new IntUUIDFactory() },
 		});
 	}
-	*/
+	
 	@Before
 	public void setUp() throws Exception {
+		//db.open();
 		//db.open();
 		view = db.newView();
 		exc = Executors.newCachedThreadPool();
@@ -66,7 +72,7 @@ public class DatabaseViewTest {
 	
 	@After
 	public void tearDown() throws Exception {
-		db.close();
+		//db.close();
 	}
 
 	@Test
@@ -138,6 +144,35 @@ public class DatabaseViewTest {
 	}
 	
 	@Test
+	public void testChildOverwrites() throws Exception {
+		final String name = "parent name";
+		final String value = "parent value";
+		
+		final String nameToOverwrite = "transport";
+		final String overwrittenValue = "buggy";
+		final String overwritingValue = "shinkanesn";
+		
+		final String childName = "child name";
+		final String childValue = "child value";
+		view.put(name, value);
+		view.put(nameToOverwrite, overwrittenValue);
+		
+		List<DatabaseView> children = new ArrayList<DatabaseView>();
+		for(int i = 0 ; i < 100; i ++) {
+			DatabaseView child = view.spawnChild(childName, childValue);
+			child.put(nameToOverwrite, overwritingValue);
+			children.add(child);
+		}
+		
+		for(DatabaseView child : children) {
+			assertFalse(nameToOverwrite + " should have been overwritten with " + overwritingValue +
+				", but is still " + overwrittenValue, overwrittenValue.equals(child.get(nameToOverwrite)));
+			assertEquals("not overwritten with expected value", overwritingValue, child.get(nameToOverwrite));
+			assertEquals("child should have its name/value", childValue, child.get(childName));
+		}
+	}
+	
+	@Test
 	public void testConcurrentPut() throws Exception {
 
 		final String name = randomString();
@@ -165,23 +200,23 @@ public class DatabaseViewTest {
 	
 
 	@Test
-	public void testConcurrentSpawnChildren() throws Exception {
+	public void testConcurrentChildOverwrites() throws Exception {
 		
-		final String name = randomString();
-		final String value = randomString();
+		final String name = "parent name";
+		final String value = "parent value";
 		
-		final String nameToOverwrite = randomString();
-		final String overwrittenValue = randomString();
-		final String overwritingValue = randomString();
+		final String nameToOverwrite = "transport";
+		final String overwrittenValue = "buggy";
+		final String overwritingValue = "shinkanesn";
 		
-		final String childName = randomString();
-		final String childValue = randomString();
+		final String childName = "child name";
+		final String childValue = "child value";
 		view.put(name, value);
 		view.put(nameToOverwrite, overwrittenValue);
-		final int threads = 150;
+		final int count = 100;
 		
 		List<Callable<DatabaseView>> callables = new ArrayList<Callable<DatabaseView>>();
-		for(int i = 0 ; i < threads ; i ++) {
+		for(int i = 0 ; i < count ; i ++) {
 			callables.add(new Callable<DatabaseView>() {
 				@Override
 				public DatabaseView call() throws DatabasePersistException {
@@ -197,9 +232,53 @@ public class DatabaseViewTest {
 		assertNull("should not have child name/value in original view", view.get(childName));
 		for(Future<DatabaseView> future : futures) {
 			DatabaseView child = future.get();
-			assertFalse("should have been overwritten", overwrittenValue.equals(child.get(nameToOverwrite)));
+			assertFalse(nameToOverwrite + " should have been overwritten with " + overwritingValue +
+					", but is still " + overwrittenValue, overwrittenValue.equals(child.get(nameToOverwrite)));
 			assertEquals("not overwritten with expected value", overwritingValue, child.get(nameToOverwrite));
 			assertEquals("child should have its name/value", childValue, child.get(childName));
 		}
+	}
+
+	@Test
+	public void testConcurrencyMultipleViews() throws Exception {
+		
+		final int count = 100;
+		
+		//List<Callable<DatabaseView>> callables = new ArrayList<Callable<DatabaseView>>();
+		for(int i = 0 ; i < count ; i ++) {
+			exc.submit(new Callable<Void>() {
+				@Override
+				public Void call() throws DatabaseException {
+					final DatabaseView view = db.newView();
+					for(int j = 0 ; j < count ; j ++) {
+						final String knownKey = randomString();
+						view.put(knownKey, randomString());
+						view.get(knownKey);
+						view.get(randomString());
+						exc.submit(new Callable<Void>() {
+							@Override
+							public Void call() throws DatabaseException {
+								view.put(randomString(), randomString());
+								DatabaseView child = view.spawnChild(randomString(), randomString());
+								for(int k = 0 ; k < count ; k ++) {
+									child.get(knownKey);
+									child.put(randomString(), randomString());
+									child.get(randomString());
+									child.get(knownKey);
+									view.get(knownKey);
+									view.put(randomString(), randomString());
+									view.get(randomString());
+								}
+								return null;
+							}
+						});
+					}
+					return null;
+				}
+			});
+		}
+		//futures = exc.invokeAll(callables);
+		exc.shutdown();
+		assertTrue("didn't complete in one minute", exc.awaitTermination(1, TimeUnit.MINUTES));
 	}
 }

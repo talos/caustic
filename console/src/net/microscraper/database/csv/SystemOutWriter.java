@@ -10,7 +10,7 @@ import java.util.Arrays;
  * @author realest
  *
  */
-class SystemOutWriter extends Writer {
+public class SystemOutWriter extends Writer {
 
 	@Override
 	public void close() throws IOException { }
