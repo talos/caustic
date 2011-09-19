@@ -115,6 +115,7 @@ public class Scraper {
 		} else if(instructionResult.isMissingTags()) {
 			curResult = ScraperResult.missingTags(instructionResult.getMissingTags(), this);
 		} else {
+			source = null; // again, clean up asap.
 			curResult = ScraperResult.failed(instructionResult);
 		}
 		
