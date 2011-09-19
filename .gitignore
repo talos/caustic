@@ -5,5 +5,6 @@
 *.sqlite
 *.class
 *.sqlite-journal
+*.tab
 *.log
 *#
