@@ -1,9 +1,15 @@
 package net.microscraper.uuid;
 
+/**
+ * An implementation of {@link UUID} wrapping
+ * around an <code>int</code>.
+ * @author talos
+ *
+ */
 final class IntUUID implements UUID {
 
 	private final int id;
-	public IntUUID(int id) {
+	protected IntUUID(int id) {
 		this.id = id;
 	}
 

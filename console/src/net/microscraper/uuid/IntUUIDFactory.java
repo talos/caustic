@@ -7,7 +7,7 @@ package net.microscraper.uuid;
  *
  */
 public final class IntUUIDFactory implements UUIDFactory {
-	private int curId = -1;
+	private int curId;
 	
 	@Override
 	public UUID get() {
@@ -15,5 +15,22 @@ public final class IntUUIDFactory implements UUIDFactory {
 			curId++;
 			return new IntUUID(curId);
 		}
+	}
+	
+	/**
+	 * Construct {@link IntUUIDFactory} where the first {@link
+	 * IntUUID} is <code>0</code>.
+	 */
+	public IntUUIDFactory() {
+		curId = -1;
+	}
+	
+	/**
+	 * Construct {@link IntUUIDFactory} where the first {@link
+	 * IntUUID} is <code>firstId</code>.
+	 * @param the starting <code>int</code> in {@link IntUUID}.
+	 */
+	public IntUUIDFactory(int firstId) {
+		curId = firstId -1;
 	}
 }

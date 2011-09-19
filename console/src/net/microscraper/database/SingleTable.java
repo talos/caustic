@@ -144,7 +144,8 @@ class SingleTable {
 		if(table != null) {
 			return table;
 		} else {
-			return connection.newIOTable(TABLE_NAME, COLUMN_NAMES);
+			return connection.newIOTable(TABLE_NAME, COLUMN_NAMES,
+					new String[] { Database.SCOPE_COLUMN_NAME, SOURCE_COLUMN_NAME } );
 		}
 	}
 }

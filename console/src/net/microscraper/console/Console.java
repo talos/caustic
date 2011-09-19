@@ -72,6 +72,13 @@ public class Console {
 			executor.submit(scraper);
 		}
 		
+		try {
+			input.close();
+			logger.i("Closed input " + StringUtils.quote(input));
+		} catch(IOException e) {
+			System.out.println("Could not close input " + StringUtils.quote(input) + ": " + e.getMessage());
+		}
+		
 		executor.shutdown();
 		executor.awaitTermination(100, TimeUnit.DAYS);
 	}
@@ -86,7 +93,12 @@ public class Console {
 		return new Thread() {
 			public void run() {
 				executor.shutdownNow();
-				
+				try {
+					executor.awaitTermination(10, TimeUnit.SECONDS);
+				} catch(InterruptedException e) {
+					System.out.println("Could not terminate all scrapers.");
+				}
+					
 				try {
 					logger.close();
 				} catch (IOException e) {
@@ -98,10 +110,13 @@ public class Console {
 				} catch(IOException e) {
 					System.out.println("Could not close input " + StringUtils.quote(input) + ": " + e.getMessage());
 				}
+				
 				try {
 					database.close();
+					System.out.println("Saved to database " + database);
 				} catch(ConnectionException e) {
-					System.out.println("Could not close database " + StringUtils.quote(database) + ": " + e.getMessage());
+					System.out.println("Could not close connection for database "
+							+ StringUtils.quote(database) + ": " + e.getMessage());
 				} catch(DatabaseException e) {
 					System.out.println("Could not close database " + StringUtils.quote(database) + ": " + e.getMessage());					
 				}

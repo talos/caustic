@@ -41,18 +41,26 @@ public class AsyncScraper implements Loggable, Runnable {
 	 */
 	private final List<String> failures = new ArrayList<String>();
 	
+	private void logStart() {
+		log.i("Scraping " + StringUtils.quote(instruction) +
+				" with input " + StringUtils.quote(input.toString()) + ".");
+	}
+	
 	private void logDidntStart(DatabaseException e) {
 		log.i("Couldn't start scraping of "  + StringUtils.quote(instruction) +
 				" with input " + StringUtils.quote(input.toString()) + "." + 
 				" There was a database error: " + e);
 	}
 
-	private void logNominalCompletion() {
-		log.i("Completed scraping of " + StringUtils.quote(instruction) +
+	private void logCompletion() {
+		String completionString = "Completed scraping of " + StringUtils.quote(instruction) +
 				" with input " + StringUtils.quote(input.toString()) + "." + 
-				" There were " + successes.size() + " successful instructions, " + 
-				" and " + failures.size() + " failed instructions.  The failures" +
-				" were as follows: " + failures.toString());
+				" There were " + successes.size() + " successful instructions";
+		
+		completionString += failures.size() > 0 ? " and " + failures.size() + " failed instructions.  The failures" +
+				" were as follows: " + failures.toString() : ".";
+		
+		log.i(completionString);
 	}
 	
 	private void logIncomplete(List<CallableScraper> stuckScrapers, List<String> missingTags) {
@@ -84,7 +92,6 @@ public class AsyncScraper implements Loggable, Runnable {
 	 * Invoke a {@link List} of {@link CallableScraper}s.
 	 * @param toInvoke
 	 * @param lastMissingTags
-	 * @return A {@link String} .
 	 * @throws ExecutionException
 	 * @throws InterruptedException
 	 */
@@ -141,7 +148,7 @@ public class AsyncScraper implements Loggable, Runnable {
 					lastMissingTags.containsAll(nowMissingTags);
 			
 			if(invokeNext.size() == 0) {
-				logNominalCompletion();
+				logCompletion();
 				executor.shutdown();
 			// continue invoking iff there were some non-stuck scrapers, or
 			// the missing tags changed.
@@ -166,7 +173,7 @@ public class AsyncScraper implements Loggable, Runnable {
 
 	@Override
 	public void run() {
-		log.i("Scraping " + StringUtils.quote(instruction));
+		logStart();
 		
 		try {
 			DatabaseView view = database.newView();

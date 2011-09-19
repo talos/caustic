@@ -156,7 +156,7 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	 */
 	public void open() throws DatabaseException {
 		connection.open();
-		links = connection.newIOTable(LINK_TABLE, LINK_TABLE_COLUMNS);
+		links = connection.newIOTable(LINK_TABLE, LINK_TABLE_COLUMNS, new String[] { SCOPE_COLUMN_NAME });
 		
 		// create default table
 		//connection.newIOTable(DEFAULT_TABLE, RESULT_TABLE_COLUMNS);
@@ -254,7 +254,8 @@ public final class MultiTableDatabase implements PersistedDatabase {
 
 				IOTable resultTable = connection.getIOTable(resultTableName);
 				if(resultTable == null) { // have to create the table from scratch, insert new row
-					resultTable = connection.newIOTable(resultTableName, new String[] { columnName });
+					resultTable = connection.newIOTable(resultTableName, new String[] { columnName },
+							new String[] { SCOPE_COLUMN_NAME });
 					resultTable.insert(scope, map);	
 
 				} else { // have to update existing row, perhaps after alteration.
@@ -313,5 +314,14 @@ public final class MultiTableDatabase implements PersistedDatabase {
 			
 			return new PersistedDatabaseView(this, scope);
 		}
+	}
+	
+
+	/**
+	 * The <code>toString</code> method of {@link Connection}.
+	 */
+	@Override
+	public String toString() {
+		return connection.toString();
 	}
 }

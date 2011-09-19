@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
 
+import net.microscraper.util.StringUtils;
+
 import au.com.bytecode.opencsv.CSVReader;
 
 /**
@@ -21,11 +23,13 @@ public class Input {
 	 */
 	private final Map<String, String> shared;
 	
+	private final int skipRows;
 	private final boolean hasCSV;
-	private int rowsRead = 0;
 	
 	private final String pathToCSV;
 	private final char inputColumnDelimiter;
+
+	private int rowsRead = 0;
 	
 	/**
 	 * The file from which {@link #csvRows} reads.
@@ -44,7 +48,7 @@ public class Input {
 	private String[] headers;
 	private boolean isOpen = false;
 	
-	private Input(Map<String,String> shared, String pathToCSV, char inputColumnDelimiter) {
+	private Input(Map<String,String> shared, String pathToCSV, char inputColumnDelimiter, int skipRows) {
 		this.shared = shared;
 		this.pathToCSV = pathToCSV;
 		this.inputColumnDelimiter = inputColumnDelimiter;
@@ -53,14 +57,16 @@ public class Input {
 		} else {
 			this.hasCSV = false;
 		}
+		this.skipRows = skipRows;
 	}
 	
-	public static Input fromSharedAndCSV(Map<String, String> shared, String pathToCSV, char inputColumnDelimiter) {
-		return new Input(shared, pathToCSV, inputColumnDelimiter);
+	public static Input fromSharedAndCSV(Map<String, String> shared, String pathToCSV, char inputColumnDelimiter,
+			int skipRowsInt) {
+		return new Input(shared, pathToCSV, inputColumnDelimiter, skipRowsInt);
 	}
 	
 	public static Input fromShared(Map<String, String> shared) {
-		return new Input(shared, null, '\0');
+		return new Input(shared, null, '\0', 0);
 	}
 	
 	/**
@@ -78,6 +84,13 @@ public class Input {
 				throw new IOException("No lines in input CSV.");
 			}
 			isOpen = true;
+			
+			while(rowsRead < skipRows) {
+				if(next() == null) {
+					throw new IOException("Cannot skip " + skipRows + " rows, " +
+							StringUtils.quote(pathToCSV) + " is not that long.");
+				}
+			}
 		}
 	}
 	
@@ -123,5 +136,10 @@ public class Input {
 		}
 		rowsRead++;
 		return map;
+	}
+	
+	@Override
+	public String toString() {
+		return shared.toString() + pathToCSV == null ? "" : pathToCSV;
 	}
 }

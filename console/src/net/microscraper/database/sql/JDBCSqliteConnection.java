@@ -8,7 +8,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,6 +15,7 @@ import java.util.Map;
 
 import net.microscraper.database.ConnectionException;
 import net.microscraper.database.IOTable;
+import net.microscraper.util.StringUtils;
 
 /**
  * An implementation of {@link SQLConnection} for org.sqlite.JDBC
@@ -26,6 +26,7 @@ import net.microscraper.database.IOTable;
 public class JDBCSqliteConnection implements SQLConnection {
 	public static final int CACHE_SIZE = 100;
 	
+	private final boolean isScopeNumeric;
 	private Connection connection;
 	private final String connectionPath;
 	
@@ -91,9 +92,10 @@ public class JDBCSqliteConnection implements SQLConnection {
 		return stmt.executeQuery();
 	}
 	
-	private JDBCSqliteConnection(String connectionPath, String scopeColumnName) {
+	private JDBCSqliteConnection(String connectionPath, String scopeColumnName, boolean isScopeNumeric) {
 		this.scopeColumnName = scopeColumnName;
 		this.connectionPath = connectionPath;
+		this.isScopeNumeric = isScopeNumeric;
 	}
 
 	@Override
@@ -159,11 +161,20 @@ public class JDBCSqliteConnection implements SQLConnection {
 	}
 	
 	@Override
-	public IOTable newIOTable(String name, String[] columnNames)
+	public IOTable newIOTable(String name, String[] columnNames, String[] primaryKeyColumnNames)
 			throws ConnectionException {
-		String definitionStr = "`" + scopeColumnName + "` " + textColumnType();
+		String scopeColumnType = isScopeNumeric ? intColumnType() : textColumnType();
+		
+		String definitionStr = "`" + scopeColumnName + "` " + scopeColumnType;
 		for(String columnName : columnNames) {
 			definitionStr += ", `" + columnName + "` " + textColumnType();
+		}
+		
+		// add primary keys if specified
+		if(primaryKeyColumnNames.length > 0) {
+			definitionStr += ", PRIMARY KEY (`";
+			definitionStr += StringUtils.join(primaryKeyColumnNames, "`, `");
+			definitionStr += "`)";
 		}
 		
 		executeNow("CREATE TABLE `" + name + "` (" + definitionStr + ")");
@@ -318,15 +329,24 @@ public class JDBCSqliteConnection implements SQLConnection {
 	 * @param pathToDB {@link String} path to database.
 	 * @param scopeColumnName The name of the scope column in tables.
 	 */
-	public static JDBCSqliteConnection toFile(String pathToDB, String scopeColumnName) {
-		return new JDBCSqliteConnection("jdbc:sqlite:" + pathToDB, scopeColumnName);
+	public static JDBCSqliteConnection toFile(String pathToDB, String scopeColumnName,
+			boolean isScopeNumeric) {
+		return new JDBCSqliteConnection("jdbc:sqlite:" + pathToDB, scopeColumnName, isScopeNumeric);
 	}
 
 	/**
 	 * Produce a {@link JDBCSqliteConnection} in-memory.
 	 * @param scopeColumnName The name of the scope column in tables.
 	 */
-	public static JDBCSqliteConnection inMemory(String scopeColumnName) {
-		return new JDBCSqliteConnection("jdbc:sqlite::memory:", scopeColumnName);
+	public static JDBCSqliteConnection inMemory(String scopeColumnName, boolean isScopeNumeric) {
+		return new JDBCSqliteConnection("jdbc:sqlite::memory:", scopeColumnName, isScopeNumeric);
+	}
+	
+	@Override
+	/**
+	 * The path to the SQLite database.
+	 */
+	public String toString() {
+		return connectionPath;
 	}
 }

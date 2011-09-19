@@ -23,7 +23,7 @@ public class SQLConnectionTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		conn = JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME);
+		conn = JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME, false);
 		conn.open();
 	}
 	
@@ -45,7 +45,7 @@ public class SQLConnectionTest {
 			columns[i] = randomString(5);
 			map.put(columns[i], randomString());
 		}
-		IOTable table = conn.newIOTable(name, columns);
+		IOTable table = conn.newIOTable(name, columns, new String[] { });
 		
 		for(String column : columns) {
 			assertTrue(table.hasColumn(column));

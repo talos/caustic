@@ -16,9 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import mockit.Mocked;
 import net.microscraper.database.csv.CSVConnection;
-import net.microscraper.database.csv.SystemOutWriter;
 import net.microscraper.database.sql.JDBCSqliteConnection;
-import net.microscraper.log.SystemOutLogger;
 import net.microscraper.uuid.IntUUIDFactory;
 import net.microscraper.uuid.JavaUtilUUIDFactory;
 import net.microscraper.uuid.UUIDFactory;
@@ -41,9 +39,9 @@ public class DatabaseViewTest {
 	private DatabaseView view;
 	
 	public DatabaseViewTest(Constructor<Database> dbConstructor,
-			Method connStaticConstructor, Object connStaticArg,
+			Method connStaticConstructor, List<Object> connStaticArgs,
 			UUIDFactory idFactory) throws Exception {
-		Connection conn = (Connection) connStaticConstructor.invoke(null, connStaticArg);
+		Connection conn = (Connection) connStaticConstructor.invoke(null, connStaticArgs.toArray());
 		db = dbConstructor.newInstance(conn, idFactory);
 		db.open();
 	}
@@ -54,11 +52,17 @@ public class DatabaseViewTest {
 		// this must be done because @Parameters must be static, and this wrecks with opening connections.
 		return Arrays.asList(new Object[][] {
 				{ NonPersistedDatabase.class.getConstructor(WritableConnection.class, UUIDFactory.class),
-					CSVConnection.class.getMethod("toSystemOut", char.class), DELIMITER, new IntUUIDFactory() },
+					CSVConnection.class.getMethod("toSystemOut", char.class), Arrays.asList(DELIMITER),
+					new IntUUIDFactory() },
 				{ SingleTableDatabase.class.getConstructor(IOConnection.class, UUIDFactory.class),
-					JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String")), Database.SCOPE_COLUMN_NAME, new IntUUIDFactory() },
+					JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String"), boolean.class),
+					Arrays.asList(Database.SCOPE_COLUMN_NAME, true), new IntUUIDFactory() },
 				{ MultiTableDatabase.class.getConstructor(IOConnection.class, UUIDFactory.class),
-						JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String")), Database.SCOPE_COLUMN_NAME, new IntUUIDFactory() },
+						JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String"), boolean.class),
+						Arrays.asList(Database.SCOPE_COLUMN_NAME, true), new IntUUIDFactory() },
+				{ MultiTableDatabase.class.getConstructor(IOConnection.class, UUIDFactory.class),
+					JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String"), boolean.class),
+					Arrays.asList(Database.SCOPE_COLUMN_NAME, false), new JavaUtilUUIDFactory() },
 		});
 	}
 	

@@ -22,10 +22,14 @@ public interface IOConnection extends Connection {
 	 * @param name The {@link String} name of the new {@link IOTable}.
 	 * @param columnNames An array of {@link String} columns to include in this 
 	 * {@link IOTable}.
+	 * @param keyColumnNames An array of {@link String} columns to use as the primary
+	 * key of this {@link IOTable}.  Provide an empty array for no primary key, a single
+	 * column for a regular primary key, and multiple columns for a composite primary key.
 	 * @return A {@link IOTable}.
 	 * @throws ConnectionException if the {@link IOTable} cannot be created.
 	 */
-	public abstract IOTable newIOTable(String name, String[] columnNames)
+	public abstract IOTable newIOTable(String name, String[] columnNames,
+				String[] keyColumnNames)
 			throws ConnectionException;
 
 	/**

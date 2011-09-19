@@ -10,6 +10,8 @@ package net.microscraper.uuid;
 final class JavaUtilUUID implements UUID {
 	private final java.util.UUID uuid = java.util.UUID.randomUUID();
 	
+	protected JavaUtilUUID() { };
+	
 	@Override
 	public String asString() {
 		return uuid.toString();

@@ -106,6 +106,10 @@ public final class ConsoleOptions {
 	public static final String SAVE_TO_FILE_DEFAULT = TIMESTAMP;
 	private final Option saveToFile = Option.withDefault(SAVE_TO_FILE, TIMESTAMP);
 	
+	public static final String SKIP_ROWS = "--skip-rows";
+	public static final String SKIP_ROWS_DEFAULT = "0";
+	private final Option skipRows = Option.withDefault(SKIP_ROWS, SKIP_ROWS_DEFAULT);
+	
 	public static final String RATE_LIMIT = "--rate-limit";
 	public static final String RATE_LIMIT_DEFAULT = Integer.toString(RateLimitManager.DEFAULT_RATE_LIMIT);
 	private final Option rateLimit = Option.withDefault(RATE_LIMIT, RATE_LIMIT_DEFAULT);
@@ -178,6 +182,8 @@ public final class ConsoleOptions {
 "    " + SOURCE + "=<source>" + NEWLINE +
 "        A string to use as source for the instruction." + NEWLINE +
 "        Only Finds use sources." + NEWLINE +
+"    " + SKIP_ROWS + "=<num-skip-rows>" + NEWLINE + 
+"        How many rows of input to skip.  Defaults to " + SKIP_ROWS_DEFAULT + "." + NEWLINE +
 "    " + THREADS + "=<num-threads>" + NEWLINE +
 "        How many threads to use per row of input.  Defaults to " + NEWLINE +
 "        " + THREADS_DEFAULT + " threads." + NEWLINE +
@@ -278,8 +284,8 @@ public final class ConsoleOptions {
 			}
 			if(format.equals(SQLITE_FORMAT)) {				
 				IOConnection connection = JDBCSqliteConnection.toFile(outputLocation,
-						Database.SCOPE_COLUMN_NAME);
-				UUIDFactory idFactory = new JavaUtilUUIDFactory();
+						Database.SCOPE_COLUMN_NAME, true);
+				UUIDFactory idFactory = new IntUUIDFactory();
 				if(isSpecified(singleTable)) {
 					result = new SingleTableDatabase(connection, idFactory);
 				} else {
@@ -406,7 +412,15 @@ public final class ConsoleOptions {
 				if(getValue(inputDelimiter).length() > 1) {
 					throw new InvalidOptionException(INPUT_DELIMITER + " must be a single character.");
 				}
-				return Input.fromSharedAndCSV(shared, getValue(inputFile), inputColumnDelimiter);
+				try {
+					int skipRowsInt = Integer.valueOf(getValue(skipRows));
+					if(skipRowsInt < 0) {
+						throw new InvalidOptionException(SKIP_ROWS + " must be greater than 0.");
+					}
+					return Input.fromSharedAndCSV(shared, getValue(inputFile), inputColumnDelimiter, skipRowsInt);
+				} catch(NumberFormatException e) {
+					throw new InvalidOptionException(SKIP_ROWS + " must be an integer.");
+				}
 			} else {
 				if(isSpecified(inputDelimiter)) {
 					throw new InvalidOptionException("Cannot define " + INPUT_DELIMITER + " without an input file.");

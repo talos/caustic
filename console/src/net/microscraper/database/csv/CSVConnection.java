@@ -78,4 +78,13 @@ public class CSVConnection implements WritableConnection {
 			throw new ConnectionException(e);
 		}
 	}
+	
+	/**
+	 * The path to the CSV, or <code>stdout</code> if there is
+	 * no saved-to-file.
+	 */
+	@Override
+	public String toString() {
+		return pathToFile == null ? "stdout" : pathToFile;
+	}
 }

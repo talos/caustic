@@ -28,4 +28,11 @@ public class NonPersistedDatabase implements Database {
 		connection.close();
 	}
 
+	/**
+	 * The <code>toString</code> method of {@link Connection}.
+	 */
+	@Override
+	public String toString() {
+		return connection.toString();
+	}
 }

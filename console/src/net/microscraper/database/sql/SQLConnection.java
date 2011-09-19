@@ -6,7 +6,7 @@ import java.util.Map;
 import net.microscraper.database.IOConnection;
 
 /**
- * An interface to a SQL connection.  Methods similar to {@link java.sql}.
+ * An interface to a SQL connection.
  * @author talos
  *
  */

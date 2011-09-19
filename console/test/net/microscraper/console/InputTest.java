@@ -3,6 +3,7 @@ package net.microscraper.console;
 import static net.microscraper.util.TestUtils.randomString;
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -34,7 +35,7 @@ public class InputTest {
 	
 	@Test
 	public void testFromSharedAndCSVCombinesMaps() throws Exception {
-		Input input = Input.fromSharedAndCSV(shared, PATH_TO_QUERIES, ',');
+		Input input = Input.fromSharedAndCSV(shared, PATH_TO_QUERIES, ',', 0);
 		input.open();
 		Map<String, String> map;
 		while((map = input.next()) != null) {
@@ -57,7 +58,7 @@ public class InputTest {
 	
 	@Test
 	public void testHeadersAssignedCorrectly() throws Exception {
-		Input input = Input.fromSharedAndCSV(shared, PATH_TO_BBLS, ',');
+		Input input = Input.fromSharedAndCSV(shared, PATH_TO_BBLS, ',', 0);
 		input.open();
 		Map<String, String> map;
 		
@@ -74,7 +75,7 @@ public class InputTest {
 
 	@Test
 	public void testRowsHaveCorrectValues() throws Exception {
-		Input input = Input.fromSharedAndCSV(new Hashtable<String, String>(), PATH_TO_QUERIES, ',');
+		Input input = Input.fromSharedAndCSV(new Hashtable<String, String>(), PATH_TO_QUERIES, ',', 0);
 		input.open();
 		Map<String, String> map;
 				
@@ -93,8 +94,27 @@ public class InputTest {
 	public void testOpenRequired() throws Exception {
 		Input input = Input.fromSharedAndCSV(
 				new Hashtable<String, String>(),
-				PATH_TO_QUERIES, ',');
+				PATH_TO_QUERIES, ',', 0);
 		input.next();
 	}
 
+	@Test
+	public void testSkipRows() throws Exception {
+		final int rowsToSkip = 2;
+		Input input = Input.fromSharedAndCSV(new Hashtable<String, String>(), PATH_TO_QUERIES, ',', rowsToSkip);
+		input.open();
+		Map<String, String> map;
+		
+		map = input.next();
+		assertEquals("bleh", map.get("query"));
+	}
+	
+
+	@Test(expected = IOException.class)
+	public void testSkipTooManyRows() throws Exception {
+		final int rowsToSkip = 4;
+		Input input = Input.fromSharedAndCSV(new Hashtable<String, String>(), PATH_TO_QUERIES, ',', rowsToSkip);
+		input.open(); // should throw IOException when tries to skip rows.
+		
+	}
 }

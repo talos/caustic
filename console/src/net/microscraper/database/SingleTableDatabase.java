@@ -65,4 +65,12 @@ public class SingleTableDatabase implements PersistedDatabase {
 	public void close() throws DatabaseException {
 		connection.close();
 	}
+	
+	/**
+	 * The <code>toString</code> method of {@link Connection}.
+	 */
+	@Override
+	public String toString() {
+		return connection.toString();
+	}
 }
