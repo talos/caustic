@@ -60,15 +60,15 @@ to replace *{{query}}* with *hello*.  We get the following
 
 <table>
   <tr><th>scope<th>source<th>name<th>value</tr>
-  <tr><td>1 <td>0        <td>query                                   <td>hello
-  <tr><td>2 <td>0        <td>what do you say after 'hello'?          <td>I say 'kitty'!
-  <tr><td>3 <td>0        <td>what do you say after 'hello'?          <td>I say 'lyrics'!
-  <tr><td>4 <td>0        <td>what do you say after 'hello'?          <td>I say 'lionel'!
-  <tr><td>5 <td>0        <td>what do you say after 'hello'?          <td>I say 'kitty'!
+  <tr><td>0 <td>         <td>query                                   <td>hello
+  <tr><td>1 <td>0        <td>what do you say after 'hello'?          <td>I say 'kitty'!
+  <tr><td>2 <td>0        <td>what do you say after 'hello'?          <td>I say 'lyrics'!
+  <tr><td>3 <td>0        <td>what do you say after 'hello'?          <td>I say 'lionel'!
+  <tr><td>4 <td>0        <td>what do you say after 'hello'?          <td>I say 'kitty'!
+  <tr><td>5 <td>0        <td>what do you say after 'hello'?          <td>I say 'beyonce'!
   <tr><td>6 <td>0        <td>what do you say after 'hello'?          <td>I say 'beyonce'!
-  <tr><td>7 <td>0        <td>what do you say after 'hello'?          <td>I say 'beyonce'!
-  <tr><td>8 <td>0        <td>what do you say after 'hello'?          <td>I say 'glee'!   
-  <tr><td>9 <td>0        <td>what do you say after 'hello'?          <td>I say 'movie'!  
+  <tr><td>7 <td>0        <td>what do you say after 'hello'?          <td>I say 'glee'!   
+  <tr><td>8 <td>0        <td>what do you say after 'hello'?          <td>I say 'movie'!  
 </table>
 
 Not only is google queried for *hello*, but the substitution affects the *name* and *replace* of *find*.
@@ -154,7 +154,7 @@ This [fixture](microscraper-client/blob/master/fixtures/json/reference-google.js
 
 Running
 
-    $ console/microscraper fixtures/json/complex-google.json --defaults="query=hello"
+    $ console/microscraper fixtures/json/complex-google.json --input="query=hello"
 
 should give you the same results as before.  Any string appearing inside *then* will be evaulated as a reference.
 
@@ -179,7 +179,7 @@ operates.
 
 Remember that
 
-    $ console/microscraper fixtures/json/recursive-google.json --defaults="query=hello"
+    $ console/microscraper fixtures/json/recursive-google.json --input="query=hello"
 
 will not stop on its own!
 
