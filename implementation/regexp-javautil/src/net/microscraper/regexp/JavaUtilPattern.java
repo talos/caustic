@@ -64,34 +64,6 @@ final class JavaUtilPattern implements Pattern {
 		
 		return matchesList.subList(firstIndex, lastIndex + 1).toArray(new String[1 + lastIndex - firstIndex]);
 	}
-	
-	@Override
-	public StringSubstitution substitute(String input, DatabaseView view) throws DatabaseReadException {
-		StringBuffer subbed = new StringBuffer();
-		Matcher matcher = pattern.matcher(input);
-		List<String> missingTags = new ArrayList<String>();
-		
-		// build the substituted string
-		while(matcher.find()) {
-			String tagName = matcher.group();
-			String rawTagValue = view.get(tagName);
-			
-			// only add substituted value if we have it.
-			if(rawTagValue == null) {
-				missingTags.add(tagName);
-			} else {
-				matcher.appendReplacement(subbed, rawTagValue.replace("\\", "\\\\")
-						.replace("$0", "\\$0")); // these could cause problems in the replacement
-			}
-		}
-		matcher.appendTail(subbed);
-		
-		if(missingTags.size() > 0) {
-			return StringSubstitution.missingTags(missingTags.toArray(new String[missingTags.size()]));
-		} else {
-			return StringSubstitution.success(subbed.toString());
-		}
-	}
 
 	@Override
 	public String toString() {
