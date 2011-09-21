@@ -4,11 +4,12 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.microscraper.util.Encoder;
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.VectorUtils;
 import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
-import net.microscraper.template.StringTemplate;
+import net.microscraper.regexp.StringTemplate;
 
 public class HashtableTemplate {
 	private Hashtable table;
@@ -56,7 +57,7 @@ public class HashtableTemplate {
 					subbedTable.put( subbedKeyStr, (String) subbedValue.getSubstituted());
 				}
 			} else {
-				VectorUtils.arrayIntoVector( StringTemplate.combine(
+				VectorUtils.arrayIntoVector( StringSubstitution.combine(
 						new DependsOnTemplate[] {subbedKey, subbedValue } ), missingTags);
 			}
 		}

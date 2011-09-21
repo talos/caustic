@@ -4,9 +4,12 @@ import java.util.Vector;
 
 import org.apache.regexp.RE;
 
+import net.microscraper.database.DatabaseReadException;
+import net.microscraper.database.DatabaseView;
 import net.microscraper.regexp.InvalidRangeException;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.template.StringSubstitution;
 
 public class JakartaRegexpCompiler implements RegexpCompiler {
 
@@ -86,6 +89,38 @@ public class JakartaRegexpCompiler implements RegexpCompiler {
 			}
 			
 			return matches;
+		}
+		
+		public StringSubstitution substitute(String input, DatabaseView view) throws DatabaseReadException {
+			StringBuffer subbed = new StringBuffer();
+			Vector missingTags = new Vector();
+			
+			int pos = 0;
+			// loop over all our matches
+			while(re.match(input, pos)) {
+				// append substring between end of last match and start of current match
+				subbed.append(input.substring(pos, re.getParenStart(0)));
+				
+				String tagName = re.getParen(0);
+				String tagValue = view.get(tagName);
+				if(tagValue == null) {
+					missingTags.add(tagName);
+				} else {
+					subbed.append(tagValue);
+				}
+				
+				pos = re.getParenEnd(0);
+			}
+			// append remaining substring
+			subbed.append(input.substring(pos));
+			
+			if(missingTags.size() > 0) {
+				String[] missingTagsAry = new String[missingTags.size()];
+				missingTags.copyInto(missingTagsAry);
+				return StringSubstitution.missingTags(missingTagsAry);
+			} else {
+				return StringSubstitution.success(subbed.toString());
+			}
 		}
 
 		public String toString() {

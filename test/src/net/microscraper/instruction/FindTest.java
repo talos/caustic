@@ -12,8 +12,8 @@ import mockit.NonStrictExpectations;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.regexp.StringTemplate;
 import net.microscraper.template.StringSubstitution;
-import net.microscraper.template.StringTemplate;
 
 import org.junit.Before;
 import org.junit.Test;

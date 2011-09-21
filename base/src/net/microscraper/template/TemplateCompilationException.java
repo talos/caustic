@@ -1,5 +1,7 @@
 package net.microscraper.template;
 
+import net.microscraper.regexp.StringTemplate;
+
 /**
  * This is thrown when a {@link String} cannot be turned into a {@link StringTemplate}.
  * @author john

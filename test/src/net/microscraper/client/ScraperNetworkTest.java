@@ -18,7 +18,7 @@ import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Load;
 import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.template.StringTemplate;
+import net.microscraper.regexp.StringTemplate;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.HttpUtils;
 import net.microscraper.util.JavaNetEncoder;

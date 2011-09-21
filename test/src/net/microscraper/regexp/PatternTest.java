@@ -1,6 +1,7 @@
 package net.microscraper.regexp;
 
 import static org.junit.Assert.*;
+import static net.microscraper.util.TestUtils.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -177,5 +178,39 @@ public class PatternTest {
 		String match = pat.match(input, sub, 0, 0)[0];
 		
 		assertEquals("cell", match);
+	}
+	
+
+	@Test()
+	public void testMatchCompilingPatternsSpeed() throws Exception {
+		// test 500KB input 100 times
+		// 2.905 / 2.083 w/ string
+		int numTests = 100;
+		int inputSize = 500000;
+		String testPattern = "[a-c]{3}(\\d+)";
+		
+		for(int i = 0 ; i < numTests ; i ++) {
+			String input = randomString(inputSize);
+			pat = re.compile(testPattern, false, false, false);
+			String sub = "$1";
+			pat.match(input, sub, 0, 0);
+		}
+	}
+	
+
+	@Test()
+	public void testMatchPrecompiledPatternsSpeed() throws Exception {
+		// test 500KB input 100 times
+		// 2.613 / 1.748 w/ string
+		int numTests = 100;
+		int inputSize = 500000;
+		String testPattern = "[a-c]{3}(\\d+)";
+		pat = re.compile(testPattern, false, false, false);
+		
+		for(int i = 0 ; i < numTests ; i ++) {
+			String input = randomString(inputSize);
+			String sub = "$1";
+			pat.match(input, sub, 0, 0);
+		}
 	}
 }

@@ -17,7 +17,7 @@ import net.microscraper.http.JavaNetCookieManager;
 import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
 import net.microscraper.regexp.Pattern;
-import net.microscraper.template.StringTemplate;
+import net.microscraper.regexp.StringTemplate;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.util.JavaNetHttpUtils;
@@ -95,7 +95,7 @@ public class LoadLocalTest {
 	
 	@Test
 	public void testPostDataSetsPostMethod() throws Exception {
-		final StringTemplate postData = new StringTemplate(randomString(), StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG);
+		final StringTemplate postData = new StringTemplate(randomString(), StringTemplate.DEFAULT_ENCODED_OPEN_TAG, StringTemplate.DEFAULT_ENCODED_CLOSE_TAG);
 		new Expectations() {{
 			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, postData.toString());
 				$ = "Post data should be set by setting post data.";
@@ -108,8 +108,8 @@ public class LoadLocalTest {
 	public void testPostDataIsSubbed() throws Exception {
 		final String key = randomString();
 		final String value = randomString();
-		final StringTemplate postData = new StringTemplate(StringTemplate.DEFAULT_OPEN_TAG + key + StringTemplate.DEFAULT_CLOSE_TAG,
-				StringTemplate.DEFAULT_OPEN_TAG, StringTemplate.DEFAULT_CLOSE_TAG);
+		final StringTemplate postData = new StringTemplate(StringTemplate.DEFAULT_ENCODED_OPEN_TAG + key + StringTemplate.DEFAULT_ENCODED_CLOSE_TAG,
+				StringTemplate.DEFAULT_ENCODED_OPEN_TAG, StringTemplate.DEFAULT_ENCODED_CLOSE_TAG);
 		new Expectations() {{
 			input.get(key); result = value;
 			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, value);

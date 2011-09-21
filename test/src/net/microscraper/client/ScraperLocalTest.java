@@ -13,7 +13,7 @@ import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.InstructionResult;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
-import net.microscraper.template.StringTemplate;
+import net.microscraper.regexp.StringTemplate;
 import net.microscraper.util.HashtableUtils;
 
 import org.junit.Test;

@@ -1,7 +1,7 @@
 package net.microscraper.database;
 
 
-import net.microscraper.template.StringTemplate;
+import net.microscraper.regexp.StringTemplate;
 
 /**
  * Microscraper uses {@link DatabaseView} to store data from {@link Scraper}s

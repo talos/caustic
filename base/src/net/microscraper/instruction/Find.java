@@ -5,9 +5,10 @@ import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.regexp.StringTemplate;
 import net.microscraper.template.DependsOnTemplate;
 import net.microscraper.template.StringSubstitution;
-import net.microscraper.template.StringTemplate;
+import net.microscraper.util.StaticStringTemplate;
 
 public class Find {
 	
@@ -51,7 +52,7 @@ public class Find {
 	 * The {@link StringTemplate} that should be substituted evaluated for backreferences,
 	 * then returned once for each match, if it is assigned by {@link #setReplacement(StringTemplate)}.
 	 */
-	private StringTemplate replacement = StringTemplate.staticTemplate(ENTIRE_MATCH);
+	private StringTemplate replacement = new StaticStringTemplate(ENTIRE_MATCH);
 	
 	/**
 	 * The first of the parser's matches to export.
@@ -132,7 +133,7 @@ public class Find {
 		if(subName.isMissingTags() ||
 				subPattern.isMissingTags() ||
 				subReplacement.isMissingTags()) { // One of the substitutions was not OK.
-			result = FindResult.missingTags(StringTemplate.combine(
+			result = FindResult.missingTags(StringSubstitution.combine(
 					new DependsOnTemplate[] { subName, subPattern, subReplacement } ) );
 			
 		} else { // All the substitutions were OK.

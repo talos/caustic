@@ -1,5 +1,9 @@
 package net.microscraper.regexp;
 
+import net.microscraper.database.DatabaseReadException;
+import net.microscraper.database.DatabaseView;
+import net.microscraper.template.StringSubstitution;
+
 /**
  * An implementation of {@link Pattern} is required for {@link RegexpCompiler}.
  * @see RegexpCompiler
@@ -47,4 +51,5 @@ public interface Pattern {
 	 * @see #FIRST_MATCH
 	 */
 	public abstract String[] match(String input, String replacement, int minMatch, int maxMatch);
+
 }

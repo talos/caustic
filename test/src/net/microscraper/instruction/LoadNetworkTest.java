@@ -11,7 +11,7 @@ import net.microscraper.http.HttpBrowser;
 import net.microscraper.http.JavaNetCookieManager;
 import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
-import net.microscraper.template.StringTemplate;
+import net.microscraper.regexp.StringTemplate;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.util.JavaNetHttpUtils;

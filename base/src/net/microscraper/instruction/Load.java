@@ -8,14 +8,15 @@ import net.microscraper.database.DatabaseView;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.http.HttpException;
 import net.microscraper.regexp.Pattern;
+import net.microscraper.regexp.StringTemplate;
 import net.microscraper.template.DependsOnTemplate;
 import net.microscraper.template.HashtableSubstitution;
 import net.microscraper.template.HashtableSubstitutionOverwriteException;
 import net.microscraper.template.HashtableTemplate;
 import net.microscraper.template.StringSubstitution;
-import net.microscraper.template.StringTemplate;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.HashtableUtils;
+import net.microscraper.util.StaticStringTemplate;
 import net.microscraper.util.StringUtils;
 
 /**
@@ -45,7 +46,7 @@ public final class Load {
 	/**
 	 * A {@link StringTemplate} of post data.  Exclusive of {@link #postTable}.
 	 */
-	private StringTemplate postString = StringTemplate.staticTemplate("");
+	private StringTemplate postString = new StaticStringTemplate("");
 	
 	/**
 	 * {@link HashtableTemplate}s of post data.  Exclusive of {@link #postString}.
@@ -149,7 +150,7 @@ public final class Load {
 			final LoadResult result;
 			
 			final Pattern[] stops = new Pattern[] { };
-			final StringSubstitution urlSub = url.subEncoded(input, encoder);
+			final StringSubstitution urlSub = url.sub(input);
 			final HashtableSubstitution headersSub = headers.sub(input);
 			final HashtableSubstitution cookiesSub = cookies.sub(input);
 			final StringSubstitution postData = getPosts(input);
@@ -160,7 +161,7 @@ public final class Load {
 					|| cookiesSub.isMissingTags()
 					|| postData.isMissingTags()) {
 				result = LoadResult.missingTags(
-					StringTemplate.combine(new DependsOnTemplate[] {
+					StringSubstitution.combine(new DependsOnTemplate[] {
 						urlSub, headersSub, cookiesSub, postData}));
 			} else {
 				final String url = (String) urlSub.getSubstituted();

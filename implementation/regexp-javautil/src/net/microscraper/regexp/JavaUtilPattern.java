@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import net.microscraper.database.DatabaseReadException;
+import net.microscraper.database.DatabaseView;
+import net.microscraper.template.StringSubstitution;
+
 final class JavaUtilPattern implements Pattern {
 	private final java.util.regex.Pattern pattern;
 	
@@ -26,10 +30,6 @@ final class JavaUtilPattern implements Pattern {
 	
 	@Override
 	public String[] match(String input, String substitution, int minMatch, int maxMatch) {
-		/*if(!RegexpUtils.isValidRange(minMatch, maxMatch)) {
-			throw new IllegalArgumentException(new InvalidRangeException(this, minMatch, maxMatch));
-		}*/
-		
 		Matcher matcher = pattern.matcher(input);
 		
 		// Find the complete matchesList.
@@ -39,8 +39,9 @@ final class JavaUtilPattern implements Pattern {
 		}
 		
 		// No matches at all.
-		if(matchesList.size() == 0)
+		if(matchesList.size() == 0) {
 			return new String[] {};
+		}
 		
 		// Determine the first and last indices relative to our list.
 		// Adding a negative match to the total size counts backwards.
@@ -62,12 +63,34 @@ final class JavaUtilPattern implements Pattern {
 		}
 		
 		return matchesList.subList(firstIndex, lastIndex + 1).toArray(new String[1 + lastIndex - firstIndex]);
-		/*String[] matches = new String[1 + lastIndex - firstIndex];
-		for(int i = 0 ; i < matches.length ; i ++) {
-			matches[i] = matchesList.get(i + firstIndex);
-		}
+	}
+	
+	@Override
+	public StringSubstitution substitute(String input, DatabaseView view) throws DatabaseReadException {
+		StringBuffer subbed = new StringBuffer();
+		Matcher matcher = pattern.matcher(input);
+		List<String> missingTags = new ArrayList<String>();
 		
-		return matches;*/
+		// build the substituted string
+		while(matcher.find()) {
+			String tagName = matcher.group();
+			String rawTagValue = view.get(tagName);
+			
+			// only add substituted value if we have it.
+			if(rawTagValue == null) {
+				missingTags.add(tagName);
+			} else {
+				matcher.appendReplacement(subbed, rawTagValue.replace("\\", "\\\\")
+						.replace("$0", "\\$0")); // these could cause problems in the replacement
+			}
+		}
+		matcher.appendTail(subbed);
+		
+		if(missingTags.size() > 0) {
+			return StringSubstitution.missingTags(missingTags.toArray(new String[missingTags.size()]));
+		} else {
+			return StringSubstitution.success(subbed.toString());
+		}
 	}
 
 	@Override

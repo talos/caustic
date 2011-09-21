@@ -7,6 +7,7 @@ import java.util.Hashtable;
 
 import net.microscraper.database.DatabaseView;
 import net.microscraper.database.InMemoryDatabaseView;
+import net.microscraper.regexp.StringTemplate;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.JavaNetEncoder;
 

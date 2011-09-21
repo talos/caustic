@@ -1,5 +1,7 @@
 package net.microscraper.template;
 
+import net.microscraper.regexp.StringTemplate;
+
 /**
  * This {@link Exception} is thrown when the successful substitution of a tag in a {@link HashtableTemplate}
  * would cause the overwriting of a preexisting key.<p>

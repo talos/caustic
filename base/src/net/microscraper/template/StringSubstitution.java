@@ -1,5 +1,9 @@
 package net.microscraper.template;
 
+import java.util.Vector;
+
+import net.microscraper.util.VectorUtils;
+
 /**
  * Implementation of {@link DependsOnTemplate} where a successful substitution
  * is a {@link String}.
@@ -55,5 +59,23 @@ public class StringSubstitution implements DependsOnTemplate {
 
 	public String[] getMissingTags() {
 		return missingTags;
+	}
+
+	/**
+	 * 
+	 * @param couldBeMissingTags An array of {@link DependsOnTemplate} whose {@link #missingTags}
+	 * should be combined.
+	 * @return A {@link String} array of all the missing tags.  Zero-length if there are none.
+	 */
+	public static String[] combine(DependsOnTemplate[] couldBeMissingTags) {
+		Vector missingTags = new Vector();
+		for(int i = 0 ; i < couldBeMissingTags.length ; i ++) {
+			if(couldBeMissingTags[i].isMissingTags()) {
+				VectorUtils.arrayIntoVector(couldBeMissingTags[i].getMissingTags(), missingTags);
+			}
+		}
+		String[] missingTagsAry = new String[missingTags.size()];
+		missingTags.copyInto(missingTagsAry);
+		return missingTagsAry;
 	}
 }
