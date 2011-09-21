@@ -1,6 +1,5 @@
 package net.microscraper.instruction;
 
-import net.microscraper.client.ScraperResult;
 import net.microscraper.http.HttpException;
 import net.microscraper.template.HashtableSubstitutionOverwriteException;
 import net.microscraper.util.Result;
@@ -61,7 +60,7 @@ public class LoadResult implements Result {
 	 * Failed because of an HTTP exception.
 	 * @param e A {@link HttpException} that caused this scrape to
 	 * fail.
-	 * @return A {@link ScraperResult} with failure information.
+	 * @return A {@link LoadResult} with failure information.
 	 */
 	public static LoadResult fromHttpException(HttpException e) {
 		return new LoadResult("Failure during HTTP request or response: " + e.getMessage());
@@ -70,7 +69,7 @@ public class LoadResult implements Result {
 	/**
 	 * Failed because of substitution causing an ambiguous mapping.
 	 * @param e A {@link HashtableSubstitutionOverwriteException} of the overwrite.
-	 * @return A {@link ScraperResult} with failure information.
+	 * @return A {@link LoadResult} with failure information.
 	 */
 	public static LoadResult fromSubstitutionOverwrite(
 			HashtableSubstitutionOverwriteException e) {
