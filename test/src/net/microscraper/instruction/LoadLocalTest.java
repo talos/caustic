@@ -16,11 +16,14 @@ import net.microscraper.http.HttpBrowser;
 import net.microscraper.http.JavaNetCookieManager;
 import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
+import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.regexp.Pattern;
+import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.StringTemplate;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.util.JavaNetHttpUtils;
+import net.microscraper.util.StaticStringTemplate;
 
 
 import org.junit.Before;
@@ -30,15 +33,15 @@ public class LoadLocalTest {
 	
 	@Mocked private DatabaseView input;
 	@Injectable private HttpBrowser mockBrowser;
-	private Encoder encoder;
+	private RegexpCompiler compiler;
 	private Load load;
 	private StringTemplate url;
 	
 	@Before
 	public void setUp() throws Exception {
-		url = StringTemplate.staticTemplate(randomString());
-		encoder = new JavaNetEncoder(Encoder.UTF_8);
-		load = new Load(encoder, url);
+		url = new StaticStringTemplate(randomString());
+		compiler  = new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8));
+		load = new Load(url);
 		
 		new NonStrictExpectations() {{
 			mockBrowser.copy(); result = mockBrowser;
@@ -71,13 +74,13 @@ public class LoadLocalTest {
 	public void testUrlIsSubstituted() throws Exception {
 		final String value = randomString();
 		final String name = "query";
-		final StringTemplate url = new StringTemplate("http://www.google.com/?q={{" + name + "}}", "{{", "}}");
+		final StringTemplate url = compiler.newTemplate("http://www.google.com/?q={{" + name + "}}", StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN);
 		final String subbed = "http://www.google.com/?q=" + value;
 		new Expectations() {{
 			input.get(name); result = value;
 			mockBrowser.get(subbed, (Hashtable) any, (Pattern[]) any);
 		}};
-		Load load = new Load(encoder, url);
+		Load load = new Load(url);
 		LoadResult result = load.execute(mockBrowser, input);
 		assertEquals(subbed, result.getUrl());
 	}
@@ -95,7 +98,7 @@ public class LoadLocalTest {
 	
 	@Test
 	public void testPostDataSetsPostMethod() throws Exception {
-		final StringTemplate postData = new StringTemplate(randomString(), StringTemplate.DEFAULT_ENCODED_OPEN_TAG, StringTemplate.DEFAULT_ENCODED_CLOSE_TAG);
+		final StringTemplate postData = compiler.newTemplate(randomString(), StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN);
 		new Expectations() {{
 			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, postData.toString());
 				$ = "Post data should be set by setting post data.";
@@ -108,8 +111,8 @@ public class LoadLocalTest {
 	public void testPostDataIsSubbed() throws Exception {
 		final String key = randomString();
 		final String value = randomString();
-		final StringTemplate postData = new StringTemplate(StringTemplate.DEFAULT_ENCODED_OPEN_TAG + key + StringTemplate.DEFAULT_ENCODED_CLOSE_TAG,
-				StringTemplate.DEFAULT_ENCODED_OPEN_TAG, StringTemplate.DEFAULT_ENCODED_CLOSE_TAG);
+		final StringTemplate postData = compiler.newTemplate("{{" + key + "}}",
+				StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN);
 		new Expectations() {{
 			input.get(key); result = value;
 			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, value);

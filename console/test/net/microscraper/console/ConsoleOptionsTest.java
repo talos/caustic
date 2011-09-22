@@ -11,9 +11,7 @@ import java.util.Map;
 import net.microscraper.database.Database;
 import net.microscraper.database.NonPersistedDatabase;
 import net.microscraper.database.csv.CSVConnection;
-import net.microscraper.util.Encoder;
 import net.microscraper.util.HashtableUtils;
-import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.uuid.IntUUIDFactory;
 
 import org.junit.Test;
@@ -41,7 +39,7 @@ public class ConsoleOptionsTest {
 			origHash.put(randomString(), randomString());
 		}
 		
-		String defaults = HashtableUtils.toFormEncoded(new JavaNetEncoder(Encoder.UTF_8), origHash);
+		String defaults = HashtableUtils.toFormEncoded(origHash);
 		
 		ConsoleOptions withQuotes = new ConsoleOptions(new String[] { randomString(),
 				INPUT + '=' + '"' + defaults + '"' });

@@ -5,7 +5,10 @@ import static net.microscraper.util.TestUtils.*;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
 
 import net.microscraper.util.Encoder;
 import net.microscraper.util.JavaNetEncoder;
@@ -20,7 +23,6 @@ import org.junit.runners.Parameterized.Parameters;
 public class CookieManagerLocalTest {
 	private final Class<CookieManager> klass;
 	private CookieManager cookieManager;
-	private Encoder encoder;
 
 	public CookieManagerLocalTest(Class<CookieManager> klass) {
 		this.klass = klass;
@@ -36,7 +38,6 @@ public class CookieManagerLocalTest {
 	@Before
 	public void setUp() throws Exception {
 		cookieManager = klass.newInstance();
-		encoder = new JavaNetEncoder(Encoder.UTF_8);
 	}
 
 	@Test
@@ -58,16 +59,12 @@ public class CookieManagerLocalTest {
 		String name = randomString();
 		String value = randomString();
 		cookies.put(name, value);
-		cookieManager.addCookies(exampleSite, cookies, encoder);
+		cookieManager.addCookies(exampleSite, cookies);
 		
 		assertArrayEquals("Should have cookie in store, one was added for " + exampleSite,
 				new String[] { name + '=' + value },
-				cookieManager.getCookie2sFor(exampleSite, new Hashtable<String, String>()));
-		
-		assertArrayEquals("Should not have cookie in store, none were added for " + anotherSite,
-						new String[] { },
-						cookieManager.getCookiesFor(anotherSite, new Hashtable<String, String>()));
-		
+				cookieManager.getCookiesFor(exampleSite, new Hashtable<String, String>()));
+
 	}
 	
 
@@ -86,12 +83,13 @@ public class CookieManagerLocalTest {
 		String otherValue = randomString();
 		cookies.put(otherName, otherValue);
 		
-		cookieManager.addCookies(exampleSite, cookies, encoder);
-		cookieManager.addCookies(exampleSite, otherCookies, encoder);
+		cookieManager.addCookies(exampleSite, cookies);
+		cookieManager.addCookies(exampleSite, otherCookies);
 		
-		assertArrayEquals("Should have two separate cookies for " + exampleSite,
-				new String[] { name + '=' + value, otherName + '=' + otherValue },
-				cookieManager.getCookiesFor(exampleSite, new Hashtable<String, String>()));
+		Set<String> expected = new HashSet<String>(Arrays.asList(new String[] { name + '=' + value, otherName + '=' + otherValue }));
+		Set<String> actual = new HashSet<String>(Arrays.asList(cookieManager.getCookiesFor(exampleSite, new Hashtable<String, String>())));
+		
+		assertTrue("should have added two cookies separately", expected.equals(actual));
 	}
 	
 
@@ -108,8 +106,8 @@ public class CookieManagerLocalTest {
 		String otherValue = randomString();
 		cookies.put(name, otherValue);
 		
-		cookieManager.addCookies(exampleSite, cookies, encoder);
-		cookieManager.addCookies(exampleSite, otherCookies, encoder);
+		cookieManager.addCookies(exampleSite, cookies);
+		cookieManager.addCookies(exampleSite, otherCookies);
 		
 		assertArrayEquals("Should have only one cookie in store, with overwritten value.",
 				new String[] { name + '=' + otherValue },
@@ -118,7 +116,7 @@ public class CookieManagerLocalTest {
 	
 
 	@Test
-	public void testEncodesCookies() throws Exception {
+	public void testDoesNotEncodeCookies() throws Exception {
 		String exampleSite = "http://www." + randomString(10) + ".com/";
 		
 		Hashtable<String, String> cookies = new Hashtable<String, String>();
@@ -126,10 +124,10 @@ public class CookieManagerLocalTest {
 		String value = "Several other words in here";
 		cookies.put(name, value);
 		
-		cookieManager.addCookies(exampleSite, cookies, encoder);
+		cookieManager.addCookies(exampleSite, cookies);
 		
-		assertArrayEquals("Should have only one cookie in store, with overwritten value.",
-				new String[] { encoder.encode(name) + '=' + encoder.encode(value) },
+		assertArrayEquals("Should not have modified cookie name or value.",
+				new String[] { name + '=' + value },
 				cookieManager.getCookiesFor(exampleSite, new Hashtable<String, String>()));
 	}
 }

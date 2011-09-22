@@ -22,11 +22,13 @@ import net.microscraper.instruction.InstructionResult;
 import net.microscraper.instruction.Load;
 import net.microscraper.json.JsonMEParser;
 import net.microscraper.json.JsonParser;
+import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.uri.URILoader;
 import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
+import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.util.StringUtils;
 import static net.microscraper.util.TestUtils.randomInt;
 import static net.microscraper.util.TestUtils.randomString;
@@ -47,14 +49,12 @@ public class JsonDeserializerTest {
 	private final Class<JsonParser> klass;
 	
 	//@Mocked static JsonParser parser;
-	@Mocked RegexpCompiler compiler;
+	//@Mocked RegexpCompiler compiler;
 	@Mocked HttpBrowser browser;
-	@Mocked Encoder encoder;
 	@Mocked UriResolver resolver;
 	@Mocked URILoader loader;
 	private @Mocked UriResolver uriResolver;
 	private @Mocked URILoader uriLoader;
-	private @Mocked Pattern pattern;
 	
 	private JSONDeserializer deserializer;
 	
@@ -96,7 +96,6 @@ public class JsonDeserializerTest {
 	public void setUp() throws Exception {
 		
 		JsonParser parser = klass.newInstance();
-		deserializer = new JSONDeserializer(parser, compiler, encoder, resolver, loader);
 		input = new InMemoryDatabaseView();
 
 		parser = new JsonMEParser();
@@ -106,7 +105,9 @@ public class JsonDeserializerTest {
 		loadObj = new JSONObject().put(LOAD, urlString);
 		findPath = "FIND PATH " + randomString();
 		findObj = new JSONObject().put(FIND, patternString);
-		deserializer = new JSONDeserializer(parser, compiler, encoder, uriResolver, uriLoader);
+		deserializer = new JSONDeserializer(parser,
+				new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8)),
+				uriResolver, uriLoader);
 		emptyJson = new JSONObject().toString();
 		
 		final String loadUri = "LOAD URI " + randomString();
@@ -123,8 +124,6 @@ public class JsonDeserializerTest {
 				uriResolver.resolve(userDir, findPath); result = findUri;
 				uriLoader.load(loadUri); result = loadObj.toString();
 				uriLoader.load(findUri); result = findObj.toString();
-				
-				compiler.compile(patternString, anyBoolean, anyBoolean, anyBoolean); result = pattern;
 			}
 		};
 	}
@@ -199,10 +198,6 @@ public class JsonDeserializerTest {
 	@Test
 	public void testDefaultsToAllMatches(@Mocked final Pattern pattern) throws Exception {
 		final String stringSource = randomString();
-		
-		new NonStrictExpectations() {{
-			compiler.compile(patternString, anyBoolean, anyBoolean, anyBoolean); result = pattern;
-		}};
 		
 		Find find = deserializer.deserialize(findObj.toString(), input, userDir).getFind();
 		find.execute(stringSource, input);
@@ -287,7 +282,7 @@ public class JsonDeserializerTest {
 	}*/
 	
 	@Test
-	public void testSelfReference() throws Exception {
+	public void testSelfReference(@Mocked final Pattern pattern) throws Exception {
 		final int recursions = 100;
 		
 		final String source = randomString();
@@ -315,7 +310,7 @@ public class JsonDeserializerTest {
 	
 
 	@Test 
-	public void testSelfReferenceArray() throws Exception {
+	public void testSelfReferenceArray(@Mocked final Pattern pattern) throws Exception {
 		final int recursions = 10;
 		
 		final String source = randomString();
@@ -409,13 +404,6 @@ public class JsonDeserializerTest {
 	public void testDeserializeSimpleFind() throws Exception {
 		final String patternStr = randomString();
 		final String source = randomString();
-		new Expectations() {
-			Pattern pattern;
-			{
-			compiler.compile(patternStr, anyBoolean, anyBoolean, anyBoolean); result = pattern;
-			pattern.match(source, anyString, anyInt, anyInt);
-		}};
-		
 		JSONObject simpleFind = new JSONObject().put(FIND, patternStr);
 		DeserializerResult result = deserializer.deserialize(simpleFind.toString(), input, userDir);
 		assertTrue(result.getFind() != null);

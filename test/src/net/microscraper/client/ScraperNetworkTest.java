@@ -63,14 +63,6 @@ public class ScraperNetworkTest {
 		return new JavaNetHttpUtils();
 	}
 
-	/**
-	 * Override this method to test a specific {@link Encoder}.
-	 * @return An {@link Encoder}
-	 * @throws Exception
-	 */
-	protected Encoder getEncoder() throws Exception {
-		return new JavaNetEncoder(Encoder.UTF_8);
-	}
 
 	/**
 	 * Override this method to test a specific {@link RegexpCompiler}.
@@ -78,7 +70,7 @@ public class ScraperNetworkTest {
 	 * @throws Exception
 	 */
 	protected RegexpCompiler getRegexpCompiler() throws Exception {
-		return new JavaUtilRegexpCompiler();
+		return new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8));
 	}
 	
 	/**
@@ -91,7 +83,6 @@ public class ScraperNetworkTest {
 		browser = new HttpBrowser(new JavaNetHttpRequester(),
 				new RateLimitManager(getHttpUtils()),
 				getCookieManager());
-		encoder = getEncoder();
 		compiler = getRegexpCompiler();
 	}
 	
@@ -101,13 +92,17 @@ public class ScraperNetworkTest {
 	 */
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {
-		StringTemplate googleTemplate = new StringTemplate("http://www.google.com/search?q={{query}}", "{{", "}}");
-		Load loadGoogle = new Load(encoder, googleTemplate);
+		StringTemplate googleTemplate = compiler.newTemplate("http://www.google.com/search?q={{query}}",
+				StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN);
+		Load loadGoogle = new Load(googleTemplate);
 		
-		StringTemplate whatDoYouSayTemplate = new StringTemplate("what do you say after '{{query}}'?", "{{", "}}");
+		StringTemplate whatDoYouSayTemplate = compiler.newTemplate("what do you say after '{{query}}'?",
+				StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN);
 		Find findWordAfter = new Find(compiler,
-				new StringTemplate("{{query}}\\s+(\\w+)", "{{", "}}"));
-		findWordAfter.setReplacement(new StringTemplate("I say $1", "{{", "}}"));
+				compiler.newTemplate("{{query}}\\s+(\\w+)", StringTemplate.DEFAULT_ENCODED_PATTERN,
+						StringTemplate.DEFAULT_NOT_ENCODED_PATTERN));
+		findWordAfter.setReplacement(compiler.newTemplate("I say $1",
+				StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN));
 		findWordAfter.setName(whatDoYouSayTemplate);
 		
 		Instruction instruction = new Instruction(loadGoogle);
@@ -129,7 +124,7 @@ public class ScraperNetworkTest {
 		assertTrue(result.isSuccess());
 		
 		name = result.getName();
-		assertEquals(googleTemplate.subEncoded(input, encoder).getSubstituted(), name);
+		assertEquals(googleTemplate.sub(input).getSubstituted(), name);
 		
 		children = result.getChildren();
 		assertEquals("Should have one child", 1, children.length);

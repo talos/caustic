@@ -217,7 +217,7 @@ public class DatabaseViewTest {
 		final String childValue = "child value";
 		view.put(name, value);
 		view.put(nameToOverwrite, overwrittenValue);
-		final int count = 100;
+		final int count = 20;
 		
 		List<Callable<DatabaseView>> callables = new ArrayList<Callable<DatabaseView>>();
 		for(int i = 0 ; i < count ; i ++) {
@@ -246,7 +246,7 @@ public class DatabaseViewTest {
 	@Test
 	public void testConcurrencyMultipleViews() throws Exception {
 		
-		final int count = 100;
+		final int count = 20;
 		
 		//List<Callable<DatabaseView>> callables = new ArrayList<Callable<DatabaseView>>();
 		for(int i = 0 ; i < count ; i ++) {

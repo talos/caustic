@@ -377,12 +377,11 @@ public final class ConsoleOptions {
 	 */
 	public Instruction getInstruction() throws InvalidOptionException, UnsupportedEncodingException {
 
-		RegexpCompiler compiler = new JavaUtilRegexpCompiler();
+		RegexpCompiler compiler = new JavaUtilRegexpCompiler(new JavaNetEncoder(getValue(encoding)));
 		URILoader uriLoader = new JavaNetURILoader(getBrowser(), new JavaIOFileLoader());
 		UriResolver uriResolver = new JavaNetUriResolver();
 		JsonParser parser = new JsonMEParser();
-		Encoder encoder = new JavaNetEncoder(getValue(encoding));
-		Deserializer deserializer = new JSONDeserializer(parser, compiler, encoder, uriResolver, uriLoader);
+		Deserializer deserializer = new JSONDeserializer(parser, compiler, uriResolver, uriLoader);
 		
 		String executionDir = new File(StringUtils.USER_DIR).toURI().toString();
 		if(!executionDir.endsWith("/")) {

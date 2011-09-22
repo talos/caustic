@@ -47,13 +47,13 @@ public class HttpRequesterTest {
 		return strBuf.toString();
 	}
 	
-	@Test(expected = IOException.class)
-	public void testBadURLThrowsIOException() throws Exception {
+	@Test(expected = HttpRequestException.class)
+	public void testBadURLThrowsHttpRequestException() throws Exception {
 		HttpResponse response = requester.head(randomString(), new Hashtable());
 	}
 	
-	@Test(expected = IOException.class)
-	public void testTimeoutThrowsIOException() throws Exception {
+	@Test(expected = HttpRequestException.class)
+	public void testTimeoutThrowsHttpRequestException() throws Exception {
 		requester.setTimeout(10);
 		requester.get("http://www.nytimes.com", new Hashtable());
 	}

@@ -17,7 +17,6 @@ import net.microscraper.regexp.RegexpUtils;
 import net.microscraper.regexp.StringTemplate;
 import net.microscraper.template.HashtableTemplate;
 import net.microscraper.template.StringSubstitution;
-import net.microscraper.template.TemplateCompilationException;
 import net.microscraper.uri.MalformedUriException;
 import net.microscraper.uri.RemoteToLocalSchemeResolutionException;
 import net.microscraper.uri.URILoader;
@@ -57,18 +56,18 @@ public class JSONDeserializer implements Deserializer {
 	/**
 	 * The {@link Encoder} to use when deserializing {@link Load}s.
 	 */
-	private final Encoder encoder;
+	//private final Encoder encoder;
 	
 	private DeserializerResult deserialize(String jsonString, DatabaseView input, String uri,
 					String encodedPatternString, String notEncodedPatternString)
-			throws JsonException, TemplateCompilationException,
+			throws JsonException,
 			MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException,
 			DatabaseReadException, URILoaderException {
 		final DeserializerResult result;
 		
 		// Parse non-objects as URIs.  Any substitution should have been done beforehand.
 		if(!parser.isJsonObject(jsonString)) {
-			StringSubstitution uriSub = compiler.compileTemplate(jsonString, encodedPatternString, notEncodedPatternString, encoder)
+			StringSubstitution uriSub = compiler.newTemplate(jsonString, encodedPatternString, notEncodedPatternString)
 					.sub(input);
 			if(!uriSub.isMissingTags()) {
 				String uriPath = uriSub.getSubstituted();
@@ -145,7 +144,7 @@ public class JSONDeserializer implements Deserializer {
 						for(int j = 0 ; j < extendsStrings.size() ; j ++) {
 							//String uri = uriResolver.resolve(baseUri, (String) extendsStrings.elementAt(j));
 							//jsonObjects.add(parser.parse(uriLoader.load(uri)));
-							StringTemplate extendsUriTemplate = compiler.compileTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString, encoder);
+							StringTemplate extendsUriTemplate = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
 							StringSubstitution uriSubstitution = extendsUriTemplate.sub(input);
 							if(!uriSubstitution.isMissingTags()) {
 								String uriPath = uriSubstitution.getSubstituted();
@@ -200,18 +199,18 @@ public class JSONDeserializer implements Deserializer {
 							children.add(new Instruction(thenObjectAsString, this, uri));
 						}
 					} else if(key.equalsIgnoreCase(NAME)) {
-						name = compiler.compileTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString, encoder);
+						name = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
 						
 					/** Load-only attributes. **/
 					} else if(key.equalsIgnoreCase(LOAD)) {
-						url = compiler.compileTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString, encoder);
+						url = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
 					} else if(key.equalsIgnoreCase(METHOD)) {
 						method = obj.getString(key);
 					} else if(key.equalsIgnoreCase(POSTS)) {
 						if(obj.isJsonObject(key)) {
 							posts.merge(deserializeHashtableTemplate(obj.getJsonObject(key), encodedPatternString, notEncodedPatternString));
 						} else if(obj.isString(key)) {
-							postData = compiler.compileTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString, encoder);
+							postData = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
 						} else {
 							return DeserializerResult.failure(StringUtils.quote(key) +
 									" must be a String with post data or an object with name-value-pairs.");				
@@ -223,7 +222,7 @@ public class JSONDeserializer implements Deserializer {
 						
 					/** Pattern attributes. **/
 					} else if(key.equalsIgnoreCase(FIND)) {
-						pattern = compiler.compileTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString, encoder);
+						pattern = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
 					} else if(key.equalsIgnoreCase(IS_CASE_INSENSITIVE)) {
 						isCaseInsensitive = Boolean.valueOf(obj.getBoolean(key));
 					} else if(key.equalsIgnoreCase(DOES_DOT_MATCH_ALL)) {
@@ -234,7 +233,7 @@ public class JSONDeserializer implements Deserializer {
 						
 					/** Find-only attributes. **/
 					} else if(key.equalsIgnoreCase(REPLACE)) {
-						replace = compiler.compileTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString, encoder);
+						replace = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
 					} else if(key.equalsIgnoreCase(MIN_MATCH)) {
 						min = Integer.valueOf(obj.getInt(key));
 					} else if(key.equalsIgnoreCase(MAX_MATCH)) {
@@ -258,7 +257,7 @@ public class JSONDeserializer implements Deserializer {
 				return DeserializerResult.failure("Cannot define both " + FIND + " and " + LOAD);
 			} else if(url != null) {
 				// We have a Load
-				Load load = new Load(encoder, url);
+				Load load = new Load(url);
 				
 				if(method != null) {
 					load.setMethod(method);
@@ -329,15 +328,15 @@ public class JSONDeserializer implements Deserializer {
 	 * @throws JsonException If there was a problem parsing the JSON.
 	 * @throws TemplateCompilationException If a {@link StringTemplate} could not be compiled.
 	 */
-	private HashtableTemplate deserializeHashtableTemplate(JsonObject jsonObject, String encodedPatternString, String notEncodedPatternString)
-				throws JsonException, TemplateCompilationException {
+	private HashtableTemplate deserializeHashtableTemplate(JsonObject jsonObject, String encodedPatternString,
+			String notEncodedPatternString) throws JsonException {
 		HashtableTemplate result = new HashtableTemplate();
 		JsonIterator iter = jsonObject.keys();
 		while(iter.hasNext()) {
 			String key = (String) iter.next();
 			String value = jsonObject.getString(key);
-			result.put(compiler.compileTemplate(key, encodedPatternString, notEncodedPatternString, encoder),
-					compiler.compileTemplate(value, encodedPatternString, notEncodedPatternString, encoder));
+			result.put(compiler.newTemplate(key, encodedPatternString, notEncodedPatternString),
+					compiler.newTemplate(value, encodedPatternString, notEncodedPatternString));
 		}
 		return result;
 	}
@@ -442,15 +441,13 @@ public class JSONDeserializer implements Deserializer {
 	 * @param parser
 	 * @param compiler
 	 * @param browser
-	 * @param encoder
 	 * @param uriFactory
 	 * @param database
 	 */
 	public JSONDeserializer(JsonParser parser, RegexpCompiler compiler,
-			Encoder encoder, UriResolver uriResolver, URILoader uriLoader) {
+			UriResolver uriResolver, URILoader uriLoader) {
 		this.compiler = compiler;
 		this.parser = parser;
-		this.encoder = encoder;
 		this.uriResolver = uriResolver;
 		this.uriLoader = uriLoader;
 	}
@@ -465,8 +462,6 @@ public class JSONDeserializer implements Deserializer {
 		} catch (MalformedUriException e) {
 			return DeserializerResult.failure(e.getMessage());
 		} catch(URILoaderException e) {
-			return DeserializerResult.failure(e.getMessage());
-		} catch(TemplateCompilationException e) {
 			return DeserializerResult.failure(e.getMessage());
 		} catch (RemoteToLocalSchemeResolutionException e) {
 			return DeserializerResult.failure(e.getMessage());

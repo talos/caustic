@@ -15,6 +15,7 @@ import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.StringTemplate;
 import net.microscraper.util.HashtableUtils;
+import net.microscraper.util.StaticStringTemplate;
 
 import org.junit.Test;
 
@@ -48,13 +49,13 @@ public class ScraperLocalTest {
 		new Expectations() {
 			Pattern pattern;
 			{
-				compiler.compile(search, anyBoolean, anyBoolean, anyBoolean); result = pattern;
+				compiler.newPattern(search, anyBoolean, anyBoolean, anyBoolean); result = pattern;
 				pattern.match(input, anyString, anyInt, anyInt); result = mockResultValues;
 			}
 		};
 		
-		Find find = new Find(compiler, StringTemplate.staticTemplate(search));
-		find.setName(StringTemplate.staticTemplate(randomString()));
+		Find find = new Find(compiler, new StaticStringTemplate(search));
+		find.setName(new StaticStringTemplate(randomString()));
 		Instruction instruction = new Instruction(find);
 		
 		Scraper scraper = new Scraper(instruction, HashtableUtils.EMPTY, input, browser);
@@ -79,12 +80,12 @@ public class ScraperLocalTest {
 		new Expectations() {
 			Pattern pattern;
 			{
-				compiler.compile(search, anyBoolean, anyBoolean, anyBoolean); result = pattern;
+				compiler.newPattern(search, anyBoolean, anyBoolean, anyBoolean); result = pattern;
 				pattern.match(input, anyString, anyInt, anyInt); result = mockResultValues;
 			}
 		};
-		Find find = new Find(compiler, StringTemplate.staticTemplate(search));
-		find.setName(StringTemplate.staticTemplate(randomString()));
+		Find find = new Find(compiler, new StaticStringTemplate(search));
+		find.setName(new StaticStringTemplate(randomString()));
 		Instruction instruction = new Instruction(find);
 		DatabaseView view = new InMemoryDatabaseView();
 		Scraper scraper = new Scraper(instruction, view, input, browser);

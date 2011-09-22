@@ -31,5 +31,12 @@ public class StaticStringTemplate implements StringTemplate {
 	public StringSubstitution sub(DatabaseView input) {
 		return StringSubstitution.success(staticValue);
 	}
-
+	
+	/**
+	 * Returns the static value this {@link StaticStringTemplate} was
+	 * initialized with.
+	 */
+	public String toString() {
+		return staticValue;
+	}
 }

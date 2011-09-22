@@ -5,9 +5,27 @@ import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.util.Encoder;
 
+/**
+ * An implementation of {@link RegexpCompiler} using
+ * {@link java.util.regex.Pattern}.
+ * @author talos
+ *
+ */
 public class JavaUtilRegexpCompiler implements RegexpCompiler {
+	
+	private final Encoder encoder;
+	
+	/**
+	 * Construct a {@link JavaUtilRegexpCompiler}.
+	 * @param encoder The {@link Encoder} to use when creating
+	 * {@link StringTemplate}s via {@link #newTemplate(String, String, String)}
+	 */
+	public JavaUtilRegexpCompiler(Encoder encoder) {
+		this.encoder = encoder;
+	}
+	
 	@Override
-	public Pattern compile(String patternString, boolean isCaseInsensitive,
+	public Pattern newPattern(String patternString, boolean isCaseInsensitive,
 			boolean isMultiline, boolean doesDotMatchNewline) {
 		int flags = 0;
 		flags += isCaseInsensitive ?   java.util.regex.Pattern.CASE_INSENSITIVE : 0;
@@ -17,9 +35,8 @@ public class JavaUtilRegexpCompiler implements RegexpCompiler {
 	}
 
 	@Override
-	public StringTemplate compileTemplate(String templateString,
-			String encodedPatternString, String notEncodedPatternString,
-			Encoder encoder) {
+	public StringTemplate newTemplate(String templateString,
+			String encodedPatternString, String notEncodedPatternString) {
 		return new JavaUtilStringTemplate(templateString, encodedPatternString, 
 				notEncodedPatternString, encoder);
 	}

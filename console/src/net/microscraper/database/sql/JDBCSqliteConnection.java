@@ -165,16 +165,16 @@ public class JDBCSqliteConnection implements SQLConnection {
 			throws ConnectionException {
 		String scopeColumnType = isScopeNumeric ? intColumnType() : textColumnType();
 		
-		String definitionStr = "`" + scopeColumnName + "` " + scopeColumnType;
+		StringBuffer definitionStr = new StringBuffer("`" + scopeColumnName + "` " + scopeColumnType);
 		for(String columnName : columnNames) {
-			definitionStr += ", `" + columnName + "` " + textColumnType();
+			definitionStr.append(", `" + columnName + "` " + textColumnType());
 		}
 		
 		// add primary keys if specified
 		if(primaryKeyColumnNames.length > 0) {
-			definitionStr += ", PRIMARY KEY (`";
-			definitionStr += StringUtils.join(primaryKeyColumnNames, "`, `");
-			definitionStr += "`)";
+			definitionStr.append(", PRIMARY KEY (`");
+			definitionStr.append(StringUtils.join(primaryKeyColumnNames, "`, `"));
+			definitionStr.append("`)");
 		}
 		
 		executeNow("CREATE TABLE `" + name + "` (" + definitionStr + ")");

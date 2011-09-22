@@ -1,57 +1,53 @@
 package net.microscraper.regexp;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
+import java.util.Vector;
+
+import org.apache.regexp.RE;
 
 import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.template.StringSubstitution;
 import net.microscraper.util.Encoder;
 
-final class JavaUtilStringTemplate implements StringTemplate {
+public class JakartaStringTemplate implements StringTemplate {
 	private static final int NOT_MATCHED = -1;
-
-	private final java.util.regex.Pattern encodedPattern;
-	private final java.util.regex.Pattern notEncodedPattern;
+	
+	private final RE encodedPattern;
+	private final RE notEncodedPattern;
 	private final String templateString;
 	private final Encoder encoder;
 	
-	public JavaUtilStringTemplate(String templateString,
+	public JakartaStringTemplate(String templateString,
 			String encodedPatternString, String notEncodedPatternString,
 			Encoder encoder) {
-		this.encodedPattern = java.util.regex.Pattern.compile(encodedPatternString);
-		this.notEncodedPattern = java.util.regex.Pattern.compile(notEncodedPatternString);
+		this.encodedPattern = new RE(encodedPatternString);
+		this.notEncodedPattern = new RE(notEncodedPatternString);
 		this.templateString = templateString;
 		this.encoder = encoder;
 	}
-
-	@Override
-	public StringSubstitution sub(DatabaseView view) throws DatabaseReadException {
-		// cannot reuse matchers because this class is accessed concurrently
-		Matcher encodedMatcher = encodedPattern.matcher(templateString);
-		Matcher notEncodedMatcher = notEncodedPattern.matcher(templateString);
-		
+	
+	public StringSubstitution sub(DatabaseView view)
+			throws DatabaseReadException {
 		StringBuffer buf = new StringBuffer();
-		List<String> missingTags = new ArrayList<String>();
-		
-		int pos = 0;		
-		do {			// gather match data for both encoded and not-encoded patterns.
+		Vector missingTags = new Vector();
+		int pos = 0;
+		do {
+			// gather match data for both encoded and not-encoded patterns.
 			int encBegin =    NOT_MATCHED;
 			int notEncBegin = NOT_MATCHED;
 			String encMatch = null;
 			String notEncMatch = null;
 			int encEnd = NOT_MATCHED;
 			int notEncEnd = NOT_MATCHED;
-			if(encodedMatcher.find(pos)) {
-				encBegin = encodedMatcher.start();
-				encMatch = encodedMatcher.group(1);
-				encEnd = encodedMatcher.end();
+			if(encodedPattern.match(templateString, pos)) {
+				encBegin = encodedPattern.getParenStart(0);
+				encMatch = encodedPattern.getParen(1);
+				encEnd = encodedPattern.getParenEnd(0);
 			}
-			if(notEncodedMatcher.find(pos)) {
-				notEncBegin = notEncodedMatcher.start();
-				notEncMatch = notEncodedMatcher.group(1);
-				notEncEnd = notEncodedMatcher.end();
+			if(notEncodedPattern.match(templateString, pos)) {
+				notEncBegin = notEncodedPattern.getParenStart(0);
+				notEncMatch = notEncodedPattern.getParen(1);
+				notEncEnd = notEncodedPattern.getParenEnd(0);
 			}
 
 			// determine whether an encoded or not encoded pattern
@@ -92,19 +88,21 @@ final class JavaUtilStringTemplate implements StringTemplate {
 			pos = end;
 		} while(pos < templateString.length());
 		
+		// append any trailing characters
 		buf.append(templateString.substring(pos));
 		
-		if(missingTags.size() > 0) {
-			return StringSubstitution.missingTags(missingTags.toArray(new String[missingTags.size()]));
-		} else {
+		if(missingTags.size() > 0) { // missing tags
+			String[] missingTagsAry = new String[missingTags.size()];
+			missingTags.copyInto(missingTagsAry);
+			return StringSubstitution.missingTags(missingTagsAry);
+		} else { // success!
 			return StringSubstitution.success(buf.toString());
 		}
 	}
-
+	
 	/**
 	 * String representation is the raw template string.
 	 */
-	@Override
 	public String toString() {
 		return templateString;
 	}

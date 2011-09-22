@@ -113,14 +113,14 @@ public class JavaNetCookieManager implements CookieManager {
 	}
 
 	@Override
-	public void addCookies(String url, Hashtable cookies, Encoder encoder) throws BadURLException {
+	public void addCookies(String url, Hashtable cookies) throws BadURLException {
 		CookieStore cookieStore = cookieManager.getCookieStore();
 		Enumeration<String> names = cookies.keys();
 		try {
 			while(names.hasMoreElements()) {
 				String name = names.nextElement();
 				String value = (String) cookies.get(name);
-				HttpCookie cookie = new HttpCookie(encoder.encode(name), encoder.encode(value));
+				HttpCookie cookie = new HttpCookie(name, value);
 				cookie.setVersion(0); // Otherwise there are quotes around the value. See http://stackoverflow.com/questions/572482/simple-java-cookie-question/7225772#7225772
 				cookieStore.add(new URI(url), cookie);
 			}

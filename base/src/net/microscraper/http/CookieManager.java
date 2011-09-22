@@ -62,10 +62,9 @@ public interface CookieManager {
 	 * @param urlStr The {@link String} URL to use for the domain and path of the added cookies.
 	 * @param cookies A {@link Hashtable} mapping {@link String} to {@link String} to use
 	 * as name-value pairs for the cookies.  The values will be encoded by <code>encoder</code>
-	 * @param encoder The {@link Encoder} to use when encoding cookie names and values.
 	 * @throws BadURLException If the <code>urlStr</code> can't be parsed as a URL.
 	 */
-	public void addCookies(String urlStr, Hashtable cookies, Encoder encoder) throws BadURLException;
+	public void addCookies(String urlStr, Hashtable cookies) throws BadURLException;
 	
 	/**
 	 * 

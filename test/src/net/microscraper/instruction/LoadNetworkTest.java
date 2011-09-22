@@ -12,9 +12,8 @@ import net.microscraper.http.JavaNetCookieManager;
 import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
 import net.microscraper.regexp.StringTemplate;
-import net.microscraper.util.Encoder;
-import net.microscraper.util.JavaNetEncoder;
 import net.microscraper.util.JavaNetHttpUtils;
+import net.microscraper.util.StaticStringTemplate;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,12 +22,10 @@ public class LoadNetworkTest {
 	@Mocked private DatabaseView input;
 	private HttpBrowser liveBrowser;
 	private CookieManager cookieManager;
-	private Encoder encoder;
 
 	@Before
 	public void setUp() throws Exception {
 		cookieManager = new JavaNetCookieManager();	
-		encoder = new JavaNetEncoder(Encoder.UTF_8);
 		liveBrowser = new HttpBrowser(new JavaNetHttpRequester(),
 				new RateLimitManager(new JavaNetHttpUtils()),
 				cookieManager);
@@ -37,9 +34,9 @@ public class LoadNetworkTest {
 	
 	@Test // This test requires a live internet connection.
 	public void testLiveBrowserSetsCookies() throws Exception {
-		final StringTemplate url = StringTemplate.staticTemplate("http://www.nytimes.com");
+		final StringTemplate url = new StaticStringTemplate("http://www.nytimes.com");
 		
-		Load load = new Load(encoder, url);
+		Load load = new Load(url);
 		LoadResult result = load.execute(liveBrowser, input);
 		assertNotNull(result.getResponseBody());
 		assertTrue(cookieManager.getCookiesFor(url.toString(), new Hashtable<String, String>()).length > 0);

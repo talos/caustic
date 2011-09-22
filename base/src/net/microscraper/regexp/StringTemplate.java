@@ -6,10 +6,8 @@ import net.microscraper.template.StringSubstitution;
 
 public interface StringTemplate {
 
-	public static final String DEFAULT_ENCODED_PATTERN = "\\{\\{[^\\{\\}]\\}\\}";
-	public static final String DEFAULT_ENCODED_REPLACE = "$0";
-	public static final String DEFAULT_NOT_ENCODED_PATTERN = "\\{\\{\\{[^\\{\\}]\\}\\}\\}";
-	public static final String DEFAULT_NOT_ENCODED_REPLACE = "$0";
+	public static final String DEFAULT_ENCODED_PATTERN = "\\{\\{([^\\{\\}]+)\\}\\}";
+	public static final String DEFAULT_NOT_ENCODED_PATTERN = "\\{\\{\\{([^\\{\\}]+)\\}\\}\\}";
 
 	/**
 	 * Substitute the values from a {@link Variables} into the {@link StringTemplate}.

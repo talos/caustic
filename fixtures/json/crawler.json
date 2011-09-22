@@ -1,6 +1,6 @@
 {
     "description": "Crawl through href links recursively.",
-    "load"       : "{{url}}",
+    "load"       : "{{{url}}}",
     "then"       : [{
 	"description" : "find and construct absolute urls",
 	"name"        : "url",
@@ -11,7 +11,7 @@
 	"description" : "find and construct relative urls",
 	"name"        : "url",
 	"find"        : "<a[^>]*href\\s*=\\s*[\"']?([/\\w][^\"'\\s]*)[\"']?",
-	"replace"     : "{{url}}$1",
+	"replace"     : "{{{url}}}$1",
 	"then"        : "$this"
     }]
 }

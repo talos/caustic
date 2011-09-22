@@ -333,11 +333,10 @@ public class HttpBrowser implements Loggable {
 	 * @param urlStr The {@link String} URL to use for the domain and path of the added cookies.
 	 * @param cookies A {@link Hashtable} mapping {@link String} to {@link String} to use
 	 * as name-value pairs for the cookies. 
-	 * @param encoder An {@link Encoder} to use encoding cookie names &amp; values.
 	 */
-	public void addCookies(String urlStr, Hashtable cookies, Encoder encoder) {
+	public void addCookies(String urlStr, Hashtable cookies) {
 		try {
-			cookieManager.addCookies(urlStr, cookies, encoder);
+			cookieManager.addCookies(urlStr, cookies);
 		} catch(BadURLException e) {
 			log.i("Could not add cookies: " + e.getMessage());
 		}

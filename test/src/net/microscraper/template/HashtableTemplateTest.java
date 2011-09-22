@@ -2,37 +2,32 @@ package net.microscraper.template;
 
 import static org.junit.Assert.*;
 import static net.microscraper.util.TestUtils.*;
+import static net.microscraper.regexp.StringTemplate.*;
 
 import java.util.Hashtable;
 
 import net.microscraper.database.DatabaseView;
 import net.microscraper.database.InMemoryDatabaseView;
+import net.microscraper.regexp.JavaUtilRegexpCompiler;
+import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.StringTemplate;
 import net.microscraper.util.Encoder;
 import net.microscraper.util.JavaNetEncoder;
+import net.microscraper.util.StaticStringTemplate;
 
 import org.junit.Before;
 import org.junit.Test;
 
-public class HashtableTemplateTest {
-	DatabaseView input;
-	Encoder encoder;
-	
-	String key, value, multiWordKey, multiWordValue, alreadyEncodedKey, alreadyEncodedValue;
-	
+public class HashtableTemplateTest {	
+	private DatabaseView view;
+	private Encoder encoder;
+	private RegexpCompiler compiler;
+		
 	@Before
 	public void setUp() throws Exception {
 		encoder = new JavaNetEncoder(Encoder.UTF_8);
-		key = randomString();
-		value = randomString();
-		multiWordKey = randomString() + " " + randomString();
-		multiWordValue = randomString() + " " + randomString();
-		alreadyEncodedKey = encoder.encode(multiWordKey);
-		alreadyEncodedValue = encoder.encode(multiWordValue);
-		input = new InMemoryDatabaseView();
-		input.put(key, value);
-		input.put(multiWordKey, multiWordValue);
-		input.put(alreadyEncodedKey, alreadyEncodedValue);
+		compiler = new JavaUtilRegexpCompiler(encoder);
+		view = new InMemoryDatabaseView();
 	}
 
 	@Test
@@ -43,27 +38,40 @@ public class HashtableTemplateTest {
 	@Test
 	public void testSubSuccessful() throws Exception {
 		HashtableTemplate hash = new HashtableTemplate();
-		hash.put(new StringTemplate("{{" + key + "}}", "{{" ,"}}"),
-				StringTemplate.staticTemplate(value));
-		hash.put(StringTemplate.staticTemplate(multiWordKey), 
-				new StringTemplate("{{" + multiWordKey + "}}", "{{" ,"}}"));
-		hash.put(new StringTemplate("{{" + alreadyEncodedKey + "}}", "{{" ,"}}"),
-				new StringTemplate("{{" + alreadyEncodedKey + "}}", "{{" ,"}}"));
-		HashtableSubstitution exc = hash.sub(input);
+		
+		view.put("encoded key", "this key should be encoded");
+		view.put("encoded value", "this value should be encoded");
+		view.put("not encoded key", "this key should not be encoded");
+		view.put("not encoded value", "this value should not be encoded");
+		
+		hash.put(compiler.newTemplate("{{encoded key}}",
+				DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN),
+				new StaticStringTemplate("value"));
+		
+		hash.put(new StaticStringTemplate("multiple word key"), 
+				compiler.newTemplate("{{" + "encoded value" + "}}",
+						DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN ));
+		
+		hash.put(compiler.newTemplate("{{{" + "not encoded key" + "}}}",
+				DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN ),
+				compiler.newTemplate("{{{" + "not encoded value" + "}}}", 
+						DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN));
+		
+		HashtableSubstitution exc = hash.sub(view);
 		
 		assertFalse(exc.isMissingTags());
 		
 		@SuppressWarnings("unchecked")
 		Hashtable<String, String> subbed = exc.getSubstituted();
 		
-		assertTrue(subbed.containsKey(value));
-		assertEquals(value, subbed.get(value));
+		assertTrue(subbed.containsKey("this+key+should+be+encoded"));
+		assertEquals("value", subbed.get("this+key+should+be+encoded"));
 		
-		assertTrue(subbed.containsKey(multiWordKey));
-		assertEquals(multiWordValue, subbed.get(multiWordKey));
+		assertTrue(subbed.containsKey("multiple word key"));
+		assertEquals("this+value+should+be+encoded", subbed.get("multiple word key"));
 		
-		assertTrue(subbed.containsKey(alreadyEncodedValue));
-		assertEquals(alreadyEncodedValue, subbed.get(alreadyEncodedValue));
+		assertTrue(subbed.containsKey("this key should not be encoded"));
+		assertEquals("this value should not be encoded", subbed.get("this key should not be encoded"));
 
 	}
 
@@ -72,33 +80,40 @@ public class HashtableTemplateTest {
 		HashtableTemplate hash1 = new HashtableTemplate();
 		HashtableTemplate hash2 = new HashtableTemplate();
 		
-		hash1.put(StringTemplate.staticTemplate(key),
-				new StringTemplate("{{" + key + "}}", "{{", "}}"));
-		hash2.put(StringTemplate.staticTemplate(multiWordKey), 
-				new StringTemplate("{{" + multiWordKey + "}}", "{{", "}}"));
+		view.put("bill clinton", "charmer");
+		view.put("george clinton", "chiller");
+		
+		hash1.put(new StaticStringTemplate("george clinton"),
+				compiler.newTemplate("{{{george clinton}}}", DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN));
+		hash2.put(new StaticStringTemplate("bill clinton"), 
+				compiler.newTemplate("{{{bill clinton}}}", DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN));
 		
 		hash1.merge(hash2);
 		
-		HashtableSubstitution sub = hash1.sub(input);
+		HashtableSubstitution sub = hash1.sub(view);
 		assertFalse(sub.isMissingTags());
 		
 		@SuppressWarnings("unchecked")
 		Hashtable<String, String> subbed = sub.getSubstituted();
-		assertTrue(subbed.containsKey(key));
-		assertEquals(value, subbed.get(key));
-		assertTrue(subbed.containsKey(multiWordKey));
-		assertEquals(multiWordValue, subbed.get(multiWordKey));
+		assertTrue(subbed.containsKey("george clinton"));
+		assertEquals("chiller", subbed.get("george clinton"));
+		assertTrue(subbed.containsKey("bill clinton"));
+		assertEquals("charmer", subbed.get("bill clinton"));
 	}
 
 	@Test(expected = HashtableSubstitutionOverwriteException.class)
 	public void testOverwriteException() throws Exception {
 		HashtableTemplate hash = new HashtableTemplate();
 		
-		hash.put(StringTemplate.staticTemplate(value),
-				new StringTemplate("{{" + key + "}}", "{{", "}}"));
-		hash.put(new StringTemplate("{{" + key + "}}", "{{", "}}"), 
-				new StringTemplate("{{" + multiWordKey + "}}", "{{", "}}"));
+		view.put("overwriting", "key");
+		
+		hash.put(new StaticStringTemplate("key"),
+				new StaticStringTemplate("value"));
+		
+		hash.put(compiler.newTemplate("{{{overwriting}}}", DEFAULT_ENCODED_PATTERN,
+						DEFAULT_NOT_ENCODED_PATTERN), 
+				new StaticStringTemplate("value"));
 				
-		hash.sub(input);
+		hash.sub(view);
 	}
 }

@@ -17,13 +17,13 @@ public class StringUtils {
 	 * <code>joinString</code>.
 	 */
 	public static String join(String[] strings, String joinString) {
-		String joined = "";
+		StringBuffer buf = new StringBuffer();
 		for(int i = 0; i < strings.length; i++) {
-			joined += strings[i];
+			buf.append(strings[i]);
 			if(i < strings.length -1)
-				joined += joinString;
+				buf.append(joinString);
 		}
-		return joined;
+		return buf.toString();
 	}
 	
 	/*public static String join(int[] integers, String joinString) {

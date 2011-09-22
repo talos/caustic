@@ -76,7 +76,7 @@ public class FindTest  {
 				replacement.sub(input); result = replaceSub;
 				replaceSub.getSubstituted(); result = replacementString;
 				
-				compiler.compile(patternString, anyBoolean, anyBoolean, anyBoolean); result = regexpPattern;
+				compiler.newPattern(patternString, anyBoolean, anyBoolean, anyBoolean); result = regexpPattern;
 				regexpPattern.match(source, replacementString, anyInt, anyInt); result = new String[] {};
 		}};
 		find.setReplacement(replacement);

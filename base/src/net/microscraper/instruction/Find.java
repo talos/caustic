@@ -140,7 +140,7 @@ public class Find {
 			String resultName = subName.getSubstituted();
 			
 			String patternString = (String) subPattern.getSubstituted();
-			Pattern pattern = compiler.compile(patternString, isCaseInsensitive, isMultiline, doesDotMatchNewline);
+			Pattern pattern = compiler.newPattern(patternString, isCaseInsensitive, isMultiline, doesDotMatchNewline);
 			
 			String replacement = (String) subReplacement.getSubstituted();
 			String[] matches = pattern.match(source, replacement, minMatch, maxMatch);

@@ -7,26 +7,25 @@ public class HashtableUtils {
 
 	/**
 	 * Turn a {@link Hashtable} mapping {@link String}s to {@link String}s into a form-encoded
-	 * {@link String}.
-	 * @param encoder The {@link Encoder} to use for encoding.
+	 * {@link String}.  Assumes that names and values are <strong>already</strong> encoded.
 	 * @param hashtable A {@link String} to {@link String} {@link Hashtable}.
 	 * @return A {@link HashtableDatabase}.
 	 */
-	public static String toFormEncoded(Encoder encoder, Hashtable hashtable) {
+	public static String toFormEncoded(Hashtable hashtable) {
 
-		String result = "";
+		StringBuffer buf = new StringBuffer();
 		Enumeration keys = hashtable.keys();
 		try {
 			while(keys.hasMoreElements()) {
 				String name = (String) keys.nextElement();
 				String value = (String) hashtable.get(name);
-				result += encoder.encode(name) + '=' + encoder.encode(value) + '&';
+				//result += encoder.encode(name) + '=' + encoder.encode(value) + '&';
+				buf.append(name).append('=').append(value).append('&');
 			}
 		} catch (ClassCastException e) {
 			throw new IllegalArgumentException("Hashtable must have only String keys and values to be form encoded.");
 		}
-		return result.substring(0, result.length() -1); // trim trailing ampersand
-		
+		return buf.substring(0, buf.length() -1); // trim trailing ampersand
 	}
 	
 	/**

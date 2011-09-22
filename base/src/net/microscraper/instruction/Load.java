@@ -57,11 +57,6 @@ public final class Load {
 	 * A string that will be templated and evaulated as a URL.
 	 */
 	private final StringTemplate url;
-	
-	/**
-	 * The {@link Encoder} to use when encoding the URL.
-	 */
-	private final Encoder encoder;
 			
 	private StringSubstitution getPosts(DatabaseView input)
 			throws HashtableSubstitutionOverwriteException, DatabaseReadException {
@@ -70,7 +65,7 @@ public final class Load {
 			if(tableSub.isMissingTags()) {
 				return StringSubstitution.missingTags(tableSub.getMissingTags());
 			} else {
-				return StringSubstitution.success(HashtableUtils.toFormEncoded(encoder, tableSub.getSubstituted()));
+				return StringSubstitution.success(HashtableUtils.toFormEncoded(tableSub.getSubstituted()));
 			}
 		} else {
 			return postString.sub(input);
@@ -79,11 +74,9 @@ public final class Load {
 	
 	/**
 	 * Instantiate a {@link Load}.
-	 * @param encoder
 	 * @param url
 	 */
-	public Load(Encoder encoder, StringTemplate url) {
-		this.encoder = encoder;
+	public Load(StringTemplate url) {
 		this.url = url;
 	}
 	
@@ -171,7 +164,7 @@ public final class Load {
 				Hashtable headers = headersSub.getSubstituted();
 				Hashtable cookies = cookiesSub.getSubstituted();
 				if(cookies.size() > 0) {
-					browser.addCookies(url, cookies, encoder);
+					browser.addCookies(url, cookies);
 				}
 				
 				if(method.equalsIgnoreCase(HttpBrowser.HEAD)){

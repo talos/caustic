@@ -12,8 +12,8 @@ import net.microscraper.instruction.FindTest;
 import net.microscraper.instruction.LoadLocalTest;
 import net.microscraper.json.JsonObjectTest;
 import net.microscraper.regexp.PatternTest;
+import net.microscraper.regexp.StringTemplateTest;
 import net.microscraper.template.HashtableTemplateTest;
-import net.microscraper.template.TemplateTest;
 import net.microscraper.uri.URILoaderTest;
 import net.microscraper.uri.UriResolverTest;
 import net.microscraper.util.HashtableUtilsTest;
@@ -43,7 +43,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	JsonObjectTest.class,
 	PatternTest.class,
 	HashtableTemplateTest.class,
-	TemplateTest.class,
+	StringTemplateTest.class,
 	URILoaderTest.class,
 	UriResolverTest.class,
 	HashtableUtilsTest.class,

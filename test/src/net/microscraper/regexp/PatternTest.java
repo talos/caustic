@@ -10,6 +10,8 @@ import net.microscraper.regexp.JakartaRegexpCompiler;
 import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
+import net.microscraper.util.Encoder;
+import net.microscraper.util.JavaNetEncoder;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,16 +32,16 @@ public class PatternTest {
 	}
 	
 	@Parameters
-	public static Collection<RegexpCompiler[]> implementations() {
+	public static Collection<RegexpCompiler[]> implementations() throws Exception {
 		return Arrays.asList(new RegexpCompiler[][] {
-				{ new JakartaRegexpCompiler()  },
-				{ new JavaUtilRegexpCompiler() }
+				{ new JakartaRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8))  },
+				{ new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8)) }
 		});
 	}
 	
 	@Test
 	public void testMatchesStringInt() {
-		pat = re.compile("\\w{3}", false, false, false);
+		pat = re.newPattern("\\w{3}", false, false, false);
 		
 		for(int i = 0 ; i < 4 ; i ++) {
 			assertTrue(testClass + " couldn't find match " + Integer.toString(i), pat.matches(quickBrownFox, i));
@@ -48,7 +50,7 @@ public class PatternTest {
 
 	@Test
 	public void testMatch() throws Exception {
-		pat = re.compile("((\\w+ ){3})", false, false, false);
+		pat = re.newPattern("((\\w+ ){3})", false, false, false);
 		
 		assertEquals(testClass + " didn't match the initial whole pattern.", "The quick brown ", pat.match(quickBrownFox, "$0", 0,0)[0]);
 		assertEquals(testClass + " didn't match initial parent backreference.", "The quick brown ", pat.match(quickBrownFox, "$1", 0,0)[0]);
@@ -59,7 +61,7 @@ public class PatternTest {
 	
 	@Test
 	public void testMatchNestedBackreferences() throws Exception {
-		pat = re.compile("((\\w+ ){3})", false, false, false);
+		pat = re.newPattern("((\\w+ ){3})", false, false, false);
 		
 		assertEquals(testClass + " didn't match initial nested backreference.", "brown ", pat.match(quickBrownFox, "$2",0, 0)[0]);
 		assertEquals(testClass + " didn't match second nested backreference.", "over ", pat.match(quickBrownFox, "$2", 1,1)[0]);
@@ -68,7 +70,7 @@ public class PatternTest {
 	@Test
 	public void testAllMatches() throws Exception {
 		String input = "And he's fine, fine, fine/I know he's fine, fine, fine/I know he's a fine";
-		pat = re.compile("fine", false, false, false);
+		pat = re.newPattern("fine", false, false, false);
 		String substitution = "$0 penguin";
 		
 		String[] allMatches = pat.match(input, substitution, 0, -1);
@@ -81,10 +83,10 @@ public class PatternTest {
 	@Test
 	public void testCaseInsensitive() {
 		String input = "alpha beta gamma";
-		Pattern betaCapsSensitive  = re.compile("BETA", false, false, false);
-		Pattern betaLowerSensitive = re.compile("beta", false, false, false);
-		Pattern betaCapsInsensitive  = re.compile("BETA", true, false, false);
-		Pattern betaLowerInsensitive = re.compile("beta", true, false, false);
+		Pattern betaCapsSensitive  = re.newPattern("BETA", false, false, false);
+		Pattern betaLowerSensitive = re.newPattern("beta", false, false, false);
+		Pattern betaCapsInsensitive  = re.newPattern("BETA", true, false, false);
+		Pattern betaLowerInsensitive = re.newPattern("beta", true, false, false);
 		assertFalse(testClass + " case sensitive uppercase should not match lowercase input.", betaCapsSensitive.matches(input, Pattern.FIRST_MATCH));
 		assertTrue(testClass + " case sensitive lowercase should match lowercase input.", betaLowerSensitive.matches(input, Pattern.FIRST_MATCH));
 		assertTrue(testClass + " case insensitive uppercase should match lowercase input.", betaCapsInsensitive.matches(input, Pattern.FIRST_MATCH));
@@ -94,7 +96,7 @@ public class PatternTest {
 	@Test
 	public void testMatchRange() throws Exception {
 		String input = "briskets, bicycles, and boleros";
-		pat = re.compile("b\\w+s", false, false, false);
+		pat = re.newPattern("b\\w+s", false, false, false);
 		String sub = "$0";
 		
 		String[] allMatches = pat.match(input, sub, 0, -1);
@@ -119,7 +121,7 @@ public class PatternTest {
 	@Test
 	public void testMatchNumber() throws Exception {
 		String input = "briskets, bicycles, and boleros";
-		pat = re.compile("b\\w+s", false, false, false);
+		pat = re.newPattern("b\\w+s", false, false, false);
 		String sub = "$0";
 		
 		String firstMatch = pat.match(input, sub, 0,0)[0];
@@ -142,7 +144,7 @@ public class PatternTest {
 	@Test(expected=IllegalArgumentException.class)
 	public void testInvalidMatchRangeIllegalArgument() throws Exception {
 		String input = "briskets, bicycles, and boleros";
-		pat = re.compile("b\\w+s", false, false, false);
+		pat = re.newPattern("b\\w+s", false, false, false);
 		String sub = "$0";
 
 		pat.match(input, sub, -1, -2);
@@ -151,7 +153,7 @@ public class PatternTest {
 	@Test
 	public void testNonMatch() throws Exception {
 		String input = "briskets, bicycles, and boleros";
-		pat = re.compile("b\\w+s", false, false, false);
+		pat = re.newPattern("b\\w+s", false, false, false);
 		String sub = "$0";
 		
 		assertArrayEquals(new String[] { }, pat.match(input, sub, 4, 4));
@@ -160,7 +162,7 @@ public class PatternTest {
 	@Test()
 	public void testExclusionCharacter() throws Exception {
 		String input = "<table attr='value'><tr><td>cell</td></tr></table>";
-		pat = re.compile("<table[^>]*>(.*)</table>", false, false, false);
+		pat = re.newPattern("<table[^>]*>(.*)</table>", false, false, false);
 		String sub = "$1";
 		
 		String match = pat.match(input, sub, 0, 0)[0];
@@ -172,7 +174,7 @@ public class PatternTest {
 	@Test()
 	public void testNonGreedy() throws Exception {
 		String input = "<table attr='value'><tr><td>cell</td></tr></table>";
-		pat = re.compile("td>([^<]*?)<", false, false, false);
+		pat = re.newPattern("td>([^<]*?)<", false, false, false);
 		String sub = "$1";
 		
 		String match = pat.match(input, sub, 0, 0)[0];
@@ -183,15 +185,13 @@ public class PatternTest {
 
 	@Test()
 	public void testMatchCompilingPatternsSpeed() throws Exception {
-		// test 500KB input 100 times
-		// 2.905 / 2.083 w/ string
 		int numTests = 100;
 		int inputSize = 500000;
 		String testPattern = "[a-c]{3}(\\d+)";
 		
 		for(int i = 0 ; i < numTests ; i ++) {
 			String input = randomString(inputSize);
-			pat = re.compile(testPattern, false, false, false);
+			pat = re.newPattern(testPattern, false, false, false);
 			String sub = "$1";
 			pat.match(input, sub, 0, 0);
 		}
@@ -200,12 +200,10 @@ public class PatternTest {
 
 	@Test()
 	public void testMatchPrecompiledPatternsSpeed() throws Exception {
-		// test 500KB input 100 times
-		// 2.613 / 1.748 w/ string
 		int numTests = 100;
 		int inputSize = 500000;
 		String testPattern = "[a-c]{3}(\\d+)";
-		pat = re.compile(testPattern, false, false, false);
+		pat = re.newPattern(testPattern, false, false, false);
 		
 		for(int i = 0 ; i < numTests ; i ++) {
 			String input = randomString(inputSize);

@@ -89,11 +89,11 @@ public class InMemoryDatabaseView implements DatabaseView {
 	 * in addition to all its parents.
 	 */
 	public String toString() {
-		String result = "";
+		StringBuffer buf = new StringBuffer();
 		if(parent != null) {
-			result += parent.toString();
+			buf.append(parent.toString());
 		}
-		result += "<< " + hashtable.toString();
-		return result;
+		buf.append("<< " + hashtable.toString());
+		return buf.toString();
 	}
 }

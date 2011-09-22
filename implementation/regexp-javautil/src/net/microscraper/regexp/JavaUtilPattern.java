@@ -4,10 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import net.microscraper.database.DatabaseReadException;
-import net.microscraper.database.DatabaseView;
-import net.microscraper.template.StringSubstitution;
-
 final class JavaUtilPattern implements Pattern {
 	private final java.util.regex.Pattern pattern;
 	

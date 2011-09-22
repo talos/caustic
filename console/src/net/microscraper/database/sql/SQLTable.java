@@ -52,11 +52,11 @@ class SQLTable implements IOTable {
 	 * @return
 	 */
 	private String buildWhereClause(Set<String> whereColumns) {
-		String result = "WHERE `" + connection.getScopeColumnName() + "` = ?";
+		StringBuffer buf = new StringBuffer("WHERE `" + connection.getScopeColumnName() + "` = ?");
 		for(String whereColumn : whereColumns) {
-			result += " AND `" + whereColumn + "` = ? ";
+			buf.append(" AND `" + whereColumn + "` = ? ");
 		}
-		return result;
+		return buf.toString();
 	}
 	
 	public SQLTable(SQLConnection connection, String name) throws SQLConnectionException {
@@ -124,11 +124,11 @@ class SQLTable implements IOTable {
 			throw new TableManipulationException("Must provide values to update.");
 		}
 		
-		String set = " SET ";
+		StringBuffer setBuf = new StringBuffer(" SET ");
 		for(Map.Entry<String, String> entry : updateMap.entrySet()) {
-			set += "`" + entry.getKey() + "` = ? ,";
+			setBuf.append("`" + entry.getKey() + "` = ? ,");
 		}
-		set = set.substring(0, set.length() -1); // clip trailing comma
+		String set = setBuf.substring(0, setBuf.length() -1); // clip trailing comma
 		
 		List<String> params = new ArrayList<String>();
 		params.addAll(updateMap.values());
@@ -149,13 +149,13 @@ class SQLTable implements IOTable {
 	public List<Map<String, String>> select(UUID scope, Map<String, String> whereMap,
 			String[] columnNames) throws IOTableReadException {
 		try  {
-			String columnsClause = "";
+			StringBuffer columnsClauseBuf = new StringBuffer();
 			for(String columnName : columnNames) {
-				columnsClause += ", `"+ columnName + "` ";
+				columnsClauseBuf.append(", `"+ columnName + "` ");
 			}
 			// always select the scope column
 			String sql = "SELECT `" + connection.getScopeColumnName() + "` "
-					 + columnsClause + " FROM `" + name + "` " + buildWhereClause(whereMap.keySet());
+					 + columnsClauseBuf + " FROM `" + name + "` " + buildWhereClause(whereMap.keySet());
 			List<String> params = new ArrayList<String>();
 			params.add(scope.asString());
 			params.addAll(whereMap.values());

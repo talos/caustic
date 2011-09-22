@@ -90,7 +90,7 @@ public class HttpBrowserNetworkTest {
 		String url = "http://a836-acris.nyc.gov/Scripts/Coverpage.dll/index";
 		Hashtable<String, String> cookies = new Hashtable<String, String>();
 		cookies.put("JUMPPAGE", "YES");
-		browser.addCookies(url, cookies, new JavaNetEncoder("UTF-8"));
+		browser.addCookies(url, cookies);
 		String responseBody = browser.get(url, new Hashtable<String, String>(), new Pattern[] {});
 		assertTrue("ACRIS should provide access to its property records page if the" +
 				"JUMPPAGE cookie is set.", responseBody.contains("Search Property Records"));
@@ -102,7 +102,7 @@ public class HttpBrowserNetworkTest {
 		String encodedPostData = "hid_borough=3&hid_block=1772&hid_doctype=&hid_lot=74&hid_SearchType=BBL";
 		Hashtable<String, String> cookies = new Hashtable<String, String>();
 		cookies.put("JUMPPAGE", "YES");
-		browser.addCookies(url, cookies, new JavaNetEncoder("UTF-8"));
+		browser.addCookies(url, cookies);
 		String responseBody = browser.post(url, new Hashtable<String, String>(), new Pattern[] {},
 				encodedPostData);
 		assertTrue(responseBody.contains("PULASKI"));
