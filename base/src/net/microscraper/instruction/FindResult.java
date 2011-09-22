@@ -1,6 +1,5 @@
 package net.microscraper.instruction;
 
-import net.microscraper.client.ScraperResult;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.util.Result;
 import net.microscraper.util.StringUtils;
@@ -59,12 +58,12 @@ public class FindResult implements Result {
 	}
 	
 	/**
-	 * Obtain a {@link ScraperResult} with failure information.
+	 * Obtain a {@link FindResult} with failure information.
 	 * @param pattern
 	 * @param minMatch
 	 * @param maxMatch
 	 * @param source
-	 * @return A {@link ScraperResult} with failure information.
+	 * @return A {@link FindResult} with failure information.
 	 */
 	public static FindResult noMatchesFailure(Pattern pattern, int minMatch,
 			int maxMatch, String source) {

@@ -1,6 +1,5 @@
 package net.microscraper.instruction;
 
-import net.microscraper.client.ScraperResult;
 import net.microscraper.database.DatabaseException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.deserializer.Deserializer;
@@ -43,7 +42,7 @@ public class Instruction {
 	 * for this {@link Instruction}.
 	 * @param view The {@link DatabaseView} to use as input
 	 * for template substitutions.
-	 * @return A {@link ScraperResult} object with either successful
+	 * @return A {@link InstructionResult} object with either successful
 	 * values and children, or information about why
 	 * this method did not work.
 	 * @throws InterruptedException if the user interrupted during

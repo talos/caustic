@@ -9,6 +9,7 @@ import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.InstructionResult;
+import net.microscraper.template.StringTemplate;
 import net.microscraper.util.StringUtils;
 import net.microscraper.util.VectorUtils;
 
@@ -22,16 +23,50 @@ import net.microscraper.util.VectorUtils;
  */
 public class Scraper {
 	
-	private static final int SOURCE_TOSTRING_TRUNCATE = 100;
-	
 	private final Instruction instruction;
 	private final DatabaseView input;
+	private final Executor executor;
+	private HttpBrowser browser;
 	private String source;
-	private final HttpBrowser browser;
 	
-	private ScraperResult curResult;
-	private ScraperResult lastResult;
-
+	private InstructionResult instructionResult;
+	private Scraper[] children;
+	private String[] missingTags;
+	private String[] lastMissingTags;
+	
+	private void populateChildren() throws DatabaseException {
+		final String name = instructionResult.getName();
+		final String[] results = instructionResult.getResults();
+		final boolean shouldStoreValues = instructionResult.shouldStoreValues();
+		final Instruction[] childInstructions = instructionResult.getChildren();
+		
+		// create children.
+		children = new Scraper[childInstructions.length * results.length];
+		//final DatabaseView[] childViews = new DatabaseView[results.length];
+		for(int i = 0 ; i < results.length ; i ++) {
+			final DatabaseView childView;
+			// generate result views.
+			final String resultValue = results[i];
+			if(results.length == 1) { // don't spawn a new result for single match
+				childView = input;
+				if(shouldStoreValues) {
+					input.put(name, resultValue);
+				}
+			} else {
+				if(shouldStoreValues) {
+					childView = input.spawnChild(name, resultValue);
+				} else {
+					childView = input.spawnChild(name);							
+				}
+			}
+			for(int j = 0 ; j < childInstructions.length ; j ++) {
+				children[i * childInstructions.length + j] =
+						new Scraper(childInstructions[j], childView, results[i], browser.copy(),
+								executor);
+			}
+		}
+	}
+	
 	/**
 	 * Create a new {@link Scraper}.
 	 * @param instruction The {@link Instruction} to execute when scraping.
@@ -39,11 +74,13 @@ public class Scraper {
 	 * @param source The {@link String} to use as a source when scraping.
 	 * @see #scrape()
 	 */
-	public Scraper(Instruction instruction, DatabaseView input, String source, HttpBrowser browser)  {
+	public Scraper(Instruction instruction, DatabaseView input, String source, HttpBrowser browser,
+			Executor executor)  {
 		this.instruction = instruction;
 		this.input = input;
 		this.source = source;
 		this.browser = browser;
+		this.executor = executor;
 	}
 
 	/**
@@ -55,115 +92,61 @@ public class Scraper {
 	 * @param source The {@link String} to use as a source when scraping.
 	 * @see #scrape()
 	 */
-	public Scraper(Instruction instruction, Hashtable input, String source, HttpBrowser browser)  {
+	public Scraper(Instruction instruction, Hashtable input, String source, HttpBrowser browser,
+			Executor executor)  {
 		this.instruction = instruction;
 		this.input = new InMemoryDatabaseView(input);
 		this.source = source;
 		this.browser = browser;
+		this.executor = executor;
 	}
 	
+
 	/**
 	 * Try to scrape.  If {@link ScraperResult} is missing tags, it is recommended
 	 * to retry unless {@link #isStuck()} is <code>true</code> and no further modifications
 	 * to the backing {@link #input} are possible.
-	 * @return A {@link ScraperResult} with the results of this {@link Scraper},
-	 * or information about why it didn't work.
 	 * @throws InterruptedException If {@link Scraper} is interrupted.
 	 * @throws DatabaseException If there was an error persisting to the {@link DatabaseView}.
 	 */
-	public ScraperResult scrape() throws InterruptedException, DatabaseException {
-		lastResult = curResult;
+	public InstructionResult[] scrape() throws InterruptedException, DatabaseException {		
+
+		Vector instructionResults = new Vector();
+		lastMissingTags = missingTags;
 		
-		InstructionResult instructionResult = instruction.execute(source, input, browser);
+		// attempt to scrape
+		if(instructionResult == null) {
+			instructionResult = instruction.execute(source, input, browser);
+		}
+
+		// we won't be running this particular instruction again.
+		if(!instructionResult.isMissingTags()) {
+			source =null;
+		}
+		
+		instructionResults.add(instructionResult);
+
 		if(instructionResult.isSuccess()) {
-			source = null; // this could be quite a large hunk of String, want to clean it up ASAP.
-			
-			final String name = instructionResult.getName();
-			final String[] results = instructionResult.getResults();
-			final boolean shouldStoreValues = instructionResult.shouldStoreValues();
-			final Instruction[] children = instructionResult.getChildren();
-			
-			// handle database storage
-			final DatabaseView[] childViews = new DatabaseView[results.length];
-			for(int i = 0 ; i < results.length ; i ++) {
-				
-				// generate result views.
-				final String resultValue = results[i];
-				if(results.length == 1) { // don't spawn a new result for single match
-					childViews[i] = input;
-					if(shouldStoreValues) {
-						input.put(name, resultValue);
-					}
-				} else {
-					if(shouldStoreValues) {
-						childViews[i] = input.spawnChild(name, resultValue);
-					} else {
-						childViews[i] = input.spawnChild(name);							
-					}
-				}
+			// create children if they haven't yet been created
+			if(children == null) {
+				populateChildren();
 			}
-
-			// handle creation of children.
-			Scraper[] scraperChildren = new Scraper[children.length * results.length];
-			for(int i = 0 ; i < children.length ; i ++) {
-				for(int j = 0 ; j < results.length ; j ++) {
-					scraperChildren[i * results.length + j] =
-							new Scraper(children[i], childViews[j], results[j], browser.copy());
-				}
-			}
-			curResult = ScraperResult.success(name, childViews, scraperChildren);
-		} else if(instructionResult.isMissingTags()) {
-			curResult = ScraperResult.missingTags(instructionResult.getMissingTags(), this);
-		} else {
-			source = null; // again, clean up asap.
-			curResult = ScraperResult.failed(instructionResult);
+			
+			VectorUtils.arrayIntoVector(executor.scrape(children), instructionResults);
+			
+			// scrape children
+			/*for(int i = 0 ; i < children.length ; i ++) {
+				VectorUtils.arrayIntoVector(children[i].scrape(), instructionResults);
+			}*/
 		}
+
 		
-		return curResult;
-	}
-	
-
-	/**
-	 * Try to scrape.  If {@link ScraperResult} is missing tags, it is recommended
-	 * to retry unless {@link #isStuck()} is <code>true</code> and no further modifications
-	 * to the backing {@link #input} are possible.
-	 * @return A {@link ScraperResult} with the results of this {@link Scraper},
-	 * or information about why it didn't work.
-	 * @throws InterruptedException If {@link Scraper} is interrupted.
-	 * @throws DatabaseException If there was an error persisting to the {@link DatabaseView}.
-	 */
-	public ScraperResult[] scrapeAll() throws InterruptedException, DatabaseException {
-		Vector scraperResults = new Vector();
-		ScraperResult initialResult = scrape();
-		if(initialResult.isMissingTags() || initialResult.getFailedBecause() != null) {
-			return new ScraperResult[] { initialResult }; // fail out
-		} else {
-			scraperResults.add(initialResult);
-			Vector scrapersToScrape = new Vector();
-			
-			VectorUtils.arrayIntoVector(initialResult.getChildren(), scrapersToScrape);
-			
-			// TODO this infinite-loops over stuck tags.
-			throw new RuntimeException("unsupported");
-			
-			/*while(scrapersToScrape.size() > 0) {
-				Scraper scraper = (Scraper) scrapersToScrape.elementAt(0);
-				scrapersToScrape.removeElementAt(0);
-				ScraperResult result = scraper.scrape();
-				if(result.isMissingTags()) {
-					scrapersToScrape.add(scraper);
-				} else if(result.getChildren() != null) {
-					scraperResults.add(result);
-					VectorUtils.arrayIntoVector(result.getChildren(), scrapersToScrape);
-				} else {
-					scraperResults.add(result);
-				}
-			}
-			
-			ScraperResult[] scraperResultsAry = new ScraperResult[scraperResults.size()];
-			scraperResults.copyInto(scraperResultsAry);
-			return scraperResultsAry;*/
-		}
+		InstructionResult[] instructionResultsAry = new InstructionResult[instructionResults.size()];
+		instructionResults.copyInto(instructionResultsAry);
+		
+		// stock missing tags with all child missing tags
+		missingTags = StringTemplate.combine(instructionResultsAry);
+		return instructionResultsAry;
 	}
 	
 	/**
@@ -172,15 +155,11 @@ public class Scraper {
 	 * has generated a {@link ScraperResult} missing identical sets of tags.
 	 */
 	public boolean isStuck() {
-		if(curResult != null && lastResult != null) {
-			if(curResult.isMissingTags() && lastResult.isMissingTags()) {
-				String[] curMissingTags = curResult.getMissingTags();
-				String[] lastMissingTags = lastResult.getMissingTags();
-				if(curMissingTags.length == lastMissingTags.length) { // only bother testing if the same length
-					Vector curVector = VectorUtils.arrayIntoVector(curMissingTags, new Vector());
-					Vector lastVector = VectorUtils.arrayIntoVector(lastMissingTags, new Vector());
-					return VectorUtils.haveSameElements(curVector, lastVector);
-				}
+		if(missingTags != null && lastMissingTags != null) {
+			if(missingTags.length == lastMissingTags.length) { // only bother testing if the same length
+				Vector curVector = VectorUtils.arrayIntoVector(missingTags, new Vector());
+				Vector lastVector = VectorUtils.arrayIntoVector(lastMissingTags, new Vector());
+				return VectorUtils.haveSameElements(curVector, lastVector);
 			}
 		}
 		return false;
@@ -194,9 +173,6 @@ public class Scraper {
 	public String toString() {
 		return  StringUtils.simpleClassName(instruction) + " " +
 				StringUtils.quote(instruction.toString()) + " with tags substituted from " +
-				StringUtils.quote(input.toString()) +
-				(source == null ?
-						"" :
-						" and source " + StringUtils.quote(StringUtils.quoteAndTruncate(source, SOURCE_TOSTRING_TRUNCATE)));
+				StringUtils.quote(input.toString());
 	}
 }
