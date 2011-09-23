@@ -66,16 +66,45 @@ public class StringSubstitution implements DependsOnTemplate {
 	 * @param couldBeMissingTags An array of {@link DependsOnTemplate} whose {@link #missingTags}
 	 * should be combined.
 	 * @return A {@link String} array of all the missing tags.  Zero-length if there are none.
+	 * Does not include duplicates.
 	 */
 	public static String[] combine(DependsOnTemplate[] couldBeMissingTags) {
 		Vector missingTags = new Vector();
 		for(int i = 0 ; i < couldBeMissingTags.length ; i ++) {
 			if(couldBeMissingTags[i].isMissingTags()) {
-				VectorUtils.arrayIntoVector(couldBeMissingTags[i].getMissingTags(), missingTags);
+				String[] elemMissingTags = couldBeMissingTags[i].getMissingTags();
+				// ensure we don't insert duplicate tags
+				for(int j = 0 ; j < elemMissingTags.length ; j ++) {
+					String missingTag = elemMissingTags[j];
+					if(!missingTags.contains(missingTag)) {
+						missingTags.addElement(missingTag);
+					}
+				}
 			}
 		}
 		String[] missingTagsAry = new String[missingTags.size()];
 		missingTags.copyInto(missingTagsAry);
 		return missingTagsAry;
+	}
+	
+	/**
+	 * 
+	 * @param couldBeMissingTags1
+	 * @param couldBeMissingTags2
+	 * @return <code>true</code> if both parameters are missing the same tag names (in any order),
+	 * <code>false</code> otherwise.
+	 */
+	public static boolean isMissingSameTags(DependsOnTemplate couldBeMissingTags1,
+					DependsOnTemplate couldBeMissingTags2) {
+		if(couldBeMissingTags1.isMissingTags() && couldBeMissingTags2.isMissingTags()) {
+			String[] missingTags1 = couldBeMissingTags1.getMissingTags();
+			String[] missingTags2 = couldBeMissingTags2.getMissingTags();
+			if(missingTags1.length == missingTags2.length) { // only bother testing if the same length
+				Vector curVector = VectorUtils.arrayIntoVector(missingTags1, new Vector());
+				Vector lastVector = VectorUtils.arrayIntoVector(missingTags2, new Vector());
+				return VectorUtils.haveSameElements(curVector, lastVector);
+			}
+		}
+		return false;
 	}
 }

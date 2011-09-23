@@ -54,5 +54,6 @@ public interface DatabaseView {
 	 * @throws DatabasePersistException if there was a problem reading
 	 */
 	public abstract String get(String key) throws DatabaseReadException;
-
+	
+	public void addHook(DatabaseViewHook viewHook);
 }

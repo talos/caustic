@@ -5,6 +5,8 @@ import static net.microscraper.util.TestUtils.*;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import net.microscraper.concurrent.Executor;
+import net.microscraper.concurrent.SyncExecutor;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.http.HttpBrowser;

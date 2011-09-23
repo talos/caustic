@@ -2,6 +2,7 @@ package net.microscraper.database;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import net.microscraper.client.Scraper;
 
@@ -17,6 +18,7 @@ import net.microscraper.client.Scraper;
 public class InMemoryDatabaseView implements DatabaseView {
 	private final Hashtable hashtable;
 	private final DatabaseView parent;
+	private final Vector hooks = new Vector();
 
 	/**
 	 * Construct a new {@link DatabaseView} without any values.
@@ -60,13 +62,19 @@ public class InMemoryDatabaseView implements DatabaseView {
 	}
 	
 	public DatabaseView spawnChild(String name) throws DatabasePersistException {
-		return new InMemoryDatabaseView(this);
+		DatabaseView child = new InMemoryDatabaseView(this);
+		for(int i = 0 ; i < hooks.size() ; i ++) {
+			((DatabaseViewHook) hooks.elementAt(i)).spawnChild(name, child);
+		}
+		return child;
 	}
-
 	
 	public DatabaseView spawnChild(String name, String value) throws DatabasePersistException {
-		InMemoryDatabaseView child = new InMemoryDatabaseView(this);
+		DatabaseView child = new InMemoryDatabaseView(this);
 		child.put(name, value);
+		for(int i = 0 ; i < hooks.size() ; i ++) {
+			((DatabaseViewHook) hooks.elementAt(i)).spawnChild(name, child);
+		}
 		return child;
 	}
 	
@@ -81,6 +89,9 @@ public class InMemoryDatabaseView implements DatabaseView {
 	}
 	
 	public void put(String key, String value) throws DatabasePersistException {
+		for(int i = 0 ; i < hooks.size() ; i ++) {
+			((DatabaseViewHook) hooks.elementAt(i)).put(key, value);
+		}
 		hashtable.put(key, value);
 	}
 	
@@ -95,5 +106,9 @@ public class InMemoryDatabaseView implements DatabaseView {
 		}
 		buf.append("<< " + hashtable.toString());
 		return buf.toString();
+	}
+
+	public void addHook(DatabaseViewHook viewHook) {
+		hooks.add(viewHook);
 	}
 }

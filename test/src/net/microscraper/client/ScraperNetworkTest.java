@@ -8,6 +8,8 @@ import java.util.Hashtable;
 
 import mockit.Verifications;
 import net.microscraper.client.Scraper;
+import net.microscraper.concurrent.Executor;
+import net.microscraper.concurrent.SyncExecutor;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.http.CookieManager;
