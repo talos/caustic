@@ -9,7 +9,6 @@ import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.InstructionResult;
-import net.microscraper.template.StringTemplate;
 import net.microscraper.util.StringUtils;
 import net.microscraper.util.VectorUtils;
 
@@ -61,10 +60,19 @@ public class Scraper {
 			}
 			for(int j = 0 ; j < childInstructions.length ; j ++) {
 				children[i * childInstructions.length + j] =
-						new Scraper(childInstructions[j], childView, results[i], browser.copy(),
-								executor);
+					new Scraper(childInstructions[j], childView, results[i],
+						browser.copy(), executor);
 			}
 		}
+	}
+	
+	private Scraper(Instruction instruction, DatabaseView input, String source, HttpBrowser browser,
+			Executor executor)  {
+		this.instruction = instruction;
+		this.input = input;
+		this.source = source;
+		this.browser = browser;
+		this.executor = executor;
 	}
 	
 	/**
@@ -72,15 +80,17 @@ public class Scraper {
 	 * @param instruction The {@link Instruction} to execute when scraping.
 	 * @param input The {@link DatabaseView} to use as input when scraping.
 	 * @param source The {@link String} to use as a source when scraping.
+	 * @param browser
+	 * @param threads
 	 * @see #scrape()
 	 */
 	public Scraper(Instruction instruction, DatabaseView input, String source, HttpBrowser browser,
-			Executor executor)  {
+			int threads)  {
 		this.instruction = instruction;
 		this.input = input;
 		this.source = source;
 		this.browser = browser;
-		this.executor = executor;
+		this.executor = new AsyncExecutor(threads);
 	}
 
 	/**
@@ -90,63 +100,54 @@ public class Scraper {
 	 * @param input The {@link Hashtable} to use as input when scraping.  This will
 	 * be converted into a {@link InMemoryDatabaseView}.
 	 * @param source The {@link String} to use as a source when scraping.
+	 * @param browser
+	 * @param threads
 	 * @see #scrape()
 	 */
 	public Scraper(Instruction instruction, Hashtable input, String source, HttpBrowser browser,
-			Executor executor)  {
+			int threads)  {
 		this.instruction = instruction;
 		this.input = new InMemoryDatabaseView(input);
 		this.source = source;
 		this.browser = browser;
-		this.executor = executor;
+		this.executor = new AsyncExecutor(threads);
 	}
-	
 
 	/**
-	 * Try to scrape.  If {@link ScraperResult} is missing tags, it is recommended
-	 * to retry unless {@link #isStuck()} is <code>true</code> and no further modifications
-	 * to the backing {@link #input} are possible.
+	 * Scrape using this {@link Scraper}'s assigned {@link Instruction}.
 	 * @throws InterruptedException If {@link Scraper} is interrupted.
-	 * @throws DatabaseException If there was an error persisting to the {@link DatabaseView}.
+	 * @throws DatabaseException If there was an error persisting to or reading
+	 * from the {@link DatabaseView}.
 	 */
-	public InstructionResult[] scrape() throws InterruptedException, DatabaseException {		
+	public void scrape() throws InterruptedException, DatabaseException {		
 
-		Vector instructionResults = new Vector();
 		lastMissingTags = missingTags;
 		
 		// attempt to scrape
 		if(instructionResult == null) {
 			instructionResult = instruction.execute(source, input, browser);
-		}
-
-		// we won't be running this particular instruction again.
-		if(!instructionResult.isMissingTags()) {
-			source =null;
+		} else if(instructionResult.isMissingTags()) {
+			instructionResult = instruction.execute(source, input, browser);
 		}
 		
-		instructionResults.add(instructionResult);
-
+		// we won't be running this particular instruction again, save some memory.
+		if(!instructionResult.isMissingTags()) {
+			source = null;
+		}
+		
 		if(instructionResult.isSuccess()) {
 			// create children if they haven't yet been created
 			if(children == null) {
-				populateChildren();
+				populateChildren();	
+				browser = null; // can clear out browser at this point
 			}
 			
-			VectorUtils.arrayIntoVector(executor.scrape(children), instructionResults);
-			
-			// scrape children
-			/*for(int i = 0 ; i < children.length ; i ++) {
-				VectorUtils.arrayIntoVector(children[i].scrape(), instructionResults);
-			}*/
+			// scrape children using executor
+			executor.submit(children);
+		} else if(instructionResult.isMissingTags()) {
+			missingTags = instructionResult.getMissingTags();
+			executor.resubmit(this);
 		}
-
-		
-		InstructionResult[] instructionResultsAry = new InstructionResult[instructionResults.size()];
-		instructionResults.copyInto(instructionResultsAry);
-		
-		// stock missing tags with all child missing tags
-		missingTags = StringTemplate.combine(instructionResultsAry);
-		return instructionResultsAry;
 	}
 	
 	/**
@@ -174,5 +175,13 @@ public class Scraper {
 		return  StringUtils.simpleClassName(instruction) + " " +
 				StringUtils.quote(instruction.toString()) + " with tags substituted from " +
 				StringUtils.quote(input.toString());
+	}
+	
+	public void join() throws InterruptedException {
+		executor.join();
+	}
+
+	public void interrupt() {
+		executor.interrupt();
 	}
 }

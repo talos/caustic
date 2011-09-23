@@ -1,7 +1,6 @@
 package net.microscraper;
 
 import net.microscraper.client.ScraperLocalTest;
-import net.microscraper.client.ScraperResultTest;
 import net.microscraper.deserializer.JsonDeserializerTest;
 import net.microscraper.file.FileLoaderTest;
 import net.microscraper.http.CookieManagerLocalTest;
@@ -31,7 +30,6 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses({
-	ScraperResultTest.class,
 	FileLoaderTest.class,
 	CookieManagerLocalTest.class,
 	HttpBrowserLocalTest.class,

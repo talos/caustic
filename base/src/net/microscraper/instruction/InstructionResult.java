@@ -29,7 +29,6 @@ public class InstructionResult implements Result {
 		this.failedBecause = failedBecause;
 	}
 	
-	
 	public boolean isMissingTags() {
 		return missingTags != null;
 	}

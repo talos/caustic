@@ -72,8 +72,8 @@
 				 "extends" : "../shared/viewstate.json",
 				 "name" : "viewStateStepThree"
 			     },{
-				 "find" : "href\\s*=\\s*\"javascript:__doPostBack\\('(grdCases\\$_ctl\\d+\\$_ctl\\d+)'",
-				 "replace" : "$1",
+				 "find" : "href\\s*=\\s*\"javascript:__doPostBack\\('(grdCases)\\$(_ctl\\d+)\\$(_ctl\\d+)'",
+				 "replace" : "$1:$2:$3",
 				 "name" : "grdCases",
 				 "then" : {
 				     "load" : "http://www.columbuspolice.org/Reports/ReportGrid.aspx?loc=all",

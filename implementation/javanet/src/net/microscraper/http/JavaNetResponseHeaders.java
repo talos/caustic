@@ -8,7 +8,7 @@ import java.util.Map;
  * @author talos
  *
  */
-public class JavaNetResponseHeaders implements ResponseHeaders {
+class JavaNetResponseHeaders implements ResponseHeaders {
 	private final Map<String, List<String>> responseHeaders;
 	
 	public JavaNetResponseHeaders(final Map<String, List<String>> responseHeaders) {

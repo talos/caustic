@@ -9,7 +9,6 @@ import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import net.microscraper.client.ScraperResult;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.http.CookieManager;
 import net.microscraper.http.HttpBrowser;

@@ -2,16 +2,24 @@ package net.microscraper.console;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import net.microscraper.client.Executor;
+import net.microscraper.client.Scraper;
 import net.microscraper.database.ConnectionException;
 import net.microscraper.database.Database;
 import net.microscraper.database.DatabaseException;
+import net.microscraper.database.DatabaseView;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Instruction;
+import net.microscraper.instruction.InstructionResult;
 import net.microscraper.log.Logger;
 import net.microscraper.util.StringUtils;
 
@@ -30,7 +38,7 @@ public class Console {
 	private final HttpBrowser browser;
 	
 	private final int threadsPerRow;
-	private final ExecutorService executor;
+	private final BlockingQueue<Scraper> queue;
 	
 	public Console(String... stringArgs) throws InvalidOptionException, UnsupportedEncodingException {
 		
@@ -42,8 +50,10 @@ public class Console {
 		input = options.getInput();
 		browser = options.getBrowser();
 		
-		executor = Executors.newFixedThreadPool(options.getNumRowsToRead());
 		threadsPerRow = options.getThreadsPerRow();
+		queue = new ArrayBlockingQueue<Scraper>(options.getNumRowsToRead());
+		//executor = options.getExecutor();
+		//executor = new AsyncThreadExecutor();
 		
 		instruction = options.getInstruction();
 		source = options.getSource();
@@ -61,15 +71,27 @@ public class Console {
 		}
 	}
 	
-	public void execute() throws IOException, InterruptedException {
+	public void execute() throws IOException, InterruptedException, DatabaseException {
 		
 		// Start to read input.
 		Map<String, String> inputMap;
 		while((inputMap = input.next()) != null) {
-			AsyncScraper scraper = new AsyncScraper(
-					instruction, inputMap, database, source, browser.copy(), threadsPerRow);
-			scraper.register(logger);
-			executor.submit(scraper);
+			DatabaseView view = database.newView();
+			for(Map.Entry<String, String> entry : inputMap.entrySet()) {
+				view.put(entry.getKey(), entry.getValue());
+			}
+			
+			Scraper scraper = new Scraper(instruction, view,
+					source, browser.copy(), threadsPerRow);
+			
+			if(queue.remainingCapacity() == 0) {
+				Scraper scraperToFinish = queue.poll(); // wait for spot to become available
+				scraperToFinish.join();
+				logger.i("Finished " + scraperToFinish);
+			}
+			queue.put(scraper);
+			scraper.scrape();
+			logger.i("Scraping " + scraper);
 		}
 		
 		try {
@@ -79,8 +101,12 @@ public class Console {
 			System.out.println("Could not close input " + StringUtils.quote(input) + ": " + e.getMessage());
 		}
 		
-		executor.shutdown();
-		executor.awaitTermination(100, TimeUnit.DAYS);
+		while(queue.peek() != null) {
+			Scraper scraper = queue.poll();
+			scraper.join();
+			logger.i("Finished " + scraper);
+
+		}
 	}
 	
 	/**
@@ -92,13 +118,10 @@ public class Console {
 	public Thread getShutdownThread() {
 		return new Thread() {
 			public void run() {
-				executor.shutdownNow();
-				try {
-					executor.awaitTermination(10, TimeUnit.SECONDS);
-				} catch(InterruptedException e) {
-					System.out.println("Could not terminate all scrapers.");
+				for(Scraper scraper : queue) {
+					scraper.interrupt();
 				}
-					
+				
 				try {
 					logger.close();
 				} catch (IOException e) {

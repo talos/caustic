@@ -1,4 +1,4 @@
-package net.microscraper.client.impl;
+package net.microscraper.http;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -18,27 +18,6 @@ import net.microscraper.http.ResponseHeaders;
 public class ApacheCookieManager implements CookieManager {
 
 	private final CookieStore cookieStore = new BasicCookieStore();
-	
-	@Override
-	public String[] getCookiesFor(String urlString, Hashtable requestHeaders)
-			throws BadURLException, IOException {
-		cookieStore.getCookies();
-	}
-
-	@Override
-	public String[] getCookie2sFor(String urlString, Hashtable requestHeaders)
-			throws BadURLException, IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void addCookiesFromResponseHeaders(String urlString,
-			ResponseHeaders responseHeaders) throws BadURLException,
-			IOException {
-		responseHeaders.getHeaderValues(COOKIE_HEADER_NAME);
-		
-	}
 
 	@Override
 	public void addCookies(String urlStr, Hashtable cookies)
@@ -55,8 +34,37 @@ public class ApacheCookieManager implements CookieManager {
 				cookieStore.addCookie(cookie);
 			}
 		} catch(MalformedURLException e) {
-			throw new BadURLException(e);
+			throw new BadURLException(urlStr, e.getMessage());
 		}
+	}
+
+	@Override
+	public CookieManager copy() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[] getCookiesFor(String urlString, Hashtable requestHeaders)
+			throws BadURLException {
+		// TODO Auto-generated method stub
+		return null;
+		
+	}
+
+	@Override
+	public String[] getCookie2sFor(String urlString, Hashtable requestHeaders)
+			throws BadURLException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addCookiesFromResponseHeaders(String urlStr,
+			ResponseHeaders responseHeaders) throws BadURLException,
+			CookieStorageException {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

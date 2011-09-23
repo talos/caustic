@@ -24,7 +24,6 @@ import net.microscraper.json.JsonMEParser;
 import net.microscraper.json.JsonParser;
 import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.regexp.Pattern;
-import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.uri.URILoader;
 import net.microscraper.uri.UriResolver;
 import net.microscraper.util.Encoder;
@@ -53,8 +52,6 @@ public class JsonDeserializerTest {
 	@Mocked HttpBrowser browser;
 	@Mocked UriResolver resolver;
 	@Mocked URILoader loader;
-	private @Mocked UriResolver uriResolver;
-	private @Mocked URILoader uriLoader;
 	
 	private JSONDeserializer deserializer;
 	
@@ -107,23 +104,23 @@ public class JsonDeserializerTest {
 		findObj = new JSONObject().put(FIND, patternString);
 		deserializer = new JSONDeserializer(parser,
 				new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8)),
-				uriResolver, uriLoader);
+				resolver, loader);
 		emptyJson = new JSONObject().toString();
 		
 		final String loadUri = "LOAD URI " + randomString();
 		final String findUri = "FIND URI " + randomString();
 		new NonStrictExpectations() {
 			{
-				uriResolver.resolve(anyString, SELF);
+				resolver.resolve(anyString, SELF);
 				
-				uriResolver.resolve(userDir, ""); result = userDir;
-				uriResolver.resolve(loadPath, ""); result = loadPath;
-				uriResolver.resolve(findPath, ""); result = findPath;
+				resolver.resolve(userDir, ""); result = userDir;
+				resolver.resolve(loadPath, ""); result = loadPath;
+				resolver.resolve(findPath, ""); result = findPath;
 				
-				uriResolver.resolve(userDir, loadPath); result = loadUri;			
-				uriResolver.resolve(userDir, findPath); result = findUri;
-				uriLoader.load(loadUri); result = loadObj.toString();
-				uriLoader.load(findUri); result = findObj.toString();
+				resolver.resolve(userDir, loadPath); result = loadUri;			
+				resolver.resolve(userDir, findPath); result = findUri;
+				loader.load(loadUri); result = loadObj.toString();
+				loader.load(findUri); result = findObj.toString();
 			}
 		};
 	}
@@ -290,7 +287,7 @@ public class JsonDeserializerTest {
 		findObj.put(THEN, SELF);
 		
 		new NonStrictExpectations() {{
-			uriLoader.load(userDir); result = findObj.toString();
+			loader.load(userDir); result = findObj.toString();
 		}};
 		
 		new Expectations() {{
@@ -318,7 +315,7 @@ public class JsonDeserializerTest {
 		findObj.put(THEN, new JSONArray().put(SELF).put(SELF));
 
 		new NonStrictExpectations() {{
-			uriLoader.load(userDir); result = findObj.toString();
+			loader.load(userDir); result = findObj.toString();
 		}};
 		
 		new Expectations() {{

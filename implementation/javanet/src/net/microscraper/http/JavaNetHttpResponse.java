@@ -18,7 +18,7 @@ import net.microscraper.util.StringUtils;
  * @author realest
  *
  */
-public class JavaNetHttpResponse implements HttpResponse {
+class JavaNetHttpResponse implements HttpResponse {
 	private final int responseCode;
 	private final InputStreamReader contentStream;
 	private final ResponseHeaders responseHeaders;

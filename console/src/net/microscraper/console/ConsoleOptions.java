@@ -11,7 +11,9 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
+import net.microscraper.client.Executor;
 import net.microscraper.database.Database;
 import net.microscraper.database.NonPersistedDatabase;
 import net.microscraper.database.IOConnection;
@@ -458,9 +460,8 @@ public final class ConsoleOptions {
 			int threadsPerRow = Integer.valueOf(getValue(threads));
 			if(threadsPerRow <= 0) {
 				throw new InvalidOptionException(THREADS + " must be greater than 0");
-			} else {
-				return threadsPerRow;
 			}
+			return threadsPerRow;
 		} catch(NumberFormatException e) {
 			throw new InvalidOptionException(THREADS + " must be an integer.");
 		}

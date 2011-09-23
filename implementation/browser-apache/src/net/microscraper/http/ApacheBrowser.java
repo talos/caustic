@@ -1,4 +1,4 @@
-package net.microscraper.client.impl;
+package net.microscraper.http;
 
 import java.io.ByteArrayOutputStream;
 

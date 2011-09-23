@@ -3,6 +3,8 @@ package net.microscraper.console;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
+import net.microscraper.database.DatabaseException;
+
 public class MainClass {
 
 	/**
@@ -37,6 +39,9 @@ public class MainClass {
 			println("Your computer does not support the required encoding: " + e.getMessage());
 		} catch(IOException e) {
 			e.printStackTrace();
+		} catch(DatabaseException e) {
+			e.printStackTrace();
+			println("There was an error with the database: " + e);
 		} catch(InterruptedException e) {
 			println("Interrupt");
 		}

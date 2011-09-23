@@ -2,8 +2,11 @@ package net.microscraper.client;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Hashtable;
 
+import mockit.Verifications;
 import net.microscraper.client.Scraper;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.database.InMemoryDatabaseView;
@@ -15,6 +18,7 @@ import net.microscraper.http.JavaNetHttpRequester;
 import net.microscraper.http.RateLimitManager;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
+import net.microscraper.instruction.InstructionResult;
 import net.microscraper.instruction.Load;
 import net.microscraper.regexp.JavaUtilRegexpCompiler;
 import net.microscraper.regexp.RegexpCompiler;
@@ -26,64 +30,37 @@ import net.microscraper.util.JavaNetHttpUtils;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 /**
  * @author realest
  *
  */
+@RunWith(Parameterized.class)
 public class ScraperNetworkTest {
-	private HttpBrowser browser;
-	private Encoder encoder;
-	private RegexpCompiler compiler;
+	private final HttpBrowser browser;
+	//private final Encoder encoder;
+	private final RegexpCompiler compiler;
+	private final Executor executor;
 	
-	/**
-	 * Override this method to test a specific {@link HttpRequester}.
-	 * @return An {@link HttpRequester}
-	 * @throws Exception
-	 */
-	protected HttpRequester getHttpRequester() throws Exception {
-		return new JavaNetHttpRequester();
-	}
-
-	/**
-	 * Override this method to test a specific {@link CookieManager}.
-	 * @return An {@link CookieManager}
-	 * @throws Exception
-	 */
-	protected CookieManager getCookieManager() throws Exception {
-		return new JavaNetCookieManager();
-	}
-
-	/**
-	 * Override this method to test a specific {@link HttpUtils}.
-	 * @return An {@link HttpUtils}
-	 * @throws Exception
-	 */
-	protected HttpUtils getHttpUtils() throws Exception {
-		return new JavaNetHttpUtils();
-	}
-
-
-	/**
-	 * Override this method to test a specific {@link RegexpCompiler}.
-	 * @return An {@link RegexpCompiler}
-	 * @throws Exception
-	 */
-	protected RegexpCompiler getRegexpCompiler() throws Exception {
-		return new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8));
+	public ScraperNetworkTest(HttpBrowser browser, RegexpCompiler compiler, Executor executor) {
+		this.browser = browser;
+		this.compiler = compiler;
+		this.executor = executor;
 	}
 	
-	/**
-	 * Set up the {@link #client} before each test.
-	 * @throws Exception
-	 */
-	@Before
-	public void setUp() throws Exception {
-		
-		browser = new HttpBrowser(new JavaNetHttpRequester(),
-				new RateLimitManager(getHttpUtils()),
-				getCookieManager());
-		compiler = getRegexpCompiler();
+	@Parameters
+	public static Collection<Object[]> implementations() throws Exception {
+		return Arrays.asList(new Object[][] {
+				{	new HttpBrowser(new JavaNetHttpRequester(),
+						new RateLimitManager(new JavaNetHttpUtils()),
+						new JavaNetCookieManager()), 
+					new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8)),
+					new SyncExecutor()
+				}
+		});
 	}
 	
 	/**
@@ -112,9 +89,15 @@ public class ScraperNetworkTest {
 		inputTable.put("query", "hello");
 		DatabaseView input = new InMemoryDatabaseView(inputTable);
 		
-		Scraper scraper = new Scraper(instruction, input, null, browser);
+		Scraper scraper = new Scraper(instruction, input, null, browser, executor);
 		
-		ScraperResult result;
+		InstructionResult[] results = scraper.scrape();
+		assertEquals(2, results.length);
+		for(InstructionResult result : results) {
+			assertTrue(result.isSuccess());
+		}
+		
+		/*
 		String name;
 		DatabaseView[] views;
 		Scraper[] children;
@@ -141,7 +124,11 @@ public class ScraperNetworkTest {
 		assertTrue(views.length > 0);
 		for(int i = 0 ; i < views.length ; i ++) {
 			assertTrue(views[i].get(name).startsWith("I say"));
-		}
+		}*/
+		/*
+		new Verifications() {{
+			
+		}};*/
 	}
 	/*
 	public void testScrapeComplexGoogle(String pathToFixture) throws Exception {

@@ -59,4 +59,9 @@ class NonPersistedDatabaseView implements DatabaseView {
 		SingleTable.insert(table, scope, null, key, value);
 		view.put(key, value);
 	}
+	
+	@Override
+	public String toString() {
+		return view.toString();
+	}
 }
