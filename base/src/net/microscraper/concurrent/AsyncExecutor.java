@@ -12,19 +12,10 @@ import net.microscraper.util.VectorUtils;
  *
  */
 public class AsyncExecutor extends Thread {	
+	private Vector failedBecause = new Vector();
 	private Vector queue = new Vector();
 	private Vector toResubmit = new Vector();
 	private final ExecutorThread[] threadPool;
-	
-	private void retryResubmits() {
-		synchronized(toResubmit) {
-			for(int i = 0 ; i < toResubmit.size() ; i ++) {
-				Executable executable = (Executable) toResubmit.elementAt(i);
-				findLeastOccupiedThread().add(executable);
-			}
-			toResubmit.clear();
-		}
-	}
 	
 	/**
 	 * 
@@ -105,12 +96,23 @@ public class AsyncExecutor extends Thread {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param executable An {@link Executable} that will be executed as soon
+	 * as a thread becomes free.
+	 */
 	public void submit(Executable executable) {
 		synchronized(queue) {
 			queue.add(executable);
 		}
 	}
 
+	/**
+	 * 
+	 * @param executable An {@link Executable} that may be executed in a batch
+	 * once this {@link AsyncExecutor}'s queue is empty, provided that not all the
+	 * {@link Executable}s in the batch are stuck.
+	 */
 	public void resubmit(Executable executable)  {
 		synchronized(toResubmit) {
 			toResubmit.add(executable);
@@ -122,5 +124,13 @@ public class AsyncExecutor extends Thread {
 		for(int i = 0 ; i < threadPool.length ; i ++) {
 			threadPool[i].interrupt();
 		}
+	}
+	
+	/**
+	 * 
+	 * @param failedBecause The reason an {@link Executable} failed.
+	 */
+	public void recordFailure(String failedBecause) {
+		this.failedBecause.add(failedBecause);
 	}
 }

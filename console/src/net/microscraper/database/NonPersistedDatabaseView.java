@@ -10,58 +10,33 @@ import net.microscraper.uuid.UUIDFactory;
  * @author talos
  *
  */
-class NonPersistedDatabaseView implements DatabaseView {
-	
-	private final InMemoryDatabaseView view;
+class NonPersistedDatabaseViewHook implements DatabaseViewHook {
 	private final WritableTable table;
 	private final UUIDFactory idFactory;
 	private final UUID scope;
+	private final UUID parentScope;
 	
-	private NonPersistedDatabaseView(NonPersistedDatabaseView parent, String name, String value)
-			throws DatabasePersistException {
-		this.idFactory = parent.idFactory;
-		this.scope = idFactory.get();
-		this.table = parent.table;
-		if(value == null) {
-			this.view = (InMemoryDatabaseView) parent.view.spawnChild(name);
-		} else {
-			this.view = (InMemoryDatabaseView) parent.view.spawnChild(name, value);
-		}
-		SingleTable.insert(table, scope, parent.scope, name, value);
-	}
-	
-	public NonPersistedDatabaseView(UUIDFactory idFactory, WritableTable table)
-			throws DatabasePersistException {
-		this.view = new InMemoryDatabaseView();
+	public NonPersistedDatabaseViewHook(WritableTable table, UUIDFactory idFactory, UUID parentScope) {
+		this.table = table;
 		this.idFactory = idFactory;
 		this.scope = idFactory.get();
-		this.table = table;
+		this.parentScope = parentScope;
 	}
 	
 	@Override
-	public NonPersistedDatabaseView spawnChild(String name) throws DatabasePersistException {
-		return spawnChild(name, null);
+	public void put(String name, String value) {
+		SingleTable.insert(table, scope, parentScope, name, value);
 	}
 
 	@Override
-	public NonPersistedDatabaseView spawnChild(String name, String value)
-			throws DatabasePersistException {
-		return new NonPersistedDatabaseView(this, name, value);
+	public void spawnChild(String name, DatabaseView child) {
+		SingleTable.insert(table, scope, parentScope, name, null);		
+		child.addHook(new NonPersistedDatabaseViewHook(table, idFactory, scope));
 	}
 
 	@Override
-	public String get(String key) throws DatabaseReadException {
-		return view.get(key);
-	}
-
-	@Override
-	public void put(String key, String value) throws DatabasePersistException {
-		SingleTable.insert(table, scope, null, key, value);
-		view.put(key, value);
-	}
-	
-	@Override
-	public String toString() {
-		return view.toString();
+	public void spawnChild(String name, String value, DatabaseView child) {
+		SingleTable.insert(table, scope, parentScope, name, value);		
+		child.addHook(new NonPersistedDatabaseViewHook(table, idFactory, scope));		
 	}
 }

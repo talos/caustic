@@ -6,11 +6,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Hashtable;
 
+import mockit.Mocked;
 import mockit.Verifications;
 import net.microscraper.client.Scraper;
-import net.microscraper.concurrent.Executor;
 import net.microscraper.concurrent.SyncExecutor;
 import net.microscraper.database.DatabaseView;
+import net.microscraper.database.DatabaseViewHook;
 import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.http.CookieManager;
 import net.microscraper.http.HttpBrowser;
@@ -42,15 +43,15 @@ import org.junit.runners.Parameterized.Parameters;
  */
 @RunWith(Parameterized.class)
 public class ScraperNetworkTest {
+	@Mocked DatabaseViewHook hook;
+	
 	private final HttpBrowser browser;
 	//private final Encoder encoder;
 	private final RegexpCompiler compiler;
-	private final Executor executor;
 	
-	public ScraperNetworkTest(HttpBrowser browser, RegexpCompiler compiler, Executor executor) {
+	public ScraperNetworkTest(HttpBrowser browser, RegexpCompiler compiler) {
 		this.browser = browser;
 		this.compiler = compiler;
-		this.executor = executor;
 	}
 	
 	@Parameters
@@ -59,8 +60,7 @@ public class ScraperNetworkTest {
 				{	new HttpBrowser(new JavaNetHttpRequester(),
 						new RateLimitManager(new JavaNetHttpUtils()),
 						new JavaNetCookieManager()), 
-					new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8)),
-					new SyncExecutor()
+					new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8))
 				}
 		});
 	}
@@ -89,48 +89,16 @@ public class ScraperNetworkTest {
 
 		Hashtable<String, String> inputTable = new Hashtable<String, String>();
 		inputTable.put("query", "hello");
-		DatabaseView input = new InMemoryDatabaseView(inputTable);
 		
-		Scraper scraper = new Scraper(instruction, input, null, browser, executor);
+		Scraper scraper = new Scraper(instruction, inputTable, null, browser, hook);
 		
-		InstructionResult[] results = scraper.scrape();
-		assertEquals(2, results.length);
-		for(InstructionResult result : results) {
-			assertTrue(result.isSuccess());
-		}
+		scraper.scrapeSync();
 		
-		/*
-		String name;
-		DatabaseView[] views;
-		Scraper[] children;
-		
-		// Test first scraper.
-		result = scraper.scrape();
-		assertTrue(result.isSuccess());
-		
-		name = result.getName();
-		assertEquals(googleTemplate.sub(input).getSubstituted(), name);
-		
-		children = result.getChildren();
-		assertEquals("Should have one child", 1, children.length);
-		
-		// Test child scraper.
-		result = children[0].scrape();
-		assertTrue(result.isSuccess());
-		
-		name = result.getName();
-		assertEquals(whatDoYouSayTemplate.sub(input).getSubstituted(), result.getName());
-		assertEquals("Should not have children", 0, result.getChildren().length);
-		
-		views = result.getResultViews();
-		assertTrue(views.length > 0);
-		for(int i = 0 ; i < views.length ; i ++) {
-			assertTrue(views[i].get(name).startsWith("I say"));
-		}*/
-		/*
 		new Verifications() {{
-			
-		}};*/
+			//hook.put("query", "hello");
+			hook.spawnChild("what do you say after hello", withPrefix("I say "), (DatabaseView) any);
+			hook.spawnChild("what do you say after hello", withPrefix("I say "), (DatabaseView) any);
+		}};
 	}
 	/*
 	public void testScrapeComplexGoogle(String pathToFixture) throws Exception {

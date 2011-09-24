@@ -14,7 +14,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import mockit.Expectations;
 import mockit.Mocked;
+import mockit.internal.expectations.transformation.ExpectationsTransformer;
 import net.microscraper.database.csv.CSVConnection;
 import net.microscraper.database.sql.JDBCSqliteConnection;
 import net.microscraper.uuid.IntUUIDFactory;
@@ -284,5 +286,18 @@ public class DatabaseViewTest {
 		//futures = exc.invokeAll(callables);
 		exc.shutdown();
 		assertTrue("didn't complete in one minute", exc.awaitTermination(1, TimeUnit.MINUTES));
+	}
+	
+	@Test
+	public void testHook(@Mocked final DatabaseViewHook hook) throws Exception {
+		new Expectations() {{
+			hook.put("key", "value");
+			hook.spawnChild("name", (DatabaseView) any);
+			hook.spawnChild("name", "value", (DatabaseView) any);
+		}};
+		view.addHook(hook);
+		view.put("key", "value");
+		view.spawnChild("name");
+		view.spawnChild("name", "value");
 	}
 }

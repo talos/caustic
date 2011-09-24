@@ -4,7 +4,6 @@ import net.microscraper.uuid.UUIDFactory;
 
 public class NonPersistedDatabase implements Database {
 	private final WritableConnection connection;
-	private final UUIDFactory idFactory;
 	private WritableTable table;
 	
 	public NonPersistedDatabase(WritableConnection connection, UUIDFactory idFactory) {
@@ -17,10 +16,13 @@ public class NonPersistedDatabase implements Database {
 		connection.open();
 		table = SingleTable.get(connection);
 	}
-
+	
 	@Override
 	public DatabaseView newView() throws DatabasePersistException {
-		return new NonPersistedDatabaseView(idFactory, table);
+		DatabaseView view = new InMemoryDatabaseView();
+		view.addHook(new NonPersistedDatabaseViewHook(table, idFactory));
+		return view;
+		//return new NonPersistedDatabaseView(idFactory, table);
 	}
 
 	@Override

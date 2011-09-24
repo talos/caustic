@@ -1,10 +1,6 @@
 package net.microscraper.concurrent;
 
-import java.util.Vector;
-
-import net.microscraper.client.Scraper;
 import net.microscraper.database.DatabaseException;
-import net.microscraper.util.VectorUtils;
 
 final class ExecutorThread extends Thread {
 	
@@ -32,7 +28,7 @@ final class ExecutorThread extends Thread {
 							if(executable.isMissingTags()) {
 								executor.resubmit(executable);
 							} else {
-								// failed TODO
+								executor.recordFailure(executable.getFailedBecause());
 							}
 						}
 						this.executable = null; // reset executable
