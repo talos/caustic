@@ -2,6 +2,11 @@ package net.microscraper.database;
 
 import net.microscraper.uuid.UUID;
 
+/**
+ * 
+ * @author talos
+ *
+ */
 interface PersistedDatabase extends Database {
 	
 	/**

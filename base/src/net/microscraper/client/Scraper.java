@@ -47,10 +47,8 @@ public class Scraper {
 	 * @param hook
 	 * @see #scrape()
 	 */
-	public Scraper(Instruction instruction, Hashtable input, String source, HttpBrowser browser,
-			DatabaseViewHook hook)  {
+	public Scraper(Instruction instruction, Hashtable input, String source, HttpBrowser browser)  {
 		this.view = new InMemoryDatabaseView(input);
-		this.view.addHook(hook);
 		this.executable = new Executable(instruction, view, source, browser);
 	}
 	
@@ -63,6 +61,7 @@ public class Scraper {
 	 */
 	public AsyncExecutor scrape(int nThreads) throws DatabaseException {		
 		AsyncExecutor executor = new AsyncExecutor(nThreads, executable);
+		executor.start();
 		return executor;
 	}
 	
@@ -72,6 +71,16 @@ public class Scraper {
 	 * @throws InterruptedException If the user interrupts the scraping.
 	 */
 	public void scrapeSync() throws DatabaseException, InterruptedException {
-		new SyncExecutor(executable);
+		SyncExecutor executor = new SyncExecutor(executable);
+		executor.execute();
+	}
+	
+	/**
+	 * 
+	 * @param hook A {@link DatabaseViewHook} to add to this {@link Scraper}'s 
+	 * {@link DatabaseView}.
+	 */
+	public void addHook(DatabaseViewHook hook) {
+		view.addHook(hook);
 	}
 }

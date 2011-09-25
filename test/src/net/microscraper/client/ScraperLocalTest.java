@@ -28,13 +28,12 @@ import org.junit.Test;
 public class ScraperLocalTest {
 	@Mocked private HttpBrowser browser;
 	@Mocked DatabaseViewHook hook;
-	
+		
 	@Test
 	public void testExecutesTwice(@Mocked final Instruction instruction) throws Exception {
 
 		final String missingTag = randomString();
 		
-		// 
 		new Expectations() {{
 			instruction.execute(null, (DatabaseView) any, (HttpBrowser) any);
 				result = InstructionResult.missingTags(new String[] { missingTag } );
@@ -42,7 +41,8 @@ public class ScraperLocalTest {
 				$ = "should execute the same instruction twice from single scrape";
 		}};
 		
-		Scraper scraper = new Scraper(instruction, HashtableUtils.EMPTY, null, browser, hook);
+		Scraper scraper = new Scraper(instruction, HashtableUtils.EMPTY, null, browser);
+		scraper.addHook(hook);
 		scraper.scrapeSync();
 		
 		new Verifications() {{
@@ -71,7 +71,8 @@ public class ScraperLocalTest {
 		find.setName(new StaticStringTemplate(name));
 		Instruction instruction = new Instruction(find);
 		
-		Scraper scraper = new Scraper(instruction, HashtableUtils.EMPTY, input, browser, hook);
+		Scraper scraper = new Scraper(instruction, HashtableUtils.EMPTY, input, browser);
+		scraper.addHook(hook);
 		scraper.scrapeSync();
 		
 		new Verifications() {{
@@ -81,7 +82,6 @@ public class ScraperLocalTest {
 		}};
 	}
 	
-
 	@Test
 	public void testBindsStringFromDatabaseView(@Mocked final RegexpCompiler compiler) throws Exception {
 		final String search = randomString();
@@ -103,8 +103,8 @@ public class ScraperLocalTest {
 		find.setName(new StaticStringTemplate(randomString()));
 		Instruction instruction = new Instruction(find);
 		DatabaseView view = new InMemoryDatabaseView();
-		view.addHook(hook);
 		Scraper scraper = new Scraper(instruction, view, input, browser);
+		scraper.addHook(hook);
 		scraper.scrapeSync();
 		
 		new Verifications() {{

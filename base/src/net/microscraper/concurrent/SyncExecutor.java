@@ -11,6 +11,7 @@ import net.microscraper.util.VectorUtils;
  *
  */
 public class SyncExecutor {
+	private final Executable initialExecutable;
 	
 	/**
 	 * 
@@ -47,8 +48,12 @@ public class SyncExecutor {
 		return stuckExecutablesAry;
 	}
 	
-	public SyncExecutor(Executable executable) throws InterruptedException, DatabaseException {
-		Executable[] executables = new Executable[] { executable } ;
+	public SyncExecutor(Executable executable) {
+		this.initialExecutable = executable;
+	}
+	
+	public void execute() throws InterruptedException, DatabaseException {
+		Executable[] executables = new Executable[] { initialExecutable } ;
 		while(executables.length > 0) {
 			executables = loop(executables);
 			if(Executable.allAreStuck(executables)) {
@@ -57,5 +62,4 @@ public class SyncExecutor {
 			}
 		}
 	}
-
 }

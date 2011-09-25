@@ -64,7 +64,7 @@ public final class Executable implements Result {
 			if(results.length == 1) { // don't spawn a new result for single match
 				childView = view;
 				if(shouldStoreValues) {
-					view.put(name, resultValue);
+					childView.put(name, resultValue);
 				}
 			} else {
 				if(shouldStoreValues) {
@@ -94,6 +94,13 @@ public final class Executable implements Result {
 				StringUtils.quote(view.toString());
 	}
 	
+	/**
+	 * 
+	 * @return An array of {@link Executable}s that can execute this {@link Executable}s
+	 * children, or <code>null</code> if this was not a successful execution.
+	 * @throws DatabaseException
+	 * @throws InterruptedException
+	 */
 	public Executable[] execute() throws DatabaseException, InterruptedException {
 		lastResult = result;
 		

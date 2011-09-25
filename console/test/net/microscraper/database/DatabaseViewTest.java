@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.Verifications;
 import mockit.internal.expectations.transformation.ExpectationsTransformer;
 import net.microscraper.database.csv.CSVConnection;
 import net.microscraper.database.sql.JDBCSqliteConnection;
@@ -53,16 +54,16 @@ public class DatabaseViewTest {
 		// Reflection, yay! :/
 		// this must be done because @Parameters must be static, and this wrecks with opening connections.
 		return Arrays.asList(new Object[][] {
-				{ NonPersistedDatabase.class.getConstructor(WritableConnection.class, UUIDFactory.class),
+				{ InMemorySingleTableDatabase.class.getConstructor(WritableConnection.class, UUIDFactory.class),
 					CSVConnection.class.getMethod("toSystemOut", char.class), Arrays.asList(DELIMITER),
 					new IntUUIDFactory() },
-				{ SingleTableDatabase.class.getConstructor(IOConnection.class, UUIDFactory.class),
+				{ PersistedSingleTableDatabase.class.getConstructor(IOConnection.class, UUIDFactory.class),
 					JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String"), boolean.class),
 					Arrays.asList(Database.SCOPE_COLUMN_NAME, true), new IntUUIDFactory() },
-				{ MultiTableDatabase.class.getConstructor(IOConnection.class, UUIDFactory.class),
+				{ PersistedMultiTableDatabase.class.getConstructor(IOConnection.class, UUIDFactory.class),
 						JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String"), boolean.class),
 						Arrays.asList(Database.SCOPE_COLUMN_NAME, true), new IntUUIDFactory() },
-				{ MultiTableDatabase.class.getConstructor(IOConnection.class, UUIDFactory.class),
+				{ PersistedMultiTableDatabase.class.getConstructor(IOConnection.class, UUIDFactory.class),
 					JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String"), boolean.class),
 					Arrays.asList(Database.SCOPE_COLUMN_NAME, false), new JavaUtilUUIDFactory() },
 		});
@@ -186,7 +187,7 @@ public class DatabaseViewTest {
 		
 		exc.submit(new Callable<Void>() {
 			@Override
-			public Void call() throws DatabasePersistException {
+			public Void call() throws Exception {
 				view.put(name, value);
 				return null;
 			}
@@ -194,7 +195,7 @@ public class DatabaseViewTest {
 		
 		exc.submit(new Callable<String>() {
 			@Override
-			public String call() throws DatabaseReadException {
+			public String call() throws Exception {
 				return view.get(name);
 			}
 		});
@@ -225,7 +226,7 @@ public class DatabaseViewTest {
 		for(int i = 0 ; i < count ; i ++) {
 			callables.add(new Callable<DatabaseView>() {
 				@Override
-				public DatabaseView call() throws DatabasePersistException {
+				public DatabaseView call() throws Exception {
 					DatabaseView child = view.spawnChild(childName, childValue);
 					child.put(nameToOverwrite, overwritingValue);
 					return child;
@@ -289,15 +290,17 @@ public class DatabaseViewTest {
 	}
 	
 	@Test
-	public void testHook(@Mocked final DatabaseViewHook hook) throws Exception {
-		new Expectations() {{
-			hook.put("key", "value");
-			hook.spawnChild("name", (DatabaseView) any);
-			hook.spawnChild("name", "value", (DatabaseView) any);
-		}};
+	public void testHook(@Mocked(capture = 1) final DatabaseViewHook hook) throws Exception {
+		
 		view.addHook(hook);
 		view.put("key", "value");
 		view.spawnChild("name");
 		view.spawnChild("name", "value");
+		
+		new Verifications() {{
+			hook.put("key", "value");
+			hook.spawnChild("name", (DatabaseView) any);
+			hook.spawnChild("name", "value", (DatabaseView) any);
+		}};
 	}
 }

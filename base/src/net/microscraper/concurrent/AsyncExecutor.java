@@ -3,7 +3,6 @@ package net.microscraper.concurrent;
 import java.util.Vector;
 
 import net.microscraper.client.Scraper;
-import net.microscraper.database.DatabaseException;
 import net.microscraper.util.VectorUtils;
 
 /**
@@ -51,7 +50,7 @@ public class AsyncExecutor extends Thread {
 	}
 	
 	/**
-	 * Construct the {@link AsyncExecutor} and start it.
+	 * Construct the {@link AsyncExecutor}, but do not start it.
 	 * @param nThreads
 	 * @param executable The initial executable.
 	 */
@@ -61,8 +60,7 @@ public class AsyncExecutor extends Thread {
 			threadPool[i] = new ExecutorThread(this);
 			threadPool[i].start();
 		}
-		queue.add(executable);
-		this.start();
+		submit(executable);
 	}
 
 	public void run() {
@@ -81,9 +79,10 @@ public class AsyncExecutor extends Thread {
 							Executable[] toResubmitAry = new Executable[toResubmit.size()];
 							toResubmit.copyInto(toResubmitAry);
 							if(Executable.allAreStuck(toResubmitAry)) {
-								// don't resubmit anything
+								// don't resubmit anything, will exit
 							} else {
 								toResubmit.clear();
+								// refill the queue
 								VectorUtils.arrayIntoVector(toResubmitAry, queue);
 							}
 						}
@@ -120,10 +119,10 @@ public class AsyncExecutor extends Thread {
 	}
 	
 	public void interrupt() {
-		super.interrupt();
 		for(int i = 0 ; i < threadPool.length ; i ++) {
 			threadPool[i].interrupt();
 		}
+		super.interrupt();
 	}
 	
 	/**

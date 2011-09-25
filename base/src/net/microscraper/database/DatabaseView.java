@@ -4,8 +4,10 @@ package net.microscraper.database;
 import net.microscraper.regexp.StringTemplate;
 
 /**
- * Microscraper uses {@link DatabaseView} to store data from {@link Scraper}s
- * for future use when substituting in {@link StringTemplate}.
+ * Microscraper uses {@link DatabaseView} to store data from 
+ * for future use when substituting in {@link StringTemplate}.<p>
+ * By adding {@link DatabaseViewHook}s to a {@link DatabaseView},
+ * it is possible to keep track of results as they are completed.
  * @author talos
  *
  */
@@ -18,8 +20,11 @@ public interface DatabaseView {
 	 * this {@link DatabaseView} only if it cannot find a key
 	 * in itself.
 	 * @throws DatabasePersistException if there was a problem persisting
+	 * @throws DatabaseViewHookException if there was a problem firing
+	 * a {@link DatabaseViewHook}.
 	 */
-	public abstract DatabaseView spawnChild(String name) throws DatabasePersistException;
+	public abstract DatabaseView spawnChild(String name) throws DatabasePersistException,
+				DatabaseViewHookException;
 
 	/**
 	 * 
@@ -31,8 +36,11 @@ public interface DatabaseView {
 	 * this {@link DatabaseView} only if it cannot find a key
 	 * in itself.
 	 * @throws DatabasePersistException if there was a problem persisting
+	 * @throws DatabaseViewHookException if there was a problem firing
+	 * a {@link DatabaseViewHook}.
 	 */
-	public abstract DatabaseView spawnChild(String name, String value) throws DatabasePersistException;
+	public abstract DatabaseView spawnChild(String name, String value) throws DatabasePersistException,
+				DatabaseViewHookException;
 
 	/**
 	 * Map a {@link String} value to a {@link String} key.
@@ -42,8 +50,11 @@ public interface DatabaseView {
 	 * @param key the {@link String} key.
 	 * @param value the {@link String} value.
 	 * @throws DatabasePersistException if there was a problem persisting
+	 * @throws DatabaseViewHookException if there was a problem firing
+	 * a {@link DatabaseViewHook}.
 	 */
-	public abstract void put(String key, String value) throws DatabasePersistException;
+	public abstract void put(String key, String value) throws DatabasePersistException,
+				DatabaseViewHookException;
 
 	/**
 	 * Get a {@link String} value mapped to a key.
@@ -55,5 +66,10 @@ public interface DatabaseView {
 	 */
 	public abstract String get(String key) throws DatabaseReadException;
 	
-	public void addHook(DatabaseViewHook viewHook);
+	/**
+	 * Register a {@link DatabaseViewHook} with this {@link DatabaseView}.
+	 * Hook methods are fired after they finish in {@link DatabaseView}.
+	 * @param hook The {@link DatabaseViewHook} to add. 
+	 */
+	public void addHook(DatabaseViewHook hook);
 }

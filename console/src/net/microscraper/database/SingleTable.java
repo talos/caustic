@@ -125,9 +125,9 @@ class SingleTable {
 	
 	/**
 	 * 
-	 * @param connection
+	 * @param connection An already opened {@link WritableConnection}.
 	 * @return A {@link SingleTable} {@link WritableTable}.
-	 * @throws ConnectionException
+	 * @throws ConnectionException if the table cannot be created.
 	 */
 	public static WritableTable get(WritableConnection connection) throws ConnectionException {
 		return connection.newWritable(TABLE_NAME, COLUMN_NAMES);
@@ -135,9 +135,9 @@ class SingleTable {
 	
 	/**
 	 * 
-	 * @param connection
+	 * @param connection An already opened {@link IOConnection}.
 	 * @return A {@link SingleTable} {@link IOTable}.
-	 * @throws ConnectionException
+	 * @throws ConnectionException if the table cannot be created.
 	 */
 	public static IOTable get(IOConnection connection) throws ConnectionException {
 		IOTable table = connection.getIOTable(TABLE_NAME);

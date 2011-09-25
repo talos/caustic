@@ -3,12 +3,12 @@ package net.microscraper.database;
 import net.microscraper.uuid.UUID;
 import net.microscraper.uuid.UUIDFactory;
 
-public class SingleTableDatabase implements PersistedDatabase {
+public class PersistedSingleTableDatabase implements PersistedDatabase {
 	private final UUIDFactory idFactory;
 	private final IOConnection connection;
 	private IOTable table;
 	
-	public SingleTableDatabase(IOConnection connection, UUIDFactory idFactory) {
+	public PersistedSingleTableDatabase(IOConnection connection, UUIDFactory idFactory) {
 		this.idFactory = idFactory;
 		this.connection = connection;
 	}

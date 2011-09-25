@@ -6,7 +6,7 @@ final class ExecutorThread extends Thread {
 	
 	private final AsyncExecutor executor;
 	
-	private Executable executable = null;
+	private Executable currentlyExecuting = null;
 	private boolean isShutdown = false;
 	
 	public ExecutorThread(AsyncExecutor executor) {
@@ -18,20 +18,18 @@ final class ExecutorThread extends Thread {
 			do {
 				synchronized(this) {
 					this.wait(); // wait for notification that we have an executable or got shut down.
-					if(executable != null) {
-						Executable[] children = executable.execute();
+					if(currentlyExecuting != null) {
+						Executable[] children = currentlyExecuting.execute();
 						if(children != null) { // success
 							for(int i = 0 ; i < children.length ; i ++) {
 								executor.submit(children[i]);
 							}
+						} else if(currentlyExecuting.isMissingTags()) {
+							executor.resubmit(currentlyExecuting);
 						} else {
-							if(executable.isMissingTags()) {
-								executor.resubmit(executable);
-							} else {
-								executor.recordFailure(executable.getFailedBecause());
-							}
+							executor.recordFailure(currentlyExecuting.getFailedBecause());
 						}
-						this.executable = null; // reset executable
+						currentlyExecuting = null; // reset executable
 					}
 					
 					// let executor know that this thread is now free.
@@ -55,7 +53,11 @@ final class ExecutorThread extends Thread {
 	 */
 	public void execute(Executable executable) {
 		synchronized(this) {
-			this.executable = executable;
+			if(currentlyExecuting == null) {
+				currentlyExecuting = executable;
+			} else {
+				throw new IllegalStateException("Already executing an executable " + executable);
+			}
 			this.notify();
 		}
 	}
@@ -67,7 +69,7 @@ final class ExecutorThread extends Thread {
 	 */
 	public boolean isAsleep() {
 		synchronized(this) {
-			return this.executable == null;
+			return this.currentlyExecuting == null;
 		}
 	}
 	

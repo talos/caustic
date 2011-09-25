@@ -13,12 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
-import net.microscraper.client.Executor;
 import net.microscraper.database.Database;
-import net.microscraper.database.NonPersistedDatabase;
+import net.microscraper.database.DatabaseViewHook;
 import net.microscraper.database.IOConnection;
-import net.microscraper.database.MultiTableDatabase;
-import net.microscraper.database.SingleTableDatabase;
+import net.microscraper.database.InMemorySingleTableDatabase;
+import net.microscraper.database.InMemoryDatabaseView;
+import net.microscraper.database.PersistedMultiTableDatabase;
+import net.microscraper.database.PersistedSingleTableDatabase;
 import net.microscraper.database.csv.CSVConnection;
 import net.microscraper.database.sql.JDBCSqliteConnection;
 import net.microscraper.deserializer.Deserializer;
@@ -256,8 +257,8 @@ public final class ConsoleOptions {
 	
 	/**
 	 * 
-	 * @return A {@link PersistedDatabase} based off the user-passed {@link ConsoleOptions}.
-	 * @throws InvalidOptionException if the user specified a {@link PersistedDatabase} related
+	 * @return A {@link Database} based off the user-passed {@link ConsoleOptions}.
+	 * @throws InvalidOptionException if the user specified a {@link Database} related
 	 * option that is invalid.
 	 */
 	public Database getDatabase() throws InvalidOptionException {
@@ -269,7 +270,7 @@ public final class ConsoleOptions {
 			throw new InvalidOptionException(StringUtils.quote(format)
 					+ " is not a valid output format.");
 		}
-			
+
 		// Determine delimiter.
 		char delimiter;
 		if(format.equals(CSV_FORMAT)) {
@@ -289,23 +290,23 @@ public final class ConsoleOptions {
 						Database.SCOPE_COLUMN_NAME, true);
 				UUIDFactory idFactory = new IntUUIDFactory();
 				if(isSpecified(singleTable)) {
-					result = new SingleTableDatabase(connection, idFactory);
+					result = new PersistedSingleTableDatabase(connection, idFactory);
 				} else {
-					result = new MultiTableDatabase(connection, idFactory);
+					result = new PersistedMultiTableDatabase(connection, idFactory);
 				}
 			} else {
-				result = new NonPersistedDatabase(
+				result = new InMemorySingleTableDatabase(
 						CSVConnection.toFile(outputLocation, delimiter), new IntUUIDFactory());
 				
 			}
 		} else { // output to STDOUT
-			result = new NonPersistedDatabase(
+			result = new InMemorySingleTableDatabase(
 					CSVConnection.toSystemOut(delimiter), new IntUUIDFactory());
 		}
 		
 		return result;
 	}
-	
+
 	/**
 	 * 
 	 * @return A {@link Logger}.

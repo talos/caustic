@@ -90,7 +90,8 @@ public class ScraperNetworkTest {
 		Hashtable<String, String> inputTable = new Hashtable<String, String>();
 		inputTable.put("query", "hello");
 		
-		Scraper scraper = new Scraper(instruction, inputTable, null, browser, hook);
+		Scraper scraper = new Scraper(instruction, inputTable, null, browser);
+		scraper.addHook(hook);
 		
 		scraper.scrapeSync();
 		

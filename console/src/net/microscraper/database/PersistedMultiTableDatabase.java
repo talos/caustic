@@ -17,7 +17,7 @@ import net.microscraper.uuid.UUIDFactory;
  * @author talos
  *
  */
-public final class MultiTableDatabase implements PersistedDatabase {
+public final class PersistedMultiTableDatabase implements PersistedDatabase {
 	private static final Map<String, String> emptyMap = Collections.emptyMap();
 	
 	/**
@@ -56,7 +56,7 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	public static final String VALUE = "value";
 		
 	/**
-	 * Static columns for {@link #links} in {@link MultiTableDatabase}.
+	 * Static columns for {@link #links} in {@link PersistedMultiTableDatabase}.
 	 */
 	public static final String[] LINK_TABLE_COLUMNS = new String[] {
 		SOURCE_SCOPE,
@@ -137,7 +137,7 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	
 	/**
 	 * 
-	 * @throws IllegalStateException If {@link MultiTableDatabase} has not been opened.
+	 * @throws IllegalStateException If {@link PersistedMultiTableDatabase} has not been opened.
 	 */
 	private void ensureOpen() throws IllegalStateException {
 		if(isOpen == false) {
@@ -146,7 +146,7 @@ public final class MultiTableDatabase implements PersistedDatabase {
 	}
 	
 	
-	public MultiTableDatabase(IOConnection connection, UUIDFactory idFactory) {
+	public PersistedMultiTableDatabase(IOConnection connection, UUIDFactory idFactory) {
 		this.idFactory = idFactory;
 		this.connection = connection;
 	}

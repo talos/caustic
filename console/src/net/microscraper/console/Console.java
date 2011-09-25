@@ -11,7 +11,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import net.microscraper.client.Executor;
 import net.microscraper.client.Scraper;
 import net.microscraper.database.ConnectionException;
 import net.microscraper.database.Database;
@@ -82,7 +81,7 @@ public class Console {
 			}
 			
 			Scraper scraper = new Scraper(instruction, view,
-					source, browser.copy(), threadsPerRow);
+					source, browser.copy());
 			
 			if(queue.remainingCapacity() == 0) {
 				Scraper scraperToFinish = queue.poll(); // wait for spot to become available
