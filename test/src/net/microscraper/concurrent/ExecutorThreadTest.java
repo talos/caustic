@@ -26,10 +26,13 @@ public class ExecutorThreadTest {
 	}
 
 	@After
-	public void breakDown() throws Exception {
+	public void tearDown() throws Exception {
+		int ms = 2000;
+		thread.shutdown();
+		thread.join(ms);
+		assertEquals("Thread still running despite join after " + ms + "ms.",
+				false, thread.isAlive());
 		thread.interrupt();
-		thread.join();
-		assertEquals("Thread still running despite interrupt.", false, thread.isAlive());
 	}
 	
 	@Test
@@ -42,12 +45,12 @@ public class ExecutorThreadTest {
 	@Test
 	public void testExecute() throws Exception {
 		new Expectations() {{
-			executable.execute(); times = 1; 
+			executable.execute(); result = new Executable[] {}; times = 1; 
 		}};
 		thread.execute(executable);
 		Thread.sleep(10); // wait for the ExecutorThread to start
 	}
-
+	
 	@Test
 	public void testExecuteSubmitsChildren() throws Exception {
 		new Expectations() {
@@ -57,6 +60,7 @@ public class ExecutorThreadTest {
 			executor.submit(child1); times =1;
 			executor.submit(child2); times =1;
 			executor.submit(child3); times =1;
+			executor.notifyFreeThread(thread); times =1;
 		}};
 		thread.execute(executable);
 		Thread.sleep(30); // wait for the ExecutorThread to start
@@ -68,6 +72,7 @@ public class ExecutorThreadTest {
 			executable.execute(); times = 1; result = null;
 			executable.isMissingTags(); result = true;
 			executor.resubmit(executable); times = 1;
+			executor.notifyFreeThread(thread); times =1;
 		}};
 		thread.execute(executable);
 		Thread.sleep(30); // wait for the ExecutorThread to start
@@ -81,6 +86,7 @@ public class ExecutorThreadTest {
 			executable.isMissingTags(); result = false;
 			executable.getFailedBecause(); result = failedBecause;
 			executor.recordFailure(failedBecause); times = 1;
+			executor.notifyFreeThread(thread); times =1;
 		}};
 		thread.execute(executable);
 		Thread.sleep(30); // wait for the ExecutorThread to start
@@ -110,6 +116,18 @@ public class ExecutorThreadTest {
 		}};
 		thread.execute(executable);
 		Thread.sleep(10); // wait for the ExecutorThread to start
+	}
+	
+	@Test
+	public void testExecuteOnAsleep() throws Exception {
+		final int tests = 10000;
+		int done = 0;
+		while(done < tests) {
+			if(thread.isAsleep()) {
+				thread.execute(executable);
+				done++;
+			}
+		}
 	}
 	
 	@Test

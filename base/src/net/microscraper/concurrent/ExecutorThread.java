@@ -6,8 +6,9 @@ final class ExecutorThread extends Thread {
 	
 	private final AsyncExecutor executor;
 	
-	private Executable currentlyExecuting = null;
-	private boolean isShutdown = false;
+	//private final Object lock = new Object();
+	private volatile Executable executable = null;
+	private volatile boolean isShutdown = false;
 	
 	public ExecutorThread(AsyncExecutor executor) {
 		this.executor = executor;
@@ -17,27 +18,28 @@ final class ExecutorThread extends Thread {
 		try {
 			do {
 				synchronized(this) {
-					this.wait(); // wait for notification that we have an executable or got shut down.
-					if(currentlyExecuting != null) {
-						Executable[] children = currentlyExecuting.execute();
-						if(children != null) { // success
-							for(int i = 0 ; i < children.length ; i ++) {
-								executor.submit(children[i]);
-							}
-						} else if(currentlyExecuting.isMissingTags()) {
-							executor.resubmit(currentlyExecuting);
-						} else {
-							executor.recordFailure(currentlyExecuting.getFailedBecause());
-						}
-						currentlyExecuting = null; // reset executable
-					}
+					executable = null;
+					executor.notifyFreeThread(this); // let executor know that this thread is now free.
+					wait(); // wait for notification that we have an executable or got shut down.
 					
-					// let executor know that this thread is now free.
-					synchronized(executor) {
-						executor.notify();
+					if(isShutdown) {
+						break;
 					}
 				}
-			} while(isShutdown == false);
+				
+				if(executable != null) {
+					Executable[] children = executable.execute();
+					if(children != null) { // success
+						for(int i = 0 ; i < children.length ; i ++) {
+							executor.submit(children[i]);
+						}
+					} else if(executable.isMissingTags()) {
+						executor.resubmit(executable);
+					} else {
+						executor.recordFailure(executable.getFailedBecause());
+					}
+				}
+			} while(executable != null && !isShutdown);
 		} catch(InterruptedException e) {
 			// end the executor too
 			executor.interrupt();
@@ -51,14 +53,14 @@ final class ExecutorThread extends Thread {
 	 * 
 	 * @param executable An {@link Executable} to execute in this {@link ExecutorThread}.
 	 */
-	public void execute(Executable executable) {
+	public void execute(Executable next) {
 		synchronized(this) {
-			if(currentlyExecuting == null) {
-				currentlyExecuting = executable;
+			if(executable == null) {
+				executable = next;
+				this.notifyAll();
 			} else {
 				throw new IllegalStateException("Already executing an executable " + executable);
 			}
-			this.notify();
 		}
 	}
 	
@@ -69,7 +71,7 @@ final class ExecutorThread extends Thread {
 	 */
 	public boolean isAsleep() {
 		synchronized(this) {
-			return this.currentlyExecuting == null;
+			return executable == null;
 		}
 	}
 	
@@ -79,7 +81,7 @@ final class ExecutorThread extends Thread {
 	public void shutdown() {
 		synchronized(this) {
 			this.isShutdown = true;
-			this.notify();
+			this.notifyAll();
 		}
 	}
 }

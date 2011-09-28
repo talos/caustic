@@ -15,21 +15,25 @@ public class AsyncExecutor extends Thread {
 	private Vector queue = new Vector();
 	private Vector toResubmit = new Vector();
 	private final ExecutorThread[] threadPool;
+	private final Executable initialExecutable;
 	
 	/**
 	 * 
-	 * @return A free {@link ExecutorThread}, blocks until one is free.
+	 * @return A free {@link ExecutorThread}. This blocks until one is free.
 	 */
 	private ExecutorThread getFreeThread() throws InterruptedException {
-		for(int i = 0 ; i < threadPool.length ; i ++) {
-			if(threadPool[i].isAsleep() == false) {
-				return threadPool[i];
-			}
-		}
-		
-		// if there were no free threads above, wait until we get a notification
-		// that a thread opened to retry.
 		synchronized(this) {
+			for(int i = 0 ; i < threadPool.length ; i ++) {
+				// thread is free if it's asleep
+				synchronized(threadPool[i]) {
+					if(threadPool[i].isAsleep()) {
+						return threadPool[i];
+					}
+				}
+			}
+			
+			// if there were no free threads above, wait until we get a notification
+			// that a thread opened to retry.
 			this.wait();
 		}
 		return getFreeThread();
@@ -49,46 +53,69 @@ public class AsyncExecutor extends Thread {
 		return true;
 	}
 	
+	public void notifyFreeThread(ExecutorThread thread) {
+		synchronized(this) {
+			System.out.println("notifying of free thread!");
+			this.notifyAll();
+		}
+	}
+	
 	/**
-	 * Construct the {@link AsyncExecutor}, but do not start it.
-	 * @param nThreads
+	 * Construct the {@link AsyncExecutor} and start its threads, but do not start it.
+	 * @param nThreads how many threads to use.
 	 * @param executable The initial executable.
 	 */
 	public AsyncExecutor(int nThreads, Executable executable) {
-		threadPool = new ExecutorThread[nThreads];
+		this.initialExecutable = executable;
+		this.threadPool = new ExecutorThread[nThreads];
 		for(int i = 0 ; i < nThreads ; i ++) {
-			threadPool[i] = new ExecutorThread(this);
-			threadPool[i].start();
+			this.threadPool[i] = new ExecutorThread(this);
+			this.threadPool[i].start();
 		}
-		submit(executable);
 	}
 
 	public void run() {
 		try {
-			// allow the executor to die only when all threads are sleeping.
-			while(areAllThreadsSleeping() == false) {
-				// run through the queue, but do not hard-synch on it while we're running through
+			submit(initialExecutable);
+			do {
+				// synchronize on queue briefly to grab the next element, if one exists.
+				Executable next = null;
 				synchronized(queue) {
+					// if there is an executable, run it 
 					if(queue.size() > 0) {
-						Executable executable = (Executable) queue.elementAt(0);
+						next = (Executable) queue.elementAt(0);
 						queue.removeElementAt(0);
-						getFreeThread().execute(executable);
 					} else {
-						// when the queue is empty, resubmit the stuck executables
-						synchronized(toResubmit) {
-							Executable[] toResubmitAry = new Executable[toResubmit.size()];
-							toResubmit.copyInto(toResubmitAry);
-							if(Executable.allAreStuck(toResubmitAry)) {
-								// don't resubmit anything, will exit
-							} else {
-								toResubmit.clear();
-								// refill the queue
+						// otherwise, wait for a signal on the queue.
+						queue.wait();
+					}
+				}
+				
+				if(next != null) {
+					// this will block until a free thread is available
+					ExecutorThread thread = getFreeThread();
+					thread.execute(next);
+				} else {
+					// when the queue is empty, resubmit the stuck executables
+					synchronized(toResubmit) {
+						Executable[] toResubmitAry = new Executable[toResubmit.size()];
+						toResubmit.copyInto(toResubmitAry);
+						if(Executable.allAreStuck(toResubmitAry)) {
+							// don't resubmit anything
+						} else {
+							toResubmit.clear();
+							// refill the queue
+							synchronized(queue) {
 								VectorUtils.arrayIntoVector(toResubmitAry, queue);
 							}
 						}
 					}
 				}
-			}
+				this.wait();
+				
+			// allow the executor to die only when all threads are sleeping
+			// the queue could currently be empty, but one of the non-asleep threads will submit something.
+			} while(areAllThreadsSleeping() == false);
 		} catch(InterruptedException e) {
 			e.printStackTrace();
 			//TODO
@@ -103,9 +130,10 @@ public class AsyncExecutor extends Thread {
 	public void submit(Executable executable) {
 		synchronized(queue) {
 			queue.add(executable);
+			queue.notifyAll();
 		}
 	}
-
+	
 	/**
 	 * 
 	 * @param executable An {@link Executable} that may be executed in a batch
