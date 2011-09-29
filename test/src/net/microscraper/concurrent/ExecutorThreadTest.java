@@ -16,40 +16,84 @@ public class ExecutorThreadTest {
 	@Injectable private Executable executable;
 	private ExecutorThread thread;
 	
+	
+	/**
+	 * Shutdown the test thread and wait for it to finish up, ensuring expectations
+	 * are met in the @Test block.
+	 */
+	private void shutdownAndJoin() throws Exception {
+		int ms = 2000;
+		thread.shutdown();
+		thread.join(ms);
+		assertEquals("Thread still running despite join after " + ms + "ms.",
+				false, thread.isAlive());
+	}
+	
 	@Before
 	public void setUp() throws Exception {
 		new NonStrictExpectations() {{
 			executable.toString(); result = "test executable";
 		}};
 		thread = new ExecutorThread(executor);
-		thread.start();
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		int ms = 2000;
-		thread.shutdown();
-		thread.join(ms);
-		assertEquals("Thread still running despite join after " + ms + "ms.",
-				false, thread.isAlive());
 		thread.interrupt();
 	}
 	
 	@Test
 	public void testRunsIndefinitely() throws Exception {
-		assertTrue(thread.isAlive());
-		Thread.sleep(100);
-		assertTrue(thread.isAlive());
+		synchronized(thread) {
+			thread.start();
+			assertTrue(thread.isAlive());
+			Thread.sleep(100);
+			assertTrue(thread.isAlive());
+		}
+		shutdownAndJoin();
 	}
 
 	@Test
 	public void testExecute() throws Exception {
 		new Expectations() {{
-			executable.execute(); result = new Executable[] {}; times = 1; 
+			// return empty array to mimic successful execution.
+			executable.execute(); result = new Executable[] { } ; times = 1; 
 		}};
+		thread.start();
 		thread.execute(executable);
-		Thread.sleep(10); // wait for the ExecutorThread to start
+		
+		shutdownAndJoin();
 	}
+
+
+	@Test
+	public void testNotifiesOfFreeThread() throws Exception {
+		new Expectations() {{
+			executor.notifyFreeThread(thread); times = 1; 
+		}};
+		thread.start();
+		
+		Thread.sleep(100);
+		shutdownAndJoin();
+	}
+	
+
+	@Test
+	public void testNotifiesOfFreeThreadBeforeAndAfterExecuteWhileAlive() throws Exception {
+		new Expectations() {{
+			executor.notifyFreeThread(thread); times = 1; 
+			executable.execute(); result = new Executable[] { } ; times = 1;
+			executor.notifyFreeThread(thread); times = 1; 
+		}};
+		thread.start();
+		
+		Thread.sleep(100);
+		thread.execute(executable);
+		Thread.sleep(100);
+		
+		shutdownAndJoin();
+	}
+	
 	
 	@Test
 	public void testExecuteSubmitsChildren() throws Exception {
@@ -60,80 +104,52 @@ public class ExecutorThreadTest {
 			executor.submit(child1); times =1;
 			executor.submit(child2); times =1;
 			executor.submit(child3); times =1;
-			executor.notifyFreeThread(thread); times =1;
+
 		}};
+		thread.start();
 		thread.execute(executable);
-		Thread.sleep(30); // wait for the ExecutorThread to start
+
+		shutdownAndJoin();
 	}
 	
 	@Test
 	public void testExecuteResubmitsMissingTags() throws Exception {
 		new Expectations() {{
-			executable.execute(); times = 1; result = null;
+			
+			executable.execute(); result = null; times = 1; result = null;
 			executable.isMissingTags(); result = true;
-			executor.resubmit(executable); times = 1;
-			executor.notifyFreeThread(thread); times =1;
+			executor.resubmit(executable); times = 1; $ = "If tags are missing, should notify executor.";
+			
 		}};
+		thread.start();
 		thread.execute(executable);
-		Thread.sleep(30); // wait for the ExecutorThread to start
+
+		shutdownAndJoin();
 	}
 
 	@Test
 	public void testExecuteNotifiesFail() throws Exception {
 		final String failedBecause = "failure reason";
 		new Expectations() {{
+			
 			executable.execute(); times = 1; result = null;
 			executable.isMissingTags(); result = false;
 			executable.getFailedBecause(); result = failedBecause;
 			executor.recordFailure(failedBecause); times = 1;
-			executor.notifyFreeThread(thread); times =1;
+			
 		}};
+		thread.start();
 		thread.execute(executable);
-		Thread.sleep(30); // wait for the ExecutorThread to start
+
+		shutdownAndJoin();
 	}
 	
 	@Test(expected = IllegalStateException.class)
-	public void testExecuteWhenBusyThrowsIllegalState() {
+	public void testExecuteWhenBusyThrowsIllegalState() throws Exception {
+		thread.start();
 		thread.execute(executable);
 		thread.execute(executable);
-	}
-	
-	@Test
-	public void testIsAsleepToStart() {
-		assertTrue(thread.isAsleep());
-	}
-	
 
-	@Test
-	public void testIsNotAsleepWhenExecuting() throws Exception {
-		new Expectations() {{
-			executable.execute(); times = 1; forEachInvocation = new Object() {
-				void operate() throws InterruptedException {
-					assertEquals(false, thread.isAsleep());
-					Thread.sleep(100); // thread should not be asleep while this is happening
-				}
-			};
-		}};
-		thread.execute(executable);
-		Thread.sleep(10); // wait for the ExecutorThread to start
-	}
-	
-	@Test
-	public void testExecuteOnAsleep() throws Exception {
-		final int tests = 10000;
-		int done = 0;
-		while(done < tests) {
-			if(thread.isAsleep()) {
-				thread.execute(executable);
-				done++;
-			}
-		}
-	}
-	
-	@Test
-	public void testShutdownKillsThread() throws Exception {
-		thread.shutdown();
-		thread.join();
-		assertEquals(false, thread.isAlive());
+		shutdownAndJoin();
 	}
 }

@@ -20,9 +20,10 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class AsyncExecutorTest {
 
+	private static final int testTimeoutMs = 1000;
 	private final int nThreads;
 	
-	private @Mocked Executable executable;
+	private @Mocked(capture = 1) Executable executable;
 	private AsyncExecutor executor;
 	
 	public AsyncExecutorTest(int nThreads) {
@@ -46,7 +47,6 @@ public class AsyncExecutorTest {
 	public void setUp() throws Exception {
 		new NonStrictExpectations() {{
 			Executable.allAreStuck((Executable[]) any); result = false;
-			executable.toString(); result = "executable";
 		}};
 		executor = new AsyncExecutor(nThreads, executable);
 	}
@@ -78,67 +78,32 @@ public class AsyncExecutorTest {
 			executable.execute();
 		}};
 		executor.start();
-		executor.join(100);
-	}
-	
-	@Test
-	public void testSubmitOnce() throws Exception {
-		new Expectations() {{
-			executable.execute(); times = 2;
-		}};
-		executor.start();
-		executor.submit(executable);
-		executor.join(1000);
+		executor.join(testTimeoutMs);
 	}
 	
 	@Test
 	public void testOneChild() throws Exception {
-		new Expectations() {
-			@Injectable Executable child;
-			{
-			executable.execute(); result = new Executable[] { child }; times = 1;
-			child.execute(); result = null; times = 1;
-			//anotherExecutable.execute();
+		new Expectations() {{
+			executable.execute(); result = new Executable[] { executable }; times = 1;
+			executable.execute(); result = new Executable[] { } ; times = 1;
 		}};
 		executor.start();
-		executor.submit(executable);
-		executor.join(1000);
-	}
-	@Test
-	public void testExecutesAllSubmissions(@Mocked final Executable child1,
-					@Mocked final Executable child2,
-					@Mocked final Executable child3)
-			throws Exception {
-		new Expectations() {
-			{
-			executable.execute(); result = new Executable[] { child1, child2, child3 }; times = 1;
-			executable.execute(); result = null; times = 3;
-		}};
-		executor.start();
-		executor.submit(child1);
-		executor.submit(child2);
-		executor.submit(child3);
-		executor.join(500);
+		executor.join(testTimeoutMs);
 	}
 	
 	@Test
 	public void testExecutesAllChildren()
 			throws Exception {
-		final int submissions = 10;
-		final Executable[] children = new Executable[submissions];
-		for(int i = 0 ; i < children.length ; i ++) {
-			children[i] = executable;
-		}
 		new Expectations() {
-			@Injectable Executable child1, child2, child3;
-
 			{
-				executable.execute(); result = new Executable[] { child1, child2, child3 }; times = 1;
-				executable.execute(); result = null; times = 3;
+				executable.execute(); result = new Executable[] { executable, executable, executable }; times = 1;
+				executable.execute(); result = new Executable[] { } ; times = 1;
+			/*	executable.execute(); result = new Executable[] { } ; times = 1;
+				executable.execute(); result = new Executable[] { } ; times = 1;*/
 			};
 		};
 		executor.start();
-		executor.join(500);
+		executor.join(testTimeoutMs);
 	}
 
 	@Test

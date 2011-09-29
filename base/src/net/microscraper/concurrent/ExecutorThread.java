@@ -6,7 +6,6 @@ final class ExecutorThread extends Thread {
 	
 	private final AsyncExecutor executor;
 	
-	//private final Object lock = new Object();
 	private volatile Executable executable = null;
 	private volatile boolean isShutdown = false;
 	
@@ -18,12 +17,9 @@ final class ExecutorThread extends Thread {
 		try {
 			do {
 				synchronized(this) {
-					executable = null;
-					executor.notifyFreeThread(this); // let executor know that this thread is now free.
-					wait(); // wait for notification that we have an executable or got shut down.
-					
-					if(isShutdown) {
-						break;
+					while(executable == null && isShutdown == false) {
+						executor.notifyFreeThread(this); // let executor know that this thread is now free.
+						wait(); // wait for notification that we have an executable or got shut down.
 					}
 				}
 				
@@ -39,7 +35,8 @@ final class ExecutorThread extends Thread {
 						executor.recordFailure(executable.getFailedBecause());
 					}
 				}
-			} while(executable != null && !isShutdown);
+				
+			} while(!isShutdown);
 		} catch(InterruptedException e) {
 			// end the executor too
 			executor.interrupt();
@@ -63,18 +60,7 @@ final class ExecutorThread extends Thread {
 			}
 		}
 	}
-	
-	/**
-	 * 
-	 * @return <code>true</code> if this {@link ExecutorThread} is not currently
-	 * executing anything.
-	 */
-	public boolean isAsleep() {
-		synchronized(this) {
-			return executable == null;
-		}
-	}
-	
+
 	/**
 	 * Shut down this {@link ExecutorThread}, allowing it to die naturally.
 	 */

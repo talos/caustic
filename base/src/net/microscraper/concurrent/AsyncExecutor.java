@@ -1,5 +1,7 @@
 package net.microscraper.concurrent;
 
+import java.util.Date;
+import java.util.Enumeration;
 import java.util.Vector;
 
 import net.microscraper.client.Scraper;
@@ -11,52 +13,40 @@ import net.microscraper.util.VectorUtils;
  *
  */
 public class AsyncExecutor extends Thread {	
+	
 	private Vector failedBecause = new Vector();
 	private Vector queue = new Vector();
 	private Vector toResubmit = new Vector();
+	private Vector freeThreads = new Vector();
+	
 	private final ExecutorThread[] threadPool;
 	private final Executable initialExecutable;
 	
 	/**
-	 * 
-	 * @return A free {@link ExecutorThread}. This blocks until one is free.
+	 * Shutdown and join all threads.
 	 */
-	private ExecutorThread getFreeThread() throws InterruptedException {
-		synchronized(this) {
-			for(int i = 0 ; i < threadPool.length ; i ++) {
-				// thread is free if it's asleep
-				synchronized(threadPool[i]) {
-					if(threadPool[i].isAsleep()) {
-						return threadPool[i];
-					}
-				}
-			}
-			
-			// if there were no free threads above, wait until we get a notification
-			// that a thread opened to retry.
-			this.wait();
+	private void shutdownAllAndJoin() throws InterruptedException {
+		for(int i = 0 ; i < threadPool.length ; i ++) {
+			threadPool[i].shutdown();
+			threadPool[i].join();
 		}
-		return getFreeThread();
 	}
 	
 	/**
 	 * 
-	 * @return <code>true</code> if all threads are asleep, <code>false</code>
+	 * @return <code>true</code> if all threads are free, <code>false</code>
 	 * otherwise.
 	 */
-	private boolean areAllThreadsSleeping() {
-		for(int i = 0 ; i < threadPool.length ; i ++) {
-			if(threadPool[i].isAsleep() == false) {
-				return false;
-			}
+	private boolean areAllThreadsFree() {
+		synchronized(freeThreads) {
+			return freeThreads.size() < threadPool.length;
 		}
-		return true;
 	}
 	
 	public void notifyFreeThread(ExecutorThread thread) {
-		synchronized(this) {
-			System.out.println("notifying of free thread!");
-			this.notifyAll();
+		synchronized(freeThreads) {
+			freeThreads.addElement(thread);
+			freeThreads.notifyAll();
 		}
 	}
 	
@@ -81,27 +71,38 @@ public class AsyncExecutor extends Thread {
 				// synchronize on queue briefly to grab the next element, if one exists.
 				Executable next = null;
 				synchronized(queue) {
-					// if there is an executable, run it 
+					
+					// exit from queue if it gains an element
+					while(queue.size() == 0) {
+						queue.wait();
+					}
+					
+					// grab the next element from queue if there is one
+					next = (Executable) queue.elementAt(0);
 					if(queue.size() > 0) {
 						next = (Executable) queue.elementAt(0);
 						queue.removeElementAt(0);
-					} else {
-						// otherwise, wait for a signal on the queue.
-						queue.wait();
 					}
 				}
 				
 				if(next != null) {
 					// this will block until a free thread is available
-					ExecutorThread thread = getFreeThread();
-					thread.execute(next);
+					ExecutorThread freeThread;
+					synchronized(freeThreads) {
+						while(freeThreads.size() == 0) {
+							freeThreads.wait();
+						}
+						freeThread = (ExecutorThread) freeThreads.elementAt(0);
+						freeThreads.removeElementAt(0);
+					}
+					freeThread.execute(next);
 				} else {
 					// when the queue is empty, resubmit the stuck executables
 					synchronized(toResubmit) {
 						Executable[] toResubmitAry = new Executable[toResubmit.size()];
 						toResubmit.copyInto(toResubmitAry);
 						if(Executable.allAreStuck(toResubmitAry)) {
-							// don't resubmit anything
+							// if everything is stuck, don't do anything
 						} else {
 							toResubmit.clear();
 							// refill the queue
@@ -111,11 +112,12 @@ public class AsyncExecutor extends Thread {
 						}
 					}
 				}
-				this.wait();
 				
-			// allow the executor to die only when all threads are sleeping
+			// allow the executor to die only when all threads are sleeping and queue is empty
 			// the queue could currently be empty, but one of the non-asleep threads will submit something.
-			} while(areAllThreadsSleeping() == false);
+			} while(areAllThreadsFree() == false || queue.size() > 0);
+			
+			shutdownAllAndJoin();
 		} catch(InterruptedException e) {
 			e.printStackTrace();
 			//TODO
@@ -129,7 +131,7 @@ public class AsyncExecutor extends Thread {
 	 */
 	public void submit(Executable executable) {
 		synchronized(queue) {
-			queue.add(executable);
+			queue.addElement(executable);
 			queue.notifyAll();
 		}
 	}
@@ -142,7 +144,7 @@ public class AsyncExecutor extends Thread {
 	 */
 	public void resubmit(Executable executable)  {
 		synchronized(toResubmit) {
-			toResubmit.add(executable);
+			toResubmit.addElement(executable);
 		}
 	}
 	
@@ -155,9 +157,11 @@ public class AsyncExecutor extends Thread {
 	
 	/**
 	 * 
-	 * @param failedBecause The reason an {@link Executable} failed.
+	 * @param failedBecauseStr The reason an {@link Executable} failed.
 	 */
-	public void recordFailure(String failedBecause) {
-		this.failedBecause.add(failedBecause);
+	public void recordFailure(String failedBecauseStr) {
+		synchronized(failedBecause) {
+			failedBecause.addElement(failedBecauseStr);
+		}
 	}
 }
