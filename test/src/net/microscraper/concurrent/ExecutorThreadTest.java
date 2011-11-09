@@ -118,7 +118,7 @@ public class ExecutorThreadTest {
 			
 			executable.execute(); result = null; times = 1; result = null;
 			executable.isMissingTags(); result = true;
-			executor.resubmit(executable); times = 1; $ = "If tags are missing, should notify executor.";
+			executor.submit(executable); times = 1; $ = "If tags are missing, should submit same again.";
 			
 		}};
 		thread.start();

@@ -43,15 +43,8 @@ public class AsyncExecutor extends Thread {
 		}
 	}
 	
-	public void notifyFreeThread(ExecutorThread thread) {
-		synchronized(freeThreads) {
-			freeThreads.addElement(thread);
-			freeThreads.notifyAll();
-		}
-	}
-	
 	/**
-	 * Construct the {@link AsyncExecutor} and start its threads, but do not start it.
+	 * Construct the {@link AsyncExecutor} and its threads.
 	 * @param nThreads how many threads to use.
 	 * @param executable The initial executable.
 	 */
@@ -60,12 +53,14 @@ public class AsyncExecutor extends Thread {
 		this.threadPool = new ExecutorThread[nThreads];
 		for(int i = 0 ; i < nThreads ; i ++) {
 			this.threadPool[i] = new ExecutorThread(this);
-			this.threadPool[i].start();
 		}
 	}
 
 	public void run() {
 		try {
+			for(int i = 0 ; i < threadPool.length ; i ++) {
+				this.threadPool[i].start();
+			}
 			submit(initialExecutable);
 			do {
 				// synchronize on queue briefly to grab the next element, if one exists.
@@ -124,6 +119,13 @@ public class AsyncExecutor extends Thread {
 		}
 	}
 	
+	public void notifyFreeThread(ExecutorThread thread) {
+		synchronized(freeThreads) {
+			freeThreads.addElement(thread);
+			freeThreads.notifyAll();
+		}
+	}
+	
 	/**
 	 * 
 	 * @param executable An {@link Executable} that will be executed as soon
@@ -142,11 +144,11 @@ public class AsyncExecutor extends Thread {
 	 * once this {@link AsyncExecutor}'s queue is empty, provided that not all the
 	 * {@link Executable}s in the batch are stuck.
 	 */
-	public void resubmit(Executable executable)  {
+	/*public void resubmit(Executable executable)  {
 		synchronized(toResubmit) {
 			toResubmit.addElement(executable);
 		}
-	}
+	}*/
 	
 	public void interrupt() {
 		for(int i = 0 ; i < threadPool.length ; i ++) {

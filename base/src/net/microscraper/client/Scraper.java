@@ -15,7 +15,7 @@ import net.microscraper.instruction.Instruction;
 /**
  * The {@link Scraper} class can be used to asynchronously or synchronously scrape
  * an {@link Instruction} and all its children using defined input and {@link String} source.<p>
- * Use a {@link DatabaseViewHook} to observer results as they are generated.
+ * Use the {@link DatabaseViewHook} to observe results as they are generated.
  * @author realest
  *
  */

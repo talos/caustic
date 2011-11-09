@@ -30,7 +30,7 @@ final class ExecutorThread extends Thread {
 							executor.submit(children[i]);
 						}
 					} else if(executable.isMissingTags()) {
-						executor.resubmit(executable);
+						executor.submit(executable);
 					} else {
 						executor.recordFailure(executable.getFailedBecause());
 					}
