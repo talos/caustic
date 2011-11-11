@@ -290,9 +290,9 @@ public class DatabaseViewTest {
 	}
 	
 	@Test
-	public void testHook(@Mocked(capture = 1) final DatabaseViewHook hook) throws Exception {
+	public void testHook(@Mocked(capture = 1) final DatabaseViewListener hook) throws Exception {
 		
-		view.addHook(hook);
+		view.addListener(hook);
 		view.put("key", "value");
 		view.spawnChild("name");
 		view.spawnChild("name", "value");

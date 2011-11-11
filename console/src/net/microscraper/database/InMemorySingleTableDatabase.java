@@ -28,7 +28,7 @@ public class InMemorySingleTableDatabase implements Database {
 	@Override
 	public DatabaseView newView() throws DatabaseException {
 		DatabaseView view = new InMemoryDatabaseView();
-		view.addHook(new SingleTableDatabaseViewHook(table, idFactory));
+		view.addListener(new SingleTableDatabaseViewHook(table, idFactory));
 		return view;
 	}
 

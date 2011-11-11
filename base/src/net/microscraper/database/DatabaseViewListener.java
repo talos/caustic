@@ -1,8 +1,8 @@
 package net.microscraper.database;
 
 /**
- * {@link DatabaseViewHook}s can be hooked into a {@link DatabaseView}.
- * Each hooked {@link DatabaseViewHook} is called after the method of
+ * {@link DatabaseViewListener}s can be hooked into a {@link DatabaseView}.
+ * Each hooked {@link DatabaseViewListener} is called after the method of
  * the same name in {@link DatabaseView}, and {@link DatabaseView#spawnChild(String)}
  * and {@link DatabaseView#spawnChild(String, String)} have an additional
  * {@link DatabaseView} parameter that is the result of the {@link DatabaseView}
@@ -10,7 +10,7 @@ package net.microscraper.database;
  * @author talos
  *
  */
-public interface DatabaseViewHook {
+public interface DatabaseViewListener {
 	
 	/**
 	 * This method is called after the {@link DatabaseView#put(String, String)}

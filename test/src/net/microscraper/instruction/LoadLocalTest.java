@@ -73,7 +73,7 @@ public class LoadLocalTest {
 	public void testUrlIsSubstituted() throws Exception {
 		final String value = randomString();
 		final String name = "query";
-		final StringTemplate url = compiler.newTemplate("http://www.google.com/?q={{" + name + "}}", StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN);
+		final StringTemplate url = compiler.newTemplate("http://www.google.com/?q={{" + name + "}}", StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
 		final String subbed = "http://www.google.com/?q=" + value;
 		new Expectations() {{
 			input.get(name); result = value;
@@ -97,7 +97,7 @@ public class LoadLocalTest {
 	
 	@Test
 	public void testPostDataSetsPostMethod() throws Exception {
-		final StringTemplate postData = compiler.newTemplate(randomString(), StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN);
+		final StringTemplate postData = compiler.newTemplate(randomString(), StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
 		new Expectations() {{
 			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, postData.toString());
 				$ = "Post data should be set by setting post data.";
@@ -111,7 +111,7 @@ public class LoadLocalTest {
 		final String key = randomString();
 		final String value = randomString();
 		final StringTemplate postData = compiler.newTemplate("{{" + key + "}}",
-				StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN);
+				StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
 		new Expectations() {{
 			input.get(key); result = value;
 			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, value);

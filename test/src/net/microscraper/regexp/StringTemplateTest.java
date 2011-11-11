@@ -49,7 +49,7 @@ public class StringTemplateTest {
 		view.put("not encoded", "one & more reasons it <b>should be</b>");
 		
 		StringTemplate template = re.newTemplate("substituted but {{{not encoded}}}",
-				DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN);
+				ENCODED_PATTERN, UNENCODED_PATTERN);
 		StringSubstitution sub = template.sub(view);
 		assertFalse(sub.isMissingTags());
 		assertEquals("substituted but one & more reasons it <b>should be</b>", sub.getSubstituted());
@@ -58,7 +58,7 @@ public class StringTemplateTest {
 	@Test
 	public void testSubUnsuccessfulNotEncoded() throws Exception {
 		StringTemplate template = re.newTemplate("this {{{is missing}}}",
-				DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN);
+				ENCODED_PATTERN, UNENCODED_PATTERN);
 		StringSubstitution sub = template.sub(view);
 		assertTrue(sub.isMissingTags());
 		assertArrayEquals(new String[] { "is missing" }, sub.getMissingTags());
@@ -69,7 +69,7 @@ public class StringTemplateTest {
 		String strToEncode =  "& it very well <i>ought to be</i>";
 		view.put("encoded", strToEncode);
 		StringTemplate template = re.newTemplate("substituted {{encoded}}",
-				DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN);
+				ENCODED_PATTERN, UNENCODED_PATTERN);
 		StringSubstitution sub = template.sub(view);
 		assertFalse(sub.isMissingTags());
 		assertEquals("substituted " + encoder.encode(strToEncode), sub.getSubstituted());
@@ -77,7 +77,7 @@ public class StringTemplateTest {
 	
 	@Test
 	public void testSubUnsuccessfulEncoded() throws Exception {
-		StringTemplate template = re.newTemplate("this {{is missing}}", DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN);
+		StringTemplate template = re.newTemplate("this {{is missing}}", ENCODED_PATTERN, UNENCODED_PATTERN);
 		StringSubstitution sub = template.sub(view);
 		assertTrue(sub.isMissingTags());
 		assertArrayEquals(new String[] { "is missing" }, sub.getMissingTags());
@@ -87,7 +87,7 @@ public class StringTemplateTest {
 	public void testToString() {
 		String templateString = "un deux trois & quatre";
 		StringTemplate template = re.newTemplate(templateString,
-				DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN);
+				ENCODED_PATTERN, UNENCODED_PATTERN);
 		assertEquals(templateString, template.toString());
 	}
 

@@ -10,7 +10,7 @@ import mockit.Mocked;
 import mockit.Verifications;
 import net.microscraper.concurrent.SyncExecutor;
 import net.microscraper.database.DatabaseView;
-import net.microscraper.database.DatabaseViewHook;
+import net.microscraper.database.DatabaseViewListener;
 import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.http.HttpBrowser;
 import net.microscraper.instruction.Find;
@@ -25,10 +25,22 @@ import net.microscraper.util.StaticStringTemplate;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Test {@link Scraper} without a network connection.
+ * @author talos
+ *
+ */
 public class ScraperLocalTest {
 	@Mocked private HttpBrowser browser;
-	@Mocked DatabaseViewHook hook;
-		
+	@Mocked DatabaseViewListener listener;
+	DatabaseView view;
+	
+	@Before
+	public void setUp() {
+		view = new InMemoryDatabaseView();
+		view.addListener(listener);
+	}
+	
 	@Test
 	public void testExecutesTwice(@Mocked final Instruction instruction) throws Exception {
 
@@ -41,76 +53,11 @@ public class ScraperLocalTest {
 				$ = "should execute the same instruction twice from single scrape";
 		}};
 		
-		Scraper scraper = new Scraper(instruction, HashtableUtils.EMPTY, null, browser);
-		scraper.addHook(hook);
-		scraper.scrapeSync();
+		Scraper scraper = new Scraper(new InMemoryDatabaseView(), browser, new SyncExecutor());
+		scraper.scrape(instruction);
 		
 		new Verifications() {{
-			hook.put((String) any, (String) any); times = 0; $ = "Should not have any results.";
-		}};
-	}
-	
-	@Test
-	public void testBindsStringFromHashtable(@Mocked final RegexpCompiler compiler) throws Exception {
-		final String search = randomString();
-		final String input = randomString();
-		final String name = randomString();
-		final String[] mockResultValues = new String[] {
-				randomString(),
-				randomString()
-		};
-		new Expectations() {
-			Pattern pattern;
-			{
-				compiler.newPattern(search, anyBoolean, anyBoolean, anyBoolean); result = pattern;
-				pattern.match(input, anyString, anyInt, anyInt); result = mockResultValues;
-			}
-		};
-		
-		Find find = new Find(compiler, new StaticStringTemplate(search));
-		find.setName(new StaticStringTemplate(name));
-		Instruction instruction = new Instruction(find);
-		
-		Scraper scraper = new Scraper(instruction, HashtableUtils.EMPTY, input, browser);
-		scraper.addHook(hook);
-		scraper.scrapeSync();
-		
-		new Verifications() {{
-			for(int i = 0 ; i < mockResultValues.length ; i ++) {
-				hook.put(name, mockResultValues[i]);				
-			}
-		}};
-	}
-	
-	@Test
-	public void testBindsStringFromDatabaseView(@Mocked final RegexpCompiler compiler) throws Exception {
-		final String search = randomString();
-		final String input = randomString();
-		final String name = randomString();
-		
-		final String[] mockResultValues = new String[] {
-				randomString(),
-				randomString()
-		};
-		new Expectations() {
-			Pattern pattern;
-			{
-				compiler.newPattern(search, anyBoolean, anyBoolean, anyBoolean); result = pattern;
-				pattern.match(input, anyString, anyInt, anyInt); result = mockResultValues;
-			}
-		};
-		Find find = new Find(compiler, new StaticStringTemplate(search));
-		find.setName(new StaticStringTemplate(randomString()));
-		Instruction instruction = new Instruction(find);
-		DatabaseView view = new InMemoryDatabaseView();
-		Scraper scraper = new Scraper(instruction, view, input, browser);
-		scraper.addHook(hook);
-		scraper.scrapeSync();
-		
-		new Verifications() {{
-			for(int i = 0 ; i < mockResultValues.length ; i ++) {
-				hook.put(name, mockResultValues[i]);				
-			}
+			listener.put((String) any, (String) any); times = 0; $ = "Should not have any results.";
 		}};
 	}
 }

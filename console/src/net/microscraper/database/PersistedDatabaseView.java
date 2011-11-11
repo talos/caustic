@@ -10,7 +10,7 @@ class PersistedDatabaseView implements DatabaseView {
 	
 	private final UUID scope;
 	private final PersistedDatabase database;
-	private final List<DatabaseViewHook> hooks = new ArrayList<DatabaseViewHook>();
+	private final List<DatabaseViewListener> hooks = new ArrayList<DatabaseViewListener>();
 	
 	protected PersistedDatabaseView(PersistedDatabase database, UUID scope) {
 		this.database = database;
@@ -21,7 +21,7 @@ class PersistedDatabaseView implements DatabaseView {
 	public PersistedDatabaseView spawnChild(String name)
 			throws DatabasePersistException, DatabaseViewHookException {
 		PersistedDatabaseView child = database.insertOneToMany(scope, name);
-		for(DatabaseViewHook hook : hooks) {
+		for(DatabaseViewListener hook : hooks) {
 			hook.spawnChild(name, child);
 		}
 		return child;
@@ -31,7 +31,7 @@ class PersistedDatabaseView implements DatabaseView {
 	public PersistedDatabaseView spawnChild(String name, String value)
 			throws DatabasePersistException, DatabaseViewHookException {
 		PersistedDatabaseView child = database.insertOneToMany(scope, name, value);
-		for(DatabaseViewHook hook : hooks) {
+		for(DatabaseViewListener hook : hooks) {
 			hook.spawnChild(name, value, child);
 		}
 		return child;
@@ -46,13 +46,13 @@ class PersistedDatabaseView implements DatabaseView {
 	public void put(String key, String value)
 			throws DatabasePersistException, DatabaseViewHookException {
 		database.insertOneToOne(scope, key, value);
-		for(DatabaseViewHook hook : hooks) {
+		for(DatabaseViewListener hook : hooks) {
 			hook.put(key, value);
 		}
 	}
 
 	@Override
-	public void addHook(DatabaseViewHook viewHook) {
+	public void addListener(DatabaseViewListener viewHook) {
 		hooks.add(viewHook);
 	}
 }

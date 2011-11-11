@@ -11,7 +11,7 @@ import mockit.Verifications;
 import net.microscraper.client.Scraper;
 import net.microscraper.concurrent.SyncExecutor;
 import net.microscraper.database.DatabaseView;
-import net.microscraper.database.DatabaseViewHook;
+import net.microscraper.database.DatabaseViewListener;
 import net.microscraper.database.InMemoryDatabaseView;
 import net.microscraper.http.CookieManager;
 import net.microscraper.http.HttpBrowser;
@@ -38,20 +38,23 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 /**
+ * Test {@link Scraper} with calls to actual sites.
  * @author realest
  *
  */
 @RunWith(Parameterized.class)
 public class ScraperNetworkTest {
-	@Mocked DatabaseViewHook hook;
-	
+		
 	private final HttpBrowser browser;
-	//private final Encoder encoder;
-	private final RegexpCompiler compiler;
+	private final RegexpCompiler c;
+
+	private @Mocked DatabaseViewListener listener;
+	private DatabaseView view;
+	private Scraper scraper;
 	
 	public ScraperNetworkTest(HttpBrowser browser, RegexpCompiler compiler) {
 		this.browser = browser;
-		this.compiler = compiler;
+		this.c = compiler;
 	}
 	
 	@Parameters
@@ -65,76 +68,59 @@ public class ScraperNetworkTest {
 		});
 	}
 	
-	/**
-	 * Test fixture {@link #simpleGoogle}.
-	 * @throws Exception
-	 */
+	@Before
+	public void setUp() {
+		view = new InMemoryDatabaseView();
+		view.addListener(listener);
+		scraper = new Scraper(view, browser, new SyncExecutor());
+	}
+	
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {
-		StringTemplate googleTemplate = compiler.newTemplate("http://www.google.com/search?q={{query}}",
-				StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN);
-		Load loadGoogle = new Load(googleTemplate);
-		
-		StringTemplate whatDoYouSayTemplate = compiler.newTemplate("what do you say after '{{query}}'?",
-				StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN);
-		Find findWordAfter = new Find(compiler,
-				compiler.newTemplate("{{query}}\\s+(\\w+)", StringTemplate.DEFAULT_ENCODED_PATTERN,
-						StringTemplate.DEFAULT_NOT_ENCODED_PATTERN));
-		findWordAfter.setReplacement(compiler.newTemplate("I say $1",
-				StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN));
-		findWordAfter.setName(whatDoYouSayTemplate);
+		Load loadGoogle = new Load(c.newTemplate("http://www.google.com/search?q={{query}}"));
+				
+		Find findWordAfter = new Find(c, c.newTemplate("{{query}}\\s+(\\w+)"));
+		findWordAfter.setReplacement(c.newTemplate("I say $1"));
+		findWordAfter.setName(c.newTemplate("what do you say after '{{query}}'?"));
 		
 		Instruction instruction = new Instruction(loadGoogle);
-		instruction.setChildren(new Instruction[] { new Instruction(findWordAfter) } );
-
-		Hashtable<String, String> inputTable = new Hashtable<String, String>();
-		inputTable.put("query", "hello");
+		instruction.then(findWordAfter);
 		
-		Scraper scraper = new Scraper(instruction, inputTable, null, browser);
-		scraper.addHook(hook);
-		
-		scraper.scrapeSync();
+		view.put("query", "hello");
+		scraper.scrape(instruction);
 		
 		new Verifications() {{
-			//hook.put("query", "hello");
-			hook.spawnChild("what do you say after hello", withPrefix("I say "), (DatabaseView) any);
-			hook.spawnChild("what do you say after hello", withPrefix("I say "), (DatabaseView) any);
+			listener.spawnChild("what do you say after 'hello'?", withPrefix("I say "),
+					(DatabaseView) any); minTimes = 1;
 		}};
 	}
-	/*
-	public void testScrapeComplexGoogle(String pathToFixture) throws Exception {
-		final ScopeGenerator defaults = new ScopeGenerator();
-		final ScopeGenerator afterHello = new ScopeGenerator();
-		final ScopeGenerator recordGoogleAfters = new ScopeGenerator();
-		final ScopeGenerator afterSomethingElse = new ScopeGenerator();
-		
-		new NonStrictExpectations() {{
-			database.get((Scope) any, "query"); result = "hello";
-			database.get((Scope) any, anyString); result = "something else";
-		}};
-		
-		new Expectations() {{
-			database.getDefaultScope(); result = defaults; times = 1;
-			database.storeOneToOne((Scope) with(defaults.matchFirst()), "query", "hello");
-			database.storeOneToOne((Scope) with(defaults.matchFirst()), withPrefix("http://www.google.com/"));
-			database.storeOneToMany((Scope) with(defaults.matchFirst()), "after", withPrefix(anyString));
-					result = afterHello;
-			database.storeOneToOne((Scope) with(afterHello.matchWithin()), withPrefix("http://www.google.com/")); result = recordGoogleAfters;
-			database.storeOneToMany((Scope) with(afterHello.matchWithin()), withPrefix("what do you say after"), withPrefix("I say "));
-					result = afterSomethingElse;
-		}};
-		
-		Hashtable<String, String> defaultHash = new Hashtable<String, String>();
-		defaultHash.put("query", "hello");
-
-		scraper.scrape(pathToFixture, defaultHash);
-		
-		assertEquals(1, defaults.count());
-		assertTrue(afterHello.count() > 1);
-		assertEquals("Google should have been requested for each 'after hello'.", afterHello.count(), recordGoogleAfters.count());
-		assertTrue(afterSomethingElse.count() > afterHello.count());
+	/**
+	 * Test a Scraper that would serialize as
+	 * {
+	"load" : "http://www.google.com/search?q={{query}}",
+	"then"  : {
+		"find"     : "{{query}}\\s+(\\w+)",
+		"replace" : "$1",
+		"name"   : "query",
+		"then" : {
+			"load" : "http://www.google.com/search?q={{query}}",
+			"then" : {
+				"find"     : "{{query}}\\s+(\\w+)",
+				"replace" : "I say '$1'!",
+				"name"   : "what do you say after '{{query}}'?"
+			}
+		}
 	}
-	*/
+}
+	 * @throws Exception
+	 */
+	public void testScrapeComplexGoogle() throws Exception {
+		Load load = new Load(c.newTemplate("http://www.google.com/search?q={{query}}"));
+		Find nextWord = new Find(c, c.newTemplate("{{query}}\\s+(\\w+)"));
+		nextWord.setReplacement(c.newTemplate("$1"));
+		
+	}
+	
 	/*
 	@Test
 	public void testScrapeComplexGoogleNonReference() throws Exception {

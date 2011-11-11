@@ -32,8 +32,12 @@ public class JakartaRegexpCompiler implements RegexpCompiler {
 	}
 
 	public StringTemplate newTemplate(String templateString,
-			String encodedPatternString, String notEncodedPatternString) {
+			String encodedPatternString, String unencodedPatternString) {
 		return new JakartaStringTemplate(templateString, encodedPatternString,
-				notEncodedPatternString, encoder);
+				unencodedPatternString, encoder);
 	}
+
+	public StringTemplate newTemplate(String templateString) {
+		return new JakartaStringTemplate(templateString, StringTemplate.ENCODED_PATTERN,
+				StringTemplate.UNENCODED_PATTERN, encoder);	}
 }

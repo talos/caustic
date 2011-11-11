@@ -36,8 +36,14 @@ public class JavaUtilRegexpCompiler implements RegexpCompiler {
 
 	@Override
 	public StringTemplate newTemplate(String templateString,
-			String encodedPatternString, String notEncodedPatternString) {
+			String encodedPatternString, String unencodedPatternString) {
 		return new JavaUtilStringTemplate(templateString, encodedPatternString, 
-				notEncodedPatternString, encoder);
+				unencodedPatternString, encoder);
+	}
+
+	@Override
+	public StringTemplate newTemplate(String templateString) {
+		return new JavaUtilStringTemplate(templateString, StringTemplate.ENCODED_PATTERN, 
+				StringTemplate.UNENCODED_PATTERN, encoder);
 	}
 }

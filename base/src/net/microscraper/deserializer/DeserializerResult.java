@@ -1,6 +1,5 @@
 package net.microscraper.deserializer;
 
-import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Load;
 import net.microscraper.util.Result;
@@ -12,16 +11,12 @@ import net.microscraper.util.Result;
  *
  */
 public class DeserializerResult implements Result {
-	private Find find;
-	private Load load;
-	private Instruction[] children;
+	private Instruction instruction;
 	private String[] missingTags;
 	private String failedBecause;
 	
-	private DeserializerResult(Find find, Load load, Instruction[] children) {
-		this.find = find;
-		this.load = load;
-		this.children = children;
+	private DeserializerResult(Instruction instruction) {
+		this.instruction = instruction;
 	}
 	
 	private DeserializerResult(String[] missingTags) {
@@ -36,40 +31,16 @@ public class DeserializerResult implements Result {
 	 * 
 	 * @return The successfully deserialized {@link Load}.
 	 */
-	public Load getLoad() {
-		return load;
-	}
-	
-	/**
-	 * 
-	 * @return The successfully deserialized {@link Find}.
-	 */
-	public Find getFind() {
-		return find;
-	}
-	
-	/**
-	 * 
-	 * @return The successfully deserialized {@link Instruction}.
-	 */
-	public Instruction[] getChildren() {
-		return children;
+	public Instruction getInstruction() {
+		return instruction;
 	}
 	
 	/**
 	 * @return A successful {@link DeserializerResult}.
 	 */
-	public static DeserializerResult find(Find find, Instruction[] children) {
-		return new DeserializerResult(find, null, children);
+	public static DeserializerResult success(Instruction instruction) {
+		return new DeserializerResult(instruction);
 	}
-
-	/**
-	 * @return A successful {@link DeserializerResult}.
-	 */
-	public static DeserializerResult load(Load load, Instruction[] children) {
-		return new DeserializerResult(null, load, children);
-	}
-
 
 	/**
 	 * Obtain a {@link DeserializerResult} with missing tag information.

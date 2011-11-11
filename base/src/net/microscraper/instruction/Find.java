@@ -3,6 +3,7 @@ package net.microscraper.instruction;
 import net.microscraper.database.DatabasePersistException;
 import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
+import net.microscraper.http.HttpBrowser;
 import net.microscraper.regexp.Pattern;
 import net.microscraper.regexp.RegexpCompiler;
 import net.microscraper.regexp.StringTemplate;
@@ -10,7 +11,7 @@ import net.microscraper.template.DependsOnTemplate;
 import net.microscraper.template.StringSubstitution;
 import net.microscraper.util.StaticStringTemplate;
 
-public class Find {
+public final class Find extends Instruction {
 	
 	/**
 	 * The {@link StringTemplate} that will be substituted into a {@link String}
@@ -19,6 +20,8 @@ public class Find {
 	private final StringTemplate pattern;
 	
 	private boolean hasName = false;
+	
+	private final RegexpCompiler compiler;
 	
 	private StringTemplate name;
 	
@@ -36,13 +39,7 @@ public class Find {
 	 * Flag equivalent to {@link java.util.regex.Pattern#DOTALL}
 	 */
 	private boolean doesDotMatchNewline = true;
-	
-	/**
-	 * The {@link RegexpCompiler} to use when compiling this {@link Find}.
-	 */
-	private final RegexpCompiler compiler;
-	
-	
+		
 	/**
 	 * Value for when {@link #replacement} is the entire match.
 	 */
@@ -69,17 +66,11 @@ public class Find {
 	 * @see #minMatch
 	 */
 	private int maxMatch = Pattern.LAST_MATCH;
-
-	//private Instruction[] children = new Instruction[] { };
 	
 	public Find(RegexpCompiler compiler, StringTemplate pattern) {
 		this.compiler = compiler;
 		this.pattern = pattern;
 	}
-	/*
-	public void setChildren(Instruction[] children) {
-		this.children = children;
-	}*/
 	
 	public void setName(StringTemplate name) {
 		this.hasName = true;
@@ -111,21 +102,29 @@ public class Find {
 	}
 	
 	/**
-	 * Use {@link #pattern}, substituted with {@link Variables}, to match against <code>source</code>.
+	 * @return The raw pattern template.
 	 */
-	public FindResult execute(String source, DatabaseView inputView)
-			throws DatabasePersistException, DatabaseReadException {
+	public String toString() {
+		return pattern.toString();
+	}
+
+	/**
+	 * Use {@link #pattern}, substituted with {@link Variables}, to match against <code>source</code>.
+	 * Ignores <code>browser</code>.
+	 */
+	public InstructionResult execute(String source, DatabaseView view,
+			HttpBrowser browser) throws DatabasePersistException, DatabaseReadException {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
 		
-		final FindResult result;
+		final InstructionResult result;
 		final StringSubstitution subName;
-		final StringSubstitution subPattern = pattern.sub(inputView);
-		final StringSubstitution subReplacement = replacement.sub(inputView);
+		final StringSubstitution subPattern = pattern.sub(view);
+		final StringSubstitution subReplacement = replacement.sub(view);
 		
 		if(hasName) {
-			subName = name.sub(inputView);
+			subName = name.sub(view);
 		} else {
 			subName = subPattern; // if no name defined, default to the pattern.
 		}
@@ -133,7 +132,7 @@ public class Find {
 		if(subName.isMissingTags() ||
 				subPattern.isMissingTags() ||
 				subReplacement.isMissingTags()) { // One of the substitutions was not OK.
-			result = FindResult.missingTags(StringSubstitution.combine(
+			result = InstructionResult.missingTags(StringSubstitution.combine(
 					new DependsOnTemplate[] { subName, subPattern, subReplacement } ) );
 			
 		} else { // All the substitutions were OK.
@@ -145,21 +144,13 @@ public class Find {
 			String replacement = (String) subReplacement.getSubstituted();
 			String[] matches = pattern.match(source, replacement, minMatch, maxMatch);
 			
-			
 			if(matches.length == 0) { // No matches, fail out.
-				result = FindResult.noMatchesFailure(pattern, minMatch, maxMatch, source);
+				result = InstructionResult.noMatchesFailure(pattern, minMatch, maxMatch, source);
 			// We got at least 1 match.
 			} else {
-				result = FindResult.success(resultName, matches, hasName);
+				result = InstructionResult.success(resultName, matches, getChildren(), hasName);
 			}
 		}
 		return result;
-	}
-	
-	/**
-	 * @return The raw pattern template.
-	 */
-	public String toString() {
-		return pattern.toString();
 	}
 }

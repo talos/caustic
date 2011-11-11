@@ -45,4 +45,12 @@ public interface RegexpCompiler {
 	 */
 	public abstract StringTemplate newTemplate(String templateString,
 			String encodedPatternString, String notEncodedPatternString);
+	
+	/**
+	 * Convenience method that calls {@link #newTemplate(String, String, String) using
+	 * the default {@link StringTemplate#ENCODED_PATTERN} and {@link StringTemplate#UNENCODED_PATTERN}.
+	 * @param templateString The {@link String} template.
+	 * @return A {@link StringTemplate}.
+	 */
+	public abstract StringTemplate newTemplate(String templateString);
 }

@@ -65,7 +65,7 @@ public class InMemoryDatabaseView implements DatabaseView {
 			throws DatabasePersistException, DatabaseViewHookException {
 		DatabaseView child = new InMemoryDatabaseView(this);
 		for(int i = 0 ; i < hooks.size() ; i ++) {
-			((DatabaseViewHook) hooks.elementAt(i)).spawnChild(name, child);
+			((DatabaseViewListener) hooks.elementAt(i)).spawnChild(name, child);
 		}
 		return child;
 	}
@@ -75,7 +75,7 @@ public class InMemoryDatabaseView implements DatabaseView {
 		DatabaseView child = new InMemoryDatabaseView(this);
 		child.put(name, value);
 		for(int i = 0 ; i < hooks.size() ; i ++) {
-			((DatabaseViewHook) hooks.elementAt(i)).spawnChild(name, value, child);
+			((DatabaseViewListener) hooks.elementAt(i)).spawnChild(name, value, child);
 		}
 		return child;
 	}
@@ -93,7 +93,7 @@ public class InMemoryDatabaseView implements DatabaseView {
 	public void put(String key, String value) throws DatabasePersistException,
 				DatabaseViewHookException {
 		for(int i = 0 ; i < hooks.size() ; i ++) {
-			((DatabaseViewHook) hooks.elementAt(i)).put(key, value);
+			((DatabaseViewListener) hooks.elementAt(i)).put(key, value);
 		}
 		hashtable.put(key, value);
 	}
@@ -111,7 +111,7 @@ public class InMemoryDatabaseView implements DatabaseView {
 		return buf.toString();
 	}
 
-	public void addHook(DatabaseViewHook viewHook) {
+	public void addListener(DatabaseViewListener viewHook) {
 		if(viewHook == null) {
 			throw new NullPointerException();
 		}

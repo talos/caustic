@@ -4,7 +4,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import net.microscraper.util.Encoder;
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.VectorUtils;
 import net.microscraper.database.DatabaseReadException;

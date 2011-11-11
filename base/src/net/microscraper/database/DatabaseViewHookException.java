@@ -1,7 +1,7 @@
 package net.microscraper.database;
 
 /**
- * This {@link Exception} is thrown by {@link DatabaseViewHook}
+ * This {@link Exception} is thrown by {@link DatabaseViewListener}
  * implementations when a hook can't successfully fire.
  * @author talos
  *

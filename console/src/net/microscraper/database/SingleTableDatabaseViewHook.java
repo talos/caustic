@@ -10,7 +10,7 @@ import net.microscraper.uuid.UUIDFactory;
  * @author talos
  *
  */
-class SingleTableDatabaseViewHook implements DatabaseViewHook {
+class SingleTableDatabaseViewHook implements DatabaseViewListener {
 	private final WritableTable table;
 	private final UUIDFactory idFactory;
 	private final UUID scope;
@@ -43,7 +43,7 @@ class SingleTableDatabaseViewHook implements DatabaseViewHook {
 	public void spawnChild(String name, DatabaseView child) throws DatabaseViewHookException {
 		try {
 			SingleTable.insert(table, scope, parentScope, name, null);
-			child.addHook(new SingleTableDatabaseViewHook(table, idFactory, scope));
+			child.addListener(new SingleTableDatabaseViewHook(table, idFactory, scope));
 		} catch(TableManipulationException e) {
 			throw new DatabaseViewHookException("Couldn't add row to single table.", e);
 		}
@@ -53,7 +53,7 @@ class SingleTableDatabaseViewHook implements DatabaseViewHook {
 	public void spawnChild(String name, String value, DatabaseView child) throws DatabaseViewHookException {
 		try {
 			SingleTable.insert(table, scope, parentScope, name, value);		
-			child.addHook(new SingleTableDatabaseViewHook(table, idFactory, scope));		
+			child.addListener(new SingleTableDatabaseViewHook(table, idFactory, scope));		
 		} catch(TableManipulationException e) {
 			throw new DatabaseViewHookException("Couldn't add row to single table.", e);
 		}

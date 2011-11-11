@@ -45,17 +45,17 @@ public class HashtableTemplateTest {
 		view.put("not encoded value", "this value should not be encoded");
 		
 		hash.put(compiler.newTemplate("{{encoded key}}",
-				DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN),
+				ENCODED_PATTERN, UNENCODED_PATTERN),
 				new StaticStringTemplate("value"));
 		
 		hash.put(new StaticStringTemplate("multiple word key"), 
 				compiler.newTemplate("{{" + "encoded value" + "}}",
-						DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN ));
+						ENCODED_PATTERN, UNENCODED_PATTERN ));
 		
 		hash.put(compiler.newTemplate("{{{" + "not encoded key" + "}}}",
-				DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN ),
+				ENCODED_PATTERN, UNENCODED_PATTERN ),
 				compiler.newTemplate("{{{" + "not encoded value" + "}}}", 
-						DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN));
+						ENCODED_PATTERN, UNENCODED_PATTERN));
 		
 		HashtableSubstitution exc = hash.sub(view);
 		
@@ -84,9 +84,9 @@ public class HashtableTemplateTest {
 		view.put("george clinton", "chiller");
 		
 		hash1.put(new StaticStringTemplate("george clinton"),
-				compiler.newTemplate("{{{george clinton}}}", DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN));
+				compiler.newTemplate("{{{george clinton}}}", ENCODED_PATTERN, UNENCODED_PATTERN));
 		hash2.put(new StaticStringTemplate("bill clinton"), 
-				compiler.newTemplate("{{{bill clinton}}}", DEFAULT_ENCODED_PATTERN, DEFAULT_NOT_ENCODED_PATTERN));
+				compiler.newTemplate("{{{bill clinton}}}", ENCODED_PATTERN, UNENCODED_PATTERN));
 		
 		hash1.merge(hash2);
 		
@@ -110,8 +110,8 @@ public class HashtableTemplateTest {
 		hash.put(new StaticStringTemplate("key"),
 				new StaticStringTemplate("value"));
 		
-		hash.put(compiler.newTemplate("{{{overwriting}}}", DEFAULT_ENCODED_PATTERN,
-						DEFAULT_NOT_ENCODED_PATTERN), 
+		hash.put(compiler.newTemplate("{{{overwriting}}}", ENCODED_PATTERN,
+						UNENCODED_PATTERN), 
 				new StaticStringTemplate("value"));
 				
 		hash.sub(view);

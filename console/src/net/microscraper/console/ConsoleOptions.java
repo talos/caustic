@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 
 import net.microscraper.database.Database;
-import net.microscraper.database.DatabaseViewHook;
+import net.microscraper.database.DatabaseViewListener;
 import net.microscraper.database.IOConnection;
 import net.microscraper.database.InMemorySingleTableDatabase;
 import net.microscraper.database.InMemoryDatabaseView;

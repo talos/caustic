@@ -3,16 +3,17 @@ package net.microscraper.concurrent;
 import java.util.Vector;
 
 import net.microscraper.database.DatabaseException;
+import net.microscraper.database.DatabaseView;
+import net.microscraper.http.HttpBrowser;
+import net.microscraper.instruction.Instruction;
 import net.microscraper.util.VectorUtils;
 
 /**
- * An executor that runs synchronously.
+ * An executor that blocks the current thread on {@link #execute()}.
  * @author talos
  *
  */
-public class SyncExecutor {
-	private final Executable initialExecutable;
-	
+public class SyncExecutor implements Executor {	
 	/**
 	 * 
 	 * @param executables An array of {@link Executable}s that should be executed, along with their
@@ -48,12 +49,13 @@ public class SyncExecutor {
 		return stuckExecutablesAry;
 	}
 	
-	public SyncExecutor(Executable executable) {
-		this.initialExecutable = executable;
-	}
-	
-	public void execute() throws InterruptedException, DatabaseException {
-		Executable[] executables = new Executable[] { initialExecutable } ;
+	/* (non-Javadoc)
+	 * @see net.microscraper.concurrent.Executor#execute()
+	 */
+	public void execute(Instruction instruction, DatabaseView view, String source, 
+			HttpBrowser browser) throws InterruptedException, DatabaseException {
+		Executable[] executables = new Executable[] {
+				new Executable(instruction, view, source, browser) };
 		while(executables.length > 0) {
 			executables = loop(executables);
 			if(Executable.allAreStuck(executables)) {

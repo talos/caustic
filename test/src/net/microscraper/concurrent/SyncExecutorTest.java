@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import mockit.internal.expectations.transformation.ExpectationsTransformer;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +18,7 @@ public class SyncExecutorTest {
 		new NonStrictExpectations() {{
 			Executable.allAreStuck((Executable[]) any); result = false;
 		}};
-		executor = new SyncExecutor(executable);
+		executor = new SyncExecutor();
 	}
 
 	@Test
@@ -27,7 +26,7 @@ public class SyncExecutorTest {
 		new Expectations() {{
 			executable.execute(); times = 1;
 		}};
-		executor.execute();
+		executor.execute(executable);
 	}
 
 	@Test
@@ -41,7 +40,7 @@ public class SyncExecutorTest {
 				child3.execute(); times =1;
 			}
 		};
-		executor.execute();
+		executor.execute(executable);
 	}
 
 	@Test
@@ -58,7 +57,7 @@ public class SyncExecutorTest {
 				child3.execute(); times =1;
 			}
 		};
-		executor.execute();
+		executor.execute(executable);
 	}
 	
 	@Test
@@ -76,6 +75,6 @@ public class SyncExecutorTest {
 				child3.execute(); times =0;
 			}
 		};
-		executor.execute();
+		executor.execute(executable);
 	}
 }

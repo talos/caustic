@@ -7,6 +7,7 @@ import net.microscraper.database.DatabaseView;
 import net.microscraper.instruction.Find;
 import net.microscraper.instruction.Instruction;
 import net.microscraper.instruction.Load;
+import net.microscraper.instruction.SerializedInstruction;
 import net.microscraper.json.JsonArray;
 import net.microscraper.json.JsonException;
 import net.microscraper.json.JsonIterator;
@@ -189,14 +190,15 @@ public class JSONDeserializer implements Deserializer {
 							
 							if(thenString.equalsIgnoreCase(SELF)) {
 								//children.add(new Instruction(jsonString, this, uri));
-								children.add(new Instruction(uri, this, ""));
+								// to lazy-evaluate self, pass the original uri in again.
+								children.add(new SerializedInstruction(uri, this, ""));
 							} else {
-								children.add(new Instruction(thenString, this, uri));
+								children.add(new SerializedInstruction(thenString, this, uri));
 							}
 						}
 						for(int j = 0 ; j < thenObjects.size(); j ++ ) {
 							String thenObjectAsString = (String) thenObjects.elementAt(j);
-							children.add(new Instruction(thenObjectAsString, this, uri));
+							children.add(new SerializedInstruction(thenObjectAsString, this, uri));
 						}
 					} else if(key.equalsIgnoreCase(NAME)) {
 						name = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
@@ -270,7 +272,10 @@ public class JSONDeserializer implements Deserializer {
 				load.addCookies(cookies);
 				load.addHeaders(headers);
 				
-				result = DeserializerResult.load(load, childrenAry);
+				for(int i = 0 ; i < childrenAry.length ; i ++) {
+					load.then(childrenAry[i]);
+				}
+				result = DeserializerResult.success(load);
 			} else if(pattern != null) {
 				// We have a Find
 				Find find = new Find(compiler, pattern);
@@ -311,7 +316,10 @@ public class JSONDeserializer implements Deserializer {
 					find.setName(name);
 				}
 				
-				result = DeserializerResult.find(find, childrenAry);
+				for(int i = 0 ; i < childrenAry.length ; i ++) {
+					find.then(childrenAry[i]);
+				}
+				result = DeserializerResult.success(find);
 			} else {
 				return DeserializerResult.failure("Must define " + FIND + " or " + LOAD);
 			}
@@ -456,7 +464,7 @@ public class JSONDeserializer implements Deserializer {
 			throws InterruptedException {
 		try {
 			return deserialize(serializedString, input, uri,
-					StringTemplate.DEFAULT_ENCODED_PATTERN, StringTemplate.DEFAULT_NOT_ENCODED_PATTERN);
+					StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
 		} catch(JsonException e) {
 			return DeserializerResult.failure(e.getMessage());
 		} catch (MalformedUriException e) {

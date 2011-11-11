@@ -6,7 +6,7 @@ import net.microscraper.regexp.StringTemplate;
 /**
  * Microscraper uses {@link DatabaseView} to store data from 
  * for future use when substituting in {@link StringTemplate}.<p>
- * By adding {@link DatabaseViewHook}s to a {@link DatabaseView},
+ * By adding {@link DatabaseViewListener}s to a {@link DatabaseView},
  * it is possible to keep track of results as they are completed.
  * @author talos
  *
@@ -21,7 +21,7 @@ public interface DatabaseView {
 	 * in itself.
 	 * @throws DatabasePersistException if there was a problem persisting
 	 * @throws DatabaseViewHookException if there was a problem firing
-	 * a {@link DatabaseViewHook}.
+	 * a {@link DatabaseViewListener}.
 	 */
 	public abstract DatabaseView spawnChild(String name) throws DatabasePersistException,
 				DatabaseViewHookException;
@@ -37,7 +37,7 @@ public interface DatabaseView {
 	 * in itself.
 	 * @throws DatabasePersistException if there was a problem persisting
 	 * @throws DatabaseViewHookException if there was a problem firing
-	 * a {@link DatabaseViewHook}.
+	 * a {@link DatabaseViewListener}.
 	 */
 	public abstract DatabaseView spawnChild(String name, String value) throws DatabasePersistException,
 				DatabaseViewHookException;
@@ -51,7 +51,7 @@ public interface DatabaseView {
 	 * @param value the {@link String} value.
 	 * @throws DatabasePersistException if there was a problem persisting
 	 * @throws DatabaseViewHookException if there was a problem firing
-	 * a {@link DatabaseViewHook}.
+	 * a {@link DatabaseViewListener}.
 	 */
 	public abstract void put(String key, String value) throws DatabasePersistException,
 				DatabaseViewHookException;
@@ -67,9 +67,9 @@ public interface DatabaseView {
 	public abstract String get(String key) throws DatabaseReadException;
 	
 	/**
-	 * Register a {@link DatabaseViewHook} with this {@link DatabaseView}.
+	 * Register a {@link DatabaseViewListener} with this {@link DatabaseView}.
 	 * Hook methods are fired after they finish in {@link DatabaseView}.
-	 * @param hook The {@link DatabaseViewHook} to add. 
+	 * @param hook The {@link DatabaseViewListener} to add. 
 	 */
-	public void addHook(DatabaseViewHook hook);
+	public void addListener(DatabaseViewListener hook);
 }

@@ -2,7 +2,7 @@ package net.microscraper.instruction;
 
 import java.util.Hashtable;
 
-import net.microscraper.database.DatabasePersistException;
+import net.microscraper.database.DatabaseException;
 import net.microscraper.database.DatabaseReadException;
 import net.microscraper.database.DatabaseView;
 import net.microscraper.http.HttpBrowser;
@@ -14,7 +14,6 @@ import net.microscraper.template.HashtableSubstitution;
 import net.microscraper.template.HashtableSubstitutionOverwriteException;
 import net.microscraper.template.HashtableTemplate;
 import net.microscraper.template.StringSubstitution;
-import net.microscraper.util.Encoder;
 import net.microscraper.util.HashtableUtils;
 import net.microscraper.util.StaticStringTemplate;
 import net.microscraper.util.StringUtils;
@@ -25,7 +24,7 @@ import net.microscraper.util.StringUtils;
  * @author realest
  *
  */
-public final class Load {
+public final class Load extends Instruction {
 	
 	/**
 	 * The HTTP request type that will be used. Either {@link HttpBrowser#GET},
@@ -58,17 +57,17 @@ public final class Load {
 	 */
 	private final StringTemplate url;
 			
-	private StringSubstitution getPosts(DatabaseView input)
+	private StringSubstitution getPosts(DatabaseView source)
 			throws HashtableSubstitutionOverwriteException, DatabaseReadException {
 		if(postTable.size() > 0) {
-			HashtableSubstitution tableSub = postTable.sub(input);
+			HashtableSubstitution tableSub = postTable.sub(source);
 			if(tableSub.isMissingTags()) {
 				return StringSubstitution.missingTags(tableSub.getMissingTags());
 			} else {
 				return StringSubstitution.success(HashtableUtils.toFormEncoded(tableSub.getSubstituted()));
 			}
 		} else {
-			return postString.sub(input);
+			return postString.sub(source);
 		}
 	}
 	
@@ -135,25 +134,33 @@ public final class Load {
 	}
 	
 	/**
-	 * Make the request and retrieve the response body specified by this {@link Load}.
+	 * @return The raw URL template.
 	 */
-	public LoadResult execute(HttpBrowser browser, DatabaseView input)
-			throws InterruptedException, DatabasePersistException, DatabaseReadException {
+	public String toString() {
+		return url.toString();
+	}
+
+	/**
+	 * Make the request and retrieve the response body specified by this {@link Load}.
+	 * <code>source</code> is ignored.
+	 */
+	public InstructionResult execute(String source, DatabaseView view,
+			HttpBrowser browser) throws InterruptedException, DatabaseException {
 		try {
-			final LoadResult result;
+			final InstructionResult result;
 			
 			final Pattern[] stops = new Pattern[] { };
-			final StringSubstitution urlSub = url.sub(input);
-			final HashtableSubstitution headersSub = headers.sub(input);
-			final HashtableSubstitution cookiesSub = cookies.sub(input);
-			final StringSubstitution postData = getPosts(input);
+			final StringSubstitution urlSub = url.sub(view);
+			final HashtableSubstitution headersSub = headers.sub(view);
+			final HashtableSubstitution cookiesSub = cookies.sub(view);
+			final StringSubstitution postData = getPosts(view);
 			
 			// Cannot execute if any of these substitutions was not successful
 			if(urlSub.isMissingTags()
 					|| headersSub.isMissingTags()
 					|| cookiesSub.isMissingTags()
 					|| postData.isMissingTags()) {
-				result = LoadResult.missingTags(
+				result = InstructionResult.missingTags(
 					StringSubstitution.combine(new DependsOnTemplate[] {
 						urlSub, headersSub, cookiesSub, postData}));
 			} else {
@@ -175,21 +182,14 @@ public final class Load {
 				} else {
 					responseBody = browser.get(url, headers, stops);
 				}
-				
-				result = LoadResult.success(url, responseBody);
+				result = InstructionResult.success(url, new String[] { responseBody }, getChildren(), false);
+				//result = LoadResult.success(url, responseBody);
 			}
 			return result;
 		} catch(HashtableSubstitutionOverwriteException e) {
-			return LoadResult.fromSubstitutionOverwrite(e);
+			return InstructionResult.fromSubstitutionOverwrite(e);
 		} catch (HttpException e) {
-			return LoadResult.fromHttpException(e);
+			return InstructionResult.fromHttpException(e);
 		}
-	}
-	
-	/**
-	 * @return The raw URL template.
-	 */
-	public String toString() {
-		return url.toString();
 	}
 }
