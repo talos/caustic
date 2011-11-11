@@ -4,7 +4,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Hashtable;
 
-import net.microscraper.client.Scraper;
+import net.caustic.client.Scraper;
 
 public class ScrapeRunnable implements Runnable {
 	private final Scraper client;

@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/jmockit.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper Jakarta Regexp Implementation"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JSON ME Implementation"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper Java Util Regexp Implementation"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper JavaNet Implementation"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Microscraper Base"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Caustic JSON ME"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Java Util Regexp"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Caustic JavaNet Browser"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Core"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Jakarta Regexp"/>
+	<classpathentry kind="src" path="/Caustic Default Implementation"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

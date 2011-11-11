@@ -5,11 +5,11 @@ import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import net.microscraper.client.BasicMicroscraper;
-import net.microscraper.client.Scraper;
-import net.microscraper.http.HttpBrowser;
-import net.microscraper.util.HashtableUtils;
-import net.microscraper.util.JavaNetDecoder;
+import net.caustic.client.BasicMicroscraper;
+import net.caustic.client.Scraper;
+import net.caustic.http.HttpBrowser;
+import net.caustic.util.HashtableUtils;
+import net.caustic.util.JavaNetDecoder;
 
 /**
  * Provides interface between browser and scraper applet through public methods.

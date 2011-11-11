@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.microscraper.database.Database;
-import net.microscraper.database.TableManipulationException;
+import net.caustic.database.Database;
+import net.caustic.database.TableManipulationException;
 
 public class ThreadSafeDatabase implements Database {
 	public static final String ID = "id";
