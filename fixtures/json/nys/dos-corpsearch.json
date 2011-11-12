@@ -1,0 +1,72 @@
+
+{
+    "description": "Search the NYS DOS corporate entities listing using a partial search.  Requires 'searchname', returns a search results page with 0 to many pages of matching entities.",
+    "load" : "http://appext9.dos.state.ny.us/corp_public/CORPSEARCH.SELECT_ENTITY",
+    "posts": {
+	"p_entity_name" : "{{searchname}}",
+	"p_name_type"   : "A",
+	"p_search_type" : "PARTIAL"
+    },
+    "then" : [{
+	"description" : "Keep track of how many entities were found in the search.",
+	"name"        : "Number of matching entities",
+	"find"        : "<p\\s+class\\s*=\\s*\"messages\">([^<]*)</p>",
+	"match"       : 0,
+	"replace"     : "$1"
+    },{
+	"description" : "Obtain the href link for each entity on the search results page.",
+	"find"        : "<a\\s+title\\s*=\\*\"Link to entity information.\"\\s+tabindex\\s*=\\s*\"1\"\\s+href\\s*=\\s*\"([^\"]+)\">",
+	"name"        : "href",
+	"then" : {
+	    "description" : "Resolve the href link for each entity against the site, load the page.",
+	    "load"        : "http://appext9.dos.state.ny.us/corp_public/{{href}}",
+	    "then" : [{
+		"name"        : "Current Entity Name",
+		"find"        : "<th scope=\"row\">Current Entity Name:</th>[^<]*<td>([^<]*)</td>",
+		"replace"     : "$1"
+	    },{
+		"name"        : "Initial DOS Filing Date",
+		"find"        : "<th scope=\"row\">Initial DOS Filing Date:</th>[^<]*<td>([^<]*)</td>",
+		"replace"     : "$1"
+	    },{
+		"name"        : "County",
+		"find"        : "<th scope=\"row\">County:</th>[^<]*<td>([^<]*)</td>",
+		"replace"     : "$1"
+	    },{
+		"name"        : "Jurisdiction",
+		"find"        : "<th scope=\"row\">Jurisdiction:</th>[^<]*<td>([^<]*)</td>",
+		"replace"     : "$1"
+	    },{
+		"name"        : "Entity Type",
+		"find"        : "<th scope=\"row\">Entity Type:</th>[^<]*<td>([^<]*)</td>",
+		"replace"     : "$1"
+	    },{
+		"name"        : "Current Entity Status",
+		"find"        : "<th scope=\"row\">Current Entity Status:</th>[^<]*<td>([^<]*)</td>",
+		"replace"     : "$1"
+	    },{
+		"name"        : "DOS Process Address",
+		"find"        : "<td headers=\"c1\">(.*?)</td>"
+		"replace"     : "$1",
+		"match"       : 0
+	    },{
+		"name"        : "Registered Agent",
+		"find"        : "<td headers=\"c1\">(.*?)</td>"
+		"replace"     : "$1",
+		"match"       : 1
+	    },{
+		"name"        : "Filing Date",
+		"find"        : "<td class=\"FileDt\">([^<])</th>",
+		"replace"     : "$1"
+	    },{
+		"name"        : "Name Type",
+		"find"        : "<td class=\"NameType\">([^<])</th>",
+		"replace"     : "$1"
+	    },{
+		"name"        : "Entity Name",
+		"find"        : "<td class=\"Entity Name\">([^<])</th>",
+		"replace"     : "$1"
+	    }]
+	}
+    }]
+}
