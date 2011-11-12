@@ -10,7 +10,7 @@ import net.caustic.scope.ScopeFactory;
  * Implementations of the {@link Database} interface provide a method
  * to get a new {@link DatabaseView}.
  * @author talos
- * @see #newView()
+ * @see #newScope()
  *
  */
 public abstract class Database {
@@ -53,14 +53,16 @@ public abstract class Database {
 	}
 
 	/**
-	 * A fresh {@link DatabaseView}.
+	 * A fresh {@link Scope}.
 	 */
-	public DatabaseView newView() throws DatabaseException {
+	public Scope newScope() throws DatabaseException {
 		Scope scope = scopeFactory.get();
 		for(int i = 0 ; i < listeners.size() ; i ++) {
-			((DatabaseListener) listeners.elementAt(i)).newView(scope);
+			((DatabaseListener) listeners.elementAt(i)).newScope(scope);
 		}
-		return new DatabaseView(this, scope);
+		return scope;
+		//return new DatabaseView(this, scope);
+		
 	}
 	
 	/**

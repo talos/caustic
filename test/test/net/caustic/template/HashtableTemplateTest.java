@@ -2,15 +2,13 @@ package net.caustic.template;
 
 import static org.junit.Assert.*;
 import static net.caustic.regexp.StringTemplate.*;
-import static net.caustic.util.TestUtils.*;
 
 import java.util.Hashtable;
 
 import net.caustic.database.DatabaseView;
-import net.caustic.database.InMemoryDatabaseView;
+import net.caustic.database.InMemoryDatabase;
 import net.caustic.regexp.JavaUtilRegexpCompiler;
 import net.caustic.regexp.RegexpCompiler;
-import net.caustic.regexp.StringTemplate;
 import net.caustic.template.HashtableSubstitution;
 import net.caustic.template.HashtableSubstitutionOverwriteException;
 import net.caustic.template.HashtableTemplate;
@@ -30,7 +28,7 @@ public class HashtableTemplateTest {
 	public void setUp() throws Exception {
 		encoder = new JavaNetEncoder(Encoder.UTF_8);
 		compiler = new JavaUtilRegexpCompiler(encoder);
-		view = new InMemoryDatabaseView();
+		view = new DatabaseView(new InMemoryDatabase());
 	}
 
 	@Test

@@ -24,8 +24,8 @@ class InMemoryDatabaseListener implements DatabaseListener {
 		Hashtable dataNode = (Hashtable) nodes.get(scope);
 		dataNode.put(key, value);
 	}
-
-	public void newView(Scope scope)
+	
+	public void newScope(Scope scope)
 			throws DatabaseListenerException {
 		nodes.put(scope, new Hashtable());
 	}

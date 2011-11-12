@@ -95,7 +95,7 @@ public class JsonDeserializerTest {
 		JsonParser parser = klass.newInstance();
 
 		parser = new JsonMEParser();
-		input = new InMemoryDatabase().newView();
+		input = new DatabaseView(new InMemoryDatabase());
 		
 		loadPath = "LOAD PATH " + randomString();
 		loadObj = new JSONObject().put(LOAD, urlString);

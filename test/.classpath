@@ -9,6 +9,5 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/Caustic JavaNet Browser"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Core"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Jakarta Regexp"/>
-	<classpathentry kind="src" path="/Caustic Default Implementation"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

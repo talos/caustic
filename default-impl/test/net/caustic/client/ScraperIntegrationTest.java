@@ -2,133 +2,53 @@ package net.caustic.client;
 
 import static org.junit.Assert.*;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
+import mockit.Expectations;
 import mockit.Mocked;
-import mockit.Verifications;
-import net.caustic.client.Scraper;
-import net.caustic.concurrent.SyncExecutor;
-import net.caustic.database.DatabaseView;
-import net.caustic.database.DatabaseViewListener;
-import net.caustic.database.InMemoryDatabaseView;
-import net.caustic.deserializer.DefaultJSONDeserializer;
-import net.caustic.deserializer.JSONDeserializer;
-import net.caustic.http.CookieManager;
-import net.caustic.http.HttpBrowser;
-import net.caustic.http.HttpRequester;
-import net.caustic.http.HttpUtils;
-import net.caustic.http.JavaNetCookieManager;
-import net.caustic.http.JavaNetHttpRequester;
-import net.caustic.http.JavaNetHttpUtils;
-import net.caustic.http.RateLimitManager;
-import net.caustic.instruction.Find;
-import net.caustic.instruction.Instruction;
-import net.caustic.instruction.InstructionResult;
-import net.caustic.instruction.Load;
-import net.caustic.instruction.SerializedInstruction;
-import net.caustic.json.JsonMEParser;
-import net.caustic.regexp.JavaUtilRegexpCompiler;
-import net.caustic.regexp.RegexpCompiler;
-import net.caustic.regexp.StringTemplate;
-import net.caustic.uri.JavaNetUriResolver;
-import net.caustic.util.Encoder;
-import net.caustic.util.JavaNetEncoder;
+import net.caustic.Scraper;
+import net.caustic.database.DatabaseListener;
+import net.caustic.scope.IntScopeFactory;
+import net.caustic.scope.Scope;
+import net.caustic.scope.SerializedScope;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-
-import com.sun.xml.internal.ws.util.StringUtils;
 
 /**
  * Test {@link Scraper} with calls to actual sites.
  * @author realest
  *
  */
-@RunWith(Parameterized.class)
-public class ScraperNetworkTest {
+public class ScraperIntegrationTest {
 		
-	private final HttpBrowser browser;
-	private final RegexpCompiler c;
-
-	private @Mocked DatabaseViewListener listener;
-	private DatabaseView view;
+	private @Mocked DatabaseListener listener;
+	private Map<String, String> input;
 	private Scraper scraper;
-	private JSONDeserializer deserializer;
-	
-	public ScraperNetworkTest(HttpBrowser browser, RegexpCompiler compiler) {
-		this.browser = browser;
-		this.c = compiler;
-	}
-	
-	@Parameters
-	public static Collection<Object[]> implementations() throws Exception {
-		return Arrays.asList(new Object[][] {
-				{	new HttpBrowser(new JavaNetHttpRequester(),
-						new RateLimitManager(new JavaNetHttpUtils()),
-						new JavaNetCookieManager()), 
-					new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8))
-				}
-		});
-	}
 	
 	@Before
 	public void setUp() {
-		view = new InMemoryDatabaseView();
-		view.addListener(listener);
-		scraper = new Scraper(view, browser, new SyncExecutor());
-		deserializer = new DefaultJSONDeserializer();
+		scraper = new Scraper();
+		scraper.addListener(listener);
+		input = new HashMap<String, String>();
 	}
 	
 	@Test
-	public void testScrapeSimpleGoogle() throws Exception {
-		/*Load loadGoogle = new Load(c.newTemplate("http://www.google.com/search?q={{query}}"));
-				
-		Find findWordAfter = new Find(c, c.newTemplate("{{query}}\\s+(\\w+)"));
-		findWordAfter.setReplacement(c.newTemplate("I say $1"));
-		findWordAfter.setName(c.newTemplate("what do you say after '{{query}}'?"));
-		
-		//Instruction instruction = new Instruction(loadGoogle);
-		load.then(findWordAfter);
-		*/
-		
-		view.put("query", "hello");
-		//scraper.scrape(instruction);
-		scraper.scrape(new SerializedInstruction("../", deserializer, ));
-		
-		new Verifications() {{
-			listener.spawnChild("what do you say after 'hello'?", withPrefix("I say "),
-					(DatabaseView) any); minTimes = 1;
+	public void testScrapeSimpleGoogle() throws Exception {		
+		new Expectations() {{
+			listener.newScope(scope(0));
+			listener.put(scope(0), "query", "hello");
+			listener.newScope(scope(0), "what do you say after 'hello'?", withPrefix("I say "), (Scope) any);
+				minTimes = 1;
 		}};
+		
+		input.put("query", "hello");
+		scraper.scrape("fixtures/json/simple-google.json", input);
+		scraper.join();
 	}
-	/**
-	 * Test a Scraper that would serialize as
-	 * {
-	"load" : "http://www.google.com/search?q={{query}}",
-	"then"  : {
-		"find"     : "{{query}}\\s+(\\w+)",
-		"replace" : "$1",
-		"name"   : "query",
-		"then" : {
-			"load" : "http://www.google.com/search?q={{query}}",
-			"then" : {
-				"find"     : "{{query}}\\s+(\\w+)",
-				"replace" : "I say '$1'!",
-				"name"   : "what do you say after '{{query}}'?"
-			}
-		}
-	}
-}
-	 * @throws Exception
-	 */
+	
 	public void testScrapeComplexGoogle() throws Exception {
-		Load load = new Load(c.newTemplate("http://www.google.com/search?q={{query}}"));
-		Find nextWord = new Find(c, c.newTemplate("{{query}}\\s+(\\w+)"));
-		nextWord.setReplacement(c.newTemplate("$1"));
 		
 	}
 	
@@ -465,4 +385,13 @@ public class ScraperNetworkTest {
 			throw new Exception("Error loading the page.", e);
 		}
 	}*/
+	
+	/**
+	 * Convenience method to generate a matching scope from an int.
+	 * @param scopeNumber The <code>int</code> number of the scope.
+	 * @return A {@link Scope}
+	 */
+	private Scope scope(int scopeNumber) {
+		return new SerializedScope(Integer.toString(scopeNumber));
+	}
 }

@@ -12,6 +12,7 @@ import net.caustic.database.InMemoryDatabase;
 import net.caustic.deserializer.DefaultJSONDeserializer;
 import net.caustic.deserializer.JSONDeserializer;
 import net.caustic.executor.AsyncExecutor;
+import net.caustic.executor.SyncExecutor;
 import net.caustic.http.DefaultHttpBrowser;
 import net.caustic.http.HttpBrowser;
 import net.caustic.instruction.SerializedInstruction;
@@ -65,5 +66,9 @@ public class Scraper {
 		executor.execute(
 				new SerializedInstruction(uriOrJSON, deserializer, StringUtils.USER_DIR),
 				input, null, browser);
+	}
+	
+	public void join() throws InterruptedException {
+		executor.join();
 	}
 }

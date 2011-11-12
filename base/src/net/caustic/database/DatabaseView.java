@@ -10,15 +10,16 @@ public final class DatabaseView {
 	private final Database database;
 	private final Scope scope;
 	
-	public DatabaseView(Database database, Scope scope) {
+	public DatabaseView(Database database) throws DatabaseException {
+		this.scope = database.newScope();
 		this.database = database;
+	}
+	
+	private DatabaseView(Database database, Scope scope) throws DatabaseException {
 		this.scope = scope;
+		this.database = database;
 	}
-	
-	public Scope getScope() {
-		return scope;
-	}
-	
+		
 	public String get(String key) throws DatabaseReadException {
 		return database.get(scope, key);
 	}

@@ -7,7 +7,7 @@ import net.caustic.http.HttpBrowserLocalTest;
 import net.caustic.http.RateLimitManagerTest;
 import net.caustic.http.ResponseHeadersTest;
 import net.caustic.instruction.FindTest;
-import net.caustic.instruction.LoadLocalTest;
+import net.caustic.instruction.LoadTest;
 import net.caustic.json.JsonObjectTest;
 import net.caustic.regexp.PatternTest;
 import net.caustic.regexp.StringTemplateTest;
@@ -35,7 +35,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	RateLimitManagerTest.class,
 	ResponseHeadersTest.class,
 	FindTest.class,
-	LoadLocalTest.class,
+	LoadTest.class,
 	JsonDeserializerTest.class,
 	JsonObjectTest.class,
 	PatternTest.class,
@@ -47,6 +47,6 @@ import org.junit.runners.Suite.SuiteClasses;
 	StringUtilsTest.class,
 	VectorUtilsTest.class
 })
-public class LocalTests {
+public class UnitTests {
 
 }

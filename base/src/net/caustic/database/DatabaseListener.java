@@ -25,12 +25,11 @@ public interface DatabaseListener {
 	public void put(Scope scope, String key, String value) throws DatabaseListenerException;
 
 	/**
-	 * Called after fresh {@link DatabaseView} created.
+	 * Called after fresh {@link Scope} created.
 	 * @param scope
-	 * @param name
 	 * @throws DatabaseListenerException
 	 */
-	public void newView(Scope scope) throws DatabaseListenerException;
+	public void newScope(Scope scope) throws DatabaseListenerException;
 	
 	/**
 	 * This method is called after the {@link DatabaseView#spawnChild(String)}

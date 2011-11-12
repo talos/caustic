@@ -21,7 +21,22 @@ public class SerializedScope implements Scope {
 		return serializedUUID;
 	}
 	
+	public String toString() {
+		return asString();
+	}
+	
 	public int hashCode() {
 		return serializedUUID.hashCode();
+	}
+	
+	public boolean equals(Object obj) {
+		if(obj == this) {
+			return true;
+		} else if(obj instanceof Scope) {
+			Scope that = (Scope) obj;
+			return this.asString().equals(that.asString());
+		} else {
+			return false;
+		}
 	}
 }

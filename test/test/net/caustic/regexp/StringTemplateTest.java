@@ -2,17 +2,13 @@ package net.caustic.regexp;
 
 import static org.junit.Assert.*;
 import static net.caustic.regexp.StringTemplate.*;
-import static net.caustic.util.TestUtils.*;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collection;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
+import net.caustic.database.DatabaseException;
 import net.caustic.database.DatabaseView;
-import net.caustic.database.InMemoryDatabaseView;
+import net.caustic.database.InMemoryDatabase;
 import net.caustic.regexp.JakartaRegexpCompiler;
 import net.caustic.regexp.JavaUtilRegexpCompiler;
 import net.caustic.regexp.RegexpCompiler;
@@ -21,7 +17,6 @@ import net.caustic.template.StringSubstitution;
 import net.caustic.util.Encoder;
 import net.caustic.util.JavaNetEncoder;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -33,9 +28,9 @@ public class StringTemplateTest {
 	private final RegexpCompiler re;
 	private DatabaseView view;
 	
-	public StringTemplateTest(RegexpCompiler regexpCompiler) {
+	public StringTemplateTest(RegexpCompiler regexpCompiler) throws DatabaseException {
 		this.re = regexpCompiler;
-		this.view = new InMemoryDatabaseView();
+		this.view = new DatabaseView(new InMemoryDatabase());
 	}
 	
 	@Parameters

@@ -25,9 +25,10 @@ import net.caustic.database.InMemoryDatabase;
 import net.caustic.database.PersistedMultiTableDatabase;
 import net.caustic.database.PersistedSingleTableDatabase;
 import net.caustic.database.WritableConnection;
-import net.caustic.database.csv.CSVConnection;
-import net.caustic.database.sql.JDBCSqliteConnection;
+//import net.caustic.database.csv.CSVConnection;
+//import net.caustic.database.sql.JDBCSqliteConnection;
 import net.caustic.scope.IntScopeFactory;
+import net.caustic.scope.Scope;
 import net.caustic.scope.ScopeFactory;
 import net.caustic.uuid.JavaUtilUUIDFactory;
 
@@ -40,27 +41,35 @@ import org.junit.runners.Parameterized.Parameters;
 
 
 @RunWith(Parameterized.class)
-public class DatabaseViewTest {
+public class DatabaseTest {
 	
 	@Mocked("out") private System mockOut;
 	private ExecutorService exc;
 	private static final char DELIMITER = ',';
-	private final Database db;
+	private final Class<Database> klass;
+	private Database db;
 	private DatabaseView view;
 	
-	public DatabaseViewTest(Constructor<Database> dbConstructor,
+	/*public DatabaseTest(Constructor<Database> dbConstructor,
 			Method connStaticConstructor, List<Object> connStaticArgs,
 			ScopeFactory idFactory) throws Exception {
 		Connection conn = (Connection) connStaticConstructor.invoke(null, connStaticArgs.toArray());
 		db = dbConstructor.newInstance(conn, idFactory);
-		db.open();
+		//db.open();
+	}*/
+	public DatabaseTest(Class<Database> klass) {
+		this.klass = klass;
 	}
 	
 	@Parameters
 	public static List<Object[]> implementations() throws Exception {
+		return Arrays.asList(new Object[][] {
+				{ InMemoryDatabase.class }	
+		});
+		
 		// Reflection, yay! :/
 		// this must be done because @Parameters must be static, and this wrecks with opening connections.
-		return Arrays.asList(new Object[][] {
+		/*return Arrays.asList(new Object[][] {
 				{ InMemoryDatabase.class.getConstructor(WritableConnection.class, ScopeFactory.class),
 					CSVConnection.class.getMethod("toSystemOut", char.class), Arrays.asList(DELIMITER),
 					new IntScopeFactory() },
@@ -73,15 +82,17 @@ public class DatabaseViewTest {
 				{ PersistedMultiTableDatabase.class.getConstructor(IOConnection.class, ScopeFactory.class),
 					JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String"), boolean.class),
 					Arrays.asList(Database.DEFAULT_SCOPE_NAME, false), new JavaUtilUUIDFactory() },
-		});
+		});*/
 	}
 	
 	@Before
 	public void setUp() throws Exception {
 		//db.open();
 		//db.open();
-		view = db.newView();
+		//view = db.newView();
 		exc = Executors.newCachedThreadPool();
+		db = klass.newInstance();
+		view = new DatabaseView(db);
 	}
 	
 	@After
@@ -93,7 +104,7 @@ public class DatabaseViewTest {
 	public void testSpawnChildWithNameOnlyStoresNothing() throws Exception {
 		String name = randomString();
 		DatabaseView child = view.spawnChild(name);
-
+		
 		assertNull(view.get(name));
 		assertNull(child.get(name));
 	}
@@ -124,23 +135,18 @@ public class DatabaseViewTest {
 
 	@Test
 	public void testStoreToParentAccessibleToChildren() throws Exception {
-		String name = randomString();
-		String value = randomString();
-		DatabaseView child = view.spawnChild(randomString());
+		view.put("roses", "red");
+		DatabaseView child = view.spawnChild("foo", "bar");
 		
-		view.put(name, value);
-		assertEquals("Child should have access to parent value.", value, child.get(name));
+		assertEquals("Child should have access to parent value.", "red", child.get("roses"));
 	}
 	
-
 	@Test
 	public void testStoreToChildNotAccessibleToParent() throws Exception {
-		String name = randomString();
-		String value = randomString();
-		DatabaseView child = view.spawnChild(randomString());
+		view.put("roses", "red");
+		DatabaseView child = view.spawnChild("foo", "bar");
 		
-		child.put(name, value);
-		assertNull("Parent should not have access to child value.", view.get(name));
+		assertNull("Parent should not have access to child value.", view.get("foo"));
 	}
 	
 	@Test
@@ -263,7 +269,7 @@ public class DatabaseViewTest {
 			exc.submit(new Callable<Void>() {
 				@Override
 				public Void call() throws DatabaseException {
-					final DatabaseView view = db.newView();
+					final DatabaseView view = new DatabaseView(db);
 					for(int j = 0 ; j < count ; j ++) {
 						final String knownKey = randomString();
 						view.put(knownKey, randomString());
@@ -297,17 +303,18 @@ public class DatabaseViewTest {
 	}
 	
 	@Test
-	public void testHook(@Mocked(capture = 1) final DatabaseListener hook) throws Exception {
+	public void testListener(@Mocked(capture = 1) final DatabaseListener listener) throws Exception {
 		
-		view.addListener(hook);
-		view.put("key", "value");
-		view.spawnChild("name");
-		view.spawnChild("name", "value");
+		db.addListener(listener);
+		
+		final Scope parent = db.newScope();
+		db.put(parent, "foo", "bar");
+		final Scope child = db.newScope(parent, "roses", "red");
 		
 		new Verifications() {{
-			hook.put("key", "value");
-			hook.spawnChild("name", (DatabaseView) any);
-			hook.newScope("name", "value", (DatabaseView) any);
+			listener.newScope(parent);
+			listener.put(parent, "foo", "bar");
+			listener.newScope(parent, "roses", "red", child);
 		}};
 	}
 }

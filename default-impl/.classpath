@@ -7,5 +7,8 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Java Util Regexp"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Caustic JavaNet Browser"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Caustic JSON ME"/>
+	<classpathentry kind="lib" path="/Caustic Core Tests/lib/jmockit.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Core Tests"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

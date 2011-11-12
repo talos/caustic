@@ -28,9 +28,9 @@ final class IntScope implements Scope {
 	public boolean equals(Object obj) {
 		if(obj == this) {
 			return true;
-		} else if(obj instanceof IntScope) {
-			IntScope that = (IntScope) obj;
-			return this.id == that.id;
+		} else if(obj instanceof Scope) {
+			Scope that = (Scope) obj;
+			return this.asString().equals(that.asString());
 		} else {
 			return false;
 		}

@@ -26,7 +26,7 @@ import net.caustic.util.StaticStringTemplate;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LoadLocalTest {
+public class LoadTest {
 	
 	@Mocked private DatabaseView input;
 	@Injectable private HttpBrowser mockBrowser;

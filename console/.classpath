@@ -3,10 +3,11 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/realest/microscraper/microscraper-client/test/lib/jmockit.jar"/>
 	<classpathentry kind="lib" path="lib/sqlitejdbc-v056.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Default Implementation"/>
 	<classpathentry kind="src" path="/Caustic Core"/>
+	<classpathentry kind="lib" path="/Caustic Core Tests/lib/jmockit.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Core Tests"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

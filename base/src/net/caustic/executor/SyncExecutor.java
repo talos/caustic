@@ -50,10 +50,10 @@ public class SyncExecutor {
 		return stuckExecutablesAry;
 	}
 	
-	public void execute(Instruction instruction, Database database, String source, 
-			HttpBrowser browser) throws InterruptedException, DatabaseException {
+	public void execute(Instruction instruction, Database db, String source, 
+			HttpBrowser browser) throws InterruptedException, DatabaseException {		
 		Executable[] executables = new Executable[] {
-				new Executable(instruction, database.newView(), source, browser) };
+				new Executable(instruction, new DatabaseView(db), source, browser) };
 		while(executables.length > 0) {
 			executables = loop(executables);
 			if(Executable.allAreStuck(executables)) {

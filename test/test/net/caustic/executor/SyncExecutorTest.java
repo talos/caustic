@@ -19,7 +19,8 @@ import org.junit.Test;
 public class SyncExecutorTest {
 	private @Mocked Instruction instruction;
 	private @Mocked Database db;
-	private @Mocked String name, source, source2;
+	private @Mocked Executable exc;
+	//private @Mocked String name, source, source2;
 	private @Mocked HttpBrowser browser;
 	
 	SyncExecutor executor;
@@ -33,13 +34,11 @@ public class SyncExecutorTest {
 
 	@Test
 	public void testRunExecutes() throws Exception {
-		new Expectations() {
-			DatabaseView dbView;
-			{
-			db.newView(); result = dbView;
-			instruction.execute(source, dbView, browser); times = 1;
+		new Expectations() {{
+			db.newScope();
+			instruction.execute("foo", (DatabaseView) any, browser); times = 1;
 		}};
-		executor.execute(instruction, db, source, browser);
+		executor.execute(instruction, db, "foo", browser);
 	}
 
 	@Test
@@ -48,17 +47,17 @@ public class SyncExecutorTest {
 			@Mocked Instruction child1, child2, child3;
 			DatabaseView dbView;
 			{
-				db.newView(); result = dbView;
-				instruction.execute(source, dbView, browser); times = 1;
-						result = InstructionResult.success(name,
-								new String[] { source2 },
+				db.newScope(); result = dbView;
+				instruction.execute("foo", dbView, browser); times = 1;
+						result = InstructionResult.success("name",
+								new String[] { "bar" },
 								new Instruction[]{ child1, child2, child3 }, false);
-				child1.execute(source2, (DatabaseView) any, (HttpBrowser) browser); times =1;
-				child2.execute(source2, (DatabaseView) any, (HttpBrowser) browser); times =1;
-				child3.execute(source2, (DatabaseView) any, (HttpBrowser) browser); times =1;
+				child1.execute("bar", (DatabaseView) any, (HttpBrowser) browser); times =1;
+				child2.execute("bar", (DatabaseView) any, (HttpBrowser) browser); times =1;
+				child3.execute("bar", (DatabaseView) any, (HttpBrowser) browser); times =1;
 			}
 		};
-		executor.execute(instruction, db, source, browser);
+		executor.execute(instruction, db, "foo", browser);
 	}
 /*
 	@Test

@@ -3,6 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/sqlitejdbc-v056/sqlitejdbc-v056.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Microscraper Base"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

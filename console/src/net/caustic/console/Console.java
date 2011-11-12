@@ -75,7 +75,7 @@ public class Console {
 		// Start to read input.
 		Map<String, String> inputMap;
 		while((inputMap = input.next()) != null) {
-			DatabaseView view = database.newView();
+			DatabaseView view = database.newScope();
 			for(Map.Entry<String, String> entry : inputMap.entrySet()) {
 				view.put(entry.getKey(), entry.getValue());
 			}
