@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import net.caustic.client.Scraper;
+import net.caustic.Scraper;
 import net.caustic.database.ConnectionException;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
@@ -32,36 +32,26 @@ public class Console {
 	private final Database database;
 	private final Input input;
 
-	private final Instruction instruction;
+	private final String instruction;
 	private final String source;
-	private final HttpBrowser browser;
-	
-	private final int threadsPerRow;
-	private final BlockingQueue<Scraper> queue;
-	
+	private final Scraper scraper;
+		
 	public Console(String... stringArgs) throws InvalidOptionException, UnsupportedEncodingException {
 		
 		// Extract implementations from arguments, exit if there's a bad argument or this
 		// system does not support the encoding.
 		ConsoleOptions options = new ConsoleOptions(stringArgs);
-		database = options.getDatabase();
 		logger = options.getLogger();
 		input = options.getInput();
-		browser = options.getBrowser();
-		
-		threadsPerRow = options.getThreadsPerRow();
-		queue = new ArrayBlockingQueue<Scraper>(options.getNumRowsToRead());
-		//executor = options.getExecutor();
-		//executor = new AsyncThreadExecutor();
-		
 		instruction = options.getInstruction();
+		database = options.getDatabase();
 		source = options.getSource();
+		scraper = options.getScraper();
 	}
 	
 	public void open() throws IOException {
 		try {
 			logger.open();
-			database.open();
 			input.open();
 		} catch(ConnectionException e) {
 			throw new IOException(e);
@@ -74,23 +64,9 @@ public class Console {
 		
 		// Start to read input.
 		Map<String, String> inputMap;
+		
 		while((inputMap = input.next()) != null) {
-			DatabaseView view = database.newScope();
-			for(Map.Entry<String, String> entry : inputMap.entrySet()) {
-				view.put(entry.getKey(), entry.getValue());
-			}
-			
-			Scraper scraper = new Scraper(instruction, view,
-					source, browser.copy());
-			
-			if(queue.remainingCapacity() == 0) {
-				Scraper scraperToFinish = queue.poll(); // wait for spot to become available
-				scraperToFinish.join();
-				logger.i("Finished " + scraperToFinish);
-			}
-			queue.put(scraper);
-			scraper.scrape();
-			logger.i("Scraping " + scraper);
+			scraper.scrape(instruction, inputMap);
 		}
 		
 		try {
@@ -99,13 +75,7 @@ public class Console {
 		} catch(IOException e) {
 			System.out.println("Could not close input " + StringUtils.quote(input) + ": " + e.getMessage());
 		}
-		
-		while(queue.peek() != null) {
-			Scraper scraper = queue.poll();
-			scraper.join();
-			logger.i("Finished " + scraper);
-
-		}
+		scraper.join();
 	}
 	
 	/**
@@ -117,9 +87,6 @@ public class Console {
 	public Thread getShutdownThread() {
 		return new Thread() {
 			public void run() {
-				for(Scraper scraper : queue) {
-					scraper.interrupt();
-				}
 				
 				try {
 					logger.close();

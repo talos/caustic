@@ -1,5 +1,6 @@
 package net.caustic.executor;
 
+import net.caustic.database.DatabaseException;
 import net.caustic.database.DatabaseReadException;
 import net.caustic.database.DatabaseListenerException;
 import net.caustic.database.DatabaseListener;
@@ -22,7 +23,7 @@ public class AsyncExecutorListener implements DatabaseListener {
 	public void put(Scope scope, String key, String value) throws DatabaseListenerException {
 		try {
 			executor.kick(scope, key);
-		} catch(DatabaseReadException e) {
+		} catch(DatabaseException e) {
 			throw new DatabaseListenerException("Error reading database", e);
 		}
 	}

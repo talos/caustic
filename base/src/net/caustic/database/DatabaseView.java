@@ -20,7 +20,7 @@ public final class DatabaseView {
 		this.database = database;
 	}
 		
-	public String get(String key) throws DatabaseReadException {
+	public String get(String key) throws DatabaseException {
 		return database.get(scope, key);
 	}
 	

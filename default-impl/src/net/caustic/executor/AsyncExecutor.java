@@ -76,7 +76,7 @@ public class AsyncExecutor {
 	 * @param key The {@link String} key for a variable that was just found.
 	 * @param view The {@link DatabaseView} for which the variable was found.
 	 */
-	void kick(Scope scope, String key) throws DatabaseReadException {
+	void kick(Scope scope, String key) throws DatabaseException {
 		// this currently ignores scope, because it doesn't keep track of the database's
 		// inheritance.
 		synchronized(stuckExecutables) {			

@@ -1,7 +1,6 @@
 package net.caustic.executor;
 
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabaseReadException;
 import net.caustic.database.DatabaseView;
 import net.caustic.http.HttpBrowser;
 import net.caustic.instruction.Instruction;
@@ -32,7 +31,7 @@ final class Executable implements Result {
 	 * @return <code>true</code> if the {@link Executable}'s {@link DatabaseView}
 	 * is still missing the tags it was last time it ran.
 	 */
-	public boolean isStuck() throws DatabaseReadException {
+	public boolean isStuck() throws DatabaseException {
 		boolean isStuck = false;
 		if(result != null) { // only test if we've run before
 			String[] missingTags = getMissingTags();
@@ -139,7 +138,7 @@ final class Executable implements Result {
 	 * @return <code>true</code> if all <code>executables</code> are stuck,
 	 * <code>false</code> otherwise.
 	 */
-	static boolean allAreStuck(Executable[] executables) throws DatabaseReadException {
+	static boolean allAreStuck(Executable[] executables) throws DatabaseException {
 		for(int i = 0 ; i < executables.length ; i++) {
 			if(!executables[i].isStuck()) {
 				return false;

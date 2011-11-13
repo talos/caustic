@@ -16,10 +16,9 @@ import java.util.concurrent.Executors;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseListener;
 import net.caustic.database.IOConnection;
-import net.caustic.database.InMemoryDatabaseView;
 import net.caustic.database.InMemoryDatabase;
 import net.caustic.database.PersistedMultiTableDatabase;
-import net.caustic.database.PersistedSingleTableDatabase;
+import net.caustic.database.SingleTableDatabase;
 import net.caustic.database.csv.CSVConnection;
 import net.caustic.database.sql.JDBCSqliteConnection;
 import net.caustic.deserializer.Deserializer;
@@ -27,8 +26,6 @@ import net.caustic.deserializer.JSONDeserializer;
 import net.caustic.file.JavaIOFileLoader;
 import net.caustic.http.DefaultHttpBrowser;
 import net.caustic.http.HttpBrowser;
-import net.caustic.http.HttpRequester;
-import net.caustic.http.RateLimitManager;
 import net.caustic.instruction.Find;
 import net.caustic.instruction.Instruction;
 import net.caustic.json.JsonParser;
@@ -271,8 +268,15 @@ public final class ConsoleOptions {
 			delimiter = TAB_DELIMITER;
 		}
 		
+		final Database database;
+		if(format.equals(SQLITE_FORMAT)) {
+			throw new IllegalArgumentException("not yet supported");
+		} else {
+			database = new InMemoryDatabase();
+		}
+		
 		// Set up output and databases.
-		if(isSpecified(saveToFile)) {
+		/*if(isSpecified(saveToFile)) {
 			String outputLocation = getValue(saveToFile);
 			if(outputLocation.equals(saveToFile.getDefault())) { 
 				outputLocation += '.' + format;
@@ -294,7 +298,7 @@ public final class ConsoleOptions {
 		} else { // output to STDOUT
 			result = new InMemoryDatabase(
 					CSVConnection.toSystemOut(delimiter), new IntScopeFactory());
-		}
+		}*/
 		
 		return result;
 	}

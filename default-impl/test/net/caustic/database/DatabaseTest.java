@@ -23,7 +23,7 @@ import net.caustic.database.Database;
 import net.caustic.database.IOConnection;
 import net.caustic.database.InMemoryDatabase;
 import net.caustic.database.PersistedMultiTableDatabase;
-import net.caustic.database.PersistedSingleTableDatabase;
+import net.caustic.database.SingleTableDatabase;
 import net.caustic.database.WritableConnection;
 //import net.caustic.database.csv.CSVConnection;
 //import net.caustic.database.sql.JDBCSqliteConnection;
