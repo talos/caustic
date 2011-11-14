@@ -1,5 +1,6 @@
 package net.caustic.instruction;
 
+import net.caustic.database.DatabaseException;
 import net.caustic.database.DatabasePersistException;
 import net.caustic.database.DatabaseReadException;
 import net.caustic.database.DatabaseView;
@@ -113,7 +114,7 @@ public final class Find extends Instruction {
 	 * Ignores <code>browser</code>.
 	 */
 	public InstructionResult execute(String source, DatabaseView view,
-			HttpBrowser browser) throws DatabasePersistException, DatabaseReadException {
+			HttpBrowser browser) throws DatabaseException {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}

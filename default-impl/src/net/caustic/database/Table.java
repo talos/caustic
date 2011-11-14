@@ -6,12 +6,12 @@ import java.util.Map;
 import net.caustic.scope.Scope;
 
 /**
- * A {@link IOTable} interface supports reading, updating, and adding columns
+ * A {@link Table} interface supports reading, updating, and adding columns
  * in addition to the read functionality of {@link WritableTable}.
  * @author talos
  *
  */
-public interface IOTable extends WritableTable {
+public interface Table {
 
 	/**
 	 * Add a column.
@@ -24,35 +24,45 @@ public interface IOTable extends WritableTable {
 	 * Check whether a column exists already.
 	 * @param columnName The {@link String} name of the column to check.
 	 * @return <code>true</code> if the column exists, <code>false</code> otherwise.
-	 * @throws IOTableReadException if the {@link IOTable} cannot be checked to see whether
+	 * @throws IOTableReadException if the {@link Table} cannot be checked to see whether
 	 * it has the column.
 	 */
 	public abstract boolean hasColumn(String columnName) throws IOTableReadException;
 	
 	/**
-	 * Select several columns of data from  {@link IOTable}.
+	 * Select several columns of data from  {@link Table}.
 	 * @param scope The {@link Scope} scope of the rows to select.
 	 * @param whereMap A {@link Map} mapping the WHERE clause to
 	 * narrow the selection.
 	 * @param columnNames A {@link String} array of columns to select.
-	 * @throws IOTableReadException if the {@link IOTable} cannot be read from.
+	 * @throws IOTableReadException if the {@link Table} cannot be read from.
 	 */
 	public abstract List<Map<String, String>> select(Scope scope, Map<String, String> whereMap,
 					String[] columnNames)
 			throws IOTableReadException;
 	
 	/**
-	 * Update the rows of a scope in the {@link IOTable}.
+	 * Update the rows of a scope in the {@link Table}.
 	 * @param scope the {@link Scope} of the rows to update.
 	 * @param whereMap A {@link Map} mapping the WHERE clause to
 	 * narrow the update.  Provide an empty map to update everything in <code>
 	 * scope</code> with the same values.
 	 * @param updateMap A {@link Map} mapping columns names to values to update
-	 * in {@link IOTable}.
+	 * in {@link Table}.
 	 * @throws TableManipulationException if the rows could not be updated.
 	 */
 	public abstract void update(Scope scope, Map<String, String> whereMap,
 				Map<String, String> updateMap)
 			throws TableManipulationException;
+	
+	/**
+	 * Insert a new row into the {@link WritableTable}.
+	 * @param scope
+	 * @param map A {@link Hashtable} mapping columns names to values to insert
+	 * into {@link WritableTable}.
+	 * @throws TableManipulationException if the row could not be inserted.
+	 */
+	public abstract void insert(Scope scope, Map<String, String> map) throws TableManipulationException;
+
 	
 }

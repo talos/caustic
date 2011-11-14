@@ -2,6 +2,7 @@ package net.caustic.regexp;
 
 import java.util.Vector;
 
+import net.caustic.database.DatabaseException;
 import net.caustic.database.DatabaseReadException;
 import net.caustic.database.DatabaseView;
 import net.caustic.regexp.InvalidRangeException;
@@ -76,7 +77,8 @@ final class JakartaPattern implements Pattern {
 		return matches;
 	}
 	
-	public StringSubstitution substitute(String input, DatabaseView view) throws DatabaseReadException {
+	public StringSubstitution substitute(String input, DatabaseView view)
+			throws DatabaseException {
 		StringBuffer subbed = new StringBuffer();
 		Vector missingTags = new Vector();
 		

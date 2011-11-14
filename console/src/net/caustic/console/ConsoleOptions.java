@@ -15,11 +15,12 @@ import java.util.concurrent.Executors;
 
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseListener;
-import net.caustic.database.IOConnection;
+import net.caustic.database.Connection;
 import net.caustic.database.InMemoryDatabase;
-import net.caustic.database.PersistedMultiTableDatabase;
+import net.caustic.database.LoggingDatabaseListener;
+import net.caustic.database.MultiTableDatabase;
 import net.caustic.database.SingleTableDatabase;
-import net.caustic.database.csv.CSVConnection;
+import net.caustic.database.csv.CSVDatabaseListener;
 import net.caustic.database.sql.JDBCSqliteConnection;
 import net.caustic.deserializer.Deserializer;
 import net.caustic.deserializer.JSONDeserializer;
@@ -39,6 +40,7 @@ import net.caustic.scope.ScopeFactory;
 import net.caustic.uri.URILoader;
 import net.caustic.uri.UriResolver;
 import net.caustic.util.Decoder;
+import net.caustic.util.DefaultDecoder;
 import net.caustic.util.Encoder;
 import net.caustic.util.FormEncodedFormatException;
 import net.caustic.util.MapUtils;
@@ -103,11 +105,11 @@ public final class ConsoleOptions {
 	private final Option skipRows = Option.withDefault(SKIP_ROWS, SKIP_ROWS_DEFAULT);
 	
 	public static final String RATE_LIMIT = "--rate-limit";
-	public static final String RATE_LIMIT_DEFAULT = Integer.toString(RateLimitManager.DEFAULT_RATE_LIMIT);
+	public static final String RATE_LIMIT_DEFAULT = Integer.toString(HttpBrowser.DEFAULT_RATE_LIMIT);
 	private final Option rateLimit = Option.withDefault(RATE_LIMIT, RATE_LIMIT_DEFAULT);
 	
 	public static final String REQUEST_WAIT = "--request-wait";
-	public static final String REQUEST_WAIT_DEFAULT = Integer.toString(RateLimitManager.DEFAULT_REQUEST_WAIT);
+	public static final String REQUEST_WAIT_DEFAULT = Integer.toString(HttpBrowser.DEFAULT_REQUEST_WAIT);
 	private final Option requestWait = Option.withDefault(REQUEST_WAIT, REQUEST_WAIT_DEFAULT);
 	
 	public static final String ROWS = "--rows";
@@ -116,17 +118,17 @@ public final class ConsoleOptions {
 	
 	public static final String SINGLE_TABLE = "--single-table";
 	private final Option singleTable = Option.withoutDefault(SINGLE_TABLE);
-	
+	/*
 	public static final String SOURCE = "--source";
 	public static final String SOURCE_DEFAULT = "";
 	private final Option source = Option.withDefault(SOURCE, SOURCE_DEFAULT);
-	
+	*/
 	public static final String THREADS = "--threads";
 	public static final String THREADS_DEFAULT = "6";
 	private final Option threads = Option.withDefault(THREADS, THREADS_DEFAULT);
 	
 	public static final String TIMEOUT_MILLISECONDS = "--timeout";
-	private final Option timeoutMilliseconds = Option.withDefault(TIMEOUT_MILLISECONDS, Integer.toString(HttpRequester.DEFAULT_TIMEOUT_MILLISECONDS));
+	private final Option timeoutMilliseconds = Option.withDefault(TIMEOUT_MILLISECONDS, Integer.toString(HttpBrowser.DEFAULT_TIMEOUT_MILLISECONDS));
 	
 	public static final String USAGE = 
 "usage: microscraper <uri> [<options>]" + NEWLINE +
@@ -171,9 +173,10 @@ public final class ConsoleOptions {
 "        " + ROWS_DEFAULT + " rows." + NEWLINE+
 "    " + SINGLE_TABLE + NEWLINE +
 "        Save all results to a single sqlite table, if using sqlite" + NEWLINE +
+/*
 "    " + SOURCE + "=<source>" + NEWLINE +
 "        A string to use as source for the instruction." + NEWLINE +
-"        Only Finds use sources." + NEWLINE +
+"        Only Finds use sources." + NEWLINE + */
 "    " + SKIP_ROWS + "=<num-skip-rows>" + NEWLINE + 
 "        How many rows of input to skip.  Defaults to " + SKIP_ROWS_DEFAULT + "." + NEWLINE +
 "    " + THREADS + "=<num-threads>" + NEWLINE +
@@ -250,9 +253,7 @@ public final class ConsoleOptions {
 	 * @throws InvalidOptionException if the user specified a {@link Database} related
 	 * option that is invalid.
 	 */
-	public Database getDatabase() throws InvalidOptionException {
-		final Database result;
-		
+	public Database getDatabase() throws InvalidOptionException {		
 		// Determine format.
 		String format = getValue(this.format);
 		if(!validOutputFormats.contains(format)) {
@@ -260,47 +261,33 @@ public final class ConsoleOptions {
 					+ " is not a valid output format.");
 		}
 
-		// Determine delimiter.
-		char delimiter;
-		if(format.equals(CSV_FORMAT)) {
-			delimiter = COMMA_DELIMITER;
-		} else { // (format.equals(TAB_OUTPUT_COLUMN_DELIMITER)) {
-			delimiter = TAB_DELIMITER;
+		String outputLocation = getValue(saveToFile);
+		if(outputLocation.equals(saveToFile.getDefault())) { 
+			outputLocation += '.' + format;
 		}
 		
 		final Database database;
 		if(format.equals(SQLITE_FORMAT)) {
-			throw new IllegalArgumentException("not yet supported");
+			Connection connection = JDBCSqliteConnection.toFile(outputLocation,
+					Database.DEFAULT_SCOPE_NAME, true);
+			
+			if(isSpecified(singleTable)) {
+				database = new SingleTableDatabase(connection);
+			} else {
+				database = new MultiTableDatabase(connection);
+			}
 		} else {
 			database = new InMemoryDatabase();
+			// Determine delimiter.
+			char separator;
+			if(format.equals(CSV_FORMAT)) {
+				//database.addListener(new CSVDatabaseListener(new File(outputLocation), COMMA_DELIMITER));
+			} else if(format.equals(TAB_FORMAT)) {
+				//database.addListener(new CSVDatabaseListener(new File(outputLocation), TAB_DELIMITER));
+			}
 		}
 		
-		// Set up output and databases.
-		/*if(isSpecified(saveToFile)) {
-			String outputLocation = getValue(saveToFile);
-			if(outputLocation.equals(saveToFile.getDefault())) { 
-				outputLocation += '.' + format;
-			}
-			if(format.equals(SQLITE_FORMAT)) {				
-				IOConnection connection = JDBCSqliteConnection.toFile(outputLocation,
-						Database.DEFAULT_SCOPE_NAME, true);
-				ScopeFactory idFactory = new IntScopeFactory();
-				if(isSpecified(singleTable)) {
-					result = new PersistedSingleTableDatabase(connection, idFactory);
-				} else {
-					result = new PersistedMultiTableDatabase(connection, idFactory);
-				}
-			} else {
-				result = new InMemoryDatabase(
-						CSVConnection.toFile(outputLocation, delimiter), new IntScopeFactory());
-				
-			}
-		} else { // output to STDOUT
-			result = new InMemoryDatabase(
-					CSVConnection.toSystemOut(delimiter), new IntScopeFactory());
-		}*/
-		
-		return result;
+		return database;
 	}
 
 	/**
@@ -371,20 +358,8 @@ public final class ConsoleOptions {
 	 * @throws InvalidOptionException
 	 * @throws UnsupportedEncodingException 
 	 */
-	public Instruction getInstruction() throws InvalidOptionException, UnsupportedEncodingException {
-
-		RegexpCompiler compiler = new JavaUtilRegexpCompiler(new JavaNetEncoder(getValue(encoding)));
-		URILoader uriLoader = new JavaNetURILoader(getBrowser(), new JavaIOFileLoader());
-		UriResolver uriResolver = new JavaNetUriResolver();
-		JsonParser parser = new JsonMEParser();
-		Deserializer deserializer = new JSONDeserializer(parser, compiler, uriResolver, uriLoader);
-		
-		String executionDir = new File(StringUtils.USER_DIR).toURI().toString();
-		if(!executionDir.endsWith("/")) {
-			executionDir += "/";
-		}
-		
-		return new Instruction(getValue(instruction), deserializer, executionDir);
+	public String getInstruction() throws InvalidOptionException, UnsupportedEncodingException {
+		return getValue(instruction);
 	}
 	
 	/**
@@ -400,7 +375,7 @@ public final class ConsoleOptions {
 		
 		try {
 			Map<String, String> shared =
-					MapUtils.fromFormEncoded(new JavaNetDecoder(Decoder.UTF_8), rawInputString);
+					MapUtils.fromFormEncoded(new DefaultDecoder(), rawInputString);
 			
 			if(isSpecified(inputFile)) {
 				char inputColumnDelimiter = getValue(inputDelimiter).charAt(0);
@@ -426,15 +401,6 @@ public final class ConsoleOptions {
 			throw new InvalidOptionException(e.getMessage());
 		}
 	}
-
-	/**
-	 * 
-	 * @return A {@link String} to be used as the source for the executed {@link Instruction}.
-	 * Only {@link Find}s use a source string.
-	 */
-	public String getSource() throws InvalidOptionException {
-		return getValue(source);
-	}
 	
 	public int getNumRowsToRead() throws InvalidOptionException {
 		try {
@@ -449,7 +415,7 @@ public final class ConsoleOptions {
 		}
 	}
 	
-	public int getThreadsPerRow() throws InvalidOptionException {
+	public int getNumThreads() throws InvalidOptionException {
 		try {
 			int threadsPerRow = Integer.valueOf(getValue(threads));
 			if(threadsPerRow <= 0) {

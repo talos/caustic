@@ -1,12 +1,9 @@
 package net.caustic.http;
 
 import static org.junit.Assert.*;
-import static net.caustic.http.RateLimitManager.*;
 import static net.caustic.util.TestUtils.*;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -90,7 +87,7 @@ public class RateLimitManagerTest {
 	
 	@Test
 	public void testRememberRequestDelaysForOneHostDefaultWait() throws Exception {
-		testRememberRequestDelaysForOneHost(DEFAULT_REQUEST_WAIT);
+		testRememberRequestDelaysForOneHost(HttpBrowser.DEFAULT_REQUEST_WAIT);
 	}
 	
 	@Test
@@ -140,7 +137,7 @@ public class RateLimitManagerTest {
 	
 	@Test
 	public void testRememberResponseDelaysForOneHostDefaultRateLimit() throws Exception {
-		testRememberRequestDelaysForOneHost(DEFAULT_RATE_LIMIT);
+		testRememberRequestDelaysForOneHost(HttpBrowser.DEFAULT_RATE_LIMIT);
 	}
 	
 	@Test

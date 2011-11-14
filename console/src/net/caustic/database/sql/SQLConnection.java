@@ -3,14 +3,14 @@ package net.caustic.database.sql;
 import java.util.List;
 import java.util.Map;
 
-import net.caustic.database.IOConnection;
+import net.caustic.database.Connection;
 
 /**
  * An interface to a SQL connection.
  * @author talos
  *
  */
-interface SQLConnection extends IOConnection {
+interface SQLConnection extends Connection {
 	
 	/**
 	 * @return A {@link String} to define a primary key, for example <code>

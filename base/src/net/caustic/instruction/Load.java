@@ -58,7 +58,7 @@ public final class Load extends Instruction {
 	private final StringTemplate url;
 			
 	private StringSubstitution getPosts(DatabaseView source)
-			throws HashtableSubstitutionOverwriteException, DatabaseReadException {
+			throws HashtableSubstitutionOverwriteException, DatabaseException {
 		if(postTable.size() > 0) {
 			HashtableSubstitution tableSub = postTable.sub(source);
 			if(tableSub.isMissingTags()) {

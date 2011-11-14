@@ -1,7 +1,7 @@
 package net.caustic.database;
 
 /**
- * This is thrown when an {@link IOTable} cannot be read from.
+ * This is thrown when an {@link Table} cannot be read from.
  * @author realest
  *
  */

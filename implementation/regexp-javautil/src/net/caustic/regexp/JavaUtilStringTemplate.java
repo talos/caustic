@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import net.caustic.database.DatabaseException;
 import net.caustic.database.DatabaseReadException;
 import net.caustic.database.DatabaseView;
 import net.caustic.regexp.StringTemplate;
@@ -28,7 +29,7 @@ final class JavaUtilStringTemplate implements StringTemplate {
 	}
 
 	@Override
-	public StringSubstitution sub(DatabaseView view) throws DatabaseReadException {
+	public StringSubstitution sub(DatabaseView view) throws DatabaseException {
 		// cannot reuse matchers because this class is accessed concurrently
 		Matcher encodedMatcher = encodedPattern.matcher(templateString);
 		Matcher notEncodedMatcher = notEncodedPattern.matcher(templateString);

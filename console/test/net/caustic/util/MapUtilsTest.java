@@ -14,7 +14,7 @@ public class MapUtilsTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		decoder = new JavaNetDecoder(Decoder.UTF_8);
+		decoder = new Decoder();
 	}
 
 	@Test

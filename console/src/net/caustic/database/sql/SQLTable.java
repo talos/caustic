@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.caustic.database.IOTable;
+import net.caustic.database.Table;
 import net.caustic.database.IOTableReadException;
 import net.caustic.database.TableManipulationException;
 import net.caustic.scope.Scope;
@@ -18,7 +18,7 @@ import net.caustic.util.StringUtils;
  * @author talos
  *
  */
-class SQLTable implements IOTable {
+class SQLTable implements Table {
 	
 	/**
 	 * {@link SQLConnection} used in this {@link SQLTable}.

@@ -16,6 +16,7 @@ import net.caustic.database.ConnectionException;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
 import net.caustic.database.DatabaseView;
+import net.caustic.database.LoggingDatabaseListener;
 import net.caustic.http.HttpBrowser;
 import net.caustic.instruction.Instruction;
 import net.caustic.instruction.InstructionResult;
@@ -33,7 +34,6 @@ public class Console {
 	private final Input input;
 
 	private final String instruction;
-	private final String source;
 	private final Scraper scraper;
 		
 	public Console(String... stringArgs) throws InvalidOptionException, UnsupportedEncodingException {
@@ -45,19 +45,15 @@ public class Console {
 		input = options.getInput();
 		instruction = options.getInstruction();
 		database = options.getDatabase();
-		source = options.getSource();
-		scraper = options.getScraper();
+
+		database.addListener(new LoggingDatabaseListener(logger));
+
+		scraper = new Scraper(database, options.getNumThreads());
 	}
 	
 	public void open() throws IOException {
-		try {
-			logger.open();
-			input.open();
-		} catch(ConnectionException e) {
-			throw new IOException(e);
-		} catch(DatabaseException e) {
-			throw new IOException(e);
-		}
+		logger.open();
+		input.open();
 	}
 	
 	public void execute() throws IOException, InterruptedException, DatabaseException {
@@ -86,7 +82,7 @@ public class Console {
 	 */
 	public Thread getShutdownThread() {
 		return new Thread() {
-			public void run() {
+			/*public void run() {
 				
 				try {
 					logger.close();
@@ -101,7 +97,7 @@ public class Console {
 				}
 				
 				try {
-					database.close();
+					//database.close();
 					System.out.println("Saved to database " + database);
 				} catch(ConnectionException e) {
 					System.out.println("Could not close connection for database "
@@ -109,7 +105,7 @@ public class Console {
 				} catch(DatabaseException e) {
 					System.out.println("Could not close database " + StringUtils.quote(database) + ": " + e.getMessage());					
 				}
-			}
+			}*/
 		};
 	}
 }

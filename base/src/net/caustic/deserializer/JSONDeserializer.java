@@ -2,6 +2,7 @@ package net.caustic.deserializer;
 
 import java.util.Vector;
 
+import net.caustic.database.DatabaseException;
 import net.caustic.database.DatabaseReadException;
 import net.caustic.database.DatabaseView;
 import net.caustic.instruction.Find;
@@ -63,7 +64,7 @@ public class JSONDeserializer implements Deserializer {
 					String encodedPatternString, String notEncodedPatternString)
 			throws JsonException,
 			MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException,
-			DatabaseReadException, URILoaderException {
+			DatabaseException, URILoaderException {
 		final DeserializerResult result;
 		
 		// Parse non-objects as URIs.  Any substitution should have been done beforehand.
@@ -473,7 +474,7 @@ public class JSONDeserializer implements Deserializer {
 			return DeserializerResult.failure(e.getMessage());
 		} catch (RemoteToLocalSchemeResolutionException e) {
 			return DeserializerResult.failure(e.getMessage());
-		} catch (DatabaseReadException e) {
+		} catch (DatabaseException e) {
 			return DeserializerResult.failure(e.getMessage());
 		}
 	}

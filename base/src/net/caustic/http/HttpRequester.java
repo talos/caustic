@@ -10,11 +10,6 @@ import java.util.Hashtable;
  */
 interface HttpRequester {
 
-	/**
-	 * The default number of seconds to wait before timing out on a
-	 * request for {@link HttpBrowser} interfaces.
-	 */
-	public static final int DEFAULT_TIMEOUT_MILLISECONDS = 30000;
 
 	/**
 	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies

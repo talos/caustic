@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.caustic.database.ConnectionException;
-import net.caustic.database.IOTable;
+import net.caustic.database.Table;
 import net.caustic.util.StringUtils;
 
 /**
@@ -161,7 +161,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 	}
 	
 	@Override
-	public IOTable newIOTable(String name, String[] columnNames, String[] primaryKeyColumnNames)
+	public Table newTable(String name, String[] columnNames, String[] primaryKeyColumnNames)
 			throws ConnectionException {
 		String scopeColumnType = isScopeNumeric ? intColumnType() : textColumnType();
 		
@@ -193,7 +193,7 @@ public class JDBCSqliteConnection implements SQLConnection {
 	}
 	
 	@Override
-	public IOTable getIOTable(String name) throws ConnectionException {
+	public Table getTable(String name) throws ConnectionException {
 		try {
 			//System.out.println("testing whether " + name + " exists...");
 			commit();

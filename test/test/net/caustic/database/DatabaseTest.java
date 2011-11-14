@@ -3,10 +3,7 @@ package net.caustic.database;
 import static net.caustic.util.TestUtils.randomString;
 import static org.junit.Assert.*;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -14,112 +11,45 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
-import mockit.internal.expectations.transformation.ExpectationsTransformer;
-import net.caustic.database.Connection;
 import net.caustic.database.Database;
-import net.caustic.database.IOConnection;
-import net.caustic.database.InMemoryDatabase;
-import net.caustic.database.PersistedMultiTableDatabase;
-import net.caustic.database.SingleTableDatabase;
-import net.caustic.database.WritableConnection;
-//import net.caustic.database.csv.CSVConnection;
-//import net.caustic.database.sql.JDBCSqliteConnection;
-import net.caustic.scope.IntScopeFactory;
 import net.caustic.scope.Scope;
-import net.caustic.scope.ScopeFactory;
-import net.caustic.uuid.JavaUtilUUIDFactory;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
-
-@RunWith(Parameterized.class)
-public class DatabaseTest {
+public abstract class DatabaseTest {
 	
-	@Mocked("out") private System mockOut;
 	private ExecutorService exc;
-	private static final char DELIMITER = ',';
-	private final Class<Database> klass;
 	private Database db;
 	private DatabaseView view;
 	
-	/*public DatabaseTest(Constructor<Database> dbConstructor,
-			Method connStaticConstructor, List<Object> connStaticArgs,
-			ScopeFactory idFactory) throws Exception {
-		Connection conn = (Connection) connStaticConstructor.invoke(null, connStaticArgs.toArray());
-		db = dbConstructor.newInstance(conn, idFactory);
-		//db.open();
-	}*/
-	public DatabaseTest(Class<Database> klass) {
-		this.klass = klass;
-	}
-	
-	@Parameters
-	public static List<Object[]> implementations() throws Exception {
-		return Arrays.asList(new Object[][] {
-				{ InMemoryDatabase.class }	
-		});
-		
-		// Reflection, yay! :/
-		// this must be done because @Parameters must be static, and this wrecks with opening connections.
-		/*return Arrays.asList(new Object[][] {
-				{ InMemoryDatabase.class.getConstructor(WritableConnection.class, ScopeFactory.class),
-					CSVConnection.class.getMethod("toSystemOut", char.class), Arrays.asList(DELIMITER),
-					new IntScopeFactory() },
-				{ PersistedSingleTableDatabase.class.getConstructor(IOConnection.class, ScopeFactory.class),
-					JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String"), boolean.class),
-					Arrays.asList(Database.DEFAULT_SCOPE_NAME, true), new IntScopeFactory() },
-				{ PersistedMultiTableDatabase.class.getConstructor(IOConnection.class, ScopeFactory.class),
-						JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String"), boolean.class),
-						Arrays.asList(Database.DEFAULT_SCOPE_NAME, true), new IntScopeFactory() },
-				{ PersistedMultiTableDatabase.class.getConstructor(IOConnection.class, ScopeFactory.class),
-					JDBCSqliteConnection.class.getMethod("inMemory", Class.forName("java.lang.String"), boolean.class),
-					Arrays.asList(Database.DEFAULT_SCOPE_NAME, false), new JavaUtilUUIDFactory() },
-		});*/
-	}
+	public abstract Database getDatabase() throws Exception;
 	
 	@Before
 	public void setUp() throws Exception {
-		//db.open();
-		//db.open();
-		//view = db.newView();
 		exc = Executors.newCachedThreadPool();
-		db = klass.newInstance();
+		db = getDatabase();
 		view = new DatabaseView(db);
-	}
-	
-	@After
-	public void tearDown() throws Exception {
-		//db.close();
 	}
 
 	@Test
 	public void testSpawnChildWithNameOnlyStoresNothing() throws Exception {
-		String name = randomString();
-		DatabaseView child = view.spawnChild(name);
+		DatabaseView child = view.spawnChild("foo");
 		
-		assertNull(view.get(name));
-		assertNull(child.get(name));
+		assertNull(view.get("foo"));
+		assertNull(child.get("foo"));
 	}
 
 	@Test
 	public void testSpawnChildWithNameAndValueStoresOnlyInChild() throws Exception {
-		String name = randomString();
-		String value = randomString();
+		DatabaseView child = view.spawnChild("foo", "bar");
 		
-		DatabaseView child = view.spawnChild(name, value);
+		assertNull("Parent should not have value.", view.get("foo"));
 		
-		assertNull("Parent should not have value.", view.get(name));
-		
-		String childValue = child.get(name);
-		assertEquals("Child does not have correct value", value, childValue);
+		String childValue = child.get("foo");
+		assertEquals("Child does not have correct value", "bar", childValue);
 	}
 	
 	@Test
@@ -144,7 +74,7 @@ public class DatabaseTest {
 	@Test
 	public void testStoreToChildNotAccessibleToParent() throws Exception {
 		view.put("roses", "red");
-		DatabaseView child = view.spawnChild("foo", "bar");
+		view.spawnChild("foo", "bar");
 		
 		assertNull("Parent should not have access to child value.", view.get("foo"));
 	}
@@ -199,7 +129,7 @@ public class DatabaseTest {
 		final String value = randomString();
 		
 		exc.submit(new Callable<Void>() {
-			@Override
+			
 			public Void call() throws Exception {
 				view.put(name, value);
 				return null;
@@ -207,7 +137,7 @@ public class DatabaseTest {
 		});
 		
 		exc.submit(new Callable<String>() {
-			@Override
+			
 			public String call() throws Exception {
 				return view.get(name);
 			}
@@ -238,7 +168,7 @@ public class DatabaseTest {
 		List<Callable<DatabaseView>> callables = new ArrayList<Callable<DatabaseView>>();
 		for(int i = 0 ; i < count ; i ++) {
 			callables.add(new Callable<DatabaseView>() {
-				@Override
+				
 				public DatabaseView call() throws Exception {
 					DatabaseView child = view.spawnChild(childName, childValue);
 					child.put(nameToOverwrite, overwritingValue);
@@ -267,7 +197,7 @@ public class DatabaseTest {
 		//List<Callable<DatabaseView>> callables = new ArrayList<Callable<DatabaseView>>();
 		for(int i = 0 ; i < count ; i ++) {
 			exc.submit(new Callable<Void>() {
-				@Override
+				
 				public Void call() throws DatabaseException {
 					final DatabaseView view = new DatabaseView(db);
 					for(int j = 0 ; j < count ; j ++) {
@@ -276,7 +206,7 @@ public class DatabaseTest {
 						view.get(knownKey);
 						view.get(randomString());
 						exc.submit(new Callable<Void>() {
-							@Override
+							
 							public Void call() throws DatabaseException {
 								view.put(randomString(), randomString());
 								DatabaseView child = view.spawnChild(randomString(), randomString());

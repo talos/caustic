@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import org.apache.regexp.RE;
 
+import net.caustic.database.DatabaseException;
 import net.caustic.database.DatabaseReadException;
 import net.caustic.database.DatabaseView;
 import net.caustic.regexp.StringTemplate;
@@ -28,7 +29,7 @@ public class JakartaStringTemplate implements StringTemplate {
 	}
 	
 	public StringSubstitution sub(DatabaseView view)
-			throws DatabaseReadException {
+			throws DatabaseException {
 		StringBuffer buf = new StringBuffer();
 		Vector missingTags = new Vector();
 		int pos = 0;

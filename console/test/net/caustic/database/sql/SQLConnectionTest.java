@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.caustic.database.Database;
-import net.caustic.database.IOTable;
+import net.caustic.database.Table;
 import net.caustic.database.sql.JDBCSqliteConnection;
 import net.caustic.database.sql.SQLConnection;
 import net.caustic.scope.SerializedScope;
@@ -47,7 +47,7 @@ public class SQLConnectionTest {
 			columns[i] = randomString(5);
 			map.put(columns[i], randomString());
 		}
-		IOTable table = conn.newIOTable(name, columns, new String[] { });
+		Table table = conn.newIOTable(name, columns, new String[] { });
 		
 		for(String column : columns) {
 			assertTrue(table.hasColumn(column));

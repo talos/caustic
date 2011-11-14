@@ -15,7 +15,6 @@ class SingleTableDatabaseListener implements DatabaseListener {
 		this.db = db;
 	}
 
-	@Override
 	public void put(Scope scope, String key, String value)
 			throws DatabaseListenerException {
 		try {
@@ -25,16 +24,13 @@ class SingleTableDatabaseListener implements DatabaseListener {
 		}		
 	}
 
-	@Override
 	public void newScope(Scope scope) throws DatabaseListenerException { }
 
-	@Override
 	public void newScope(Scope parent, String key, Scope child)
 			throws DatabaseListenerException {
 		newScope(parent, key, null, child);
 	}
 
-	@Override
 	public void newScope(Scope parent, String key, String value, Scope child)
 			throws DatabaseListenerException {
 		try {

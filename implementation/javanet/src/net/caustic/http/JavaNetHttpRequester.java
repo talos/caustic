@@ -3,7 +3,6 @@ package net.caustic.http;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -21,7 +20,7 @@ import net.caustic.http.HttpResponse;
  */
 public class JavaNetHttpRequester implements HttpRequester {
 	
-	private int timeoutMilliseconds = HttpRequester.DEFAULT_TIMEOUT_MILLISECONDS;
+	private int timeoutMilliseconds = HttpBrowser.DEFAULT_TIMEOUT_MILLISECONDS;
 	
 	/**
 	 * Request a {@link HttpURLConnection}, and follow any redirects while adding cookies.

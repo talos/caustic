@@ -14,24 +14,13 @@ import java.util.Hashtable;
  */
 class RateLimitManager {
 
-	/**
-	 * The default rate limit a {@link RateLimitManager} interface imposes upon itself for
-	 * a single host.
-	 */
-	public static final int DEFAULT_RATE_LIMIT = 30;
-	
-	/**
-	 * How many milliseconds to wait before placing a second request ot
-	 * a single host.
-	 */
-	public static final int DEFAULT_REQUEST_WAIT = 1000;
 	
 	private final Hashtable hostLastRequest = new Hashtable();
 	private final Hashtable hostLastResponse = new Hashtable();
 	private final Hashtable hostLastResponseSize = new Hashtable();
 	private final HttpUtils httpUtils;
-	private int rateLimitKBps = DEFAULT_RATE_LIMIT;
-	private int minRequestWaitMilliseconds = DEFAULT_REQUEST_WAIT;
+	private int rateLimitKBps = HttpBrowser.DEFAULT_RATE_LIMIT;
+	private int minRequestWaitMilliseconds = HttpBrowser.DEFAULT_REQUEST_WAIT;
 	
 	/**
 	 * 

@@ -4,6 +4,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.caustic.database.DatabaseException;
 import net.caustic.database.DatabaseReadException;
 import net.caustic.database.DatabaseView;
 import net.caustic.regexp.StringTemplate;
@@ -32,10 +33,10 @@ public class HashtableTemplate {
 	 * {@link Hashtable} has been substituted with tags accessible to <code>scope</code>.
 	 * @throws HashtableSubstitutionOverwriteException if the substitution caused a mapping to
 	 * be overwritten.
-	 * @throws DatabaseReadException if <code>input</code> could not be read.
+	 * @throws DatabaseException if <code>input</code> could not be read.
 	 */
 	public HashtableSubstitution sub(DatabaseView input)
-			throws HashtableSubstitutionOverwriteException, DatabaseReadException {
+			throws HashtableSubstitutionOverwriteException, DatabaseException {
 		Vector missingTags = new Vector();
 		Hashtable subbedTable = new Hashtable();
 		Enumeration keys = table.keys();

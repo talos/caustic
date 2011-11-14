@@ -1,7 +1,6 @@
 package net.caustic.executor;
 
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabaseReadException;
 import net.caustic.database.DatabaseListenerException;
 import net.caustic.database.DatabaseListener;
 import net.caustic.scope.Scope;

@@ -18,6 +18,26 @@ import net.caustic.util.StringUtils;
  * HTTP requests and handle the responses.
  */
 public class HttpBrowser implements Loggable {
+	
+
+	/**
+	 * The default number of seconds to wait before timing out on a
+	 * request for {@link HttpBrowser} interfaces.
+	 */
+	public static final int DEFAULT_TIMEOUT_MILLISECONDS = 30000;
+
+	/**
+	 * The default rate limit a {@link RateLimitManager} interface imposes upon itself for
+	 * a single host.
+	 */
+	public static final int DEFAULT_RATE_LIMIT = 30;
+	
+	/**
+	 * How many milliseconds to wait before placing a second request ot
+	 * a single host.
+	 */
+	public static final int DEFAULT_REQUEST_WAIT = 1000;
+	
 	/**
 	 * The default number of redirects {@link HttpBrowser} interfaces will follow.
 	 */

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import net.caustic.scope.Scope;
-import net.caustic.scope.ScopeFactory;
 import net.caustic.scope.SerializedScope;
 
 public class SingleTableDatabase extends Database {
@@ -23,21 +22,13 @@ public class SingleTableDatabase extends Database {
 		SOURCE_COLUMN_NAME, NAME_COLUMN_NAME, VALUE_COLUMN_NAME
 	};
 	
-	private final IOConnection connection;
-	private IOTable table;
+	private final Connection connection;
+	private Table table;
 	
-	public SingleTableDatabase(IOConnection connection) {
+	public SingleTableDatabase(Connection connection) {
 		this.connection = connection;
 	}
 
-	private void open() throws DatabaseException {
-		if(table == null) {
-			table = connection.newIOTable(TABLE_NAME, COLUMN_NAMES,
-					new String[] { Database.DEFAULT_SCOPE_NAME, SOURCE_COLUMN_NAME } );
-		}
-	}
-	
-	@Override
 	public String get(Scope scope, String name) throws DatabaseException {
 		synchronized(connection) {
 			open();
@@ -65,14 +56,6 @@ public class SingleTableDatabase extends Database {
 		}
 	}
 	
-	/**
-	 * The <code>toString</code> method of {@link Connection}.
-	 */
-	@Override
-	public String toString() {
-		return connection.toString();
-	}
-	
 	protected void insert(Scope scope, Scope child, String key, String value) 
 				throws DatabaseException {
 		open();
@@ -86,5 +69,13 @@ public class SingleTableDatabase extends Database {
 		}
 		
 		table.insert(scope, insertMap);
+	}
+	
+
+	private void open() throws DatabaseException {
+		if(table == null) {
+			table = connection.newTable(TABLE_NAME, COLUMN_NAMES,
+					new String[] { Database.DEFAULT_SCOPE_NAME, SOURCE_COLUMN_NAME } );
+		}
 	}
 }
