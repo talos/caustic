@@ -1,10 +1,11 @@
 package net.caustic.instruction;
 
+import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabaseView;
 import net.caustic.deserializer.Deserializer;
 import net.caustic.deserializer.DeserializerResult;
 import net.caustic.http.HttpBrowser;
+import net.caustic.scope.Scope;
 
 /**
  * An {@link Instruction} that has yet to be deserialized.  This allows for lazy evaluation
@@ -25,17 +26,21 @@ public class SerializedInstruction extends Instruction {
 		this.uri = uri;
 	}
 	
-	public InstructionResult execute(String source, DatabaseView view,
+	public InstructionResult execute(String source, Database db, Scope scope,
 			HttpBrowser browser) throws InterruptedException, DatabaseException {
-		DeserializerResult deserializerResult = deserializer.deserialize(serializedString, view, uri);
+		DeserializerResult deserializerResult = deserializer.deserialize(serializedString, db, scope, uri);
 		
 		if(deserializerResult.isMissingTags()) {
 			return InstructionResult.missingTags(deserializerResult.getMissingTags());
 		} else if(deserializerResult.getInstruction() != null) {
-			return deserializerResult.getInstruction().execute(source, view, browser);
+			return deserializerResult.getInstruction().execute(source, db, scope, browser);
 		} else {
 			return InstructionResult.failed(deserializerResult);
 		}
+	}
+	
+	public String toString() {
+		return serializedString;
 	}
 
 }

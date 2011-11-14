@@ -1,59 +1,54 @@
 package net.caustic;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.Hashtable;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabaseListener;
 import net.caustic.database.InMemoryDatabase;
 import net.caustic.deserializer.DefaultJSONDeserializer;
 import net.caustic.deserializer.JSONDeserializer;
-import net.caustic.executor.AsyncExecutor;
-import net.caustic.executor.SyncExecutor;
 import net.caustic.http.DefaultHttpBrowser;
-import net.caustic.http.HttpBrowser;
+import net.caustic.instruction.Executable;
+import net.caustic.instruction.Instruction;
 import net.caustic.instruction.SerializedInstruction;
 import net.caustic.util.StringUtils;
 
 /**
- * An implementation of {@link Scraper} using {@link DefaultHttpBrowser}
+ * An implementation of {@link ScraperInterface} using {@link DefaultHttpBrowser}
  * and {@link AsyncExecutor} with a specified number of threads.
  * @author realest
  *
  */
-public class Scraper {
+public class Scraper extends DefaultScraper {
 	public static final int DEFAULT_THREADS = 10;
 
-	private final Database db;
-	private final AsyncExecutor executor;
+	private final ExecutorService executor;
 	private final JSONDeserializer deserializer = new DefaultJSONDeserializer();
-	private final HttpBrowser browser = new DefaultHttpBrowser();
 	
 	public Scraper() {
-		this.db = new InMemoryDatabase();
-		executor = new AsyncExecutor(DEFAULT_THREADS, db);
+		super(new InMemoryDatabase());
+		
+		executor = Executors.newFixedThreadPool(DEFAULT_THREADS);
 	}
 	
 	public Scraper(int nThreads) {
-		this.db = new InMemoryDatabase();
-		executor = new AsyncExecutor(nThreads, db);
+		super(new InMemoryDatabase());
+		executor = Executors.newFixedThreadPool(nThreads);
 	}
 	
 	public Scraper(Database db) {
-		this.db = db;
-		executor = new AsyncExecutor(DEFAULT_THREADS, db);
+		super(db);
+		executor = Executors.newFixedThreadPool(DEFAULT_THREADS);
 	}
 	
 	public Scraper(Database db, int nThreads) {
-		this.db = db;
-		executor = new AsyncExecutor(nThreads, db);
-	}
-
-	public void addListener(DatabaseListener listener) {
-		db.addListener(listener);
+		super(db);
+		executor = Executors.newFixedThreadPool(nThreads);
 	}
 
 	public void scrape(String uriOrJSON) throws DatabaseException {	
@@ -62,13 +57,30 @@ public class Scraper {
 	}
 	
 	public void scrape(String uriOrJSON, Map<String, String> input) throws DatabaseException {
-		
-		executor.execute(
-				new SerializedInstruction(uriOrJSON, deserializer, StringUtils.USER_DIR),
-				input, null, browser);
+		Instruction instruction = new SerializedInstruction(uriOrJSON, deserializer, StringUtils.USER_DIR);
+		scrape(instruction, new Hashtable<String, String>(input), new DefaultHttpBrowser());
+	}
+
+	public void submit(Executable executable) {
+		executor.submit(executable);
 	}
 	
+	/**
+	 * Wait for this to wrap up.
+	 * @throws InterruptedException
+	 */
 	public void join() throws InterruptedException {
-		executor.join();
+		while(!isDone()) {
+			if(executor.isTerminated()) { // break if artificial termination
+				break;
+			}
+			Thread.sleep(100);
+		}
+		executor.shutdown();
+		executor.awaitTermination(100, TimeUnit.MINUTES);
+	}
+	
+	public void interrupt() {
+		executor.shutdownNow();
 	}
 }

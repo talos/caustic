@@ -6,7 +6,7 @@ package net.caustic.database;
  * @author realest
  *
  */
-public class DatabasePersistException extends DatabaseException {
+class DatabasePersistException extends DatabaseException {
 
 	/**
 	 * 

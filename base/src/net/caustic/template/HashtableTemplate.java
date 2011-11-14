@@ -4,10 +4,10 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabaseReadException;
-import net.caustic.database.DatabaseView;
 import net.caustic.regexp.StringTemplate;
+import net.caustic.scope.Scope;
 import net.caustic.util.HashtableUtils;
 import net.caustic.util.VectorUtils;
 
@@ -28,14 +28,15 @@ public class HashtableTemplate {
 	/**
 	 * Substitute this {@link HashtableTemplate} with values from {@link Database} accessible
 	 * to <code>sourceId</code>.
-	 * @param input
+	 * @param db
+	 * @param scope
 	 * @return An {@link HashtableSubstitution} whose
 	 * {@link Hashtable} has been substituted with tags accessible to <code>scope</code>.
 	 * @throws HashtableSubstitutionOverwriteException if the substitution caused a mapping to
 	 * be overwritten.
 	 * @throws DatabaseException if <code>input</code> could not be read.
 	 */
-	public HashtableSubstitution sub(DatabaseView input)
+	public HashtableSubstitution sub(Database db, Scope scope)
 			throws HashtableSubstitutionOverwriteException, DatabaseException {
 		Vector missingTags = new Vector();
 		Hashtable subbedTable = new Hashtable();
@@ -43,11 +44,11 @@ public class HashtableTemplate {
 		while(keys.hasMoreElements()) {
 			StringTemplate key = (StringTemplate) keys.nextElement();
 			StringSubstitution subbedKey;
-			subbedKey = key.sub(input);
+			subbedKey = key.sub(db, scope);
 			
 			StringTemplate value = (StringTemplate) table.get(key);
 			StringSubstitution subbedValue;
-			subbedValue = value.sub(input);
+			subbedValue = value.sub(db, scope);
 			
 			if(!subbedKey.isMissingTags() && !subbedValue.isMissingTags()) {
 				String subbedKeyStr = (String) subbedKey.getSubstituted();

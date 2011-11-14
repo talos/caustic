@@ -4,10 +4,10 @@ import java.util.Vector;
 
 import org.apache.regexp.RE;
 
+import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabaseReadException;
-import net.caustic.database.DatabaseView;
 import net.caustic.regexp.StringTemplate;
+import net.caustic.scope.Scope;
 import net.caustic.template.StringSubstitution;
 import net.caustic.util.Encoder;
 
@@ -28,7 +28,7 @@ public class JakartaStringTemplate implements StringTemplate {
 		this.encoder = encoder;
 	}
 	
-	public StringSubstitution sub(DatabaseView view)
+	public StringSubstitution sub(Database db, Scope scope)
 			throws DatabaseException {
 		StringBuffer buf = new StringBuffer();
 		Vector missingTags = new Vector();
@@ -75,7 +75,7 @@ public class JakartaStringTemplate implements StringTemplate {
 			buf.append(templateString.substring(pos, begin));
 			
 			// retrieve & append value
-			String value = view.get(tagName);
+			String value = db.get(scope, tagName);
 			if(value != null) {
 				if(encoded) {
 					buf.append(encoder.encode(value));

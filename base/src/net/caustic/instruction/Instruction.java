@@ -2,9 +2,10 @@ package net.caustic.instruction;
 
 import java.util.Vector;
 
+import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabaseView;
 import net.caustic.http.HttpBrowser;
+import net.caustic.scope.Scope;
 
 public abstract class Instruction {
 
@@ -32,8 +33,9 @@ public abstract class Instruction {
 	 * 
 	 * @param source The {@link String} to use as the source
 	 * for this {@link Instruction}.
-	 * @param view The {@link DatabaseView} to use as input
+	 * @param db The {@link Database} to use as input
 	 * for template substitutions.
+	 * @param scope The {@link Scope} within <code>db</code>
 	 * @return A {@link InstructionResult} object with either successful
 	 * values and children, or information about why
 	 * this method did not work.
@@ -42,5 +44,5 @@ public abstract class Instruction {
 	 * @throws DatabaseException if there was an error persisting to 
 	 * or reading from <code>view</code>.
 	 */
-	public abstract InstructionResult execute(String source, DatabaseView view, HttpBrowser browser) throws InterruptedException, DatabaseException;
+	public abstract InstructionResult execute(String source, Database db, Scope scope, HttpBrowser browser) throws InterruptedException, DatabaseException;
 }

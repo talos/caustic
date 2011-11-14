@@ -1,9 +1,5 @@
 package net.caustic.regexp;
 
-import net.caustic.database.DatabaseReadException;
-import net.caustic.database.DatabaseView;
-import net.caustic.template.StringSubstitution;
-
 /**
  * An implementation of {@link Pattern} is required for {@link RegexpCompiler}.
  * @see RegexpCompiler

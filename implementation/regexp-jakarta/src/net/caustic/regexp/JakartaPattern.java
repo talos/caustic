@@ -2,11 +2,11 @@ package net.caustic.regexp;
 
 import java.util.Vector;
 
+import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabaseReadException;
-import net.caustic.database.DatabaseView;
 import net.caustic.regexp.InvalidRangeException;
 import net.caustic.regexp.Pattern;
+import net.caustic.scope.Scope;
 import net.caustic.template.StringSubstitution;
 
 import org.apache.regexp.RE;
@@ -77,7 +77,7 @@ final class JakartaPattern implements Pattern {
 		return matches;
 	}
 	
-	public StringSubstitution substitute(String input, DatabaseView view)
+	public StringSubstitution substitute(String input, Database db, Scope scope)
 			throws DatabaseException {
 		StringBuffer subbed = new StringBuffer();
 		Vector missingTags = new Vector();
@@ -89,7 +89,7 @@ final class JakartaPattern implements Pattern {
 			subbed.append(input.substring(pos, re.getParenStart(0)));
 			
 			String tagName = re.getParen(0);
-			String tagValue = view.get(tagName);
+			String tagValue = db.get(scope, tagName);
 			if(tagValue == null) {
 				missingTags.add(tagName);
 			} else {

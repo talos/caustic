@@ -1,4 +1,4 @@
-package net.caustic.database.sql;
+package net.caustic.database;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,7 +8,6 @@ import java.util.Set;
 
 import net.caustic.database.Table;
 import net.caustic.database.IOTableReadException;
-import net.caustic.database.TableManipulationException;
 import net.caustic.scope.Scope;
 import net.caustic.util.StringUtils;
 

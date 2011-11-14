@@ -1,4 +1,4 @@
-package net.caustic.database.sql;
+package net.caustic.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

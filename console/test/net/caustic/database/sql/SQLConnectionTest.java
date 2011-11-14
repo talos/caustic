@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 import net.caustic.database.Database;
+import net.caustic.database.JDBCSqliteConnection;
+import net.caustic.database.SQLConnection;
 import net.caustic.database.Table;
-import net.caustic.database.sql.JDBCSqliteConnection;
-import net.caustic.database.sql.SQLConnection;
 import net.caustic.scope.SerializedScope;
 import net.caustic.scope.Scope;
 

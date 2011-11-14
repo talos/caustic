@@ -1,4 +1,4 @@
-package net.caustic.database.csv;
+package net.caustic.database;
 
 import java.io.File;
 import java.io.FileWriter;

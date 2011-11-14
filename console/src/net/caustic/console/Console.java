@@ -2,24 +2,11 @@ package net.caustic.console;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import net.caustic.Scraper;
-import net.caustic.database.ConnectionException;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabaseView;
-import net.caustic.database.LoggingDatabaseListener;
-import net.caustic.http.HttpBrowser;
-import net.caustic.instruction.Instruction;
-import net.caustic.instruction.InstructionResult;
 import net.caustic.log.Logger;
 import net.caustic.util.StringUtils;
 
@@ -45,10 +32,9 @@ public class Console {
 		input = options.getInput();
 		instruction = options.getInstruction();
 		database = options.getDatabase();
-
-		database.addListener(new LoggingDatabaseListener(logger));
-
+		
 		scraper = new Scraper(database, options.getNumThreads());
+		scraper.register(logger);
 	}
 	
 	public void open() throws IOException {
@@ -82,6 +68,7 @@ public class Console {
 	 */
 	public Thread getShutdownThread() {
 		return new Thread() {
+			public void run() { }
 			/*public void run() {
 				
 				try {

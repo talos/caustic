@@ -5,11 +5,11 @@ import static org.junit.Assert.*;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
+import net.caustic.SyncScraper;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseView;
-import net.caustic.executor.Executable;
-import net.caustic.executor.SyncExecutor;
 import net.caustic.http.HttpBrowser;
+import net.caustic.instruction.Executable;
 import net.caustic.instruction.Instruction;
 import net.caustic.instruction.InstructionResult;
 
@@ -23,13 +23,13 @@ public class SyncExecutorTest {
 	//private @Mocked String name, source, source2;
 	private @Mocked HttpBrowser browser;
 	
-	SyncExecutor executor;
+	SyncScraper executor;
 	@Before
 	public void setUp() throws Exception {
 		new NonStrictExpectations() {{
 			Executable.allAreStuck((Executable[]) any); result = false;
 		}};
-		executor = new SyncExecutor();
+		executor = new SyncScraper();
 	}
 
 	@Test

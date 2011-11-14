@@ -1,13 +1,12 @@
 package net.caustic.instruction;
 
+import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabasePersistException;
-import net.caustic.database.DatabaseReadException;
-import net.caustic.database.DatabaseView;
 import net.caustic.http.HttpBrowser;
 import net.caustic.regexp.Pattern;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.regexp.StringTemplate;
+import net.caustic.scope.Scope;
 import net.caustic.template.DependsOnTemplate;
 import net.caustic.template.StringSubstitution;
 import net.caustic.util.StaticStringTemplate;
@@ -113,7 +112,7 @@ public final class Find extends Instruction {
 	 * Use {@link #pattern}, substituted with {@link Variables}, to match against <code>source</code>.
 	 * Ignores <code>browser</code>.
 	 */
-	public InstructionResult execute(String source, DatabaseView view,
+	public InstructionResult execute(String source, Database db, Scope scope,
 			HttpBrowser browser) throws DatabaseException {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
@@ -121,11 +120,11 @@ public final class Find extends Instruction {
 		
 		final InstructionResult result;
 		final StringSubstitution subName;
-		final StringSubstitution subPattern = pattern.sub(view);
-		final StringSubstitution subReplacement = replacement.sub(view);
+		final StringSubstitution subPattern = pattern.sub(db, scope);
+		final StringSubstitution subReplacement = replacement.sub(db, scope);
 		
 		if(hasName) {
-			subName = name.sub(view);
+			subName = name.sub(db, scope);
 		} else {
 			subName = subPattern; // if no name defined, default to the pattern.
 		}

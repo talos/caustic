@@ -13,15 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import net.caustic.database.CSVDatabaseListener;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseListener;
 import net.caustic.database.Connection;
 import net.caustic.database.InMemoryDatabase;
-import net.caustic.database.LoggingDatabaseListener;
+import net.caustic.database.JDBCSqliteConnection;
 import net.caustic.database.MultiTableDatabase;
 import net.caustic.database.SingleTableDatabase;
-import net.caustic.database.csv.CSVDatabaseListener;
-import net.caustic.database.sql.JDBCSqliteConnection;
 import net.caustic.deserializer.Deserializer;
 import net.caustic.deserializer.JSONDeserializer;
 import net.caustic.file.JavaIOFileLoader;
@@ -365,7 +364,7 @@ public final class ConsoleOptions {
 	/**
 	 * 
 	 * @return An {@link Input} whose elements are {@link Hashtable}s that can be used
-	 * as input for {@link Scraper}.
+	 * as input for {@link ScraperInterface}.
 	 */
 	public Input getInput() throws InvalidOptionException, UnsupportedEncodingException {
 		String rawInputString = getValue(input);

@@ -3,8 +3,7 @@ package net.caustic.deserializer;
 import java.util.Vector;
 
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabaseReadException;
-import net.caustic.database.DatabaseView;
+import net.caustic.database.Database;
 import net.caustic.instruction.Find;
 import net.caustic.instruction.Instruction;
 import net.caustic.instruction.Load;
@@ -17,6 +16,7 @@ import net.caustic.json.JsonParser;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.regexp.RegexpUtils;
 import net.caustic.regexp.StringTemplate;
+import net.caustic.scope.Scope;
 import net.caustic.template.HashtableTemplate;
 import net.caustic.template.StringSubstitution;
 import net.caustic.uri.MalformedUriException;
@@ -60,7 +60,7 @@ public class JSONDeserializer implements Deserializer {
 	 */
 	//private final Encoder encoder;
 	
-	private DeserializerResult deserialize(String jsonString, DatabaseView input, String uri,
+	private DeserializerResult deserialize(String jsonString, Database db, Scope scope, String uri,
 					String encodedPatternString, String notEncodedPatternString)
 			throws JsonException,
 			MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException,
@@ -70,13 +70,13 @@ public class JSONDeserializer implements Deserializer {
 		// Parse non-objects as URIs.  Any substitution should have been done beforehand.
 		if(!parser.isJsonObject(jsonString)) {
 			StringSubstitution uriSub = compiler.newTemplate(jsonString, encodedPatternString, notEncodedPatternString)
-					.sub(input);
+					.sub(db, scope);
 			if(!uriSub.isMissingTags()) {
 				String uriPath = uriSub.getSubstituted();
 				String uriToLoad = uriResolver.resolve(uri, uriPath);
 				String loadedJSONString = uriLoader.load(uriToLoad);
 				
-				result = deserialize(loadedJSONString, input, uriToLoad, encodedPatternString, notEncodedPatternString);
+				result = deserialize(loadedJSONString, db, scope, uriToLoad, encodedPatternString, notEncodedPatternString);
 			} else {
 				result = DeserializerResult.missingTags(uriSub.getMissingTags());
 			}			
@@ -147,7 +147,7 @@ public class JSONDeserializer implements Deserializer {
 							//String uri = uriResolver.resolve(baseUri, (String) extendsStrings.elementAt(j));
 							//jsonObjects.add(parser.parse(uriLoader.load(uri)));
 							StringTemplate extendsUriTemplate = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
-							StringSubstitution uriSubstitution = extendsUriTemplate.sub(input);
+							StringSubstitution uriSubstitution = extendsUriTemplate.sub(db, scope);
 							if(!uriSubstitution.isMissingTags()) {
 								String uriPath = uriSubstitution.getSubstituted();
 								String uriToLoad = uriResolver.resolve(uri, uriPath);
@@ -461,10 +461,10 @@ public class JSONDeserializer implements Deserializer {
 		this.uriLoader = uriLoader;
 	}
 	
-	public DeserializerResult deserialize(String serializedString, DatabaseView input, String uri) 
+	public DeserializerResult deserialize(String serializedString, Database db, Scope scope, String uri) 
 			throws InterruptedException {
 		try {
-			return deserialize(serializedString, input, uri,
+			return deserialize(serializedString, db, scope, uri,
 					StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
 		} catch(JsonException e) {
 			return DeserializerResult.failure(e.getMessage());

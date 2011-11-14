@@ -2,13 +2,13 @@ package net.caustic.instruction;
 
 import java.util.Hashtable;
 
+import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabaseReadException;
-import net.caustic.database.DatabaseView;
 import net.caustic.http.HttpBrowser;
 import net.caustic.http.HttpException;
 import net.caustic.regexp.Pattern;
 import net.caustic.regexp.StringTemplate;
+import net.caustic.scope.Scope;
 import net.caustic.template.DependsOnTemplate;
 import net.caustic.template.HashtableSubstitution;
 import net.caustic.template.HashtableSubstitutionOverwriteException;
@@ -57,17 +57,17 @@ public final class Load extends Instruction {
 	 */
 	private final StringTemplate url;
 			
-	private StringSubstitution getPosts(DatabaseView source)
+	private StringSubstitution getPosts(Database db, Scope scope)
 			throws HashtableSubstitutionOverwriteException, DatabaseException {
 		if(postTable.size() > 0) {
-			HashtableSubstitution tableSub = postTable.sub(source);
+			HashtableSubstitution tableSub = postTable.sub(db, scope);
 			if(tableSub.isMissingTags()) {
 				return StringSubstitution.missingTags(tableSub.getMissingTags());
 			} else {
 				return StringSubstitution.success(HashtableUtils.toFormEncoded(tableSub.getSubstituted()));
 			}
 		} else {
-			return postString.sub(source);
+			return postString.sub(db, scope);
 		}
 	}
 	
@@ -144,15 +144,15 @@ public final class Load extends Instruction {
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 * <code>source</code> is ignored.
 	 */
-	public InstructionResult execute(String source, DatabaseView view,
+	public InstructionResult execute(String source, Database db, Scope scope,
 			HttpBrowser browser) throws InterruptedException, DatabaseException {
 		final InstructionResult result;
 		try {			
 			final Pattern[] stops = new Pattern[] { };
-			final StringSubstitution urlSub = url.sub(view);
-			final HashtableSubstitution headersSub = headers.sub(view);
-			final HashtableSubstitution cookiesSub = cookies.sub(view);
-			final StringSubstitution postData = getPosts(view);
+			final StringSubstitution urlSub = url.sub(db, scope);
+			final HashtableSubstitution headersSub = headers.sub(db, scope);
+			final HashtableSubstitution cookiesSub = cookies.sub(db, scope);
+			final StringSubstitution postData = getPosts(db, scope);
 			
 			// Cannot execute if any of these substitutions was not successful
 			if(urlSub.isMissingTags()

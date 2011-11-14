@@ -2,7 +2,7 @@ package net.caustic.database;
 
 import org.junit.After;
 
-import net.caustic.database.sql.JDBCSqliteConnection;
+import net.caustic.database.JDBCSqliteConnection;
 
 public class SingleTableDatabaseTest extends DatabaseTest {
 	private IOConnection connection;

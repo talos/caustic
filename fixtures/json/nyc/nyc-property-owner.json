@@ -9,7 +9,7 @@
 		"FAPTNUM"   : "{{Apt}}"
 	},
 	"then" : {
-			"name" : "Owner of {{Number}} {{Street}}, Borough {{Borough}}",
+			"name" : "Owner of {{Number}} {{{Street}}}, Borough {{Borough}}",
 			"find" : "<input\\s+type=\"hidden\"\\s+name=\"ownerName\\d?\"\\s+value=\"\\s*(\\w[^\"]*?)\\s*\"",
 			"replace" : "$1"
 		}

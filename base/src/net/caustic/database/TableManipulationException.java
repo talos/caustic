@@ -8,7 +8,7 @@ import java.io.IOException;
  * @author talos
  *
  */
-public class TableManipulationException extends DatabasePersistException {
+class TableManipulationException extends DatabasePersistException {
 	
 	public TableManipulationException(String message, Throwable e) {
 		super(message, e);

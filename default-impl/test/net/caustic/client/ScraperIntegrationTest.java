@@ -5,11 +5,14 @@ import static org.junit.Assert.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import mockit.Expectations;
-import mockit.Mocked;
+import mockit.NonStrict;
+import mockit.VerificationsInOrder;
 import net.caustic.Scraper;
-import net.caustic.database.DatabaseListener;
-import net.caustic.scope.IntScopeFactory;
+import net.caustic.ScraperListener;
+import net.caustic.http.HttpBrowser;
+import net.caustic.instruction.Instruction;
+import net.caustic.log.Logger;
+import net.caustic.log.SystemOutLogger;
 import net.caustic.scope.Scope;
 import net.caustic.scope.SerializedScope;
 
@@ -17,84 +20,111 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Test {@link Scraper} with calls to actual sites.
+ * Test {@link ScraperInterface} with calls to actual sites.
  * @author realest
  *
  */
 public class ScraperIntegrationTest {
 		
-	private @Mocked DatabaseListener listener;
+	private @NonStrict ScraperListener listener;
 	private Map<String, String> input;
 	private Scraper scraper;
+	private Logger logger = new SystemOutLogger();
 	
 	@Before
-	public void setUp() {
+	public void setUp() throws Exception {
+		logger.open();
+		
 		scraper = new Scraper();
 		scraper.addListener(listener);
+		scraper.register(logger);
+		
 		input = new HashMap<String, String>();
+	}
+
+
+	@Test
+	public void testScrapeStuck() throws Exception {		
+		scraper.scrape("fixtures/json/simple-google.json", input);
+		scraper.join();
+		
+		new VerificationsInOrder() {{
+			listener.newScope(scope(0));
+			listener.missing((Instruction) any, scope(0), null, (HttpBrowser) any, (String[]) any);
+			listener.terminated(0, 1, 0);
+		}};
+	}
+	
+	@Test
+	public void testScrapeFail() throws Exception {		
+		scraper.scrape("path/to/nothing.json", input);
+		scraper.join();
+		
+		new VerificationsInOrder() {{
+			listener.newScope(scope(0));
+			listener.failed((Instruction) any, scope(0), null, anyString);
+			listener.terminated(0, 0, 1);
+		}};
 	}
 	
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {		
-		new Expectations() {{
+		input.put("query", "hello");
+		scraper.scrape("fixtures/json/simple-google.json", input);
+		scraper.join();
+		
+		new VerificationsInOrder() {{
 			listener.newScope(scope(0));
 			listener.put(scope(0), "query", "hello");
 			listener.newScope(scope(0), "what do you say after 'hello'?", withPrefix("I say "), (Scope) any);
 				minTimes = 1;
 		}};
-		
-		input.put("query", "hello");
-		scraper.scrape("fixtures/json/simple-google.json", input);
-		scraper.join();
 	}
 	
+	@Test
 	public void testScrapeComplexGoogle() throws Exception {
-		
-	}
-	
-	/*
-	@Test
-	public void testScrapeComplexGoogleNonReference() throws Exception {
-		testScrapeComplexGoogle(complexGoogle);
-	}
-	
-	@Test
-	public void testScrapeComplexGoogleReference() throws Exception {
-		testScrapeComplexGoogle(referenceGoogle);
-	}*/
-	/*
-	@Test
-	public void testScrapeNYCPropertyOwners() throws Exception {
-		
-		final ScopeGenerator defaults = new ScopeGenerator();
-		final Hashtable<String, String> propertyDefaults = new Hashtable<String, String>();
-		propertyDefaults.put("Number", "373");
-		propertyDefaults.put("Street", "Atlantic Ave");
-		propertyDefaults.put("Borough", "3");
-		propertyDefaults.put("Apt", "");
 
-		new Expectations() {{
-			database.getDefaultScope(); result = defaults;
-		}};
-		
-		new NonStrictExpectations() {{
-			Enumeration<String> keys = propertyDefaults.keys();
-			while(keys.hasMoreElements()) {
-				String key = keys.nextElement();
-				database.get((Scope) any, key); result = propertyDefaults.get(key);
-				database.storeOneToOne((Scope) any, key, propertyDefaults.get(key));
-			}
-		}};
-				
-		scraper.scrape(nycPropertyOwner, propertyDefaults);
+		input.put("query", "hello");
+		scraper.scrape("fixtures/json/complex-google.json", input);
+		scraper.join();
 		
 		new VerificationsInOrder() {{
-			database.storeOneToOne((Scope) with(defaults.matchFirst()), "http://webapps.nyc.gov:8084/CICS/fin1/find001I");
-			database.storeOneToMany((Scope) with(defaults.matchFirst()),
-					"Owner of 373 Atlantic Ave, Borough 3", "373 ATLANTIC AVENUE C"); times = 1;
-			database.storeOneToMany((Scope) with(defaults.matchFirst()),
-					"Owner of 373 Atlantic Ave, Borough 3", "373 ATLANTIC AVENUE CORPORATION"); times = 1;
-			
+			listener.newScope(scope(0));
+			listener.put(scope(0), "query", "hello");
+			listener.newScope(scope(0), "query", anyString, (Scope) any); minTimes = 1;
+			listener.newScope((Scope) any, withPrefix("what do you say after"), withPrefix("I say "), (Scope) any);
+				minTimes = 1;
+		}};
+	}
+	
+	@Test
+	public void testScrapeReferenceGoogle() throws Exception {
+		
+		input.put("query", "hello");
+		scraper.scrape("fixtures/json/reference-google.json", input);
+		scraper.join();
+		new VerificationsInOrder() {{
+			listener.newScope(scope(0));
+			listener.put(scope(0), "query", "hello");
+			listener.newScope(scope(0), "query", anyString, (Scope) any); minTimes = 1;
+			listener.newScope((Scope) any, withPrefix("what do you say after"), withPrefix("I say "), (Scope) any);
+				minTimes = 1;
+		}};
+	}
+	
+	@Test
+	public void testScrapeNYCPropertyOwners() throws Exception {
+		input.put("Number", "373");
+		input.put("Street", "Atlantic Ave");
+		input.put("Borough", "3");
+		input.put("Apt", "");
+		
+		scraper.scrape("fixtures/json/nyc/nyc-property-owner.json", input);
+		scraper.join();
+		
+		new VerificationsInOrder() {{
+			listener.newScope(scope(0), "Owner of 373 Atlantic Ave, Borough 3", "373 ATLANTIC AVENUE C", scope(1));
+			listener.newScope(scope(0), "Owner of 373 Atlantic Ave, Borough 3", "373 ATLANTIC AVENUE CORPORATION", scope(2));
 		}};
 	}
 		/*

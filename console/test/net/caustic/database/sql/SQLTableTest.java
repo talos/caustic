@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Map;
 
 import net.caustic.database.Database;
-import net.caustic.database.sql.JDBCSqliteConnection;
-import net.caustic.database.sql.SQLConnection;
-import net.caustic.database.sql.SQLTable;
+import net.caustic.database.JDBCSqliteConnection;
+import net.caustic.database.SQLConnection;
+import net.caustic.database.SQLTable;
 import net.caustic.scope.IntScopeFactory;
 import net.caustic.scope.Scope;
 import net.caustic.scope.ScopeFactory;

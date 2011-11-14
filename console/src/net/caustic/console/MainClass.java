@@ -27,7 +27,7 @@ public class MainClass {
 		try {
 			Console console = new Console(args);
 			
-			Runtime.getRuntime().addShutdownHook(console.getShutdownThread());
+			//Runtime.getRuntime().addShutdownHook(console.getShutdownThread());
 			
 			console.open();
 			console.execute();
