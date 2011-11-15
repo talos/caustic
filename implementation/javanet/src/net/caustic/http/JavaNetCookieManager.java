@@ -18,7 +18,6 @@ import net.caustic.http.BadURLException;
 import net.caustic.http.CookieManager;
 import net.caustic.http.CookieStorageException;
 import net.caustic.http.ResponseHeaders;
-import net.caustic.util.Encoder;
 
 public class JavaNetCookieManager implements CookieManager {
 	
@@ -86,12 +85,6 @@ public class JavaNetCookieManager implements CookieManager {
 	@Override
 	public String[] getCookiesFor(String urlString, Hashtable requestHeaders) throws BadURLException {
 		return getCookiesFor(urlString, requestHeaders, COOKIE_HEADER_NAME);
-	}
-	
-	@Override
-	public String[] getCookie2sFor(String urlString, Hashtable requestHeaders) throws BadURLException {
-		//return getCookiesFor(urlString, requestHeaders, COOKIE_2_HEADER_NAME);
-		return new String[] {};
 	}
 
 	@Override

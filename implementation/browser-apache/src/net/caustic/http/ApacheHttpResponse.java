@@ -1,4 +1,4 @@
-package net.microscraper.http;
+package net.caustic.http;
 
 import java.io.InputStreamReader;
 

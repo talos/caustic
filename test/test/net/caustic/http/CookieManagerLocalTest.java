@@ -33,7 +33,8 @@ public class CookieManagerLocalTest {
 	@Parameters
 	public static Collection<Class<?>[]> implementations() {
 		return Arrays.asList(new Class<?>[][] {
-				{ JavaNetCookieManager.class  }
+				{ JavaNetCookieManager.class  },
+				{ BasicCookieManager.class }
 		});
 	}
 	
@@ -48,11 +49,6 @@ public class CookieManagerLocalTest {
 				cookieManager.getCookiesFor("http://www.empty.com/", new Hashtable<String, String>()));
 	}
 
-	@Test
-	public void testGetCookie2sStartsEmpty() throws Exception {
-		assertArrayEquals(new String[] { },
-				cookieManager.getCookie2sFor("http://www.empty.com/", new Hashtable<String, String>()));
-	}
 	@Test
 	public void testAddCookies() throws Exception {
 		String exampleSite = "http://www." + randomString(10) + ".com/";

@@ -16,6 +16,6 @@ public class DefaultHttpBrowser extends HttpBrowser {
 	public DefaultHttpBrowser() {
 		super(new JavaNetHttpRequester(),
 				new RateLimitManager(new JavaNetHttpUtils()),
-				new JavaNetCookieManager());
+				new BasicCookieManager());
 	}
 }

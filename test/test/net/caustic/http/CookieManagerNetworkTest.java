@@ -29,7 +29,8 @@ public class CookieManagerNetworkTest {
 	@Parameters
 	public static Collection<Class<?>[]> implementations() {
 		return Arrays.asList(new Class<?>[][] {
-				{ JavaNetCookieManager.class  }
+				{ JavaNetCookieManager.class  },
+				{ BasicCookieManager.class }
 		});
 	}
 	

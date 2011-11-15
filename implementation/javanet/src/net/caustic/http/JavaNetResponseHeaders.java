@@ -3,8 +3,6 @@ package net.caustic.http;
 import java.util.List;
 import java.util.Map;
 
-import net.caustic.http.ResponseHeaders;
-
 /**
  * Implementation of {@link ResponseHeaders} using {@link java.net}.
  * @author talos

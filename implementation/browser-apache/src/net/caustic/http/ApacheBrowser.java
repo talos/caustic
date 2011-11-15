@@ -1,4 +1,4 @@
-package net.microscraper.http;
+package net.caustic.http;
 
 import java.io.ByteArrayOutputStream;
 
@@ -11,17 +11,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.microscraper.Microscraper;
-import net.microscraper.Result;
-import net.microscraper.Mustache.MissingVariable;
-import net.microscraper.Mustache.TemplateException;
-import net.microscraper.executable.AbstractResource;
-import net.microscraper.executable.AbstractResult;
-import net.microscraper.executable.DatabaseException.ResourceNotFoundException;
-import net.microscraper.instruction.AbstractHeader;
-import net.microscraper.interfaces.browser.Browser;
-import net.microscraper.interfaces.browser.BrowserException;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
@@ -31,10 +20,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.params.ClientPNames;
-import org.apache.http.conn.params.ConnManagerPNames;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultRedirectHandler;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;

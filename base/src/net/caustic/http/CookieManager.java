@@ -13,10 +13,16 @@ interface CookieManager {
 	 */
 	public static final String COOKIE_HEADER_NAME = "Cookie";
 	
+
+	/**
+	 * The Cookie response header.
+	 */
+	public static final String SET_COOKIE_HEADER_NAME = "Set-Cookie";
+	
 	/**
 	 * The Cookie2 request header.
 	 */
-	public static final String COOKIE_2_HEADER_NAME = "Cookie2";
+	//public static final String COOKIE_2_HEADER_NAME = "Cookie2";
 
 	/**
 	 * Retrieve the cookies applicable to a request for <code>urlString</code>
@@ -29,19 +35,6 @@ interface CookieManager {
 	 * @throws BadURLException If <code>urlString</code> can't be parsed as a URL.
 	 */
 	public String[] getCookiesFor(String urlString, Hashtable requestHeaders)
-			throws BadURLException;
-	
-	/**
-	 * Retrieve the cookie2s applicable to a request for <code>urlString</code>
-	 * with <code>requestHeaders</code>.
-	 * @param urlString The {@link String} URL of the request to get cookies for.
-	 * @param requestHeaders The other headers used in the request, as a {@link String}
-	 * to {@link String} map of name-values.
-	 * @return An array of {@link String}s, each a single complete Cookie2 usable for the request.
-	 * Is a zero-length array if there are none.
-	 * @throws BadURLException If <code>urlString</code> can't be parsed as a URL.
-	 */
-	public String[] getCookie2sFor(String urlString, Hashtable requestHeaders)
 			throws BadURLException;
 	
 	/**

@@ -2,9 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Microscraper Base"/>
 	<classpathentry kind="lib" path="/Users/talos/Programming/microscraper-client/implementation/browser-apache/lib/httpclient-4.1.2.jar"/>
 	<classpathentry kind="lib" path="/Users/talos/Programming/microscraper-client/implementation/browser-apache/lib/httpcore-4.1.2.jar"/>
 	<classpathentry kind="lib" path="/Users/talos/Programming/microscraper-client/implementation/browser-apache/lib/commons-logging-1.1.1.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Core"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

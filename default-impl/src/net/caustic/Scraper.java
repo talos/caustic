@@ -8,7 +8,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import net.caustic.database.Database;
-import net.caustic.database.DatabaseException;
 import net.caustic.database.InMemoryDatabase;
 import net.caustic.deserializer.DefaultJSONDeserializer;
 import net.caustic.deserializer.JSONDeserializer;
@@ -51,12 +50,12 @@ public class Scraper extends DefaultScraper {
 		executor = Executors.newFixedThreadPool(nThreads);
 	}
 
-	public void scrape(String uriOrJSON) throws DatabaseException {	
+	public void scrape(String uriOrJSON) {	
 		Map<String, String> empty = Collections.emptyMap();
 		scrape(uriOrJSON, empty);
 	}
 	
-	public void scrape(String uriOrJSON, Map<String, String> input) throws DatabaseException {
+	public void scrape(String uriOrJSON, Map<String, String> input) {
 		Instruction instruction = new SerializedInstruction(uriOrJSON, deserializer, StringUtils.USER_DIR);
 		scrape(instruction, new Hashtable<String, String>(input), new DefaultHttpBrowser());
 	}
@@ -67,17 +66,22 @@ public class Scraper extends DefaultScraper {
 	
 	/**
 	 * Wait for this to wrap up.
-	 * @throws InterruptedException
 	 */
 	public void join() throws InterruptedException {
 		while(!isDone()) {
 			if(executor.isTerminated()) { // break if artificial termination
 				break;
 			}
-			Thread.sleep(100);
+			
+			try {
+				Thread.sleep(100);
+			} catch(InterruptedException e) {
+				interrupt();
+			}
 		}
 		executor.shutdown();
-		executor.awaitTermination(100, TimeUnit.MINUTES);
+		//executor.awaitTermination(60, TimeUnit.MINUTES);
+		executor.awaitTermination(3600, TimeUnit.SECONDS); // one hour
 	}
 	
 	public void interrupt() {

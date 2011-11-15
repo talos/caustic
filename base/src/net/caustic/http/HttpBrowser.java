@@ -146,14 +146,15 @@ public class HttpBrowser implements Loggable {
 				
 		// Add cookies into the headers.
 		String[] cookies = cookieManager.getCookiesFor(urlStr, headers);
-		String[] cookie2s = cookieManager.getCookie2sFor(urlStr, headers);
+		//String[] cookie2s = cookieManager.getCookie2sFor(urlStr, headers);
 		
 		if(cookies.length > 0) {
 			headers.put(CookieManager.COOKIE_HEADER_NAME, StringUtils.join(cookies, "; "));
 		}
+		/*
 		if(cookie2s.length > 0) {
 			headers.put(CookieManager.COOKIE_2_HEADER_NAME, StringUtils.join(cookie2s, "; "));
-		}
+		}*/
 		
 		log.i("All headers: " + StringUtils.quote(headers));
 		

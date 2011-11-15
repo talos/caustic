@@ -214,16 +214,19 @@ public abstract class DefaultScraper implements ScraperListener, Loggable {
 	 * @param instruction
 	 * @param input
 	 * @param browser
-	 * @throws DatabaseException
 	 */
-	public final void scrape(Instruction instruction, Hashtable table, HttpBrowser browser) throws DatabaseException {
-		Scope scope = db.newScope();
-		Enumeration e = table.keys();
-		while(e.hasMoreElements()) {
-			String key = (String) e.nextElement();
-			db.put(scope, key, (String) table.get(key));
+	public final void scrape(Instruction instruction, Hashtable table, HttpBrowser browser) {
+		try {
+			Scope scope = db.newScope();
+			Enumeration e = table.keys();
+			while(e.hasMoreElements()) {
+				String key = (String) e.nextElement();
+				db.put(scope, key, (String) table.get(key));
+			}
+			scrape(instruction, scope, null, browser);
+		} catch(DatabaseException e) {
+			crashed(instruction, null, null, e); // TODO
 		}
-		scrape(instruction, scope, null, browser);
 	}
 	
 	protected abstract void submit(Executable executable);
