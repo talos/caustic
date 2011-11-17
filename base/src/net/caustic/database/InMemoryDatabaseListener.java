@@ -19,24 +19,24 @@ class InMemoryDatabaseListener implements DatabaseListener {
 		this.nodes = nodes;
 	}
 	
-	public void put(Scope scope, String key, String value)
+	public void onPut(Scope scope, String key, String value)
 			throws DatabaseListenerException {
 		Hashtable dataNode = (Hashtable) nodes.get(scope);
 		dataNode.put(key, value);
 	}
 	
-	public void newScope(Scope scope)
+	public void onNewScope(Scope scope)
 			throws DatabaseListenerException {
 		nodes.put(scope, new Hashtable());
 	}
 
-	public void newScope(Scope parent, String key, Scope child)
+	public void onNewScope(Scope parent, String key, Scope child)
 			throws DatabaseListenerException {
 		tree.put(parent, child);
 		nodes.put(child, new Hashtable());
 	}
 
-	public void newScope(Scope parent, String key, String value, Scope child)
+	public void onNewScope(Scope parent, String key, String value, Scope child)
 			throws DatabaseListenerException {
 		tree.put(child, parent); // search for parent by child.
 		Hashtable dataNode = new Hashtable();

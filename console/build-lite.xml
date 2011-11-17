@@ -3,15 +3,15 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <target name="create_run_jar">
-        <jar destfile="../console/microscraper-lite.jar" filesetmanifest="mergewithoutmain">
+        <jar destfile="../caustic-lite.jar" filesetmanifest="mergewithoutmain">
             <manifest>
-                <attribute name="Main-Class" value="net.microscraper.console.Console"/>
+                <attribute name="Main-Class" value="net.caustic.console.MainClass"/>
                 <attribute name="Class-Path" value="."/>
             </manifest>
             <fileset dir="../console/bin"/>
             <fileset dir="../base/build/classes"/>
             <fileset dir="../implementation/regexp-javautil/bin"/>
-            <fileset dir="../implementation/sqlite-jdbc/bin"/>
+            <fileset dir="../default-impl/bin"/>
             <fileset dir="../implementation/json-me/bin"/>
             <fileset dir="../implementation/javanet/bin"/>
         </jar>

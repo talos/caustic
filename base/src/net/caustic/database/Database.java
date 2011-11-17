@@ -57,7 +57,7 @@ public abstract class Database {
 	 */
 	public final void put(Scope scope, String key, String value) throws DatabaseException {
 		for(int i = 0 ; i < listeners.size() ; i ++) {
-			((DatabaseListener) listeners.elementAt(i)).put(scope, key, value);
+			((DatabaseListener) listeners.elementAt(i)).onPut(scope, key, value);
 		}
 	}
 
@@ -67,7 +67,7 @@ public abstract class Database {
 	public final Scope newScope() throws DatabaseException {
 		Scope scope = scopeFactory.get();
 		for(int i = 0 ; i < listeners.size() ; i ++) {
-			((DatabaseListener) listeners.elementAt(i)).newScope(scope);
+			((DatabaseListener) listeners.elementAt(i)).onNewScope(scope);
 		}
 		return scope;
 		//return new DatabaseView(this, scope);
@@ -79,7 +79,7 @@ public abstract class Database {
 	public final Scope newScope(Scope parent, String key) throws DatabaseException {
 		Scope child = scopeFactory.get();
 		for(int i = 0 ; i < listeners.size() ; i ++) {
-			((DatabaseListener) listeners.elementAt(i)).newScope(parent, key, child);
+			((DatabaseListener) listeners.elementAt(i)).onNewScope(parent, key, child);
 		}
 		return child;
 	}
@@ -90,7 +90,7 @@ public abstract class Database {
 			throws DatabaseException {
 		Scope child = scopeFactory.get();
 		for(int i = 0 ; i < listeners.size() ; i ++) {
-			((DatabaseListener) listeners.elementAt(i)).newScope(parent, key, value, child);
+			((DatabaseListener) listeners.elementAt(i)).onNewScope(parent, key, value, child);
 		}
 		return child;
 	}

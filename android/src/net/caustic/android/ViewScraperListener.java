@@ -22,7 +22,7 @@ import android.widget.TextView;
  * @author talos
  *
  */
-public class ViewScraperListener implements ScraperListener {
+public class ViewScraperListener {
 		
 	private final ViewGroup parentView;
 	private final Activity activity;
@@ -42,7 +42,6 @@ public class ViewScraperListener implements ScraperListener {
 	/**
 	 * Add a row with key and value to a table corresponding to scope each time a key/value is found.
 	 */
-	@Override
 	public void put(final Scope scope, final String key, final String value)
 			throws DatabaseListenerException {
 		activity.runOnUiThread(new Runnable() {
@@ -57,7 +56,6 @@ public class ViewScraperListener implements ScraperListener {
 	/**
 	 * Adds table directly to {@link #parentView}.
 	 */
-	@Override
 	public void newScope(final Scope scope) throws DatabaseListenerException {
 		activity.runOnUiThread(new Runnable() {
 			public void run() {
@@ -71,13 +69,11 @@ public class ViewScraperListener implements ScraperListener {
 	/**
 	 * Creates child table for key within parent.
 	 */
-	@Override
 	public void newScope(Scope parent, String key, Scope child)
 			throws DatabaseListenerException {
 		newScope(parent, key, "", child);
 	}
 	
-	@Override
 	public void newScope(final Scope parent, final String key, final String value, final Scope child)
 			throws DatabaseListenerException {
 		activity.runOnUiThread(new Runnable() {
@@ -93,47 +89,6 @@ public class ViewScraperListener implements ScraperListener {
 		});
 	}
 
-	@Override
-	public void scrape(Instruction instruction, Scope scope, String source,
-			HttpBrowser browser) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void success(Instruction instruction, Scope scope, String source,
-			HttpBrowser browser) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void missing(Instruction instruction, Scope scope, String source,
-			HttpBrowser browser, String[] missingTags) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void failed(Instruction instruction, Scope scope, String source,
-			String failedBecause) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void terminated(int successful, int missing, int failed) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void crashed(Instruction instruction, Scope scope, String source,
-			Throwable e) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	/**
 	 * Create a new {@link TableRow} with the specified columns.
 	 * @param columns

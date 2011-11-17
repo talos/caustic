@@ -1,8 +1,5 @@
 package net.caustic;
 
-import java.util.Collections;
-import java.util.Hashtable;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -10,65 +7,55 @@ import java.util.concurrent.TimeUnit;
 import net.caustic.database.Database;
 import net.caustic.database.InMemoryDatabase;
 import net.caustic.deserializer.DefaultJSONDeserializer;
-import net.caustic.deserializer.JSONDeserializer;
 import net.caustic.http.DefaultHttpBrowser;
-import net.caustic.instruction.Executable;
-import net.caustic.instruction.Instruction;
-import net.caustic.instruction.SerializedInstruction;
-import net.caustic.util.StringUtils;
 
 /**
- * An implementation of {@link ScraperInterface} using {@link DefaultHttpBrowser}
- * and {@link AsyncExecutor} with a specified number of threads.
+ * An implementation of {@link ScraperInterface} using {@link DefaultHttpBrowser},
+ * {@link AsyncExecutor} with a specified number of threads, and
+ * {@link DefaultJSONDeserializer} for deserialization.
  * @author realest
  *
  */
-public class Scraper extends DefaultScraper {
+public class Scraper extends AbstractScraper {
 	public static final int DEFAULT_THREADS = 10;
 
 	private final ExecutorService executor;
-	private final JSONDeserializer deserializer = new DefaultJSONDeserializer();
 	
 	public Scraper() {
-		super(new InMemoryDatabase());
+		super(new InMemoryDatabase(), new DefaultHttpBrowser(),
+				new DefaultJSONDeserializer());
 		
 		executor = Executors.newFixedThreadPool(DEFAULT_THREADS);
 	}
 	
 	public Scraper(int nThreads) {
-		super(new InMemoryDatabase());
+		super(new InMemoryDatabase(), new DefaultHttpBrowser(),
+				new DefaultJSONDeserializer());
 		executor = Executors.newFixedThreadPool(nThreads);
 	}
 	
 	public Scraper(Database db) {
-		super(db);
+		super(db, new DefaultHttpBrowser(),	
+				new DefaultJSONDeserializer());
 		executor = Executors.newFixedThreadPool(DEFAULT_THREADS);
 	}
 	
 	public Scraper(Database db, int nThreads) {
-		super(db);
+		super(db, new DefaultHttpBrowser(),
+				new DefaultJSONDeserializer());
 		executor = Executors.newFixedThreadPool(nThreads);
 	}
-
-	public void scrape(String uriOrJSON) {	
-		Map<String, String> empty = Collections.emptyMap();
-		scrape(uriOrJSON, empty);
-	}
 	
-	public void scrape(String uriOrJSON, Map<String, String> input) {
-		Instruction instruction = new SerializedInstruction(uriOrJSON, deserializer, StringUtils.USER_DIR);
-		scrape(instruction, new Hashtable<String, String>(input), new DefaultHttpBrowser());
-	}
-
 	public void submit(Executable executable) {
 		executor.submit(executable);
 	}
 	
 	/**
-	 * Wait for this to wrap up.
+	 * Block the calling thread until {@link Scraper} is dormant, then shut
+	 * down {@link Scraper}.
 	 */
 	public void join() throws InterruptedException {
-		while(!isDone()) {
+		while(!isDormant()) {
 			if(executor.isTerminated()) { // break if artificial termination
 				break;
 			}

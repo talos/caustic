@@ -152,14 +152,16 @@ public class StringUtils {
 	}
 
 	/**
-	 * Convenient acccess to <code>System.getProperty("line.separator")</code>.
+	 * Convenient access to <code>System.getProperty("line.separator")</code>.
 	 */
 	public static final String NEWLINE = System.getProperty("line.separator");
 
 	/**
-	 * Convenient acccess to <code>System.getProperty("user.dir")</code>.
+	 * Convenient access to <code>System.getProperty("user.dir")</code> +
+	 * <code>System.getProperty("file.separator")</code>
 	 */
-	public static final String USER_DIR = System.getProperty("user.dir");
+	public static final String USER_DIR = System.getProperty("user.dir")
+			+ System.getProperty("file.separator");
 	
 	/**
 	 * 

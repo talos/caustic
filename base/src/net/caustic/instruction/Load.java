@@ -19,8 +19,6 @@ import net.caustic.util.StaticStringTemplate;
 import net.caustic.util.StringUtils;
 
 /**
- * An {@link Executable} for making an HTTP request and likely loading
- * a URL.
  * @author realest
  *
  */

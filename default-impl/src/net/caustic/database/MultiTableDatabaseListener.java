@@ -10,7 +10,7 @@ class MultiTableDatabaseListener implements DatabaseListener {
 		this.db = db;
 	}
 	
-	public void put(Scope scope, String key, String value)
+	public void onPut(Scope scope, String key, String value)
 			throws DatabaseListenerException {
 		try {
 			db.insert(scope, key, value);
@@ -19,7 +19,7 @@ class MultiTableDatabaseListener implements DatabaseListener {
 		}
 	}
 
-	public void newScope(Scope scope) throws DatabaseListenerException { 
+	public void onNewScope(Scope scope) throws DatabaseListenerException { 
 		try {
 			db.insertLink(null, scope, MultiTableDatabase.DEFAULT_TABLE, null);
 		} catch(DatabaseException e) {
@@ -27,12 +27,12 @@ class MultiTableDatabaseListener implements DatabaseListener {
 		}
 	}
 
-	public void newScope(Scope parent, String key, Scope child)
+	public void onNewScope(Scope parent, String key, Scope child)
 			throws DatabaseListenerException {
-		newScope(parent, key, null, child);
+		onNewScope(parent, key, null, child);
 	}
 
-	public void newScope(Scope parent, String key, String value, Scope child)
+	public void onNewScope(Scope parent, String key, String value, Scope child)
 			throws DatabaseListenerException {
 		// add to links
 		try {

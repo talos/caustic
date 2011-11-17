@@ -25,24 +25,24 @@ public class CSVDatabaseListener implements DatabaseListener {
 	}
 	
 	@Override
-	public void put(Scope scope, String key, String value)
+	public void onPut(Scope scope, String key, String value)
 			throws DatabaseListenerException {
 		write(null, scope, key, value);
 	}
 
 	@Override
-	public void newScope(Scope scope) throws DatabaseListenerException {
+	public void onNewScope(Scope scope) throws DatabaseListenerException {
 
 	}
 
 	@Override
-	public void newScope(Scope parent, String key, Scope child)
+	public void onNewScope(Scope parent, String key, Scope child)
 			throws DatabaseListenerException {
 		write(parent, child, key, null);
 	}
 
 	@Override
-	public void newScope(Scope parent, String key, String value, Scope child)
+	public void onNewScope(Scope parent, String key, String value, Scope child)
 			throws DatabaseListenerException {
 		write(parent, child, key, value);
 	}

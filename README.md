@@ -1,6 +1,6 @@
-# microscraper
+# caustic
 
-cooperative scrapers for mobile apps
+portable scraper templates for mobile apps
 
 ## usage ##
 
@@ -8,9 +8,9 @@ cooperative scrapers for mobile apps
 
 ---
 
-The easiest way to try out microscraper is the precompiled utility. Run
+The easiest way to try out caustic is the precompiled utility. Run
 
-    $ console/microscraper '{"load":"http://www.google.com","then":{"find":"Feeling\\s[\\w]*","name":"Feeling?"}}'
+    $ ./caustic '{"load":"http://www.google.com","then":{"find":"Feeling\\s[\\w]*","name":"Feeling?"}}'
 
 in the terminal of your choice.  This executes the JSON instruction
 
@@ -30,18 +30,18 @@ and sends the results to stdout
   <tr><td>2    <td>0      <td>Feeling? <td>Feeling Lucky
 </table>
 
-First, microscraper loads the URL in *load*.  Then it looks for the regular expression in *find*, and saves all matches.
+First, caustic loads the URL in *load*.  Then it looks for the regular expression in *find*, and saves all matches.
 
 ### The instruction format ###
 
 ---
 
-Microscrapers instructions are logic-free JSON objects that provide very dynamic templated instructions for scraping data.
+Caustics instructions are logic-free JSON objects that provide very dynamic templated instructions for scraping data.
 By default, substitutions are done for text inside double-curlies *{{}}*, kind of like [mustache](http://mustache.github.com/).
 
-All microscraper instructions are built from [find](microscraper-client/blob/master/doc/find.md)s and [load](microscraper-client/blob/master/doc/load.md)s.
+All caustic instructions are built from [find](caustic/blob/master/doc/find.md)s and [load](caustic/blob/master/doc/load.md)s.
 
-Here's a simple instruction, which is one of the [fixtures](microscraper-client/blob/master/fixtures/json/simple-google.json):
+Here's a simple instruction, which is one of the [fixtures](caustic/blob/master/fixtures/json/simple-google.json):
 
     {
      "load" : "http://www.google.com/search?q={{query}}",
@@ -52,9 +52,9 @@ Here's a simple instruction, which is one of the [fixtures](microscraper-client/
      }
     }
 
-For microscraper to execute this instruction, it needs a value to substitute for *{{query}}*.  Run the following
+For caustic to execute this instruction, it needs a value to substitute for *{{query}}*.  Run the following
 
-    $ console/microscraper fixtures/json/simple-google.json --input="query=hello"
+    $ ./caustic fixtures/json/simple-google.json --input="query=hello"
 
 to replace *{{query}}* with *hello*.  We get the following
 
@@ -84,7 +84,7 @@ We can use backreferences from *$0* to *$9* in *replace*.
 Substitutions are a powerful tool because they develop over the course of execution.  Any *name* that appears in 
 curlies will be substituted once a *value* has been found for it.
 
-This [fixture](microscraper-client/blob/master/fixtures/json/complex-google.json)
+This [fixture](caustic/blob/master/fixtures/json/complex-google.json)
 
     {
       "load" : "http://www.google.com/search?q={{query}}",
@@ -107,7 +107,7 @@ takes advantage of dynamic substitution, along with the ability to place any num
 
 Try it with
 
-    $ console/microscraper fixtures/json/complex-google.json --input="query=hello"
+    $ ./caustic fixtures/json/complex-google.json --input="query=hello"
 
 You'll see that this results in quite a few dozen rows, but here are some highlights:
 
@@ -140,7 +140,7 @@ Note that the *source* column links each *find* result back to the *scope* it in
 You probably noticed that interior portion of the last fixture was basically copy-and-pasted from the fixture
 before it.  Wouldn't it be nice if we could reuse instruction components?
 
-This [fixture](microscraper-client/blob/master/fixtures/json/reference-google.json) does just that
+This [fixture](caustic/blob/master/fixtures/json/reference-google.json) does just that
 
     {
       "load" : "http://www.google.com/search?q={{query}}",
@@ -154,7 +154,7 @@ This [fixture](microscraper-client/blob/master/fixtures/json/reference-google.js
 
 Running
 
-    $ console/microscraper fixtures/json/complex-google.json --input="query=hello"
+    $ ./caustic fixtures/json/complex-google.json --input="query=hello"
 
 should give you the same results as before.  Any string appearing inside *then* will be evaulated as a reference.
 
@@ -179,7 +179,7 @@ operates.
 
 Remember that
 
-    $ console/microscraper fixtures/json/recursive-google.json --input="query=hello"
+    $ ./caustic fixtures/json/recursive-google.json --input="query=hello"
 
 will not stop on its own!
 
@@ -187,4 +187,4 @@ will not stop on its own!
 
 ---
 
-Microscraper is designed to give wider access to obscure public data.  The microscraper format makes it easy to quickly design and test a scraper that extracts a few pieces of information from behind several layers of obfuscation.
+Caustic is designed to give wider access to obscure public data.  The caustic format makes it easy to quickly design and test a scraper that extracts a few pieces of information from behind several layers of obfuscation.

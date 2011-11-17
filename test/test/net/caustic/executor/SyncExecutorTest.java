@@ -5,11 +5,11 @@ import static org.junit.Assert.*;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
+import net.caustic.Executable;
 import net.caustic.SyncScraper;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseView;
 import net.caustic.http.HttpBrowser;
-import net.caustic.instruction.Executable;
 import net.caustic.instruction.Instruction;
 import net.caustic.instruction.InstructionResult;
 

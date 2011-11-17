@@ -22,14 +22,14 @@ public interface DatabaseListener {
 	 * @param value the same {@link String} as was the value for {@link DatabaseView}.
 	 * @throws DatabaseListenerException if there was an exception running the hook.
 	 */
-	public void put(Scope scope, String key, String value) throws DatabaseListenerException;
+	public void onPut(Scope scope, String key, String value) throws DatabaseListenerException;
 
 	/**
 	 * Called after fresh {@link Scope} created.
 	 * @param scope
 	 * @throws DatabaseListenerException
 	 */
-	public void newScope(Scope scope) throws DatabaseListenerException;
+	public void onNewScope(Scope scope) throws DatabaseListenerException;
 	
 	/**
 	 * This method is called after the {@link DatabaseView#spawnChild(String)}
@@ -39,7 +39,7 @@ public interface DatabaseListener {
 	 * @param child the {@link Scope} that resulted from {@link DatabaseView#spawnChild(String)}.
 	 * @throws DatabaseListenerException if there was an exception running the hook.
 	 */
-	public void newScope(Scope parent, String key, Scope child) throws DatabaseListenerException;
+	public void onNewScope(Scope parent, String key, Scope child) throws DatabaseListenerException;
 	
 	/**
 	 * This method is called after the {@link DatabaseView#spawnChild(String, String)}
@@ -50,5 +50,5 @@ public interface DatabaseListener {
 	 * @param child the {@link Scope} that resulted from {@link DatabaseView#spawnChild(String, String)}.
 	 * @throws DatabaseListenerException if there was an exception running the hook.
 	 */
-	public void newScope(Scope parent, String key, String value, Scope child) throws DatabaseListenerException;
+	public void onNewScope(Scope parent, String key, String value, Scope child) throws DatabaseListenerException;
 }

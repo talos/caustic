@@ -2,19 +2,20 @@ package net.caustic.client;
 
 import static org.junit.Assert.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Hashtable;
 
 import mockit.NonStrict;
+import mockit.Verifications;
 import mockit.VerificationsInOrder;
 import net.caustic.Scraper;
 import net.caustic.ScraperListener;
-import net.caustic.http.HttpBrowser;
+import net.caustic.database.Database;
 import net.caustic.instruction.Instruction;
 import net.caustic.log.Logger;
 import net.caustic.log.SystemOutLogger;
 import net.caustic.scope.Scope;
 import net.caustic.scope.SerializedScope;
+import net.caustic.util.StringUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,8 +27,8 @@ import org.junit.Test;
  */
 public class ScraperIntegrationTest {
 		
-	private @NonStrict ScraperListener listener;
-	private Map<String, String> input;
+	private @NonStrict ScraperListener listener, listener2, listener3;
+	private Hashtable<String, String> input;
 	private Scraper scraper;
 	private Logger logger = new SystemOutLogger();
 	
@@ -36,48 +37,64 @@ public class ScraperIntegrationTest {
 		logger.open();
 		
 		scraper = new Scraper();
-		scraper.addListener(listener);
 		scraper.register(logger);
 		
-		input = new HashMap<String, String>();
+		input = new Hashtable<String, String>();
 	}
-
-
+	
 	@Test
 	public void testScrapeStuck() throws Exception {		
-		scraper.scrape("fixtures/json/simple-google.json", input);
+		scraper.scrape("../fixtures/json/simple-google.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
-			listener.newScope(scope(0));
-			listener.missing((Instruction) any, scope(0), null, (HttpBrowser) any, (String[]) any);
-			listener.terminated(0, 1, 0);
+			listener.onFinish(0, 1, 0);
 		}};
 	}
 	
 	@Test
-	public void testScrapeFail() throws Exception {		
-		scraper.scrape("path/to/nothing.json", input);
+	public void testScrapeFail() throws Exception {	
+		scraper.scrape("path/to/nothing.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
-			listener.newScope(scope(0));
-			listener.failed((Instruction) any, scope(0), null, anyString);
-			listener.terminated(0, 0, 1);
+			listener.onFinish(0, 0, 1);
 		}};
 	}
 	
 	@Test
-	public void testScrapeSimpleGoogle() throws Exception {		
+	public void testScrapeSimpleGoogle() throws Exception {
+		System.out.println(StringUtils.USER_DIR);
+		
 		input.put("query", "hello");
-		scraper.scrape("fixtures/json/simple-google.json", input);
+		scraper.scrape("../fixtures/json/simple-google.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
-			listener.newScope(scope(0));
-			listener.put(scope(0), "query", "hello");
-			listener.newScope(scope(0), "what do you say after 'hello'?", withPrefix("I say "), (Scope) any);
-				minTimes = 1;
+			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
+					"what do you say after 'hello'?", (String[]) any);
+			listener.onFinish(2, 0, 0);
+		}};
+	}
+	
+	/**
+	 * Test several calls to scrape before joining.
+	 * @throws Exception
+	 */
+	@Test
+	public void testMultipleSimpleScrapes() throws Exception {
+		scraper.scrape("path/to/nothing.json", new Hashtable(), listener); // should fail
+		scraper.scrape("../fixtures/json/simple-google.json", new Hashtable(), listener2); // should get stuck
+		
+		input.put("query", "hello");
+		scraper.scrape("../fixtures/json/simple-google.json", input, listener3); // should succeed
+		
+		scraper.join();
+		
+		new Verifications() {{
+			listener.onFinish(0, 0, 1);
+			listener2.onFinish(0, 1, 0);
+			listener3.onFinish(2, 0, 0);
 		}};
 	}
 	
@@ -85,15 +102,15 @@ public class ScraperIntegrationTest {
 	public void testScrapeComplexGoogle() throws Exception {
 
 		input.put("query", "hello");
-		scraper.scrape("fixtures/json/complex-google.json", input);
+		scraper.scrape("../fixtures/json/complex-google.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
-			listener.newScope(scope(0));
-			listener.put(scope(0), "query", "hello");
-			listener.newScope(scope(0), "query", anyString, (Scope) any); minTimes = 1;
-			listener.newScope((Scope) any, withPrefix("what do you say after"), withPrefix("I say "), (Scope) any);
-				minTimes = 1;
+			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
+					"query", (String[]) any);
+			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(1), null,
+					withSubstring("what do you say after '"), (String[]) any);
+			listener.onFinish(withNotEqual(0), 0, 0);
 		}};
 	}
 	
@@ -101,14 +118,14 @@ public class ScraperIntegrationTest {
 	public void testScrapeReferenceGoogle() throws Exception {
 		
 		input.put("query", "hello");
-		scraper.scrape("fixtures/json/reference-google.json", input);
+		scraper.scrape("../fixtures/json/reference-google.json", input, listener);
 		scraper.join();
 		new VerificationsInOrder() {{
-			listener.newScope(scope(0));
-			listener.put(scope(0), "query", "hello");
-			listener.newScope(scope(0), "query", anyString, (Scope) any); minTimes = 1;
-			listener.newScope((Scope) any, withPrefix("what do you say after"), withPrefix("I say "), (Scope) any);
-				minTimes = 1;
+			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
+					"query", (String[]) any);
+			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(1), null,
+					withSubstring("what do you say after '"), (String[]) any);
+			listener.onFinish(withNotEqual(0), 0, 0);
 		}};
 	}
 	
@@ -119,12 +136,14 @@ public class ScraperIntegrationTest {
 		input.put("Borough", "3");
 		input.put("Apt", "");
 		
-		scraper.scrape("fixtures/json/nyc/nyc-property-owner.json", input);
+		scraper.scrape("../fixtures/json/nyc/nyc-property-owner.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
-			listener.newScope(scope(0), "Owner of 373 Atlantic Ave, Borough 3", "373 ATLANTIC AVENUE C", scope(1));
-			listener.newScope(scope(0), "Owner of 373 Atlantic Ave, Borough 3", "373 ATLANTIC AVENUE CORPORATION", scope(2));
+			listener.onSuccess((Instruction) any, (Database) any, scope(1), scope(0), anyString,
+					"Owner of 373 Atlantic Ave, Borough 3",
+					withEqual(new String[] { "373 ATLANTIC AVENUE C", "373 ATLANTIC AVENUE CORPORATION" })
+					);
 		}};
 	}
 		/*

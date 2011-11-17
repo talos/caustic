@@ -2,8 +2,10 @@ package net.caustic.console;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Hashtable;
 import java.util.Map;
 
+import net.caustic.LogScraperListener;
 import net.caustic.Scraper;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
@@ -48,7 +50,9 @@ public class Console {
 		Map<String, String> inputMap;
 		
 		while((inputMap = input.next()) != null) {
-			scraper.scrape(instruction, inputMap);
+			scraper.scrape(instruction,
+					new Hashtable<String, String>(inputMap),
+					new LogScraperListener(logger));
 		}
 		
 		try {
