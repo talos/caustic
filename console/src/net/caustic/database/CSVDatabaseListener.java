@@ -1,9 +1,5 @@
 package net.caustic.database;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
 import au.com.bytecode.opencsv.CSVWriter;
 
 import net.caustic.database.DatabaseListener;
@@ -18,9 +14,11 @@ import net.caustic.scope.Scope;
 public class CSVDatabaseListener implements DatabaseListener {
 
 	private final CSVWriter writer;	
-	public CSVDatabaseListener(File file, char separator) throws IOException {
+	public CSVDatabaseListener(char separator) {
 		
-		writer = new CSVWriter(new FileWriter(file), separator);
+		//writer = new CSVWriter(new FileWriter(file), separator);
+		writer = new CSVWriter(new SystemOutWriter(), separator);
+		
 		writer.writeNext(new String[] { "source", "scope", "name", "value" });
 	}
 	
@@ -48,6 +46,10 @@ public class CSVDatabaseListener implements DatabaseListener {
 	}
 	
 	private void write(Scope parent, Scope child, String name, String value) {
-		writer.writeNext(new String[] { parent.asString(), child.asString(), name, value } );
+		writer.writeNext(new String[] {
+				parent == null ? null : parent.asString(),
+				child == null ? null  : child.asString(),
+				name,
+				value } );
 	}
 }

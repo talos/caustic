@@ -2,7 +2,6 @@ package net.caustic.console;
 
 import static net.caustic.util.StringUtils.NEWLINE;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -11,40 +10,24 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 
 import net.caustic.database.CSVDatabaseListener;
 import net.caustic.database.Database;
-import net.caustic.database.DatabaseListener;
 import net.caustic.database.Connection;
 import net.caustic.database.InMemoryDatabase;
 import net.caustic.database.JDBCSqliteConnection;
 import net.caustic.database.MultiTableDatabase;
 import net.caustic.database.SingleTableDatabase;
-import net.caustic.deserializer.Deserializer;
-import net.caustic.deserializer.JSONDeserializer;
-import net.caustic.file.JavaIOFileLoader;
 import net.caustic.http.DefaultHttpBrowser;
 import net.caustic.http.HttpBrowser;
-import net.caustic.instruction.Find;
-import net.caustic.instruction.Instruction;
-import net.caustic.json.JsonParser;
 import net.caustic.log.JavaIOFileLogger;
 import net.caustic.log.Logger;
 import net.caustic.log.MultiLog;
 import net.caustic.log.SystemOutLogger;
-import net.caustic.regexp.RegexpCompiler;
-import net.caustic.scope.IntScopeFactory;
-import net.caustic.scope.ScopeFactory;
-import net.caustic.uri.URILoader;
-import net.caustic.uri.UriResolver;
-import net.caustic.util.Decoder;
 import net.caustic.util.DefaultDecoder;
-import net.caustic.util.Encoder;
 import net.caustic.util.FormEncodedFormatException;
 import net.caustic.util.MapUtils;
 import net.caustic.util.StringUtils;
-import net.caustic.uuid.JavaUtilUUIDFactory;
 
 public final class ConsoleOptions {
 	public static final String TIMESTAMP_STR = "yyyyMMddkkmmss";
@@ -77,11 +60,7 @@ public final class ConsoleOptions {
 	public static final String MAX_RESPONSE_SIZE = "--max-response-size";
 	public static final String MAX_RESPONSE_SIZE_DEFAULT = Integer.toString(HttpBrowser.DEFAULT_MAX_RESPONSE_SIZE);
 	private final Option maxResponseSize = Option.withDefault(MAX_RESPONSE_SIZE, MAX_RESPONSE_SIZE_DEFAULT);
-	
-	public static final String ENCODING = "--encoding";
-	public static final String ENCODING_DEFAULT  = Encoder.UTF_8;
-	private final Option encoding = Option.withDefault(ENCODING, ENCODING_DEFAULT);
-	
+		
 	public static final String CSV_FORMAT = "csv";
 	public static final String TAB_FORMAT = "tab";
 	public static final String SQLITE_FORMAT = "sqlite";
@@ -95,9 +74,7 @@ public final class ConsoleOptions {
 			SQLITE_FORMAT
 		);
 	
-	public static final String SAVE_TO_FILE = "--save-to-file";
 	public static final String SAVE_TO_FILE_DEFAULT = TIMESTAMP;
-	private final Option saveToFile = Option.withDefault(SAVE_TO_FILE, TIMESTAMP);
 	
 	public static final String SKIP_ROWS = "--skip-rows";
 	public static final String SKIP_ROWS_DEFAULT = "0";
@@ -137,8 +114,6 @@ public final class ConsoleOptions {
 "  json" + NEWLINE +
 "    Microscraper instruction JSON." + NEWLINE + NEWLINE +
 "  options" + NEWLINE +
-"    " + ENCODING + "=<encoding>" + NEWLINE +
-"        What encoding should be used.  Defaults to " + StringUtils.quote(ENCODING_DEFAULT) + "." + NEWLINE +
 "    " + INPUT + "=\"<form-encoded-name-value-pairs>\"" + NEWLINE +
 "        A form-encoded string of name value pairs to use as" + NEWLINE +
 "        a single input during execution." + NEWLINE +
@@ -158,9 +133,6 @@ public final class ConsoleOptions {
 "        before cutting off the response.  Defaults to " + MAX_RESPONSE_SIZE_DEFAULT + "KB." + NEWLINE +
 "    " + FORMAT + "=(" + StringUtils.join(validOutputFormats.toArray(new String[0]), "|") +")" + NEWLINE +
 "        How to format output.  Defaults to " + StringUtils.quote(FORMAT_DEFAULT) + "." + NEWLINE +
-"    " + SAVE_TO_FILE + "[=<path>], " + NEWLINE +
-"        Where to save the output.  Defaults to " + StringUtils.quote(SAVE_TO_FILE_DEFAULT + ".<format>" + NEWLINE +
-"        in the current directory output." + NEWLINE +
 "    " + RATE_LIMIT + "=<max-kbps>" + NEWLINE +
 "        The rate limit, in KBPS, for loading from a single host." + NEWLINE +
 "        Defaults to " + StringUtils.quote(RATE_LIMIT_DEFAULT) + " KBPS." + NEWLINE +
@@ -183,7 +155,7 @@ public final class ConsoleOptions {
 "        " + THREADS_DEFAULT + " threads." + NEWLINE +
 "    " + TIMEOUT_MILLISECONDS + "=<timeout>" + NEWLINE +
 "        How many milliseconds to wait before giving up on a" + NEWLINE + 
-"        request.  Defaults to " + TIMEOUT_MILLISECONDS + " milliseconds.");
+"        request.  Defaults to " + TIMEOUT_MILLISECONDS + " milliseconds.";
 	
 	public static final String INSTRUCTION_MISSING_ERROR =
 			"Must provide an instruction as JSON or a link to an " +
@@ -259,15 +231,16 @@ public final class ConsoleOptions {
 			throw new InvalidOptionException(StringUtils.quote(format)
 					+ " is not a valid output format.");
 		}
-
+		/*
 		String outputLocation = getValue(saveToFile);
 		if(outputLocation.equals(saveToFile.getDefault())) { 
 			outputLocation += '.' + format;
 		}
-		
+		*/
 		final Database database;
 		if(format.equals(SQLITE_FORMAT)) {
-			Connection connection = JDBCSqliteConnection.toFile(outputLocation,
+			Connection connection = JDBCSqliteConnection.toFile(
+					SAVE_TO_FILE_DEFAULT + "." + SQLITE_FORMAT,
 					Database.DEFAULT_SCOPE_NAME, true);
 			
 			if(isSpecified(singleTable)) {
@@ -278,11 +251,11 @@ public final class ConsoleOptions {
 		} else {
 			database = new InMemoryDatabase();
 			// Determine delimiter.
-			char separator;
+			//char separator;
 			if(format.equals(CSV_FORMAT)) {
-				//database.addListener(new CSVDatabaseListener(new File(outputLocation), COMMA_DELIMITER));
+				database.addListener(new CSVDatabaseListener(COMMA_DELIMITER));
 			} else if(format.equals(TAB_FORMAT)) {
-				//database.addListener(new CSVDatabaseListener(new File(outputLocation), TAB_DELIMITER));
+				database.addListener(new CSVDatabaseListener(TAB_DELIMITER));
 			}
 		}
 		

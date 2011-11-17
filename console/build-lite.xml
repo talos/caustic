@@ -9,7 +9,7 @@
                 <attribute name="Class-Path" value="."/>
             </manifest>
             <fileset dir="../console/bin"/>
-            <fileset dir="../base/build/classes"/>
+            <fileset dir="../core/build/classes"/>
             <fileset dir="../implementation/regexp-javautil/bin"/>
             <fileset dir="../default-impl/bin"/>
             <fileset dir="../implementation/json-me/bin"/>
