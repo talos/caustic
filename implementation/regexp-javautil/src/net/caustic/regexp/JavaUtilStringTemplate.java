@@ -11,7 +11,7 @@ import net.caustic.scope.Scope;
 import net.caustic.template.StringSubstitution;
 import net.caustic.util.Encoder;
 
-final class JavaUtilStringTemplate implements StringTemplate {
+final class JavaUtilStringTemplate extends StringTemplate {
 	private static final int NOT_MATCHED = -1;
 
 	private final java.util.regex.Pattern encodedPattern;
@@ -103,11 +103,8 @@ final class JavaUtilStringTemplate implements StringTemplate {
 		}
 	}
 
-	/**
-	 * String representation is the raw template string.
-	 */
 	@Override
-	public String toString() {
+	protected String asString() {
 		return templateString;
 	}
 

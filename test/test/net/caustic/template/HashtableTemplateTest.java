@@ -89,7 +89,7 @@ public class HashtableTemplateTest {
 		hash2.put(new StaticStringTemplate("bill clinton"), 
 				compiler.newTemplate("{{{bill clinton}}}", ENCODED_PATTERN, UNENCODED_PATTERN));
 		
-		hash1.merge(hash2);
+		hash1.extend(hash2);
 		
 		HashtableSubstitution sub = hash1.sub(view);
 		assertFalse(sub.isMissingTags());

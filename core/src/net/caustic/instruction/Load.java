@@ -95,11 +95,12 @@ public final class Load extends Instruction {
 	/**
 	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #postTable}.
 	 * If {@link #method} is not {@link HttpBrowser.POST}, this changes it to be so.
-	 * @param posts A {@link HashtableTemplate} of posts to add.
+	 * @param posts A {@link HashtableTemplate} of posts to add.  Existing posts with
+	 * duplicate names will be overwritten.
 	 */
 	public void addPosts(HashtableTemplate posts) {
 		setMethod(HttpBrowser.POST);
-		postTable.merge(posts);
+		postTable.extend(posts, true);
 	}
 
 	/**
@@ -117,18 +118,20 @@ public final class Load extends Instruction {
 
 	/**
 	 * Add to this {@link Load}'s {@link #headers}.
-	 * @param headers A {@link HashtableTemplate} of headers to add.
+	 * @param headers A {@link HashtableTemplate} of headers to add.  Existing headers with
+	 * duplicate names will be overwritten.
 	 */
 	public void addHeaders(HashtableTemplate headers) {
-		this.headers.merge(headers);
+		this.headers.extend(headers, true);
 	}
 
 	/**
 	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #cookies}.
-	 * @param cookies A {@link HashtableTemplate} of cookies to add.
+	 * @param cookies A {@link HashtableTemplate} of cookies to add.  Existing cookies with
+	 * duplicate names will be overwritten.
 	 */
 	public void addCookies(HashtableTemplate cookies) {
-		this.cookies.merge(cookies);
+		this.cookies.extend(cookies, true);
 	}
 	
 	/**

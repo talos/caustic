@@ -11,7 +11,7 @@ import net.caustic.scope.Scope;
 import net.caustic.template.StringSubstitution;
 import net.caustic.util.Encoder;
 
-public class JakartaStringTemplate implements StringTemplate {
+public class JakartaStringTemplate extends StringTemplate {
 	private static final int NOT_MATCHED = -1;
 	
 	private final RE encodedPattern;
@@ -105,7 +105,7 @@ public class JakartaStringTemplate implements StringTemplate {
 	/**
 	 * String representation is the raw template string.
 	 */
-	public String toString() {
+	public String asString() {
 		return templateString;
 	}
 

@@ -72,11 +72,21 @@ public class HashtableTemplate {
 	}
 	
 	/**
-	 * Merge another {@link HashtableTemplate} into this one.  Will overwrite keys in this
+	 * Extend another {@link HashtableTemplate} with this one.  Will overwrite keys in this
 	 * {@link HashtableTemplate}.
 	 * @param other The {@link HashtableTemplate} to merge in.
+	 * @param overwrite <code>True</code> to overwrite duplicate values from the original table,
+	 * <code>false</code> to leave them as-is.
 	 */
-	public void merge(HashtableTemplate other) {
-		this.table = HashtableUtils.combine(new Hashtable[] { this.table, other.table });
+	public void extend(HashtableTemplate other, boolean overwrite) {
+		if(overwrite == true) {
+			this.table = HashtableUtils.combine(new Hashtable[] { this.table, other.table });			
+		} else {
+			this.table = HashtableUtils.combine(new Hashtable[] { other.table, this.table });
+		}
+	}
+	
+	public String toString() {
+		return table.toString();
 	}
 }

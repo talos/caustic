@@ -1,0 +1,8 @@
+
+{
+		"extends" : {"$ref" : "nyc-property-owner.json" },
+		"posts" : {
+				"FBORO"  : 2,
+				"FAPTNUM": ""
+		}
+}

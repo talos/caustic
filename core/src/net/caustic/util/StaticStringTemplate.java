@@ -12,7 +12,7 @@ import net.caustic.template.StringSubstitution;
  * @author talos
  *
  */
-public class StaticStringTemplate implements StringTemplate {
+public class StaticStringTemplate extends StringTemplate {
 	private final String staticValue;
 	
 	/**
@@ -37,7 +37,7 @@ public class StaticStringTemplate implements StringTemplate {
 	 * Returns the static value this {@link StaticStringTemplate} was
 	 * initialized with.
 	 */
-	public String toString() {
+	public String asString() {
 		return staticValue;
 	}
 }

@@ -211,7 +211,13 @@ public class JSONDeserializer implements Deserializer {
 						method = obj.getString(key);
 					} else if(key.equalsIgnoreCase(POSTS)) {
 						if(obj.isJsonObject(key)) {
-							posts.merge(deserializeHashtableTemplate(obj.getJsonObject(key), encodedPatternString, notEncodedPatternString));
+							posts.extend(
+									deserializeHashtableTemplate(
+											obj.getJsonObject(key),
+											encodedPatternString,
+											notEncodedPatternString),
+									false); // precedence is given to the original object
+														
 						} else if(obj.isString(key)) {
 							postData = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
 						} else {
@@ -219,9 +225,14 @@ public class JSONDeserializer implements Deserializer {
 									" must be a String with post data or an object with name-value-pairs.");				
 						}
 					} else if(key.equalsIgnoreCase(COOKIES)) {
-						cookies.merge(deserializeHashtableTemplate(obj.getJsonObject(key), encodedPatternString, notEncodedPatternString));
+						cookies.extend(
+								deserializeHashtableTemplate(
+										obj.getJsonObject(key),
+										encodedPatternString,
+										notEncodedPatternString),
+								false); // precedence is given to the original object
 					} else if(key.equalsIgnoreCase(HEADERS)) {
-						headers.merge(deserializeHashtableTemplate(obj.getJsonObject(key), encodedPatternString, notEncodedPatternString));
+						headers.extend(deserializeHashtableTemplate(obj.getJsonObject(key), encodedPatternString, notEncodedPatternString), false);
 						
 					/** Pattern attributes. **/
 					} else if(key.equalsIgnoreCase(FIND)) {
