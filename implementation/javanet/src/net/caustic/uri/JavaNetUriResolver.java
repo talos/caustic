@@ -1,5 +1,6 @@
 package net.caustic.uri;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -14,7 +15,12 @@ public class JavaNetUriResolver implements UriResolver {
 			RemoteToLocalSchemeResolutionException {
 		
 		try {
-			URI uri = new URI(uriStr);
+			URI uri;
+			try {
+				uri = new URI(uriStr);
+			} catch(URISyntaxException e) {
+				uri = new File(uriStr).toURI();
+			}
 			URI resolveURI = new URI(resolveURIStr);
 			
 			if(uri.getScheme() == null) {

@@ -63,9 +63,7 @@ public class ScraperIntegrationTest {
 	}
 	
 	@Test
-	public void testScrapeSimpleGoogle() throws Exception {
-		System.out.println(StringUtils.USER_DIR);
-		
+	public void testScrapeSimpleGoogle() throws Exception {		
 		input.put("query", "hello");
 		scraper.scrape("../fixtures/json/simple-google.json", input, listener);
 		scraper.join();

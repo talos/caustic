@@ -121,7 +121,7 @@ final class ControlScraperListener implements ScraperListener {
 	public synchronized void onFailed(Instruction instruction, Database db,
 			Scope scope, Scope parent, String source, String failedBecause) {
 		failed++;
-
+		
 		extraListener.onFailed(instruction, db, scope, parent, source, failedBecause);
 		
 		if(isDone()) {
@@ -130,8 +130,8 @@ final class ControlScraperListener implements ScraperListener {
 	}
 	
 	public synchronized final void onCrashed(Instruction instruction, Scope scope, Scope parent, String source, Throwable e) {
-		scraper.interrupt();
 		e.printStackTrace();
+		scraper.interrupt();
 		
 		extraListener.onCrashed(instruction, scope, parent, source, e);
 	}

@@ -9,6 +9,7 @@ import net.caustic.uri.JavaNetUriResolver;
 import net.caustic.uri.MalformedUriException;
 import net.caustic.uri.RemoteToLocalSchemeResolutionException;
 import net.caustic.uri.UriResolver;
+import net.caustic.util.StringUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +20,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class UriResolverTest {
 	private final Class<UriResolver> klass;
+	private static final String USER_DIR = StringUtils.USER_DIR;
 	private static final String filePathWithFragment = "file:/path/to/file#fragment";
 	private static final String pathWithoutFragment = "path/to/file";
 	private static final String httpWithFragment = "http://www.site.com/#fragment";
@@ -41,12 +43,12 @@ public class UriResolverTest {
 		resolver = klass.newInstance();
 	}
 	
-	/*
+	
 	@Test
 	public void testWindowsFragments() throws Exception {
-		assertEquals("Does not resolve Windows filepath.", "C:\\path\\to\\file", resolver.resolve("C:", "path\\to\\file"));
-		assertEquals("Does not resolve Unix fragment against Windows filepath", "C:\\path\\to", resolver.resolve("C:\\path\\to\\file", "../"));
-	}*/
+		//assertEquals("Does not resolve Windows filepath.", "C:\\path\\to\\file", resolver.resolve("C:", "path\\to\\file"));
+		assertEquals("Does not resolve Unix fragment against Windows filepath", "file:/C:/path/", resolver.resolve("C:\\path\\to\\file", "../"));
+	}
 	
 	@Test(expected = RemoteToLocalSchemeResolutionException.class)
 	public void testThrowsRemoteToFileSchemeResolutionException() throws Exception {
@@ -83,5 +85,10 @@ public class UriResolverTest {
 			resolver.resolve(httpWithFragment, pathWithoutFragment));
 		assertEquals("http://www.site.com/#fragment",
 				resolver.resolve(pathWithoutFragment, httpWithFragment));
+	}
+	
+	@Test
+	public void testResolveUserDir() throws Exception {
+		resolver.resolve(USER_DIR, pathWithoutFragment);
 	}
 }
