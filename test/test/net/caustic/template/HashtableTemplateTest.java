@@ -5,10 +5,11 @@ import static net.caustic.regexp.StringTemplate.*;
 
 import java.util.Hashtable;
 
-import net.caustic.database.DatabaseView;
+import net.caustic.database.Database;
 import net.caustic.database.InMemoryDatabase;
 import net.caustic.regexp.JavaUtilRegexpCompiler;
 import net.caustic.regexp.RegexpCompiler;
+import net.caustic.scope.Scope;
 import net.caustic.template.HashtableSubstitution;
 import net.caustic.template.HashtableSubstitutionOverwriteException;
 import net.caustic.template.HashtableTemplate;
@@ -20,7 +21,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class HashtableTemplateTest {	
-	private DatabaseView view;
+	private Database db;
+	private Scope scope;
 	private Encoder encoder;
 	private RegexpCompiler compiler;
 		
@@ -28,7 +30,8 @@ public class HashtableTemplateTest {
 	public void setUp() throws Exception {
 		encoder = new JavaNetEncoder(Encoder.UTF_8);
 		compiler = new JavaUtilRegexpCompiler(encoder);
-		view = new DatabaseView(new InMemoryDatabase());
+		db = new InMemoryDatabase();
+		scope = db.newScope();
 	}
 
 	@Test
@@ -40,10 +43,10 @@ public class HashtableTemplateTest {
 	public void testSubSuccessful() throws Exception {
 		HashtableTemplate hash = new HashtableTemplate();
 		
-		view.put("encoded key", "this key should be encoded");
-		view.put("encoded value", "this value should be encoded");
-		view.put("not encoded key", "this key should not be encoded");
-		view.put("not encoded value", "this value should not be encoded");
+		db.put(scope, "encoded key", "this key should be encoded");
+		db.put(scope, "encoded value", "this value should be encoded");
+		db.put(scope, "not encoded key", "this key should not be encoded");
+		db.put(scope, "not encoded value", "this value should not be encoded");
 		
 		hash.put(compiler.newTemplate("{{encoded key}}",
 				ENCODED_PATTERN, UNENCODED_PATTERN),
@@ -58,7 +61,7 @@ public class HashtableTemplateTest {
 				compiler.newTemplate("{{{" + "not encoded value" + "}}}", 
 						ENCODED_PATTERN, UNENCODED_PATTERN));
 		
-		HashtableSubstitution exc = hash.sub(view);
+		HashtableSubstitution exc = hash.sub(db, scope);
 		
 		assertFalse(exc.isMissingTags());
 		
@@ -77,21 +80,21 @@ public class HashtableTemplateTest {
 	}
 
 	@Test
-	public void testMerge() throws Exception {
+	public void testExtend() throws Exception {
 		HashtableTemplate hash1 = new HashtableTemplate();
 		HashtableTemplate hash2 = new HashtableTemplate();
 		
-		view.put("bill clinton", "charmer");
-		view.put("george clinton", "chiller");
+		db.put(scope, "bill clinton", "charmer");
+		db.put(scope, "george clinton", "chiller");
 		
 		hash1.put(new StaticStringTemplate("george clinton"),
 				compiler.newTemplate("{{{george clinton}}}", ENCODED_PATTERN, UNENCODED_PATTERN));
 		hash2.put(new StaticStringTemplate("bill clinton"), 
 				compiler.newTemplate("{{{bill clinton}}}", ENCODED_PATTERN, UNENCODED_PATTERN));
 		
-		hash1.extend(hash2);
+		hash1.extend(hash2, true);
 		
-		HashtableSubstitution sub = hash1.sub(view);
+		HashtableSubstitution sub = hash1.sub(db, scope);
 		assertFalse(sub.isMissingTags());
 		
 		@SuppressWarnings("unchecked")
@@ -106,7 +109,7 @@ public class HashtableTemplateTest {
 	public void testOverwriteException() throws Exception {
 		HashtableTemplate hash = new HashtableTemplate();
 		
-		view.put("overwriting", "key");
+		db.put(scope, "overwriting", "key");
 		
 		hash.put(new StaticStringTemplate("key"),
 				new StaticStringTemplate("value"));
@@ -115,6 +118,6 @@ public class HashtableTemplateTest {
 						UNENCODED_PATTERN), 
 				new StaticStringTemplate("value"));
 				
-		hash.sub(view);
+		hash.sub(db, scope);
 	}
 }

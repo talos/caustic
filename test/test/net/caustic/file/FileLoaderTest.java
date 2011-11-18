@@ -9,6 +9,7 @@ import java.util.Collection;
 
 import net.caustic.file.FileLoader;
 import net.caustic.file.JavaIOFileLoader;
+import net.caustic.util.StringUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class FileLoaderTest {
 	@Before
 	public void setUp() throws Exception {
 		fileLoader = klass.newInstance();
-		userDir = System.getProperty("user.dir");
+		userDir = StringUtils.USER_DIR;
 	}
 
 	@Test(expected = IOException.class)
@@ -53,7 +54,7 @@ public class FileLoaderTest {
 	
 	@Test
 	public void testLoadFixture() throws Exception {
-		String contents = fileLoader.load(userDir + "/fixtures/file.txt");
-		assertEquals("test file", contents);
+		String contents = fileLoader.load(userDir + "fixtures/file.txt");
+		assertTrue(contents.contains("test file"));
 	}
 }

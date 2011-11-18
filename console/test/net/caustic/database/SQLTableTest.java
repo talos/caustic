@@ -1,4 +1,4 @@
-package net.caustic.database.sql;
+package net.caustic.database;
 
 import static org.junit.Assert.*;
 import static net.caustic.util.TestUtils.*;
@@ -24,9 +24,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class SQLTableTest {
-	//private final SQLConnection conn;
-	
+public class SQLTableTest {	
 	private static final Map<String, String> emptyMap = Collections.emptyMap();
 	private final ScopeFactory idFactory = new IntScopeFactory();
 	private final SQLConnection conn;
@@ -45,7 +43,7 @@ public class SQLTableTest {
 	@Test
 	public void testDoesNotHaveColumn() throws Exception {
 		String name = randomString();
-		SQLTable sqlTable = (SQLTable) conn.newIOTable(name, new String[] {}, new String[] { });
+		SQLTable sqlTable = (SQLTable) conn.newTable(name, new String[] {}, new String[] { });
 		assertFalse("Should not have column", sqlTable.hasColumn(randomString()));
 	}
 
@@ -53,7 +51,7 @@ public class SQLTableTest {
 	public void testHasColumnInitializedWith() throws Exception {
 		String name = randomString();
 		String columnName = randomString();
-		SQLTable sqlTable = (SQLTable) conn.newIOTable(name,
+		SQLTable sqlTable = (SQLTable) conn.newTable(name,
 				new String[] { columnName }, new String[] { });
 		assertTrue("Should have initialized column.", sqlTable.hasColumn(columnName));
 	}
@@ -62,7 +60,7 @@ public class SQLTableTest {
 	public void testHasAddedColumn() throws Exception {
 		String name = randomString();
 		String columnName = randomString();
-		SQLTable sqlTable = (SQLTable) conn.newIOTable(name, new String[] {}, new String[] { });
+		SQLTable sqlTable = (SQLTable) conn.newTable(name, new String[] {}, new String[] { });
 		sqlTable.addColumn(columnName);
 		
 		assertTrue("Should have added column.", sqlTable.hasColumn(columnName));
@@ -73,7 +71,7 @@ public class SQLTableTest {
 		String[] columns = new String[] {
 				randomString(), randomString()
 		};
-		SQLTable sqlTable = (SQLTable) conn.newIOTable(randomString(), columns, new String[] { });
+		SQLTable sqlTable = (SQLTable) conn.newTable(randomString(), columns, new String[] { });
 		assertEquals("Should return no rows when no columns selected",
 				0, sqlTable.select(idFactory.get(), emptyMap, new String[] {} ).size());
 		assertEquals("Should return no rows when columns are selected", 0,
@@ -85,7 +83,7 @@ public class SQLTableTest {
 		String[] columns = new String[] {
 				randomString(), randomString()
 		};
-		SQLTable sqlTable = (SQLTable) conn.newIOTable(randomString(), columns, new String[] { });
+		SQLTable sqlTable = (SQLTable) conn.newTable(randomString(), columns, new String[] { });
 		Map<String, String> insertMap = new HashMap<String, String>();
 		
 		for(String column : columns) {
@@ -108,7 +106,7 @@ public class SQLTableTest {
 		String[] columns = new String[] {
 				randomString(), randomString()
 		};
-		SQLTable sqlTable = (SQLTable) conn.newIOTable(randomString(), columns, new String[] { });
+		SQLTable sqlTable = (SQLTable) conn.newTable(randomString(), columns, new String[] { });
 
 		Scope scope = idFactory.get();
 		final int rows = 10;
@@ -130,7 +128,7 @@ public class SQLTableTest {
 		String[] columns = new String[] {
 				randomString(), randomString()
 		};
-		SQLTable sqlTable = (SQLTable) conn.newIOTable(randomString(), columns, new String[] { });
+		SQLTable sqlTable = (SQLTable) conn.newTable(randomString(), columns, new String[] { });
 		Map<String, String> insertMap = new HashMap<String, String>();
 		Map<String, String> updateMap = new HashMap<String, String>();
 		
@@ -161,7 +159,7 @@ public class SQLTableTest {
 		String[] columns = new String[] {
 				randomString(), randomString()
 		};
-		SQLTable sqlTable = (SQLTable) conn.newIOTable(randomString(), columns, new String[] { });
+		SQLTable sqlTable = (SQLTable) conn.newTable(randomString(), columns, new String[] { });
 
 		Scope scope = idFactory.get();
 		final int rows = 10;
@@ -194,7 +192,7 @@ public class SQLTableTest {
 		final String TEMPERAMENT = "temperament";
 		final String[] columns = new String[] { SPECIES, TEMPERAMENT };
 		
-		SQLTable sqlTable = (SQLTable) conn.newIOTable(randomString(), columns, new String[] { });
+		SQLTable sqlTable = (SQLTable) conn.newTable(randomString(), columns, new String[] { });
 		
 		Scope scope = idFactory.get();
 		

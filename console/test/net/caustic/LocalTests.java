@@ -3,7 +3,7 @@ package net.caustic;
 import net.caustic.console.ConsoleOptionsTest;
 import net.caustic.console.InputTest;
 import net.caustic.database.DatabaseTest;
-import net.caustic.database.sql.SQLConnectionTest;
+import net.caustic.database.SQLConnectionTest;
 import net.caustic.util.MapUtilsTest;
 import net.caustic.util.UUIDFactoryTest;
 

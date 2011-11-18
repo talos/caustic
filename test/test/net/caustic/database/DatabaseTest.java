@@ -4,7 +4,9 @@ import static net.caustic.util.TestUtils.randomString;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,7 +25,7 @@ public abstract class DatabaseTest {
 	
 	private ExecutorService exc;
 	private Database db;
-	private DatabaseView view;
+	private Scope scope;
 	
 	public abstract Database getDatabase() throws Exception;
 	
@@ -31,164 +33,133 @@ public abstract class DatabaseTest {
 	public void setUp() throws Exception {
 		exc = Executors.newCachedThreadPool();
 		db = getDatabase();
-		view = new DatabaseView(db);
+		scope = db.newScope();
 	}
 
 	@Test
-	public void testSpawnChildWithNameOnlyStoresNothing() throws Exception {
-		DatabaseView child = view.spawnChild("foo");
+	public void testNewScopeWithNameOnlyStoresNothing() throws Exception {
+		Scope child = db.newScope(scope, "foo");
 		
-		assertNull(view.get("foo"));
-		assertNull(child.get("foo"));
+		assertNull(db.get(scope, "foo"));
+		assertNull(db.get(child, "foo"));
 	}
 
 	@Test
-	public void testSpawnChildWithNameAndValueStoresOnlyInChild() throws Exception {
-		DatabaseView child = view.spawnChild("foo", "bar");
+	public void testNewScopeWithNameAndValueStoresOnlyInChild() throws Exception {
+		Scope child = db.newScope(scope, "foo", "bar");
 		
-		assertNull("Parent should not have value.", view.get("foo"));
+		assertNull("Parent should not have value.", db.get(scope, "foo"));
 		
-		String childValue = child.get("foo");
+		String childValue = db.get(child, "foo");
 		assertEquals("Child does not have correct value", "bar", childValue);
 	}
 	
 	@Test
-	public void testStoreStoresInView() throws Exception {
-		String name = randomString();
-		String value = randomString();
-		
-		view.put(name, value);
+	public void testPutInScope() throws Exception {
+		db.put(scope, "foo", "bar");
 
-		assertEquals("View does not have correct value.", value, view.get(name));
+		assertEquals("View does not have correct value.", "bar", db.get(scope, "foo"));
 	}
 	
 
 	@Test
 	public void testStoreToParentAccessibleToChildren() throws Exception {
-		view.put("roses", "red");
-		DatabaseView child = view.spawnChild("foo", "bar");
+		db.put(scope, "roses", "red");
+		Scope child = db.newScope(scope, "foo", "bar");
 		
-		assertEquals("Child should have access to parent value.", "red", child.get("roses"));
+		assertEquals("Child should have access to parent value.", "red", db.get(child, "roses"));
 	}
 	
 	@Test
 	public void testStoreToChildNotAccessibleToParent() throws Exception {
-		view.put("roses", "red");
-		view.spawnChild("foo", "bar");
+		db.put(scope, "roses", "red");
+		db.newScope(scope, "foo", "bar");
 		
-		assertNull("Parent should not have access to child value.", view.get("foo"));
+		assertNull("Parent should not have access to child value.", db.get(scope, "foo"));
 	}
 	
 	@Test
 	public void testPutOverwrites() throws Exception {
+		db.put(scope, "foo", "bar");
+		db.put(scope, "foo", "unbar");
 		
-		String name = randomString();
-		String value = randomString();
-		String value2 = randomString();
-		
-		view.put(name, value);
-		view.put(name, value2);
-		
-		assertEquals("Overwritten value not present.", value2, view.get(name));
-		assertNotSame("Old value still present.", value, view.get(name));
+		assertEquals("Overwritten value not present.", "unbar", db.get(scope, "foo"));
+		assertNotSame("Old value still present.", "bar", db.get(scope, "foo"));
 	}
 	
 	@Test
 	public void testChildOverwrites() throws Exception {
-		final String name = "parent name";
-		final String value = "parent value";
+		db.put(scope, "transport", "buggy");
 		
-		final String nameToOverwrite = "transport";
-		final String overwrittenValue = "buggy";
-		final String overwritingValue = "shinkanesn";
-		
-		final String childName = "child name";
-		final String childValue = "child value";
-		view.put(name, value);
-		view.put(nameToOverwrite, overwrittenValue);
-		
-		List<DatabaseView> children = new ArrayList<DatabaseView>();
+		List<Scope> futures = new ArrayList<Scope>();
 		for(int i = 0 ; i < 100; i ++) {
-			DatabaseView child = view.spawnChild(childName, childValue);
-			child.put(nameToOverwrite, overwritingValue);
-			children.add(child);
+			Scope future = db.newScope(scope, "future");
+			db.put(future, "transport", "shinkansen");
+			futures.add(future);
 		}
 		
-		for(DatabaseView child : children) {
-			assertFalse(nameToOverwrite + " should have been overwritten with " + overwritingValue +
-				", but is still " + overwrittenValue, overwrittenValue.equals(child.get(nameToOverwrite)));
-			assertEquals("not overwritten with expected value", overwritingValue, child.get(nameToOverwrite));
-			assertEquals("child should have its name/value", childValue, child.get(childName));
+		for(Scope future : futures) {
+			assertEquals("shinkansen", db.get(future, "transport"));
 		}
+		assertEquals("buggy", db.get(scope, "transport"));
 	}
 	
 	@Test
-	public void testConcurrentPut() throws Exception {
-
-		final String name = randomString();
-		final String value = randomString();
-		
-		exc.submit(new Callable<Void>() {
-			
-			public Void call() throws Exception {
-				view.put(name, value);
-				return null;
-			}
-		});
-		
-		exc.submit(new Callable<String>() {
-			
-			public String call() throws Exception {
-				return view.get(name);
-			}
-		});
-		
-		exc.shutdown();
-		exc.awaitTermination(3, TimeUnit.SECONDS);
-		assertEquals(value, view.get(name));
-	}
-	
-
-	@Test
-	public void testConcurrentChildOverwrites() throws Exception {
-		
-		final String name = "parent name";
-		final String value = "parent value";
-		
-		final String nameToOverwrite = "transport";
-		final String overwrittenValue = "buggy";
-		final String overwritingValue = "shinkanesn";
-		
-		final String childName = "child name";
-		final String childValue = "child value";
-		view.put(name, value);
-		view.put(nameToOverwrite, overwrittenValue);
-		final int count = 20;
-		
-		List<Callable<DatabaseView>> callables = new ArrayList<Callable<DatabaseView>>();
-		for(int i = 0 ; i < count ; i ++) {
-			callables.add(new Callable<DatabaseView>() {
+	public void testConcurrency() throws Exception {
+		Map<String, String> comparison = new HashMap<String, String>();
+		for(int i = 0 ; i < 100 ; i ++) {
+			final String name = randomString();
+			final String value = randomString();
+			comparison.put(name, value);
+			exc.submit(new Callable<Void>() {
 				
-				public DatabaseView call() throws Exception {
-					DatabaseView child = view.spawnChild(childName, childValue);
-					child.put(nameToOverwrite, overwritingValue);
-					return child;
+				public Void call() throws Exception {
+					db.put(scope, name, value);
+					return null;
 				}
 			});
 		}
-		List<Future<DatabaseView>> futures = exc.invokeAll(callables);
 		
-		assertEquals("should not be overwritten in original view.", overwrittenValue, view.get(nameToOverwrite));
-		assertNull("should not have child name/value in original view", view.get(childName));
-		for(Future<DatabaseView> future : futures) {
-			DatabaseView child = future.get();
-			assertFalse(nameToOverwrite + " should have been overwritten with " + overwritingValue +
-					", but is still " + overwrittenValue, overwrittenValue.equals(child.get(nameToOverwrite)));
-			assertEquals("not overwritten with expected value", overwritingValue, child.get(nameToOverwrite));
-			assertEquals("child should have its name/value", childValue, child.get(childName));
+		exc.shutdown();
+		if(exc.awaitTermination(10, TimeUnit.SECONDS) == false) {
+			exc.shutdownNow();
+			throw new InterruptedException("Didn't finish in ten seconds.");
+		}
+		
+		for(Map.Entry<String, String> entry : comparison.entrySet()) {
+			assertEquals(entry.getValue(), db.get(scope, entry.getKey()));
 		}
 	}
 
+	@Test
+	public void testConcurrentChildOverwrites() throws Exception {
+		db.put(scope, "transport", "buggy");
+		
+		List<Future<Scope>> futures = new ArrayList<Future<Scope>>();
+		for(int i = 0 ; i < 100; i ++) {
+			futures.add(exc.submit(new Callable<Scope>() {
+				public Scope call() throws Exception {
+					Scope future = db.newScope(scope, randomString());
+					db.put(future, "transport", "shinkansen");
+					return future;
+				}
+			}));
+		}
+
+		exc.shutdown();
+		if(exc.awaitTermination(10, TimeUnit.SECONDS) == false) {
+			exc.shutdownNow();
+			throw new InterruptedException("Didn't finish in ten seconds.");
+		}
+		
+		for(Future<Scope> future : futures) {
+			assertEquals("shinkansen", db.get(future.get(), "transport"));
+		}
+		assertEquals("buggy", db.get(scope, "transport"));
+	}
+	
+	/*
+	
 	@Test
 	public void testConcurrencyMultipleViews() throws Exception {
 		
@@ -231,7 +202,7 @@ public abstract class DatabaseTest {
 		exc.shutdown();
 		assertTrue("didn't complete in one minute", exc.awaitTermination(1, TimeUnit.MINUTES));
 	}
-	
+	*/
 	@Test
 	public void testListener(@Mocked(capture = 1) final DatabaseListener listener) throws Exception {
 		

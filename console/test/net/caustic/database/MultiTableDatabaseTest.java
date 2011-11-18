@@ -5,7 +5,7 @@ import org.junit.After;
 import net.caustic.database.JDBCSqliteConnection;
 
 public class MultiTableDatabaseTest extends DatabaseTest {
-	private IOConnection connection;
+	private Connection connection;
 	
 	@Override
 	public Database getDatabase() throws Exception {

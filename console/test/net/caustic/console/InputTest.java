@@ -8,10 +8,6 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import net.caustic.console.Input;
-import net.caustic.database.Database;
-import net.caustic.database.NonPersistedDatabase;
-import net.caustic.database.csv.CSVConnection;
-import net.caustic.scope.IntScopeFactory;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +18,6 @@ public class InputTest {
 	public static final String PATH_TO_BBLS = PATH_TO_CSVS + "bbls.csv";
 	
 	private Hashtable<String, String> shared;
-	private Database database;
 
 	@Before
 	public void setUp() throws Exception {
@@ -30,8 +25,6 @@ public class InputTest {
 		for(int i = 0 ; i < 4 ; i ++) {
 			shared.put(randomString(), randomString());
 		}
-		database = new NonPersistedDatabase(CSVConnection.toSystemOut(','), new IntScopeFactory());
-		database.open();
 	}
 	
 	@Test

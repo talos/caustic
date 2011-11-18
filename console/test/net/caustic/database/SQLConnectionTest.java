@@ -1,4 +1,4 @@
-package net.caustic.database.sql;
+package net.caustic.database;
 
 import static org.junit.Assert.*;
 import static net.caustic.util.TestUtils.*;
@@ -10,7 +10,6 @@ import java.util.Map;
 
 import net.caustic.database.Database;
 import net.caustic.database.JDBCSqliteConnection;
-import net.caustic.database.SQLConnection;
 import net.caustic.database.Table;
 import net.caustic.scope.SerializedScope;
 import net.caustic.scope.Scope;
@@ -47,7 +46,7 @@ public class SQLConnectionTest {
 			columns[i] = randomString(5);
 			map.put(columns[i], randomString());
 		}
-		Table table = conn.newIOTable(name, columns, new String[] { });
+		Table table = conn.newTable(name, columns, new String[] { });
 		
 		for(String column : columns) {
 			assertTrue(table.hasColumn(column));

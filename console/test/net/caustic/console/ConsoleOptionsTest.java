@@ -10,10 +10,6 @@ import java.util.Map;
 
 import net.caustic.console.ConsoleOptions;
 import net.caustic.console.InvalidOptionException;
-import net.caustic.database.Database;
-import net.caustic.database.NonPersistedDatabase;
-import net.caustic.database.csv.CSVConnection;
-import net.caustic.scope.IntScopeFactory;
 import net.caustic.util.HashtableUtils;
 
 import org.junit.Test;
@@ -33,8 +29,6 @@ public class ConsoleOptionsTest {
 	
 	@Test
 	public void testInputIsTheSameWithQuotesOrWithout() throws Exception {
-		Database db = new NonPersistedDatabase(CSVConnection.toSystemOut(','), new IntScopeFactory());
-		db.open();
 		
 		Hashtable<String, String> origHash = new Hashtable<String, String>();
 		for(int i = 0 ; i < 10 ; i ++) {
@@ -70,21 +64,6 @@ public class ConsoleOptionsTest {
 				INPUT_DELIMITER + "=" + randomString(10) });
 		options.getInput();
 	}
-	
-	@Test(expected=InvalidOptionException.class)
-	public void testThreadsCannotBeZero() throws Exception {
-		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
-				THREADS + "=0" });
-		options.getExecutor();
-	}
-	
-	@Test(expected=InvalidOptionException.class)
-	public void testThreadsCannotBeNegative() throws Exception {
-		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
-				THREADS + "=" + (-1 - randomInt()) });
-		options.getExecutor();
-	}
-	
 
 	@Test(expected=InvalidOptionException.class)
 	public void testRowsToReadCannotBeZero() throws Exception {

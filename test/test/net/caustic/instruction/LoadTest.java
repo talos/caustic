@@ -9,7 +9,7 @@ import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import net.caustic.database.DatabaseView;
+import net.caustic.database.Database;
 import net.caustic.http.HttpBrowser;
 import net.caustic.instruction.Find;
 import net.caustic.instruction.InstructionResult;
@@ -18,6 +18,7 @@ import net.caustic.regexp.JavaUtilRegexpCompiler;
 import net.caustic.regexp.Pattern;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.regexp.StringTemplate;
+import net.caustic.scope.Scope;
 import net.caustic.util.Encoder;
 import net.caustic.util.JavaNetEncoder;
 import net.caustic.util.StaticStringTemplate;
@@ -28,7 +29,8 @@ import org.junit.Test;
 
 public class LoadTest {
 	
-	@Mocked private DatabaseView input;
+	@Mocked private Database db;
+	@Mocked private Scope scope;
 	@Injectable private HttpBrowser mockBrowser;
 	private RegexpCompiler compiler;
 	private Load load;
@@ -51,7 +53,7 @@ public class LoadTest {
 			mockBrowser.head(url.toString(), (Hashtable) any);
 		}};
 		load.setMethod(HttpBrowser.HEAD);
-		InstructionResult result = load.execute(null, input, mockBrowser);
+		InstructionResult result = load.execute(null, db, scope, mockBrowser);
 		assertNotNull(result.getResults());
 		assertEquals(url.toString(), result.getName());
 	}
@@ -62,7 +64,7 @@ public class LoadTest {
 		new Expectations() {{
 			mockBrowser.get(url.toString(), (Hashtable) any, (Pattern[]) any); result = response;
 		}};
-		InstructionResult result = load.execute(null, input, mockBrowser);
+		InstructionResult result = load.execute(null, db, scope, mockBrowser);
 		assertEquals(url.toString(), result.getName());
 		assertEquals(response, result.getResults()[0]);
 	}
@@ -74,11 +76,11 @@ public class LoadTest {
 		final StringTemplate url = compiler.newTemplate("http://www.google.com/?q={{" + name + "}}", StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
 		final String subbed = "http://www.google.com/?q=" + value;
 		new Expectations() {{
-			input.get(name); result = value;
+			db.get(scope, name); result = value;
 			mockBrowser.get(subbed, (Hashtable) any, (Pattern[]) any);
 		}};
 		Load load = new Load(url);
-		InstructionResult result = load.execute(null, input, mockBrowser);
+		InstructionResult result = load.execute(null, db, scope, mockBrowser);
 		assertEquals(subbed, result.getName());
 	}
 	
@@ -90,7 +92,7 @@ public class LoadTest {
 				$ = "Post data should be a zero-length string.";
 		}};
 		load.setMethod(HttpBrowser.POST);
-		load.execute(null, input, mockBrowser);
+		load.execute(null, db, scope, mockBrowser);
 	}
 	
 	@Test
@@ -101,7 +103,7 @@ public class LoadTest {
 				$ = "Post data should be set by setting post data.";
 		}};
 		load.setPostData(postData);
-		load.execute(null, input, mockBrowser);
+		load.execute(null, db, scope, mockBrowser);
 	}
 	
 	@Test
@@ -111,12 +113,12 @@ public class LoadTest {
 		final StringTemplate postData = compiler.newTemplate("{{" + key + "}}",
 				StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
 		new Expectations() {{
-			input.get(key); result = value;
+			db.get(scope, key); result = value;
 			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, value);
 				$ = "Post data should be substituted.";
 		}};
 		load.setPostData(postData);
-		load.execute(null, input, mockBrowser);
+		load.execute(null, db, scope, mockBrowser);
 	}
 	
 
@@ -126,16 +128,16 @@ public class LoadTest {
 		new Expectations() {
 			{
 			mockBrowser.get(url.toString(), (Hashtable) any, (Pattern[]) any); result = response;
-			find.execute(response, input, mockBrowser);
+			find.execute(response, db, scope, mockBrowser);
 		}};
 		
 		load.then(find);
 		
-		InstructionResult result = load.execute(null, input, mockBrowser);
+		InstructionResult result = load.execute(null, db, scope, mockBrowser);
 		
 		assertTrue(result.isSuccess());
 		assertEquals(1, result.getChildren().length);
 		
-		result.getChildren()[0].execute(result.getResults()[0], input, mockBrowser);
+		result.getChildren()[0].execute(result.getResults()[0], db, scope, mockBrowser);
 	}
 }

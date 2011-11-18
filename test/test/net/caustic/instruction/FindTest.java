@@ -9,13 +9,14 @@ import java.util.List;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import net.caustic.database.DatabaseView;
+import net.caustic.database.Database;
 import net.caustic.http.HttpBrowser;
 import net.caustic.instruction.Find;
 import net.caustic.instruction.InstructionResult;
 import net.caustic.regexp.Pattern;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.regexp.StringTemplate;
+import net.caustic.scope.Scope;
 import net.caustic.template.StringSubstitution;
 
 import org.junit.Before;
@@ -23,7 +24,8 @@ import org.junit.Test;
 
 public class FindTest  {
 	@Mocked RegexpCompiler compiler;
-	@Mocked DatabaseView input;
+	@Mocked Database db;
+	@Mocked Scope scope;
 	@Mocked HttpBrowser browser;
 	@Injectable StringTemplate pattern, replacement;
 	private Find find;
@@ -35,7 +37,7 @@ public class FindTest  {
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testFindWithoutSourceThrowsIllegalArgument() throws Exception {
-		find.execute(null, input, browser);
+		find.execute(null, db, scope, browser);
 	}
 	
 	@Test
@@ -46,8 +48,8 @@ public class FindTest  {
 		new NonStrictExpectations() {
 			@Injectable StringSubstitution patternSub, replaceSub;
 			{
-				pattern.sub(input); result = patternSub;
-				replacement.sub(input); result = replaceSub;
+				pattern.sub(db, scope); result = patternSub;
+				replacement.sub(db, scope); result = replaceSub;
 				
 				patternSub.isMissingTags(); result = true;
 				replaceSub.isMissingTags(); result = true;
@@ -56,7 +58,7 @@ public class FindTest  {
 				patternSub.getMissingTags(); result = missingVariables1;
 		}};
 		find.setReplacement(replacement);
-		InstructionResult result = find.execute(randomString(), input, browser);
+		InstructionResult result = find.execute(randomString(), db, scope, browser);
 		
 		assertTrue(result.isMissingTags());
 		List<String> list1 = Arrays.asList(missingVariables1);
@@ -74,17 +76,17 @@ public class FindTest  {
 			@Injectable StringSubstitution patternSub, replaceSub;
 			@Injectable Pattern regexpPattern;
 			{
-				pattern.sub(input); result = patternSub;
+				pattern.sub(db, scope); result = patternSub;
 				patternSub.getSubstituted(); result = patternString;
 				
-				replacement.sub(input); result = replaceSub;
+				replacement.sub(db, scope); result = replaceSub;
 				replaceSub.getSubstituted(); result = replacementString;
 				
 				compiler.newPattern(patternString, anyBoolean, anyBoolean, anyBoolean); result = regexpPattern;
 				regexpPattern.match(source, replacementString, anyInt, anyInt); result = new String[] {};
 		}};
 		find.setReplacement(replacement);
-		InstructionResult result = find.execute(randomString(), input, browser);
+		InstructionResult result = find.execute(randomString(), db, scope, browser);
 		
 		assertFalse(result.isMissingTags());
 		assertTrue(result.getFailedBecause() + " should contain 'match'", result.getFailedBecause().contains("match"));
