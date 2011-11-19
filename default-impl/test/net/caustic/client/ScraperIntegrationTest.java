@@ -63,9 +63,23 @@ public class ScraperIntegrationTest {
 		}};
 	}
 	
-	private void simpleGoogleExpectations(String uri) throws Exception {
+	@Test
+	public void testScrapeSimpleGoogle() throws Exception {		
 		input.put("query", "hello");
-		scraper.scrape(uri, input, listener);
+		scraper.scrape(demosDir + "simple-google.json", input, listener);
+		scraper.join();
+
+		new VerificationsInOrder() {{
+			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
+					"what do you say after 'hello'?", (String[]) any);
+			listener.onFinish(2, 0, 0);
+		}};
+	}
+	
+	@Test
+	public void testScrapeSimpleGooglePointer() throws Exception {
+		input.put("query", "hello");
+		scraper.scrape(demosDir + "pointer.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
@@ -76,13 +90,21 @@ public class ScraperIntegrationTest {
 	}
 	
 	@Test
-	public void testScrapeSimpleGoogle() throws Exception {		
-		simpleGoogleExpectations(demosDir + "simple-google.json");
-	}
-	
-	@Test
-	public void testScrapeSimpleGooglePointer() throws Exception {		
-		simpleGoogleExpectations(demosDir + "pointer.json");
+	public void testArrayOfScrapes() throws Exception {		
+		input.put("query", "hello");
+		
+		scraper.scrape(demosDir + "array.json", input, listener);
+		scraper.join();
+		
+		new Verifications() {{
+			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
+					"what do you say after 'hello'?", (String[]) any);
+			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
+					"query", (String[]) any);
+			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(1), null,
+					withSubstring("what do you say after '"), (String[]) any);
+			listener.onFinish(withNotEqual(0), 0, 0);
+		}};
 	}
 	
 	/**
@@ -108,11 +130,11 @@ public class ScraperIntegrationTest {
 	
 	@Test
 	public void testScrapeComplexGoogle() throws Exception {
-
 		input.put("query", "hello");
 		scraper.scrape(demosDir + "complex-google.json", input, listener);
 		scraper.join();
 		
+
 		new VerificationsInOrder() {{
 			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
 					"query", (String[]) any);
@@ -124,10 +146,11 @@ public class ScraperIntegrationTest {
 	
 	@Test
 	public void testScrapeReferenceGoogle() throws Exception {
-		
 		input.put("query", "hello");
 		scraper.scrape(demosDir + "reference-google.json", input, listener);
 		scraper.join();
+		
+
 		new VerificationsInOrder() {{
 			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
 					"query", (String[]) any);
@@ -149,7 +172,7 @@ public class ScraperIntegrationTest {
 		
 		new VerificationsInOrder() {{
 			listener.onSuccess((Instruction) any, (Database) any, scope(0), (Scope) any, anyString,
-					"Owner of 373 Atlantic Ave, Borough 3",
+					"Owner of 373 Atlantic Ave",
 					(String[]) any
 					//withEqual(new String[] { "373 ATLANTIC AVENUE C", "373 ATLANTIC AVENUE CORPORATION" })
 					);
@@ -166,7 +189,7 @@ public class ScraperIntegrationTest {
 
 		new VerificationsInOrder() {{
 			listener.onSuccess((Instruction) any, (Database) any, scope(0), (Scope) any, anyString,
-					"Owner of 373 Atlantic Ave, Borough 3",
+					"Owner of 373 Atlantic Ave",
 					(String[]) any
 					//withEqual(new String[] { "373 ATLANTIC AVENUE C", "373 ATLANTIC AVENUE CORPORATION" })
 					);

@@ -6,6 +6,7 @@ import net.caustic.database.DatabaseException;
 import net.caustic.database.Database;
 import net.caustic.instruction.Find;
 import net.caustic.instruction.Instruction;
+import net.caustic.instruction.InstructionArray;
 import net.caustic.instruction.Load;
 import net.caustic.instruction.SerializedInstruction;
 import net.caustic.json.JsonArray;
@@ -24,7 +25,6 @@ import net.caustic.uri.RemoteToLocalSchemeResolutionException;
 import net.caustic.uri.URILoader;
 import net.caustic.uri.URILoaderException;
 import net.caustic.uri.UriResolver;
-import net.caustic.util.Encoder;
 import net.caustic.util.StringUtils;
 
 /**
@@ -54,11 +54,6 @@ public class JSONDeserializer implements Deserializer {
 	 * The {@link RegexpCompiler} to use when deserializing {@link Find}s.
 	 */
 	private final RegexpCompiler compiler;
-		
-	/**
-	 * The {@link Encoder} to use when deserializing {@link Load}s.
-	 */
-	//private final Encoder encoder;
 	
 	private DeserializerResult deserialize(String jsonString, Database db, Scope scope, String uri,
 					String encodedPatternString, String notEncodedPatternString)
@@ -67,11 +62,23 @@ public class JSONDeserializer implements Deserializer {
 			DatabaseException, URILoaderException {
 		final DeserializerResult result;
 		
-		// Parse non-objects as URIs.  Any substitution should have been done beforehand.
-		if(!parser.isJsonObject(jsonString)) {
+		// Group a JSON array into an {@link InstructionArray}.
+		if(parser.isJsonArray(jsonString)) {
+			JsonArray ary = parser.newArray(jsonString);
+			
+			Instruction[] instructions = new Instruction[ary.length()];
+			
+			for(int i = 0 ; i < instructions.length ; i ++) {
+				instructions[i] = new SerializedInstruction(ary.getString(i), this, uri);
+			}
+			
+			result = DeserializerResult.success(new InstructionArray(instructions));
+		// Parse non-objects as URIs.
+		} else if(!parser.isJsonObject(jsonString)) {
 			StringSubstitution uriSub = compiler.newTemplate(jsonString, encodedPatternString, notEncodedPatternString)
 					.sub(db, scope);
 			if(!uriSub.isMissingTags()) {
+				// perform substitutions upon the URI path itself.
 				String uriPath = uriSub.getSubstituted();
 				String uriToLoad = uriResolver.resolve(uri, uriPath);
 				String loadedJSONString = uriLoader.load(uriToLoad);
@@ -82,7 +89,7 @@ public class JSONDeserializer implements Deserializer {
 			}			
 		} else {
 			
-			JsonObject initialObj = parser.parse(jsonString);
+			JsonObject initialObj = parser.newObject(jsonString);
 			
 			// populated for all instructions
 			Vector children = new Vector(); // Vector of instructions
@@ -153,7 +160,7 @@ public class JSONDeserializer implements Deserializer {
 								String uriToLoad = uriResolver.resolve(uri, uriPath);
 								String loadedJSONString = uriLoader.load(uriToLoad);
 								
-								jsonObjects.add(parser.parse(loadedJSONString));
+								jsonObjects.add(parser.newObject(loadedJSONString));
 							} else {
 								return DeserializerResult.missingTags(uriSubstitution.getMissingTags()); // can't substitute uri to load EXTENDS reference, missing-variable out.
 							}

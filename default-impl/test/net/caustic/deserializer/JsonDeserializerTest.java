@@ -96,6 +96,38 @@ public class JsonDeserializerTest {
 	}
 	
 	@Test
+	public void testPointerJSON() throws Exception {
+		
+		new Expectations() {{
+			loader.load("/pointer"); result = "/uri";
+			loader.load("/uri"); result = new JSONObject().put(FIND, "^foo$").toString();
+		}};
+		
+		DeserializerResult result = deserializer.deserialize("/pointer", db, scope, userDir);
+		assertTrue(result.getInstruction() != null);
+		assertTrue(result.getInstruction() instanceof Find);
+	}
+	
+	@Test
+	public void testArrayOfJSON(@Mocked HttpBrowser browser) throws Exception {
+		JSONArray ary = new JSONArray();
+		
+		ary.put(new JSONObject().put(FIND, "^foo$"));
+		ary.put(new JSONObject().put(LOAD, "http://www.google.com/"));
+		
+		DeserializerResult dResult = deserializer.deserialize(ary.toString(), db, scope, userDir);
+		
+		Instruction instruction = dResult.getInstruction();
+		
+		// the actual instructions are contained in the child array.
+		Instruction[] instructions = instruction.execute(null, db, scope, browser).getChildren();
+		
+		assertEquals(2, instructions.length);
+		assertTrue(instructions[0] instanceof SerializedInstruction);
+		assertTrue(instructions[1] instanceof SerializedInstruction);
+	}
+	
+	@Test
 	public void testRandomKeyFails() throws Exception {
 		JSONObject bad = new JSONObject().put("foo", "bar");
 		

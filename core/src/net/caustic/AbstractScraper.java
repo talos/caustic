@@ -49,9 +49,11 @@ public abstract class AbstractScraper implements Loggable {
 	/**
 	 * Scrape <code>instruction</code> with <code>input</code>, triggering events on
 	 * <code>listener</code>.
-	 * @param instruction
-	 * @param input
-	 * @param listener
+	 * @param uriOrJSON An instruction template to scrape.  Either a JSON string or a
+	 * URI referring to a JSON string.
+	 * @param input A {@link Hashtable} of {@link String} to {@link String} key-values,
+	 * which will be used as defaults for substitutions during the scrape.
+	 * @param listener A {@link ScraperListener} to receive callbacks as 
 	 */
 	public Scope scrape(String uriOrJSON, Hashtable input, ScraperListener listener) {
 		

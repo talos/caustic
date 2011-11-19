@@ -310,7 +310,7 @@ public class JsonMEParser implements JsonParser {
 		return new JSONMEObject(new JSONObject(map));
 	}
 	
-	public JsonObject parse(String jsonString) throws JsonException {
+	public JsonObject newObject(String jsonString) throws JsonException {
 		try {
 			return new JSONMEObject(new JSONObject(jsonString));
 		} catch(org.json.me.JSONException e) {
@@ -321,6 +321,23 @@ public class JsonMEParser implements JsonParser {
 	public boolean isJsonObject(String string) {
 		try {
 			new JSONObject(string);
+			return true;
+		} catch(JSONException e) {
+			return false;
+		}
+	}
+	
+	public JsonArray newArray(String jsonString) throws JsonException {
+		try {
+			return new JSONMEArray(new JSONArray(jsonString));
+		} catch(org.json.me.JSONException e) {
+			throw new JsonException(e);
+		}
+	}
+	
+	public boolean isJsonArray(String string) {
+		try {
+			new JSONArray(string);
 			return true;
 		} catch(JSONException e) {
 			return false;

@@ -12,12 +12,21 @@ public interface JsonParser {
 	
 	/**
 	 * Determine with a {@link String} could be parsed into a {@link JsonObject}
-	 * using {@link #parse(String)}.
+	 * using {@link #newObject(String)}.
 	 * @param string The {@link String} to test.
 	 * @return <code>true</code> if <code>string</code> could be parsed, <code>
 	 * false</code> otherwise.
 	 */
 	public abstract boolean isJsonObject(String string);
+
+	/**
+	 * Determine with a {@link String} could be parsed into a {@link JsonArray}
+	 * using {@link #newObject(String)}.
+	 * @param string The {@link String} to test.
+	 * @return <code>true</code> if <code>string</code> could be parsed, <code>
+	 * false</code> otherwise.
+	 */
+	public abstract boolean isJsonArray(String string);
 	
 	/**
 	 * Compile a {@link JsonObject} directly from a {@link String}.
@@ -26,7 +35,7 @@ public interface JsonParser {
 	 * @throws JsonException If there is an error generating
 	 * the {@link JsonObject}.
 	 */
-	public abstract JsonObject parse(String jsonString) throws JsonException;
+	public abstract JsonObject newObject(String jsonString) throws JsonException;
 	
 	/**
 	 * Compile a flat {@link JsonObject} from a {@link Hashtable} of
@@ -37,4 +46,14 @@ public interface JsonParser {
 	 * {@link JsonObject}.
 	 */
 	public abstract JsonObject generate(Hashtable map) throws JsonException;
+	
+
+	/**
+	 * Compile a {@link JsonArray} directly from a {@link String}.
+	 * @param jsonString The {@link String} to parse.
+	 * @return A {@link JsonArray}.
+	 * @throws JsonException If there is an error generating
+	 * the {@link JsonObject}.
+	 */
+	public abstract JsonArray newArray(String jsonString) throws JsonException;
 }
