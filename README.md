@@ -2,8 +2,6 @@
 
 portable scraper templates for mobile apps
 
-## usage ##
-
 ### getting started ###
 
 ---
@@ -30,18 +28,24 @@ and sends the results to stdout
   <tr><td>2    <td>0      <td>Feeling? <td>Feeling Lucky
 </table>
 
-First, caustic loads the URL in *load*.  Then it looks for the regular expression in *find*, and saves all matches.
+First, caustic loads the URL in *load*.  Then it looks for the regular
+expression in *find*, and saves all matches.
 
-### The instruction format ###
+### the instruction format ###
 
 ---
 
-Caustics instructions are logic-free JSON objects that provide very dynamic templated instructions for scraping data.
-By default, substitutions are done for text inside double-curlies *{{}}*, kind of like [mustache](http://mustache.github.com/).
+Caustics instructions are logic-free JSON objects that provide very
+dynamic templated instructions for scraping data.  By default,
+substitutions are done for text inside double-curlies *{{}}*, kind of
+like [mustache](http://mustache.github.com/).
 
-All caustic instructions are built from [find](caustic/blob/master/doc/find.md)s and [load](caustic/blob/master/doc/load.md)s.
+All caustic instructions are built from
+[find](caustic/blob/master/doc/find.md)s and
+[load](caustic/blob/master/doc/load.md)s.
 
-Here's a simple instruction, which is one of the [fixtures](caustic/blob/master/fixtures/json/simple-google.json):
+Here's a simple instruction, which is one of the
+[demos](caustic/blob/master/demos/simple-google.json):
 
     {
      "load" : "http://www.google.com/search?q={{query}}",
@@ -52,9 +56,10 @@ Here's a simple instruction, which is one of the [fixtures](caustic/blob/master/
      }
     }
 
-For caustic to execute this instruction, it needs a value to substitute for *{{query}}*.  Run the following
+For caustic to execute this instruction, it needs a value to
+substitute for *{{query}}*.  Run the following
 
-    $ ./caustic fixtures/json/simple-google.json --input="query=hello"
+    $ ./caustic demos/simple-google.json --input="query=hello"
 
 to replace *{{query}}* with *hello*.  We get the following
 
@@ -71,7 +76,8 @@ to replace *{{query}}* with *hello*.  We get the following
   <tr><td>8 <td>0        <td>what do you say after 'hello'?          <td>I say 'movie'!  
 </table>
 
-Not only is google queried for *hello*, but the substitution affects the *name* and *replace* of *find*.
+Not only is google queried for *hello*, but the substitution affects
+the *name* and *replace* of *find*.
 
 We can also see that *find* can match multiple times.
 
@@ -81,10 +87,11 @@ We can use backreferences from *$0* to *$9* in *replace*.
 
 ---
 
-Substitutions are a powerful tool because they develop over the course of execution.  Any *name* that appears in 
-curlies will be substituted once a *value* has been found for it.
+Substitutions are a powerful tool because they develop over the course
+of execution.  Any *name* that appears in curlies will be substituted
+once a *value* has been found for it.
 
-This [fixture](caustic/blob/master/fixtures/json/complex-google.json)
+This [demo](caustic/blob/master/demos/complex-google.json)
 
     {
       "load" : "http://www.google.com/search?q={{query}}",
@@ -103,13 +110,16 @@ This [fixture](caustic/blob/master/fixtures/json/complex-google.json)
       }
     }
 
-takes advantage of dynamic substitution, along with the ability to place any number of *load* or *find* instructions inside *then*.  It launches a whole new series of queries!
+takes advantage of dynamic substitution, along with the ability to
+place any number of *load* or *find* instructions inside *then*.  It
+launches a whole new series of queries!
 
 Try it with
 
-    $ ./caustic fixtures/json/complex-google.json --input="query=hello"
+    $ ./caustic demos/complex-google.json --input="query=hello"
 
-You'll see that this results in quite a few dozen rows, but here are some highlights:
+You'll see that this results in quite a few dozen rows, but here are
+some highlights:
 
 <table>
   <tr><th>scope  <th>source <th>name                       <th>value
@@ -131,16 +141,18 @@ You'll see that this results in quite a few dozen rows, but here are some highli
   <tr><td>63     <td>16  <td>what do you say after 'movie'?   <td>I say 'download'!
 </table>
 
-Note that the *source* column links each *find* result back to the *scope* it inherits from.
+Note that the *source* column links each *find* result back to the
+*scope* it inherits from.
 
-### References ###
+### references ###
 
 ---
 
-You probably noticed that interior portion of the last fixture was basically copy-and-pasted from the fixture
-before it.  Wouldn't it be nice if we could reuse instruction components?
+You probably noticed that interior portion of the last demo was
+basically copy-and-pasted from the demo before it.  Wouldn't it be
+nice if we could reuse instruction components?
 
-This [fixture](caustic/blob/master/fixtures/json/reference-google.json) does just that
+This [demo](caustic/blob/master/demos/reference-google.json) does just that
 
     {
       "load" : "http://www.google.com/search?q={{query}}",
@@ -154,11 +166,25 @@ This [fixture](caustic/blob/master/fixtures/json/reference-google.json) does jus
 
 Running
 
-    $ ./caustic fixtures/json/complex-google.json --input="query=hello"
+    $ ./caustic demos/complex-google.json --input="query=hello"
 
-should give you the same results as before.  Any string appearing inside *then* will be evaulated as a reference.
+should give you the same results as before.  Any string appearing
+inside *then* will be evaulated as a reference.
 
-### Recursion ###
+### remote templates ###
+
+---
+
+Templates can be accessed remotely.  Running
+
+    $ ./caustic https://raw.git https://github.com/talos/caustic/blob/master/demos/simple-google.json --input="query=hello"
+
+will do the first demo.  References can be remote, too, even if the
+file is local.  The prior demo will work the same if you alter `then`
+to read
+`https://github.com/talos/caustic/blob/master/demos/simple-google.json`
+
+### recursion ###
 
 ---
 
@@ -174,12 +200,12 @@ What if you want a scraper to run itself?  No problem:
       }
     }
 
-When inside *then*, *$this* evaluates to be the entire object.  This evaluation is only performed when *then*
-operates.
+When inside *then*, *$this* evaluates to be the entire object.  This
+evaluation is only performed when *then* operates.
 
 Remember that
 
-    $ ./caustic fixtures/json/recursive-google.json --input="query=hello"
+    $ ./caustic demos/recursive-google.json --input="query=hello"
 
 will not stop on its own!
 
@@ -187,4 +213,7 @@ will not stop on its own!
 
 ---
 
-Caustic is designed to give wider access to obscure public data.  The caustic format makes it easy to quickly design and test a scraper that extracts a few pieces of information from behind several layers of obfuscation.
+Caustic is designed to give wider access to obscure public data.  The
+caustic format makes it easy to quickly design and test a scraper that
+extracts a few pieces of information from behind several layers of
+obfuscation.

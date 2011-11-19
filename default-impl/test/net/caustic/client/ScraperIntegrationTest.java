@@ -27,6 +27,7 @@ import org.junit.Test;
  */
 public class ScraperIntegrationTest {
 		
+	private static final String demosDir = "../demos/";
 	private @NonStrict ScraperListener listener, listener2, listener3;
 	private Hashtable<String, String> input;
 	private Scraper scraper;
@@ -44,7 +45,7 @@ public class ScraperIntegrationTest {
 	
 	@Test
 	public void testScrapeStuck() throws Exception {		
-		scraper.scrape("../fixtures/json/simple-google.json", input, listener);
+		scraper.scrape(demosDir + "simple-google.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
@@ -62,10 +63,9 @@ public class ScraperIntegrationTest {
 		}};
 	}
 	
-	@Test
-	public void testScrapeSimpleGoogle() throws Exception {		
+	private void simpleGoogleExpectations(String uri) throws Exception {
 		input.put("query", "hello");
-		scraper.scrape("../fixtures/json/simple-google.json", input, listener);
+		scraper.scrape(uri, input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
@@ -75,6 +75,16 @@ public class ScraperIntegrationTest {
 		}};
 	}
 	
+	@Test
+	public void testScrapeSimpleGoogle() throws Exception {		
+		simpleGoogleExpectations(demosDir + "simple-google.json");
+	}
+	
+	@Test
+	public void testScrapeSimpleGooglePointer() throws Exception {		
+		simpleGoogleExpectations(demosDir + "pointer.json");
+	}
+	
 	/**
 	 * Test several calls to scrape before joining.
 	 * @throws Exception
@@ -82,10 +92,10 @@ public class ScraperIntegrationTest {
 	@Test
 	public void testMultipleSimpleScrapes() throws Exception {
 		scraper.scrape("path/to/nothing.json", new Hashtable(), listener); // should fail
-		scraper.scrape("../fixtures/json/simple-google.json", new Hashtable(), listener2); // should get stuck
+		scraper.scrape(demosDir + "simple-google.json", new Hashtable(), listener2); // should get stuck
 		
 		input.put("query", "hello");
-		scraper.scrape("../fixtures/json/simple-google.json", input, listener3); // should succeed
+		scraper.scrape(demosDir + "simple-google.json", input, listener3); // should succeed
 		
 		scraper.join();
 		
@@ -100,7 +110,7 @@ public class ScraperIntegrationTest {
 	public void testScrapeComplexGoogle() throws Exception {
 
 		input.put("query", "hello");
-		scraper.scrape("../fixtures/json/complex-google.json", input, listener);
+		scraper.scrape(demosDir + "complex-google.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
@@ -116,7 +126,7 @@ public class ScraperIntegrationTest {
 	public void testScrapeReferenceGoogle() throws Exception {
 		
 		input.put("query", "hello");
-		scraper.scrape("../fixtures/json/reference-google.json", input, listener);
+		scraper.scrape(demosDir + "reference-google.json", input, listener);
 		scraper.join();
 		new VerificationsInOrder() {{
 			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
@@ -134,7 +144,7 @@ public class ScraperIntegrationTest {
 		input.put("Borough", "3");
 		input.put("Apt", "");
 		
-		scraper.scrape("../fixtures/json/nyc/nyc-property-owner.json", input, listener);
+		scraper.scrape(demosDir + "nyc/nyc-property-owner.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
@@ -151,7 +161,7 @@ public class ScraperIntegrationTest {
 		input.put("Number", "373");
 		input.put("Street", "Atlantic Ave");
 		
-		scraper.scrape("../fixtures/json/nyc/BK-property.json", input, listener);
+		scraper.scrape(demosDir + "nyc/BK-property.json", input, listener);
 		scraper.join();
 
 		new VerificationsInOrder() {{

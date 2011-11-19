@@ -1,6 +1,5 @@
 package net.caustic;
 
-import net.caustic.deserializer.JsonDeserializerTest;
 import net.caustic.file.FileLoaderTest;
 import net.caustic.http.CookieManagerLocalTest;
 import net.caustic.http.HttpBrowserLocalTest;
@@ -36,7 +35,6 @@ import org.junit.runners.Suite.SuiteClasses;
 	ResponseHeadersTest.class,
 	FindTest.class,
 	LoadTest.class,
-	JsonDeserializerTest.class,
 	JsonObjectTest.class,
 	PatternTest.class,
 	HashtableTemplateTest.class,

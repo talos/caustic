@@ -192,6 +192,12 @@ public class JSONDeserializer implements Deserializer {
 							if(thenString.equalsIgnoreCase(SELF)) {
 								//children.add(new Instruction(jsonString, this, uri));
 								// to lazy-evaluate self, pass the original uri in again.
+								
+								// uri would be USER_DIR in inline execution
+								if(uri.equals(StringUtils.USER_DIR)) {
+									throw new JsonException("Cannot use " + SELF + " in inline "
+											+ " json instruction.");
+								}
 								children.add(new SerializedInstruction(uri, this, ""));
 							} else {
 								children.add(new SerializedInstruction(thenString, this, uri));
