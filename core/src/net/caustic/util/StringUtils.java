@@ -160,8 +160,17 @@ public class StringUtils {
 	 * Convenient access to <code>System.getProperty("user.dir")</code> +
 	 * <code>System.getProperty("file.separator")</code>
 	 */
-	public static final String USER_DIR = System.getProperty("user.dir")
-			+ System.getProperty("file.separator");
+	public static final String USER_DIR; //= System.getProperty("user.dir")
+	
+	// take into account the fact that user.dir can be "/", but we don't want
+	// USER_DIR to ever be "//".
+	static {
+		if(System.getProperty("user.dir").equals(System.getProperty("file.separator"))) {
+			USER_DIR = System.getProperty("user.dir");
+		} else {
+			USER_DIR = System.getProperty("user.dir") + System.getProperty("file.separator");
+		}
+	}
 	
 	/**
 	 * 

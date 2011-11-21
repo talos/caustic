@@ -11,8 +11,10 @@ import net.caustic.instruction.Instruction;
 import net.caustic.scope.Scope;
 
 /**
- * A {@link ScraperListener} that handles control flow for {@link AbstractScraper}.
- * Encloses the provided {@link ScraperListener} and wraps its events.
+ * A {@link ScraperListener} that handles a single call to
+ * {@link AbstractScraper#scrape(String, Hashtable, ScraperListener)}
+ * by enclosing the provided {@link ScraperListener} and determining
+ * whether and when {@link Instruction}s should be retried.
  * @author talos
  *
  */
@@ -29,22 +31,43 @@ final class ControlScraperListener implements ScraperListener {
 	private int failed = 0;
 	
 	/**
+	 * If {@link #autoRun} is <code>true</code>, instructions are automatically fired from 
+	 * {@link #onReady(Instruction, Database, Scope, Scope, String, HttpBrowser, Runnable)}.
+	 */
+	private final boolean autoRun;
+	
+	/**
 	 * A {@link Hashtable} of stuck {@link Executable}s.  The first dimension of
 	 * keys are {@link Scope}s, and the second dimension is an array of Strings
 	 * of missing tags.  The final values are the {@link Executable}s.
 	 */
 	private final Hashtable stuck = new Hashtable();
 	
-	public ControlScraperListener(ScraperListener listener, AbstractScraper scraper) {
+	public ControlScraperListener(ScraperListener listener, AbstractScraper scraper, boolean autoRun) {
 		this.extraListener = listener;
 		this.scraper = scraper;
+		this.autoRun = autoRun;
 	}
 	
-	public synchronized final void onScrape(Instruction instruction, Database db, Scope scope, Scope parent,
-			String source, HttpBrowser browser) {
+	public synchronized final void onReady(
+			final Instruction instruction, final Database db, final Scope scope, final Scope parent,
+			final String source, final HttpBrowser browser, Runnable start) {		
+		// automatically launch children.
+		if(autoRun == true) {
+			start.run();
+		}
+		
+		extraListener.onReady(instruction, db, scope, parent, source, browser, start);
+	}
+	
+	public synchronized final void onScrape(
+			final Instruction instruction, final Database db, final Scope scope, final Scope parent,
+			final String source, final HttpBrowser browser) {
 		submitted++;
-		extraListener.onScrape(instruction, db, scope, parent, source, browser);
+		
 		scraper.submit(new Executable(instruction, db, scope, parent, source, browser, this));
+		
+		extraListener.onScrape(instruction, db, scope, parent, source, browser);
 	}
 	
 	public synchronized final void onSuccess(Instruction instruction, Database db, Scope scope, Scope parent,

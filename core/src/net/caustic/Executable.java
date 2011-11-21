@@ -67,8 +67,16 @@ final class Executable implements Runnable {
 					}
 					// create & scrape children.
 					for(int j = 0 ; j < children.length ; j ++) {
-						// Tell listener to scrape the child.
-						listener.onScrape(children[j], db, childScope, scope, results[i], browser.copy());
+						// Tell listener to scrape the child when ready.
+						final Instruction child = children[j];
+						final HttpBrowser browserCopy = browser.copy();
+						Runnable start = new Runnable() {
+							// This run method is called from whatever is passed onReady
+							public void run() {
+								listener.onScrape(child, db, childScope, childScope, resultValue, browserCopy);
+							}
+						};
+						listener.onReady(child, db, childScope, scope, results[i], browserCopy, start);
 					}
 				}
 				// Tell listener this instruction was successful.

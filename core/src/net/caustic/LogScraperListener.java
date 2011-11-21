@@ -18,17 +18,23 @@ public class LogScraperListener implements ScraperListener {
 	public LogScraperListener(Logger log) {
 		this.log = log;
 	}
-	
-	public void onScrape(Instruction instruction, Database db, Scope scope,
-			Scope parent, String parentSource, HttpBrowser browser) {
-		log.i("Scraping " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
+
+	public void onReady(Instruction instruction, Database db, Scope scope,
+			Scope parent, String source, HttpBrowser browser, Runnable start) {
+		log.i("Ready to scrape " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
 	}
 
+	public void onScrape(Instruction instruction, Database db, Scope scope,
+			Scope parent, String source, HttpBrowser browser) {
+		log.i("Scraping " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
+		
+	}
+	
 	public void onSuccess(Instruction instruction, Database db, Scope scope,
 			Scope parent, String source, String key, String[] results) {
 		log.i("Finished " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
 	}
-
+	
 	public void onMissingTags(Instruction instruction, Database db,
 			Scope scope, Scope parent, String source, HttpBrowser browser,
 			String[] missingTags) {

@@ -10,7 +10,7 @@ import net.caustic.deserializer.DefaultJSONDeserializer;
 import net.caustic.http.DefaultHttpBrowser;
 
 /**
- * An implementation of {@link ScraperInterface} using {@link DefaultHttpBrowser},
+ * An implementation of {@link AbstractScraper} using {@link DefaultHttpBrowser},
  * {@link AsyncExecutor} with a specified number of threads, and
  * {@link DefaultJSONDeserializer} for deserialization.
  * @author realest

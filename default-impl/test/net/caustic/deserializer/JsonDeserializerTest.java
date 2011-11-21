@@ -126,6 +126,30 @@ public class JsonDeserializerTest {
 		assertTrue(instructions[0] instanceof SerializedInstruction);
 		assertTrue(instructions[1] instanceof SerializedInstruction);
 	}
+
+	@Test
+	public void testArrayOfJSONFromURI(@Mocked HttpBrowser browser) throws Exception {
+		
+		final JSONArray ary = new JSONArray();
+		
+		ary.put(new JSONObject().put(FIND, "^foo$"));
+		ary.put(new JSONObject().put(LOAD, "http://www.google.com/"));
+		
+		new Expectations() {{
+			loader.load("/uri"); result = ary.toString();
+		}};
+		System.out.println(ary.toString());
+		DeserializerResult dResult = deserializer.deserialize("/uri", db, scope, userDir);
+		
+		Instruction instruction = dResult.getInstruction();
+		
+		// the actual instructions are contained in the child array.
+		Instruction[] instructions = instruction.execute(null, db, scope, browser).getChildren();
+		
+		assertEquals(2, instructions.length);
+		assertTrue(instructions[0] instanceof SerializedInstruction);
+		assertTrue(instructions[1] instanceof SerializedInstruction);
+	}
 	
 	@Test
 	public void testRandomKeyFails() throws Exception {

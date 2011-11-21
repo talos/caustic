@@ -45,6 +45,34 @@ public abstract class AbstractScraper implements Loggable {
 	public final void register(Logger logger) {
 		log.register(logger);
 	}
+
+	/**
+	 * Scrape <code>instruction</code> with <code>input</code>, triggering events on
+	 * <code>listener</code>.  Child {@link Instruction}s must be listened for on
+	 * {@link ScraperListener#onReady(Instruction, Database, Scope, Scope, String, HttpBrowser, Runnable)}
+	 * and fired manually.
+	 * @param uriOrJSON An instruction template to scrape.  Either a JSON string or a
+	 * URI referring to a JSON string.
+	 * @param input A {@link Hashtable} of {@link String} to {@link String} key-values,
+	 * which will be used as defaults for substitutions during the scrape.
+	 * @param listener A {@link ScraperListener} to receive callbacks.
+	 */
+	public Scope scrape(String uriOrJSON, Hashtable input, ScraperListener listener) {
+		return scrape(uriOrJSON, input, listener, false);
+	}
+
+	/**
+	 * Scrape <code>instruction</code> with <code>input</code>, triggering events on
+	 * <code>listener</code>.  All child {@link Instruction}s will be scraped automatically.
+	 * @param uriOrJSON An instruction template to scrape.  Either a JSON string or a
+	 * URI referring to a JSON string.
+	 * @param input A {@link Hashtable} of {@link String} to {@link String} key-values,
+	 * which will be used as defaults for substitutions during the scrape.
+	 * @param listener A {@link ScraperListener} to receive callbacks.
+	 */
+	public Scope scrapeAll(String uriOrJSON, Hashtable input, ScraperListener listener) {
+		return scrape(uriOrJSON, input, listener, true);
+	}
 	
 	/**
 	 * Scrape <code>instruction</code> with <code>input</code>, triggering events on
@@ -53,27 +81,31 @@ public abstract class AbstractScraper implements Loggable {
 	 * URI referring to a JSON string.
 	 * @param input A {@link Hashtable} of {@link String} to {@link String} key-values,
 	 * which will be used as defaults for substitutions during the scrape.
-	 * @param listener A {@link ScraperListener} to receive callbacks as 
+	 * @param listener A {@link ScraperListener} to receive callbacks.
+	 * @param autoRun Whether {@link Instruction} children should be scraped automatically.
 	 */
-	public Scope scrape(String uriOrJSON, Hashtable input, ScraperListener listener) {
+	public Scope scrape(String uriOrJSON, Hashtable input, ScraperListener listener, boolean autoRun) {
 		
 		// The wrapped listener performs control-flow callbacks to this abstract scraper,
 		// specifically for this call to #scrape.
-		ScraperListener wrappedListener = new ControlScraperListener(listener, this);
+		ScraperListener wrappedListener = new ControlScraperListener(listener, this, autoRun);
 		
 		// obtain an instruction from the supplied URI or JSON relative to the root URI.
-		Instruction instruction = new SerializedInstruction(uriOrJSON, deserializer, rootURI);
-
+		final Instruction instruction = new SerializedInstruction(uriOrJSON, deserializer, rootURI);
+		
 		// creation of a new scope could be stopped by database crash.
 		try {
-			Scope scope = db.newScope();
+			final Scope scope = db.newScope();
 			Enumeration e = input.keys();
 			while(e.hasMoreElements()) {
 				String key = (String) e.nextElement();
 				db.put(scope, key, (String) input.get(key));
 			}
 			scrapesStarted++;
+			
+			// initial call doesn't filter through .onReady
 			wrappedListener.onScrape(instruction, db, scope, null, null, browser.copy());
+			
 			return scope;
 		} catch(DatabaseException e) {
 			wrappedListener.onCrashed(instruction, null, null, null, e); // TODO

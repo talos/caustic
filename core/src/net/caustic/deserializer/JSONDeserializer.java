@@ -80,7 +80,13 @@ public class JSONDeserializer implements Deserializer {
 			if(!uriSub.isMissingTags()) {
 				// perform substitutions upon the URI path itself.
 				String uriPath = uriSub.getSubstituted();
+				
+				System.out.println(uri);
+				
 				String uriToLoad = uriResolver.resolve(uri, uriPath);
+				
+				System.out.println(uriPath);
+
 				String loadedJSONString = uriLoader.load(uriToLoad);
 				
 				result = deserialize(loadedJSONString, db, scope, uriToLoad, encodedPatternString, notEncodedPatternString);
