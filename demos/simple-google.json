@@ -1,4 +1,3 @@
-
 {
     "load"  : "http://www.google.com/search?q={{query}}",
     "then" :
@@ -8,4 +7,3 @@
     		 "name"   : "what do you say after '{{query}}'?"
     	 }
 }
-

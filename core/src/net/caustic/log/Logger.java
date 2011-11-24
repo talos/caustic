@@ -1,30 +1,14 @@
 package net.caustic.log;
 
-import java.io.IOException;
-
 /**
  * A basic interface for logging text and {@link Throwable}s.
  * @author talos
- * @see #open()
- * @see #close()
  * @see #i(String)
  * @see #w(Throwable)
  * @see #e(Throwable)
  *
  */
 public interface Logger {
-	
-	/**
-	 * Open the {@link Logger} for logging.
-	 * @throws IOException if the {@link Logger} cannot be opened.
-	 */
-	public abstract void open() throws IOException;
-	
-	/**
-	 * Close up the {@link Logger}.
-	 * @throws IOException if the {@link Logger} cannot be closed.
-	 */
-	public abstract void close() throws IOException;
 	
 	/**
 	 * 

@@ -1,4 +1,3 @@
-
 {
 	"load" : "http://webapps.nyc.gov:8084/CICS/fin1/find001I",
 	"name" : "DoF lookup",

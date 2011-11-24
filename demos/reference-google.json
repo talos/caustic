@@ -1,4 +1,3 @@
-
 {
 	"load" : "http://www.google.com/search?q={{query}}",
 	"then"  : {

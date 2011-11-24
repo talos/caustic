@@ -1,6 +1,5 @@
 package net.caustic.log;
 
-import java.io.IOException;
 import java.util.Vector;
 
 /**
@@ -24,19 +23,9 @@ public final class MultiLog implements Logger, Loggable {
 			((Logger) loggers.elementAt(i)).e(e);
 		}
 	}
-	public void i(String infoText) {
+	public void i(String infoText) {		
 		for(int i = 0; i < loggers.size(); i ++) {
 			((Logger) loggers.elementAt(i)).i(infoText);
-		}
-	}
-	public void open() throws IOException {
-		for(int i = 0; i < loggers.size(); i ++) {
-			((Logger) loggers.elementAt(i)).open();
-		}
-	}
-	public void close() throws IOException {
-		for(int i = 0; i < loggers.size(); i ++) {
-			((Logger) loggers.elementAt(i)).close();
 		}
 	}
 }

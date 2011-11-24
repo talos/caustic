@@ -70,7 +70,7 @@ public class HttpBrowser implements Loggable {
 	private final CookieManager cookieManager;
 	
 	private int maxResponseSize = HttpBrowser.DEFAULT_MAX_RESPONSE_SIZE;
-	private final MultiLog log = new MultiLog();
+	private final MultiLog log;
 
 	/**
 	 * How many milliseconds this {@link HttpBrowser} will sleep before
@@ -133,7 +133,7 @@ public class HttpBrowser implements Loggable {
 	private InputStreamReader request(String method, String urlStr, Hashtable headers,
 					String postData, Vector redirectsFollowed)
 			throws InterruptedException, HttpRequestException, CookieStorageException {
-		
+				
 		while(rateLimitManager.shouldDelay(urlStr) == true) {
 			Thread.sleep(DEFAULT_SLEEP_TIME);
 			if(Thread.interrupted()) {
@@ -271,21 +271,29 @@ public class HttpBrowser implements Loggable {
 		rateLimitManager.rememberResponse(urlStr, responseBody.length());
 		return responseBody.toString();
 	}
+
+	private HttpBrowser(HttpRequester requester, RateLimitManager rateLimitManager, CookieManager cookieManager, MultiLog log) {
+		this.requester = requester;
+		this.rateLimitManager = rateLimitManager;
+		this.cookieManager = cookieManager;
+		this.log = log;
+	}
 	
 	public HttpBrowser(HttpRequester requester, RateLimitManager rateLimitManager, CookieManager cookieManager) {
 		this.requester = requester;
 		this.rateLimitManager = rateLimitManager;
 		this.cookieManager = cookieManager;
+		this.log = new MultiLog();
 	}
 	
 	/**
 	 * 
 	 * @return A copy of this {@link HttpBrowser} with a copied {@link CookieManager}.
 	 * This cookie manager will have a copy of old cookies in it, but new cookies
-	 * will not affect other scrapers.
+	 * will not affect other scrapers.  Has the same loggers.
 	 */
 	public HttpBrowser copy() {
-		return new HttpBrowser(requester, rateLimitManager, cookieManager.copy());
+		return new HttpBrowser(requester, rateLimitManager, cookieManager.copy(), log);
 	}
 	
 	/**

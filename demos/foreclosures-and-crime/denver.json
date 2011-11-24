@@ -1,4 +1,3 @@
-
 {
     "description" : "takes neighborhood and time values.  Neighborhoods include 'Baker', 'Barnum', and 'CBD'.  The time value is trickier, is '06' for the most recent set, '712' for the next most recent, '7122010' for the last half of 2010, '062010' for the first half of 2010, and so on.",
     "load" : "http://www.denvergov.org/denvermaps/report.asp?add=&park=&school=&lib=&a=neigh&neigh={{neighborhood}}&dist=500&time={{time}}&tbl=&rpt=offes&me=3106976%2C1636395.65%2C3255209%2C1769805.35&clickdist=50",

@@ -1,30 +1,20 @@
 package net.caustic.log;
 
-import java.io.IOException;
 import java.util.Date;
 
 /**
  * An abstract implementation of {@link Logger} that truncates entries and
  * prepends a timestamp &amp; level identification.
  * <p>
- * Subclasses still must implement {@link #open()}, {@link #close()}, and
- * {@link #write(String)}.
+ * Subclasses still must implement {@link #write(String)}.
  * @author talos
  * @see Logger
  *
  */
 public abstract class BasicLogger implements Logger {
-	
-	private boolean isOpen = false;
-	
+		
 	private static String now() {
 		return new Date().toString();
-	}
-	
-	private void ensureOpen() throws IllegalStateException {
-		if(isOpen == false) {
-			throw new IllegalStateException(getClass() + " must be opened.");
-		}
 	}
 	
 	/**
@@ -38,7 +28,6 @@ public abstract class BasicLogger implements Logger {
 	
 	
 	public final void e(Throwable e) throws IllegalStateException {
-		ensureOpen();
 		write(now() + ": " + e.toString() + (e.getMessage() == null ? "" : e.getMessage()));
 		StackTraceElement[] traces = e.getStackTrace();
 		for(int i = 0 ; i < traces.length ; i++) {
@@ -48,15 +37,6 @@ public abstract class BasicLogger implements Logger {
 	}
 	
 	public final void i(String infoText) throws IllegalStateException {
-		ensureOpen();
 		write(now() + ": " + infoText);
-	}
-	
-	public void open() throws IOException {
-		isOpen = true;
-	}
-	
-	public void close() throws IOException {
-		isOpen = false;
 	}
 }

@@ -43,6 +43,7 @@ public abstract class AbstractScraper implements Loggable {
 	}
 	
 	public final void register(Logger logger) {
+		browser.register(logger);
 		log.register(logger);
 	}
 

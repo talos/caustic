@@ -61,7 +61,7 @@ public class JsonDeserializerTest {
 			loader.load("/uri"); result = new JSONObject().put(LOAD, "http://www.foo.com/").toString();
 		}};
 		
-		DeserializerResult result = deserializer.deserialize("/uri", db, scope, userDir);
+		DeserializerResult result = deserializer.deserialize("\"/uri\"", db, scope, userDir);
 		assertTrue(result.getInstruction() != null);
 		assertTrue(result.getInstruction() instanceof Load);
 	}
@@ -81,7 +81,7 @@ public class JsonDeserializerTest {
 			loader.load("/uri"); result = new JSONObject().put(FIND, "^foo$").toString();
 		}};
 		
-		DeserializerResult result = deserializer.deserialize("/uri", db, scope, userDir);
+		DeserializerResult result = deserializer.deserialize("\"/uri\"", db, scope, userDir);
 		assertTrue(result.getInstruction() != null);
 		assertTrue(result.getInstruction() instanceof Find);
 	}
@@ -99,11 +99,11 @@ public class JsonDeserializerTest {
 	public void testPointerJSON() throws Exception {
 		
 		new Expectations() {{
-			loader.load("/pointer"); result = "/uri";
+			loader.load("/pointer"); result = "\"/uri\"";
 			loader.load("/uri"); result = new JSONObject().put(FIND, "^foo$").toString();
 		}};
 		
-		DeserializerResult result = deserializer.deserialize("/pointer", db, scope, userDir);
+		DeserializerResult result = deserializer.deserialize("\"/pointer\"", db, scope, userDir);
 		assertTrue(result.getInstruction() != null);
 		assertTrue(result.getInstruction() instanceof Find);
 	}
@@ -139,7 +139,7 @@ public class JsonDeserializerTest {
 			loader.load("/uri"); result = ary.toString();
 		}};
 		System.out.println(ary.toString());
-		DeserializerResult dResult = deserializer.deserialize("/uri", db, scope, userDir);
+		DeserializerResult dResult = deserializer.deserialize("\"/uri\"", db, scope, userDir);
 		
 		Instruction instruction = dResult.getInstruction();
 		
@@ -256,6 +256,18 @@ public class JsonDeserializerTest {
 	}
 	
 	@Test
+	public void testFailsOnNoQuotes() throws Exception {
+		DeserializerResult result = deserializer.deserialize("/uri", db, scope, userDir);
+		assertTrue(result.getFailedBecause() != null);
+	}
+	
+	@Test
+	public void testFailsOnUnclosedQuotes() throws Exception {
+		DeserializerResult result = deserializer.deserialize("\"/uri", db, scope, userDir);
+		assertTrue(result.getFailedBecause() != null);
+	}
+	
+	@Test
 	public void testExtendsArrayObjectSetsFindAttribute() throws Exception {
 		JSONObject extendedFind = new JSONObject()
 			.put(EXTENDS, new JSONArray().put(new JSONObject().put(FIND, "^foo$")));
@@ -316,7 +328,7 @@ public class JsonDeserializerTest {
 			pattern.match(source, anyString, anyInt, anyInt); result = matches; times = recursions +1;
 		}};
 		
-		Instruction instruction = new SerializedInstruction("/uri", deserializer, userDir);
+		Instruction instruction = new SerializedInstruction("\"/uri\"", deserializer, userDir);
 		
 		InstructionResult result = instruction.execute(source, db, scope, browser);
 		Instruction child = result.getChildren()[0];
@@ -336,8 +348,8 @@ public class JsonDeserializerTest {
 		new NonStrictExpectations() {{
 			loader.load("/uri"); result = obj.toString();
 		}};
-				
-		Instruction instruction = new SerializedInstruction("/uri", deserializer, userDir);
+		
+		Instruction instruction = new SerializedInstruction("\"/uri\"", deserializer, userDir);
 		
 		InstructionResult result;
 		result = instruction.execute(null, db, scope, browser);

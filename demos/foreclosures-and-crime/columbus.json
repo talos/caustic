@@ -1,4 +1,3 @@
-
 {
     "description" : "Search for crime for the whole of Columbus for a single day.  Format of {{date}} is 'MM/DD/YYYY', and the available dates are '09/21/2003' through yesterday.",
     "load" : "http://www.columbuspolice.org/Reports/PubDefault.aspx",

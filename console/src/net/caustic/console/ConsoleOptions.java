@@ -20,10 +20,9 @@ import net.caustic.database.MultiTableDatabase;
 import net.caustic.database.SingleTableDatabase;
 import net.caustic.http.DefaultHttpBrowser;
 import net.caustic.http.HttpBrowser;
-import net.caustic.log.JavaIOFileLogger;
 import net.caustic.log.Logger;
 import net.caustic.log.MultiLog;
-import net.caustic.log.SystemOutLogger;
+import net.caustic.log.SystemErrLogger;
 import net.caustic.util.DefaultDecoder;
 import net.caustic.util.FormEncodedFormatException;
 import net.caustic.util.MapUtils;
@@ -49,13 +48,9 @@ public final class ConsoleOptions {
 	public static final String INPUT_DELIMITER = "--delimiter";
 	public static final String INPUT_DELIMITER_DEFAULT = Character.toString(COMMA_DELIMITER);
 	private final Option inputDelimiter = Option.withDefault(INPUT_DELIMITER, INPUT_DELIMITER_DEFAULT);	
-	
-	public static final String LOG_TO_FILE = "--log-to-file";
-	public static final String LOG_TO_FILE_DEFAULT = TIMESTAMP + ".log";	
-	private final Option logToFile = Option.withDefault(LOG_TO_FILE, LOG_TO_FILE_DEFAULT);
-	
-	public static final String LOG_STDOUT = "--log-stdout";
-	private final Option logStdout = Option.withoutDefault(LOG_STDOUT);
+		
+	public static final String LOG = "--log";
+	private final Option log = Option.withoutDefault(LOG);
 	
 	public static final String MAX_RESPONSE_SIZE = "--max-response-size";
 	public static final String MAX_RESPONSE_SIZE_DEFAULT = Integer.toString(HttpBrowser.DEFAULT_MAX_RESPONSE_SIZE);
@@ -122,12 +117,8 @@ public final class ConsoleOptions {
 "        values.  Each row is executed separately.  The first" + NEWLINE +
 "        row contains column names." + NEWLINE +
 "        The default column delimiter is "+ StringUtils.quote(INPUT_DELIMITER_DEFAULT) + "." + NEWLINE +
-"    " + LOG_TO_FILE + "[=<path>]" + NEWLINE +
-"        Pipe the log to a file." + NEWLINE +
-"        Path is optional, defaults to " + StringUtils.quote(LOG_TO_FILE_DEFAULT)  + " in the" + NEWLINE +
-"        current directory." + NEWLINE +
-"    " + LOG_STDOUT + NEWLINE +
-"        Pipe the log to stdout." + NEWLINE +
+"    " + LOG + NEWLINE +
+"        Show log in stderr." + NEWLINE +
 "    " + MAX_RESPONSE_SIZE + NEWLINE +
 "        How many KB of a response to load from a single request " + NEWLINE +
 "        before cutting off the response.  Defaults to " + MAX_RESPONSE_SIZE_DEFAULT + "KB." + NEWLINE +
@@ -268,11 +259,8 @@ public final class ConsoleOptions {
 	 */
 	public Logger getLogger() throws InvalidOptionException {
 		MultiLog multiLog = new MultiLog();
-		if(isSpecified(logToFile)) {
-			multiLog.register(new JavaIOFileLogger(getValue(logToFile)));
-		}
-		if(isSpecified(logStdout)) {
-			multiLog.register(new SystemOutLogger());
+		if(isSpecified(log)) {
+			multiLog.register(new SystemErrLogger());
 		}
 		return multiLog;
 	}
@@ -331,7 +319,13 @@ public final class ConsoleOptions {
 	 * @throws UnsupportedEncodingException 
 	 */
 	public String getInstruction() throws InvalidOptionException, UnsupportedEncodingException {
-		return getValue(instruction);
+		String unquoted = getValue(instruction);
+		// if it's json, leave as-is.
+		if(unquoted.charAt(0) == '{' || unquoted.charAt(0) == '[') {
+			return unquoted;
+		} else { // otherwise, append quotes
+			return '"' + unquoted + '"';
+		}
 	}
 	
 	/**

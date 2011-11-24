@@ -1,4 +1,3 @@
-
 {
   "description" : "Search for a single class of crime in an up-to-thirty-day period for the whole of Philly.  {{crimeclass}} is a number, {{from}} and {{to}} are in the format 'mm/dd/yyyy'.",
   "load" : "http://citymaps.phila.gov/CrimeMap/MappingServices.asmx/GetIncidentsByCriteria",

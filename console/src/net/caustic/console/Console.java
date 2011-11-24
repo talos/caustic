@@ -40,7 +40,6 @@ public class Console {
 	}
 	
 	public void open() throws IOException {
-		logger.open();
 		input.open();
 	}
 	
@@ -50,7 +49,7 @@ public class Console {
 		Map<String, String> inputMap;
 		
 		while((inputMap = input.next()) != null) {
-			scraper.scrape(instruction,
+			scraper.scrapeAll(instruction,
 					new Hashtable<String, String>(inputMap),
 					new LogScraperListener(logger));
 		}
