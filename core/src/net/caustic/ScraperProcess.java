@@ -8,18 +8,20 @@ import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
 import net.caustic.http.HttpBrowser;
 import net.caustic.instruction.Instruction;
+import net.caustic.regexp.StringTemplate;
 import net.caustic.scope.Scope;
+import net.caustic.template.StringSubstitution;
 
 /**
- * A {@link ScraperListener} that handles a single call to
+ * This handles a single call to
  * {@link AbstractScraper#scrape(String, Hashtable, ScraperListener)}
  * by enclosing the provided {@link ScraperListener} and determining
  * whether and when {@link Instruction}s should be retried.
  * @author talos
  *
  */
-final class ControlScraperListener implements ScraperListener {
-	private final ScraperListener extraListener;
+final class ScraperProcess {
+	private final ScraperListener listener;
 	private final AbstractScraper scraper;
 	
 	private volatile int submitted = 0;
@@ -43,34 +45,60 @@ final class ControlScraperListener implements ScraperListener {
 	 */
 	private final Hashtable stuck = new Hashtable();
 	
-	public ControlScraperListener(ScraperListener listener, AbstractScraper scraper, boolean autoRun) {
-		this.extraListener = listener;
+	public ScraperProcess(ScraperListener listener, AbstractScraper scraper, boolean autoRun) {
+		this.listener = listener;
 		this.scraper = scraper;
 		this.autoRun = autoRun;
 	}
 	
-	public synchronized final void onReady(
-			final Instruction instruction, final Database db, final Scope scope, final Scope parent,
-			final String source, final HttpBrowser browser, Runnable start) {		
-		// automatically launch children.
-		if(autoRun == true) {
-			start.run();
-		}
+	public synchronized final void triggerReady(
+			final Instruction instruction, final Database db,
+			final Scope scope, final Scope parent, 
+			final String source, final HttpBrowser browser) {
 		
-		extraListener.onReady(instruction, db, scope, parent, source, browser, start);
+		// automatically launch children and instructions that don't need confirmation,
+		// skipping the onReady.
+		if(autoRun == true || instruction.shouldConfirm() == false) {
+			triggerScrape(instruction, db, scope, parent, source, browser);
+		} else {
+			
+			try {
+				// This is a bit of a hack, but allows the onReady listener method to be
+				// called with an actual name.
+				StringSubstitution ss = instruction.getName().sub(db, scope);
+				
+				// if we can't work out the name, trigger missing tags right now.
+				if(ss.isMissingTags()) {
+					triggerMissingTags(instruction, db, scope, parent, source, browser, ss.getMissingTags());
+				} else {
+					
+					// otherwise, we can trigger the onReady with a real name.
+					String name = ss.getSubstituted();
+					Runnable start = new Runnable() {
+						// This run method is called from the listener that is passed onReady
+						public void run() {
+							triggerScrape(instruction, db, scope, parent, source, browser);
+						}
+					};
+					listener.onReady(instruction, name, db, scope, parent, source, browser, start);
+				}
+			} catch(DatabaseException e) {
+				triggerCrashed(instruction, scope, parent, source, e);
+			}			
+		}
 	}
 	
-	public synchronized final void onScrape(
+	public synchronized final void triggerScrape(
 			final Instruction instruction, final Database db, final Scope scope, final Scope parent,
 			final String source, final HttpBrowser browser) {
 		submitted++;
 		
 		scraper.submit(new Executable(instruction, db, scope, parent, source, browser, this));
 		
-		extraListener.onScrape(instruction, db, scope, parent, source, browser);
+		listener.onScrape(instruction, db, scope, parent, source, browser);
 	}
 	
-	public synchronized final void onSuccess(Instruction instruction, Database db, Scope scope, Scope parent,
+	public synchronized final void triggerSuccess(Instruction instruction, Database db, Scope scope, Scope parent,
 			String source, String key, String[] results) {
 		try {
 			successful++;
@@ -111,17 +139,20 @@ final class ControlScraperListener implements ScraperListener {
 				}
 			}
 			
-			extraListener.onSuccess(instruction, db, scope, parent, source, key, results);
+			// only tell extra listener about successes that actually have keys.
+			if(key != null) {
+				listener.onSuccess(instruction, db, scope, parent, source, key, results);
+			}
 			
 			if(isDone()) {
-				onFinish(successful, stuck.size(), failed);
+				triggerFinish(successful, stuck.size(), failed);
 			}
 		} catch(DatabaseException e) {
-			onCrashed(instruction, scope, parent, null, e);
+			triggerCrashed(instruction, scope, parent, null, e);
 		}
 	}
 	
-	public synchronized void onMissingTags(Instruction instruction,
+	public synchronized void triggerMissingTags(Instruction instruction,
 			Database db, Scope scope, Scope parent, String source,
 			HttpBrowser browser, String[] missingTags) {
 		
@@ -134,37 +165,37 @@ final class ControlScraperListener implements ScraperListener {
 		stuckInScope.put(missingTags, new Executable(instruction, db, scope, parent, source, browser, this));
 		stuckCnt++;
 		
-		extraListener.onMissingTags(instruction, db, scope, parent, source, browser, missingTags);
+		listener.onMissingTags(instruction, db, scope, parent, source, browser, missingTags);
 		
 		if(isDone()) {
-			onFinish(successful, stuck.size(), failed);
+			triggerFinish(successful, stuck.size(), failed);
 		}
 	}
 	
-	public synchronized void onFailed(Instruction instruction, Database db,
+	public synchronized void triggerFailed(Instruction instruction, Database db,
 			Scope scope, Scope parent, String source, String failedBecause) {
 		failed++;
 		
-		extraListener.onFailed(instruction, db, scope, parent, source, failedBecause);
+		listener.onFailed(instruction, db, scope, parent, source, failedBecause);
 		
 		if(isDone()) {
-			onFinish(successful, stuck.size(), failed);
+			triggerFinish(successful, stuck.size(), failed);
 		}
 	}
 	
-	public synchronized final void onCrashed(Instruction instruction, Scope scope, Scope parent, String source, Throwable e) {
+	public synchronized final void triggerCrashed(Instruction instruction, Scope scope, Scope parent, String source, Throwable e) {
 		e.printStackTrace();
 		scraper.interrupt();
 		
-		extraListener.onCrashed(instruction, scope, parent, source, e);
+		listener.onCrashed(instruction, scope, parent, source, e);
 	}
 	
-	public synchronized final void onFinish(int successful, int stuck, int failed) {		
+	private synchronized final void triggerFinish(int successful, int stuck, int failed) {		
 		scraper.finishedScrape(successful, stuck, failed);
-		extraListener.onFinish(successful, stuck, failed);
+		listener.onFinish(successful, stuck, failed);
 	}
 	
-	public synchronized final boolean isDone() {
+	private synchronized final boolean isDone() {
 		return submitted == failed + stuckCnt + successful;
 	}
 }

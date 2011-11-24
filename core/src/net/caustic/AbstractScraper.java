@@ -86,9 +86,8 @@ public abstract class AbstractScraper implements Loggable {
 	 */
 	public Scope scrape(String uriOrJSON, Hashtable input, ScraperListener listener, boolean autoRun) {
 		
-		// The wrapped listener performs control-flow callbacks to this abstract scraper,
-		// specifically for this call to #scrape.
-		ScraperListener wrappedListener = new ControlScraperListener(listener, this, autoRun);
+		// The process calls back to this method.
+		ScraperProcess process = new ScraperProcess(listener, this, autoRun);
 		
 		// obtain an instruction from the supplied URI or JSON relative to the root URI.
 		final Instruction instruction = new SerializedInstruction(uriOrJSON, deserializer, rootURI);
@@ -104,11 +103,11 @@ public abstract class AbstractScraper implements Loggable {
 			scrapesStarted++;
 			
 			// initial call doesn't filter through .onReady
-			wrappedListener.onScrape(instruction, db, scope, null, null, browser.copy());
+			process.triggerScrape(instruction, db, scope, null, null, browser.copy());
 			
 			return scope;
 		} catch(DatabaseException e) {
-			wrappedListener.onCrashed(instruction, null, null, null, e); // TODO
+			process.triggerCrashed(instruction, null, null, null, e); // TODO
 			return null;
 		}
 	}

@@ -70,10 +70,21 @@ public final class Load extends Instruction {
 	}
 	
 	/**
-	 * Instantiate a {@link Load}.
+	 * Instantiate a {@link Load} without a special name.
 	 * @param url
 	 */
 	public Load(StringTemplate url) {
+		super(url);
+		this.url = url;
+	}
+	
+	/**
+	 * Instantiate a {@link Load} with a special name.
+	 * @param name
+	 * @param url
+	 */
+	public Load(StringTemplate name, StringTemplate url) {
+		super(name);
 		this.url = url;
 	}
 	
@@ -141,6 +152,10 @@ public final class Load extends Instruction {
 		return url.toString();
 	}
 
+	public boolean shouldConfirm() {
+		return true;
+	}
+	
 	/**
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 * <code>source</code> is ignored.

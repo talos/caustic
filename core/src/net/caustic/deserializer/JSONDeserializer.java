@@ -80,13 +80,9 @@ public class JSONDeserializer implements Deserializer {
 			if(!uriSub.isMissingTags()) {
 				// perform substitutions upon the URI path itself.
 				String uriPath = uriSub.getSubstituted();
-				
-				System.out.println(uri);
-				
+								
 				String uriToLoad = uriResolver.resolve(uri, uriPath);
 				
-				System.out.println(uriPath);
-
 				String loadedJSONString = uriLoader.load(uriToLoad);
 				
 				result = deserialize(loadedJSONString, db, scope, uriToLoad, encodedPatternString, notEncodedPatternString);
@@ -290,7 +286,12 @@ public class JSONDeserializer implements Deserializer {
 				return DeserializerResult.failure("Cannot define both " + FIND + " and " + LOAD);
 			} else if(url != null) {
 				// We have a Load
-				Load load = new Load(url);
+				final Load load;
+				if(name == null) {
+					load = new Load(url);
+				} else {
+					load = new Load(name, url);
+				}
 				
 				if(method != null) {
 					load.setMethod(method);
@@ -309,7 +310,12 @@ public class JSONDeserializer implements Deserializer {
 				result = DeserializerResult.success(load);
 			} else if(pattern != null) {
 				// We have a Find
-				Find find = new Find(compiler, pattern);
+				final Find find;
+				if(name == null) {
+					find = new Find(compiler, pattern);
+				} else {
+					find = new Find(name, compiler, pattern);
+				}
 				
 				if(replace != null) {
 					find.setReplacement(replace);
@@ -343,10 +349,6 @@ public class JSONDeserializer implements Deserializer {
 				if(isMultiline != null) {
 					find.setIsMultiline(isMultiline.booleanValue());
 				}
-				if(name != null) {
-					find.setName(name);
-				}
-				
 				for(int i = 0 ; i < childrenAry.length ; i ++) {
 					find.then(childrenAry[i]);
 				}

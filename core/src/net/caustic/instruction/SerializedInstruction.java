@@ -25,6 +25,10 @@ public class SerializedInstruction extends Instruction {
 		this.deserializer = deserializer;
 		this.uri = uri;
 	}
+
+	public boolean shouldConfirm() {
+		return false;
+	}
 	
 	public InstructionResult execute(String source, Database db, Scope scope,
 			HttpBrowser browser) throws InterruptedException, DatabaseException {
@@ -33,7 +37,9 @@ public class SerializedInstruction extends Instruction {
 		if(deserializerResult.isMissingTags()) {
 			return InstructionResult.missingTags(deserializerResult.getMissingTags());
 		} else if(deserializerResult.getInstruction() != null) {
-			return deserializerResult.getInstruction().execute(source, db, scope, browser);
+			return InstructionResult.success(null, new String[] { source },
+					new Instruction[] { deserializerResult.getInstruction() }, false);
+			//return deserializerResult.getInstruction().execute(source, db, scope, browser);
 		} else {
 			return InstructionResult.failed(deserializerResult);
 		}
@@ -42,5 +48,4 @@ public class SerializedInstruction extends Instruction {
 	public String toString() {
 		return serializedString;
 	}
-
 }

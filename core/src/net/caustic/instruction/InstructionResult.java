@@ -49,6 +49,12 @@ public class InstructionResult implements Result {
 		return isSuccess;
 	}
 	
+	/**
+	 * 
+	 * @return The substituted {@link String} name of the {@link Instruction} that was 
+	 * run.  Can be <code>null</code> if {@link #shouldStoreValues()} is <code>false</code>.
+	 * @see #shouldStoreValues()
+	 */
 	public String getName() {
 		return name;
 	}

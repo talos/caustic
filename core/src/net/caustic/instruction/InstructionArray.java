@@ -12,7 +12,6 @@ import net.caustic.scope.Scope;
  *
  */
 public class InstructionArray extends Instruction {
-	private static String ANONYMOUS = "anonymous";
 	
 	private final Instruction[] instructions;
 	
@@ -22,7 +21,10 @@ public class InstructionArray extends Instruction {
 	
 	public InstructionResult execute(String source, Database db, Scope scope,
 			HttpBrowser browser) throws InterruptedException, DatabaseException {
-		return InstructionResult.success(ANONYMOUS, new String[] { source }, instructions, false);
+		return InstructionResult.success(null, new String[] { source }, instructions, false);
 	}
 
+	public boolean shouldConfirm() {
+		return false;
+	}
 }

@@ -5,19 +5,39 @@ import java.util.Vector;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
 import net.caustic.http.HttpBrowser;
+import net.caustic.regexp.StringTemplate;
 import net.caustic.scope.Scope;
 
 public abstract class Instruction {
-
+	
+	private final StringTemplate name;
+	
 	/**
 	 * {@link Vector} of {@link Instruction}s to fire when this one is done.
 	 */
 	private final Vector children = new Vector();
 	
+	protected Instruction() {
+		this.name = null;
+	}
+	
+	protected Instruction(StringTemplate name) {
+		this.name = name;
+	}
+	
 	protected Instruction[] getChildren() {
 		Instruction[] result = new Instruction[children.size()];
 		children.copyInto(result);
 		return result;
+	}
+	
+	/**
+	 * 
+	 * @return The {@link StringTemplate} name of the {@link Instruction}.  Is
+	 * <code>null</code> if it has no name.
+	 */
+	public StringTemplate getName() {
+		return name;
 	}
 	
 	/**
@@ -28,6 +48,14 @@ public abstract class Instruction {
 	public void then(Instruction instruction) {
 		children.addElement(instruction);
 	}
+	
+	/**
+	 * 
+	 * @return <code>true</code> if this {@link Instruction} is an instruction
+	 * that should only be executed with confirmation, <code>false</code>
+	 * if this {@link Instruction} can be executed without confirmation.
+	 */
+	public abstract boolean shouldConfirm();
 	
 	/**
 	 * 

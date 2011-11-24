@@ -13,10 +13,10 @@ import net.caustic.scope.Scope;
  */
 public interface ScraperListener {
 
-
 	/**
 	 * This fires when an <code>instruction</code> first starts to be scraped.
 	 * @param instruction The {@link Instruction} that is being scraped.
+	 * @param name The {@link String} name of the <code>instruction</code> to be scraped.
 	 * @param db The {@link Database} that <code>instruction</code> is working from.
 	 * @param scope The {@link Scope} of this particular scrape.
 	 * @param parent The {@link Scope} of the parent of this scrape.
@@ -28,7 +28,7 @@ public interface ScraperListener {
 	 * the scraping.  If the scraping has already started, {@link Runnable#run()} is
 	 * a no-op.
 	 */
-	public abstract void onReady(Instruction instruction, Database db, Scope scope,
+	public abstract void onReady(Instruction instruction, String name, Database db, Scope scope,
 			Scope parent, String source, HttpBrowser browser, Runnable start);
 	
 	/**
@@ -54,7 +54,7 @@ public interface ScraperListener {
 	 * @param source The {@link String} source for the scrape.  This is <code>null</code>
 	 * if <code>instruction</code> is a {@link Load}.
 	 * @param key The {@link String} key for this <code>instruction</code>'s
-	 * results.
+	 * results.  Blank if there was none.
 	 * @param results An array of {@link String} results for <code>instruction</code>
 	 */
 	public abstract void onSuccess(Instruction instruction, Database db, Scope scope,

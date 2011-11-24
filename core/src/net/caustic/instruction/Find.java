@@ -19,11 +19,11 @@ public final class Find extends Instruction {
 	 */
 	private final StringTemplate pattern;
 	
-	private boolean hasName = false;
+	private final boolean hasName;
 	
 	private final RegexpCompiler compiler;
 	
-	private StringTemplate name;
+	private final StringTemplate name;
 	
 	/**
 	 * Flag equivalent to {@link java.util.regex.Pattern#CASE_INSENSITIVE}
@@ -68,14 +68,25 @@ public final class Find extends Instruction {
 	private int maxMatch = Pattern.LAST_MATCH;
 	
 	public Find(RegexpCompiler compiler, StringTemplate pattern) {
+		this.hasName = false;
+		this.name = pattern;
 		this.compiler = compiler;
 		this.pattern = pattern;
 	}
 	
+	public Find(StringTemplate name, RegexpCompiler compiler, StringTemplate pattern) {
+		this.hasName = true;
+		this.name = name;
+		this.compiler = compiler;
+		this.pattern = pattern;
+	}
+	
+	/*
 	public void setName(StringTemplate name) {
 		this.hasName = true;
 		this.name = name;
 	}
+	*/
 	
 	public void setReplacement(StringTemplate replacement) {
 		this.replacement = replacement;
@@ -108,8 +119,12 @@ public final class Find extends Instruction {
 		return pattern.toString();
 	}
 
+	public boolean shouldConfirm() {
+		return false;
+	}
+	
 	/**
-	 * Use {@link #pattern}, substituted with {@link Variables}, to match against <code>source</code>.
+	 * Use {@link #pattern}, substituted from {@link Database}, to match against <code>source</code>.
 	 * Ignores <code>browser</code>.
 	 */
 	public InstructionResult execute(String source, Database db, Scope scope,
@@ -123,11 +138,13 @@ public final class Find extends Instruction {
 		final StringSubstitution subPattern = pattern.sub(db, scope);
 		final StringSubstitution subReplacement = replacement.sub(db, scope);
 		
+		subName = name.sub(db, scope);
+		/*
 		if(hasName) {
 			subName = name.sub(db, scope);
 		} else {
 			subName = subPattern; // if no name defined, default to the pattern.
-		}
+		}*/
 				
 		if(subName.isMissingTags() ||
 				subPattern.isMissingTags() ||

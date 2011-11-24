@@ -8,7 +8,8 @@ import net.caustic.scope.Scope;
 import net.caustic.util.StringUtils;
 
 /**
- * A {@link ScraperListener} that logs all events.
+ * A {@link ScraperListener} that logs all events.  Subclass and make sure to call
+ * <code>super()</code> to get logging for all {@link ScraperListener} events.
  * @author talos
  *
  */
@@ -19,7 +20,7 @@ public class LogScraperListener implements ScraperListener {
 		this.log = log;
 	}
 
-	public void onReady(Instruction instruction, Database db, Scope scope,
+	public void onReady(Instruction instruction, String name, Database db, Scope scope,
 			Scope parent, String source, HttpBrowser browser, Runnable start) {
 		log.i("Ready to scrape " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
 	}

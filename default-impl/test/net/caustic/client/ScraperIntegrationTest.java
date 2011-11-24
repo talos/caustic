@@ -49,7 +49,7 @@ public class ScraperIntegrationTest {
 		scraper.join();
 		
 		new VerificationsInOrder() {{
-			listener.onFinish(0, 1, 0);
+			listener.onFinish(1, 1, 0);
 		}};
 	}
 	
@@ -72,7 +72,7 @@ public class ScraperIntegrationTest {
 		new VerificationsInOrder() {{
 			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
 					"what do you say after 'hello'?", (String[]) any);
-			listener.onFinish(2, 0, 0);
+			listener.onFinish(4, 0, 0);
 		}};
 	}
 	
@@ -85,7 +85,7 @@ public class ScraperIntegrationTest {
 		new VerificationsInOrder() {{
 			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
 					"what do you say after 'hello'?", (String[]) any);
-			listener.onFinish(2, 0, 0);
+			listener.onFinish(4, 0, 0);
 		}};
 	}
 	
@@ -126,8 +126,8 @@ public class ScraperIntegrationTest {
 		
 		new Verifications() {{
 			listener.onFinish(0, 0, 1);
-			listener2.onFinish(0, 1, 0);
-			listener3.onFinish(2, 0, 0);
+			listener2.onFinish(1, 1, 0);
+			listener3.onFinish(4, 0, 0);
 		}};
 	}
 	
