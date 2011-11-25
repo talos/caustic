@@ -27,6 +27,7 @@ public class SingleTableDatabase extends Database {
 	
 	public SingleTableDatabase(Connection connection) {
 		this.connection = connection;
+		addListener(new SingleTableDatabaseListener(this));
 	}
 
 	public String get(Scope scope, String name) throws DatabaseException {
@@ -34,20 +35,24 @@ public class SingleTableDatabase extends Database {
 			open();
 			Map<String, String> whereMap = Collections.emptyMap();
 			
-			// return all name-values in this scope
-			List<Map<String, String>> rows = table.select(scope, whereMap, 
-					new String[] { SOURCE_COLUMN_NAME, NAME_COLUMN_NAME, VALUE_COLUMN_NAME } );
+			
 			
 			while(scope != null) {
+				// return all name-values in this scope
+				List<Map<String, String>> rows = table.select(scope, whereMap, 
+						new String[] { SOURCE_COLUMN_NAME, NAME_COLUMN_NAME, VALUE_COLUMN_NAME } );
+				
+				// assume we find nothing
+				scope = null;
 				for(Map<String, String> row : rows) {
 					if(row.get(NAME_COLUMN_NAME).equals(name)) {
 						return row.get(VALUE_COLUMN_NAME);
 					} else if(row.get(SOURCE_COLUMN_NAME) != null) {
-						String scopeString = row.get(SOURCE_COLUMN_NAME);
-						if(scopeString == null) {
-							scope = null; // break loop
-						} else {
-							scope = new SerializedScope(scopeString);
+						String sourceString = row.get(SOURCE_COLUMN_NAME);
+						
+						// if one row has a none=null source, use it.
+						if(sourceString != null) {
+							scope = new SerializedScope(sourceString);
 						}
 					}
 				}
@@ -56,26 +61,30 @@ public class SingleTableDatabase extends Database {
 		}
 	}
 	
-	protected void insert(Scope scope, Scope child, String key, String value) 
+	protected void insert(Scope source, Scope scope, String key, String value) 
 				throws DatabaseException {
-		open();
-		Map<String, String> insertMap = new HashMap<String, String>();
-		if(scope != null) {
-			insertMap.put(SOURCE_COLUMN_NAME, scope.asString());
+		synchronized(connection) {
+			open();
+			Map<String, String> insertMap = new HashMap<String, String>();
+			if(source != null) {
+				insertMap.put(SOURCE_COLUMN_NAME, source.asString());
+			}
+			insertMap.put(NAME_COLUMN_NAME, key);
+			if(value != null) {
+				insertMap.put(VALUE_COLUMN_NAME, value);
+			}
+			
+			table.insert(scope, insertMap);
 		}
-		insertMap.put(NAME_COLUMN_NAME, key);
-		if(value != null) {
-			insertMap.put(VALUE_COLUMN_NAME, value);
-		}
-		
-		table.insert(scope, insertMap);
 	}
 	
-
 	private void open() throws DatabaseException {
-		if(table == null) {
-			table = connection.newTable(TABLE_NAME, COLUMN_NAMES,
-					new String[] { Database.DEFAULT_SCOPE_NAME, SOURCE_COLUMN_NAME } );
+		synchronized(connection) {
+			if(table == null) {
+				connection.open();
+				table = connection.newTable(TABLE_NAME, COLUMN_NAMES,
+						new String[] { Database.DEFAULT_SCOPE_NAME, SOURCE_COLUMN_NAME, NAME_COLUMN_NAME } );
+			}
 		}
 	}
 }

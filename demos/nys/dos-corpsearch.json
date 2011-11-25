@@ -15,6 +15,7 @@
     },{
 		"description" : "Split by each entity on the search results page.",
 		"find"        : "<a\\s+title\\s*=\\s*\"Link to entity information.*?</a>",
+		"name"        : "entity",
 		"then" : [{
 			"description" : "Finds the p_nameid",
 			"find"        : "p_nameid=(\\d+)",

@@ -18,7 +18,7 @@ class SingleTableDatabaseListener implements DatabaseListener {
 	public void onPut(Scope scope, String key, String value)
 			throws DatabaseListenerException {
 		try {
-			db.insert(scope, null, key, value);
+			db.insert(null, scope, key, value);
 		} catch(DatabaseException e) {
 			throw new DatabaseListenerException("Couldn't add row to single table.", e);
 		}		

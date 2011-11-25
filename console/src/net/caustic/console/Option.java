@@ -3,7 +3,16 @@ package net.caustic.console;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Option  {
+/**
+ * A command-line option.  Each new option is stored in a static map.
+ * @author talos
+ *
+ */
+class Option  {
+	
+	/**
+	 * A static map of the instantiated options.
+	 */
 	private static final Map<String, Option> validOptions = new HashMap<String, Option>();
 	
 	private final String defaultValue;
@@ -15,20 +24,20 @@ public class Option  {
 		this.defaultValue = defaultValue;
 		validOptions.put(this.name, this);
 	}
-	public static Option withoutDefault(String prependedName) {
+	static Option withoutDefault(String prependedName) {
 		return new Option(prependedName, null);
 	}
-	public static Option withDefault(String prependedName, String defaultValue) {
+	static Option withDefault(String prependedName, String defaultValue) {
 		return new Option(prependedName, defaultValue);
 	}
-	public static Option retrieve(String name) throws InvalidOptionException {
+	static Option retrieve(String name) throws InvalidOptionException {
 		if(validOptions.containsKey(name)) {
 			return validOptions.get(name);
 		} else {
 			throw new InvalidOptionException(name + " is not a valid option.");
 		}
 	}
-	public void setValue(String value) {
+	void setValue(String value) {
 		this.value = value;
 	}
 	
@@ -38,7 +47,7 @@ public class Option  {
 	 * Is <code>null</code> if none has been assigned and there is no
 	 * default.
 	 */
-	public String getValue() {
+	String getValue() {
 		return value;
 	}
 	
@@ -46,7 +55,7 @@ public class Option  {
 	 * 
 	 * @return The {@link String} name of this {@link Option}.
 	 */
-	public Object getName() {
+	Object getName() {
 		return name;
 	}
 	
@@ -55,7 +64,7 @@ public class Option  {
 	 * @return The {@link String} default value for this {@link Option},
 	 * or <code>null</code> if none was defined.
 	 */
-	public String getDefault() {
+	String getDefault() {
 		return defaultValue;
 	}
 }

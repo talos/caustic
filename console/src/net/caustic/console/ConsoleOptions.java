@@ -28,7 +28,7 @@ import net.caustic.util.FormEncodedFormatException;
 import net.caustic.util.MapUtils;
 import net.caustic.util.StringUtils;
 
-public final class ConsoleOptions {
+final class ConsoleOptions {
 	public static final String TIMESTAMP_STR = "yyyyMMddkkmmss";
 	public static final String TIMESTAMP = new SimpleDateFormat(TIMESTAMP_STR).format(new Date());
 
@@ -186,7 +186,7 @@ public final class ConsoleOptions {
 	 * @throws InvalidOptionException If there were no options passed in <code>
 	 * args</code>, or if there was an unknown option passed.
 	 */
-	public ConsoleOptions(String[] args) throws InvalidOptionException {
+	ConsoleOptions(String[] args) throws InvalidOptionException {
 		if(args.length == 0) {
 			throw new InvalidOptionException(INSTRUCTION_MISSING_ERROR);
 		}
@@ -211,45 +211,62 @@ public final class ConsoleOptions {
 	
 	/**
 	 * 
-	 * @return A {@link Database} based off the user-passed {@link ConsoleOptions}.
-	 * @throws InvalidOptionException if the user specified a {@link Database} related
+	 * @return A {@link Connection} based off the user-passed {@link ConsoleOptions},
+	 * which is <code>null</code> if there was no connection specified.
+	 * @throws InvalidOptionException if the user specified a {@link Connection} related
 	 * option that is invalid.
 	 */
-	public Database getDatabase() throws InvalidOptionException {		
+	Connection getConnection() throws InvalidOptionException {
 		// Determine format.
 		String format = getValue(this.format);
 		if(!validOutputFormats.contains(format)) {
 			throw new InvalidOptionException(StringUtils.quote(format)
 					+ " is not a valid output format.");
 		}
-		/*
-		String outputLocation = getValue(saveToFile);
-		if(outputLocation.equals(saveToFile.getDefault())) { 
-			outputLocation += '.' + format;
-		}
-		*/
-		final Database database;
+		
+		// only format that requires a connection is sqlite.
 		if(format.equals(SQLITE_FORMAT)) {
-			Connection connection = JDBCSqliteConnection.toFile(
+			return JDBCSqliteConnection.toFile(
 					SAVE_TO_FILE_DEFAULT + "." + SQLITE_FORMAT,
 					Database.DEFAULT_SCOPE_NAME, true);
-			
-			if(isSpecified(singleTable)) {
-				database = new SingleTableDatabase(connection);
-			} else {
-				database = new MultiTableDatabase(connection);
-			}
 		} else {
-			database = new InMemoryDatabase();
-			// Determine delimiter.
-			//char separator;
-			if(format.equals(CSV_FORMAT)) {
-				database.addListener(new CSVDatabaseListener(COMMA_DELIMITER));
-			} else if(format.equals(TAB_FORMAT)) {
-				database.addListener(new CSVDatabaseListener(TAB_DELIMITER));
-			}
+			return null;
 		}
-		
+	}
+	
+	/**
+	 * 
+	 * @return A SQL {@link Database} based off the user-passed {@link ConsoleOptions}.
+	 * @throws InvalidOptionException if the user specified a {@link Database} related
+	 * option that is invalid.
+	 */
+	Database getSQLDatabase(Connection connection) throws InvalidOptionException {		
+		final Database database;
+		if(isSpecified(singleTable)) {
+			database = new SingleTableDatabase(connection);
+		} else {
+			database = new MultiTableDatabase(connection);
+		}
+		return database;
+	}
+	
+
+	/**
+	 * 
+	 * @return An in-memory {@link Database} based off the user-passed {@link ConsoleOptions}.
+	 * @throws InvalidOptionException if the user specified a {@link Database} related
+	 * option that is invalid.
+	 */
+	Database getInMemoryDatabase() throws InvalidOptionException {
+
+		final Database database = new InMemoryDatabase();
+		// Determine delimiter.
+		if(getValue(format).equals(CSV_FORMAT)) {
+			database.addListener(new CSVDatabaseListener(COMMA_DELIMITER));
+		} else if(getValue(format).equals(TAB_FORMAT)) {
+			database.addListener(new CSVDatabaseListener(TAB_DELIMITER));
+		}
+	
 		return database;
 	}
 
@@ -257,7 +274,7 @@ public final class ConsoleOptions {
 	 * 
 	 * @return A {@link Logger}.
 	 */
-	public Logger getLogger() throws InvalidOptionException {
+	Logger getLogger() throws InvalidOptionException {
 		MultiLog multiLog = new MultiLog();
 		if(isSpecified(log)) {
 			multiLog.register(new SystemErrLogger());
@@ -265,7 +282,7 @@ public final class ConsoleOptions {
 		return multiLog;
 	}
 	
-	public HttpBrowser getBrowser() throws InvalidOptionException {
+	HttpBrowser getBrowser() throws InvalidOptionException {
 
 		HttpBrowser browser = new DefaultHttpBrowser();
 		
@@ -318,7 +335,7 @@ public final class ConsoleOptions {
 	 * @throws InvalidOptionException
 	 * @throws UnsupportedEncodingException 
 	 */
-	public String getInstruction() throws InvalidOptionException, UnsupportedEncodingException {
+	String getInstruction() throws InvalidOptionException, UnsupportedEncodingException {
 		String unquoted = getValue(instruction);
 		// if it's json, leave as-is.
 		if(unquoted.charAt(0) == '{' || unquoted.charAt(0) == '[') {
@@ -333,7 +350,7 @@ public final class ConsoleOptions {
 	 * @return An {@link Input} whose elements are {@link Hashtable}s that can be used
 	 * as input for {@link ScraperInterface}.
 	 */
-	public Input getInput() throws InvalidOptionException, UnsupportedEncodingException {
+	Input getInput() throws InvalidOptionException, UnsupportedEncodingException {
 		String rawInputString = getValue(input);
 		if(rawInputString.startsWith("\"") && rawInputString.endsWith("\"")) {
 			rawInputString = rawInputString.substring(1, rawInputString.length() - 1);
@@ -368,7 +385,7 @@ public final class ConsoleOptions {
 		}
 	}
 	
-	public int getNumRowsToRead() throws InvalidOptionException {
+	int getNumRowsToRead() throws InvalidOptionException {
 		try {
 			int numRowsToRead = Integer.valueOf(getValue(rows));
 			if(numRowsToRead <= 0) {
@@ -381,7 +398,7 @@ public final class ConsoleOptions {
 		}
 	}
 	
-	public int getNumThreads() throws InvalidOptionException {
+	int getNumThreads() throws InvalidOptionException {
 		try {
 			int threadsPerRow = Integer.valueOf(getValue(threads));
 			if(threadsPerRow <= 0) {

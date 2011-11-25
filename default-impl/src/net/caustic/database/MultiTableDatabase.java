@@ -224,8 +224,8 @@ public final class MultiTableDatabase extends Database {
 	 * the {@link #defaultTable} if {@Link Database} is not already open.
 	 */
 	private void open() throws DatabaseException {
-		if(isOpen == false) {
-			synchronized(connection) {
+		synchronized(connection) {
+			if(isOpen == false) {
 				connection.open();
 				links = connection.newTable(LINK_TABLE, LINK_TABLE_COLUMNS, new String[] { DEFAULT_SCOPE_NAME });
 				

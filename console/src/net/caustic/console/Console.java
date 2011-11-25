@@ -7,6 +7,8 @@ import java.util.Map;
 
 import net.caustic.LogScraperListener;
 import net.caustic.Scraper;
+import net.caustic.database.Connection;
+import net.caustic.database.ConnectionException;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
 import net.caustic.log.Logger;
@@ -19,6 +21,7 @@ import net.caustic.util.StringUtils;
 public class Console {
 	
 	private final Logger logger;
+	private final Connection connection; // can be null.
 	private final Database database;
 	private final Input input;
 
@@ -33,7 +36,12 @@ public class Console {
 		logger = options.getLogger();
 		input = options.getInput();
 		instruction = options.getInstruction();
-		database = options.getDatabase();
+		connection = options.getConnection();
+		if(connection != null) {
+			database = options.getSQLDatabase(connection);
+		} else {
+			database = options.getInMemoryDatabase();
+		}
 		
 		scraper = new Scraper(database, options.getNumThreads());
 		scraper.register(logger);
@@ -58,9 +66,14 @@ public class Console {
 			input.close();
 			logger.i("Closed input " + StringUtils.quote(input));
 		} catch(IOException e) {
-			System.out.println("Could not close input " + StringUtils.quote(input) + ": " + e.getMessage());
+			logger.i("Could not close input " + StringUtils.quote(input) + ": " + e.getMessage());
+			logger.e(e);
 		}
 		scraper.join();
+		
+		if(connection != null) {
+			connection.close();
+		}
 	}
 	
 	/**
@@ -71,31 +84,25 @@ public class Console {
 	 */
 	public Thread getShutdownThread() {
 		return new Thread() {
-			public void run() { }
-			/*public void run() {
-				
-				try {
-					logger.close();
-				} catch (IOException e) {
-					System.out.println("Could not close logger " + StringUtils.quote(logger) + ": " + e.getMessage());
+			public void run() { 
+				if(!scraper.isDormant()) {
+					scraper.interrupt();
 				}
-				
 				try {
 					input.close();
 				} catch(IOException e) {
-					System.out.println("Could not close input " + StringUtils.quote(input) + ": " + e.getMessage());
+					logger.i("Could not close input " + StringUtils.quote(input) + ": " + e.getMessage());
+					logger.e(e);
 				}
-				
 				try {
-					//database.close();
-					System.out.println("Saved to database " + database);
+					if(connection != null) {
+						connection.close();
+					}
 				} catch(ConnectionException e) {
-					System.out.println("Could not close connection for database "
-							+ StringUtils.quote(database) + ": " + e.getMessage());
-				} catch(DatabaseException e) {
-					System.out.println("Could not close database " + StringUtils.quote(database) + ": " + e.getMessage());					
+					logger.i("Couldn't close connection: " + e.getMessage());
+					logger.e(e);
 				}
-			}*/
+			}
 		};
 	}
 }
