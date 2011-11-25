@@ -103,6 +103,34 @@ public abstract class DatabaseTest {
 		}
 		assertEquals("buggy", db.get(scope, "transport"));
 	}
+
+	@Test
+	public void testDeepInheritence() throws Exception {
+		db.put(scope, "foo", "bar");
+		
+		Scope child = db.newScope(scope, "layer", "onion");
+		for(int i = 0 ; i < 100 ; i ++) {
+			child = db.newScope(child, "layer", "onion");
+		}
+		
+		assertEquals("bar", db.get(child, "foo"));
+	}
+
+	@Test
+	public void testWideInheritence() throws Exception {
+		db.put(scope, "foo", "bar");
+		
+		List<Scope> children = new ArrayList<Scope>();
+		for(int i = 0 ; i < 100 ; i ++) {
+			Scope child = db.newScope(scope, "layer");
+			db.put(child, "somethin", "else");
+			children.add(child);
+		}
+		
+		for(Scope child : children) {
+			assertEquals("bar", db.get(child, "foo"));
+		}
+	}
 	
 	@Test
 	public void testConcurrency() throws Exception {
@@ -130,7 +158,8 @@ public abstract class DatabaseTest {
 			assertEquals(entry.getValue(), db.get(scope, entry.getKey()));
 		}
 	}
-
+	
+	
 	@Test
 	public void testConcurrentChildOverwrites() throws Exception {
 		db.put(scope, "transport", "buggy");

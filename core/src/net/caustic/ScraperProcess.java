@@ -30,7 +30,7 @@ final class ScraperProcess {
 	// and thus hard to count.
 	private volatile int stuckCnt = 0;
 	private volatile int successful = 0;
-	private int failed = 0;
+	private volatile int failed = 0;
 	
 	/**
 	 * If {@link #autoRun} is <code>true</code>, instructions are automatically fired from 
@@ -102,32 +102,41 @@ final class ScraperProcess {
 			String source, String key, String[] results) {
 		try {
 			successful++;
-	
+			
 			// Retry stuck scrapers based off of new data.
 			if(stuck.containsKey(scope)) {
+				
+				// stuckInScope is a table of Executables by String arrays of missing strings.
 				Hashtable stuckInScope = (Hashtable) stuck.get(scope);
 				Enumeration e = stuckInScope.keys();
 				
-				Vector resubmitted = new Vector(); // vector of missing tag string array references
+				// Vector of missing tag string array references.  This will be used to prune
+				// stuckInScope after enumeration is complete.
+				Vector removeFromStuckInScope = new Vector(); 
 				while(e.hasMoreElements()) {
+					String[] missingTags = (String[]) e.nextElement();
+					
 					boolean shouldResubmit = true; // change to false if still missing tags
 					
-					String[] missingTags = (String[]) e.nextElement();
+					// check the database to see if we're still missing any of these tags.
 					for(int j = 0 ; j < missingTags.length ; j ++) {
 						if(db.get(scope, missingTags[j]) == null) {
+							// we are still missing a tag, break out.
 							shouldResubmit = false;
 							break;
 						}
 					}
 					
 					if(shouldResubmit == true) {
-						scraper.submit((Executable) stuck.get((Executable) stuck.get(missingTags)));
-						resubmitted.add(missingTags);
+						//scraper.submit((Executable) stuck.get((Executable) stuck.get(missingTags)));
+						scraper.submit((Executable) stuckInScope.get(missingTags));
+						removeFromStuckInScope.add(missingTags);
 					}
 				}
 				
 				// remove the elements that were resubmitted.
-				e = resubmitted.elements();
+				// we have to do this here because we have an enumerator, not an iterator. *grumble*
+				e = removeFromStuckInScope.elements();
 				while(e.hasMoreElements()) {
 					stuckInScope.remove(e.nextElement());
 					stuckCnt--;

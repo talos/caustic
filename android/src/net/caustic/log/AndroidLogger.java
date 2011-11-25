@@ -21,12 +21,6 @@ public class AndroidLogger implements Logger {
 	}
 	
 	@Override
-	public void open() throws IOException { }
-
-	@Override
-	public void close() throws IOException { }
-
-	@Override
 	public void e(Throwable e) throws IllegalStateException {
 		Log.e(context.getString(R.string.app_name), e.toString());
 		e.printStackTrace();

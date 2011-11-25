@@ -32,7 +32,7 @@ class InMemoryDatabaseListener implements DatabaseListener {
 
 	public void onNewScope(Scope parent, String key, Scope child)
 			throws DatabaseListenerException {
-		tree.put(parent, child);
+		tree.put(child, parent);
 		nodes.put(child, new Hashtable());
 	}
 

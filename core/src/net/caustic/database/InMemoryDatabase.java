@@ -42,16 +42,4 @@ public class InMemoryDatabase extends Database {
 		}
 		return null;
 	}
-	
-	/*public void open() throws DatabaseException, ConnectionException { 
-		//connection.open();
-		//table = SingleTable.get(connection);
-	}*/
-	
-	/*public Scope newScope() throws DatabaseException {
-		//DatabaseView view = 
-		//view.addListener(new SingleTableDatabaseViewHook(table, idFactory));
-	}*/
-	
-
 }
