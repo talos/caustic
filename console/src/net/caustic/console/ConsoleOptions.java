@@ -82,11 +82,7 @@ final class ConsoleOptions {
 	public static final String REQUEST_WAIT = "--request-wait";
 	public static final String REQUEST_WAIT_DEFAULT = Integer.toString(HttpBrowser.DEFAULT_REQUEST_WAIT);
 	private final Option requestWait = Option.withDefault(REQUEST_WAIT, REQUEST_WAIT_DEFAULT);
-	
-	public static final String ROWS = "--rows";
-	public static final String ROWS_DEFAULT = "5";
-	private final Option rows = Option.withDefault(ROWS, ROWS_DEFAULT);
-	
+		
 	public static final String SINGLE_TABLE = "--single-table";
 	private final Option singleTable = Option.withoutDefault(SINGLE_TABLE);
 	/*
@@ -130,9 +126,6 @@ final class ConsoleOptions {
 "    " + REQUEST_WAIT + "=<request-wait-milliseconds>" + NEWLINE +
 "        How many milliseconds to wait before placing a second " + NEWLINE +
 "        request with a single host.  Defaults to " + REQUEST_WAIT_DEFAULT + "ms." + NEWLINE +
-"    " + ROWS + "=<num-rows>" + NEWLINE +
-"        How many rows of input to read at once.  Defaults to " + NEWLINE +
-"        " + ROWS_DEFAULT + " rows." + NEWLINE+
 "    " + SINGLE_TABLE + NEWLINE +
 "        Save all results to a single sqlite table, if using sqlite" + NEWLINE +
 /*
@@ -140,13 +133,12 @@ final class ConsoleOptions {
 "        A string to use as source for the instruction." + NEWLINE +
 "        Only Finds use sources." + NEWLINE + */
 "    " + SKIP_ROWS + "=<num-skip-rows>" + NEWLINE + 
-"        How many rows of input to skip.  Defaults to " + SKIP_ROWS_DEFAULT + "." + NEWLINE +
+"        How many rows of input to skip.  Defaults to " + SKIP_ROWS_DEFAULT + " rows." + NEWLINE +
 "    " + THREADS + "=<num-threads>" + NEWLINE +
-"        How many threads to use per row of input.  Defaults to " + NEWLINE +
-"        " + THREADS_DEFAULT + " threads." + NEWLINE +
+"        How many threads to use.  Defaults to " + THREADS_DEFAULT + " threads." + NEWLINE +
 "    " + TIMEOUT_MILLISECONDS + "=<timeout>" + NEWLINE +
 "        How many milliseconds to wait before giving up on a" + NEWLINE + 
-"        request.  Defaults to " + TIMEOUT_MILLISECONDS + " milliseconds.";
+"        request.  Defaults to " + HttpBrowser.DEFAULT_TIMEOUT_MILLISECONDS + " milliseconds.";
 	
 	public static final String INSTRUCTION_MISSING_ERROR =
 			"Must provide an instruction as JSON or a link to an " +
@@ -282,6 +274,11 @@ final class ConsoleOptions {
 		return multiLog;
 	}
 	
+	/**
+	 * 
+	 * @return An {@link HttpBrowser} set with the user's options.
+	 * @throws InvalidOptionException
+	 */
 	HttpBrowser getBrowser() throws InvalidOptionException {
 
 		HttpBrowser browser = new DefaultHttpBrowser();
@@ -385,19 +382,11 @@ final class ConsoleOptions {
 		}
 	}
 	
-	int getNumRowsToRead() throws InvalidOptionException {
-		try {
-			int numRowsToRead = Integer.valueOf(getValue(rows));
-			if(numRowsToRead <= 0) {
-				throw new InvalidOptionException(ROWS + " must be greater than 0");
-			} else {
-				return numRowsToRead;
-			}
-		} catch(NumberFormatException e) {
-			throw new InvalidOptionException(ROWS + " must be an integer.");
-		}
-	}
-	
+	/**
+	 * 
+	 * @return How many threads should be used.
+	 * @throws InvalidOptionException
+	 */
 	int getNumThreads() throws InvalidOptionException {
 		try {
 			int threadsPerRow = Integer.valueOf(getValue(threads));

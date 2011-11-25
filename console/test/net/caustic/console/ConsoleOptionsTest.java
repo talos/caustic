@@ -64,20 +64,5 @@ public class ConsoleOptionsTest {
 				INPUT_DELIMITER + "=" + randomString(10) });
 		options.getInput();
 	}
-
-	@Test(expected=InvalidOptionException.class)
-	public void testRowsToReadCannotBeZero() throws Exception {
-		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
-				ROWS + "=0" });
-		options.getNumRowsToRead();
-	}
-	
-	@Test(expected=InvalidOptionException.class)
-	public void testRowsToReadCannotBeNegative() throws Exception {
-		ConsoleOptions options = new ConsoleOptions(new String[] { randomString(),
-				ROWS + "=" + (-1 - randomInt()) });
-		options.getNumRowsToRead();
-	}
-	
 	
 }
