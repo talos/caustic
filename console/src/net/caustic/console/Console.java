@@ -61,7 +61,6 @@ public class Console {
 					new Hashtable<String, String>(inputMap),
 					new LogScraperListener(logger));
 		}
-		
 		try {
 			input.close();
 			logger.i("Closed input " + StringUtils.quote(input));

@@ -45,7 +45,7 @@ public class ScraperIntegrationTest {
 	
 	@Test
 	public void testScrapeStuck() throws Exception {
-		scraper.scrapeAll(quote(demosDir + "simple-google.json"), input, listener);
+		scraper.scrapeAll(demosDir + "simple-google.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
@@ -55,7 +55,7 @@ public class ScraperIntegrationTest {
 	
 	@Test
 	public void testScrapeFail() throws Exception {	
-		scraper.scrapeAll(quote("path/to/nothing.json"), input, listener);
+		scraper.scrapeAll("path/to/nothing.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
@@ -66,6 +66,20 @@ public class ScraperIntegrationTest {
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {		
 		input.put("query", "hello");
+		scraper.scrapeAll(demosDir + "simple-google.json", input, listener);
+		scraper.join();
+
+		new VerificationsInOrder() {{
+			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
+					"what do you say after 'hello'?", (String[]) any);
+			listener.onFinish(4, 0, 0);
+		}};
+	}
+
+	@Test
+	public void testScrapeSimpleGoogleQuoted() throws Exception {		
+		input.put("query", "hello");
+		// it shouldn't make a difference if we quote a string.
 		scraper.scrapeAll(quote(demosDir + "simple-google.json"), input, listener);
 		scraper.join();
 
@@ -79,7 +93,7 @@ public class ScraperIntegrationTest {
 	@Test
 	public void testScrapeSimpleGooglePointer() throws Exception {
 		input.put("query", "hello");
-		scraper.scrapeAll(quote(demosDir + "pointer.json"), input, listener);
+		scraper.scrapeAll(demosDir + "pointer.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
@@ -97,11 +111,11 @@ public class ScraperIntegrationTest {
 		input.put("Borough", "3");
 		input.put("Apt", "");
 		
-		ScraperListener listener = new LogScraperListener(logger);
+		final ScraperListener listener = new LogScraperListener(logger);
 		
-		scraper.scrapeAll(quote(demosDir + "array.json"), input, listener);
+		scraper.scrapeAll(demosDir + "array.json", input, listener);
 		scraper.join();
-		/*
+		
 		new Verifications() {{
 			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
 					"what do you say after 'hello'?", (String[]) any);
@@ -109,7 +123,7 @@ public class ScraperIntegrationTest {
 					"Owner of 373 Atlantic Ave",
 					(String[]) any);
 			listener.onFinish(withNotEqual(0), 0, 0);
-		}};*/
+		}};
 	}
 	
 	/**
@@ -119,10 +133,10 @@ public class ScraperIntegrationTest {
 	@Test
 	public void testMultipleSimpleScrapes() throws Exception {
 		scraper.scrapeAll("path/to/nothing.json", new Hashtable(), listener); // should fail
-		scraper.scrapeAll(quote(demosDir + "simple-google.json"), new Hashtable(), listener2); // should get stuck
+		scraper.scrapeAll(demosDir + "simple-google.json", new Hashtable(), listener2); // should get stuck
 		
 		input.put("query", "hello");
-		scraper.scrapeAll(quote(demosDir + "simple-google.json"), input, listener3); // should succeed
+		scraper.scrapeAll(demosDir + "simple-google.json", input, listener3); // should succeed
 		
 		scraper.join();
 		
@@ -136,7 +150,7 @@ public class ScraperIntegrationTest {
 	@Test
 	public void testScrapeComplexGoogle() throws Exception {
 		input.put("query", "hello");
-		scraper.scrapeAll(quote(demosDir + "complex-google.json"), input, listener);
+		scraper.scrapeAll(demosDir + "complex-google.json", input, listener);
 		scraper.join();
 		
 
@@ -152,7 +166,7 @@ public class ScraperIntegrationTest {
 	@Test
 	public void testScrapeReferenceGoogle() throws Exception {
 		input.put("query", "hello");
-		scraper.scrapeAll(quote(demosDir + "reference-google.json"), input, listener);
+		scraper.scrapeAll(demosDir + "reference-google.json", input, listener);
 		scraper.join();
 		
 
@@ -172,7 +186,7 @@ public class ScraperIntegrationTest {
 		input.put("Borough", "3");
 		input.put("Apt", "");
 		
-		scraper.scrapeAll(quote(demosDir + "nyc/nyc-property-owner.json"), input, listener);
+		scraper.scrapeAll(demosDir + "nyc/nyc-property-owner.json", input, listener);
 		scraper.join();
 		
 		new VerificationsInOrder() {{
@@ -189,7 +203,7 @@ public class ScraperIntegrationTest {
 		input.put("Number", "373");
 		input.put("Street", "Atlantic Ave");
 		
-		scraper.scrapeAll(quote(demosDir + "nyc/BK-property.json"), input, listener);
+		scraper.scrapeAll(demosDir + "nyc/BK-property.json", input, listener);
 		scraper.join();
 
 		new VerificationsInOrder() {{

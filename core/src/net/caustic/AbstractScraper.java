@@ -53,7 +53,8 @@ public abstract class AbstractScraper implements Loggable {
 	 * {@link ScraperListener#onReady(Instruction, Database, Scope, Scope, String, HttpBrowser, Runnable)}
 	 * and fired manually.
 	 * @param uriOrJSON An instruction template to scrape.  Either a JSON string or a
-	 * URI referring to a JSON string.
+	 * URI referring to a JSON string.  URIs entered here do not need to be quoted, 
+	 * although URIs inside files <strong>do</strong> need to be quoted.
 	 * @param input A {@link Hashtable} of {@link String} to {@link String} key-values,
 	 * which will be used as defaults for substitutions during the scrape.
 	 * @param listener A {@link ScraperListener} to receive callbacks.
@@ -66,7 +67,8 @@ public abstract class AbstractScraper implements Loggable {
 	 * Scrape <code>instruction</code> with <code>input</code>, triggering events on
 	 * <code>listener</code>.  All child {@link Instruction}s will be scraped automatically.
 	 * @param uriOrJSON An instruction template to scrape.  Either a JSON string or a
-	 * URI referring to a JSON string.
+	 * URI referring to a JSON string.  URIs entered here do not need to be quoted, 
+	 * although URIs inside files <strong>do</strong> need to be quoted.
 	 * @param input A {@link Hashtable} of {@link String} to {@link String} key-values,
 	 * which will be used as defaults for substitutions during the scrape.
 	 * @param listener A {@link ScraperListener} to receive callbacks.
@@ -79,7 +81,8 @@ public abstract class AbstractScraper implements Loggable {
 	 * Scrape <code>instruction</code> with <code>input</code>, triggering events on
 	 * <code>listener</code>.
 	 * @param uriOrJSON An instruction template to scrape.  Either a JSON string or a
-	 * URI referring to a JSON string.
+	 * URI referring to a JSON string.  URIs entered here do not need to be quoted, 
+	 * although URIs inside files <strong>do</strong> need to be quoted.
 	 * @param input A {@link Hashtable} of {@link String} to {@link String} key-values,
 	 * which will be used as defaults for substitutions during the scrape.
 	 * @param listener A {@link ScraperListener} to receive callbacks.
@@ -87,11 +90,21 @@ public abstract class AbstractScraper implements Loggable {
 	 */
 	public Scope scrape(String uriOrJSON, Hashtable input, ScraperListener listener, boolean autoRun) {
 		
-		// The process calls back to this method.
+		// Quote string it if it's not quoted, and isn't JSON.
+		// This is OK because the process hits {@link #submit}, not {@link #scrape}.
+		final String quoted;
+		final char first = uriOrJSON.charAt(0);
+		if(first == '"' || first == '[' || first == '{') {
+			quoted = uriOrJSON;
+		} else {
+			quoted = StringUtils.quote(uriOrJSON);
+		}
+		
+		// The process calls back to {@link #submit}.
 		ScraperProcess process = new ScraperProcess(listener, this, autoRun);
 		
 		// obtain an instruction from the supplied URI or JSON relative to the root URI.
-		final Instruction instruction = new SerializedInstruction(uriOrJSON, deserializer, rootURI);
+		final Instruction instruction = new SerializedInstruction(quoted, deserializer, rootURI);
 		
 		// creation of a new scope could be stopped by database crash.
 		try {
