@@ -1,5 +1,5 @@
 {
-    "description" : "Can be run with FromMonth=01&ToMonth=12&FromDay=01&ToDay=31&FromYear=2007&ToYear=2007&Borough=3&Block=1772&DocType=",
+    "description" : "Can be run with FromMonth=01&ToMonth=12&FromDay=01&ToDay=31&FromYear=2007&ToYear=2007&Borough=3&Block=1772&DocType=&Lot=0000",
     "load" : "http://a836-acris.nyc.gov/Scripts/DocSearch.dll/BBLResult",
     "cookies" : {
 	"JUMPPAGE" : "YES"
@@ -8,7 +8,7 @@
 	"hid_borough" : "{{Borough}}",
 	"hid_borough_name" : "",
 	"hid_block" : "{{Block}}",
-	"hid_lot"   : "0000",
+	"hid_lot"   : "{{Lot}}",
 	"hid_selectdate": "DR",
 	"hid_datefromm" : "{{FromMonth}}",
 	"hid_datefromd" : "{{FromDay}}",

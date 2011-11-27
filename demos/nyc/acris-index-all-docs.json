@@ -1,0 +1,14 @@
+{
+	"extends"     : "acris-index.json",
+	"description" : "Subsitutes in defaults that make this grab all documents for all times.",
+	"posts" : {
+		"hid_selectdate": "To Current Date",
+		"hid_datefromm" : "",
+		"hid_datefromd" : "",
+		"hid_datefromy" : "",
+		"hid_datetom" : "",
+		"hid_datetod" : "",
+		"hid_datetoy" : "",
+		"hid_doctype" : ""
+	}
+}

@@ -1,0 +1,30 @@
+{
+	"load" : "http://webapps.nyc.gov:8084/CICS/fin1/find001I",
+	"name" : "DoF lookup",
+	"method" : "post",
+	"posts" : {
+		"FHOUSENUM" : "{{Number}}",
+		"FSTNAME"   : "{{Street}}",
+		"FBORO"     : "{{Borough}}",
+		"FAPTNUM"   : "{{Apt}}"
+	},
+	"then" : [{
+		"description" : "The names of the owners",
+		"name" : "Owner",
+		"find" : "<input\\s+type=\"hidden\"\\s+name=\"ownerName\\d?\"\\s+value=\"\\s*(\\w[^\"]*?)\\s*\"",
+		"replace" : "$1",
+		"then"    : "../nys/dos-corpsearch.json"
+	},{
+		"description" : "Block number",
+		"name"    : "Block",
+		"find"    : "<input\\s+type=\"hidden\"\\s+name=\"q49_block_id\\d?\"\\s+value=\"(\\d+)\"",
+		"replace" : "$1",
+		"match"   : 0
+	},{
+		"description" : "Lot number",
+		"name"    : "Lot",
+		"find"    : "<input\\s+type=\"hidden\"\\s+name=\"q49_lot\\d?\"\\s+value=\"(\\d+)\"",
+		"replace" : "$1",
+		"match"   : 0
+	}, "acris-index-all-docs.json"]
+}
