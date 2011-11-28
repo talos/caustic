@@ -33,9 +33,14 @@ public abstract class DatabaseTest {
 	public void setUp() throws Exception {
 		exc = Executors.newCachedThreadPool();
 		db = getDatabase();
-		scope = db.newScope();
+		scope = db.newDefaultScope();
 	}
 
+	@Test
+	public void testDefaultScopeHasDefaultName() throws Exception {
+		assertEquals(Database.DEFAULT_SCOPE, scope.getName());
+	}
+	
 	@Test
 	public void testNewScopeWithNameOnlyStoresNothing() throws Exception {
 		Scope child = db.newScope(scope, "foo");
@@ -43,6 +48,14 @@ public abstract class DatabaseTest {
 		assertNull(db.get(scope, "foo"));
 		assertNull(db.get(child, "foo"));
 	}
+
+	@Test
+	public void testNewScopeWithNameOnlyHasCorrectName() throws Exception {
+		Scope child = db.newScope(scope, "foo");
+		
+		assertEquals("foo", child.getName());
+	}
+
 
 	@Test
 	public void testNewScopeWithNameAndValueStoresOnlyInChild() throws Exception {
@@ -53,6 +66,15 @@ public abstract class DatabaseTest {
 		String childValue = db.get(child, "foo");
 		assertEquals("Child does not have correct value", "bar", childValue);
 	}
+	
+
+	@Test
+	public void testNewScopeWithNameAndValueHasCorrectName() throws Exception {
+		Scope child = db.newScope(scope, "foo", "bar");
+		
+		assertEquals("foo", child.getName());
+	}
+	
 	
 	@Test
 	public void testPutInScope() throws Exception {
@@ -237,7 +259,7 @@ public abstract class DatabaseTest {
 		
 		db.addListener(listener);
 		
-		final Scope parent = db.newScope();
+		final Scope parent = db.newDefaultScope();
 		db.put(parent, "foo", "bar");
 		final Scope child = db.newScope(parent, "roses", "red");
 		

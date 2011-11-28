@@ -31,7 +31,7 @@ public class HashtableTemplateTest {
 		encoder = new JavaNetEncoder(Encoder.UTF_8);
 		compiler = new JavaUtilRegexpCompiler(encoder);
 		db = new InMemoryDatabase();
-		scope = db.newScope();
+		scope = db.newDefaultScope();
 	}
 
 	@Test

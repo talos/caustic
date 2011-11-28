@@ -9,10 +9,15 @@ package net.caustic.scope;
 final class IntScope implements Scope {
 
 	private final int id;
-	protected IntScope(int id) {
+	private final String name;
+	IntScope(int id, String name) {
 		this.id = id;
+		this.name = name;
 	}
 
+	public String getName() {
+		return name;
+	}
 	public String asString() {
 		return Integer.toString(id);
 	}

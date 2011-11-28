@@ -48,11 +48,11 @@ public class SingleTableDatabase extends Database {
 					if(row.get(NAME_COLUMN_NAME).equals(name)) {
 						return row.get(VALUE_COLUMN_NAME);
 					} else if(row.get(SOURCE_COLUMN_NAME) != null) {
-						String sourceString = row.get(SOURCE_COLUMN_NAME);
-						
-						// if one row has a none=null source, use it.
-						if(sourceString != null) {
-							scope = new SerializedScope(sourceString);
+						String sourceScopeString = row.get(SOURCE_COLUMN_NAME);
+						String sourceName = row.get(NAME_COLUMN_NAME);
+						// if one row has a none-null source, use it.
+						if(sourceScopeString != null) {
+							scope = new SerializedScope(sourceScopeString, sourceName);
 						}
 					}
 				}
@@ -83,7 +83,7 @@ public class SingleTableDatabase extends Database {
 			if(table == null) {
 				connection.open();
 				table = connection.newTable(TABLE_NAME, COLUMN_NAMES,
-						new String[] { Database.DEFAULT_SCOPE_NAME, SOURCE_COLUMN_NAME, NAME_COLUMN_NAME } );
+						new String[] { Database.SCOPE_COLUMN_NAME, SOURCE_COLUMN_NAME, NAME_COLUMN_NAME } );
 			}
 		}
 	}

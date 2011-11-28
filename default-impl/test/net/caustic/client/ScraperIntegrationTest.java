@@ -509,6 +509,6 @@ public class ScraperIntegrationTest {
 	 * @return A {@link Scope}
 	 */
 	private Scope scope(int scopeNumber) {
-		return new SerializedScope(Integer.toString(scopeNumber));
+		return new SerializedScope(Integer.toString(scopeNumber), "");
 	}
 }

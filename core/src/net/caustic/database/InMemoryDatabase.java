@@ -6,7 +6,7 @@ import net.caustic.scope.Scope;
 
 /**
  * A {@link Database} implementation that creates a new {@link InMemoryDatabaseView}
- * for each call of {@link #newScope()}.
+ * for each call of {@link #newDefaultScope()}.
  * @author talos
  *
  */
@@ -42,4 +42,5 @@ public class InMemoryDatabase extends Database {
 		}
 		return null;
 	}
+
 }

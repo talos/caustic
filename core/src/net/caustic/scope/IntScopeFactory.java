@@ -9,10 +9,10 @@ package net.caustic.scope;
 public final class IntScopeFactory implements ScopeFactory {
 	private int curId;
 	
-	public Scope get() {
+	public Scope get(String name) {
 		synchronized(this) {
 			curId++;
-			return new IntScope(curId);
+			return new IntScope(curId, name);
 		}
 	}
 	

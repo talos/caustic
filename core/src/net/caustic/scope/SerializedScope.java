@@ -8,13 +8,16 @@ package net.caustic.scope;
  */
 public class SerializedScope implements Scope {
 	private final String serializedUUID;
+	private final String name;
 	
 	/**
 	 * Construct a {@link Scope} from a serialized {@link String}.
 	 * @param serializedUUID The {@link Scope} stored as a {@link String}.
+	 * @param name The {@link String} name of the scope.
 	 */
-	public SerializedScope(String serializedUUID) {
+	public SerializedScope(String serializedUUID, String name) {
 		this.serializedUUID = serializedUUID;
+		this.name = name;
 	}
 
 	public String asString() {
@@ -38,5 +41,9 @@ public class SerializedScope implements Scope {
 		} else {
 			return false;
 		}
+	}
+
+	public String getName() {
+		return name;
 	}
 }

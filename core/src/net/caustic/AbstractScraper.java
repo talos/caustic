@@ -108,7 +108,7 @@ public abstract class AbstractScraper implements Loggable {
 		
 		// creation of a new scope could be stopped by database crash.
 		try {
-			final Scope scope = db.newScope();
+			final Scope scope = db.newDefaultScope();
 			Enumeration e = input.keys();
 			while(e.hasMoreElements()) {
 				String key = (String) e.nextElement();

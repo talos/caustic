@@ -36,7 +36,7 @@ public class SQLTableTest {
 	@Parameters
 	public static Collection<SQLConnection[]> implementations() {
 		return Arrays.asList(new SQLConnection[][] {
-			{	JDBCSqliteConnection.inMemory(Database.DEFAULT_SCOPE_NAME, false) }
+			{	JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME, false) }
 		});
 	}
 	
@@ -73,9 +73,9 @@ public class SQLTableTest {
 		};
 		SQLTable sqlTable = (SQLTable) conn.newTable(randomString(), columns, new String[] { });
 		assertEquals("Should return no rows when no columns selected",
-				0, sqlTable.select(idFactory.get(), emptyMap, new String[] {} ).size());
+				0, sqlTable.select(idFactory.get("default"), emptyMap, new String[] {} ).size());
 		assertEquals("Should return no rows when columns are selected", 0,
-				sqlTable.select(idFactory.get(), emptyMap, columns ).size());
+				sqlTable.select(idFactory.get("default"), emptyMap, columns ).size());
 	}
 
 	@Test
@@ -90,7 +90,7 @@ public class SQLTableTest {
 			insertMap.put(column, randomString());
 		}
 		
-		Scope scope = idFactory.get();
+		Scope scope = idFactory.get("default");
 		sqlTable.insert(scope, insertMap);
 		
 		List<Map<String, String>> selectMap = sqlTable.select(scope, emptyMap, columns);
@@ -108,7 +108,7 @@ public class SQLTableTest {
 		};
 		SQLTable sqlTable = (SQLTable) conn.newTable(randomString(), columns, new String[] { });
 
-		Scope scope = idFactory.get();
+		Scope scope = idFactory.get("default");
 		final int rows = 10;
 		for(int i = 0 ; i < rows ; i ++) { 
 			Map<String, String> insertMap = new HashMap<String, String>();
@@ -140,7 +140,7 @@ public class SQLTableTest {
 			updateMap.put(column, randomString());
 		}
 		
-		Scope scope = idFactory.get();
+		Scope scope = idFactory.get("default");
 		sqlTable.insert(scope, insertMap);
 		sqlTable.update(scope, emptyMap, updateMap);
 		
@@ -161,7 +161,7 @@ public class SQLTableTest {
 		};
 		SQLTable sqlTable = (SQLTable) conn.newTable(randomString(), columns, new String[] { });
 
-		Scope scope = idFactory.get();
+		Scope scope = idFactory.get("default");
 		final int rows = 10;
 		for(int i = 0 ; i < rows ; i ++) { 
 			Map<String, String> insertMap = new HashMap<String, String>();
@@ -194,7 +194,7 @@ public class SQLTableTest {
 		
 		SQLTable sqlTable = (SQLTable) conn.newTable(randomString(), columns, new String[] { });
 		
-		Scope scope = idFactory.get();
+		Scope scope = idFactory.get("default");
 		
 		Map<String, String> cat = new HashMap<String, String>();
 		cat.put(SPECIES, "cat");

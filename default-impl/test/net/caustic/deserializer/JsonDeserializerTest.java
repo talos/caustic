@@ -42,7 +42,7 @@ public class JsonDeserializerTest {
 	@Before
 	public void setUp() throws Exception {
 		db = new InMemoryDatabase();
-		scope = db.newScope();
+		scope = db.newDefaultScope();
 		deserializer = new DefaultJSONDeserializer();
 	}
 	

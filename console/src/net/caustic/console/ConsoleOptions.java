@@ -220,7 +220,7 @@ final class ConsoleOptions {
 		if(format.equals(SQLITE_FORMAT)) {
 			return JDBCSqliteConnection.toFile(
 					SAVE_TO_FILE_DEFAULT + "." + SQLITE_FORMAT,
-					Database.DEFAULT_SCOPE_NAME, true);
+					Database.SCOPE_COLUMN_NAME, true);
 		} else {
 			return null;
 		}

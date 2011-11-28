@@ -23,7 +23,7 @@ public final class MultiTableDatabase extends Database {
 	/**
 	 * String to prepend before table names to prevent collision
 	 * with {@link #DEFAULT_TABLE}, and to prepend before column
-	 * names to prevent collision with {@link #DEFAULT_SCOPE_NAME}.
+	 * names to prevent collision with {@link #SCOPE_COLUMN_NAME}.
 	 */
 	public static final char PREPEND = '_';
 	
@@ -127,9 +127,11 @@ public final class MultiTableDatabase extends Database {
 			
 			// not in the linking value, check the source table.
 			String sourceScope = link.get(SOURCE_SCOPE);
+			String sourceName = link.get(RESULT_TABLE);
+			
 			if(sourceScope != null) {
 				// loop back using sourceScope
-				return get(new SerializedScope(sourceScope), columnName);
+				return get(new SerializedScope(sourceScope, sourceName), columnName);
 			} else {
 				// we're already at a default scope, this columnName doesn't exist.
 				return null;
@@ -151,7 +153,7 @@ public final class MultiTableDatabase extends Database {
 			Table resultTable = connection.getTable(resultTableName);
 			if(resultTable == null) { // have to create the table from scratch, insert new row
 				resultTable = connection.newTable(resultTableName, new String[] { columnName },
-						new String[] { MultiTableDatabase.DEFAULT_SCOPE_NAME });
+						new String[] { MultiTableDatabase.SCOPE_COLUMN_NAME });
 				resultTable.insert(scope, map);	
 
 			} else { // have to update existing row, perhaps after alteration.
@@ -227,7 +229,7 @@ public final class MultiTableDatabase extends Database {
 		synchronized(connection) {
 			if(isOpen == false) {
 				connection.open();
-				links = connection.newTable(LINK_TABLE, LINK_TABLE_COLUMNS, new String[] { DEFAULT_SCOPE_NAME });
+				links = connection.newTable(LINK_TABLE, LINK_TABLE_COLUMNS, new String[] { SCOPE_COLUMN_NAME });
 				
 				// create default table
 				//connection.newIOTable(DEFAULT_TABLE, RESULT_TABLE_COLUMNS);

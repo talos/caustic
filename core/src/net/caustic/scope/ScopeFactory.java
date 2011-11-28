@@ -9,8 +9,9 @@ package net.caustic.scope;
 public interface ScopeFactory {
 	
 	/**
+	 * @param name A {@link String} name for the returned {@link Scope}.
+	 * @return A new {@link Scope} of name <code>name</code>.
 	 * 
-	 * @return A new {@link Scope}.
 	 */
-	public Scope get();
+	public Scope get(String name);
 }

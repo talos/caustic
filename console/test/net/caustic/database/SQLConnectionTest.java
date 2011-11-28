@@ -24,7 +24,7 @@ public class SQLConnectionTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		conn = JDBCSqliteConnection.inMemory(Database.DEFAULT_SCOPE_NAME, false);
+		conn = JDBCSqliteConnection.inMemory(Database.SCOPE_COLUMN_NAME, false);
 		conn.open();
 	}
 	
@@ -37,7 +37,7 @@ public class SQLConnectionTest {
 	public void testIOTable() throws Exception {
 		int numColumns = 4;
 		
-		Scope scope = new SerializedScope(randomString());
+		Scope scope = new SerializedScope(randomString(), "default");
 		String name = randomString();
 		String[] columns = new String[numColumns];
 		Map<String, String> map = new HashMap<String, String>();

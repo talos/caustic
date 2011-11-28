@@ -18,7 +18,6 @@ import java.util.concurrent.Future;
 import net.caustic.scope.IntScopeFactory;
 import net.caustic.scope.Scope;
 import net.caustic.scope.ScopeFactory;
-import net.caustic.uuid.JavaUtilUUIDFactory;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +26,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class UUIDFactoryTest {
+public class ScopeFactoryTest {
 	private static final int NUM_TESTS = 2000;
 	private final Class<ScopeFactory> klass;
 	private ScopeFactory factory;
@@ -45,7 +44,7 @@ public class UUIDFactoryTest {
 		
 		public Boolean call() {
 			for(int i = 0 ; i < NUM_TESTS ; i ++) {
-				Scope uuid = factory.get();
+				Scope uuid = factory.get("default");
 				uuids.add(uuid);
 				uuidStrings.add(uuid.asString());
 			}
@@ -53,15 +52,14 @@ public class UUIDFactoryTest {
 		}
 	}
 	
-	public UUIDFactoryTest(final Class<ScopeFactory> klass) {
+	public ScopeFactoryTest(final Class<ScopeFactory> klass) {
 		this.klass = klass;
 	}
 	
 	@Parameters
 	public static Collection<Class<?>[]> implementations() {
 		return Arrays.asList(new Class<?>[][] {
-				{ IntScopeFactory.class  },
-				{ JavaUtilUUIDFactory.class }
+				{ IntScopeFactory.class  }
 		});
 	}
 	
@@ -75,7 +73,7 @@ public class UUIDFactoryTest {
 		Set<Scope> uuids = new HashSet<Scope>();
 		Set<String> uuidStrings = new HashSet<String>();
 		for(int i = 0 ; i < NUM_TESTS ; i ++) {
-			Scope uuid = factory.get();
+			Scope uuid = factory.get("default");
 			uuids.add(uuid);
 			uuidStrings.add(uuid.asString());
 		}

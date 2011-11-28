@@ -5,7 +5,7 @@ import net.caustic.console.InputTest;
 import net.caustic.database.DatabaseTest;
 import net.caustic.database.SQLConnectionTest;
 import net.caustic.util.MapUtilsTest;
-import net.caustic.util.UUIDFactoryTest;
+import net.caustic.util.ScopeFactoryTest;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -17,7 +17,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	InputTest.class,
 	DatabaseTest.class,
 	MapUtilsTest.class,
-	UUIDFactoryTest.class,
+	ScopeFactoryTest.class,
 	SQLConnectionTest.class,
 	DatabaseTest.class
 })

@@ -33,7 +33,7 @@ public class StringTemplateTest {
 	public StringTemplateTest(RegexpCompiler regexpCompiler) throws DatabaseException {
 		this.re = regexpCompiler;
 		this.db = new InMemoryDatabase();
-		this.scope = db.newScope();
+		this.scope = db.newDefaultScope();
 	}
 	
 	@Parameters
