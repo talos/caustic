@@ -17,15 +17,15 @@ public abstract class Instruction {
 	 */
 	private final Vector children = new Vector();
 	
-	protected Instruction() {
+	Instruction() {
 		this.name = null;
 	}
 	
-	protected Instruction(StringTemplate name) {
+	Instruction(StringTemplate name) {
 		this.name = name;
 	}
 	
-	protected Instruction[] getChildren() {
+	Instruction[] getChildren() {
 		Instruction[] result = new Instruction[children.size()];
 		children.copyInto(result);
 		return result;

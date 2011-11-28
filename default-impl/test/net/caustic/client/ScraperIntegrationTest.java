@@ -148,7 +148,7 @@ public class ScraperIntegrationTest {
 	}
 	
 	@Test
-	public void testScrapeComplexGoogle() throws Exception {
+	public void testScrapeAllComplexGoogle() throws Exception {
 		input.put("query", "hello");
 		scraper.scrapeAll(demosDir + "complex-google.json", input, listener);
 		scraper.join();
@@ -164,7 +164,7 @@ public class ScraperIntegrationTest {
 	}
 	
 	@Test
-	public void testScrapeReferenceGoogle() throws Exception {
+	public void testScrapeAllReferenceGoogle() throws Exception {
 		input.put("query", "hello");
 		scraper.scrapeAll(demosDir + "reference-google.json", input, listener);
 		scraper.join();
@@ -180,7 +180,7 @@ public class ScraperIntegrationTest {
 	}
 	
 	@Test
-	public void testScrapeNYCPropertyOwners() throws Exception {
+	public void testScrapeAllNYCPropertyOwners() throws Exception {
 		input.put("Number", "373");
 		input.put("Street", "Atlantic Ave");
 		input.put("Borough", "3");
@@ -199,7 +199,7 @@ public class ScraperIntegrationTest {
 	}
 	
 	@Test
-	public void testScrapeBKPropertyOwners() throws Exception {
+	public void testScrapeAllBKPropertyOwners() throws Exception {
 		input.put("Number", "373");
 		input.put("Street", "Atlantic Ave");
 		
@@ -214,6 +214,27 @@ public class ScraperIntegrationTest {
 					);
 		}};
 	}
+	
+
+	@Test
+	public void testScrapePauseBKPropertyOwners() throws Exception {
+		input.put("Number", "373");
+		input.put("Street", "Atlantic Ave");
+		
+		scraper.scrape(demosDir + "nyc/BK-property.json", input, listener);
+		
+		//scraper.join();
+
+		new VerificationsInOrder() {{
+			listener.onSuccess((Instruction) any, (Database) any, scope(0), (Scope) any, anyString,
+					"Owner of 373 Atlantic Ave",
+					(String[]) any
+					//withEqual(new String[] { "373 ATLANTIC AVENUE C", "373 ATLANTIC AVENUE CORPORATION" })
+					);
+			//listener.onReady((Instruction) any, (Database) any, scope(0), , parent, source, browser, start)
+		}};
+	}
+	
 		/*
 	@Test
 	public void testScrapeNYCIncentives() throws Exception {

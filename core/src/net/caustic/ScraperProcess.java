@@ -80,7 +80,7 @@ final class ScraperProcess {
 							triggerScrape(instruction, db, scope, parent, source, browser);
 						}
 					};
-					listener.onReady(instruction, name, db, scope, parent, source, browser, start);
+					listener.onReady(instruction, name, db, scope, parent, source, start);
 				}
 			} catch(DatabaseException e) {
 				triggerCrashed(instruction, scope, parent, source, e);
@@ -95,7 +95,7 @@ final class ScraperProcess {
 		
 		scraper.submit(new Executable(instruction, db, scope, parent, source, browser, this));
 		
-		listener.onScrape(instruction, db, scope, parent, source, browser);
+		listener.onScrape(instruction, db, scope, parent, source);
 	}
 	
 	public synchronized final void triggerSuccess(Instruction instruction, Database db, Scope scope, Scope parent,
@@ -174,7 +174,7 @@ final class ScraperProcess {
 		stuckInScope.put(missingTags, new Executable(instruction, db, scope, parent, source, browser, this));
 		stuckCnt++;
 		
-		listener.onMissingTags(instruction, db, scope, parent, source, browser, missingTags);
+		listener.onMissingTags(instruction, db, scope, parent, source, missingTags);
 		
 		if(isDone()) {
 			triggerFinish(successful, stuck.size(), failed);

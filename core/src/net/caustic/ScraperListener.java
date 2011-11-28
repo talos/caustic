@@ -1,7 +1,6 @@
 package net.caustic;
 
 import net.caustic.database.Database;
-import net.caustic.http.HttpBrowser;
 import net.caustic.instruction.Instruction;
 import net.caustic.scope.Scope;
 
@@ -23,13 +22,12 @@ public interface ScraperListener {
 	 * @param source A {@link String} source that <code>instruction</code> is
 	 * working from.  This is <code>null</code> if <code>instruction</code>
 	 * is a {@link Load}.
-	 * @param browser The {@link HttpBrowser} that is being used for this scrape.
 	 * @param start A {@link Runnable} whose {@link Runnable#run()} method will begin
 	 * the scraping.  If the scraping has already started, {@link Runnable#run()} is
 	 * a no-op.
 	 */
 	public abstract void onReady(Instruction instruction, String name, Database db, Scope scope,
-			Scope parent, String source, HttpBrowser browser, Runnable start);
+			Scope parent, String source, Runnable start);
 	
 	/**
 	 * This fires when an <code>instruction</code> first starts to be scraped.
@@ -40,10 +38,9 @@ public interface ScraperListener {
 	 * @param source A {@link String} source that <code>instruction</code> is
 	 * working from.  This is <code>null</code> if <code>instruction</code>
 	 * is a {@link Load}.
-	 * @param browser The {@link HttpBrowser} that is being used for this scrape.
 	 */
 	public abstract void onScrape(Instruction instruction, Database db, Scope scope,
-			Scope parent, String source, HttpBrowser browser);
+			Scope parent, String source);
 	
 	/**
 	 * This fires when a single <code>instruction</code> is successfully scraped.
@@ -74,7 +71,7 @@ public interface ScraperListener {
 	 * @param missingTags An array of {@link String}s that are missing tags.
 	 */
 	public abstract void onMissingTags(Instruction instruction, Database db, Scope scope,
-			Scope parent, String source, HttpBrowser browser, String[] missingTags);
+			Scope parent, String source, String[] missingTags);
 	
 	/**
 	 * This fires when an <code>instruction</code> cannot be scraped.

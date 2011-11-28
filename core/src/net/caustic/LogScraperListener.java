@@ -1,7 +1,6 @@
 package net.caustic;
 
 import net.caustic.database.Database;
-import net.caustic.http.HttpBrowser;
 import net.caustic.instruction.Instruction;
 import net.caustic.log.Logger;
 import net.caustic.scope.Scope;
@@ -21,12 +20,12 @@ public class LogScraperListener implements ScraperListener {
 	}
 
 	public void onReady(Instruction instruction, String name, Database db, Scope scope,
-			Scope parent, String source, HttpBrowser browser, Runnable start) {
+			Scope parent, String source, Runnable start) {
 		log.i("Ready to scrape " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
 	}
 
 	public void onScrape(Instruction instruction, Database db, Scope scope,
-			Scope parent, String source, HttpBrowser browser) {
+			Scope parent, String source) {
 		log.i("Scraping " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
 		
 	}
@@ -37,7 +36,7 @@ public class LogScraperListener implements ScraperListener {
 	}
 	
 	public void onMissingTags(Instruction instruction, Database db,
-			Scope scope, Scope parent, String source, HttpBrowser browser,
+			Scope scope, Scope parent, String source,
 			String[] missingTags) {
 		log.i("Stuck on " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope) +
 				" because missing tags " + StringUtils.quoteJoin(missingTags, ", "));
