@@ -5,7 +5,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import net.caustic.database.Database;
-import net.caustic.database.InMemoryDatabase;
+import net.caustic.database.MemoryDatabase;
 import net.caustic.deserializer.DefaultJSONDeserializer;
 import net.caustic.http.DefaultHttpBrowser;
 
@@ -22,14 +22,14 @@ public class Scraper extends AbstractScraper {
 	private final ExecutorService executor;
 	
 	public Scraper() {
-		super(new InMemoryDatabase(), new DefaultHttpBrowser(),
+		super(new MemoryDatabase(), new DefaultHttpBrowser(),
 				new DefaultJSONDeserializer());
 		
 		executor = Executors.newFixedThreadPool(DEFAULT_THREADS);
 	}
 	
 	public Scraper(int nThreads) {
-		super(new InMemoryDatabase(), new DefaultHttpBrowser(),
+		super(new MemoryDatabase(), new DefaultHttpBrowser(),
 				new DefaultJSONDeserializer());
 		executor = Executors.newFixedThreadPool(nThreads);
 	}
@@ -46,6 +46,7 @@ public class Scraper extends AbstractScraper {
 		executor = Executors.newFixedThreadPool(nThreads);
 	}
 	
+	@Override
 	public void submit(Executable executable) {
 		executor.submit(executable);
 	}

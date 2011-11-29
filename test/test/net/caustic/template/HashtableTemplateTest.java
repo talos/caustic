@@ -6,7 +6,7 @@ import static net.caustic.regexp.StringTemplate.*;
 import java.util.Hashtable;
 
 import net.caustic.database.Database;
-import net.caustic.database.InMemoryDatabase;
+import net.caustic.database.MemoryDatabase;
 import net.caustic.regexp.JavaUtilRegexpCompiler;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.scope.Scope;
@@ -30,7 +30,7 @@ public class HashtableTemplateTest {
 	public void setUp() throws Exception {
 		encoder = new JavaNetEncoder(Encoder.UTF_8);
 		compiler = new JavaUtilRegexpCompiler(encoder);
-		db = new InMemoryDatabase();
+		db = new MemoryDatabase();
 		scope = db.newDefaultScope();
 	}
 

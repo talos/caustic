@@ -1,5 +1,6 @@
 package net.caustic.instruction;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 import net.caustic.database.Database;
@@ -160,8 +161,8 @@ public final class Load extends Instruction {
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 * <code>source</code> is ignored.
 	 */
-	public InstructionResult execute(String source, Database db, Scope scope,
-			HttpBrowser browser) throws InterruptedException, DatabaseException {
+	public InstructionResult execute(String source, Database db, Scope scope, HttpBrowser browser)
+			throws InterruptedException, DatabaseException {
 		final InstructionResult result;
 		try {			
 			final Pattern[] stops = new Pattern[] { };
@@ -185,17 +186,27 @@ public final class Load extends Instruction {
 				final String postStr = postData.getSubstituted();
 				Hashtable headers = headersSub.getSubstituted();
 				Hashtable cookies = cookiesSub.getSubstituted();
-				if(cookies.size() > 0) {
-					browser.addCookies(url, cookies);
+				
+				// add cookies directly into DB
+				Enumeration e = cookies.elements();
+				while(e.hasMoreElements()) {
+					String name = (String) e.nextElement();
+					String value = (String) cookies.get(name);
+					db.addCookie(scope, url, name, value);
 				}
 				
+				/*if(cookies.size() > 0) {
+					db.addCookie(scope, url, cookie)
+					//browser.addCookies(url, cookies);
+				}*/
+				
 				if(method.equalsIgnoreCase(HttpBrowser.HEAD)){
-					browser.head(url, headers);
+					browser.head(url, headers, db, scope);
 					responseBody = ""; // launch children with a blank source.
 				} else if(method.equalsIgnoreCase(HttpBrowser.POST)) {
-					responseBody = browser.post(url, headers, stops, postStr);
+					responseBody = browser.post(url, headers, stops, postStr, db, scope);
 				} else {
-					responseBody = browser.get(url, headers, stops);
+					responseBody = browser.get(url, headers, stops, db, scope);
 				}
 				result = InstructionResult.success(url, new String[] { responseBody }, getChildren(), false);
 			}

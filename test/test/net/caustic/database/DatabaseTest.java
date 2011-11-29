@@ -264,7 +264,7 @@ public abstract class DatabaseTest {
 		final Scope child = db.newScope(parent, "roses", "red");
 		
 		new Verifications() {{
-			listener.onNewScope(parent);
+			listener.onNewDefaultScope(parent);
 			listener.onPut(parent, "foo", "bar");
 			listener.onNewScope(parent, "roses", "red", child);
 		}};

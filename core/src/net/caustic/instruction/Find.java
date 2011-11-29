@@ -127,8 +127,8 @@ public final class Find extends Instruction {
 	 * Use {@link #pattern}, substituted from {@link Database}, to match against <code>source</code>.
 	 * Ignores <code>browser</code>.
 	 */
-	public InstructionResult execute(String source, Database db, Scope scope,
-			HttpBrowser browser) throws DatabaseException {
+	public InstructionResult execute(String source, Database db, Scope scope, HttpBrowser browser)
+			throws DatabaseException {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
@@ -139,12 +139,6 @@ public final class Find extends Instruction {
 		final StringSubstitution subReplacement = replacement.sub(db, scope);
 		
 		subName = name.sub(db, scope);
-		/*
-		if(hasName) {
-			subName = name.sub(db, scope);
-		} else {
-			subName = subPattern; // if no name defined, default to the pattern.
-		}*/
 				
 		if(subName.isMissingTags() ||
 				subPattern.isMissingTags() ||

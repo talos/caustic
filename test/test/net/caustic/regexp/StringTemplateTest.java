@@ -8,7 +8,7 @@ import java.util.Collection;
 
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
-import net.caustic.database.InMemoryDatabase;
+import net.caustic.database.MemoryDatabase;
 import net.caustic.regexp.JakartaRegexpCompiler;
 import net.caustic.regexp.JavaUtilRegexpCompiler;
 import net.caustic.regexp.RegexpCompiler;
@@ -32,7 +32,7 @@ public class StringTemplateTest {
 	
 	public StringTemplateTest(RegexpCompiler regexpCompiler) throws DatabaseException {
 		this.re = regexpCompiler;
-		this.db = new InMemoryDatabase();
+		this.db = new MemoryDatabase();
 		this.scope = db.newDefaultScope();
 	}
 	

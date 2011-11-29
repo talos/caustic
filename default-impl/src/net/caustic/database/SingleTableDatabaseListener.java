@@ -24,7 +24,7 @@ class SingleTableDatabaseListener implements DatabaseListener {
 		}		
 	}
 
-	public void onNewScope(Scope scope) throws DatabaseListenerException { }
+	public void onNewDefaultScope(Scope scope) throws DatabaseListenerException { }
 
 	public void onNewScope(Scope parent, String key, Scope child)
 			throws DatabaseListenerException {

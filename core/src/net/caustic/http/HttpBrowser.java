@@ -5,11 +5,15 @@ import java.io.InputStreamReader;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.caustic.database.Database;
+import net.caustic.database.DatabaseException;
 import net.caustic.http.RateLimitManager;
 import net.caustic.log.Loggable;
 import net.caustic.log.Logger;
 import net.caustic.log.MultiLog;
 import net.caustic.regexp.Pattern;
+import net.caustic.scope.Scope;
+import net.caustic.util.Encoder;
 import net.caustic.util.HashtableUtils;
 import net.caustic.util.StringUtils;
 
@@ -18,7 +22,8 @@ import net.caustic.util.StringUtils;
  * HTTP requests and handle the responses.
  */
 public class HttpBrowser implements Loggable {
-	
+	public static final String COOKIE_HEADER_NAME = "Cookie";
+	public static final String SET_COOKIE_HEADER_NAME = "Set-Cookie";
 
 	/**
 	 * The default number of seconds to wait before timing out on a
@@ -67,11 +72,13 @@ public class HttpBrowser implements Loggable {
 	
 	private final RateLimitManager rateLimitManager;
 	private final HttpRequester requester;
-	private final CookieManager cookieManager;
+	private final HttpUtils utils;
+	private final Encoder encoder;
+	//private final CookieManager cookieManager;
 	
 	private int maxResponseSize = HttpBrowser.DEFAULT_MAX_RESPONSE_SIZE;
 	private final MultiLog log;
-
+	
 	/**
 	 * How many milliseconds this {@link HttpBrowser} will sleep before
 	 * considering trying a host again, when its {@link RateLimitManager} tells
@@ -103,114 +110,109 @@ public class HttpBrowser implements Loggable {
 	 * {@link String} name-value pairs.
 	 * @param encodedPostData {@link String} of post data, already encoded. <code>Null</code> if
 	 * none.
+	 * @param db A {@link Database} to persist cookies to.
+	 * @param scope A {@link Scope} specifying where in <code>db</code> to persist cookies.
 	 * @return A {@link InputStreamReader} to read response content, if it was a request that
 	 * should return content.
 	 * @throws InterruptedException If the user interrupted the request while it was being delayed
 	 * due to rate limiting, or while waiting for the host to respond.
 	 * @throws HttpRequestException If the request could not be completed.
 	 * @throws CookieStorageException If a cookie could not be stored from one of the responses.
-	 */
-	private InputStreamReader request(String method, String urlStr, Hashtable headers, String encodedPostData)
-			throws InterruptedException, HttpRequestException, CookieStorageException {
-		return request(method, urlStr, headers, encodedPostData, new Vector());
-	}
-
-	/**
-	 * Make an HTTP request, following redirects.
-	 * @param method The HTTP method to use.
-	 * @param urlStr The {@link String} URL to request.
-	 * @param headers A {@link Hashtable} of additional headers, which are {@link String} to
-	 * {@link String} name-value pairs.
-	 * @param encodedPostData {@link String} of post data, already encoded. <code>Null</code> if
-	 * none.
-	 * @return A {@link InputStreamReader} to read response content, if it was a request that
-	 * should return content.
-	 * @throws InterruptedException If the user interrupted the request while it was being delayed
-	 * due to rate limiting, or while waiting for the host to respond.
-	 * @throws HttpRequestException If the request could not be completed.
-	 * @throws CookieStorageException If a cookie could not be stored from one of the responses.
+	 * @throws DatabaseException if there was an error persisting cookies.
 	 */
 	private InputStreamReader request(String method, String urlStr, Hashtable headers,
-					String postData, Vector redirectsFollowed)
-			throws InterruptedException, HttpRequestException, CookieStorageException {
-				
-		while(rateLimitManager.shouldDelay(urlStr) == true) {
-			Thread.sleep(DEFAULT_SLEEP_TIME);
-			if(Thread.interrupted()) {
-				throw new InterruptedException("Interrupted while waiting to not exceed rate limit.");
+					String encodedPostData, Database db, Scope scope)
+			throws InterruptedException, HttpRequestException, DatabaseException {
+		
+		final Vector urlsRead = new Vector();
+		
+		while(urlsRead.size() <= MAX_REDIRECTS) {
+			
+			
+			while(rateLimitManager.shouldDelay(urlStr) == true) {
+				Thread.sleep(DEFAULT_SLEEP_TIME);
+				if(Thread.interrupted()) {
+					throw new InterruptedException("Interrupted while waiting to not exceed rate limit.");
+				}
 			}
-		}
-		
-		// Merge in generic headers.
-		headers = HashtableUtils.combine(new Hashtable[] { getGenericHeaders(urlStr), headers });
-				
-		// Add cookies into the headers.
-		String[] cookies = cookieManager.getCookiesFor(urlStr, headers);
-		//String[] cookie2s = cookieManager.getCookie2sFor(urlStr, headers);
-		
-		if(cookies.length > 0) {
-			headers.put(CookieManager.COOKIE_HEADER_NAME, StringUtils.join(cookies, "; "));
-		}
-		/*
-		if(cookie2s.length > 0) {
-			headers.put(CookieManager.COOKIE_2_HEADER_NAME, StringUtils.join(cookie2s, "; "));
-		}*/
-		
-		log.i("All headers: " + StringUtils.quote(headers));
-		
-		log.i("Requesting " + method + " from " + StringUtils.quote(urlStr));
-				
-		HttpResponse response;
-		if(method.equals(HEAD)) {
-			response = requester.head(urlStr, headers);
-		} else if(method.equals(GET)) {
-			response = requester.get(urlStr, headers);
-		} else {
-			response = requester.post(urlStr, headers, postData);
-			log.i("Post data: " + StringUtils.quote(postData));
-		}
-		
-		// Add cookies from the response.
-		try {
-			cookieManager.addCookiesFromResponseHeaders(urlStr, response.getResponseHeaders());
-		} catch(BadURLException e) {
-			log.i("Could not add cookie because of bad URL: " + e.getMessage());
-		}
-		
-		if(response.isSuccess()) {
-			// Only return the content stream for non-head requests.
+			
+			// Merge in generic headers.
+			headers = HashtableUtils.combine(new Hashtable[] { getGenericHeaders(urlStr), headers });
+			
+			// Add cookies into the headers.
+			String[] cookies = db.getCookies(scope, urlStr, encoder);
+			//String[] cookies = cookieManager.getCookiesFor(urlStr, headers);
+			//String[] cookie2s = cookieManager.getCookie2sFor(urlStr, headers);
+			
+			if(cookies.length > 0) {
+				headers.put(COOKIE_HEADER_NAME, StringUtils.join(cookies, "; "));
+			}
+			/*
+			if(cookie2s.length > 0) {
+				headers.put(CookieManager.COOKIE_2_HEADER_NAME, StringUtils.join(cookie2s, "; "));
+			}*/
+			
+			log.i("All headers: " + StringUtils.quote(headers));
+			
+			log.i("Requesting " + method + " from " + StringUtils.quote(urlStr));
+					
+			HttpResponse response;
 			if(method.equals(HEAD)) {
-				return null;
+				response = requester.head(urlStr, headers);
+			} else if(method.equals(GET)) {
+				response = requester.get(urlStr, headers);
 			} else {
-				return response.getContentStream();
+				response = requester.post(urlStr, headers, encodedPostData);
+				log.i("Post data: " + StringUtils.quote(encodedPostData));
 			}
-		} else if(!response.isRedirect()) {
-			throw new BadHttpResponseCode(response.getResponseCode());
-		} else {
-			try {
-				String redirectURLStr = response.getRedirectLocation();
-				
-				if(redirectsFollowed.size() >= MAX_REDIRECTS) {
-					String[] redirectsFollowedAry = new String[redirectsFollowed.size()];
-					redirectsFollowed.copyInto(redirectsFollowedAry);
-					throw HttpRedirectException.newMaxRedirects(redirectsFollowedAry, redirectsFollowed.size());
+			
+			// Add cookies from the response to the database.
+			String[] responseCookies = response.getResponseHeaders().getHeaderValues(SET_COOKIE_HEADER_NAME);
+			if(responseCookies != null) {
+				for(int i = 0 ; i < responseCookies.length ; i ++) {
+					String[] nameValue = StringUtils.split(StringUtils.split(responseCookies[i], "; ")[0], "=");
+					db.addCookie(scope, utils.getHost(urlStr), nameValue[0], nameValue[1]);
 				}
-				if(redirectsFollowed.contains(redirectURLStr)) {
-					String[] redirectsFollowedAry = new String[redirectsFollowed.size()];
-					redirectsFollowed.copyInto(redirectsFollowedAry);
-					throw HttpRedirectException.newCircular(redirectsFollowedAry);
-				} else {		
-					redirectsFollowed.add(redirectURLStr);
-				}
-
-				log.i("Following redirect #" + Integer.toString(redirectsFollowed.size()) +
-						" from " + StringUtils.quote(urlStr) + " to " + StringUtils.quote(redirectURLStr));
-				
-				return request(GET, redirectURLStr, headers, null, redirectsFollowed);
-			} catch(BadURLException e) {
-				throw HttpRedirectException.fromBadURL(e);
 			}
-		}	
+			
+			if(response.isSuccess()) {
+				// Only return the content stream for non-head requests.
+				if(method.equals(HEAD)) {
+					return null;
+				} else {
+					return response.getContentStream();
+				}
+			} else if(!response.isRedirect()) {
+				throw new BadHttpResponseCode(response.getResponseCode());
+			} else {
+				try {
+					String redirectURLStr = response.getRedirectLocation();
+					
+					if(urlsRead.contains(urlStr)) {
+						String[] redirectsFollowedAry = new String[urlsRead.size()];
+						urlsRead.copyInto(redirectsFollowedAry);
+						throw HttpRedirectException.newCircular(redirectsFollowedAry);
+					} else {
+						urlsRead.add(urlStr);
+					}
+					
+					log.i("Following redirect #" + Integer.toString(urlsRead.size()) +
+							" from " + StringUtils.quote(urlStr) + " to " + StringUtils.quote(redirectURLStr));
+					
+					// loops back to top
+					method = GET;
+					urlStr = redirectURLStr;
+					//return request(GET, redirectURLStr, headers, null, urlsRead, db, scope);
+				} catch(BadURLException e) {
+					throw HttpRedirectException.fromBadURL(e);
+				}
+			}
+		}
+		
+		// hit max # of redirects.
+		String[] redirectsFollowedAry = new String[urlsRead.size()];
+		urlsRead.copyInto(redirectsFollowedAry);
+		throw HttpRedirectException.newMaxRedirects(redirectsFollowedAry, urlsRead.size());
 	}
 	
 	/**
@@ -271,18 +273,13 @@ public class HttpBrowser implements Loggable {
 		rateLimitManager.rememberResponse(urlStr, responseBody.length());
 		return responseBody.toString();
 	}
-
-	private HttpBrowser(HttpRequester requester, RateLimitManager rateLimitManager, CookieManager cookieManager, MultiLog log) {
-		this.requester = requester;
-		this.rateLimitManager = rateLimitManager;
-		this.cookieManager = cookieManager;
-		this.log = log;
-	}
 	
-	public HttpBrowser(HttpRequester requester, RateLimitManager rateLimitManager, CookieManager cookieManager) {
+	public HttpBrowser(HttpRequester requester, RateLimitManager rateLimitManager,
+			HttpUtils utils, Encoder encoder) {
 		this.requester = requester;
 		this.rateLimitManager = rateLimitManager;
-		this.cookieManager = cookieManager;
+		this.utils = utils;
+		this.encoder = encoder;
 		this.log = new MultiLog();
 	}
 	
@@ -292,20 +289,24 @@ public class HttpBrowser implements Loggable {
 	 * This cookie manager will have a copy of old cookies in it, but new cookies
 	 * will not affect other scrapers.  Has the same loggers.
 	 */
-	public HttpBrowser copy() {
+	/*public HttpBrowser copy() {
 		return new HttpBrowser(requester, rateLimitManager, cookieManager.copy(), log);
-	}
+	}*/
 	
 	/**
 	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies
 	 * from response headers to the {@link HttpBrowser}'s cookie store.
 	 * @param urlStr the URL to HTTP Head.
 	 * @param headers {@link Hashtable} extra headers.
+	 * @param db A {@link Database} to persist cookies to.
+	 * @param scope A {@link Scope} specifying where in <code>db</code> to persist cookies.
 	 * @throws InterruptedException If the user interrupted the request.
 	 * @throws HttpException if there was an exception that prevented the request from being completed.
+	 * @throws DatabaseException if there was an error persisting cookies.
 	 */
-	public void head(String urlStr, Hashtable headers) throws InterruptedException, HttpException {
-		request(HEAD, urlStr, headers, null);
+	public void head(String urlStr, Hashtable headers, Database db, Scope scope)
+			throws InterruptedException, HttpException, DatabaseException {
+		request(HEAD, urlStr, headers, null, db, scope);
 	}
 	
 	/**
@@ -313,14 +314,17 @@ public class HttpBrowser implements Loggable {
 	 * @param urlStr the URL to HTTP Get.
 	 * @param headers {@link Hashtable} extra headers.
 	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.
+	 * @param db A {@link Database} to persist cookies to.
+	 * @param scope A {@link Scope} specifying where in <code>db</code> to persist cookies.
 	 * @return The body of the response.
 	 * @throws InterruptedException If the user interrupted the request.
 	 * @throws HttpException if there was an exception that prevented the request from being completed or
 	 * its response from being read.
+	 * @throws DatabaseException if there was an error persisting cookies.
 	 */
-	public String get(String urlStr, Hashtable headers, Pattern[] terminates)
-				throws InterruptedException, HttpException {
-		InputStreamReader stream = request(GET, urlStr, headers, null);
+	public String get(String urlStr, Hashtable headers, Pattern[] terminates, Database db, Scope scope)
+				throws InterruptedException, HttpException, DatabaseException {
+		InputStreamReader stream = request(GET, urlStr, headers, null, db, scope);
 		return readResponseStream(urlStr, stream, terminates);
 	}
 	
@@ -331,14 +335,18 @@ public class HttpBrowser implements Loggable {
 	 * @param headers {@link Hashtable} extra headers.
 	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.
 	 * @param encodedPostData {@link String} of post data.  Should already be encoded.
+	 * @param db A {@link Database} to persist cookies to.
+	 * @param scope A {@link Scope} specifying where in <code>db</code> to persist cookies.
 	 * @return The body of the response.
 	 * @throws InterruptedException If the user interrupted the request.
 	 * @throws HttpException if there was an exception that prevented the request from being completed or
 	 * its response from being read.
+	 * @throws DatabaseException if there was an error persisting cookies.
 	 */
-	public String post(String urlStr, Hashtable headers, Pattern[] terminates, String encodedPostData)
-				throws InterruptedException, HttpException {
-		InputStreamReader stream = request(POST, urlStr, headers, encodedPostData);
+	public String post(String urlStr, Hashtable headers, Pattern[] terminates, String encodedPostData,
+			Database db, Scope scope)
+				throws InterruptedException, HttpException, DatabaseException {
+		InputStreamReader stream = request(POST, urlStr, headers, encodedPostData, db, scope);
 		return readResponseStream(urlStr, stream, terminates);
 	}
 	
@@ -362,14 +370,13 @@ public class HttpBrowser implements Loggable {
 	 * @param cookies A {@link Hashtable} mapping {@link String} to {@link String} to use
 	 * as name-value pairs for the cookies. 
 	 */
-	public void addCookies(String urlStr, Hashtable cookies) {
+	/*public void addCookies(String urlStr, Hashtable cookies) {
 		try {
 			cookieManager.addCookies(urlStr, cookies);
 		} catch(BadURLException e) {
 			log.i("Could not add cookies: " + e.getMessage());
 		}
-	}
-
+	}*/
 	/**
 	 * 
 	 * @param timeoutMilliseconds How many milliseconds to wait for a response from the remote server before giving up.

@@ -14,7 +14,7 @@ import java.util.Map;
 import net.caustic.database.CSVDatabaseListener;
 import net.caustic.database.Database;
 import net.caustic.database.Connection;
-import net.caustic.database.InMemoryDatabase;
+import net.caustic.database.MemoryDatabase;
 import net.caustic.database.JDBCSqliteConnection;
 import net.caustic.database.MultiTableDatabase;
 import net.caustic.database.SingleTableDatabase;
@@ -251,7 +251,7 @@ final class ConsoleOptions {
 	 */
 	Database getInMemoryDatabase() throws InvalidOptionException {
 
-		final Database database = new InMemoryDatabase();
+		final Database database = new MemoryDatabase();
 		// Determine delimiter.
 		if(getValue(format).equals(CSV_FORMAT)) {
 			database.addListener(new CSVDatabaseListener(COMMA_DELIMITER));

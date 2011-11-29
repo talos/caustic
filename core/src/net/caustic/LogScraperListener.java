@@ -19,32 +19,24 @@ public class LogScraperListener implements ScraperListener {
 		this.log = log;
 	}
 
-	public void onReady(Instruction instruction, String name, Database db, Scope scope,
-			Scope parent, String source, Runnable start) {
-		log.i("Ready to scrape " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
-	}
-
-	public void onScrape(Instruction instruction, Database db, Scope scope,
-			Scope parent, String source) {
+	public void onScrape(Instruction instruction, Scope scope, String source) {
 		log.i("Scraping " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
 		
 	}
 	
-	public void onSuccess(Instruction instruction, Database db, Scope scope,
-			Scope parent, String source, String key, String[] results) {
+	public void onSuccess(Instruction instruction, Scope scope, String source, String key, String[] results) {
 		log.i("Finished " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
 	}
 	
-	public void onMissingTags(Instruction instruction, Database db,
-			Scope scope, Scope parent, String source,
+	public void onMissingTags(Instruction instruction, Scope scope, String source,
 			String[] missingTags) {
 		log.i("Stuck on " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope) +
 				" because missing tags " + StringUtils.quoteJoin(missingTags, ", "));
 
 	}
 
-	public void onFailed(Instruction instruction, Database db, Scope scope,
-			Scope parent, String source, String failedBecause) {
+	public void onFailed(Instruction instruction, Scope scope,
+			String source, String failedBecause) {
 		log.i("Failed on " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope) +
 				" because of " + StringUtils.quote(failedBecause));
 
@@ -55,11 +47,16 @@ public class LogScraperListener implements ScraperListener {
 				"were missing tags, and " + failed + " failures.");
 	}
 
-	public void onCrashed(Instruction instruction, Scope scope, Scope parent,
+	public void onCrashed(Instruction instruction, Scope scope,
 			String source, Throwable e) {
 		log.i("Crashed on " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope) +
 				" because of " + StringUtils.quote(e.toString()));
 
+	}
+
+	public void onFreeze(Instruction instruction, Scope scope, String source) {
+		log.i("Freezing " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope) + 
+				" for later.");
 	}
 
 }

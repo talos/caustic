@@ -19,7 +19,7 @@ class MultiTableDatabaseListener implements DatabaseListener {
 		}
 	}
 
-	public void onNewScope(Scope scope) throws DatabaseListenerException { 
+	public void onNewDefaultScope(Scope scope) throws DatabaseListenerException { 
 		try {
 			db.insertLink(null, scope, MultiTableDatabase.DEFAULT_TABLE, null);
 		} catch(DatabaseException e) {

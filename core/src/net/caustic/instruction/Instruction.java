@@ -60,17 +60,21 @@ public abstract class Instruction {
 	/**
 	 * 
 	 * @param source The {@link String} to use as the source
-	 * for this {@link Instruction}.
+	 * for this {@link Instruction}.  Can be <code>null</code>.
 	 * @param db The {@link Database} to use as input
 	 * for template substitutions.
-	 * @param scope The {@link Scope} within <code>db</code>
+	 * @param scope The {@link Scope} within <code>db</code> to use
+	 * for substitution.
+	 * @param browser An {@link HttpBrowser} to use.
 	 * @return A {@link InstructionResult} object with either successful
 	 * values and children, or information about why
 	 * this method did not work.
 	 * @throws InterruptedException if the user interrupted during
 	 * the method.
 	 * @throws DatabaseException if there was an error persisting to 
-	 * or reading from <code>view</code>.
+	 * or reading from <code>db</code>.
 	 */
-	public abstract InstructionResult execute(String source, Database db, Scope scope, HttpBrowser browser) throws InterruptedException, DatabaseException;
+	public abstract InstructionResult execute(String source, Database db,
+			Scope scope, HttpBrowser browser)
+			throws InterruptedException, DatabaseException;
 }

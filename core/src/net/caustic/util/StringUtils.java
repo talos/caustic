@@ -161,6 +161,11 @@ public class StringUtils {
 	 * <code>System.getProperty("file.separator")</code>
 	 */
 	public static final String USER_DIR; //= System.getProperty("user.dir")
+
+	/**
+	 * Pre-initialized empty array of {@link String}.
+	 */
+	public static final String[] EMPTY_ARRAY = new String[0];
 	
 	// take into account the fact that user.dir can be "/", but we don't want
 	// USER_DIR to ever be "//".

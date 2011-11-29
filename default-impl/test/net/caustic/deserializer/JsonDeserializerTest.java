@@ -8,7 +8,7 @@ import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
 import net.caustic.database.Database;
-import net.caustic.database.InMemoryDatabase;
+import net.caustic.database.MemoryDatabase;
 import net.caustic.deserializer.DeserializerResult;
 import net.caustic.deserializer.JSONDeserializer;
 import net.caustic.http.HttpBrowser;
@@ -41,7 +41,7 @@ public class JsonDeserializerTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		db = new InMemoryDatabase();
+		db = new MemoryDatabase();
 		scope = db.newDefaultScope();
 		deserializer = new DefaultJSONDeserializer();
 	}
@@ -367,7 +367,7 @@ public class JsonDeserializerTest {
 	@Test
 	public void testDeserializeSimpleHead(final @Mocked HttpBrowser browser) throws Exception {
 		new Expectations() {{
-			browser.head("http://www.foo.com/", (Hashtable) any);
+			browser.head("http://www.foo.com/", (Hashtable) any, db, scope);
 		}};
 		
 		JSONObject obj = new JSONObject();
@@ -380,7 +380,7 @@ public class JsonDeserializerTest {
 	@Test
 	public void testDeserializeSimpleGetDefaultMethod(final @Mocked HttpBrowser browser) throws Exception {
 		new Expectations() {{
-			browser.get("http://www.foo.com/", (Hashtable) any, (Pattern[]) any);
+			browser.get("http://www.foo.com/", (Hashtable) any, (Pattern[]) any, db, scope);
 		}};
 		
 		JSONObject obj = new JSONObject();
@@ -392,7 +392,7 @@ public class JsonDeserializerTest {
 	@Test
 	public void testDeserializeSimpleGetExplicitMethod(final @Mocked HttpBrowser browser) throws Exception {
 		new Expectations() {{
-			browser.get("http://www.foo.com/", (Hashtable) any, (Pattern[]) any);
+			browser.get("http://www.foo.com/", (Hashtable) any, (Pattern[]) any, db, scope);
 		}};
 		
 		JSONObject obj = new JSONObject();
@@ -405,7 +405,7 @@ public class JsonDeserializerTest {
 	@Test
 	public void testDeserializeSimplePostWithoutData(final @Mocked HttpBrowser browser) throws Exception {
 		new Expectations() {{
-			browser.post("http://www.foo.com/", (Hashtable) any, (Pattern[]) any, "");
+			browser.post("http://www.foo.com/", (Hashtable) any, (Pattern[]) any, "", db, scope);
 		}};
 		
 		JSONObject obj = new JSONObject();
