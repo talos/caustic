@@ -41,16 +41,12 @@ public class LoadTest {
 		url = new StaticStringTemplate(randomString());
 		compiler  = new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8));
 		load = new Load(url);
-		
-		new NonStrictExpectations() {{
-			mockBrowser.copy(); result = mockBrowser;
-		}};
 	}
 	
 	@Test
 	public void testHeadCausesHeadWithZeroLengthResponse() throws Exception {
 		new Expectations() {{
-			mockBrowser.head(url.toString(), (Hashtable) any);
+			mockBrowser.head(url.toString(), (Hashtable) any, db, scope);
 		}};
 		load.setMethod(HttpBrowser.HEAD);
 		InstructionResult result = load.execute(null, db, scope, mockBrowser);
@@ -62,7 +58,7 @@ public class LoadTest {
 	public void testGetCausesGetWithOneResponse() throws Exception {
 		final String response = randomString();
 		new Expectations() {{
-			mockBrowser.get(url.toString(), (Hashtable) any, (Pattern[]) any); result = response;
+			mockBrowser.get(url.toString(), (Hashtable) any, (Pattern[]) any, db, scope); result = response;
 		}};
 		InstructionResult result = load.execute(null, db, scope, mockBrowser);
 		//assertEquals(url.toString(), result.getName());
@@ -77,7 +73,7 @@ public class LoadTest {
 		final String subbed = "http://www.google.com/?q=" + value;
 		new Expectations() {{
 			db.get(scope, name); result = value;
-			mockBrowser.get(subbed, (Hashtable) any, (Pattern[]) any);
+			mockBrowser.get(subbed, (Hashtable) any, (Pattern[]) any, db, scope);
 		}};
 		Load load = new Load(url);
 		InstructionResult result = load.execute(null, db, scope, mockBrowser);
@@ -88,7 +84,7 @@ public class LoadTest {
 	@Test
 	public void testPostMethodSetsZeroLengthPost() throws Exception {
 		new Expectations() {{
-			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, "");
+			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, "", db, scope);
 				$ = "Post data should be a zero-length string.";
 		}};
 		load.setMethod(HttpBrowser.POST);
@@ -99,7 +95,7 @@ public class LoadTest {
 	public void testPostDataSetsPostMethod() throws Exception {
 		final StringTemplate postData = compiler.newTemplate(randomString(), StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
 		new Expectations() {{
-			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, postData.toString());
+			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, postData.toString(), db, scope);
 				$ = "Post data should be set by setting post data.";
 		}};
 		load.setPostData(postData);
@@ -114,7 +110,7 @@ public class LoadTest {
 				StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
 		new Expectations() {{
 			db.get(scope, key); result = value;
-			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, value);
+			mockBrowser.post(url.toString(), (Hashtable) any, (Pattern[]) any, value, db, scope);
 				$ = "Post data should be substituted.";
 		}};
 		load.setPostData(postData);
@@ -127,7 +123,7 @@ public class LoadTest {
 		final String response = randomString();
 		new Expectations() {
 			{
-			mockBrowser.get(url.toString(), (Hashtable) any, (Pattern[]) any); result = response;
+			mockBrowser.get(url.toString(), (Hashtable) any, (Pattern[]) any, db, scope); result = response;
 			find.execute(response, db, scope, mockBrowser);
 		}};
 		
