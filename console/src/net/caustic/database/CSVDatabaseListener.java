@@ -3,7 +3,6 @@ package net.caustic.database;
 import au.com.bytecode.opencsv.CSVWriter;
 
 import net.caustic.database.DatabaseListener;
-import net.caustic.database.DatabaseListenerException;
 import net.caustic.instruction.Instruction;
 import net.caustic.scope.Scope;
 
@@ -50,22 +49,23 @@ public class CSVDatabaseListener implements DatabaseListener {
 				name,
 				value } );
 	}
-
+	
+	/**
+	 * Not mentioned on CSV.
+	 */
 	@Override
-	public void onStop(Scope scope, String source, Instruction instruction) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void onStop(Scope scope, String source, Instruction instruction) { }
 
-	@Override
-	public void onAddCookie(Scope scope, String url, String name, String value) {
-		// TODO Auto-generated method stub
-		
-	}
 
+	/**
+	 * Not mentioned on CSV.
+	 */
 	@Override
-	public void onRestart(Scope scope, Instruction instruction) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void onAddCookie(Scope scope, String url, String name, String value) {  }
+
+	/**
+	 * Not mentioned on CSV.
+	 */
+	@Override
+	public void onRestart(Scope scope, Instruction instruction, String source) {  }
 }

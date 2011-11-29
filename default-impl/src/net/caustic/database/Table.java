@@ -24,10 +24,10 @@ public interface Table {
 	 * Check whether a column exists already.
 	 * @param columnName The {@link String} name of the column to check.
 	 * @return <code>true</code> if the column exists, <code>false</code> otherwise.
-	 * @throws IOTableReadException if the {@link Table} cannot be checked to see whether
+	 * @throws TableReadException if the {@link Table} cannot be checked to see whether
 	 * it has the column.
 	 */
-	public abstract boolean hasColumn(String columnName) throws IOTableReadException;
+	public abstract boolean hasColumn(String columnName) throws TableReadException;
 	
 	/**
 	 * Select several columns of data from  {@link Table}.
@@ -35,11 +35,11 @@ public interface Table {
 	 * @param whereMap A {@link Map} mapping the WHERE clause to
 	 * narrow the selection.
 	 * @param columnNames A {@link String} array of columns to select.
-	 * @throws IOTableReadException if the {@link Table} cannot be read from.
+	 * @throws TableReadException if the {@link Table} cannot be read from.
 	 */
 	public abstract List<Map<String, String>> select(Scope scope, Map<String, String> whereMap,
 					String[] columnNames)
-			throws IOTableReadException;
+			throws TableReadException;
 	
 	/**
 	 * Update the rows of a scope in the {@link Table}.

@@ -12,7 +12,6 @@ public class DefaultURILoader implements URILoader {
 	
 	public DefaultURILoader() {
 		this.loader = new JavaNetURILoader(
-				new DefaultHttpBrowser(),
 				new JavaIOFileLoader());
 	}
 	

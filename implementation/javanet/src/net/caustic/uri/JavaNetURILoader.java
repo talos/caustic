@@ -1,9 +1,13 @@
 package net.caustic.uri;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 
 import net.caustic.file.FileLoader;
 import net.caustic.http.HttpBrowser;
@@ -41,8 +45,16 @@ public class JavaNetURILoader implements URILoader {
 			} else if(uri.getScheme().equalsIgnoreCase(UriResolver.FILE_SCHEME)) {
 				return fileLoader.load(uri.getSchemeSpecificPart());
 			} else {
-				URL url = new URL(uriStr);
-				return (String) url.getContent();
+				URLConnection conn = new URL(uriStr).openConnection();
+				InputStreamReader stream = new InputStreamReader(conn.getInputStream());
+				StringBuffer content = new StringBuffer();
+				char[] buf = new char[512];
+				int len;
+				while((len = stream.read(buf)) != -1) {
+					content.append(buf, 0, len);
+				}
+				
+				return content.toString();
 				//return browser.get(uriStr, new Hashtable<String, String>(), new Pattern[] {});
 			}
 		} catch (IOException e) {

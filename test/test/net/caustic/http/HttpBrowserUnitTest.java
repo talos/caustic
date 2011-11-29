@@ -22,18 +22,17 @@ import net.caustic.util.JavaNetEncoder;
 import org.junit.Before;
 import org.junit.Test;
 
-public class HttpBrowserLocalTest {
+public class HttpBrowserUnitTest {
 	
 	private static final String google = "http://www.google.com/";
 	
 	@Mocked private HttpRequester requester;
 	@Mocked private RateLimitManager rateLimitManager;
-	@Mocked private CookieManager cookieManager;
 	private HttpBrowser browser;
 		
 	@Before
 	public void setUp() throws Exception {
-		browser = new HttpBrowser(requester, rateLimitManager, cookieManager);
+		browser = new HttpBrowser(requester, rateLimitManager);
 	}
 
 	@Test

@@ -261,12 +261,12 @@ public abstract class DatabaseTest {
 		
 		final Scope parent = db.newDefaultScope();
 		db.put(parent, "foo", "bar");
-		final Scope child = db.newScope(parent, "roses", "red");
+		final Scope scope = db.newScope(parent, "roses", "red");
 		
 		new Verifications() {{
 			listener.onNewDefaultScope(parent);
 			listener.onPut(parent, "foo", "bar");
-			listener.onNewScope(parent, "roses", "red", child);
+			listener.onNewScope(parent, scope, "red");
 		}};
 	}
 }

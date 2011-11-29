@@ -31,14 +31,14 @@ import org.junit.runners.Parameterized.Parameters;
  *
  */
 @RunWith(Parameterized.class)
-public class HttpBrowserNetworkTest {
+public class HttpBrowserIntegrationTest {
 	private final Class<HttpRequester> requesterKlass;
 	private final Class<HttpUtils> utilsKlass;
 	private final Class<CookieManager> cookieManagerKlass;
 	
 	private HttpBrowser browser;
 	
-	public HttpBrowserNetworkTest(Class<HttpRequester> requesterKlass, Class<HttpUtils> utilsKlass,
+	public HttpBrowserIntegrationTest(Class<HttpRequester> requesterKlass, Class<HttpUtils> utilsKlass,
 			Class<CookieManager> cookieManagerKlass) {
 		this.requesterKlass = requesterKlass;
 		this.utilsKlass = utilsKlass;

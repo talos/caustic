@@ -5,14 +5,14 @@ package net.caustic.database;
  * @author realest
  *
  */
-public class IOTableReadException extends DatabaseReadException {
+public class TableReadException extends DatabaseReadException {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 9163706707365174839L;
 
-	public IOTableReadException(String message, Throwable e) {
+	public TableReadException(String message, Throwable e) {
 		super(message, e);
 	}
 }

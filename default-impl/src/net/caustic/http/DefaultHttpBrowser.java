@@ -1,9 +1,9 @@
 package net.caustic.http;
 
 import net.caustic.http.HttpBrowser;
-import net.caustic.http.JavaNetCookieManager;
 import net.caustic.http.JavaNetHttpRequester;
 import net.caustic.http.RateLimitManager;
+import net.caustic.util.DefaultEncoder;
 
 /**
  * A default {@link HttpBrowser}.  Uses a {@link JavaNetHttpRequester}
@@ -16,6 +16,6 @@ public class DefaultHttpBrowser extends HttpBrowser {
 	public DefaultHttpBrowser() {
 		super(new JavaNetHttpRequester(),
 				new RateLimitManager(new JavaNetHttpUtils()),
-				new BasicCookieManager());
+				new JavaNetHttpUtils(), new DefaultEncoder());
 	}
 }

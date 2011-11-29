@@ -1,6 +1,6 @@
 package net.caustic.database;
 
-public class InMemoryDatabaseTest extends DatabaseTest {
+public class MemoryDatabaseTest extends DatabaseTest {
 
 	@Override
 	public Database getDatabase() throws Exception {

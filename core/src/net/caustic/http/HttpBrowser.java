@@ -284,16 +284,6 @@ public class HttpBrowser implements Loggable {
 	}
 	
 	/**
-	 * 
-	 * @return A copy of this {@link HttpBrowser} with a copied {@link CookieManager}.
-	 * This cookie manager will have a copy of old cookies in it, but new cookies
-	 * will not affect other scrapers.  Has the same loggers.
-	 */
-	/*public HttpBrowser copy() {
-		return new HttpBrowser(requester, rateLimitManager, cookieManager.copy(), log);
-	}*/
-	
-	/**
 	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies
 	 * from response headers to the {@link HttpBrowser}'s cookie store.
 	 * @param urlStr the URL to HTTP Head.
@@ -363,20 +353,6 @@ public class HttpBrowser implements Loggable {
 		log.register(logger);
 	}
 	
-	/**
-	 * Add cookies to the {@link Browser}'s {@link CookieManager}, suppressing the 
-	 * {@link BadURLException} that can occur.
-	 * @param urlStr The {@link String} URL to use for the domain and path of the added cookies.
-	 * @param cookies A {@link Hashtable} mapping {@link String} to {@link String} to use
-	 * as name-value pairs for the cookies. 
-	 */
-	/*public void addCookies(String urlStr, Hashtable cookies) {
-		try {
-			cookieManager.addCookies(urlStr, cookies);
-		} catch(BadURLException e) {
-			log.i("Could not add cookies: " + e.getMessage());
-		}
-	}*/
 	/**
 	 * 
 	 * @param timeoutMilliseconds How many milliseconds to wait for a response from the remote server before giving up.

@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.caustic.database.Table;
-import net.caustic.database.IOTableReadException;
+import net.caustic.database.TableReadException;
 import net.caustic.scope.Scope;
 import net.caustic.util.StringUtils;
 
@@ -79,11 +79,11 @@ class SQLTable implements Table {
 	}
 	
 	@Override
-	public boolean hasColumn(String columnName) throws IOTableReadException {
+	public boolean hasColumn(String columnName) throws TableReadException {
 		try {
 			return connection.doesTableHaveColumn(name, columnName);
 		} catch(SQLConnectionException e) {
-			throw new IOTableReadException("Error determining whether table " +
+			throw new TableReadException("Error determining whether table " +
 					StringUtils.quote(name) + " has column " + StringUtils.quote(columnName), e);
 		}
 	}
@@ -146,7 +146,7 @@ class SQLTable implements Table {
 	
 	@Override
 	public List<Map<String, String>> select(Scope scope, Map<String, String> whereMap,
-			String[] columnNames) throws IOTableReadException {
+			String[] columnNames) throws TableReadException {
 		try  {
 			StringBuffer columnsClauseBuf = new StringBuffer();
 			for(String columnName : columnNames) {
@@ -161,7 +161,7 @@ class SQLTable implements Table {
 			
 			return connection.select(sql, columnNames, params.toArray(new String[params.size()]));
 		} catch (SQLConnectionException e) {
-			throw new IOTableReadException("Error inserting " + Arrays.asList(columnNames) + " into " + name, e);
+			throw new TableReadException("Error inserting " + Arrays.asList(columnNames) + " into " + name, e);
 		}
 	}
 }
