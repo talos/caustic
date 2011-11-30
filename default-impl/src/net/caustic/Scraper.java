@@ -8,6 +8,7 @@ import net.caustic.database.Database;
 import net.caustic.database.MemoryDatabase;
 import net.caustic.deserializer.DefaultJSONDeserializer;
 import net.caustic.http.DefaultHttpBrowser;
+import net.caustic.scope.Scope;
 
 /**
  * An implementation of {@link AbstractScraper} using {@link DefaultHttpBrowser},
@@ -23,41 +24,58 @@ public class Scraper extends AbstractScraper {
 	
 	public Scraper(ScraperListener listener) {
 		super(new MemoryDatabase(), new DefaultHttpBrowser(),
-				new DefaultJSONDeserializer(), listener, true);
+				new DefaultJSONDeserializer(), listener);
 		
 		executor = Executors.newFixedThreadPool(DEFAULT_THREADS);
 	}
 	
 	public Scraper(int nThreads, ScraperListener listener) {
 		super(new MemoryDatabase(), new DefaultHttpBrowser(),
-				new DefaultJSONDeserializer(), listener, true);
+				new DefaultJSONDeserializer(), listener);
 		executor = Executors.newFixedThreadPool(nThreads);
 	}
 	
 	public Scraper(Database db, ScraperListener listener) {
 		super(db, new DefaultHttpBrowser(),	
-				new DefaultJSONDeserializer(), listener, true);
+				new DefaultJSONDeserializer(), listener);
 		executor = Executors.newFixedThreadPool(DEFAULT_THREADS);
 	}
 	
 	public Scraper(Database db, int nThreads, ScraperListener listener) {
 		super(db, new DefaultHttpBrowser(),
-				new DefaultJSONDeserializer(), listener, true);
-		executor = Executors.newFixedThreadPool(nThreads);
-	}
-	
-	public Scraper(Database db, int nThreads, ScraperListener listener, boolean autoRun) {
-		super(db, new DefaultHttpBrowser(),
-				new DefaultJSONDeserializer(), listener, autoRun);
+				new DefaultJSONDeserializer(), listener);
 		executor = Executors.newFixedThreadPool(nThreads);
 	}
 	
 	/**
-	 * Block the calling thread until {@link Scraper} is dormant, then shut
+	 * Block the calling thread until {@link Scraper} is done, then shut
 	 * down {@link Scraper}.
 	 * @param seconds How many seconds to wait before interrupting the scraper.
 	 */
-	public void join(int seconds) throws InterruptedException {
+	/*public void awaitDormancy(int seconds) throws InterruptedException {
+		while(!isIdle()) {
+			if(executor.isTerminated()) { // break if artificial termination
+				break;
+			}
+			
+			try {
+				Thread.sleep(100);
+			} catch(InterruptedException e) {
+				interrupt();
+			}
+		}
+		executor.shutdown();
+		//executor.awaitTermination(60, TimeUnit.MINUTES);
+		executor.awaitTermination(seconds, TimeUnit.SECONDS);
+	}*/
+
+	/**
+	 * Block the calling thread until {@link Scraper} is done, then shut
+	 * down {@link Scraper}.
+	 * @param seconds How many seconds to wait before interrupting the scraper.
+	 */
+	/*
+	public void awaitDormancy(int seconds) throws InterruptedException {
 		while(!isDormant()) {
 			if(executor.isTerminated()) { // break if artificial termination
 				break;
@@ -71,9 +89,11 @@ public class Scraper extends AbstractScraper {
 		}
 		executor.shutdown();
 		//executor.awaitTermination(60, TimeUnit.MINUTES);
-		executor.awaitTermination(seconds, TimeUnit.SECONDS); // one hour
+		executor.awaitTermination(seconds, TimeUnit.SECONDS);
 	}
-
+	*/
+	
+	
 	public void interrupt(Throwable because) {
 		because.printStackTrace();
 		executor.shutdownNow();
@@ -88,4 +108,5 @@ public class Scraper extends AbstractScraper {
 		executor.submit(executable);
 		//instruction.execute(source, database, scope, browser);
 	}
+
 }

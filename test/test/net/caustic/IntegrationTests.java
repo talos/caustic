@@ -1,6 +1,5 @@
 package net.caustic;
 
-import net.caustic.http.CookieManagerNetworkTest;
 import net.caustic.http.HttpBrowserIntegrationTest;
 import net.caustic.http.HttpRequesterTest;
 import net.caustic.uri.URILoaderIntegrationTest;
@@ -15,7 +14,6 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses({
-	CookieManagerNetworkTest.class,
 	HttpBrowserIntegrationTest.class,
 	HttpRequesterTest.class,
 	URILoaderIntegrationTest.class,

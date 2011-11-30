@@ -2,6 +2,7 @@ package net.caustic.database;
 
 import java.util.Vector;
 
+import net.caustic.AbstractScraper;
 import net.caustic.instruction.Instruction;
 import net.caustic.scope.IntScopeFactory;
 import net.caustic.scope.Scope;
@@ -12,7 +13,7 @@ import net.caustic.util.Encoder;
  * @author talos
  *
  */
-public abstract class Database implements DatabaseListener {
+public abstract class Database {
 
 	private final Vector listeners = new Vector();
 	private final ScopeFactory scopeFactory;
@@ -58,15 +59,6 @@ public abstract class Database implements DatabaseListener {
 	public abstract String get(Scope scope, String key) throws DatabaseException;
 	
 	/**
-	 * Return all the {@link ReadyExecution}s that could be, but have not yet been,
-	 * executed in the <code>scope</code>.
-	 * @param scope
-	 * @return An array of {@link ReadyExecution}s.
-	 * @throws DatabaseException if there was an reading the {@link Database}.
-	 */
-	//public abstract ReadyExecution[] getReady(Scope scope) throws DatabaseException;
-
-	/**
 	 * Get an array of {@link String} encoded cookies for <code>scope</code> and
 	 * its ancestors in the following format:
 	 * <p>
@@ -104,43 +96,63 @@ public abstract class Database implements DatabaseListener {
 	 */
 	public final void put(Scope scope, String key, String value) throws DatabaseException {
 		onPut(scope, key, value);
-				
+		
 		for(int i = 0 ; i < listeners.size() ; i ++) {
 			((DatabaseListener) listeners.elementAt(i)).onPut(scope, key, value);
 		}
 		
-		ReadyExecution[] newlyReady = resort(scope, key, value);
+		// resort and re-submit instructions that can now be used.
+		ReadyExecution[] newlyReady = getUnstuck(scope, key, value);
 		for(int i = 0 ; i < newlyReady.length ; i ++) {
 			putReady(scope, newlyReady[i].source, newlyReady[i].instruction);
 		}
 	}
-	
+
 	public final void putReady(Scope scope, String source, Instruction instruction)
 			throws DatabaseException {		
 		onPutReady(scope, source, instruction);
 		
 		for(int i = 0 ; i < listeners.size() ; i ++) {
-			((DatabaseListener) listeners.elementAt(i)).onPutReady(scope, source, instruction);
+			((DatabaseListener) listeners.elementAt(i)).onPutReady(scope, source, instruction.toString());
 		}
 	}
+
+	public final void putSuccess(Scope scope, String source,
+			SerializedInstruction instruction) throws DatabaseException {
+		onPutSuccess(scope, source, instruction);
+		
+		for(int i = 0 ; i < listeners.size() ; i ++) {
+			((DatabaseListener) listeners.elementAt(i)).onPutSuccess(scope, source, instruction.toString());
+		}
+
+		informListenerIfScopeComplete(scope);
+	}
 	
-	public final void putMissing(Scope scope, String source, Instruction instruction, String[] missingTags) {
+
+	public final void putMissing(Scope scope, String source, Instruction instruction,
+			String[] missingTags) throws DatabaseException {
 		onPutMissing(scope, source, instruction, missingTags);
 		
 		for(int i = 0 ; i < listeners.size() ; i ++) {
 			((DatabaseListener) listeners.elementAt(i)).onPutMissing(scope, source,
-					instruction, missingTags);
+					instruction.toString(), missingTags);
 		}
+		informListenerIfScopeComplete(scope);
 	}
 	
-	public final void putFailed(Scope scope, String source, Instruction instruction, String failedBecause) {
+
+	public final void putFailed(Scope scope, String source, Instruction instruction,
+			String failedBecause) throws DatabaseException {
 		onPutFailed(scope, source, instruction, failedBecause);
 		
 		for(int i = 0 ; i < listeners.size() ; i ++) {
 			((DatabaseListener) listeners.elementAt(i)).onPutFailed(scope, source,
 					instruction, failedBecause);
 		}
+		
+		informListenerIfScopeComplete(scope);
 	}
+
 
 	/**
 	 * A fresh {@link Scope} with the name {@link #DEFAULT_SCOPE} and no parent {@link Scope}.
@@ -156,6 +168,7 @@ public abstract class Database implements DatabaseListener {
 		return scope;
 	}
 	
+
 	/**
 	 */
 	public final Scope newScope(Scope parent, String key) throws DatabaseException {
@@ -169,6 +182,7 @@ public abstract class Database implements DatabaseListener {
 		return scope;
 	}
 	
+
 	/**
 	 */
 	public final Scope newScope(Scope parent, String key, String value)
@@ -183,6 +197,7 @@ public abstract class Database implements DatabaseListener {
 		return scope;
 	}
 	
+
 	/**
 	 * Check <code>scope</code> and its children for executions that were previously
 	 * stuck, but are no longer stuck due to new data.
@@ -191,6 +206,43 @@ public abstract class Database implements DatabaseListener {
 	 * @param value
 	 * @return
 	 */
-	protected abstract ReadyExecution[] resort(Scope scope, String name, String value)
+	abstract ReadyExecution[] getUnstuck(Scope scope, String name, String value)
 			throws DatabaseException;
+	
+	/**
+	 * Check to see whether the specified <code>scope</scope> has any more
+	 * {@link Instruction}s that could be executed.  Should check all children of <code>scope</code>,
+	 * and they should all be complete as well.
+	 * @param scope The {@link Scope} to check.
+	 * @return <code>True</code> if the scope is complete, <code>false</code>
+	 * otherwise.  This could change back to <code>false</code> if an instruction was revived.
+	 */
+	abstract boolean isScopeComplete(Scope scope) throws DatabaseException;
+	
+	abstract void onPut(Scope scope, String key, String value);
+	abstract void onPutReady(Scope scope, String source, Instruction instruction);
+	abstract void onAddCookie(Scope scope, String host, String name, String value);
+	abstract void onNewScope(Scope parent, Scope scope, String value);
+	abstract void onNewScope(Scope parent, Scope scope);
+	abstract void onNewDefaultScope(Scope scope);
+	abstract void onPutFailed(Scope scope, String source,
+			Instruction instruction, String failedBecause);
+	abstract void onPutMissing(Scope scope, String source,
+			Instruction instruction, String[] missingTags);
+	abstract void onPutSuccess(Scope scope, String source,
+			Instruction instruction);
+
+	/**
+	 * Uses {@link #isScopeComplete(Scope)} to check whether the passed <code>scope</code>
+	 * is complete.  Data in <code>scope</code> can be cleared out if this is true.
+	 * @param scope
+	 * @throws DatabaseException
+	 */
+	private void informListenerIfScopeComplete(Scope scope) throws DatabaseException {
+		if(isScopeComplete(scope)) {
+			for(int i = 0 ; i < listeners.size() ; i ++) {
+				((DatabaseListener) listeners.elementAt(i)).onScopeComplete(scope);
+			}
+		}
+	}
 }

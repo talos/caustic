@@ -1,7 +1,6 @@
 package net.caustic;
 
 import net.caustic.file.FileLoaderTest;
-import net.caustic.http.CookieManagerLocalTest;
 import net.caustic.http.HttpBrowserUnitTest;
 import net.caustic.http.RateLimitManagerTest;
 import net.caustic.http.ResponseHeadersTest;
@@ -28,7 +27,6 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 	FileLoaderTest.class,
-	CookieManagerLocalTest.class,
 	HttpBrowserUnitTest.class,
 	RateLimitManagerTest.class,
 	ResponseHeadersTest.class,

@@ -82,16 +82,6 @@ public final class Load implements Instruction {
 	}
 	
 	/**
-	 * Instantiate a {@link Load} with a special name.
-	 * @param name
-	 * @param url
-	 */
-	public Load(StringTemplate name, StringTemplate url, Instruction[] children) {
-		this.url = url;
-		this.children = children;
-	}
-	
-	/**
 	 * Assign {@link #nonDefaultMethod}.  Cannot be changed once it is set.
 	 * @param method The {@link String} {@link HttpBrowser#POST}, {@link HttpBrowser#GET}, or 
 	 * {@link HttpBrowser#HEAD}, case-insensitive.
@@ -213,6 +203,8 @@ public final class Load implements Instruction {
 			for(int i = 0 ; i < children.length ; i ++) {
 				db.putReady(scope, responseBody, children[i]);
 			}
+			
+			db.putSuccess(scope, source, this);
 		} catch(HashtableSubstitutionOverwriteException e) {
 			// Failed because of ambiguous mapping
 			db.putFailed(scope, source, this, "Instruction template substitution caused ambiguous mapping: "

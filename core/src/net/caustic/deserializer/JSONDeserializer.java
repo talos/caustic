@@ -8,7 +8,7 @@ import net.caustic.instruction.Find;
 import net.caustic.instruction.Instruction;
 import net.caustic.instruction.InstructionArray;
 import net.caustic.instruction.Load;
-import net.caustic.instruction.SerializedInstruction;
+import net.caustic.instruction.Instruction;
 import net.caustic.json.JsonArray;
 import net.caustic.json.JsonException;
 import net.caustic.json.JsonIterator;
@@ -102,7 +102,7 @@ public class JSONDeserializer implements Deserializer {
 		Instruction[] instructions = new Instruction[ary.length()];
 		
 		for(int i = 0 ; i < instructions.length ; i ++) {
-			instructions[i] = new SerializedInstruction(ary.getString(i), this, uri);
+			instructions[i] = new Instruction(ary.getString(i), this, uri);
 		}
 		
 		return DeserializerResult.success(new InstructionArray(instructions));
@@ -233,15 +233,15 @@ public class JSONDeserializer implements Deserializer {
 										+ " json instruction.");
 							}
 							// have to quote these for them to deserialize properly.
-							children.add(new SerializedInstruction(StringUtils.quote(uri), this, ""));
+							children.add(new Instruction(StringUtils.quote(uri), this, ""));
 						} else {
 							// already quoted
-							children.add(new SerializedInstruction(thenString, this, uri));
+							children.add(new Instruction(thenString, this, uri));
 						}
 					}
 					for(int j = 0 ; j < thenObjects.size(); j ++ ) {
 						// serialized instruction will handle the object as a string
-						children.add(new SerializedInstruction((String) thenObjects.elementAt(j), this, uri));
+						children.add(new Instruction((String) thenObjects.elementAt(j), this, uri));
 					}
 				} else if(key.equalsIgnoreCase(NAME)) {
 					name = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
@@ -315,11 +315,13 @@ public class JSONDeserializer implements Deserializer {
 		} else if(url != null) {
 			// We have a Load
 			final Load load;
-			if(name == null) {
+			load = new Load(url, childrenAry);
+			
+			/*if(name == null) {
 				load = new Load(url, childrenAry);
 			} else {
 				load = new Load(name, url, childrenAry);
-			}
+			}*/
 			
 			if(method != null) {
 				load.setMethod(method);

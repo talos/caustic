@@ -55,11 +55,13 @@ public interface DatabaseListener {
 	 */
 	public void onAddCookie(Scope scope, String host, String name, String value);
 
-	public void onPutReady(Scope scope, String source, Instruction instruction);
+	public void onPutReady(Scope scope, String source, String instruction, String uri);
 
-	public void onPutMissing(Scope scope, String source,
-			Instruction instruction, String[] missingTags);
+	public void onPutMissing(Scope scope, String source, String instruction, String uri, String[] missingTags);
 
-	public void onPutFailed(Scope scope, String source,
-			Instruction instruction, String failedBecause);
+	public void onPutFailed(Scope scope, String source, String instruction, String uri, String failedBecause);
+	
+	public void onPutSuccess(Scope scope, String source, String instruction, String uri);
+	
+	public void onScopeComplete(Scope scope);
 }

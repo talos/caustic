@@ -6,7 +6,7 @@ import net.caustic.http.HttpBrowser;
 import net.caustic.instruction.Instruction;
 import net.caustic.scope.Scope;
 
-public class Executable implements Runnable {
+final class Executable implements Runnable {
 	private final Instruction instruction;
 	private final String source;
 	private final Database db;
@@ -27,7 +27,6 @@ public class Executable implements Runnable {
 	public void run() {
 		try {
 			instruction.execute(source, db, scope, browser);
-			scraper.incrementFinished();
 		} catch(DatabaseException e) {
 			scraper.crash(scope, instruction, e);
 		} catch(InterruptedException e) {

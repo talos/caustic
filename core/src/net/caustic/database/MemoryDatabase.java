@@ -49,7 +49,13 @@ public final class MemoryDatabase extends Database {
 	 * Hashtable of {@link ReadyExecution} vectors.<br>
 	 * <code>Hashtable&lt;Scope, Vector&lt;ReadyExecution&gt;&gt;</code>
 	 */
-	private final Hashtable ready = new Hashtable();
+	private final Hashtable submitted = new Hashtable();
+	
+	/**
+	 * Hashtable of {@link Instruction} vectors.<br>
+	 * <code>Hashtable&lt;Scope, Vector&lt;Instruction&gt;&gt;</code>
+	 */
+	private final Hashtable success = new Hashtable();
 
 	/**
 	 * Hashtable of {@link StuckExecution} vectors.<br>
@@ -79,7 +85,6 @@ public final class MemoryDatabase extends Database {
 		}
 		return null;
 	}
-
 	
 	public String[] getCookies(Scope scope, final String host, final Encoder encoder)
 			throws DatabaseException {
@@ -116,7 +121,7 @@ public final class MemoryDatabase extends Database {
 		return result;
 	}
 
-	public void onAddCookie(Scope scope, String host, String name,
+	void onAddCookie(Scope scope, String host, String name,
 			String value) {
 		// we have cookies already especially for this scope.
 		if(cookies.containsKey(scope)) {
@@ -139,38 +144,75 @@ public final class MemoryDatabase extends Database {
 		}
 	}
 
-	public void onPut(Scope scope, String key, String value) {
+	void onPut(Scope scope, String key, String value) {
 		Hashtable dataNode = (Hashtable) tags.get(scope);
 		dataNode.put(key, value);
 	}
 	
-	public void onNewDefaultScope(Scope scope) {
+	void onNewDefaultScope(Scope scope) {
 		initializeScope(scope, null);
 	}
 
-	public void onNewScope(Scope parent, Scope scope) {
+	void onNewScope(Scope parent, Scope scope) {
 		initializeScope(scope, parent);
 	}
 
-	public void onNewScope(Scope parent, Scope scope, String value) {
+	void onNewScope(Scope parent, Scope scope, String value) {
 		initializeScope(scope, parent);
 		onPut(scope, scope.getName(), value); // use onPut to avoid erroneous listener calls
 	}
 
-	public void onPutReady(Scope scope, String source, Instruction instruction) {
-		((Vector) ready.get(scope)).add(new ReadyExecution(source, instruction));
+	void onPutReady(Scope scope, String source, Instruction instruction) {
+		((Vector) submitted.get(scope)).add(new ReadyExecution(source, instruction));
+	}
+	
+	void onPutSuccess(Scope scope, String source, Instruction instruction) {
+		((Vector) success.get(scope)).add(instruction);
 	}
 
-	public void onPutMissing(Scope scope, String source,
+	void onPutMissing(Scope scope, String source,
 			Instruction instruction, String[] missingTags) {
 		((Vector) stuck.get(scope)).add(new StuckExecution(source, instruction, missingTags));
 	}
 
-	public void onPutFailed(Scope scope, String source,
+	void onPutFailed(Scope scope, String source,
 			Instruction instruction, String failedBecause) {
 		((Vector) failed.get(scope)).add(new FailedExecution(source, instruction, failedBecause));		
 	}
 
+	void onScopeComplete(Scope scope) {
+		destroyScope(scope);
+	}
+	
+	/**
+	 * Check to see whether the specified <code>scope</scope> has any more
+	 * {@link Instruction}s that could be executed.
+	 * @param scope The {@link Scope} to check.
+	 * @return <code>True</code> if the scope is complete, <code>false</code>
+	 * otherwise.  The scope could be revived if there is a paused instruction.
+	 */
+	boolean isScopeComplete(Scope scope) {
+		if(((Vector) submitted.get(scope)).size()
+				!=
+				((Vector) success.get(scope)).size() +
+				((Vector) stuck.get(scope)).size() +
+				((Vector) failed.get(scope)).size()) {
+			return false; // we've submitted more than have succeeded, gotten stuck, or failed.
+		} else {
+			// check children.
+			if(childrenByParent.containsKey(scope)) {
+				Vector children = (Vector) childrenByParent.get(scope);
+				for(int i = 0 ; i < children.size(); i ++) {
+					if(!isScopeComplete((Scope) children.elementAt(i))) {
+						return false; // exit prematurely to save checking additional children.
+					}
+				}
+			}
+			
+			return true;
+		}
+	}
+	
 	/**
 	 * Look through <code>scope</code> and all its children for {@link StuckExecution}s
 	 * that are no longer stuck based off of new data.
@@ -179,33 +221,29 @@ public final class MemoryDatabase extends Database {
 	 * @param value A newly available <code>value</code>.
 	 * @throws DatabaseException
 	 */
-	protected ReadyExecution[] resort(Scope scope, String name, String value) throws DatabaseException {
+	ReadyExecution[] getUnstuck(Scope scope, String name, String value) throws DatabaseException {		
 		// vector of readyExecutions to send back.
 		final Vector result = new Vector();
-		
-		// Copy all readyExecutions in directly.
-		VectorUtils.vectorIntoVector((Vector) ready.get(scope), result);
-		
+				
 		// Browse through stuckExecutions, and add them if they're not still stuck.
 		Vector stuckInScope = (Vector) stuck.get(scope);
 		for(int i = 0 ; i < stuckInScope.size() ; i ++) {
 			StuckExecution stuckExecution = (StuckExecution) stuckInScope.elementAt(i);
 			
-			// if it's no longer stuck, pull it out of the vector and add it into result.
-			if(stuckExecution.found(name)) {
-				stuckInScope.removeElementAt(i); // pull out
-				result.add(stuckExecution); // add to result
-				i--;
+			// if it's no longer stuck, pull out its ready and add it to the result.
+			ReadyExecution ready = stuckExecution.getReady(name);
+			if(ready != null) {
+				result.add(ready);
 			}
 		}
 		
-
 		// Traverse through children.
 		Vector children = (Vector) childrenByParent.get(scope);
 		for(int i = 0 ; i < children.size() ; i ++) {
 			VectorUtils.arrayIntoVector(
 					// TODO recursive!! don't blow yer stack
-					resort((Scope) children.elementAt(i), name, value), result);
+					getUnstuck((Scope) children.elementAt(i), name, value),
+					result);
 		}
 		
 		// Send it to an array.
@@ -234,8 +272,35 @@ public final class MemoryDatabase extends Database {
 		tags.put(scope, new Hashtable());
 		
 		// initialize instruction vectors
-		ready.put(scope, new Vector());
+		submitted.put(scope, new Vector());
+		success.put(scope, new Vector());
 		stuck.put(scope, new Vector());
 		failed.put(scope, new Vector());
-	}	
+	}
+	
+	/**
+	 * Remove all data from {@link MemoryDatabase} related to <code>scope</code>.
+	 * @param scope
+	 */
+	private void destroyScope(Scope scope) {
+		// remove everything.
+		Scope parent = (Scope) parentsByChild.get(scope);
+		if(parent != null) {
+			((Vector) childrenByParent.get(parent)).remove(scope);
+		}
+		parentsByChild.remove(scope);
+		
+		tags.remove(scope);		
+		submitted.remove(scope);
+		success.remove(scope);
+		stuck.remove(scope);
+		failed.remove(scope);
+		
+		if(childrenByParent.containsKey(scope)) {
+			Vector children = (Vector) childrenByParent.get(scope);
+			for(int i = 0 ; i < children.size(); i ++) {
+				destroyScope((Scope) children.elementAt(i));
+			}
+		}
+	}
 }

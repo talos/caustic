@@ -3,15 +3,20 @@ package net.caustic.client;
 import static org.junit.Assert.*;
 import static net.caustic.util.StringUtils.quote;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
+import mockit.Expectations;
 import mockit.NonStrict;
 import mockit.Verifications;
 import mockit.VerificationsInOrder;
 import net.caustic.LogScraperListener;
+import net.caustic.Resume;
 import net.caustic.Scraper;
 import net.caustic.ScraperListener;
 import net.caustic.database.Database;
+import net.caustic.database.MemoryDatabase;
 import net.caustic.instruction.Instruction;
 import net.caustic.log.Logger;
 import net.caustic.log.SystemErrLogger;
@@ -19,6 +24,7 @@ import net.caustic.scope.Scope;
 import net.caustic.scope.SerializedScope;
 import net.caustic.util.StringUtils;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,28 +34,58 @@ import org.junit.Test;
  *
  */
 public class ScraperIntegrationTest {
-		
+	
+	/**
+	 * How many milliseconds to wait for a scraper to go idle.
+	 */
+	private static final int SCRAPER_WAIT_TIME = 10000;
 	private static final String demosDir = "../demos/";
 	private @NonStrict ScraperListener listener;
 	private Hashtable<String, String> input;
 	private Scraper scraper;
 	private Logger logger = new SystemErrLogger();
+	private Database db;
 	
 	@Before
 	public void setUp() throws Exception {
-		scraper = new Scraper(listener);
+		db = new MemoryDatabase();
+		scraper = new Scraper(db, listener);
 		scraper.register(logger);
+		scraper.setAutoRun(true);
 		
 		input = new Hashtable<String, String>();
 	}
 	
+	@After
+	public void tearDown() throws Exception {
+		join();
+	}
+	
 	@Test
 	public void testScrapeStuck() throws Exception {
-		scraper.scrape(demosDir + "simple-google.json", input);
-		scraper.join(10);
+		final Scope scope = scraper.scrape(demosDir + "simple-google.json", input);
+		join();
+		
+		new Verifications() {{
+			listener.onPutMissing(scope, anyString, demosDir + "simple-google.json", (String[]) any); times = 1;
+		}};
+	}
+
+	@Test
+	public void testScrapeStuckThenUnstuck() throws Exception {
+		Scope scope = scraper.scrape(demosDir + "simple-google.json", input);
+		join();
 		
 		assertEquals(2, scraper.getSubmitted());
 		assertEquals(2, scraper.getFinished());
+		assertEquals(1, scraper.getStuck());
+		assertEquals(0, scraper.getFailed());
+		
+		db.put(scope, "query", "hello");
+		join();
+
+		assertEquals(5, scraper.getSubmitted());
+		assertEquals(5, scraper.getFinished());
 		assertEquals(1, scraper.getStuck());
 		assertEquals(0, scraper.getFailed());
 	}
@@ -57,7 +93,7 @@ public class ScraperIntegrationTest {
 	@Test
 	public void testScrapeFail() throws Exception {	
 		scraper.scrape("path/to/nothing.json", input);
-		scraper.join(10);
+		join();
 
 		assertEquals(1, scraper.getSubmitted());
 		assertEquals(1, scraper.getFinished());
@@ -66,10 +102,10 @@ public class ScraperIntegrationTest {
 	}
 	
 	@Test
-	public void testScrapeSimpleGoogle() throws Exception {		
+	public void testScrapeSimpleGoogle() throws Exception {
 		input.put("query", "hello");
 		scraper.scrape(demosDir + "simple-google.json", input);
-		scraper.join(10);
+		join();
 		
 		assertEquals(4, scraper.getSubmitted());
 		assertEquals(4, scraper.getFinished());
@@ -83,13 +119,58 @@ public class ScraperIntegrationTest {
 			listener.onNewScope(scope(0), scope(4), withPrefix("I say"));
 		}};
 	}
-
+	
+	/**
+	 * Assure that we can start an instruction after it was paused.
+	 * @throws Exception
+	 */
+	@Test
+	public void testScrapeSimpleGooglePause() throws Exception {		
+		input.put("query", "hello");
+		scraper.setAutoRun(false);
+		scraper.scrape(demosDir + "simple-google.json", input);
+		
+		final List<Resume> resumes = new ArrayList<Resume>();
+		new Expectations() {{
+			listener.onPause((Scope) any, (Instruction) any, (Resume) any); forEachInvocation = new Object() {
+				public void run(Scope scope, Instruction instruction, Resume resume) {
+					resumes.add(resume);
+				}
+			};
+		}};
+		join();
+		
+		assertEquals(1, scraper.getSubmitted());
+		assertEquals(1, scraper.getFinished());
+		assertEquals(0, scraper.getStuck());
+		assertEquals(0, scraper.getFailed());
+		assertFalse(scraper.isDone());
+		assertTrue(scraper.isIdle());
+		
+		for(Resume resume : resumes) {
+			resume.run();
+		}
+		join();
+		
+		assertEquals(4, scraper.getSubmitted());
+		assertEquals(4, scraper.getFinished());
+		assertEquals(0, scraper.getStuck());
+		assertEquals(0, scraper.getFailed());
+		
+		new VerificationsInOrder() {{
+			listener.onNewScope(scope(0), scope(1), withPrefix("I say"));
+			listener.onNewScope(scope(0), scope(2), withPrefix("I say"));
+			listener.onNewScope(scope(0), scope(3), withPrefix("I say"));
+			listener.onNewScope(scope(0), scope(4), withPrefix("I say"));
+		}};
+	}
+	
 	@Test
 	public void testScrapeSimpleGoogleQuoted() throws Exception {		
 		input.put("query", "hello");
 		// it shouldn't make a difference if we quote a string.
 		scraper.scrape(quote(demosDir + "simple-google.json"), input);
-		scraper.join(10);
+		join();
 
 		assertEquals(4, scraper.getSubmitted());
 		assertEquals(4, scraper.getFinished());
@@ -108,7 +189,7 @@ public class ScraperIntegrationTest {
 	public void testScrapeSimpleGooglePointer() throws Exception {
 		input.put("query", "hello");
 		scraper.scrape(demosDir + "pointer.json", input);
-		scraper.join(10);
+		join();
 
 		assertEquals(4, scraper.getSubmitted());
 		assertEquals(4, scraper.getFinished());
@@ -132,7 +213,7 @@ public class ScraperIntegrationTest {
 		input.put("Apt", "");
 				
 		scraper.scrape(demosDir + "array.json", input);
-		scraper.join(10);
+		join();
 		
 		assertEquals(4, scraper.getSubmitted());
 		assertEquals(4, scraper.getFinished());
@@ -550,5 +631,22 @@ public class ScraperIntegrationTest {
 	 */
 	private Scope scope(int scopeNumber) {
 		return new SerializedScope(Integer.toString(scopeNumber), "");
+	}
+	
+	/**
+	 * Wait {@link #SCRAPER_WAIT_TIME} for {@link #scraper} to go idle.
+	 * @throws InterruptedException
+	 */
+	private void join() throws InterruptedException {
+		final int cycle = 50;
+		int timer = 0;
+		while(!scraper.isIdle()) {
+			Thread.sleep(cycle);
+			timer += cycle;
+			if(timer > SCRAPER_WAIT_TIME) {
+				scraper.interrupt();
+				throw new InterruptedException("Scraper not idle after " + SCRAPER_WAIT_TIME + " milliseconds.");
+			}
+		}
 	}
 }

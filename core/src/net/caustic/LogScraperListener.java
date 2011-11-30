@@ -2,7 +2,6 @@ package net.caustic;
 
 import net.caustic.database.LogDatabaseListener;
 import net.caustic.instruction.Instruction;
-import net.caustic.log.Logger;
 import net.caustic.scope.Scope;
 import net.caustic.util.StringUtils;
 

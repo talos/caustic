@@ -98,12 +98,12 @@ final class ConsoleOptions {
 	private final Option timeoutMilliseconds = Option.withDefault(TIMEOUT_MILLISECONDS, Integer.toString(HttpBrowser.DEFAULT_TIMEOUT_MILLISECONDS));
 	
 	public static final String USAGE = 
-"usage: microscraper <uri> [<options>]" + NEWLINE +
-"       microscraper <json> [<options>]" + NEWLINE + NEWLINE +
+"usage: caustic <uri> [<options>]" + NEWLINE +
+"       caustic <json> [<options>]" + NEWLINE + NEWLINE +
 "  uri" + NEWLINE +
-"    A URI that points to microscraper instruction JSON." + NEWLINE + NEWLINE +
+"    A URI that points to caustic instruction JSON." + NEWLINE + NEWLINE +
 "  json" + NEWLINE +
-"    Microscraper instruction JSON." + NEWLINE + NEWLINE +
+"    Caustic instruction JSON." + NEWLINE + NEWLINE +
 "  options" + NEWLINE +
 "    " + INPUT + "=\"<form-encoded-name-value-pairs>\"" + NEWLINE +
 "        A form-encoded string of name value pairs to use as" + NEWLINE +

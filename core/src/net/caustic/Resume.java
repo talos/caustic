@@ -15,7 +15,6 @@ public class Resume implements Runnable {
 	 */
 	public void run() {
 		scraper.submit(executable);
-		scraper.decrementPaused();
 	}
 
 }

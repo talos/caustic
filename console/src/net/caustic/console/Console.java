@@ -84,7 +84,7 @@ public class Console {
 	public Thread getShutdownThread() {
 		return new Thread() {
 			public void run() { 
-				if(!scraper.isDormant()) {
+				if(!scraper.isIdle()) {
 					scraper.interrupt();
 				}
 				try {

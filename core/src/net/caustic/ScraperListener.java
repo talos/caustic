@@ -1,6 +1,5 @@
 package net.caustic;
 
-import net.caustic.database.Database;
 import net.caustic.database.DatabaseListener;
 import net.caustic.instruction.Instruction;
 import net.caustic.scope.Scope;
@@ -20,7 +19,7 @@ public interface ScraperListener extends DatabaseListener {
 	 * @param resume A {@link Resume} that, when {@link Resume#run()}, will resume the instruction.
 	 */
 	public abstract void onPause(Scope scope, Instruction instruction, Resume resume);
-	
+		
 	/**
 	 * 
 	 * @param instruction

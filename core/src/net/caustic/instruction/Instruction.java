@@ -2,36 +2,49 @@ package net.caustic.instruction;
 
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
+import net.caustic.deserializer.Deserializer;
+import net.caustic.deserializer.DeserializerResult;
 import net.caustic.http.HttpBrowser;
 import net.caustic.scope.Scope;
 
-public interface Instruction {
+/**
+ * An {@link Instruction} that has yet to be deserialized.  This allows for lazy evaluation
+ * of children, in particular where a child cannot be deserialized until a variable is available
+ * in the database.
+ * @author talos
+ *
+ */
+public abstract class Instruction {
+
+	private final Deserializer deserializer;
+	private final String serializedString;
+	private final String uri;
 	
-	/**
-	 * 
-	 * @return <code>true</code> if this {@link Instruction} is an instruction
-	 * that should only be executed with confirmation, <code>false</code>
-	 * if this {@link Instruction} can be executed without confirmation.
-	 */
-	public abstract boolean shouldConfirm();
+	public Instruction(String serializedString, Deserializer deserializer, String uri) {
+		this.serializedString = serializedString;
+		this.deserializer = deserializer;
+		this.uri = uri;
+	}
+
+	public boolean shouldConfirm() {
+		return false;
+	}
 	
-	/**
-	 * 
-	 * @param source The {@link String} to use as the source
-	 * for this {@link Instruction}.  Can be <code>null</code>.
-	 * @param db The {@link Database} to use as input
-	 * for template substitutions.
-	 * @param scope The {@link Scope} within <code>db</code> to use
-	 * for substitution.
-	 * @param browser An {@link HttpBrowser} to use.
-	 * @return A {@link InstructionResult} object with either successful
-	 * values and children, or information about why
-	 * this method did not work.
-	 * @throws InterruptedException if the user interrupted during
-	 * the method.
-	 * @throws DatabaseException if there was an error persisting to 
-	 * or reading from <code>db</code>.
-	 */
-	public abstract void execute(String source, Database db, Scope scope, HttpBrowser browser)
-			throws InterruptedException, DatabaseException;
+	public void execute(String source, Database db, Scope scope,
+			HttpBrowser browser) throws InterruptedException, DatabaseException {
+		DeserializerResult result = deserializer.deserialize(serializedString, db, scope, uri);
+		
+		if(result.isMissingTags()) {
+			db.putMissing(scope, source, this, result.getMissingTags());
+		} else if(result.getInstruction() != null) {
+			//db.putReady(scope, source, result.getInstruction());
+			result.getInstruction().execute(source, db, scope, browser);
+		} else {
+			db.putFailed(scope, source, this, result.getFailedBecause());
+		}
+	}
+	
+	public String toString() {
+		return serializedString;
+	}
 }

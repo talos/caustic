@@ -31,23 +31,28 @@ public class LogDatabaseListener implements DatabaseListener, Loggable {
 	}
 
 	public void onNewScope(Scope parent, Scope scope, String value) {
-		log.i("New scope " + StringUtils.quote(scope) + " in " + StringUtils.quote(parent) + " with " +
-			" value " + value);
+		log.i("New scope " + StringUtils.quote(scope) + " in " + StringUtils.quote(parent) +
+				" with value " + value);
 	}
 
 	public void onAddCookie(Scope scope, String host, String name, String value) {
-		log.i("Adding cookie " + StringUtils.quote(name) + "=" + StringUtils.quote(value) + " in scope " +
-				StringUtils.quote(scope) + " for host " + StringUtils.quote(host));
+		log.i("Adding cookie " + StringUtils.quote(name) + "=" + StringUtils.quote(value) +
+				" in scope " + StringUtils.quote(scope) + " for host " + StringUtils.quote(host));
 		
 	}
 	
-	public void onPutReady(Scope scope, String source, Instruction instruction) {
+	public void onPutReady(Scope scope, String source, String instruction, String uri) {
 		log.i("Ready to scrape " + StringUtils.quote(instruction) +
 				"in scope " + StringUtils.quote(scope));
 	}
 
+	public void onPutSuccess(Scope scope, String source, String instruction, String uri) {
+		log.i("Successfully scraped  " + StringUtils.quote(instruction) +
+				"in scope " + StringUtils.quote(scope));
+		
+	}
 	public void onPutMissing(Scope scope, String source,
-			Instruction instruction, String[] missingTags) {
+			String instruction, String uri, String[] missingTags) {
 		log.i("Instruction " + StringUtils.quote(instruction) +
 				"in scope " + StringUtils.quote(scope) + " is missing " +
 				StringUtils.quoteJoin(missingTags, ","));
@@ -55,14 +60,19 @@ public class LogDatabaseListener implements DatabaseListener, Loggable {
 	}
 
 	public void onPutFailed(Scope scope, String source,
-			Instruction instruction, String failedBecause) {
+			String instruction, String uri, String failedBecause) {
 		log.i("Instruction " + StringUtils.quote(instruction) +
 				"in scope " + StringUtils.quote(scope) + " has failed because of " +
 				StringUtils.quote(failedBecause));
-		
+	}
+	
+	public void onScopeComplete(Scope scope) {
+		log.i("Scope " + StringUtils.quote(scope) + " is complete.");
 	}
 	
 	public void register(Logger logger) {
 		this.log.register(logger);
 	}
+
+
 }

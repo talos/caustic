@@ -5,6 +5,7 @@ import java.util.Hashtable;
 
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
+import net.caustic.database.DatabaseListener;
 import net.caustic.database.LogDatabaseListener;
 import net.caustic.deserializer.Deserializer;
 import net.caustic.http.HttpBrowser;
@@ -28,28 +29,26 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 	private final HttpBrowser browser;
 	private final Deserializer deserializer;
 	private final ScraperListener listener;
-	private final boolean autoRun;
 	
-	private int submitted = 0;
-	private int finished = 0;
-	private int paused = 0;
-	
-	private int stuck = 0;
-	private int failed = 0;
+	// we can use volatile because changed value not dependent on prior value.
+	private volatile boolean autoRun = false;
 	
 	public AbstractScraper(Database db, HttpBrowser browser, Deserializer deserializer,
-			ScraperListener listener, boolean autoRun) {
+			ScraperListener listener) {
 		this.db = db;
 		this.browser = browser;
 		this.deserializer = deserializer;
 		db.addListener(this);
-		this.autoRun = autoRun;
 		this.listener = listener;
 	}
 	
 	public final void register(Logger logger) {
 		super.register(logger);
 		browser.register(logger);
+	}
+	
+	public final void setAutoRun(boolean autoRun) {
+		this.autoRun = autoRun;
 	}
 	
 	/**
@@ -76,7 +75,7 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 		}
 		
 		// obtain an instruction from the supplied URI or JSON relative to the root URI.
-		final Instruction instruction = new SerializedInstruction(quoted, deserializer, rootURI);
+		//final Instruction instruction = new SerializedInstruction(quoted, deserializer, rootURI);
 		
 		// creation of a new scope could be stopped by database crash.
 		try {
@@ -89,12 +88,9 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 			
 			db.putReady(scope, null, instruction);
 			
-			//scrape(scope, listener, autoRun);
-			
 			return scope;
 		} catch(DatabaseException e) {
-			e.printStackTrace(); // TODO 
-			//process.triggerCrashed(instruction, null, null, null, e);
+			crash(null, instruction, e);
 			return null;
 		}
 	}
@@ -103,103 +99,20 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 	 * When we register a new, ready instruction, run it immediately if we don't need
 	 * to confirm, hold off otherwise.
 	 */
-	public void onPutReady(Scope scope, String source, Instruction instruction) {
+	public void onPutReady(Scope scope, String source, String instruction) {
+		// XXX need to call this from database onReady
 		super.onPutReady(scope, source, instruction);
+		
 		listener.onPutReady(scope, source, instruction);
 		
+		Instruction instruction = new SerializedInstruction(instruction, 
 		Executable executable = new Executable(instruction, source, db, scope, browser, this);
 		
-		if(instruction.shouldConfirm() && this.autoRun == false) {
-			synchronized(this) {
-				paused++;
-			}
+		if(instruction.shouldConfirm() && autoRun == false) {
 			listener.onPause(scope, instruction, new Resume(this, executable));
 		} else {
-			synchronized(this) {
-				submitted++;
-			}
 			submit(executable);
 		}
-	}
-	
-	public void onPutMissing(Scope scope, String source, Instruction instruction, String[] missingTags) {
-		super.onPutMissing(scope, source, instruction, missingTags);
-		listener.onPutMissing(scope, source, instruction, missingTags);
-		
-		synchronized(this) {
-			stuck++;
-		}
-	}
-	
-	public void onPutFailed(Scope scope, String source, Instruction instruction, String failedBecause) {
-		super.onPutFailed(scope, source, instruction, failedBecause);
-		listener.onPutFailed(scope, source, instruction, failedBecause);
-		
-		synchronized(this) {
-			failed++;
-		}
-	}
-	
-	public void onPut(Scope scope, String key, String value) {
-		super.onPut(scope, key, value);
-		listener.onPut(scope, key, value);
-	}
-	
-	public void onNewDefaultScope(Scope scope) {
-		super.onNewDefaultScope(scope);
-		listener.onNewDefaultScope(scope);
-	}
-	
-	public void onNewScope(Scope parent, Scope scope) {
-		super.onNewScope(parent, scope);
-		listener.onNewScope(parent, scope);
-	}
-	
-	public void onNewScope(Scope parent, Scope scope, String value) {
-		super.onNewScope(parent, scope, value);
-		listener.onNewScope(parent, scope, value);
-	}
-
-	public void onAddCookie(Scope scope, String host, String name, String value) {
-		super.onAddCookie(scope, host, name, value);
-		listener.onAddCookie(scope, host, name, value);
-	}
-	
-	/**
-	 * 
-	 * @return <code>true</code> if this {@link AbstractScraper} is not currently scraping
-	 * anything, <code>false</code> otherwise.
-	 */
-	public synchronized final boolean isDormant() {
-		return submitted == finished && paused == 0;
-	}
-	
-	public synchronized int getSubmitted() {
-		return submitted;
-	}
-	
-	public synchronized int getStuck() {
-		return stuck;
-	}
-	
-	public synchronized int getFailed() {
-		return failed;
-	}
-	
-	public synchronized int getFinished() {
-		return finished;
-	}
-	
-	public synchronized int getPaused() {
-		return paused;
-	}
-	
-	protected synchronized final void incrementFinished() {
-		finished++;
-	}
-	
-	protected synchronized final void decrementPaused() {
-		paused--;
 	}
 	
 	protected final void crash(Scope scope, Instruction instruction, Throwable reason) {
@@ -211,8 +124,6 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 	 * Override this method to run the {@link Instruction}.  Do not call it explicitly.
 	 */
 	protected abstract void submit(Executable executable);
-	
-	//protected abstract void interrupt(Throwable because);
-	
+		
 	protected abstract void interrupt();
 }

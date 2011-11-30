@@ -12,7 +12,7 @@ import net.caustic.template.StringSubstitution;
 import net.caustic.util.StaticStringTemplate;
 import net.caustic.util.StringUtils;
 
-public final class Find implements Instruction {
+public final class Find extends Instruction {
 	
 	/**
 	 * The {@link StringTemplate} that will be substituted into a {@link String}
@@ -78,7 +78,8 @@ public final class Find implements Instruction {
 		this.children = children;
 	}
 	
-	public Find(StringTemplate name, RegexpCompiler compiler, StringTemplate pattern, Instruction[] children) {
+	public Find(StringTemplate name, RegexpCompiler compiler, StringTemplate pattern,
+			Instruction[] children) {
 		this.hasName = true;
 		this.name = name;
 		this.compiler = compiler;
@@ -143,7 +144,7 @@ public final class Find implements Instruction {
 		final StringSubstitution subReplacement = replacement.sub(db, scope);
 		
 		subName = name.sub(db, scope);
-				
+		
 		if(subName.isMissingTags() ||
 				subPattern.isMissingTags() ||
 				subReplacement.isMissingTags()) { // One of the substitutions was not OK.
@@ -194,23 +195,9 @@ public final class Find implements Instruction {
 			// Insert children.
 			for(int j = 0 ; j < children.length ; j ++) {
 				db.putReady(childScope, childSource, children[j]);
-				//db.stopInstruction(scope, source, children[j]);
-				
-				// Tell listener to scrape the child when ready if the child is real,
-				// otherwise do it automatically.						
-				
-				// Scrape immediately if we don't need to confirm or if autoRun flag is true.
-				/*if(autoRun == true || instruction.shouldConfirm() == false) {
-					scrape(child, childScope, childSource, listener, autoRun);
-					//triggerScrape(instruction, db, scope, source, );
-				} else {
-					db.stopInstruction(scope, source, instruction);
-					listener.onFreeze(instruction, childScope, childSource);
-				}*/
 			}
 		}
 		
-		//result = InstructionResult.success();
-		//result = InstructionResult.success(resultName, matches, getChildren());
+		db.putSuccess(scope, source, this);
 	}
 }
