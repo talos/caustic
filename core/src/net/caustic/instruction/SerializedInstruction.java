@@ -30,18 +30,16 @@ public class SerializedInstruction extends Instruction {
 		return false;
 	}
 	
-	public InstructionResult execute(String source, Database db, Scope scope,
+	public void execute(String source, Database db, Scope scope,
 			HttpBrowser browser) throws InterruptedException, DatabaseException {
-		DeserializerResult deserializerResult = deserializer.deserialize(serializedString, db, scope, uri);
+		DeserializerResult result = deserializer.deserialize(serializedString, db, scope, uri);
 		
-		if(deserializerResult.isMissingTags()) {
-			return InstructionResult.missingTags(deserializerResult.getMissingTags());
-		} else if(deserializerResult.getInstruction() != null) {
-			return InstructionResult.success(null, new String[] { source },
-					new Instruction[] { deserializerResult.getInstruction() }, false);
-			//return deserializerResult.getInstruction().execute(source, db, scope, browser);
+		if(result.isMissingTags()) {
+			db.putMissing(scope, source, this, result.getMissingTags());
+		} else if(result.getInstruction() != null) {
+			db.putReady(scope, source, result.getInstruction());
 		} else {
-			return InstructionResult.failed(deserializerResult);
+			db.putFailed(scope, source, this, result.getFailedBecause());
 		}
 	}
 	

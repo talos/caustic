@@ -15,10 +15,7 @@ public interface ScraperListener {
 	/**
 	 * This fires when an <code>instruction</code> is frozen.
 	 * @param instruction The {@link Instruction} that is being frozen.
-	 * @param name The {@link String} name of the <code>instruction</code> to be scraped.
-	 * @param db The {@link Database} that <code>instruction</code> is working from.
 	 * @param scope The {@link Scope} of this particular scrape.
-	 * @param parent The {@link Scope} of the parent of this scrape.
 	 * @param source A {@link String} source that <code>instruction</code> is
 	 * working from.  This is <code>null</code> if <code>instruction</code>
 	 * is a {@link Load}.
@@ -41,12 +38,8 @@ public interface ScraperListener {
 	 * @param scope The {@link Scope} of this particular scrape.
 	 * @param source The {@link String} source for the scrape.  This is <code>null</code>
 	 * if <code>instruction</code> is a {@link Load}.
-	 * @param key The {@link String} key for this <code>instruction</code>'s
-	 * results.  Blank if there was none.
-	 * @param results An array of {@link String} results for <code>instruction</code>
 	 */
-	public abstract void onSuccess(Instruction instruction, Scope scope,
-			String source, String key, String[] results);
+	public abstract void onSuccess(Instruction instruction, Scope scope, String source);
 	
 	/**
 	 * This fires when an <code>instruction</code> cannot currently be scraped

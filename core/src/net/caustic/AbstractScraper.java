@@ -6,12 +6,12 @@ import java.util.Vector;
 
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
+import net.caustic.database.DatabaseListener;
 import net.caustic.database.LogDatabaseListener;
-import net.caustic.database.StoppedInstruction;
+import net.caustic.database.ReadyExecution;
 import net.caustic.deserializer.Deserializer;
 import net.caustic.http.HttpBrowser;
 import net.caustic.instruction.Instruction;
-import net.caustic.instruction.InstructionResult;
 import net.caustic.instruction.SerializedInstruction;
 import net.caustic.log.Loggable;
 import net.caustic.log.Logger;
@@ -24,7 +24,7 @@ import net.caustic.util.StringUtils;
  * @author talos
  *
  */
-public abstract class AbstractScraper implements Loggable {
+public abstract class AbstractScraper extends LogDatabaseListener implements Loggable {
 
 	private volatile int submitted = 0;
 	private volatile int paused = 0;
@@ -48,16 +48,18 @@ public abstract class AbstractScraper implements Loggable {
 	 * keys are {@link Scope}s, and the second dimension is an array of Strings
 	 * of missing tags.  The final values are the {@link StoppedInstruction}s.
 	 */
-	private final Hashtable stuck = new Hashtable();
+	//private final Hashtable stuck = new Hashtable();
 	
 	//private volatile int scrapesStarted = 0;
 	//private volatile int scrapesFinished = 0;
 	
 	public AbstractScraper(Database db, HttpBrowser browser, Deserializer deserializer) {
+		super(log);
 		this.db = db;
 		this.browser = browser;
 		this.deserializer = deserializer;
-		db.addListener(new LogDatabaseListener(log));
+		db.addListener(this);
+		
 	}
 	
 	public final void register(Logger logger) {
@@ -135,14 +137,9 @@ public abstract class AbstractScraper implements Loggable {
 				db.put(scope, key, (String) input.get(key));
 			}
 			
-			//ScraperProcess process = new ScraperProcess(browser, db, listener, autoRun);
+			db.putReady(scope, null, instruction);
 			
-			
-			// initial call doesn't filter through .onReady
-			//process.triggerScrape(instruction, db, scope, null, null, browser.copy());
-			
-			// freeze with very little info
-			scrape(instruction, scope, null, listener, autoRun);
+			scrape(scope, listener, autoRun);
 			
 			return scope;
 		} catch(DatabaseException e) {
@@ -152,11 +149,31 @@ public abstract class AbstractScraper implements Loggable {
 		}
 	}
 	
-	public void scrape(Instruction instruction, Scope scope, String source,
-			ScraperListener listener, boolean autoRun) {
-		submitted++;		
+	public void scrape(Scope scope, ScraperListener listener, boolean autoRun) {
+		submitted++;
 		
-		submit(new Executable(instruction, scope, source, autoRun, this, db, browser, listener));
+		ReadyExecution[] ready = db.getReady(scope);
+		for(int i = 0 ; i < ready.length ; i ++) {
+			submit(new Executable(browser, db, scope, ready[i]));
+		}
+	}
+	
+
+	public void onPutReady(Scope scope, ReadyExecution ready) {
+		super.onPutReady(scope, ready);
+		//TODO
+	}
+
+	public void onPutMissing(Scope scope, String source,
+			Instruction instruction, String[] missingTags) {
+		super.onPutMissing(scope, source, instruction, missingTags);
+		// TODO
+	}
+
+	public void onPutFailed(Scope scope, String source,
+			Instruction instruction, String failedBecause) {
+		super.onPutFailed(scope, source, instruction, failedBecause);
+		//TODO
 	}
 	
 	/**
@@ -179,156 +196,4 @@ public abstract class AbstractScraper implements Loggable {
 	protected abstract void submit(Executable executable);
 	
 	protected abstract void interrupt();
-	
-	/**
-	 * Synchronized handler for instruction results from {@link Executable}.
-	 * @param instruction
-	 * @param result
-	 */
-	synchronized final void handle(Instruction instruction, Scope scope, String source,
-			ScraperListener listener, boolean autoRun, InstructionResult result) {
-		if(result.isSuccess()) {
-			// only tell extra listener about successes that actually have keys.
-			if(result.getName() != null) {
-				listener.onSuccess(instruction, scope, source, result.getName(), result.getResults());
-			}
-			handleSuccess(instruction, scope, source, autoRun, listener, result);
-		} else if(result.isMissingTags()) {
-			listener.onMissingTags(instruction, scope, source, result.getMissingTags());
-			handleMissingTags(instruction, scope, source, result.getMissingTags());
-		} else {
-			listener.onFailed(instruction, scope, source, result.getFailedBecause());
-			handleFailure(instruction, result.getFailedBecause());
-		}
-	}
-	
-	private void handleSuccess(Instruction instruction, Scope scope, String source,
-			boolean autoRun, ScraperListener listener, InstructionResult result) {
-		final Instruction[] children = result.getChildren();
-		final String[] results = result.getResults();
-		
-		// if shouldStoreValues is false, then name could be null.
-		boolean shouldStoreValues = result.shouldStoreValues();
-		String name = result.getName();
-		
-		// Launch or freeze children.
-		try {
-			for(int i = 0 ; i < results.length ; i ++) {
-				final Scope childScope;
-				// generate result scopes.
-				final String childSource = results[i];
-				if(results.length == 1) { // don't spawn a new result for single match
-					childScope = scope;
-					if(shouldStoreValues) {
-						db.put(childScope, name, childSource);
-					}
-				} else {
-					if(shouldStoreValues) {
-						childScope = db.newScope(scope, name, childSource);
-					} else {
-						childScope = db.newScope(scope, name);							
-					}
-				}
-				// create & scrape children.
-				for(int j = 0 ; j < children.length ; j ++) {
-					
-					// Tell listener to scrape the child when ready if the child is real,
-					// otherwise do it automatically.
-					final Instruction child = children[j];
-					//final HttpBrowser browserCopy = browser.copy();
-					
-					//process.triggerReady(child, db, childScope, scope, results[i], browserCopy);
-					
-					// Scrape immediately if we don't need to confirm or if autoRun flag is true.
-					if(autoRun == true || instruction.shouldConfirm() == false) {
-						scrape(child, childScope, childSource, listener, autoRun);
-						//triggerScrape(instruction, db, scope, source, );
-					} else {
-						db.stopInstruction(scope, source, instruction);
-						listener.onFreeze(instruction, childScope, childSource);
-						//listener.onFreeze(instruction, db, scope, source);
-					}
-				}
-			}
-		
-			// Retry stuck scrapers based off of new data.
-			if(stuck.containsKey(scope)) {
-				
-				// stuckInScope is a table of Executables by String arrays of missing strings.
-				Hashtable stuckInScope = (Hashtable) stuck.get(scope);
-				Enumeration e = stuckInScope.keys();
-				
-				// Vector of missing tag string array references.  This will be used to prune
-				// stuckInScope after enumeration is complete.
-				Vector removeFromStuckInScope = new Vector(); 
-				while(e.hasMoreElements()) {
-					String[] missingTags = (String[]) e.nextElement();
-					
-					boolean shouldResubmit = true; // change to false if still missing tags
-					
-					// check the database to see if we're still missing any of these tags.
-					for(int j = 0 ; j < missingTags.length ; j ++) {
-						if(db.get(scope, missingTags[j]) == null) {
-							// we are still missing a tag, break out.
-							shouldResubmit = false;
-							break;
-						}
-					}
-					
-					if(shouldResubmit == true) {
-						//scraper.submit((Executable) stuck.get((Executable) stuck.get(missingTags)));
-						//submit((Executable) stuckInScope.get(missingTags));
-						
-						StoppedInstruction frozen = (StoppedInstruction) stuckInScope.get(missingTags);
-						
-						// cancel out the prior submit.
-						submitted--;
-						scrape(frozen.instruction, scope, frozen.source, listener, autoRun);
-						
-						
-						//triggerReady(instruction, db, scope, parent, source, browser)
-						removeFromStuckInScope.add(missingTags);
-					}
-				}
-				
-				// remove the elements that were resubmitted.
-				// we have to do this here because we have an enumerator, not an iterator. *grumble*
-				e = removeFromStuckInScope.elements();
-				while(e.hasMoreElements()) {
-					stuckInScope.remove(e.nextElement());
-					stuckCnt--;
-				}
-				
-				// if nothing left stuck in scope, remove the scope
-				if(stuckInScope.size() == 0) {
-					stuck.remove(scope);
-				}
-			}
-		}catch(DatabaseException e) {
-			e.printStackTrace();
-			interrupt(); // TODO
-			//triggerCrashed(instruction, scope, source, e);
-		}
-	}
-	
-	private void handleMissingTags(final Instruction instruction, final Scope scope, 
-			final String source, final String[] missingTags) {		
-		final Hashtable stuckInScope;
-		// add an executable missing tags to the hash of stuck executables.
-		if(!stuck.containsKey(scope)) {
-			stuckInScope = new Hashtable();
-			stuck.put(scope, stuckInScope);
-		} else {
-			stuckInScope = (Hashtable) stuck.get(scope);
-		}
-		
-		stuckInScope.put(missingTags, new StoppedInstruction(instruction, source));
-		//stuckInScope.put(missingTags, new Executable(instruction, db, scope, source, browser, this));
-		
-		stuckCnt++;
-	}
-	
-	private void handleFailure(Instruction instruction, String failedBecause) {		
-		failed++;				
-	}
 }

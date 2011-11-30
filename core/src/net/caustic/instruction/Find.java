@@ -10,6 +10,7 @@ import net.caustic.scope.Scope;
 import net.caustic.template.DependsOnTemplate;
 import net.caustic.template.StringSubstitution;
 import net.caustic.util.StaticStringTemplate;
+import net.caustic.util.StringUtils;
 
 public final class Find extends Instruction {
 	
@@ -127,13 +128,12 @@ public final class Find extends Instruction {
 	 * Use {@link #pattern}, substituted from {@link Database}, to match against <code>source</code>.
 	 * Ignores <code>browser</code>.
 	 */
-	public InstructionResult execute(String source, Database db, Scope scope, HttpBrowser browser)
+	public void execute(String source, Database db, Scope scope, HttpBrowser browser)
 			throws DatabaseException {
 		if(source == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
 		
-		final InstructionResult result;
 		final StringSubstitution subName;
 		final StringSubstitution subPattern = pattern.sub(db, scope);
 		final StringSubstitution subReplacement = replacement.sub(db, scope);
@@ -143,25 +143,71 @@ public final class Find extends Instruction {
 		if(subName.isMissingTags() ||
 				subPattern.isMissingTags() ||
 				subReplacement.isMissingTags()) { // One of the substitutions was not OK.
-			result = InstructionResult.missingTags(StringSubstitution.combine(
-					new DependsOnTemplate[] { subName, subPattern, subReplacement } ) );
+			final String[] missingTags = StringSubstitution.combine(
+					new DependsOnTemplate[] { subName, subPattern, subReplacement });
+			db.putMissing(scope, source, this, missingTags);
+			return;
+		}
+		
+		// All the substitutions were OK.
+		String resultName = subName.getSubstituted();
+		
+		String patternString = (String) subPattern.getSubstituted();
+		Pattern pattern = compiler.newPattern(patternString, isCaseInsensitive, isMultiline, doesDotMatchNewline);
+		
+		String replacement = (String) subReplacement.getSubstituted();
+		String[] matches = pattern.match(source, replacement, minMatch, maxMatch);
+		
+		if(matches.length == 0) { // No matches, fail out.
+			db.putFailed(scope, source, this, "Match " + StringUtils.quote(pattern) +
+					" did not have a match between " + 
+					StringUtils.quote(minMatch) + " and " + 
+					StringUtils.quote(maxMatch) + " against " +
+					StringUtils.quoteAndTruncate(StringUtils.quote(source), 100));
+			return;
+		}
+		
+		// We got at least 1 match.
+		for(int i = 0 ; i < matches.length ; i ++) {
 			
-		} else { // All the substitutions were OK.
-			String resultName = subName.getSubstituted();
+			final Scope childScope;
+			// generate result scopes.
+			final String childSource = matches[i];
 			
-			String patternString = (String) subPattern.getSubstituted();
-			Pattern pattern = compiler.newPattern(patternString, isCaseInsensitive, isMultiline, doesDotMatchNewline);
-			
-			String replacement = (String) subReplacement.getSubstituted();
-			String[] matches = pattern.match(source, replacement, minMatch, maxMatch);
-			
-			if(matches.length == 0) { // No matches, fail out.
-				result = InstructionResult.noMatchesFailure(pattern, minMatch, maxMatch, source);
-			// We got at least 1 match.
+			Instruction[] children = getChildren();
+			if(matches.length == 1) { // don't spawn a new result for single match
+				childScope = scope;
+				if(hasName) {
+					db.put(childScope, resultName, childSource);
+				}
 			} else {
-				result = InstructionResult.success(resultName, matches, getChildren(), hasName);
+				if(hasName) {
+					childScope = db.newScope(scope, resultName, childSource);
+				} else {
+					childScope = db.newScope(scope, resultName); // use auto-name			
+				}
+			}
+			
+			// Insert children.
+			for(int j = 0 ; j < children.length ; j ++) {
+				db.putReady(childScope, childSource, children[j]);
+				//db.stopInstruction(scope, source, children[j]);
+				
+				// Tell listener to scrape the child when ready if the child is real,
+				// otherwise do it automatically.						
+				
+				// Scrape immediately if we don't need to confirm or if autoRun flag is true.
+				/*if(autoRun == true || instruction.shouldConfirm() == false) {
+					scrape(child, childScope, childSource, listener, autoRun);
+					//triggerScrape(instruction, db, scope, source, );
+				} else {
+					db.stopInstruction(scope, source, instruction);
+					listener.onFreeze(instruction, childScope, childSource);
+				}*/
 			}
 		}
-		return result;
+		
+		//result = InstructionResult.success();
+		//result = InstructionResult.success(resultName, matches, getChildren());
 	}
 }

@@ -30,7 +30,20 @@ public class HashtableUtils {
 	
 	/**
 	 * Turn an array of {@link Hashtable}s into a single {@link Hashtable}.  Keys from
-	 * earlier elements of <code>hashtables</code> will overwrite keys from later elements.
+	 * later elements of <code>hashtables</code> will overwrite keys from earlier elements:
+	 * <p>
+	 * <code>
+	 * {"foo"   : "bar",<br>
+	 *  "roses" : "red"}<br>
+	 *  +<br>
+	 * {"foo"     : "bazzz",<br>
+	 *  "violets" : "blue" }</code>
+	 * <p>turns into</p>
+	 * <code>
+	 * {"foo"     : "bazzz",<br>
+	 *  "roses"   : "red",<br>
+	 *  "violets" : "blue"}
+	 * <p>
 	 * @param hashtables An array of {@link Hashtable}s.
 	 * @return A single {@link Hashtable}.
 	 */

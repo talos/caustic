@@ -1,6 +1,5 @@
 package net.caustic.database;
 
-import net.caustic.instruction.Instruction;
 import net.caustic.log.Logger;
 import net.caustic.scope.Scope;
 import net.caustic.util.StringUtils;
@@ -27,8 +26,9 @@ public class LogDatabaseListener implements DatabaseListener {
 				+ " in " + StringUtils.quote(scope));
 	}
 
-	public void onStop(Scope scope, String source, Instruction instruction) {
-		logger.i("Froze " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
+	public void onStop(Scope scope, ReadyExecution stoppedInstruction) {
+		logger.i("Froze " + StringUtils.quote(stoppedInstruction.instruction)
+				+ " in scope " + StringUtils.quote(scope));
 	}
 
 	public void onNewDefaultScope(Scope scope) {
@@ -51,8 +51,9 @@ public class LogDatabaseListener implements DatabaseListener {
 		
 	}
 
-	public void onRestart(Scope scope, Instruction instruction, String source) {
-		logger.i("Unfroze " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
+	public void onRestart(Scope scope, ReadyExecution stoppedInstruction) {
+		logger.i("Unfroze " + StringUtils.quote(stoppedInstruction.instruction)
+				+ " in scope " + StringUtils.quote(scope));
 		
 	}
 }

@@ -3,7 +3,6 @@ package net.caustic.database;
 import au.com.bytecode.opencsv.CSVWriter;
 
 import net.caustic.database.DatabaseListener;
-import net.caustic.instruction.Instruction;
 import net.caustic.scope.Scope;
 
 /**
@@ -54,7 +53,7 @@ public class CSVDatabaseListener implements DatabaseListener {
 	 * Not mentioned on CSV.
 	 */
 	@Override
-	public void onStop(Scope scope, String source, Instruction instruction) { }
+	public void onStop(Scope scope, StoppedInstruction stoppedInstruction) { }
 
 
 	/**
@@ -67,5 +66,5 @@ public class CSVDatabaseListener implements DatabaseListener {
 	 * Not mentioned on CSV.
 	 */
 	@Override
-	public void onRestart(Scope scope, Instruction instruction, String source) {  }
+	public void onRestart(Scope scope, StoppedInstruction stoppedInstruction) {  }
 }

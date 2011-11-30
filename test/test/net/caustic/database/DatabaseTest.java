@@ -14,9 +14,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import mockit.Mocked;
-import mockit.Verifications;
+import mockit.VerificationsInOrder;
 import net.caustic.database.Database;
+import net.caustic.instruction.Instruction;
 import net.caustic.scope.Scope;
+import net.caustic.util.Encoder;
+import net.caustic.util.JavaNetEncoder;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,12 +29,14 @@ public abstract class DatabaseTest {
 	private ExecutorService exc;
 	private Database db;
 	private Scope scope;
+	private Encoder encoder;
 	
 	public abstract Database getDatabase() throws Exception;
 	
 	@Before
 	public void setUp() throws Exception {
 		exc = Executors.newCachedThreadPool();
+		encoder = new JavaNetEncoder(Encoder.UTF_8);
 		db = getDatabase();
 		scope = db.newDefaultScope();
 	}
@@ -254,8 +259,79 @@ public abstract class DatabaseTest {
 		assertTrue("didn't complete in one minute", exc.awaitTermination(1, TimeUnit.MINUTES));
 	}
 	*/
+
 	@Test
-	public void testListener(@Mocked(capture = 1) final DatabaseListener listener) throws Exception {
+	public void testGetCookiesStartsEmpty() throws Exception {
+		String[] cookies = db.getCookies(scope, "host.com", encoder);
+		assertArrayEquals(new String[] { }, cookies);
+	}
+
+	@Test
+	public void testAddCookiesInScopeDifferentHosts() throws Exception {
+		db.addCookie(scope, "foo.com", "roses", "red");
+		db.addCookie(scope, "bar.com", "violets", "blue");
+		
+		assertArrayEquals(new String[] { "roses=red" }, db.getCookies(scope, "foo.com", encoder));
+		assertArrayEquals(new String[] { "violets=blue" }, db.getCookies(scope, "bar.com", encoder));
+	}
+
+	@Test
+	public void testAddCookiesInScopeSameHost() throws Exception {
+		db.addCookie(scope, "foo.com", "roses", "red");
+		db.addCookie(scope, "foo.com", "violets", "blue");
+		
+		assertArrayEquals(new String[] { "roses=red", "violets=blue" },
+				db.getCookies(scope, "foo.com", encoder));
+	}
+	
+	@Test
+	public void testCookiesAreEncoded() throws Exception {
+		db.addCookie(scope, "foo.com", "cats == dogs", "&& parakeets, oh my!");
+		
+		assertArrayEquals(new String[] { "cats+%3D%3D+dogs=%26%26+parakeets%2C+oh+my%21" },
+				db.getCookies(scope, "foo.com", encoder));
+	}
+
+	@Test
+	public void testCookiesOverwriteInScope() throws Exception {
+		db.addCookie(scope, "foo.com", "roses", "yellow");
+		db.addCookie(scope, "foo.com", "roses", "red");
+		
+		assertArrayEquals(new String[] { "roses=red" }, db.getCookies(scope, "foo.com", encoder));
+	}
+
+	@Test
+	public void testCookiesDontOverwriteOutOfScope() throws Exception {
+		Scope child = db.newScope(scope, "child");
+		
+		db.addCookie(scope, "foo.com", "roses", "yellow");
+		db.addCookie(child, "foo.com", "roses", "red");
+		
+		assertArrayEquals(new String[] { "roses=yellow" }, db.getCookies(scope, "foo.com", encoder));
+		assertArrayEquals(new String[] { "roses=red" }, db.getCookies(child, "foo.com", encoder));
+	}
+	
+	@Test
+	public void testCookiesAccessibleInChildScope() throws Exception {
+		Scope child = db.newScope(scope, "child");
+		
+		db.addCookie(scope, "foo.com", "roses", "red");
+		db.addCookie(child, "foo.com", "violets", "blue");
+		
+		assertArrayEquals(new String[] { "roses=red" }, db.getCookies(scope, "foo.com", encoder));
+		assertArrayEquals(new String[] { "violets=blue", "roses=red" },
+				db.getCookies(child, "foo.com", encoder));
+	}
+	
+	@Test
+	public void testStopInstruction(@Mocked Instruction instruction) throws Exception {
+		db.stopInstruction(scope, "source", instruction);
+		db.getStoppedInstructions(scope);
+	}
+	
+	@Test
+	public void testListener(@Mocked(capture = 1) final DatabaseListener listener,
+			final @Mocked Instruction instruction) throws Exception {
 		
 		db.addListener(listener);
 		
@@ -263,10 +339,18 @@ public abstract class DatabaseTest {
 		db.put(parent, "foo", "bar");
 		final Scope scope = db.newScope(parent, "roses", "red");
 		
-		new Verifications() {{
+		db.addCookie(scope, "host.com", "name", "value");
+		
+		db.stopInstruction(scope, "source", instruction);
+		db.restart(scope, "source", instruction);
+		
+		new VerificationsInOrder() {{
 			listener.onNewDefaultScope(parent);
 			listener.onPut(parent, "foo", "bar");
 			listener.onNewScope(parent, scope, "red");
+			listener.onAddCookie(scope, "host.com", "name", "value");
+			listener.onStop(scope, null);
+			listener.onRestart(scope, null);
 		}};
 	}
 }

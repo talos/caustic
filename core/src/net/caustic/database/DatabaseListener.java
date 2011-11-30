@@ -22,14 +22,6 @@ public interface DatabaseListener {
 	public void onPut(Scope scope, String key, String value);
 	
 	/**
-	 * This method is called when an {@link Instruction} should be frozen for later execution.
-	 * @param scope the {@link Scope} which the {@link Instruction} should have access to.
-	 * @param source the {@link String} source that <code>instruction</code> should use.
-	 * @param instruction The {@link Instruction} to freeze.
-	 */
-	public void onStop(Scope scope, String source, Instruction instruction);
-	
-	/**
 	 * Called after fresh {@link Scope} created.
 	 * @param scope
 	 * @throws DatabaseListenerException
@@ -63,12 +55,11 @@ public interface DatabaseListener {
 	 */
 	public void onAddCookie(Scope scope, String host, String name, String value);
 
-	/**
-	 * This method is called after the {@link Database#restart(Scope, Instruction)}
-	 * of the {@link Database} that this is hooked into.
-	 * @param scope The {@link Scope} of the restarted <code>instruction</code>.
-	 * @param instruction The {@link Instruction} that was restarted.
-	 * @param source The {@link String} source for <code>instruction</code>.
-	 */
-	public void onRestart(Scope scope, Instruction instruction, String source);
+	public void onPutReady(Scope scope, ReadyExecution ready);
+
+	public void onPutMissing(Scope scope, String source,
+			Instruction instruction, String[] missingTags);
+
+	public void onPutFailed(Scope scope, String source,
+			Instruction instruction, String failedBecause);
 }

@@ -19,9 +19,11 @@ public class InstructionArray extends Instruction {
 		this.instructions = instructions;
 	}
 	
-	public InstructionResult execute(String source, Database db, Scope scope,
+	public void execute(String source, Database db, Scope scope,
 			HttpBrowser browser) throws InterruptedException, DatabaseException {
-		return InstructionResult.success(null, new String[] { source }, instructions, false);
+		for(int i = 0 ; i < instructions.length ; i ++) {
+			db.putReady(scope, source, instructions[i]);
+		}
 	}
 
 	public boolean shouldConfirm() {

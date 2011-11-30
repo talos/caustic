@@ -10,29 +10,34 @@ import java.util.Hashtable;
 import mockit.Delegate;
 import mockit.Expectations;
 import mockit.Mocked;
-import net.caustic.http.CookieManager;
+import net.caustic.database.Database;
 import net.caustic.http.HttpBrowser;
 import net.caustic.http.HttpRequester;
 import net.caustic.http.HttpResponse;
 import net.caustic.http.RateLimitManager;
 import net.caustic.http.ResponseHeaders;
 import net.caustic.regexp.Pattern;
+import net.caustic.scope.Scope;
+import net.caustic.util.Encoder;
+import net.caustic.util.HashtableUtils;
 import net.caustic.util.JavaNetEncoder;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class HttpBrowserUnitTest {
-	
-	private static final String google = "http://www.google.com/";
-	
+		
 	@Mocked private HttpRequester requester;
 	@Mocked private RateLimitManager rateLimitManager;
+	@Mocked private HttpUtils utils;
+	@Mocked private Encoder encoder;
+	@Mocked private Database db;
+	@Mocked private Scope scope;
 	private HttpBrowser browser;
 		
 	@Before
 	public void setUp() throws Exception {
-		browser = new HttpBrowser(requester, rateLimitManager);
+		browser = new HttpBrowser(requester, rateLimitManager, utils, encoder);
 	}
 
 	@Test
@@ -41,12 +46,12 @@ public class HttpBrowserUnitTest {
 			@Mocked HttpResponse response;
 			@Mocked ResponseHeaders responseHeaders;
 			{
-				requester.head(google, (Hashtable) any); result = response;
+				requester.head("http://www.google.com/", (Hashtable) any); result = response;
 				response.getResponseHeaders(); result = responseHeaders;
 				response.isSuccess(); result = true;
 			}
 		};
-		browser.head(google, new Hashtable<String, String>());
+		browser.head("http://www.google.com/", HashtableUtils.EMPTY, db, scope);
 	}
 
 	@Test
@@ -57,7 +62,7 @@ public class HttpBrowserUnitTest {
 			@Mocked ResponseHeaders responseHeaders;
 			@Mocked HttpResponse response;
 			{
-				requester.get(google, (Hashtable) any); result = response;
+				requester.get("http://www.google.com/", (Hashtable) any); result = response;
 				response.getResponseHeaders(); result = responseHeaders;
 				response.isSuccess(); result = true;
 				response.getContentStream(); result = contentStream;
@@ -75,12 +80,8 @@ public class HttpBrowserUnitTest {
 				contentStream.close();
 			}
 		};
-		assertEquals(content, browser.get(google, new Hashtable<String, String>(), new Pattern[] {}));
+		assertEquals(content, browser.get("http://www.google.com/", HashtableUtils.EMPTY,
+				new Pattern[] {}, db, scope));
 	}
 	
-	@Test
-	public void testSetMaxResponseSize() {
-		fail("Not yet implemented");
-	}
-
 }

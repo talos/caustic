@@ -23,7 +23,7 @@ public class LogScraperListener implements ScraperListener {
 		
 	}
 	
-	public void onSuccess(Instruction instruction, Scope scope, String source, String key, String[] results) {
+	public void onSuccess(Instruction instruction, Scope scope, String source) {
 		log.i("Finished " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope));
 	}
 	

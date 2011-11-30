@@ -67,12 +67,24 @@ public class LoadTest {
 	
 	@Test
 	public void testUrlIsSubstituted() throws Exception {
-		final String value = randomString();
-		final String name = "query";
-		final StringTemplate url = compiler.newTemplate("http://www.google.com/?q={{" + name + "}}", StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
-		final String subbed = "http://www.google.com/?q=" + value;
+		final StringTemplate url = compiler.newTemplate("http://www.google.com/?q={{roses}}");
+		final String subbed = "http://www.google.com/?q=red";
 		new Expectations() {{
-			db.get(scope, name); result = value;
+			db.get(scope, "roses"); result = "red";
+			mockBrowser.get(subbed, (Hashtable) any, (Pattern[]) any, db, scope);
+		}};
+		Load load = new Load(url);
+		InstructionResult result = load.execute(null, db, scope, mockBrowser);
+		//assertEquals(subbed, result.getName());
+	}
+	
+
+	@Test
+	public void testUrlIsSubstitutedEscaped() throws Exception {
+		final StringTemplate url = compiler.newTemplate("http://www.google.com/?q={{query}}");
+		final String subbed = "http://www.google.com/?q=a+few+words";
+		new Expectations() {{
+			db.get(scope, "query"); result = "a few words";
 			mockBrowser.get(subbed, (Hashtable) any, (Pattern[]) any, db, scope);
 		}};
 		Load load = new Load(url);

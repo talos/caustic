@@ -74,7 +74,6 @@ public abstract class Instruction {
 	 * @throws DatabaseException if there was an error persisting to 
 	 * or reading from <code>db</code>.
 	 */
-	public abstract InstructionResult execute(String source, Database db,
-			Scope scope, HttpBrowser browser)
+	public abstract void execute(String source, Database db, Scope scope, HttpBrowser browser)
 			throws InterruptedException, DatabaseException;
 }

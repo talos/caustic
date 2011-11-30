@@ -161,9 +161,8 @@ public final class Load extends Instruction {
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 * <code>source</code> is ignored.
 	 */
-	public InstructionResult execute(String source, Database db, Scope scope, HttpBrowser browser)
+	public void execute(String source, Database db, Scope scope, HttpBrowser browser)
 			throws InterruptedException, DatabaseException {
-		final InstructionResult result;
 		try {			
 			final Pattern[] stops = new Pattern[] { };
 			final StringSubstitution urlSub = url.sub(db, scope);
@@ -176,45 +175,49 @@ public final class Load extends Instruction {
 					|| headersSub.isMissingTags()
 					|| cookiesSub.isMissingTags()
 					|| postData.isMissingTags()) {
-				result = InstructionResult.missingTags(
-					StringSubstitution.combine(new DependsOnTemplate[] {
-						urlSub, headersSub, cookiesSub, postData}));
+				String[] missingTags = StringSubstitution.combine(new DependsOnTemplate[] {
+						urlSub, headersSub, cookiesSub, postData});
+				
+				db.putMissing(scope, source, this, missingTags);
+				return;
+			}
+			
+			// Everything is substituted in, we can actually try to load the page.
+			final String url = (String) urlSub.getSubstituted();
+			final String responseBody;
+			
+			final String postStr = postData.getSubstituted();
+			Hashtable headers = headersSub.getSubstituted();
+			Hashtable cookies = cookiesSub.getSubstituted();
+			
+			// add cookies directly into DB
+			Enumeration e = cookies.elements();
+			while(e.hasMoreElements()) {
+				String name = (String) e.nextElement();
+				String value = (String) cookies.get(name);
+				db.addCookie(scope, url, name, value);
+			}
+			
+			if(method.equalsIgnoreCase(HttpBrowser.HEAD)){
+				browser.head(url, headers, db, scope);
+				responseBody = ""; // launch children with a blank source.
+			} else if(method.equalsIgnoreCase(HttpBrowser.POST)) {
+				responseBody = browser.post(url, headers, stops, postStr, db, scope);
 			} else {
-				final String url = (String) urlSub.getSubstituted();
-				final String responseBody;
-				
-				final String postStr = postData.getSubstituted();
-				Hashtable headers = headersSub.getSubstituted();
-				Hashtable cookies = cookiesSub.getSubstituted();
-				
-				// add cookies directly into DB
-				Enumeration e = cookies.elements();
-				while(e.hasMoreElements()) {
-					String name = (String) e.nextElement();
-					String value = (String) cookies.get(name);
-					db.addCookie(scope, url, name, value);
-				}
-				
-				/*if(cookies.size() > 0) {
-					db.addCookie(scope, url, cookie)
-					//browser.addCookies(url, cookies);
-				}*/
-				
-				if(method.equalsIgnoreCase(HttpBrowser.HEAD)){
-					browser.head(url, headers, db, scope);
-					responseBody = ""; // launch children with a blank source.
-				} else if(method.equalsIgnoreCase(HttpBrowser.POST)) {
-					responseBody = browser.post(url, headers, stops, postStr, db, scope);
-				} else {
-					responseBody = browser.get(url, headers, stops, db, scope);
-				}
-				result = InstructionResult.success(url, new String[] { responseBody }, getChildren(), false);
+				responseBody = browser.get(url, headers, stops, db, scope);
+			}
+			
+			// Add children to database
+			Instruction[] children = getChildren();
+			for(int i = 0 ; i < children.length ; i ++) {
+				db.putReady(scope, responseBody, children[i]);
 			}
 		} catch(HashtableSubstitutionOverwriteException e) {
-			return InstructionResult.fromSubstitutionOverwrite(e);
+			// Failed because of ambiguous mapping
+			db.putFailed(scope, source, this, "Instruction template substitution caused ambiguous mapping: "
+					+ e.getMessage());
 		} catch (HttpException e) {
-			return InstructionResult.fromHttpException(e);
+			db.putFailed(scope, source, this, "Failure during HTTP request or response: " + e.getMessage());
 		}
-		return result;
 	}
 }

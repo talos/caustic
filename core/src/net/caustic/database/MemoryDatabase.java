@@ -17,7 +17,7 @@ import net.caustic.util.StringUtils;
  */
 public final class MemoryDatabase extends Database {
 	
-	private static final StoppedInstruction[] EMPTY_INSTRUCTION_ARRAY = new StoppedInstruction[0];
+	private static final ReadyExecution[] EMPTY_INSTRUCTION_ARRAY = new ReadyExecution[0];
 	
 	/**
 	 * Tree of scope parent relationships.  {@link Scope} => {@link Scope}.
@@ -59,18 +59,18 @@ public final class MemoryDatabase extends Database {
 		return null;
 	}
 
-	public StoppedInstruction[] getStoppedInstructions(Scope scope)
+	public ReadyExecution[] getStoppedInstructions(Scope scope)
 			throws DatabaseException {
-		final StoppedInstruction[] results;
+		final ReadyExecution[] results;
 		if(stopped.containsKey(scope)) {
 			final Hashtable frozenForScope = (Hashtable) stopped.get(scope);
-			results = new StoppedInstruction[frozenForScope.size()];
+			results = new ReadyExecution[frozenForScope.size()];
 			final Enumeration e = frozenForScope.elements();
 			
 			// convert to an array.
 			int i = 0;
 			while(e.hasMoreElements()) {
-				results[i] = (StoppedInstruction) e.nextElement();
+				results[i] = (ReadyExecution) e.nextElement();
 				i++;
 			}
 		} else {
@@ -93,7 +93,7 @@ public final class MemoryDatabase extends Database {
 					Hashtable hostCookies = (Hashtable) scopeCookies.get(host);
 					
 					// precedence is given to prior (lower on the tree) cookies.
-					allCookies = HashtableUtils.combine(new Hashtable[] { allCookies, hostCookies } );
+					allCookies = HashtableUtils.combine(new Hashtable[] { hostCookies, allCookies } );
 				}
 			}
 			scope = (Scope) tree.get(scope); // get the parent scope
@@ -137,8 +137,9 @@ public final class MemoryDatabase extends Database {
 		}
 	}
 
-	protected void onStop(Scope scope, String source, Instruction instruction) {
+	protected void onStop(Scope scope, ReadyExecution stoppedInstruction) {
 		final Hashtable stoppedForScope;
+		final Instruction instruction = stoppedInstruction.instruction;
 		
 		// create new hashtable for frozenForScope if no entry for this scope yet.
 		if(stopped.containsKey(scope)) {
@@ -148,12 +149,12 @@ public final class MemoryDatabase extends Database {
 			stopped.put(scope, stoppedForScope);
 		}
 		
-		stoppedForScope.put(instruction.getName().toString(), new StoppedInstruction(instruction, source));
+		stoppedForScope.put(instruction.getName().toString(), stoppedInstruction);
 	}
-
-	protected void onRestart(Scope scope, String source, Instruction instruction) 
+	
+	protected void onRestart(Scope scope, ReadyExecution stoppedInstruction) 
 		throws DatabaseException {
-		
+		final Instruction instruction = stoppedInstruction.instruction;
 		try {
 			// remove the restarted instruction from the table of stopped instructions.
 			final Hashtable stoppedForScope = (Hashtable) stopped.get(scope);
@@ -173,9 +174,9 @@ public final class MemoryDatabase extends Database {
 
 	protected void onPut(Scope scope, String key, String value) {
 		Hashtable dataNode = (Hashtable) substitutions.get(scope);
-		dataNode.put(key, value);		
+		dataNode.put(key, value);
 	}
-
+	
 	protected void onNewDefaultScope(Scope scope) {
 		substitutions.put(scope, new Hashtable());
 	}

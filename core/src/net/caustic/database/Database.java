@@ -61,13 +61,13 @@ public abstract class Database {
 	public abstract String get(Scope scope, String key) throws DatabaseException;
 	
 	/**
-	 * Return all the {@link StoppedInstruction}s that could be, but have not yet been,
+	 * Return all the {@link ReadyExecution}s that could be, but have not yet been,
 	 * executed in the <code>scope</code>.
 	 * @param scope
-	 * @return An array of {@link StoppedInstruction}s.
+	 * @return An array of {@link ReadyExecution}s.
 	 * @throws DatabaseException if there was an reading the {@link Database}.
 	 */
-	public abstract StoppedInstruction[] getStoppedInstructions(Scope scope) throws DatabaseException;
+	public abstract ReadyExecution[] getReady(Scope scope) throws DatabaseException;
 
 	/**
 	 * Get an array of {@link String} encoded cookies for <code>scope</code> and
@@ -84,17 +84,16 @@ public abstract class Database {
 	public abstract String[] getCookies(Scope scope, String host, Encoder encoder) throws DatabaseException;
 	
 	/**
-	 * Remove <code>instruction</code> from the set of {@link StoppedInstruction}s for <code>scope</code>.
-	 * @param scope The {@link Scope} from which to pull <code>instruction</code>.
-	 * @param instruction The {@link StoppedInstruction} to remove from <code>scope</code>.
+	 * Remove <code>instruction</code> from the set of {@link ReadyExecution}s for <code>scope</code>.
+	 * @param stopped The {@link ReadyExecution} to restart.
 	 * @throws DatabaseException if there was an error reading the {@link Database}.
 	 */
-	public final void restart(Scope scope, StoppedInstruction stopped)
+	public final void remove(Scope scope, ReadyExecution stopped)
 			throws DatabaseException {
-		onRestart(scope, stopped.source, stopped.instruction);
+		onRestart(scope, stopped);
 		
 		for(int i = 0 ; i < listeners.size() ; i ++) {
-			((DatabaseListener) listeners.elementAt(i)).onRestart(scope, stopped.instruction, stopped.source);
+			((DatabaseListener) listeners.elementAt(i)).onRestart(scope, stopped);
 		}
 	}
 	
@@ -126,12 +125,30 @@ public abstract class Database {
 		}
 	}
 	
-	public final void stopInstruction(Scope scope, String source, Instruction instruction)
+	public final void putReady(Scope scope, String source, Instruction instruction)
 			throws DatabaseException {
-		onStop(scope, source, instruction);
+		ReadyExecution ready = new ReadyExecution(source, instruction);
+		
+		onStop(scope, ready);
 		
 		for(int i = 0 ; i < listeners.size() ; i ++) {
-			((DatabaseListener) listeners.elementAt(i)).onStop(scope, source, instruction);
+			((DatabaseListener) listeners.elementAt(i)).onPutReady(scope, ready);
+		}
+	}
+	
+	public final void putMissing(Scope scope, String source, Instruction instruction, String[] missingTags) {
+
+		for(int i = 0 ; i < listeners.size() ; i ++) {
+			((DatabaseListener) listeners.elementAt(i)).onPutMissing(scope, source,
+					instruction, missingTags);
+		}
+	}
+	
+	public final void putFailed(Scope scope, String source, Instruction instruction, String failedBecause) {
+
+		for(int i = 0 ; i < listeners.size() ; i ++) {
+			((DatabaseListener) listeners.elementAt(i)).onPutFailed(scope, source,
+					instruction, failedBecause);
 		}
 	}
 
@@ -175,10 +192,10 @@ public abstract class Database {
 		}
 		return scope;
 	}
-
+	
 	protected abstract void onAddCookie(Scope scope, String host, String name, String value) throws DatabaseException;
-	protected abstract void onStop(Scope scope, String source, Instruction instruction) throws DatabaseException;
-	protected abstract void onRestart(Scope scope, String source, Instruction instruction) throws DatabaseException;
+	protected abstract void onStop(Scope scope, ReadyExecution stoppedInstruction) throws DatabaseException;
+	protected abstract void onRestart(Scope scope, ReadyExecution stoppedInstruction) throws DatabaseException;
 	protected abstract void onPut(Scope scope, String key, String value) throws DatabaseException;
 	protected abstract void onNewDefaultScope(Scope scope) throws DatabaseException;
 	protected abstract void onNewScope(Scope parent, Scope scope) throws DatabaseException;
