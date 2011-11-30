@@ -23,7 +23,7 @@ import net.caustic.util.StringUtils;
  * @author realest
  *
  */
-public final class Load extends Instruction {
+public final class Load implements Instruction {
 	
 	/**
 	 * The HTTP request type that will be used. Either {@link HttpBrowser#GET},
@@ -51,6 +51,8 @@ public final class Load extends Instruction {
 	 */
 	private final HashtableTemplate postTable = new HashtableTemplate();
 	
+	private final Instruction[] children;
+	
 	/**
 	 * A string that will be templated and evaulated as a URL.
 	 */
@@ -74,9 +76,9 @@ public final class Load extends Instruction {
 	 * Instantiate a {@link Load} without a special name.
 	 * @param url
 	 */
-	public Load(StringTemplate url) {
-		super(url);
+	public Load(StringTemplate url, Instruction[] children) {
 		this.url = url;
+		this.children = children;
 	}
 	
 	/**
@@ -84,9 +86,9 @@ public final class Load extends Instruction {
 	 * @param name
 	 * @param url
 	 */
-	public Load(StringTemplate name, StringTemplate url) {
-		super(name);
+	public Load(StringTemplate name, StringTemplate url, Instruction[] children) {
 		this.url = url;
+		this.children = children;
 	}
 	
 	/**
@@ -208,7 +210,6 @@ public final class Load extends Instruction {
 			}
 			
 			// Add children to database
-			Instruction[] children = getChildren();
 			for(int i = 0 ; i < children.length ; i ++) {
 				db.putReady(scope, responseBody, children[i]);
 			}

@@ -14,7 +14,7 @@ import net.caustic.scope.Scope;
  * @author talos
  *
  */
-public class SerializedInstruction extends Instruction {
+public class SerializedInstruction implements Instruction {
 
 	private final Deserializer deserializer;
 	private final String serializedString;

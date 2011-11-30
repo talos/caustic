@@ -316,9 +316,9 @@ public class JSONDeserializer implements Deserializer {
 			// We have a Load
 			final Load load;
 			if(name == null) {
-				load = new Load(url);
+				load = new Load(url, childrenAry);
 			} else {
-				load = new Load(name, url);
+				load = new Load(name, url, childrenAry);
 			}
 			
 			if(method != null) {
@@ -332,17 +332,14 @@ public class JSONDeserializer implements Deserializer {
 			load.addCookies(cookies);
 			load.addHeaders(headers);
 			
-			for(int i = 0 ; i < childrenAry.length ; i ++) {
-				load.then(childrenAry[i]);
-			}
 			result = DeserializerResult.success(load);
 		} else if(pattern != null) {
 			// We have a Find
 			final Find find;
 			if(name == null) {
-				find = new Find(compiler, pattern);
+				find = new Find(compiler, pattern, childrenAry);
 			} else {
-				find = new Find(name, compiler, pattern);
+				find = new Find(name, compiler, pattern, childrenAry);
 			}
 			
 			if(replace != null) {
@@ -376,9 +373,6 @@ public class JSONDeserializer implements Deserializer {
 			}
 			if(isMultiline != null) {
 				find.setIsMultiline(isMultiline.booleanValue());
-			}
-			for(int i = 0 ; i < childrenAry.length ; i ++) {
-				find.then(childrenAry[i]);
 			}
 			result = DeserializerResult.success(find);
 		} else {

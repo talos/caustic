@@ -12,13 +12,15 @@ import net.caustic.template.StringSubstitution;
 import net.caustic.util.StaticStringTemplate;
 import net.caustic.util.StringUtils;
 
-public final class Find extends Instruction {
+public final class Find implements Instruction {
 	
 	/**
 	 * The {@link StringTemplate} that will be substituted into a {@link String}
 	 * to use as the pattern.
 	 */
 	private final StringTemplate pattern;
+	
+	private final Instruction[] children;
 	
 	private final boolean hasName;
 	
@@ -68,18 +70,20 @@ public final class Find extends Instruction {
 	 */
 	private int maxMatch = Pattern.LAST_MATCH;
 	
-	public Find(RegexpCompiler compiler, StringTemplate pattern) {
+	public Find(RegexpCompiler compiler, StringTemplate pattern, Instruction[] children) {
 		this.hasName = false;
 		this.name = pattern;
 		this.compiler = compiler;
 		this.pattern = pattern;
+		this.children = children;
 	}
 	
-	public Find(StringTemplate name, RegexpCompiler compiler, StringTemplate pattern) {
+	public Find(StringTemplate name, RegexpCompiler compiler, StringTemplate pattern, Instruction[] children) {
 		this.hasName = true;
 		this.name = name;
 		this.compiler = compiler;
 		this.pattern = pattern;
+		this.children = children;
 	}
 	
 	/*
@@ -174,7 +178,6 @@ public final class Find extends Instruction {
 			// generate result scopes.
 			final String childSource = matches[i];
 			
-			Instruction[] children = getChildren();
 			if(matches.length == 1) { // don't spawn a new result for single match
 				childScope = scope;
 				if(hasName) {

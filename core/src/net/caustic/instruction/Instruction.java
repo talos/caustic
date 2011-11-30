@@ -1,53 +1,11 @@
 package net.caustic.instruction;
 
-import java.util.Vector;
-
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
 import net.caustic.http.HttpBrowser;
-import net.caustic.regexp.StringTemplate;
 import net.caustic.scope.Scope;
 
-public abstract class Instruction {
-	
-	private final StringTemplate name;
-	
-	/**
-	 * {@link Vector} of {@link Instruction}s to fire when this one is done.
-	 */
-	private final Vector children = new Vector();
-	
-	Instruction() {
-		this.name = null;
-	}
-	
-	Instruction(StringTemplate name) {
-		this.name = name;
-	}
-	
-	Instruction[] getChildren() {
-		Instruction[] result = new Instruction[children.size()];
-		children.copyInto(result);
-		return result;
-	}
-	
-	/**
-	 * 
-	 * @return The {@link StringTemplate} name of the {@link Instruction}.  Is
-	 * <code>null</code> if it has no name.
-	 */
-	public StringTemplate getName() {
-		return name;
-	}
-	
-	/**
-	 * Add an {@link Instruction} to fire upon this {@link Instruction}'s completion.
-	 * @param instruction The {@link Instruction} to fire.  Will append to existing
-	 * children.
-	 */
-	public void then(Instruction instruction) {
-		children.addElement(instruction);
-	}
+public interface Instruction {
 	
 	/**
 	 * 

@@ -1,26 +1,39 @@
 package net.caustic;
 
 import net.caustic.database.Database;
-import net.caustic.database.ReadyExecution;
+import net.caustic.database.DatabaseException;
 import net.caustic.http.HttpBrowser;
+import net.caustic.instruction.Instruction;
 import net.caustic.scope.Scope;
 
-class Executable implements Runnable {
-	
-	private final ReadyExecution ready;
-	private final HttpBrowser browser;
+public class Executable implements Runnable {
+	private final Instruction instruction;
+	private final String source;
 	private final Database db;
 	private final Scope scope;
+	private final HttpBrowser browser;
+	private final AbstractScraper scraper;
 	
-	public Executable(HttpBrowser browser, Database db, Scope scope, ReadyExecution ready) {
-		this.browser = browser;
-		this.db = db;
+	public Executable(Instruction instruction, String source, Database database, Scope scope,
+			HttpBrowser browser, AbstractScraper scraper) {
+		this.instruction = instruction;
+		this.source = source;
+		this.db = database;
 		this.scope = scope;
-		this.ready = ready;
+		this.browser = browser;
+		this.scraper = scraper;
 	}
 	
 	public void run() {
-		db.remove(scope, ready);
-		ready.instruction.execute(ready.source, db, scope, browser);
+		try {
+			instruction.execute(source, db, scope, browser);
+			scraper.incrementFinished();
+		} catch(DatabaseException e) {
+			scraper.crash(scope, instruction, e);
+		} catch(InterruptedException e) {
+			scraper.interrupt();
+		} catch(Throwable e) {
+			scraper.crash(scope, instruction, e);
+		}
 	}
 }

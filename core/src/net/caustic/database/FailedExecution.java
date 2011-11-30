@@ -2,7 +2,7 @@ package net.caustic.database;
 
 import net.caustic.instruction.Instruction;
 
-public class FailedExecution extends ReadyExecution {
+class FailedExecution extends ReadyExecution {
 
 	final String failedBecause;
 	

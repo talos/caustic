@@ -55,7 +55,7 @@ public interface DatabaseListener {
 	 */
 	public void onAddCookie(Scope scope, String host, String name, String value);
 
-	public void onPutReady(Scope scope, ReadyExecution ready);
+	public void onPutReady(Scope scope, String source, Instruction instruction);
 
 	public void onPutMissing(Scope scope, String source,
 			Instruction instruction, String[] missingTags);

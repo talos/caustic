@@ -30,14 +30,14 @@ import org.junit.Test;
 public class ScraperIntegrationTest {
 		
 	private static final String demosDir = "../demos/";
-	private @NonStrict ScraperListener listener, listener2, listener3;
+	private @NonStrict ScraperListener listener;
 	private Hashtable<String, String> input;
 	private Scraper scraper;
 	private Logger logger = new SystemErrLogger();
 	
 	@Before
-	public void setUp() throws Exception {		
-		scraper = new Scraper();
+	public void setUp() throws Exception {
+		scraper = new Scraper(listener);
 		scraper.register(logger);
 		
 		input = new Hashtable<String, String>();
@@ -45,34 +45,42 @@ public class ScraperIntegrationTest {
 	
 	@Test
 	public void testScrapeStuck() throws Exception {
-		scraper.scrapeAll(demosDir + "simple-google.json", input, listener);
-		scraper.join();
+		scraper.scrape(demosDir + "simple-google.json", input);
+		scraper.join(10);
 		
-		new VerificationsInOrder() {{
-			listener.onFinish(1, 1, 0);
-		}};
+		assertEquals(2, scraper.getSubmitted());
+		assertEquals(2, scraper.getFinished());
+		assertEquals(1, scraper.getStuck());
+		assertEquals(0, scraper.getFailed());
 	}
 	
 	@Test
 	public void testScrapeFail() throws Exception {	
-		scraper.scrapeAll("path/to/nothing.json", input, listener);
-		scraper.join();
-		
-		new VerificationsInOrder() {{
-			listener.onFinish(0, 0, 1);
-		}};
+		scraper.scrape("path/to/nothing.json", input);
+		scraper.join(10);
+
+		assertEquals(1, scraper.getSubmitted());
+		assertEquals(1, scraper.getFinished());
+		assertEquals(0, scraper.getStuck());
+		assertEquals(1, scraper.getFailed());
 	}
 	
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {		
 		input.put("query", "hello");
-		scraper.scrapeAll(demosDir + "simple-google.json", input, listener);
-		scraper.join();
-
-		new VerificationsInOrder() {{
-			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
-					"what do you say after 'hello'?", (String[]) any);
-			listener.onFinish(4, 0, 0);
+		scraper.scrape(demosDir + "simple-google.json", input);
+		scraper.join(10);
+		
+		assertEquals(4, scraper.getSubmitted());
+		assertEquals(4, scraper.getFinished());
+		assertEquals(0, scraper.getStuck());
+		assertEquals(0, scraper.getFailed());
+		
+		new VerificationsInOrder() {{			
+			listener.onNewScope(scope(0), scope(1), withPrefix("I say"));
+			listener.onNewScope(scope(0), scope(2), withPrefix("I say"));
+			listener.onNewScope(scope(0), scope(3), withPrefix("I say"));
+			listener.onNewScope(scope(0), scope(4), withPrefix("I say"));
 		}};
 	}
 
@@ -80,26 +88,38 @@ public class ScraperIntegrationTest {
 	public void testScrapeSimpleGoogleQuoted() throws Exception {		
 		input.put("query", "hello");
 		// it shouldn't make a difference if we quote a string.
-		scraper.scrapeAll(quote(demosDir + "simple-google.json"), input, listener);
-		scraper.join();
+		scraper.scrape(quote(demosDir + "simple-google.json"), input);
+		scraper.join(10);
 
-		new VerificationsInOrder() {{
-			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
-					"what do you say after 'hello'?", (String[]) any);
-			listener.onFinish(4, 0, 0);
+		assertEquals(4, scraper.getSubmitted());
+		assertEquals(4, scraper.getFinished());
+		assertEquals(0, scraper.getStuck());
+		assertEquals(0, scraper.getFailed());
+		
+		new VerificationsInOrder() {{			
+			listener.onNewScope(scope(0), scope(1), withPrefix("I say"));
+			listener.onNewScope(scope(0), scope(2), withPrefix("I say"));
+			listener.onNewScope(scope(0), scope(3), withPrefix("I say"));
+			listener.onNewScope(scope(0), scope(4), withPrefix("I say"));
 		}};
 	}
 	
 	@Test
 	public void testScrapeSimpleGooglePointer() throws Exception {
 		input.put("query", "hello");
-		scraper.scrapeAll(demosDir + "pointer.json", input, listener);
-		scraper.join();
+		scraper.scrape(demosDir + "pointer.json", input);
+		scraper.join(10);
+
+		assertEquals(4, scraper.getSubmitted());
+		assertEquals(4, scraper.getFinished());
+		assertEquals(0, scraper.getStuck());
+		assertEquals(0, scraper.getFailed());
 		
-		new VerificationsInOrder() {{
-			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
-					"what do you say after 'hello'?", (String[]) any);
-			listener.onFinish(4, 0, 0);
+		new VerificationsInOrder() {{			
+			listener.onNewScope(scope(0), scope(1), withPrefix("I say"));
+			listener.onNewScope(scope(0), scope(2), withPrefix("I say"));
+			listener.onNewScope(scope(0), scope(3), withPrefix("I say"));
+			listener.onNewScope(scope(0), scope(4), withPrefix("I say"));
 		}};
 	}
 	
@@ -110,19 +130,18 @@ public class ScraperIntegrationTest {
 		input.put("Street", "Atlantic Ave");
 		input.put("Borough", "3");
 		input.put("Apt", "");
+				
+		scraper.scrape(demosDir + "array.json", input);
+		scraper.join(10);
 		
-		final ScraperListener listener = new LogScraperListener(logger);
-		
-		scraper.scrapeAll(demosDir + "array.json", input, listener);
-		scraper.join();
+		assertEquals(4, scraper.getSubmitted());
+		assertEquals(4, scraper.getFinished());
+		assertEquals(0, scraper.getStuck());
+		assertEquals(0, scraper.getFailed());
 		
 		new Verifications() {{
-			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
-					"what do you say after 'hello'?", (String[]) any);
-			listener.onSuccess((Instruction) any, (Database) any, scope(0), (Scope) any, anyString,
-					"Owner of 373 Atlantic Ave",
-					(String[]) any);
-			listener.onFinish(withNotEqual(0), 0, 0);
+			listener.onNewScope(scope(0), (Scope) any, withPrefix("I say ")); minTimes = 1;
+			listener.onNewScope(scope(0), (Scope) any, withPrefix("373 Atlantic Ave")); minTimes = 1;
 		}};
 	}
 	

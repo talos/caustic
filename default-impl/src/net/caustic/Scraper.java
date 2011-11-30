@@ -21,41 +21,43 @@ public class Scraper extends AbstractScraper {
 
 	private final ExecutorService executor;
 	
-	public Scraper() {
+	public Scraper(ScraperListener listener) {
 		super(new MemoryDatabase(), new DefaultHttpBrowser(),
-				new DefaultJSONDeserializer());
+				new DefaultJSONDeserializer(), listener, true);
 		
 		executor = Executors.newFixedThreadPool(DEFAULT_THREADS);
 	}
 	
-	public Scraper(int nThreads) {
+	public Scraper(int nThreads, ScraperListener listener) {
 		super(new MemoryDatabase(), new DefaultHttpBrowser(),
-				new DefaultJSONDeserializer());
+				new DefaultJSONDeserializer(), listener, true);
 		executor = Executors.newFixedThreadPool(nThreads);
 	}
 	
-	public Scraper(Database db) {
+	public Scraper(Database db, ScraperListener listener) {
 		super(db, new DefaultHttpBrowser(),	
-				new DefaultJSONDeserializer());
+				new DefaultJSONDeserializer(), listener, true);
 		executor = Executors.newFixedThreadPool(DEFAULT_THREADS);
 	}
 	
-	public Scraper(Database db, int nThreads) {
+	public Scraper(Database db, int nThreads, ScraperListener listener) {
 		super(db, new DefaultHttpBrowser(),
-				new DefaultJSONDeserializer());
+				new DefaultJSONDeserializer(), listener, true);
 		executor = Executors.newFixedThreadPool(nThreads);
 	}
 	
-	@Override
-	public void submit(Executable executable) {
-		executor.submit(executable);
+	public Scraper(Database db, int nThreads, ScraperListener listener, boolean autoRun) {
+		super(db, new DefaultHttpBrowser(),
+				new DefaultJSONDeserializer(), listener, autoRun);
+		executor = Executors.newFixedThreadPool(nThreads);
 	}
 	
 	/**
 	 * Block the calling thread until {@link Scraper} is dormant, then shut
 	 * down {@link Scraper}.
+	 * @param seconds How many seconds to wait before interrupting the scraper.
 	 */
-	public void join() throws InterruptedException {
+	public void join(int seconds) throws InterruptedException {
 		while(!isDormant()) {
 			if(executor.isTerminated()) { // break if artificial termination
 				break;
@@ -69,10 +71,21 @@ public class Scraper extends AbstractScraper {
 		}
 		executor.shutdown();
 		//executor.awaitTermination(60, TimeUnit.MINUTES);
-		executor.awaitTermination(3600, TimeUnit.SECONDS); // one hour
+		executor.awaitTermination(seconds, TimeUnit.SECONDS); // one hour
+	}
+
+	public void interrupt(Throwable because) {
+		because.printStackTrace();
+		executor.shutdownNow();
 	}
 	
 	public void interrupt() {
 		executor.shutdownNow();
+	}
+
+	@Override
+	protected void submit(Executable executable) {
+		executor.submit(executable);
+		//instruction.execute(source, database, scope, browser);
 	}
 }

@@ -8,7 +8,7 @@ import net.caustic.instruction.Instruction;
  * @author talos
  *
  */
-public class ReadyExecution {
+class ReadyExecution {
 	
 	public final Instruction instruction;
 	public final String source;

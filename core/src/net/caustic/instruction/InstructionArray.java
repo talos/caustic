@@ -11,7 +11,7 @@ import net.caustic.scope.Scope;
  * @author talos
  *
  */
-public class InstructionArray extends Instruction {
+public class InstructionArray implements Instruction {
 	
 	private final Instruction[] instructions;
 	
