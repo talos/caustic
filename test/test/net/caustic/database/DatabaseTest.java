@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
+import mockit.Verifications;
 import mockit.VerificationsInOrder;
 import net.caustic.database.Database;
 import net.caustic.instruction.Find;
@@ -29,6 +30,7 @@ import org.junit.Test;
 
 public abstract class DatabaseTest {
 	
+	private @Mocked DatabaseListener listener;
 	private ExecutorService exc;
 	private Database db;
 	private Scope scope;
@@ -41,6 +43,7 @@ public abstract class DatabaseTest {
 		exc = Executors.newCachedThreadPool();
 		encoder = new JavaNetEncoder(Encoder.UTF_8);
 		db = getDatabase();
+		db.addListener(listener);
 		scope = db.newDefaultScope();
 	}
 
@@ -363,10 +366,9 @@ public abstract class DatabaseTest {
 	}
 	
 	@Test
-	public void testMissingInstructionsRestart(@Mocked final DatabaseListener listener)
+	public void testMissingInstructionsRestart()
 				throws Exception {
 		final String[] missingTags = new String[] { "foo" };
-		db.addListener(listener);
 
 		new NonStrictExpectations() {{
 			listener.onPutMissing(scope, "source", "instruction", "uri", missingTags); times = 1;
@@ -381,10 +383,9 @@ public abstract class DatabaseTest {
 	}
 
 	@Test
-	public void testMissingInstructionsRestartOnce(@Mocked final DatabaseListener listener)
+	public void testMissingInstructionsRestartOnce()
 				throws Exception {
 		final String[] missingTags = new String[] { "foo" };
-		db.addListener(listener);
 
 		new NonStrictExpectations() {{
 			listener.onPutInstruction(scope, "source", "instruction", "uri"); times = 0;
@@ -406,10 +407,9 @@ public abstract class DatabaseTest {
 	}
 	
 	@Test
-	public void testListener(@Mocked final DatabaseListener listener, @Mocked final Load load,
+	public void testBasicListener(@Mocked final Load load,
 			@Mocked final Find find) throws Exception {
 		
-		db.addListener(listener);
 		
 		
 		final Scope parent = db.newDefaultScope();
@@ -417,25 +417,125 @@ public abstract class DatabaseTest {
 		final Scope scope = db.newScope(parent, "roses", "red");
 		db.addCookie(scope, "host.com", "name", "value");
 		
-		db.putInstruction(scope, "source", "instruction", "uri");
+		// test with new scopes so we don't accidentally blow away old scope
+		db.putInstruction(db.newDefaultScope(), "source", "instruction", "uri");
 		final String[] missingTags = new String[] { "no", "tag" };
-		db.putMissing(scope, "source", "instruction", "uri", missingTags);
-		db.putMissing(scope, "source", find, missingTags);
-		db.putMissing(scope, "source", load, missingTags);
-		db.putFind(scope, "source", find);
-		db.putLoad(scope, "source", load);
-		db.putFailed(scope, "source", "instruction", "uri", "failure");
+		db.putMissing(db.newDefaultScope(), "source", "instruction", "uri", missingTags);
+		db.putMissing(db.newDefaultScope(), "source", find, missingTags);
+		db.putMissing(db.newDefaultScope(), "source", load, missingTags);
+		db.putFind(db.newDefaultScope(), "source", find);
+		db.putLoad(db.newDefaultScope(), "source", load);
+		db.putFailed(db.newDefaultScope(), "source", "instruction", "uri", "failure");
 		
 		new VerificationsInOrder() {{
 			listener.onNewDefaultScope(parent);
 			listener.onPut(parent, "foo", "bar");
 			listener.onNewScope(parent, scope, "red");
 			listener.onAddCookie(scope, "host.com", "name", "value");
-			listener.onPutInstruction(scope, "source", "instruction", "uri");
-			listener.onPutMissing(scope, "source", "instruction", "uri", missingTags);
-			listener.onPutMissing(scope, "source", null, null, missingTags); // find
-			listener.onPutMissing(scope, "source", null, null, missingTags); // load
-			listener.onPutFailed(scope, "source", "instruction", "uri", "failure");
+			listener.onPutInstruction((Scope) any, "source", "instruction", "uri");
+			listener.onPutMissing((Scope) any, "source", "instruction", "uri", missingTags);
+			listener.onPutMissing((Scope) any, "source", null, null, missingTags); // find
+			listener.onPutMissing((Scope) any, "source", null, null, missingTags); // load
+			listener.onPutFailed((Scope) any, "source", "instruction", "uri", "failure");
+		}};
+	}
+	
+	@Test
+	public void testListenerScopeCompleteOnSuccess() 
+			throws Exception {
+		
+		
+		final Scope scope = db.newDefaultScope();
+		
+		db.putInstruction(scope, "source", "instruction", "uri");
+		
+		new VerificationsInOrder() {{
+			listener.onScopeComplete(scope); times = 0;
+		}};
+		
+		db.putSuccess(scope, "source", "instruction", "uri");
+		
+		new VerificationsInOrder() {{
+			listener.onScopeComplete(scope); times = 1;
+		}};
+	}
+	
+	@Test(expected = NullPointerException.class)
+	public void testListenerScopeCompleteClearsScope() 
+			throws Exception {
+		
+		final Scope scope = db.newDefaultScope();
+		db.put(scope, "foo", "bar");
+		
+		assertEquals("bar", db.get(scope, "foo"));
+		db.putInstruction(scope, "source", "instruction", "uri");
+		db.putSuccess(scope, "source", "instruction", "uri");
+		
+		db.get(scope, "foo"); // should blow up
+	}
+	
+
+	@Test
+	public void testListenerScopeCompleteOnMissing() 
+			throws Exception {
+		
+		final Scope scope = db.newDefaultScope();
+		
+		db.putInstruction(scope, "source", "instruction", "uri");
+		
+		new VerificationsInOrder() {{
+			listener.onScopeComplete(scope); times = 0;
+		}};
+		
+		db.putMissing(scope, "source", "instruction", "uri", new String[] { "missing" });
+		
+		new VerificationsInOrder() {{
+			listener.onScopeComplete(scope); times = 1;
+		}};
+	}
+
+	@Test
+	public void testListenerScopeCompleteOnFailed() 
+			throws Exception {
+		
+		final Scope scope = db.newDefaultScope();
+		
+		db.putInstruction(scope, "source", "instruction", "uri");
+		
+		new VerificationsInOrder() {{
+			listener.onScopeComplete(scope); times = 0;
+		}};
+		
+		db.putFailed(scope, "source", "instruction", "uri", "FAIL");
+		
+		new VerificationsInOrder() {{
+			listener.onScopeComplete(scope); times = 1;
+		}};
+	}
+	
+	@Test
+	public void testListenerScopeCompleteFromChildren()
+			throws Exception {
+		final Scope outer = db.newDefaultScope();
+		final Scope inner = db.newScope(outer, "child");
+		
+		db.putInstruction(outer, "source", "foo", "uri");
+		db.putInstruction(inner, null, "bar", "uri");
+
+		db.putSuccess(outer, "source", "foo", "uri");
+		
+		// the outer scope should stay alive because 
+		// the inner one is not yet resolved
+		new Verifications() {{
+			listener.onScopeComplete(outer); times = 0;
+			listener.onScopeComplete(inner); times = 0;
+		}};		
+		
+		db.putSuccess(inner, null, "bar", "uri");
+		
+		new VerificationsInOrder() {{
+			listener.onScopeComplete(inner); times = 1;
+			listener.onScopeComplete(outer); times = 1;
 		}};
 	}
 }

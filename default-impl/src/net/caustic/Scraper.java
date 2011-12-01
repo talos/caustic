@@ -6,8 +6,8 @@ import java.util.concurrent.TimeUnit;
 
 import net.caustic.database.Database;
 import net.caustic.database.MemoryDatabase;
-import net.caustic.deserializer.DefaultJSONDeserializer;
 import net.caustic.http.DefaultHttpBrowser;
+import net.caustic.instruction.DefaultJSONDeserializer;
 import net.caustic.scope.Scope;
 
 /**

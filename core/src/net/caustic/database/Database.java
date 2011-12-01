@@ -140,7 +140,7 @@ public abstract class Database {
 					instruction, uri);
 		}
 
-		informListenerIfScopeComplete(scope);
+		checkScopeComplete(scope);
 	}
 	
 	public final void putMissing(Scope scope, String source, String instruction,
@@ -151,6 +151,7 @@ public abstract class Database {
 			((DatabaseListener) listeners.elementAt(i)).onPutMissing(scope, source,
 					instruction, uri, missingTags);
 		}
+		checkScopeComplete(scope);
 	}
 
 	public final void putMissing(Scope scope, String source, Load load,
@@ -161,6 +162,7 @@ public abstract class Database {
 			((DatabaseListener) listeners.elementAt(i)).onPutMissing(scope, source,
 					load.serialized, load.uri, missingTags);
 		}
+		checkScopeComplete(scope);
 	}
 	
 
@@ -172,6 +174,7 @@ public abstract class Database {
 			((DatabaseListener) listeners.elementAt(i)).onPutMissing(scope, source,
 					find.serialized, find.uri, missingTags);
 		}
+		checkScopeComplete(scope);
 	}
 	
 
@@ -184,7 +187,7 @@ public abstract class Database {
 					instruction, uri, failedBecause);
 		}
 		
-		informListenerIfScopeComplete(scope);
+		checkScopeComplete(scope);
 	}
 
 
@@ -251,7 +254,16 @@ public abstract class Database {
 	 * @return <code>True</code> if the scope is complete, <code>false</code>
 	 * otherwise.  This could change back to <code>false</code> if an instruction was revived.
 	 */
-	abstract boolean isScopeComplete(Scope scope) throws DatabaseException;
+	//abstract boolean isScopeComplete(Scope scope) throws DatabaseException;
+	
+	/**
+	 * 
+	 * @param scope
+	 * @return An array of {@Link Scope} parents of <code>scope</code> that are now complete,
+	 * including <code>scope</code>.  Returns an empty array if <code>scope</code> is not complete.
+	 * @throws DatabaseException
+	 */
+	abstract Scope[] getCompleteScopesAboveAndIncluding(Scope scope) throws DatabaseException;
 	
 	abstract void onPut(Scope scope, String key, String value);
 	abstract void onPutInstruction(Scope scope, String source, String instruction, String uri);
@@ -263,6 +275,7 @@ public abstract class Database {
 	abstract void onPutMissing(Scope scope, String source, StuckExecution stuck);
 	abstract void onPutSuccess(Scope scope, String source,
 			String instruction, String uri);
+	abstract void onScopeComplete(Scope scope);
 
 	/**
 	 * Uses {@link #isScopeComplete(Scope)} to check whether the passed <code>scope</code>
@@ -270,10 +283,12 @@ public abstract class Database {
 	 * @param scope
 	 * @throws DatabaseException
 	 */
-	private void informListenerIfScopeComplete(Scope scope) throws DatabaseException {
-		if(isScopeComplete(scope)) {
-			for(int i = 0 ; i < listeners.size() ; i ++) {
-				((DatabaseListener) listeners.elementAt(i)).onScopeComplete(scope);
+	private void checkScopeComplete(Scope scope) throws DatabaseException {
+		Scope[] completeScopes = getCompleteScopesAboveAndIncluding(scope);
+		for(int i = 0 ; i < completeScopes.length ; i ++) {
+			onScopeComplete(completeScopes[i]);
+			for(int j = 0 ; j < listeners.size() ; j ++) {
+				((DatabaseListener) listeners.elementAt(j)).onScopeComplete(completeScopes[i]);
 			}
 		}
 	}

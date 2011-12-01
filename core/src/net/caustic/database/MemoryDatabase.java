@@ -17,6 +17,8 @@ import net.caustic.util.VectorUtils;
  */
 public final class MemoryDatabase extends Database {
 	
+	private static final Scope[] NO_SCOPES = new Scope[0];
+	
 	//private static final ReadyExecution[] EMPTY_INSTRUCTION_ARRAY = new ReadyExecution[0];
 	
 	/**
@@ -181,32 +183,31 @@ public final class MemoryDatabase extends Database {
 		destroyScope(scope);
 	}
 	
-	/**
-	 * Check to see whether the specified <code>scope</scope> has any more
-	 * {@link Instruction}s that could be executed.
-	 * @param scope The {@link Scope} to check.
-	 * @return <code>True</code> if the scope is complete, <code>false</code>
-	 * otherwise.  The scope could be revived if there is a paused instruction.
-	 */
-	boolean isScopeComplete(Scope scope) {
-		if(((Vector) submitted.get(scope)).size()
-				!=
-				((Vector) success.get(scope)).size() +
-				((Vector) stuck.get(scope)).size() +
-				((Vector) failed.get(scope)).size()) {
-			return false; // we've submitted more than have succeeded, gotten stuck, or failed.
+	Scope[] getCompleteScopesAboveAndIncluding(Scope scope) {
+		if(!isScopeComplete(scope, true)) {
+			return NO_SCOPES;
 		} else {
-			// check children.
-			if(childrenByParent.containsKey(scope)) {
-				Vector children = (Vector) childrenByParent.get(scope);
-				for(int i = 0 ; i < children.size(); i ++) {
-					if(!isScopeComplete((Scope) children.elementAt(i))) {
-						return false; // exit prematurely to save checking additional children.
-					}
+			Vector scopes = new Vector();
+			scopes.add(scope); // we know this one already.
+			
+			Scope parent = (Scope) parentsByChild.get(scope);
+			while(parent != null) {
+				// we already checked these scopes' children,
+				// so we don't have to do that again.
+				if(isScopeComplete(parent, false)) {
+					scopes.add(parent);
+					// continue traversing up
+					parent = (Scope) parentsByChild.get(parent);
+				} else {
+					// if there is an incomplete scope above, break
+					// the chain.
+					break;
 				}
 			}
 			
-			return true;
+			Scope[] scopesAry = new Scope[scopes.size()];
+			scopes.copyInto(scopesAry);
+			return scopesAry;
 		}
 	}
 	
@@ -299,6 +300,29 @@ public final class MemoryDatabase extends Database {
 			for(int i = 0 ; i < children.size(); i ++) {
 				destroyScope((Scope) children.elementAt(i));
 			}
+		}
+	}
+	
+	private boolean isScopeComplete(Scope scope, boolean traverseDown) {
+		if(((Vector) submitted.get(scope)).size()
+				!=
+				((Vector) success.get(scope)).size() +
+				((Vector) stuck.get(scope)).size() +
+				((Vector) failed.get(scope)).size()) {
+			return false; // we've submitted more than have succeeded, gotten stuck, or failed.
+		} else {
+			// check children.
+			if(traverseDown) {
+				if(childrenByParent.containsKey(scope)) {
+					Vector children = (Vector) childrenByParent.get(scope);
+					for(int i = 0 ; i < children.size(); i ++) {
+						if(!isScopeComplete((Scope) children.elementAt(i), true)) {
+							return false; // exit prematurely to save checking additional children.
+						}
+					}
+				}
+			}
+			return true;
 		}
 	}
 }
