@@ -1,6 +1,7 @@
 package net.caustic.database;
 
-import net.caustic.instruction.Instruction;
+import net.caustic.instruction.Find;
+import net.caustic.instruction.Load;
 import net.caustic.scope.Scope;
 
 /**
@@ -54,9 +55,9 @@ public interface DatabaseListener {
 	 * @param value The value of the cookie.
 	 */
 	public void onAddCookie(Scope scope, String host, String name, String value);
-
-	public void onPutReady(Scope scope, String source, String instruction, String uri);
-
+	
+	public void onPutInstruction(Scope scope, String source, String instruction, String uri);
+	
 	public void onPutMissing(Scope scope, String source, String instruction, String uri, String[] missingTags);
 
 	public void onPutFailed(Scope scope, String source, String instruction, String uri, String failedBecause);
@@ -64,4 +65,8 @@ public interface DatabaseListener {
 	public void onPutSuccess(Scope scope, String source, String instruction, String uri);
 	
 	public void onScopeComplete(Scope scope);
+
+	public void onPutLoad(Scope scope, String source, Load load);
+
+	public void onPutFind(Scope scope, String source, Find find);
 }

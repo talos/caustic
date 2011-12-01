@@ -4,7 +4,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import net.caustic.instruction.Instruction;
 import net.caustic.scope.Scope;
 import net.caustic.util.Encoder;
 import net.caustic.util.HashtableUtils;
@@ -162,22 +161,20 @@ public final class MemoryDatabase extends Database {
 		onPut(scope, scope.getName(), value); // use onPut to avoid erroneous listener calls
 	}
 
-	void onPutReady(Scope scope, String source, Instruction instruction) {
-		((Vector) submitted.get(scope)).add(new ReadyExecution(source, instruction));
+	void onPutInstruction(Scope scope, String source, String instruction, String uri) {
+		((Vector) submitted.get(scope)).add(instruction);
 	}
 	
-	void onPutSuccess(Scope scope, String source, Instruction instruction) {
+	void onPutSuccess(Scope scope, String source, String instruction, String uri) {
 		((Vector) success.get(scope)).add(instruction);
 	}
 
-	void onPutMissing(Scope scope, String source,
-			Instruction instruction, String[] missingTags) {
-		((Vector) stuck.get(scope)).add(new StuckExecution(source, instruction, missingTags));
+	void onPutMissing(Scope scope, String source, StuckExecution stuckExec) {
+		((Vector) stuck.get(scope)).add(stuckExec);
 	}
 
-	void onPutFailed(Scope scope, String source,
-			Instruction instruction, String failedBecause) {
-		((Vector) failed.get(scope)).add(new FailedExecution(source, instruction, failedBecause));		
+	void onPutFailed(Scope scope, String source, FailedExecution failedExec) {
+		((Vector) failed.get(scope)).add(failedExec);
 	}
 
 	void onScopeComplete(Scope scope) {
@@ -221,7 +218,7 @@ public final class MemoryDatabase extends Database {
 	 * @param value A newly available <code>value</code>.
 	 * @throws DatabaseException
 	 */
-	ReadyExecution[] getUnstuck(Scope scope, String name, String value) throws DatabaseException {		
+	StuckExecution[] getUnstuck(Scope scope, String name, String value) throws DatabaseException {		
 		// vector of readyExecutions to send back.
 		final Vector result = new Vector();
 				
@@ -231,9 +228,10 @@ public final class MemoryDatabase extends Database {
 			StuckExecution stuckExecution = (StuckExecution) stuckInScope.elementAt(i);
 			
 			// if it's no longer stuck, pull out its ready and add it to the result.
-			ReadyExecution ready = stuckExecution.getReady(name);
-			if(ready != null) {
-				result.add(ready);
+			if(stuckExecution.isReady(name)) {
+				result.add(stuckExecution);
+				stuckInScope.removeElementAt(i);
+				i--;
 			}
 		}
 		
@@ -247,7 +245,7 @@ public final class MemoryDatabase extends Database {
 		}
 		
 		// Send it to an array.
-		final ReadyExecution[] resultAry = new ReadyExecution[result.size()];
+		final StuckExecution[] resultAry = new StuckExecution[result.size()];
 		result.copyInto(resultAry);
 		return resultAry;
 	}

@@ -2,8 +2,8 @@ package net.caustic.database;
 
 import java.util.Vector;
 
-import net.caustic.AbstractScraper;
-import net.caustic.instruction.Instruction;
+import net.caustic.instruction.Find;
+import net.caustic.instruction.Load;
 import net.caustic.scope.IntScopeFactory;
 import net.caustic.scope.Scope;
 import net.caustic.scope.ScopeFactory;
@@ -102,52 +102,86 @@ public abstract class Database {
 		}
 		
 		// resort and re-submit instructions that can now be used.
-		ReadyExecution[] newlyReady = getUnstuck(scope, key, value);
+		StuckExecution[] newlyReady = getUnstuck(scope, key, value);
 		for(int i = 0 ; i < newlyReady.length ; i ++) {
-			putReady(scope, newlyReady[i].source, newlyReady[i].instruction);
+			newlyReady[i].retry(this, scope);
+		//	putInstruction(scope, newlyReady[i].source, newlyReady[i].instruction);
 		}
 	}
-
-	public final void putReady(Scope scope, String source, Instruction instruction)
+	
+	public final void putLoad(Scope scope, String source, Load load)
 			throws DatabaseException {		
-		onPutReady(scope, source, instruction);
-		
 		for(int i = 0 ; i < listeners.size() ; i ++) {
-			((DatabaseListener) listeners.elementAt(i)).onPutReady(scope, source, instruction.toString());
+			((DatabaseListener) listeners.elementAt(i)).onPutLoad(scope, source, load);
 		}
 	}
-
-	public final void putSuccess(Scope scope, String source,
-			SerializedInstruction instruction) throws DatabaseException {
-		onPutSuccess(scope, source, instruction);
+	
+	public final void putFind(Scope scope, String source, Find find)
+			throws DatabaseException {		
+		for(int i = 0 ; i < listeners.size() ; i ++) {
+			((DatabaseListener) listeners.elementAt(i)).onPutFind(scope, source, find);
+		}
+	}
+	
+	public final void putInstruction(Scope scope, String source, String instruction, String uri) {
+		onPutInstruction(scope, source, instruction, uri);
 		
 		for(int i = 0 ; i < listeners.size() ; i ++) {
-			((DatabaseListener) listeners.elementAt(i)).onPutSuccess(scope, source, instruction.toString());
+			((DatabaseListener) listeners.elementAt(i)).onPutInstruction(scope, source, instruction, uri);
+		}
+	}
+	
+	public final void putSuccess(Scope scope, String source,
+			String instruction, String uri) throws DatabaseException {
+		onPutSuccess(scope, source, instruction, uri);
+		
+		for(int i = 0 ; i < listeners.size() ; i ++) {
+			((DatabaseListener) listeners.elementAt(i)).onPutSuccess(scope, source,
+					instruction, uri);
 		}
 
 		informListenerIfScopeComplete(scope);
 	}
 	
-
-	public final void putMissing(Scope scope, String source, Instruction instruction,
-			String[] missingTags) throws DatabaseException {
-		onPutMissing(scope, source, instruction, missingTags);
+	public final void putMissing(Scope scope, String source, String instruction,
+			String uri, String[] missingTags) throws DatabaseException {
+		onPutMissing(scope, source, new StuckExecution(source, instruction, uri, missingTags));
 		
 		for(int i = 0 ; i < listeners.size() ; i ++) {
 			((DatabaseListener) listeners.elementAt(i)).onPutMissing(scope, source,
-					instruction.toString(), missingTags);
+					instruction, uri, missingTags);
 		}
-		informListenerIfScopeComplete(scope);
+	}
+
+	public final void putMissing(Scope scope, String source, Load load,
+			String[] missingTags) throws DatabaseException {
+		onPutMissing(scope, source, new StuckExecution(source, load));
+		
+		for(int i = 0 ; i < listeners.size() ; i ++) {
+			((DatabaseListener) listeners.elementAt(i)).onPutMissing(scope, source,
+					load.serialized, load.uri, missingTags);
+		}
 	}
 	
 
-	public final void putFailed(Scope scope, String source, Instruction instruction,
-			String failedBecause) throws DatabaseException {
-		onPutFailed(scope, source, instruction, failedBecause);
+	public final void putMissing(Scope scope, String source, Find find,
+			String[] missingTags) throws DatabaseException {
+		onPutMissing(scope, source, new StuckExecution(source, find));
+		
+		for(int i = 0 ; i < listeners.size() ; i ++) {
+			((DatabaseListener) listeners.elementAt(i)).onPutMissing(scope, source,
+					find.serialized, find.uri, missingTags);
+		}
+	}
+	
+
+	public final void putFailed(Scope scope, String source, String instruction,
+			String uri, String failedBecause) throws DatabaseException {
+		onPutFailed(scope, source, new FailedExecution(source, instruction, uri, failedBecause));
 		
 		for(int i = 0 ; i < listeners.size() ; i ++) {
 			((DatabaseListener) listeners.elementAt(i)).onPutFailed(scope, source,
-					instruction, failedBecause);
+					instruction, uri, failedBecause);
 		}
 		
 		informListenerIfScopeComplete(scope);
@@ -206,7 +240,7 @@ public abstract class Database {
 	 * @param value
 	 * @return
 	 */
-	abstract ReadyExecution[] getUnstuck(Scope scope, String name, String value)
+	abstract StuckExecution[] getUnstuck(Scope scope, String name, String value)
 			throws DatabaseException;
 	
 	/**
@@ -220,17 +254,15 @@ public abstract class Database {
 	abstract boolean isScopeComplete(Scope scope) throws DatabaseException;
 	
 	abstract void onPut(Scope scope, String key, String value);
-	abstract void onPutReady(Scope scope, String source, Instruction instruction);
+	abstract void onPutInstruction(Scope scope, String source, String instruction, String uri);
 	abstract void onAddCookie(Scope scope, String host, String name, String value);
 	abstract void onNewScope(Scope parent, Scope scope, String value);
 	abstract void onNewScope(Scope parent, Scope scope);
 	abstract void onNewDefaultScope(Scope scope);
-	abstract void onPutFailed(Scope scope, String source,
-			Instruction instruction, String failedBecause);
-	abstract void onPutMissing(Scope scope, String source,
-			Instruction instruction, String[] missingTags);
+	abstract void onPutFailed(Scope scope, String source, FailedExecution failed);
+	abstract void onPutMissing(Scope scope, String source, StuckExecution stuck);
 	abstract void onPutSuccess(Scope scope, String source,
-			Instruction instruction);
+			String instruction, String uri);
 
 	/**
 	 * Uses {@link #isScopeComplete(Scope)} to check whether the passed <code>scope</code>

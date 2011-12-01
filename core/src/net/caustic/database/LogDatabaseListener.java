@@ -1,6 +1,7 @@
 package net.caustic.database;
 
-import net.caustic.instruction.Instruction;
+import net.caustic.instruction.Find;
+import net.caustic.instruction.Load;
 import net.caustic.log.Loggable;
 import net.caustic.log.Logger;
 import net.caustic.log.MultiLog;
@@ -40,10 +41,28 @@ public class LogDatabaseListener implements DatabaseListener, Loggable {
 				" in scope " + StringUtils.quote(scope) + " for host " + StringUtils.quote(host));
 		
 	}
-	
+	/*
 	public void onPutReady(Scope scope, String source, String instruction, String uri) {
 		log.i("Ready to scrape " + StringUtils.quote(instruction) +
 				"in scope " + StringUtils.quote(scope));
+	}*/
+	
+	public void onPutInstruction(Scope scope, String source,
+			String instruction, String uri) {
+		log.i("Parsing " + StringUtils.quote(instruction) +
+				"in scope " + StringUtils.quote(scope));
+	}
+	
+	public void onPutLoad(Scope scope, String source, Load load) {
+		log.i("Ready to load " + StringUtils.quote(load.serialized) +
+				"in scope " + StringUtils.quote(scope));
+		
+	}
+
+	public void onPutFind(Scope scope, String source, Find find) {
+		log.i("Ready to find with " + StringUtils.quote(find.serialized) +
+				"in scope " + StringUtils.quote(scope));
+		
 	}
 
 	public void onPutSuccess(Scope scope, String source, String instruction, String uri) {
@@ -73,6 +92,7 @@ public class LogDatabaseListener implements DatabaseListener, Loggable {
 	public void register(Logger logger) {
 		this.log.register(logger);
 	}
+
 
 
 }

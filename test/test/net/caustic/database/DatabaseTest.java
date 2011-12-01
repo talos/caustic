@@ -13,11 +13,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.VerificationsInOrder;
 import net.caustic.database.Database;
-import net.caustic.instruction.Instruction;
+import net.caustic.instruction.Find;
+import net.caustic.instruction.Load;
 import net.caustic.scope.Scope;
 import net.caustic.util.Encoder;
 import net.caustic.util.JavaNetEncoder;
@@ -325,109 +327,115 @@ public abstract class DatabaseTest {
 	}
 
 	@Test
-	public void testMissingInstructionsResort(final @Mocked Instruction instruction) throws Exception {
+	public void testMissingInstructionsResort() throws Exception {
 		final String[] missingTags = new String[] { "foo" };
 
-		db.putMissing(scope, "source", instruction, missingTags);
+		db.putMissing(scope, "source", "instruction", "uri", missingTags);
 				
-		ReadyExecution[] ready = db.getUnstuck(scope, "foo", "value");
+		StuckExecution[] ready = db.getUnstuck(scope, "foo", "value");
 		assertEquals(1, ready.length);
 	}
 	
 	@Test
-	public void testMissingInstructionsResortOnce(final @Mocked Instruction instruction) throws Exception {
+	public void testMissingInstructionsResortOnce() throws Exception {
 		final String[] missingTags = new String[] { "foo" };
 
-		db.putMissing(scope, "source", instruction, missingTags);
+		db.putMissing(scope, "source", "instruction", "uri", missingTags);
 				
 		db.getUnstuck(scope, "foo", "bar");		
 		
-		ReadyExecution[] ready = db.getUnstuck(scope, "foo", "bar");
+		StuckExecution[] ready = db.getUnstuck(scope, "foo", "bar");
 		assertEquals(0, ready.length); // already resorted
 	}
 
 	@Test
-	public void testMissingInstructionsResortOnceFromPut(final @Mocked Instruction instruction) throws Exception {
+	public void testMissingInstructionsResortOnceFromPut() throws Exception {
 		
 		final String[] missingTags = new String[] { "foo" };
 
-		db.putMissing(scope, "source", instruction, missingTags);
+		db.putMissing(scope, "source", "instruction", "uri", missingTags);
 		
 		db.put(scope, "foo", "bar"); // this should call resort
-
-		ReadyExecution[] ready = db.getUnstuck(scope, "foo", "bar");
+		
+		StuckExecution[] ready = db.getUnstuck(scope, "foo", "bar");
 		assertEquals(0, ready.length); // already resorted
 		
 	}
 	
 	@Test
-	public void testMissingInstructionsRestart(@Mocked final DatabaseListener listener,
-			final @Mocked Instruction instruction) throws Exception {
+	public void testMissingInstructionsRestart(@Mocked final DatabaseListener listener)
+				throws Exception {
 		final String[] missingTags = new String[] { "foo" };
 		db.addListener(listener);
 
 		new NonStrictExpectations() {{
-			listener.onPutReady(scope, "source", instruction); times = 0;
-			listener.onPutMissing(scope, "source", instruction, missingTags); times = 1;
+			listener.onPutMissing(scope, "source", "instruction", "uri", missingTags); times = 1;
 		}};
-		db.putMissing(scope, "source", instruction, missingTags);
+		db.putMissing(scope, "source", "instruction", "uri", missingTags);
 		
 		new NonStrictExpectations() {{
 			listener.onPut(scope, "foo", "bar"); times = 1;
-			listener.onPutReady(scope, "source", instruction); times = 1;
+			listener.onPutInstruction(scope, "source", "instruction", "uri"); times = 1;
 		}};
 		db.put(scope, "foo", "bar");
 	}
 
 	@Test
-	public void testMissingInstructionsRestartOnce(@Mocked final DatabaseListener listener,
-			final @Mocked Instruction instruction) throws Exception {
+	public void testMissingInstructionsRestartOnce(@Mocked final DatabaseListener listener)
+				throws Exception {
 		final String[] missingTags = new String[] { "foo" };
 		db.addListener(listener);
 
 		new NonStrictExpectations() {{
-			listener.onPutReady(scope, "source", instruction); times = 0;
-			listener.onPutMissing(scope, "source", instruction, missingTags); times = 1;
+			listener.onPutInstruction(scope, "source", "instruction", "uri"); times = 0;
+			listener.onPutMissing(scope, "source", "instruction", "uri", missingTags); times = 1;
 		}};
-		db.putMissing(scope, "source", instruction, missingTags);
+		db.putMissing(scope, "source", "instruction", "uri", missingTags);
 		
 		new NonStrictExpectations() {{
 			listener.onPut(scope, "foo", "bar"); times = 1;
-			listener.onPutReady(scope, "source", instruction); times = 1;
+			listener.onPutInstruction(scope, "source", "instruction", "uri"); times = 1;
 		}};
 		db.put(scope, "foo", "bar");
 		
 		new NonStrictExpectations() {{
 			listener.onPut(scope, "foo", "bar"); times = 1;
-			listener.onPutReady(scope, "source", instruction); times = 0;
+			listener.onPutInstruction(scope, "source", "instruction", "uri"); times = 0;
 		}};
 		db.put(scope, "foo", "bar");
 	}
 	
 	@Test
-	public void testListener(@Mocked final DatabaseListener listener,
-			final @Mocked Instruction instruction) throws Exception {
+	public void testListener(@Mocked final DatabaseListener listener, @Mocked final Load load,
+			@Mocked final Find find) throws Exception {
 		
 		db.addListener(listener);
+		
 		
 		final Scope parent = db.newDefaultScope();
 		db.put(parent, "foo", "bar");
 		final Scope scope = db.newScope(parent, "roses", "red");
 		db.addCookie(scope, "host.com", "name", "value");
 		
-		db.putReady(scope, "source", instruction);
+		db.putInstruction(scope, "source", "instruction", "uri");
 		final String[] missingTags = new String[] { "no", "tag" };
-		db.putMissing(scope, "source", instruction, missingTags);
-		db.putFailed(scope, "source", instruction, "failure");
+		db.putMissing(scope, "source", "instruction", "uri", missingTags);
+		db.putMissing(scope, "source", find, missingTags);
+		db.putMissing(scope, "source", load, missingTags);
+		db.putFind(scope, "source", find);
+		db.putLoad(scope, "source", load);
+		db.putFailed(scope, "source", "instruction", "uri", "failure");
 		
 		new VerificationsInOrder() {{
 			listener.onNewDefaultScope(parent);
 			listener.onPut(parent, "foo", "bar");
 			listener.onNewScope(parent, scope, "red");
 			listener.onAddCookie(scope, "host.com", "name", "value");
-			listener.onPutReady(scope, "source", instruction);
-			listener.onPutMissing(scope, "source", instruction, missingTags);
-			listener.onPutFailed(scope, "source", instruction, "failure");
+			listener.onPutInstruction(scope, "source", "instruction", "uri");
+			listener.onPutMissing(scope, "source", "instruction", "uri", missingTags);
+			listener.onPutMissing(scope, "source", null, null, missingTags); // find
+			listener.onPutMissing(scope, "source", null, null, missingTags); // load
+			listener.onPutFailed(scope, "source", "instruction", "uri", "failure");
 		}};
 	}
 }

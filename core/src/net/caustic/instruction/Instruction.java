@@ -1,12 +1,5 @@
 package net.caustic.instruction;
 
-import net.caustic.database.Database;
-import net.caustic.database.DatabaseException;
-import net.caustic.deserializer.Deserializer;
-import net.caustic.deserializer.DeserializerResult;
-import net.caustic.http.HttpBrowser;
-import net.caustic.scope.Scope;
-
 /**
  * An {@link Instruction} that has yet to be deserialized.  This allows for lazy evaluation
  * of children, in particular where a child cannot be deserialized until a variable is available
@@ -14,37 +7,33 @@ import net.caustic.scope.Scope;
  * @author talos
  *
  */
-public abstract class Instruction {
+abstract class Instruction {
 
-	private final Deserializer deserializer;
-	private final String serializedString;
-	private final String uri;
+	/**
+	 * Key for {@link Instruction#children} when deserializing from JSON.
+	 */
+	public static final String THEN = "then";
 	
-	public Instruction(String serializedString, Deserializer deserializer, String uri) {
-		this.serializedString = serializedString;
-		this.deserializer = deserializer;
+	/**
+	 * Key for an object that will extend the current object.
+	 */
+	public static final String EXTENDS = "extends";
+	
+	/**
+	 * Key for a self-reference.
+	 */
+	public static final String SELF = "$this";
+	
+	/**
+	 * Key for description.
+	 */
+	public static final String DESCRIPTION = "description";
+	
+	public final String serialized;
+	public final String uri;
+	
+	public Instruction(String serialized, String uri) {
+		this.serialized = serialized;
 		this.uri = uri;
-	}
-
-	public boolean shouldConfirm() {
-		return false;
-	}
-	
-	public void execute(String source, Database db, Scope scope,
-			HttpBrowser browser) throws InterruptedException, DatabaseException {
-		DeserializerResult result = deserializer.deserialize(serializedString, db, scope, uri);
-		
-		if(result.isMissingTags()) {
-			db.putMissing(scope, source, this, result.getMissingTags());
-		} else if(result.getInstruction() != null) {
-			//db.putReady(scope, source, result.getInstruction());
-			result.getInstruction().execute(source, db, scope, browser);
-		} else {
-			db.putFailed(scope, source, this, result.getFailedBecause());
-		}
-	}
-	
-	public String toString() {
-		return serializedString;
 	}
 }

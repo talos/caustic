@@ -16,171 +16,149 @@ import net.caustic.template.HashtableSubstitutionOverwriteException;
 import net.caustic.template.HashtableTemplate;
 import net.caustic.template.StringSubstitution;
 import net.caustic.util.HashtableUtils;
-import net.caustic.util.StaticStringTemplate;
-import net.caustic.util.StringUtils;
 
 /**
  * @author realest
  *
  */
-public final class Load implements Instruction {
+public final class Load extends Instruction {
+
+	
+	/**
+	 * Key for {@link Load#headers} when deserializing.
+	 */
+	public static final String HEADERS = "headers";
+		
+	/**
+	 * Key for {@link Load#posts} when deserializing. 
+	 */
+	public static final String POSTS = "posts";
+
+	/**
+	 * Key for {@link Load#url} when deserializing.
+	 */
+	public static final String LOAD = "load";
+	
+	/**
+	 * Key for {@link Load#getMethod()} when deserializing. Default is {@link #DEFAULT_METHOD},
+	 */
+	public static final String METHOD = "method";
+	
+	/**
+	 * Key for {@link Load#cookies} when deserializing. Default is {@link #DEFAULT_COOKIES}.
+	 */
+	public static final String COOKIES = "cookies";
+	
+	public static final String METHOD_DEFAULT = HttpBrowser.GET;
 	
 	/**
 	 * The HTTP request type that will be used. Either {@link HttpBrowser#GET},
 	 * {@link HttpBrowser#POST}, or {@link HttpBrowser#HEAD}.
 	 */
-	private String method = HttpBrowser.GET;
+	private final String method;// = HttpBrowser.GET;
 
 	/**
 	 * {@link HashtableTemplate}s of cookie name-values.
 	 */
-	private final HashtableTemplate cookies = new HashtableTemplate();
+	private final HashtableTemplate cookies;// = new HashtableTemplate();
 
 	/**
 	 * {@link HashtableTemplate}s of generic headers.
 	 */
-	private final HashtableTemplate headers = new HashtableTemplate();
+	private final HashtableTemplate headers;// = new HashtableTemplate();
 	
 	/**
 	 * A {@link StringTemplate} of post data.  Exclusive of {@link #postTable}.
 	 */
-	private StringTemplate postString = new StaticStringTemplate("");
+	private StringTemplate postData;// = new StaticStringTemplate("");
 	
 	/**
-	 * {@link HashtableTemplate}s of post data.  Exclusive of {@link #postString}.
+	 * {@link HashtableTemplate}s of post data.  Exclusive of {@link #postData}.
 	 */
-	private final HashtableTemplate postTable = new HashtableTemplate();
+	private HashtableTemplate postTable;// = new HashtableTemplate();
 	
-	private final Instruction[] children;
+	private final String[] children;
 	
 	/**
 	 * A string that will be templated and evaulated as a URL.
 	 */
 	private final StringTemplate url;
-			
-	private StringSubstitution getPosts(Database db, Scope scope)
-			throws HashtableSubstitutionOverwriteException, DatabaseException {
-		if(postTable.size() > 0) {
-			HashtableSubstitution tableSub = postTable.sub(db, scope);
-			if(tableSub.isMissingTags()) {
-				return StringSubstitution.missingTags(tableSub.getMissingTags());
-			} else {
-				return StringSubstitution.success(HashtableUtils.toFormEncoded(tableSub.getSubstituted()));
-			}
-		} else {
-			return postString.sub(db, scope);
-		}
-	}
 	
-	/**
-	 * Instantiate a {@link Load} without a special name.
-	 * @param url
-	 */
-	public Load(StringTemplate url, Instruction[] children) {
+	public Load(String serializedString, String uri,
+			StringTemplate url, String[] children, String method,
+			HashtableTemplate cookies, HashtableTemplate headers, StringTemplate postData) {
+		super(serializedString, uri);
 		this.url = url;
+		this.method = method;
+		this.cookies = cookies;
+		this.headers = headers;
+		this.postData = postData;
 		this.children = children;
 	}
 	
-	/**
-	 * Assign {@link #nonDefaultMethod}.  Cannot be changed once it is set.
-	 * @param method The {@link String} {@link HttpBrowser#POST}, {@link HttpBrowser#GET}, or 
-	 * {@link HttpBrowser#HEAD}, case-insensitive.
-	 */
-	public void setMethod(String method) {
-		if(!method.equalsIgnoreCase(HttpBrowser.POST) &&
-				!method.equalsIgnoreCase(HttpBrowser.GET) &&
-				!method.equalsIgnoreCase(HttpBrowser.HEAD)){
-			throw new IllegalArgumentException("Method " + StringUtils.quote(method) + " is illegal.");
-		} else {
-			this.method = method;
-		}
-	}
-	
-	/**
-	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #postTable}.
-	 * If {@link #method} is not {@link HttpBrowser.POST}, this changes it to be so.
-	 * @param posts A {@link HashtableTemplate} of posts to add.  Existing posts with
-	 * duplicate names will be overwritten.
-	 */
-	public void addPosts(HashtableTemplate posts) {
-		setMethod(HttpBrowser.POST);
-		postTable.extend(posts, true);
-	}
-
-	/**
-	 * Set the post data for this {@link Load}.
-	 * If {@link #method} is not {@link HttpBrowser.POST}, this changes it to be so.
-	 * @param postData The {@link StringTemplate} to use as a post.
-	 */
-	public void setPostData(StringTemplate postData) {
-		if(postTable.size() > 0) {
-			throw new IllegalArgumentException("Cannot have both postData and postTable");
-		}
-		setMethod(HttpBrowser.POST);
-		this.postString = postData;
-	}
-
-	/**
-	 * Add to this {@link Load}'s {@link #headers}.
-	 * @param headers A {@link HashtableTemplate} of headers to add.  Existing headers with
-	 * duplicate names will be overwritten.
-	 */
-	public void addHeaders(HashtableTemplate headers) {
-		this.headers.extend(headers, true);
-	}
-
-	/**
-	 * Add a {@link NameValuePairTemplate} to this {@link Load}'s {@link #cookies}.
-	 * @param cookies A {@link HashtableTemplate} of cookies to add.  Existing cookies with
-	 * duplicate names will be overwritten.
-	 */
-	public void addCookies(HashtableTemplate cookies) {
-		this.cookies.extend(cookies, true);
-	}
-	
-	/**
-	 * @return The raw URL template.
-	 */
-	public String toString() {
-		return url.toString();
-	}
-
-	public boolean shouldConfirm() {
-		return true;
+	public Load(String serializedString, String uri,
+			StringTemplate url, String[] children, String method,
+			HashtableTemplate cookies, HashtableTemplate headers, HashtableTemplate postTable) {
+		super(serializedString, uri);
+		this.url = url;
+		this.method = method;
+		this.cookies = cookies;
+		this.headers = headers;
+		this.postTable = postTable;
+		this.children = children;
 	}
 	
 	/**
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 * <code>source</code> is ignored.
 	 */
-	public void execute(String source, Database db, Scope scope, HttpBrowser browser)
+	public void execute(Database db, Scope scope, HttpBrowser browser)
 			throws InterruptedException, DatabaseException {
 		try {			
 			final Pattern[] stops = new Pattern[] { };
 			final StringSubstitution urlSub = url.sub(db, scope);
 			final HashtableSubstitution headersSub = headers.sub(db, scope);
 			final HashtableSubstitution cookiesSub = cookies.sub(db, scope);
-			final StringSubstitution postData = getPosts(db, scope);
 			
 			// Cannot execute if any of these substitutions was not successful
 			if(urlSub.isMissingTags()
 					|| headersSub.isMissingTags()
-					|| cookiesSub.isMissingTags()
-					|| postData.isMissingTags()) {
+					|| cookiesSub.isMissingTags()) {
 				String[] missingTags = StringSubstitution.combine(new DependsOnTemplate[] {
-						urlSub, headersSub, cookiesSub, postData});
+						urlSub, headersSub, cookiesSub});
 				
-				db.putMissing(scope, source, this, missingTags);
+				db.putMissing(scope, null, this, missingTags);
 				return;
+			}
+			
+			// pull out post string
+			final String postStr;
+			if(postData != null) {
+				StringSubstitution sub = postData.sub(db, scope);
+				if(sub.isMissingTags()) {
+					db.putMissing(scope, null, this, sub.getMissingTags());
+					return;
+				} else {
+					postStr = sub.getSubstituted();
+				}
+			} else if(postTable != null) {
+				HashtableSubstitution sub = postTable.sub(db, scope);
+				if(sub.isMissingTags()) {
+					db.putMissing(scope, null, this, sub.getMissingTags());
+					return;
+				} else {
+					postStr = HashtableUtils.toFormEncoded(sub.getSubstituted());
+				}
+			} else {
+				postStr = null;
 			}
 			
 			// Everything is substituted in, we can actually try to load the page.
 			final String url = (String) urlSub.getSubstituted();
 			final String responseBody;
 			
-			final String postStr = postData.getSubstituted();
-			Hashtable headers = headersSub.getSubstituted();
-			Hashtable cookies = cookiesSub.getSubstituted();
+			final Hashtable headers = headersSub.getSubstituted();
+			final Hashtable cookies = cookiesSub.getSubstituted();
 			
 			// add cookies directly into DB
 			Enumeration e = cookies.elements();
@@ -201,16 +179,18 @@ public final class Load implements Instruction {
 			
 			// Add children to database
 			for(int i = 0 ; i < children.length ; i ++) {
-				db.putReady(scope, responseBody, children[i]);
+				db.putInstruction(scope, responseBody, children[i], uri);
 			}
 			
-			db.putSuccess(scope, source, this);
+			db.putSuccess(scope, null, this.serialized, this.uri);
 		} catch(HashtableSubstitutionOverwriteException e) {
 			// Failed because of ambiguous mapping
-			db.putFailed(scope, source, this, "Instruction template substitution caused ambiguous mapping: "
+			db.putFailed(scope, null, serialized, uri,
+					"Instruction template substitution caused ambiguous mapping: "
 					+ e.getMessage());
 		} catch (HttpException e) {
-			db.putFailed(scope, source, this, "Failure during HTTP request or response: " + e.getMessage());
+			db.putFailed(scope, null, serialized, uri,
+					"Failure during HTTP request or response: " + e.getMessage());
 		}
 	}
 }

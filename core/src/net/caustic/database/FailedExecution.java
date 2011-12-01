@@ -1,13 +1,10 @@
 package net.caustic.database;
 
-import net.caustic.instruction.Instruction;
+class FailedExecution {
 
-class FailedExecution extends ReadyExecution {
-
-	final String failedBecause;
+	private final String failedBecause;
 	
-	FailedExecution(String source, Instruction instruction, String failedBecause) {
-		super(source, instruction);
+	FailedExecution(String source, String instruction, String uri, String failedBecause) {
 		this.failedBecause = failedBecause;
 	}
 

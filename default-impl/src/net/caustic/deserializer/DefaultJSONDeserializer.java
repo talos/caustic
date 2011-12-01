@@ -1,6 +1,6 @@
 package net.caustic.deserializer;
 
-import net.caustic.deserializer.JSONDeserializer;
+import net.caustic.instruction.JSONDeserializer;
 import net.caustic.json.JsonMEParser;
 import net.caustic.regexp.DefaultRegexpCompiler;
 import net.caustic.uri.DefaultURILoader;

@@ -5,12 +5,11 @@ import java.util.Hashtable;
 
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
-import net.caustic.database.DatabaseListener;
 import net.caustic.database.LogDatabaseListener;
-import net.caustic.deserializer.Deserializer;
 import net.caustic.http.HttpBrowser;
-import net.caustic.instruction.Instruction;
-import net.caustic.instruction.SerializedInstruction;
+import net.caustic.instruction.Deserializer;
+import net.caustic.instruction.Find;
+import net.caustic.instruction.Load;
 import net.caustic.log.Loggable;
 import net.caustic.log.Logger;
 import net.caustic.scope.Scope;
@@ -86,37 +85,46 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 				db.put(scope, key, (String) input.get(key));
 			}
 			
-			db.putReady(scope, null, instruction);
+			db.putInstruction(scope, null, uriOrJSON, rootURI);
 			
 			return scope;
 		} catch(DatabaseException e) {
-			crash(null, instruction, e);
+			crash(null, uriOrJSON, rootURI, e);
 			return null;
 		}
 	}
 	
-	/**
-	 * When we register a new, ready instruction, run it immediately if we don't need
-	 * to confirm, hold off otherwise.
-	 */
-	public void onPutReady(Scope scope, String source, String instruction) {
-		// XXX need to call this from database onReady
-		super.onPutReady(scope, source, instruction);
+	public void onPutInstruction(Scope scope, String source, String instruction, String uri) {
+		super.onPutInstruction(scope, source, instruction, uri);
 		
-		listener.onPutReady(scope, source, instruction);
+		try {
+			deserializer.deserialize(instruction, db, scope, uri, source);
+		} catch(InterruptedException e) {
+			crash(scope, instruction, uri, e);
+		} catch(DatabaseException e) {
+			crash(scope, instruction, uri, e);
+		}
+	}
+	
+	public void onPutLoad(Scope scope, String source, Load load) {
+		super.onPutLoad(scope, source, load);
 		
-		Instruction instruction = new SerializedInstruction(instruction, 
-		Executable executable = new Executable(instruction, source, db, scope, browser, this);
-		
-		if(instruction.shouldConfirm() && autoRun == false) {
-			listener.onPause(scope, instruction, new Resume(this, executable));
+		Executable executable = new Executable(load, source, db, scope, browser, this);
+		if(autoRun == false) {
+			listener.onPause(scope, load.serialized, load.uri, new Resume(this, executable));
 		} else {
 			submit(executable);
 		}
 	}
 	
-	protected final void crash(Scope scope, Instruction instruction, Throwable reason) {
-		listener.onCrash(scope, instruction, reason);
+	public void onPutFind(Scope scope, String source, Find find) {
+		super.onPutFind(scope, source, find);
+		
+		submit(new Executable(find, source, db, scope, browser, this));
+	}
+	
+	protected final void crash(Scope scope, String instruction, String uri, Throwable reason) {
+		listener.onCrash(scope, instruction, uri, reason);
 		interrupt();
 	}
 
