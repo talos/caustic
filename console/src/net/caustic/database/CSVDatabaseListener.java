@@ -3,6 +3,8 @@ package net.caustic.database;
 import au.com.bytecode.opencsv.CSVWriter;
 
 import net.caustic.database.DatabaseListener;
+import net.caustic.instruction.Find;
+import net.caustic.instruction.Load;
 import net.caustic.scope.Scope;
 
 /**
@@ -48,23 +50,59 @@ public class CSVDatabaseListener implements DatabaseListener {
 				name,
 				value } );
 	}
+
+	/**
+	 * Not mentioned on CSV.
+	 */
+	@Override
+	public void onPutInstruction(Scope scope, String source,
+			String instruction, String uri) {		
+	}
+
+	/**
+	 * Not mentioned on CSV.
+	 */
+	@Override
+	public void onPutMissing(Scope scope, String source, String instruction,
+			String uri, String[] missingTags) {
+	}
+
+	/**
+	 * Not mentioned on CSV.
+	 */
+	@Override
+	public void onPutFailed(Scope scope, String source, String instruction,
+			String uri, String failedBecause) {
+	}
+
+	/**
+	 * Not mentioned on CSV.
+	 */
+	@Override
+	public void onPutSuccess(Scope scope, String source, String instruction,
+			String uri) {
+	}
+
+	/**
+	 * Not mentioned on CSV.
+	 */
+	@Override
+	public void onScopeComplete(Scope scope, int successes, int stuck,
+			int failed) {
+	}
+
+	/**
+	 * Not mentioned on CSV.
+	 */
+	@Override
+	public void onPutLoad(Scope scope, String source, Load load) {
+	}
+
+	/**
+	 * Not mentioned on CSV.
+	 */
+	@Override
+	public void onPutFind(Scope scope, String source, Find find) {
+	}
 	
-	/**
-	 * Not mentioned on CSV.
-	 */
-	@Override
-	public void onStop(Scope scope, StoppedInstruction stoppedInstruction) { }
-
-
-	/**
-	 * Not mentioned on CSV.
-	 */
-	@Override
-	public void onAddCookie(Scope scope, String url, String name, String value) {  }
-
-	/**
-	 * Not mentioned on CSV.
-	 */
-	@Override
-	public void onRestart(Scope scope, StoppedInstruction stoppedInstruction) {  }
 }

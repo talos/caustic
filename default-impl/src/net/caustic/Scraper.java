@@ -96,10 +96,11 @@ public class Scraper extends AbstractScraper {
 	
 	public void interrupt(Throwable because) {
 		because.printStackTrace();
-		executor.shutdownNow();
+		interrupt();
 	}
 	
 	public void interrupt() {
+		log.i("Interrupted!");
 		executor.shutdownNow();
 	}
 

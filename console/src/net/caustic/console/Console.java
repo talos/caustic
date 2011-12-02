@@ -7,11 +7,13 @@ import java.util.Map;
 
 import net.caustic.LogScraperListener;
 import net.caustic.Scraper;
+import net.caustic.ScraperListener;
 import net.caustic.database.Connection;
 import net.caustic.database.ConnectionException;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
 import net.caustic.log.Logger;
+import net.caustic.scope.Scope;
 import net.caustic.util.StringUtils;
 
 /**
@@ -27,6 +29,8 @@ public class Console {
 
 	private final String instruction;
 	private final Scraper scraper;
+	private final ConsoleScraperListener listener = new ConsoleScraperListener();
+	private final int numThreads;
 		
 	public Console(String... stringArgs) throws InvalidOptionException, UnsupportedEncodingException {
 		
@@ -37,13 +41,16 @@ public class Console {
 		input = options.getInput();
 		instruction = options.getInstruction();
 		connection = options.getConnection();
+		numThreads= options.getNumThreads();
 		if(connection != null) {
 			database = options.getSQLDatabase(connection);
 		} else {
 			database = options.getInMemoryDatabase();
 		}
+		listener.register(logger);
 		
-		scraper = new Scraper(database, options.getNumThreads());
+		scraper = new Scraper(database, numThreads, listener);
+		scraper.setAutoRun(true);
 		scraper.register(logger);
 	}
 	
@@ -56,10 +63,15 @@ public class Console {
 		// Start to read input.
 		Map<String, String> inputMap;
 		
+		
 		while((inputMap = input.next()) != null) {
-			scraper.scrapeAll(instruction,
-					new Hashtable<String, String>(inputMap),
-					new LogScraperListener(logger));
+			scraper.scrape(instruction,
+					new Hashtable<String, String>(inputMap));
+			
+			// no point in reading more from input than we have threads
+			while(listener.getNumberOfOpenScopes() > numThreads) {
+				Thread.sleep(100);
+			}
 		}
 		try {
 			input.close();
@@ -68,11 +80,18 @@ public class Console {
 			logger.i("Could not close input " + StringUtils.quote(input) + ": " + e.getMessage());
 			logger.e(e);
 		}
-		scraper.join();
+		
+		// Wait for scraper to finish up
+		while(listener.getNumberOfOpenScopes() > 0) {
+			Thread.sleep(100);
+		}
 		
 		if(connection != null) {
 			connection.close();
 		}
+		
+		// kill the scraper, it's done
+		scraper.interrupt();
 	}
 	
 	/**
@@ -84,9 +103,7 @@ public class Console {
 	public Thread getShutdownThread() {
 		return new Thread() {
 			public void run() { 
-				if(!scraper.isIdle()) {
-					scraper.interrupt();
-				}
+				scraper.interrupt();
 				try {
 					input.close();
 				} catch(IOException e) {

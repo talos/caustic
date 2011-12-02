@@ -10,7 +10,7 @@ import net.caustic.util.StringUtils;
  * @author talos
  *
  */
-public class LogScraperListener extends LogDatabaseListener {
+public class LogScraperListener extends LogDatabaseListener implements ScraperListener {
 
 	public void onCrash(Scope scope, String instruction, String uri, Throwable e) {
 		log.i("Crashed on " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope) +

@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
@@ -103,7 +104,7 @@ class JavaNetHttpResponse implements HttpResponse {
 	public String getRedirectLocation() throws BadURLException {
 		if(isRedirect()) {
 			try {
-				return url.toURI().resolve(redirectLocation).toString();
+				return url.toURI().resolve(new URI(redirectLocation)).toString();
 			} catch(URISyntaxException e) {
 				throw new BadURLException(url.toString(), e.getMessage());
 			}

@@ -12,19 +12,15 @@ import mockit.NonStrict;
 import mockit.Verifications;
 import mockit.VerificationsInOrder;
 import net.caustic.Executable;
-import net.caustic.LogScraperListener;
 import net.caustic.Scraper;
 import net.caustic.ScraperListener;
 import net.caustic.database.Database;
-import net.caustic.database.DatabaseListener;
 import net.caustic.database.MemoryDatabase;
 import net.caustic.log.Logger;
 import net.caustic.log.SystemErrLogger;
 import net.caustic.scope.Scope;
 import net.caustic.scope.SerializedScope;
-import net.caustic.util.StringUtils;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,6 +65,8 @@ public class ScraperIntegrationTest {
 		new Verifications() {{
 			listener.onScopeComplete(scope, 0, 1, 0);
 		}};
+		
+		assertEquals(0, db.getResults(scope).length);
 	}
 
 	@Test
@@ -86,6 +84,8 @@ public class ScraperIntegrationTest {
 		new Verifications() {{
 			listener.onScopeComplete(scope, 2, 0, 0);
 		}};
+		
+		assertTrue(db.getResults(scope).length > 1);
 	}
 	
 	@Test
@@ -347,6 +347,19 @@ public class ScraperIntegrationTest {
 			listener.onNewScope(scope, scope(1), "373 ATLANTIC AVENUE C");
 			listener.onNewScope(scope, scope(2), "373 ATLANTIC AVENUE CORPORATION");
 			listener.onScopeComplete(scope, 2, 0, 0);
+		}};
+	}
+	
+	@Test
+	public void testScrapeNYCIncentives() throws Exception {
+		input.put("Borough", "3");
+		input.put("Block", "1772");
+		input.put("Lot", "74");
+		final Scope scope = scraper.scrape(demosDir + "nyc/nyc-incentives.json", input);
+		join(scope);
+
+		new VerificationsInOrder() {{
+			listener.onScopeComplete(scope, anyInt, 0, anyInt);
 		}};
 	}
 	

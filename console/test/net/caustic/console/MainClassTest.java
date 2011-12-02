@@ -9,8 +9,10 @@ import mockit.Verifications;
 import mockit.VerificationsInOrder;
 import net.caustic.console.ConsoleOptions;
 import net.caustic.console.MainClass;
+import net.caustic.database.Database;
 import net.caustic.http.HttpBrowser;
 import net.caustic.regexp.Pattern;
+import net.caustic.scope.Scope;
 import net.caustic.util.StringUtils;
 
 import org.junit.After;
@@ -18,8 +20,8 @@ import org.junit.Test;
 
 public class MainClassTest {
 
-	//private @Mocked(inverse=true, methods={"print", "println"}) PrintStream out;
-	private @Mocked(methods={"lsdkjflsdkjf"}) PrintStream out;
+	//private @Mocked(methods={"print", "println"}) PrintStream out;
+	private @Mocked(methods={"nonexistent"}) PrintStream out;
 	
 	/**
 	 * 
@@ -27,13 +29,8 @@ public class MainClassTest {
 	 * @return A fake result string that would appear in console.
 	 */
 	private static String row(String... strings) {
+		System.err.println(StringUtils.quoteJoin(strings, "\t"));
 		return StringUtils.quoteJoin(strings, "\t") + StringUtils.NEWLINE;
-	}
-	
-	@After
-	public void tearDown() throws Exception {
-		// have to call this or else it is added repeatedly
-		//Runtime.getRuntime().removeShutdownHook(Console.shutdownThread);
 	}
 	
 	@Test
@@ -52,12 +49,12 @@ public class MainClassTest {
 	public void testSimpleGoogleMissingInput() throws Exception {
 		//final Console console = new Console("../fixtures/json/simple-google.json", "--log-stdout");
 		//console.execute();
-		new VerificationsInOrder() {{
-			out.print(row("scope", "source", "name", "value"));
+		new Expectations() {{
+			out.print(row("source", "scope", "name", "value"));
 			//out.print(ScraperExecutor.formatStatusLine(0, 1, 0, 0, 0));
 		}};
 		
-		MainClass.main("../fixtures/json/simple-google.json", "--log-stdout");
+		MainClass.main("../fixtures/json/simple-google.json");
 	}
 	
 	@Test
@@ -65,7 +62,8 @@ public class MainClassTest {
 		new Expectations() {
 			@Mocked({"head", "get", "post"}) HttpBrowser browser;
 			{
-				browser.get("http://www.google.com/search?q=hello", (Hashtable) any, (Pattern[]) any);
+				browser.get("http://www.google.com/search?q=hello", (Hashtable) any,
+						(Pattern[]) any, (Database) any, (Scope) any);
 					result = "hello world hello tree hello whee";
 			}
 		};
@@ -79,7 +77,7 @@ public class MainClassTest {
 		//Console.shutdownThread.join();
 		
 		new VerificationsInOrder() {{
-			out.print(row("scope", "source", "name", "value"));
+			out.print(row("source", "scope", "name", "value"));
 			out.print(row("0", "0", "query", "hello"));
 			out.print(row("1", "0", "what do you say after 'hello'?", "I say 'world'!"));
 			out.print(row("2", "0", "what do you say after 'hello'?", "I say 'tree'!"));
@@ -97,11 +95,14 @@ public class MainClassTest {
 		new Expectations() {
 			@Mocked({"head", "get", "post"}) HttpBrowser browser;
 			{
-				browser.get("http://www.google.com/search?q=hello", (Hashtable) any, (Pattern[]) any);
+				browser.get("http://www.google.com/search?q=hello", (Hashtable) any,
+						(Pattern[]) any, (Database) any, (Scope) any);
 					result = "hello world";
-				browser.get("http://www.google.com/search?q=meh", (Hashtable) any, (Pattern[]) any);
+				browser.get("http://www.google.com/search?q=meh", (Hashtable) any,
+						(Pattern[]) any, (Database) any, (Scope) any);
 					result = "unrelated words";
-				browser.get("http://www.google.com/search?q=bleh", (Hashtable) any, (Pattern[]) any);
+				browser.get("http://www.google.com/search?q=bleh", (Hashtable) any,
+						(Pattern[]) any, (Database) any, (Scope) any);
 					result = "bleh this bleh that";
 			}
 		};
@@ -149,13 +150,17 @@ public class MainClassTest {
 		new Expectations() {
 			@Mocked({"head", "get", "post"}) HttpBrowser browser;
 			{
-			browser.get("http://www.google.com/search?q=hello", (Hashtable) any, (Pattern[]) any);
+			browser.get("http://www.google.com/search?q=hello", (Hashtable) any,
+					(Pattern[]) any, (Database) any, (Scope) any);
 				result = "hello world hello tree hello whee";
-			browser.get("http://www.google.com/search?q=world", (Hashtable) any, (Pattern[]) any);
+			browser.get("http://www.google.com/search?q=world", (Hashtable) any,
+					(Pattern[]) any, (Database) any, (Scope) any);
 				result = "world peace world domination";
-			browser.get("http://www.google.com/search?q=tree", (Hashtable) any, (Pattern[]) any);
+			browser.get("http://www.google.com/search?q=tree", (Hashtable) any,
+					(Pattern[]) any, (Database) any, (Scope) any);
 				result = "tree planting";
-			browser.get("http://www.google.com/search?q=whee", (Hashtable) any, (Pattern[]) any);
+			browser.get("http://www.google.com/search?q=whee", (Hashtable) any,
+					(Pattern[]) any, (Database) any, (Scope) any);
 				result = "";
 		}};
 		

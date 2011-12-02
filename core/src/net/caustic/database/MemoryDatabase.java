@@ -78,6 +78,19 @@ public final class MemoryDatabase extends Database {
 	private final Hashtable failed = new Hashtable();
 	
 	/**
+	 * Set th
+	 */
+	private final boolean clean;
+	
+	public MemoryDatabase() {
+		this.clean = false;
+	}
+	
+	public MemoryDatabase(boolean clean) {
+		this.clean = clean;
+	}
+	
+	/**
 	 * Look in a data node for a value.  If it's not there, traverse
 	 * up the tree.
 	 */
@@ -364,28 +377,40 @@ public final class MemoryDatabase extends Database {
 	 */
 	private void destroyScope(Scope scope) {
 		// remove everything.
-		// currently removed, as we really should be persisting this, not
+		// currently optional, as we really should be persisting this, not
 		// throwing it out tha' window.
-		
-		/*Scope parent = (Scope) parentsByChild.get(scope);
-		if(parent != null) {
-			((Vector) childrenByParent.get(parent)).remove(scope);
-		}
-		parentsByChild.remove(scope);
-		
-		tags.remove(scope);		
-		submitted.remove(scope);
-		success.remove(scope);
-		stuck.remove(scope);
-		failed.remove(scope);
-		paused.remove(scope);
-		
-		if(childrenByParent.containsKey(scope)) {
-			Vector children = (Vector) childrenByParent.get(scope);
-			for(int i = 0 ; i < children.size(); i ++) {
-				destroyScope((Scope) children.elementAt(i));
+		if(clean) {
+			Scope parent = (Scope) parentsByChild.get(scope);
+			if(parent != null) {
+				((Vector) childrenByParent.get(parent)).remove(scope);
 			}
-		}*/
+			parentsByChild.remove(scope);
+			
+			((Hashtable) tags.get(scope)).clear();
+			tags.remove(scope);	
+			
+			((Vector) submitted.get(scope)).clear();
+			submitted.remove(scope);
+			
+			((Vector) success.get(scope)).clear();
+			success.remove(scope);
+			
+			((Vector) stuck.get(scope)).clear();
+			stuck.remove(scope);
+			
+			((Vector) failed.get(scope)).clear();
+			failed.remove(scope);
+			
+			((Vector) paused.get(scope)).clear();
+			paused.remove(scope);
+			
+			if(childrenByParent.containsKey(scope)) {
+				Vector children = (Vector) childrenByParent.get(scope);
+				for(int i = 0 ; i < children.size(); i ++) {
+					destroyScope((Scope) children.elementAt(i));
+				}
+			}
+		}
 	}
 	
 	private boolean isScopeComplete(Scope scope, boolean traverseDown) {

@@ -46,7 +46,7 @@ final class ConsoleOptions {
 	public static final char COMMA_DELIMITER = ',';
 	
 	public static final String INPUT_DELIMITER = "--delimiter";
-	public static final String INPUT_DELIMITER_DEFAULT = Character.toString(COMMA_DELIMITER);
+	public static final String INPUT_DELIMITER_DEFAULT = Character.toString(TAB_DELIMITER);
 	private final Option inputDelimiter = Option.withDefault(INPUT_DELIMITER, INPUT_DELIMITER_DEFAULT);	
 		
 	public static final String LOG = "--log";
@@ -251,7 +251,8 @@ final class ConsoleOptions {
 	 */
 	Database getInMemoryDatabase() throws InvalidOptionException {
 
-		final Database database = new MemoryDatabase();
+		// since there's no restart ability, we can clear out a scope when it is finished.
+		final Database database = new MemoryDatabase(false);
 		// Determine delimiter.
 		if(getValue(format).equals(CSV_FORMAT)) {
 			database.addListener(new CSVDatabaseListener(COMMA_DELIMITER));

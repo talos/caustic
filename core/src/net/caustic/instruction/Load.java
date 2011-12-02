@@ -120,6 +120,13 @@ public final class Load extends Instruction {
 			final HashtableSubstitution headersSub = headers.sub(db, scope);
 			final HashtableSubstitution cookiesSub = cookies.sub(db, scope);
 			
+			// Everything is substituted in, we can actually try to load the page.
+			final String url;
+			final String responseBody;
+			
+			final Hashtable headers;
+			final Hashtable cookies;
+			
 			// Cannot execute if any of these substitutions was not successful
 			if(urlSub.isMissingTags()
 					|| headersSub.isMissingTags()
@@ -129,6 +136,10 @@ public final class Load extends Instruction {
 				
 				db.putMissing(scope, null, this, missingTags);
 				return;
+			} else {
+				url = (String) urlSub.getSubstituted();
+				headers = headersSub.getSubstituted();
+				cookies = cookiesSub.getSubstituted();
 			}
 			
 			// pull out post string
@@ -153,15 +164,8 @@ public final class Load extends Instruction {
 				postStr = null;
 			}
 			
-			// Everything is substituted in, we can actually try to load the page.
-			final String url = (String) urlSub.getSubstituted();
-			final String responseBody;
-			
-			final Hashtable headers = headersSub.getSubstituted();
-			final Hashtable cookies = cookiesSub.getSubstituted();
-			
 			// add cookies directly into DB
-			Enumeration e = cookies.elements();
+			Enumeration e = cookies.keys();
 			while(e.hasMoreElements()) {
 				String name = (String) e.nextElement();
 				String value = (String) cookies.get(name);

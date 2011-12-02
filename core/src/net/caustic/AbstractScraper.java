@@ -150,6 +150,7 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 	
 	protected final void crash(Scope scope, String instruction, String uri, Throwable reason) {
 		listener.onCrash(scope, instruction, uri, reason);
+		reason.printStackTrace();
 		interrupt();
 	}
 
