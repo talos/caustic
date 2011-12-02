@@ -47,7 +47,7 @@ public class Console {
 		} else {
 			database = options.getInMemoryDatabase();
 		}
-		listener.register(logger);
+		//listener.register(logger);
 		
 		scraper = new Scraper(database, numThreads, listener);
 		scraper.setAutoRun(true);

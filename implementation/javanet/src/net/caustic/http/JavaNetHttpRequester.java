@@ -58,7 +58,6 @@ public class JavaNetHttpRequester implements HttpRequester {
 			} else {
 				conn.setRequestMethod(method.toUpperCase());
 			}
-			
 			return new JavaNetHttpResponse(conn);
 		} catch(IOException e) {
 			throw new HttpRequestException(e.getMessage());
