@@ -85,8 +85,11 @@ public class LogDatabaseListener implements DatabaseListener, Loggable {
 				StringUtils.quote(failedBecause));
 	}
 	
-	public void onScopeComplete(Scope scope) {
-		log.i("Scope " + StringUtils.quote(scope) + " is complete.");
+	public void onScopeComplete(Scope scope, int successes, int stuck, int failed) {
+		log.i("Scope " + StringUtils.quote(scope) + " is complete." + 
+				" There were " + StringUtils.quote(successes) + " successful " +
+						" instructions, " + StringUtils.quote(stuck) + " stuck " +
+						" instructions, and " + StringUtils.quote(failed) + " failed instructions");
 	}
 	
 	public void register(Logger logger) {

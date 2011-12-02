@@ -423,7 +423,11 @@ public class JSONDeserializer implements Deserializer {
 			return;
 		} else if(pattern != null) {
 			// We have a Find
-			name    = name   == null ? pattern : name;
+			
+			// if name was defined, use it; otherwise use the regex as a name
+			boolean hasName = name    == null ? false : true;
+			name            = hasName == true ? name : pattern;
+			
 			min     = match  == null ? min : match.intValue(); // if match was defined, use it.
 			max     = match  == null ? max : match.intValue();
 			if(RegexpUtils.isValidRange(min, max) == false) {
@@ -431,7 +435,7 @@ public class JSONDeserializer implements Deserializer {
 						"Range " + StringUtils.quote(min) + " to " +
 						StringUtils.quote(max) + " is not valid for " + Find.FIND);
 			}
-			db.putFind(scope, source, new Find(instruction, uri, compiler, pattern,
+			db.putFind(scope, source, new Find(instruction, uri, compiler, name, hasName, pattern,
 					replace, min, max, isCaseInsensitive,
 					isMultiline, doesDotMatchNewline, childrenAry));
 			return;

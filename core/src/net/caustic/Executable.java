@@ -7,7 +7,7 @@ import net.caustic.instruction.Find;
 import net.caustic.instruction.Load;
 import net.caustic.scope.Scope;
 
-final class Executable implements Runnable {
+public final class Executable implements Runnable {
 	private Find find;
 	private Load load;
 	private final String serialized;
@@ -17,6 +17,7 @@ final class Executable implements Runnable {
 	private final Scope scope;
 	private final HttpBrowser browser;
 	private final AbstractScraper scraper;
+	private boolean hasBeenRun = false;
 	
 	public Executable(Find find, String source, Database database, Scope scope,
 			HttpBrowser browser, AbstractScraper scraper) {
@@ -38,11 +39,22 @@ final class Executable implements Runnable {
 		this.scope = scope;
 		this.browser = browser;
 		this.scraper = scraper;
-		this.serialized = find.serialized;
-		this.uri = find.uri;
+		this.serialized = load.serialized;
+		this.uri = load.uri;
+	}
+	
+	public synchronized boolean hasBeenRun() {
+		return hasBeenRun;
 	}
 	
 	public void run() {
+		synchronized(this) {
+			if(hasBeenRun) {
+				return;
+			} else {
+				hasBeenRun = true; // prevent double-run
+			}
+		}
 		try {
 			if(load != null) {
 				load.execute(db, scope, browser);

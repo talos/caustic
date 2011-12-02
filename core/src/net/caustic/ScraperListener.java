@@ -16,9 +16,9 @@ public interface ScraperListener extends DatabaseListener {
 	 * @param scope The {@link Scope} of the paused instruction.
 	 * @param instruction The {@link String} serialization of the instruction that was paused.
 	 * @param uri The {@link String} location of <code>instruction</code>'s location.
-	 * @param resume A {@link Resume} that, when {@link Resume#run()}, will resume the instruction.
+	 * @param resume A {@link PausedLoad} that, when {@link PausedLoad#run()}, will resume the instruction.
 	 */
-	public abstract void onPause(Scope scope, String instruction, String uri, Resume resume);
+	public abstract void onPause(Scope scope, String instruction, String uri, Executable paused);
 		
 	/**
 	 * 

@@ -4,6 +4,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import net.caustic.Executable;
 import net.caustic.scope.Scope;
 import net.caustic.util.Encoder;
 import net.caustic.util.HashtableUtils;
@@ -47,10 +48,16 @@ public final class MemoryDatabase extends Database {
 	private final Hashtable cookies = new Hashtable();
 	
 	/**
-	 * Hashtable of {@link ReadyExecution} vectors.<br>
-	 * <code>Hashtable&lt;Scope, Vector&lt;ReadyExecution&gt;&gt;</code>
+	 * Hashtable of {@link Instruction} vectors.<br>
+	 * <code>Hashtable&lt;Scope, Vector&lt;Instruction&gt;&gt;</code>
 	 */
 	private final Hashtable submitted = new Hashtable();
+
+	/**
+	 * Hashtable of {@link Executable} vectors.<br>
+	 * <code>Hashtable&lt;Scope, Vector&lt;Executable&gt;&gt;</code>
+	 */
+	private final Hashtable paused = new Hashtable();
 	
 	/**
 	 * Hashtable of {@link Instruction} vectors.<br>
@@ -85,6 +92,49 @@ public final class MemoryDatabase extends Database {
 			}
 		}
 		return null;
+	}
+
+
+	public String[][] getResults(Scope scope) throws DatabaseException {
+		Hashtable resultTable = (Hashtable) tags.get(scope);
+		String[][] results = new String[resultTable.size()][2];
+		Enumeration e = resultTable.keys();
+		int i = 0;
+		
+		// turn a hashtable into a multidimensional string array.
+		while(e.hasMoreElements()) {
+			String key = (String) e.nextElement();
+			results[i][0] = key;
+			results[i][1] = (String) resultTable.get(key);
+		}
+		
+		return results;
+	}
+
+	public Scope[] getChildren(Scope scope) throws DatabaseException {
+		Vector childrenVec = (Vector) childrenByParent.get(scope);
+		Scope[] children = new Scope[childrenVec.size()];
+		childrenVec.copyInto(children);
+		return children;
+	}
+
+	public Executable[] getPaused(Scope scope) throws DatabaseException {
+		Vector pausedVec = (Vector) paused.get(scope);
+		
+		// iterate through the paused vector and remove anything that's already
+		// been run
+		for(int i = 0 ; i < pausedVec.size() ; i++) {
+			Executable paused = (Executable) pausedVec.elementAt(i);
+			if(paused.hasBeenRun()) {
+				pausedVec.removeElementAt(i);
+				i--;
+			}
+		}
+		
+		// copy into array.
+		Executable[] paused = new Executable[pausedVec.size()];
+		pausedVec.copyInto(paused);
+		return paused;
 	}
 	
 	public String[] getCookies(Scope scope, final String host, final Encoder encoder)
@@ -122,6 +172,10 @@ public final class MemoryDatabase extends Database {
 		return result;
 	}
 
+	public boolean isScopeComplete(Scope scope) {
+		return isScopeComplete(scope, true);
+	}
+	
 	void onAddCookie(Scope scope, String host, String name,
 			String value) {
 		// we have cookies already especially for this scope.
@@ -210,6 +264,10 @@ public final class MemoryDatabase extends Database {
 			return scopesAry;
 		}
 	}
+
+	void onPutPausedLoad(Scope scope, Executable pausedLoad) {
+		((Vector) paused.get(scope)).add(pausedLoad);
+	}
 	
 	/**
 	 * Look through <code>scope</code> and all its children for {@link StuckExecution}s
@@ -251,6 +309,28 @@ public final class MemoryDatabase extends Database {
 		return resultAry;
 	}
 	
+	String[] getSuccesses(Scope scope) {
+		Vector successes = (Vector) success.get(scope);
+		String[] successesAry = new String[successes.size()];
+		successes.copyInto(successesAry);
+		return successesAry;
+	}
+
+	StuckExecution[] getStuck(Scope scope) {
+		Vector stuckVector = (Vector) stuck.get(scope);
+		StuckExecution[] stuckAry = new StuckExecution[stuckVector.size()];
+		stuckVector.copyInto(stuckAry);
+		return stuckAry;
+	}
+
+
+	FailedExecution[] getFailed(Scope scope) {
+		Vector failedVector = (Vector) failed.get(scope);
+		FailedExecution[] failedAry = new FailedExecution[failedVector.size()];
+		failedVector.copyInto(failedAry);
+		return failedAry;
+	}
+	
 	/**
 	 * Initialize <code>scope</code> in {@link MemoryDatabase}.
 	 * @param scope The {@link Scope} to initialize.
@@ -275,6 +355,7 @@ public final class MemoryDatabase extends Database {
 		success.put(scope, new Vector());
 		stuck.put(scope, new Vector());
 		failed.put(scope, new Vector());
+		paused.put(scope, new Vector());
 	}
 	
 	/**
@@ -283,7 +364,10 @@ public final class MemoryDatabase extends Database {
 	 */
 	private void destroyScope(Scope scope) {
 		// remove everything.
-		Scope parent = (Scope) parentsByChild.get(scope);
+		// currently removed, as we really should be persisting this, not
+		// throwing it out tha' window.
+		
+		/*Scope parent = (Scope) parentsByChild.get(scope);
 		if(parent != null) {
 			((Vector) childrenByParent.get(parent)).remove(scope);
 		}
@@ -294,13 +378,14 @@ public final class MemoryDatabase extends Database {
 		success.remove(scope);
 		stuck.remove(scope);
 		failed.remove(scope);
+		paused.remove(scope);
 		
 		if(childrenByParent.containsKey(scope)) {
 			Vector children = (Vector) childrenByParent.get(scope);
 			for(int i = 0 ; i < children.size(); i ++) {
 				destroyScope((Scope) children.elementAt(i));
 			}
-		}
+		}*/
 	}
 	
 	private boolean isScopeComplete(Scope scope, boolean traverseDown) {
@@ -325,4 +410,5 @@ public final class MemoryDatabase extends Database {
 			return true;
 		}
 	}
+	
 }

@@ -54,7 +54,7 @@ public interface DatabaseListener {
 	 * @param name The name of the cookie.
 	 * @param value The value of the cookie.
 	 */
-	public void onAddCookie(Scope scope, String host, String name, String value);
+	//public void onAddCookie(Scope scope, String host, String name, String value);
 	
 	public void onPutInstruction(Scope scope, String source, String instruction, String uri);
 	
@@ -64,7 +64,11 @@ public interface DatabaseListener {
 	
 	public void onPutSuccess(Scope scope, String source, String instruction, String uri);
 	
-	public void onScopeComplete(Scope scope);
+	/**
+	 * 
+	 * @param scope
+	 */
+	public void onScopeComplete(Scope scope, int successes, int stuck, int failed);
 
 	public void onPutLoad(Scope scope, String source, Load load);
 

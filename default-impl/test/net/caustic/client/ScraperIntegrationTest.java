@@ -11,13 +11,13 @@ import mockit.Expectations;
 import mockit.NonStrict;
 import mockit.Verifications;
 import mockit.VerificationsInOrder;
+import net.caustic.Executable;
 import net.caustic.LogScraperListener;
-import net.caustic.Resume;
 import net.caustic.Scraper;
 import net.caustic.ScraperListener;
 import net.caustic.database.Database;
+import net.caustic.database.DatabaseListener;
 import net.caustic.database.MemoryDatabase;
-import net.caustic.instruction.Instruction;
 import net.caustic.log.Logger;
 import net.caustic.log.SystemErrLogger;
 import net.caustic.scope.Scope;
@@ -38,7 +38,7 @@ public class ScraperIntegrationTest {
 	/**
 	 * How many milliseconds to wait for a scraper to go idle.
 	 */
-	private static final int SCRAPER_WAIT_TIME = 10000;
+	private static final int SCRAPER_WAIT_TIME = 5000;
 	private static final String demosDir = "../demos/";
 	private @NonStrict ScraperListener listener;
 	private Hashtable<String, String> input;
@@ -55,68 +55,61 @@ public class ScraperIntegrationTest {
 		
 		input = new Hashtable<String, String>();
 	}
-	
+	/*
 	@After
 	public void tearDown() throws Exception {
-		join();
-	}
+		//join(scope);
+	}*/
 	
 	@Test
 	public void testScrapeStuck() throws Exception {
 		final Scope scope = scraper.scrape(demosDir + "simple-google.json", input);
-		join();
+		join(scope);
 		
 		new Verifications() {{
-			listener.onPutMissing(scope, anyString, demosDir + "simple-google.json", (String[]) any); times = 1;
+			listener.onScopeComplete(scope, 0, 1, 0);
 		}};
 	}
 
 	@Test
 	public void testScrapeStuckThenUnstuck() throws Exception {
-		Scope scope = scraper.scrape(demosDir + "simple-google.json", input);
-		join();
+		final Scope scope = scraper.scrape(demosDir + "simple-google.json", input);
+		join(scope);
 		
-		assertEquals(2, scraper.getSubmitted());
-		assertEquals(2, scraper.getFinished());
-		assertEquals(1, scraper.getStuck());
-		assertEquals(0, scraper.getFailed());
+		new Verifications() {{
+			listener.onScopeComplete(scope, 0, 1, 0);
+		}};
 		
 		db.put(scope, "query", "hello");
-		join();
+		join(scope);
 
-		assertEquals(5, scraper.getSubmitted());
-		assertEquals(5, scraper.getFinished());
-		assertEquals(1, scraper.getStuck());
-		assertEquals(0, scraper.getFailed());
+		new Verifications() {{
+			listener.onScopeComplete(scope, 2, 0, 0);
+		}};
 	}
 	
 	@Test
 	public void testScrapeFail() throws Exception {	
-		scraper.scrape("path/to/nothing.json", input);
-		join();
-
-		assertEquals(1, scraper.getSubmitted());
-		assertEquals(1, scraper.getFinished());
-		assertEquals(0, scraper.getStuck());
-		assertEquals(1, scraper.getFailed());
+		final Scope scope = scraper.scrape("path/to/nothing.json", input);
+		join(scope);
+		
+		new Verifications() {{
+			listener.onScopeComplete(scope, 0, 0, 1);
+		}};
 	}
 	
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {
 		input.put("query", "hello");
-		scraper.scrape(demosDir + "simple-google.json", input);
-		join();
+		final Scope scope = scraper.scrape(demosDir + "simple-google.json", input);
+		join(scope);
 		
-		assertEquals(4, scraper.getSubmitted());
-		assertEquals(4, scraper.getFinished());
-		assertEquals(0, scraper.getStuck());
-		assertEquals(0, scraper.getFailed());
-		
-		new VerificationsInOrder() {{			
+		new VerificationsInOrder() {{
 			listener.onNewScope(scope(0), scope(1), withPrefix("I say"));
 			listener.onNewScope(scope(0), scope(2), withPrefix("I say"));
 			listener.onNewScope(scope(0), scope(3), withPrefix("I say"));
 			listener.onNewScope(scope(0), scope(4), withPrefix("I say"));
+			listener.onScopeComplete(scope, 2, 0, 0);
 		}};
 	}
 	
@@ -128,40 +121,37 @@ public class ScraperIntegrationTest {
 	public void testScrapeSimpleGooglePause() throws Exception {		
 		input.put("query", "hello");
 		scraper.setAutoRun(false);
-		scraper.scrape(demosDir + "simple-google.json", input);
 		
-		final List<Resume> resumes = new ArrayList<Resume>();
+		final List<Executable> resumes = new ArrayList<Executable>();
 		new Expectations() {{
-			listener.onPause((Scope) any, (Instruction) any, (Resume) any); forEachInvocation = new Object() {
-				public void run(Scope scope, Instruction instruction, Resume resume) {
-					resumes.add(resume);
+			listener.onPause((Scope) any, anyString, anyString, (Executable) any); times = 1;
+			forEachInvocation = new Object() {
+				public void exec(Scope scope, String instruction, String uri, Executable executable) {
+					System.out.println("adding resume");
+					resumes.add(executable);
 				}
 			};
 		}};
-		join();
+		final Scope scope = scraper.scrape(demosDir + "simple-google.json", input);
+		//join(scope); // to join here would hang!
 		
-		assertEquals(1, scraper.getSubmitted());
-		assertEquals(1, scraper.getFinished());
-		assertEquals(0, scraper.getStuck());
-		assertEquals(0, scraper.getFailed());
-		assertFalse(scraper.isDone());
-		assertTrue(scraper.isIdle());
+		Thread.sleep(2000); // pausin'
+		assertFalse(db.isScopeComplete(scope));
+		new VerificationsInOrder() {{
+			listener.onScopeComplete(scope, anyInt, anyInt, anyInt); times = 0;
+		}};
 		
-		for(Resume resume : resumes) {
-			resume.run();
+		for(Executable resume : resumes) {
+			scraper.submit(resume);
 		}
-		join();
-		
-		assertEquals(4, scraper.getSubmitted());
-		assertEquals(4, scraper.getFinished());
-		assertEquals(0, scraper.getStuck());
-		assertEquals(0, scraper.getFailed());
+		join(scope);
 		
 		new VerificationsInOrder() {{
 			listener.onNewScope(scope(0), scope(1), withPrefix("I say"));
 			listener.onNewScope(scope(0), scope(2), withPrefix("I say"));
 			listener.onNewScope(scope(0), scope(3), withPrefix("I say"));
 			listener.onNewScope(scope(0), scope(4), withPrefix("I say"));
+			listener.onScopeComplete(scope, 2, 0, 0);
 		}};
 	}
 	
@@ -634,13 +624,14 @@ public class ScraperIntegrationTest {
 	}
 	
 	/**
-	 * Wait {@link #SCRAPER_WAIT_TIME} for {@link #scraper} to go idle.
+	 * Wait {@link #SCRAPER_WAIT_TIME} for {@link #db} to be complete
+	 * on <code>scope</code>.
 	 * @throws InterruptedException
 	 */
-	private void join() throws InterruptedException {
+	private void join(Scope scope) throws Exception {
 		final int cycle = 50;
 		int timer = 0;
-		while(!scraper.isIdle()) {
+		while(!db.isScopeComplete(scope)) {
 			Thread.sleep(cycle);
 			timer += cycle;
 			if(timer > SCRAPER_WAIT_TIME) {

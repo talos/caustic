@@ -10,14 +10,14 @@ import net.caustic.util.StringUtils;
  * @author talos
  *
  */
-public class LogScraperListener extends LogDatabaseListener implements ScraperListener {
+public class LogScraperListener extends LogDatabaseListener {
 
 	public void onCrash(Scope scope, String instruction, String uri, Throwable e) {
 		log.i("Crashed on " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope) +
 				" because of " + StringUtils.quote(e.toString()));
 	}
 	
-	public void onPause(Scope scope, String instruction, String uri, Resume resume) {
+	public void onPause(Scope scope, String instruction, String uri, Executable executable) {
 		log.i("Pausing " + StringUtils.quote(instruction) + " in scope " + StringUtils.quote(scope) + 
 				" for later.");
 	}

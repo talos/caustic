@@ -129,13 +129,14 @@ public final class Find extends Instruction {
 	private final int maxMatch;// = Pattern.LAST_MATCH;
 	
 	public Find(String serializedString, String uri,
-			RegexpCompiler compiler, StringTemplate pattern, StringTemplate replacement,
+			RegexpCompiler compiler, StringTemplate name, boolean hasName,
+			StringTemplate pattern, StringTemplate replacement,
 			int minMatch, int maxMatch,
 			boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
 			String[] children) {
 		super(serializedString, uri);
-		this.hasName = false;
-		this.name = pattern;
+		this.hasName = hasName;
+		this.name = name;
 		this.compiler = compiler;
 		this.pattern = pattern;
 		this.replacement = replacement;
@@ -168,12 +169,10 @@ public final class Find extends Instruction {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
 		
-		final StringSubstitution subName;
+		final StringSubstitution subName = name.sub(db, scope);
 		final StringSubstitution subPattern = pattern.sub(db, scope);
 		final StringSubstitution subReplacement = replacement.sub(db, scope);
-		
-		subName = name.sub(db, scope);
-		
+				
 		if(subName.isMissingTags() ||
 				subPattern.isMissingTags() ||
 				subReplacement.isMissingTags()) { // One of the substitutions was not OK.

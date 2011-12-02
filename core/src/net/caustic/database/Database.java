@@ -2,6 +2,7 @@ package net.caustic.database;
 
 import java.util.Vector;
 
+import net.caustic.Executable;
 import net.caustic.instruction.Find;
 import net.caustic.instruction.Load;
 import net.caustic.scope.IntScopeFactory;
@@ -59,6 +60,30 @@ public abstract class Database {
 	public abstract String get(Scope scope, String key) throws DatabaseException;
 	
 	/**
+	 * Get a 2-dimensional array of {@link String}s that are the results for {@link Scope}.
+	 * @param scope
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public abstract String[][] getResults(Scope scope) throws DatabaseException;
+	
+	/**
+	 * Get an array of {@link Scope}s that are the children of <code>scope</code>.
+	 * @param scope
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public abstract Scope[] getChildren(Scope scope) throws DatabaseException;
+	
+	/**
+	 * Get an array of all the loads that are ready to fire in {@link PausedLoad}.
+	 * @param scope
+	 * @return
+	 * @throws DatabaseException
+	 */
+	public abstract Executable[] getPaused(Scope scope) throws DatabaseException;
+	
+	/**
 	 * Get an array of {@link String} encoded cookies for <code>scope</code> and
 	 * its ancestors in the following format:
 	 * <p>
@@ -83,10 +108,10 @@ public abstract class Database {
 	public final void addCookie(Scope scope, String host, String name, String value)
 			throws DatabaseException {
 		onAddCookie(scope, host, name, value);
-		
+		/*
 		for(int i = 0 ; i < listeners.size() ; i ++) {
 			((DatabaseListener) listeners.elementAt(i)).onAddCookie(scope, host, name, value);
-		}
+		}*/
 	}
 	
 	/**
@@ -105,15 +130,19 @@ public abstract class Database {
 		StuckExecution[] newlyReady = getUnstuck(scope, key, value);
 		for(int i = 0 ; i < newlyReady.length ; i ++) {
 			newlyReady[i].retry(this, scope);
-		//	putInstruction(scope, newlyReady[i].source, newlyReady[i].instruction);
 		}
 	}
 	
 	public final void putLoad(Scope scope, String source, Load load)
-			throws DatabaseException {		
+			throws DatabaseException {
+		
 		for(int i = 0 ; i < listeners.size() ; i ++) {
 			((DatabaseListener) listeners.elementAt(i)).onPutLoad(scope, source, load);
 		}
+	}
+	
+	public final void putPausedLoad(Scope scope, Executable executable) {
+		onPutPausedLoad(scope, executable);
 	}
 	
 	public final void putFind(Scope scope, String source, Find find)
@@ -134,11 +163,11 @@ public abstract class Database {
 	public final void putSuccess(Scope scope, String source,
 			String instruction, String uri) throws DatabaseException {
 		onPutSuccess(scope, source, instruction, uri);
-		
+		/*
 		for(int i = 0 ; i < listeners.size() ; i ++) {
 			((DatabaseListener) listeners.elementAt(i)).onPutSuccess(scope, source,
 					instruction, uri);
-		}
+		}*/
 
 		checkScopeComplete(scope);
 	}
@@ -234,6 +263,16 @@ public abstract class Database {
 		return scope;
 	}
 	
+	/**
+	 * Check to see whether the specified <code>scope</scope> has any more
+	 * {@link Instruction}s that could be executed.  Should check all children of <code>scope</code>,
+	 * and they should all be complete as well.
+	 * @param scope The {@link Scope} to check.
+	 * @return <code>True</code> if the scope is complete, <code>false</code>
+	 * otherwise.  This could change back to <code>false</code> if an instruction was revived.
+	 */
+	public abstract boolean isScopeComplete(Scope scope) throws DatabaseException;
+
 
 	/**
 	 * Check <code>scope</code> and its children for executions that were previously
@@ -246,15 +285,6 @@ public abstract class Database {
 	abstract StuckExecution[] getUnstuck(Scope scope, String name, String value)
 			throws DatabaseException;
 	
-	/**
-	 * Check to see whether the specified <code>scope</scope> has any more
-	 * {@link Instruction}s that could be executed.  Should check all children of <code>scope</code>,
-	 * and they should all be complete as well.
-	 * @param scope The {@link Scope} to check.
-	 * @return <code>True</code> if the scope is complete, <code>false</code>
-	 * otherwise.  This could change back to <code>false</code> if an instruction was revived.
-	 */
-	//abstract boolean isScopeComplete(Scope scope) throws DatabaseException;
 	
 	/**
 	 * 
@@ -273,9 +303,13 @@ public abstract class Database {
 	abstract void onNewDefaultScope(Scope scope);
 	abstract void onPutFailed(Scope scope, String source, FailedExecution failed);
 	abstract void onPutMissing(Scope scope, String source, StuckExecution stuck);
+	abstract void onPutPausedLoad(Scope scope, Executable executable);
 	abstract void onPutSuccess(Scope scope, String source,
 			String instruction, String uri);
 	abstract void onScopeComplete(Scope scope);
+	abstract String[] getSuccesses(Scope scope);
+	abstract StuckExecution[] getStuck(Scope scope);
+	abstract FailedExecution[] getFailed(Scope scope);
 
 	/**
 	 * Uses {@link #isScopeComplete(Scope)} to check whether the passed <code>scope</code>
@@ -288,7 +322,10 @@ public abstract class Database {
 		for(int i = 0 ; i < completeScopes.length ; i ++) {
 			onScopeComplete(completeScopes[i]);
 			for(int j = 0 ; j < listeners.size() ; j ++) {
-				((DatabaseListener) listeners.elementAt(j)).onScopeComplete(completeScopes[i]);
+				String[] successes = getSuccesses(scope);
+				StuckExecution[] stuck = getStuck(scope);
+				FailedExecution[] failed = getFailed(scope);
+				((DatabaseListener) listeners.elementAt(j)).onScopeComplete(completeScopes[i], successes.length, stuck.length, failed.length);
 			}
 		}
 	}

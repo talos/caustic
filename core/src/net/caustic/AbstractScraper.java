@@ -2,6 +2,7 @@ package net.caustic;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseException;
@@ -32,12 +33,19 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 	// we can use volatile because changed value not dependent on prior value.
 	private volatile boolean autoRun = false;
 	
+	/**
+	 * A {@link Vector} of all {@link Scope}s that were created using the {@link #scrape(String, Hashtable)}
+	 * methods, and have not yet been eliminated by {@link #onScopeComplete(Scope, int, int, int)}.
+	 */
+	//private final Vector activeScopes = new Vector();
+	
 	public AbstractScraper(Database db, HttpBrowser browser, Deserializer deserializer,
 			ScraperListener listener) {
 		this.db = db;
 		this.browser = browser;
 		this.deserializer = deserializer;
 		db.addListener(this);
+		db.addListener(listener);
 		this.listener = listener;
 	}
 	
@@ -61,7 +69,7 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 	 * @param autoRun Whether {@link Instruction} children should be scraped automatically.
 	 * @return the parent {@link Scope} of all results.
 	 */
-	public Scope scrape(String uriOrJSON, Hashtable input) {
+	public final Scope scrape(String uriOrJSON, Hashtable input) {
 		
 		// Quote string it if it's not quoted, and isn't JSON.
 		// This is OK because the process hits {@link #submit}, not {@link #scrape}.
@@ -85,7 +93,8 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 				db.put(scope, key, (String) input.get(key));
 			}
 			
-			db.putInstruction(scope, null, uriOrJSON, rootURI);
+			//activeScopes.add(scope);
+			db.putInstruction(scope, null, quoted, rootURI);
 			
 			return scope;
 		} catch(DatabaseException e) {
@@ -94,7 +103,7 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 		}
 	}
 	
-	public void onPutInstruction(Scope scope, String source, String instruction, String uri) {
+	public final void onPutInstruction(Scope scope, String source, String instruction, String uri) {
 		super.onPutInstruction(scope, source, instruction, uri);
 		
 		try {
@@ -106,32 +115,51 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 		}
 	}
 	
-	public void onPutLoad(Scope scope, String source, Load load) {
+	public final void onPutLoad(Scope scope, String source, Load load) {
 		super.onPutLoad(scope, source, load);
 		
 		Executable executable = new Executable(load, source, db, scope, browser, this);
 		if(autoRun == false) {
-			listener.onPause(scope, load.serialized, load.uri, new Resume(this, executable));
+			
+			db.putPausedLoad(scope, executable);
+			System.out.println("put paused load");
+			System.out.println("scope: " + scope);
+			System.out.println("serialized: " + load.serialized);
+			System.out.println("uri: " + load.uri);
+			System.out.println("executable: " + executable);
+			listener.onPause(scope, load.serialized, load.uri, executable);
+			System.out.println("listener.onPause");
 		} else {
 			submit(executable);
 		}
 	}
 	
-	public void onPutFind(Scope scope, String source, Find find) {
+	public final void onPutFind(Scope scope, String source, Find find) {
 		super.onPutFind(scope, source, find);
 		
 		submit(new Executable(find, source, db, scope, browser, this));
 	}
+	
+	public final void onScopeComplete(Scope scope, int successes, int stuck, int failed) {
+		super.onScopeComplete(scope, successes, stuck, failed);
+		//activeScopes.remove(scope);
+	}
+	
+	/**
+	 * 
+	 * @return <code>true</code> if no {@link Scope}s that were passed back from {@link #scrape(String, Hashtable)}
+	 * are still running, <code>false</code> otherwise.
+	 */
+	/*public final boolean isIdle() {
+		return activeScopes.size() == 0;
+	}*/
 	
 	protected final void crash(Scope scope, String instruction, String uri, Throwable reason) {
 		listener.onCrash(scope, instruction, uri, reason);
 		interrupt();
 	}
 
-	/**
-	 * Override this method to run the {@link Instruction}.  Do not call it explicitly.
-	 */
-	protected abstract void submit(Executable executable);
-		
+	public abstract void submit(Executable executable);
+	
 	protected abstract void interrupt();
 }

@@ -104,7 +104,7 @@ public class Scraper extends AbstractScraper {
 	}
 
 	@Override
-	protected void submit(Executable executable) {
+	public void submit(Executable executable) {
 		executor.submit(executable);
 		//instruction.execute(source, database, scope, browser);
 	}
