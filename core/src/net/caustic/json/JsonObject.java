@@ -1,5 +1,7 @@
 package net.caustic.json;
 
+import java.util.Enumeration;
+
 /**
  * Interface to a JSON object.
  * @see JsonParser 
@@ -123,10 +125,10 @@ public interface JsonObject {
 	
 	/**
 	 * 
-	 * @return A {@link JsonIterator} to iterate over this {@link JsonObject}'s
+	 * @return A {@link Enumeration} to iterate over this {@link JsonObject}'s
 	 * keys.
 	 */
-	public abstract JsonIterator keys();
+	public abstract Enumeration keys();
 	
 	/**
 	 * 

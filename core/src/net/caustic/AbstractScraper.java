@@ -122,13 +122,7 @@ public abstract class AbstractScraper extends LogDatabaseListener implements Log
 		if(autoRun == false) {
 			
 			db.putPausedLoad(scope, executable);
-			System.out.println("put paused load");
-			System.out.println("scope: " + scope);
-			System.out.println("serialized: " + load.serialized);
-			System.out.println("uri: " + load.uri);
-			System.out.println("executable: " + executable);
 			listener.onPause(scope, load.serialized, load.uri, executable);
-			System.out.println("listener.onPause");
 		} else {
 			submit(executable);
 		}

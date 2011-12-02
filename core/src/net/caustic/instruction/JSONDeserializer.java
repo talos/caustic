@@ -1,5 +1,6 @@
 package net.caustic.instruction;
 
+import java.util.Enumeration;
 import java.util.Vector;
 
 import net.caustic.database.DatabaseException;
@@ -7,7 +8,6 @@ import net.caustic.database.Database;
 import net.caustic.http.HttpBrowser;
 import net.caustic.json.JsonArray;
 import net.caustic.json.JsonException;
-import net.caustic.json.JsonIterator;
 import net.caustic.json.JsonObject;
 import net.caustic.json.JsonParser;
 import net.caustic.regexp.RegexpCompiler;
@@ -163,8 +163,16 @@ public class JSONDeserializer implements Deserializer {
 		String[] instructions = parser.newArray(instruction).toArray();
 		
 		for(int i = 0 ; i < instructions.length ; i ++) {
-			db.putInstruction(scope, source, instruction, uri);
+			char firstChar = instructions[i].charAt(0); // JSON won't have quotes, add them manually.
+			if(firstChar != '[' || firstChar != '{') {
+				db.putInstruction(scope, source, StringUtils.quote(instructions[i]), uri);
+			} else {
+				db.putInstruction(scope, source, instructions[i], uri);
+			}
 		}
+		
+		// TODO since this is submitting more serialized instructions, we have to increment it as a 'success'
+		db.putSuccess(scope, source, instruction, uri);
 	}
 	
 	private void deserializeObject(String instruction, Database db, Scope scope, String uri,
@@ -203,11 +211,11 @@ public class JSONDeserializer implements Deserializer {
 		
 		for(int i = 0 ; i < jsonObjects.size() ; i ++) {
 			JsonObject obj = (JsonObject) jsonObjects.get(i);
-			JsonIterator iterator = obj.keys();
+			Enumeration e = obj.keys();
 			
 			// Case-insensitive loop over key names.
-			while(iterator.hasNext()) {
-				String key = iterator.next();
+			while(e.hasMoreElements()) {
+				String key = (String) e.nextElement();
 				
 				/** Attributes for Instruction. **/
 				if(key.equalsIgnoreCase(Instruction.EXTENDS)) {
@@ -460,9 +468,9 @@ public class JSONDeserializer implements Deserializer {
 	private HashtableTemplate deserializeHashtableTemplate(JsonObject jsonObject, String encodedPatternString,
 			String notEncodedPatternString) throws JsonException {
 		HashtableTemplate result = new HashtableTemplate();
-		JsonIterator iter = jsonObject.keys();
-		while(iter.hasNext()) {
-			String key = (String) iter.next();
+		Enumeration e = jsonObject.keys();
+		while(e.hasMoreElements()) {
+			String key = (String) e.nextElement();
 			String value = jsonObject.getString(key);
 			result.put(compiler.newTemplate(key, encodedPatternString, notEncodedPatternString),
 					compiler.newTemplate(value, encodedPatternString, notEncodedPatternString));

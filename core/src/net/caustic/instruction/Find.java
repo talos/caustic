@@ -17,7 +17,6 @@ public final class Find extends Instruction {
 	 * Key for deserializing {@link PatternTemplate#pattern}.
 	 */
 	public static final String FIND = "find";
-
 	
 	/**
 	 * Key for {@link Instruction#name} value when deserializing {@link Instruction} from JSON.

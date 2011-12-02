@@ -9,7 +9,6 @@ import org.json.me.JSONObject;
 
 import net.caustic.json.JsonArray;
 import net.caustic.json.JsonException;
-import net.caustic.json.JsonIterator;
 import net.caustic.json.JsonObject;
 import net.caustic.json.JsonParser;
 
@@ -76,8 +75,8 @@ public class JsonMEParser implements JsonParser {
 			return object.isNull(name);
 		}
 
-		public JsonIterator keys() {
-			return new EnumerationIterator(object.keys());
+		public Enumeration keys() {
+			return object.keys();
 		}
 		
 		public int length() {
@@ -152,21 +151,6 @@ public class JsonMEParser implements JsonParser {
 			} catch(org.json.me.JSONException e) {
 				return object.toString();
 			}
-		}
-	}
-	
-	private final class EnumerationIterator implements JsonIterator {
-		private final Enumeration enumeration;
-		public EnumerationIterator(Enumeration e) {
-			enumeration = e;
-		}
-		
-		public boolean hasNext() {
-			return enumeration.hasMoreElements();
-		}
-
-		public String next() {
-			return (String) enumeration.nextElement();
 		}
 	}
 	

@@ -11,18 +11,15 @@ import mockit.Verifications;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseListener;
 import net.caustic.database.MemoryDatabase;
-import net.caustic.deserializer.DeserializerResult;
-import net.caustic.deserializer.JSONDeserializer;
 import net.caustic.http.HttpBrowser;
+import net.caustic.instruction.DefaultJSONDeserializer;
 import net.caustic.instruction.Find;
-import net.caustic.instruction.Instruction;
+import net.caustic.instruction.JSONDeserializer;
 import net.caustic.instruction.Load;
-import net.caustic.instruction.Instruction;
 import net.caustic.regexp.Pattern;
 import net.caustic.scope.Scope;
 import net.caustic.uri.URILoader;
 import net.caustic.util.StringUtils;
-import static net.caustic.deserializer.JSONDeserializer.*;
 import static org.junit.Assert.*;
 
 import org.json.me.JSONArray;
@@ -51,7 +48,7 @@ public class DefaultJsonDeserializerTest {
 	
 	@Test
 	public void testDeserializeSimpleLoadFromJsonSucceeds() throws Exception {
-		JSONObject load = new JSONObject().put(LOAD, "http://www.foo.com/");
+		JSONObject load = new JSONObject().put(Load.LOAD, "http://www.foo.com/");
 		
 		DeserializerResult result = deserializer.deserialize(load.toString(), db, scope, userDir);
 		assertTrue(result.getInstruction() != null);

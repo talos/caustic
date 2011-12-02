@@ -32,7 +32,7 @@ abstract class Instruction {
 	public final String serialized;
 	public final String uri;
 	
-	public Instruction(String serialized, String uri) {
+	Instruction(String serialized, String uri) {
 		this.serialized = serialized;
 		this.uri = uri;
 	}

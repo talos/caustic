@@ -1,174 +1,177 @@
 {
-	"load" : "https://a836-propertyportal.nyc.gov/Default.aspx",
-	"then": [{
-		"load" : "https://a836-propertyportal.nyc.gov/searchdetails.aspx",
-		"cookies" : {
-			"style"   : "default",
-			"borough" : "{{Borough}}",
-			"block"   : "{{Block}}",
-			"lot"     : "{{Lot}}"
-		},
-		"then" : [
-		{
-			"name"    : "Borough",
-			"find" : "^",
-			"replace" : "{{Borough}}",
-		},{
-			"name"    : "Block",
-			"find" : "^",
-			"replace" : "{{Block}}"
-		},{
-			"name"    : "Lot",
-			"find" : "^",
-			"replace" : "{{Lot}}"
-		},{
-			"name"    : "Owner Name(s)",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblOwnerNames\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Address",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblStreetAddress\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Zip Code",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblZip\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Borough",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBorough\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Year Built",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblYearBuilt\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Number of Buildings",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblNumberOfBuildings\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Number of Stories",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblNumberOfStories\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Number of Units",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblNumberOfUnits\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Building Dimensions Front",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingFront\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Building Dimensions Depth",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingDepth\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Building Dimensions Size",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingSize\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Lot Size Front",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblLotFront\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Lot Size Depth",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblLotDepth\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Lot Size Size",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblLotSize\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Corner",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblCorner\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Building Area",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingArea\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Current Tax Year",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblCurrentTaxYear\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Building Class",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingClassDesc\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Tax Class",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblTaxClassCd\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Tax Rate",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblTaxRate\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Market Value",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblMarketValue\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Assessed Value",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblAssessedValue\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Land Assessed Value",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblLandAssessedValue\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Benefit Name",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblName\">([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Benefit Amount",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblBenefitAmt\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Current Benefit Year",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblExemptYear\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Number of Benefit Years",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblYearsOfExempt\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Benefit Type",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblBenefitType\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Benefit Start Date",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblBenefitStartDt\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Benefit End Date",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblBenefitEndDt\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Ineligible Commercial %",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblExcessCommPct\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Ineligible Residential %",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblExcessResPct\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Government Financed",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblGovtFinanced\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Project Start Date",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblProjectStartDt\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Base Year",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblBaseYear\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Base Year Assessed Value",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblBaseYrAV\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		},{
-			"name"    : "Benefit for Tax Year",
-			"find" : "<span\\s+id=\"ctl00_SampleContent_ctl04_lblBenTaxYear\"[^>]*>([^<]+)</span>",
-			"replace" : "$1"
-		}]
+    "load" : "https://a836-propertyportal.nyc.gov/Default.aspx",
+    "then": {
+	"load" : "https://a836-propertyportal.nyc.gov/ExemptionDetails.aspx",
+	"cookies" : {
+	    "style"   : "default",
+	    "borough" : "{{Borough}}",
+	    "block"   : "{{Block}}",
+	    "lot"     : "{{Lot}}"
+	},
+	"then" : [{
+	    "name"    : "Borough",
+	    "find" : "^",
+	    "replace" : "{{Borough}}",
+	},{
+	    "name"    : "Block",
+	    "find" : "^",
+	    "replace" : "{{Block}}"
+	},{
+	    "name"    : "Lot",
+	    "find" : "^",
+	    "replace" : "{{Lot}}"
+	},{
+	    "name"    : "Owner Name(s)",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblOwnerNames\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Address",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblStreetAddress\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Zip Code",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblZip\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Borough",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBorough\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Year Built",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblYearBuilt\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Number of Buildings",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblNumberOfBuildings\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Number of Stories",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblNumberOfStories\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Number of Units",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblNumberOfUnits\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Building Dimensions Front",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingFront\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Building Dimensions Depth",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingDepth\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Building Dimensions Size",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingSize\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Lot Size Front",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblLotFront\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Lot Size Depth",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblLotDepth\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Lot Size Size",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblLotSize\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Corner",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblCorner\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Building Area",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingArea\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Current Tax Year",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblCurrentTaxYear\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Building Class",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblBuildingClassDesc\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Tax Class",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblTaxClassCd\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Tax Rate",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblTaxRate\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Market Value",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblMarketValue\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Assessed Value",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblAssessedValue\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "name"    : "Land Assessed Value",
+	    "find" : "<span\\s+id=\"ctl00_SampleContent_ctl02_lblLandAssessedValue\">([^<]+)</span>",
+	    "replace" : "$1"
+	},{
+	    "find"        : "<tbody\\s+id=\"tblBenContent\".*?</tbody>",
+	    "description" : "Benefit data is embedded in these tbodys.",
+	    "then": [{
+		"name"    : "Benefit Name",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblName\">([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Benefit Amount",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblBenefitAmt\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Current Benefit Year",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblExemptYear\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Number of Benefit Years",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblYearsOfExempt\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Benefit Type",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblBenefitType\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Benefit Start Date",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblBenefitStartDt\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Benefit End Date",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblBenefitEndDt\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Ineligible Commercial %",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblExcessCommPct\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Ineligible Residential %",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblExcessResPct\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Government Financed",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblGovtFinanced\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Project Start Date",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblProjectStartDt\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Base Year",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblBaseYear\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Base Year Assessed Value",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblBaseYrAV\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    },{
+		"name"    : "Benefit for Tax Year",
+		"find" : "<span\\s+id=\"ctl00_SampleContent_ctl0\\d_lblBenTaxYear\"[^>]*>([^<]+)</span>",
+		"replace" : "$1"
+	    }]
 	}]
+    }
 }
