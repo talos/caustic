@@ -5,12 +5,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.Hashtable;
 import java.util.Map;
 
-import net.caustic.LogScraperListener;
 import net.caustic.Scraper;
 import net.caustic.database.Connection;
 import net.caustic.database.ConnectionException;
-import net.caustic.database.Database;
-import net.caustic.database.DatabaseException;
 import net.caustic.log.Logger;
 import net.caustic.util.StringUtils;
 
@@ -22,7 +19,6 @@ public class Console {
 	
 	private final Logger logger;
 	private final Connection connection; // can be null.
-	private final Database database;
 	private final Input input;
 
 	private final String instruction;

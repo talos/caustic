@@ -1,8 +1,6 @@
 package net.caustic.util;
 
-import net.caustic.database.Database;
 import net.caustic.regexp.StringTemplate;
-import net.caustic.scope.Scope;
 import net.caustic.template.StringSubstitution;
 
 /**
@@ -29,7 +27,7 @@ public class StaticStringTemplate extends StringTemplate {
 	 * the {@link String} this {@link StaticStringTemplate} was
 	 * initialized with.
 	 */
-	public StringSubstitution sub(Database db, Scope scope) {
+	public StringSubstitution sub(StringMap context) {
 		return StringSubstitution.success(staticValue);
 	}
 	

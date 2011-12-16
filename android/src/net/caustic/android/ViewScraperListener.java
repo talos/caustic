@@ -3,11 +3,11 @@ package net.caustic.android;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.caustic.Instruction;
+import net.caustic.Instruction;
 import net.caustic.ScraperListener;
 import net.caustic.database.DatabaseListenerException;
-import net.caustic.http.HttpBrowser;
-import net.caustic.instruction.Instruction;
-import net.caustic.scope.Scope;
+imporaustic.scope.Scope;
 import android.app.Activity;
 import android.content.Context;
 import android.opengl.Visibility;

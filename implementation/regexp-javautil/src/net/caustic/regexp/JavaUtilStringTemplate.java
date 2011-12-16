@@ -4,12 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import net.caustic.database.Database;
-import net.caustic.database.DatabaseException;
 import net.caustic.regexp.StringTemplate;
-import net.caustic.scope.Scope;
 import net.caustic.template.StringSubstitution;
 import net.caustic.util.Encoder;
+import net.caustic.util.StringMap;
 
 final class JavaUtilStringTemplate extends StringTemplate {
 	private static final int NOT_MATCHED = -1;
@@ -29,7 +27,7 @@ final class JavaUtilStringTemplate extends StringTemplate {
 	}
 
 	@Override
-	public StringSubstitution sub(Database db, Scope scope) throws DatabaseException {
+	public StringSubstitution sub(StringMap tags) {
 		// cannot reuse matchers because this class is accessed concurrently
 		Matcher encodedMatcher = encodedPattern.matcher(templateString);
 		Matcher notEncodedMatcher = notEncodedPattern.matcher(templateString);
@@ -79,7 +77,7 @@ final class JavaUtilStringTemplate extends StringTemplate {
 			buf.append(templateString.substring(pos, begin));
 			
 			// retrieve & append value
-			String value = db.get(scope, tagName);
+			String value = tags.get(tagName);
 			if(value != null) {
 				if(encoded) {
 					buf.append(encoder.encode(value));

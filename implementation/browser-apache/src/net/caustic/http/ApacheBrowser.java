@@ -100,7 +100,7 @@ public class ApacheBrowser implements Browser {
 						
 			// Add cookies.
 			for(int i = 0 ; i < cookies.length ; i ++) {
-				Result cookie_result = cookies[i].getValue(caller)[0];
+				Response cookie_result = cookies[i].getValue(caller)[0];
 				BasicClientCookie cookie = new BasicClientCookie(cookie_result.key, cookie_result.value);
 				cookie.setDomain(uri.getHost());
 				cookie_store.addCookie(cookie);
@@ -162,7 +162,7 @@ public class ApacheBrowser implements Browser {
 	private static void addHeaders(HttpRequestBase http_request, AbstractResource[] headers, AbstractResult caller)
 				throws ResourceNotFoundException, TemplateException, MissingVariable, BrowserException, InterruptedException {
 		for(int i = 0 ; i < headers.length ; i ++) {
-			Result header = headers[i].getValue(caller)[0];
+			Response header = headers[i].getValue(caller)[0];
 			http_request.addHeader(header.key, header.value);
 		}
 	}
@@ -181,7 +181,7 @@ public class ApacheBrowser implements Browser {
 				throws UnsupportedEncodingException, ResourceNotFoundException, TemplateException, MissingVariable, BrowserException, InterruptedException {
 		List<BasicNameValuePair> pairs = new ArrayList<BasicNameValuePair>();
 		for(int i = 0; i < headers.length ; i ++) {
-			Result header = headers[i].getValue(caller)[0];
+			Response header = headers[i].getValue(caller)[0];
 			pairs.add(new BasicNameValuePair(header.key, header.value));
 		}
 		return new UrlEncodedFormEntity(pairs);

@@ -5,15 +5,11 @@ import java.io.InputStreamReader;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import net.caustic.database.Database;
-import net.caustic.database.DatabaseException;
 import net.caustic.http.RateLimitManager;
 import net.caustic.log.Loggable;
 import net.caustic.log.Logger;
 import net.caustic.log.MultiLog;
 import net.caustic.regexp.Pattern;
-import net.caustic.scope.Scope;
-import net.caustic.util.Encoder;
 import net.caustic.util.HashtableUtils;
 import net.caustic.util.StringUtils;
 
@@ -72,8 +68,6 @@ public class HttpBrowser implements Loggable {
 	
 	private final RateLimitManager rateLimitManager;
 	private final HttpRequester requester;
-	private final HttpUtils utils;
-	private final Encoder encoder;
 	//private final CookieManager cookieManager;
 	
 	private int maxResponseSize = HttpBrowser.DEFAULT_MAX_RESPONSE_SIZE;
@@ -117,19 +111,16 @@ public class HttpBrowser implements Loggable {
 	 * @throws InterruptedException If the user interrupted the request while it was being delayed
 	 * due to rate limiting, or while waiting for the host to respond.
 	 * @throws HttpRequestException If the request could not be completed.
-	 * @throws CookieStorageException If a cookie could not be stored from one of the responses.
-	 * @throws DatabaseException if there was an error persisting cookies.
 	 */
-	private InputStreamReader request(String method, String urlStr, Hashtable headers,
-					String encodedPostData, Database db, Scope scope)
-			throws InterruptedException, HttpRequestException, DatabaseException {
+	public BrowserResponse request(String url, String method, Hashtable headers, String[] cookies,
+				String encodedPostData)
+			throws InterruptedException, HttpException {
 		
 		final Vector urlsRead = new Vector();
 		
 		while(urlsRead.size() <= MAX_REDIRECTS) {
 			
-			
-			while(rateLimitManager.shouldDelay(urlStr) == true) {
+			while(rateLimitManager.shouldDelay(url) == true) {
 				Thread.sleep(DEFAULT_SLEEP_TIME);
 				if(Thread.interrupted()) {
 					throw new InterruptedException("Interrupted while waiting to not exceed rate limit.");
@@ -137,71 +128,59 @@ public class HttpBrowser implements Loggable {
 			}
 			
 			// Merge in generic headers.
-			headers = HashtableUtils.combine(new Hashtable[] { getGenericHeaders(urlStr), headers });
-			
-			// Add cookies into the headers.
-			String[] cookies = db.getCookies(scope, urlStr, encoder);
-			//String[] cookies = cookieManager.getCookiesFor(urlStr, headers);
-			//String[] cookie2s = cookieManager.getCookie2sFor(urlStr, headers);
-			
+			headers = HashtableUtils.combine(new Hashtable[] { getGenericHeaders(url), headers });
+						
 			if(cookies.length > 0) {
 				headers.put(COOKIE_HEADER_NAME, StringUtils.join(cookies, "; "));
 			}
-			/*
-			if(cookie2s.length > 0) {
-				headers.put(CookieManager.COOKIE_2_HEADER_NAME, StringUtils.join(cookie2s, "; "));
-			}*/
-			
+
 			log.i("All headers: " + StringUtils.quote(headers));
 			
-			log.i("Requesting " + method + " from " + StringUtils.quote(urlStr));
-					
+			log.i("Requesting " + method + " from " + StringUtils.quote(url));
+			
 			HttpResponse response;
 			if(method.equals(HEAD)) {
-				response = requester.head(urlStr, headers);
+				response = requester.head(url, headers);
 			} else if(method.equals(GET)) {
-				response = requester.get(urlStr, headers);
+				response = requester.get(url, headers);
 			} else {
-				response = requester.post(urlStr, headers, encodedPostData);
+				response = requester.post(url, headers, encodedPostData);
 				log.i("Post data: " + StringUtils.quote(encodedPostData));
 			}
 			
 			// Add cookies from the response to the database.
 			String[] responseCookies = response.getResponseHeaders().getHeaderValues(SET_COOKIE_HEADER_NAME);
-			if(responseCookies != null) {
-				for(int i = 0 ; i < responseCookies.length ; i ++) {
-					String[] nameValue = StringUtils.split(StringUtils.split(responseCookies[i], "; ")[0], "=");
-					db.addCookie(scope, utils.getHost(urlStr), nameValue[0], nameValue[1]);
-				}
-			}
 			
 			if(response.isSuccess()) {
+				final String content;
 				// Only return the content stream for non-head requests.
 				if(method.equals(HEAD)) {
-					return null;
+					content = null;
 				} else {
-					return response.getContentStream();
+					content = readResponseStream(url, response.getContentStream(), new Pattern[0]);
 				}
+				// TODO this is spaghetti.
+				return new BrowserResponse(content, responseCookies);
 			} else if(!response.isRedirect()) {
 				throw new BadHttpResponseCode(response.getResponseCode());
 			} else {
 				try {
 					String redirectURLStr = response.getRedirectLocation();
 					
-					if(urlsRead.contains(urlStr)) {
+					if(urlsRead.contains(url)) {
 						String[] redirectsFollowedAry = new String[urlsRead.size()];
 						urlsRead.copyInto(redirectsFollowedAry);
 						throw HttpRedirectException.newCircular(redirectsFollowedAry);
 					} else {
-						urlsRead.add(urlStr);
+						urlsRead.add(url);
 					}
 					
 					log.i("Following redirect #" + Integer.toString(urlsRead.size()) +
-							" from " + StringUtils.quote(urlStr) + " to " + StringUtils.quote(redirectURLStr));
+							" from " + StringUtils.quote(url) + " to " + StringUtils.quote(redirectURLStr));
 					
 					// loops back to top
 					method = GET;
-					urlStr = redirectURLStr;
+					url = redirectURLStr;
 					//return request(GET, redirectURLStr, headers, null, urlsRead, db, scope);
 				} catch(BadURLException e) {
 					throw HttpRedirectException.fromBadURL(e);
@@ -219,7 +198,7 @@ public class HttpBrowser implements Loggable {
 	 * Pull an {@link InputStreamReader} into a {@link String}, allowing for early termination.
 	 * @param urlStr The {@link String} URL from which the {@link InputStreamReader} is a response.
 	 * @param stream An {@link InputStreamReader} response from <code>url</code>
-	 * @param terminates array of {@link Pattern}s to interrupt the load.
+	 * @param terminates  of {@link Pattern}s to interrupt the load.
 	 * @return A {@link String}.
 	 * @throws InterruptedException if the user interrupted the load.
 	 * @throws HttpResponseContentException if the response could not be fully read.
@@ -274,70 +253,10 @@ public class HttpBrowser implements Loggable {
 		return responseBody.toString();
 	}
 	
-	public HttpBrowser(HttpRequester requester, RateLimitManager rateLimitManager,
-			HttpUtils utils, Encoder encoder) {
+	public HttpBrowser(HttpRequester requester, RateLimitManager rateLimitManager) {
 		this.requester = requester;
 		this.rateLimitManager = rateLimitManager;
-		this.utils = utils;
-		this.encoder = encoder;
 		this.log = new MultiLog();
-	}
-	
-	/**
-	 * Make an HTTP Head request.  This does not return anything, but it should add any cookies
-	 * from response headers to the {@link HttpBrowser}'s cookie store.
-	 * @param urlStr the URL to HTTP Head.
-	 * @param headers {@link Hashtable} extra headers.
-	 * @param db A {@link Database} to persist cookies to.
-	 * @param scope A {@link Scope} specifying where in <code>db</code> to persist cookies.
-	 * @throws InterruptedException If the user interrupted the request.
-	 * @throws HttpException if there was an exception that prevented the request from being completed.
-	 * @throws DatabaseException if there was an error persisting cookies.
-	 */
-	public void head(String urlStr, Hashtable headers, Database db, Scope scope)
-			throws InterruptedException, HttpException, DatabaseException {
-		request(HEAD, urlStr, headers, null, db, scope);
-	}
-	
-	/**
-	 * Make an HTTP Get request.  This returns the body of the response, and adds cookies to the cookie jar.
-	 * @param urlStr the URL to HTTP Get.
-	 * @param headers {@link Hashtable} extra headers.
-	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.
-	 * @param db A {@link Database} to persist cookies to.
-	 * @param scope A {@link Scope} specifying where in <code>db</code> to persist cookies.
-	 * @return The body of the response.
-	 * @throws InterruptedException If the user interrupted the request.
-	 * @throws HttpException if there was an exception that prevented the request from being completed or
-	 * its response from being read.
-	 * @throws DatabaseException if there was an error persisting cookies.
-	 */
-	public String get(String urlStr, Hashtable headers, Pattern[] terminates, Database db, Scope scope)
-				throws InterruptedException, HttpException, DatabaseException {
-		InputStreamReader stream = request(GET, urlStr, headers, null, db, scope);
-		return readResponseStream(urlStr, stream, terminates);
-	}
-	
-	/**
-	 * Make an HTTP Post request with a {@link String} to encode into post data.
-	 * This returns the body of the response, and adds cookies to the cookie jar.
-	 * @param urlStr the URL to HTTP Get.
-	 * @param headers {@link Hashtable} extra headers.
-	 * @param terminates Array of {@link Pattern}s that prematurely terminate the load and return the body.
-	 * @param encodedPostData {@link String} of post data.  Should already be encoded.
-	 * @param db A {@link Database} to persist cookies to.
-	 * @param scope A {@link Scope} specifying where in <code>db</code> to persist cookies.
-	 * @return The body of the response.
-	 * @throws InterruptedException If the user interrupted the request.
-	 * @throws HttpException if there was an exception that prevented the request from being completed or
-	 * its response from being read.
-	 * @throws DatabaseException if there was an error persisting cookies.
-	 */
-	public String post(String urlStr, Hashtable headers, Pattern[] terminates, String encodedPostData,
-			Database db, Scope scope)
-				throws InterruptedException, HttpException, DatabaseException {
-		InputStreamReader stream = request(POST, urlStr, headers, encodedPostData, db, scope);
-		return readResponseStream(urlStr, stream, terminates);
 	}
 	
 	/**

@@ -1,4 +1,4 @@
-package net.caustic.instruction;
+package net.caustic;
 
 /**
  * An {@link Instruction} that has yet to be deserialized.  This allows for lazy evaluation
@@ -25,15 +25,18 @@ abstract class Instruction {
 	public static final String SELF = "$this";
 	
 	/**
-	 * Key for description.
+	 * Key for metadata.
 	 */
 	public static final String DESCRIPTION = "description";
 	
 	public final String serialized;
+	public final String description;
 	public final String uri;
 	
-	public Instruction(String serialized, String uri) {
+	public Instruction(String serialized, String description, String uri) {
 		this.serialized = serialized;
+		this.description = description;
 		this.uri = uri;
 	}
+	
 }

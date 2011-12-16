@@ -8,16 +8,15 @@ import mockit.Mocked;
 import mockit.NonStrict;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
+import net.caustic.Find;
+import net.caustic.Instruction;
+import net.caustic.Load;
 import net.caustic.database.Database;
 import net.caustic.database.DatabaseListener;
 import net.caustic.database.MemoryDatabase;
 import net.caustic.deserializer.DeserializerResult;
 import net.caustic.deserializer.JSONDeserializer;
 import net.caustic.http.HttpBrowser;
-import net.caustic.instruction.Find;
-import net.caustic.instruction.Instruction;
-import net.caustic.instruction.Load;
-import net.caustic.instruction.Instruction;
 import net.caustic.regexp.Pattern;
 import net.caustic.scope.Scope;
 import net.caustic.uri.URILoader;
@@ -35,7 +34,7 @@ public class DefaultJsonDeserializerTest {
 	private @Capturing URILoader loader;
 	private @NonStrict DatabaseListener listener;
 	
-	private JSONDeserializer deserializer;
+	private Scraper deserializer;
 	private final String userDir = StringUtils.USER_DIR;
 	
 	private Database db;
@@ -46,7 +45,7 @@ public class DefaultJsonDeserializerTest {
 		db = new MemoryDatabase();
 		db.addListener(listener);
 		scope = db.newDefaultScope();
-		deserializer = new DefaultJSONDeserializer();
+		deserializer = new DefaultScraper();
 	}
 	
 	@Test
@@ -373,7 +372,7 @@ public class DefaultJsonDeserializerTest {
 		}};
 		
 		JSONObject obj = new JSONObject();
-		obj.put(JSONDeserializer.LOAD, "http://www.foo.com/").put(METHOD, HttpBrowser.HEAD);
+		obj.put(Scraper.LOAD, "http://www.foo.com/").put(METHOD, HttpBrowser.HEAD);
 		
 		Load load = (Load) deserializer.deserialize(obj.toString(), db, scope, userDir).getInstruction();
 		load.execute(null, db, scope, browser);

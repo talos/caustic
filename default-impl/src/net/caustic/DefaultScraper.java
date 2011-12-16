@@ -1,24 +1,25 @@
-package net.caustic.instruction;
+package net.caustic;
 
-import net.caustic.json.JsonMEParser;
+import net.caustic.Scraper;
+import net.caustic.http.DefaultHttpBrowser;
 import net.caustic.regexp.DefaultRegexpCompiler;
 import net.caustic.uri.DefaultURILoader;
 import net.caustic.uri.JavaNetUriResolver;
 
 /**
- * A default implementation of {@link JSONDeserializer}, using
+ * A default implementation of {@link Scraper}, using
  * {@link JsonMEParser}, {@link DefaultRegexpCompiler}, {@link JavaNetUriResolver},
  * and {@link DefaultURILoader}.
  * @author realest
  *
  */
-public class DefaultJSONDeserializer extends JSONDeserializer {
+public class DefaultScraper extends Scraper {
 	
-	public DefaultJSONDeserializer() {
+	public DefaultScraper() {
 		super(
-				new JsonMEParser(),
 				new DefaultRegexpCompiler(),
 				new JavaNetUriResolver(),
-				new DefaultURILoader());
+				new DefaultURILoader(),
+				new DefaultHttpBrowser());
 	}
 }

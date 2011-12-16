@@ -4,11 +4,9 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import net.caustic.database.Database;
-import net.caustic.database.DatabaseException;
 import net.caustic.regexp.StringTemplate;
-import net.caustic.scope.Scope;
 import net.caustic.util.HashtableUtils;
+import net.caustic.util.StringMap;
 import net.caustic.util.VectorUtils;
 
 public class HashtableTemplate {
@@ -36,19 +34,19 @@ public class HashtableTemplate {
 	 * be overwritten.
 	 * @throws DatabaseException if <code>input</code> could not be read.
 	 */
-	public HashtableSubstitution sub(Database db, Scope scope)
-			throws HashtableSubstitutionOverwriteException, DatabaseException {
+	public HashtableSubstitution sub(StringMap context)
+			throws HashtableSubstitutionOverwriteException {
 		Vector missingTags = new Vector();
 		Hashtable subbedTable = new Hashtable();
 		Enumeration keys = table.keys();
 		while(keys.hasMoreElements()) {
 			StringTemplate key = (StringTemplate) keys.nextElement();
 			StringSubstitution subbedKey;
-			subbedKey = key.sub(db, scope);
+			subbedKey = key.sub(context);
 			
 			StringTemplate value = (StringTemplate) table.get(key);
 			StringSubstitution subbedValue;
-			subbedValue = value.sub(db, scope);
+			subbedValue = value.sub(context);
 			
 			if(!subbedKey.isMissingTags() && !subbedValue.isMissingTags()) {
 				String subbedKeyStr = (String) subbedKey.getSubstituted();

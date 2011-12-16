@@ -1,14 +1,12 @@
-package net.caustic.instruction;
+package net.caustic;
 
-import net.caustic.database.Database;
-import net.caustic.database.DatabaseException;
 import net.caustic.regexp.Pattern;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.regexp.StringTemplate;
-import net.caustic.scope.Scope;
 import net.caustic.template.DependsOnTemplate;
 import net.caustic.template.StringSubstitution;
 import net.caustic.util.StaticStringTemplate;
+import net.caustic.util.StringMap;
 import net.caustic.util.StringUtils;
 
 public final class Find extends Instruction {
@@ -128,13 +126,13 @@ public final class Find extends Instruction {
 	 */
 	private final int maxMatch;// = Pattern.LAST_MATCH;
 	
-	public Find(String serializedString, String uri,
+	public Find(String serializedString, String description, String uri,
 			RegexpCompiler compiler, StringTemplate name, boolean hasName,
 			StringTemplate pattern, StringTemplate replacement,
 			int minMatch, int maxMatch,
 			boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
 			String[] children) {
-		super(serializedString, uri);
+		super(serializedString, description, uri);
 		this.hasName = hasName;
 		this.name = name;
 		this.compiler = compiler;
@@ -163,69 +161,44 @@ public final class Find extends Instruction {
 	 * Use {@link #pattern}, substituted from {@link Database}, to match against <code>source</code>.
 	 * Ignores <code>browser</code>.
 	 */
-	public void execute(String source, Database db, Scope scope)
-			throws DatabaseException {
-		if(source == null) {
+	public Response execute(Request request) {
+		String input = request.input;
+		if(input == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
+		final Response result;
+		StringMap tags = request.tags;
 		
-		final StringSubstitution subName = name.sub(db, scope);
-		final StringSubstitution subPattern = pattern.sub(db, scope);
-		final StringSubstitution subReplacement = replacement.sub(db, scope);
+		final StringSubstitution subName = name.sub(tags);
+		final StringSubstitution subPattern = pattern.sub(tags);
+		final StringSubstitution subReplacement = replacement.sub(tags);
 				
 		if(subName.isMissingTags() ||
 				subPattern.isMissingTags() ||
 				subReplacement.isMissingTags()) { // One of the substitutions was not OK.
 			final String[] missingTags = StringSubstitution.combine(
 					new DependsOnTemplate[] { subName, subPattern, subReplacement });
-			db.putMissing(scope, source, this, missingTags);
-			return;
-		}
-		
-		// All the substitutions were OK.
-		String resultName = subName.getSubstituted();
-		
-		String patternString = (String) subPattern.getSubstituted();
-		Pattern pattern = compiler.newPattern(patternString, isCaseInsensitive, isMultiline, doesDotMatchNewline);
-		
-		String replacement = (String) subReplacement.getSubstituted();
-		String[] matches = pattern.match(source, replacement, minMatch, maxMatch);
-		
-		if(matches.length == 0) { // No matches, fail out.
-			db.putFailed(scope, source, serialized, uri, "Match " + StringUtils.quote(pattern) +
-					" did not have a match between " + 
-					StringUtils.quote(minMatch) + " and " + 
-					StringUtils.quote(maxMatch) + " against " +
-					StringUtils.quoteAndTruncate(StringUtils.quote(source), 100));
-			return;
-		}
-		
-		// We got at least 1 match.
-		for(int i = 0 ; i < matches.length ; i ++) {
+			result = Response.Missing(request, description, missingTags);
+		} else {
 			
-			final Scope childScope;
-			// generate result scopes.
-			final String childSource = matches[i];
+			// All the substitutions were OK.
+			String resultName = subName.getSubstituted();
 			
-			if(matches.length == 1) { // don't spawn a new result for single match
-				childScope = scope;
-				if(hasName) {
-					db.put(childScope, resultName, childSource);
-				}
+			String patternString = (String) subPattern.getSubstituted();
+			Pattern pattern = compiler.newPattern(patternString, isCaseInsensitive, isMultiline, doesDotMatchNewline);
+			
+			String replacement = (String) subReplacement.getSubstituted();
+			String[] matches = pattern.match(input, replacement, minMatch, maxMatch);
+			
+			if(matches.length == 0) { // No matches, fail out.
+				result = Response.Failed(request, description, "Match " + StringUtils.quote(pattern) +
+						" did not have a match between " + 
+						StringUtils.quote(minMatch) + " and " + 
+						StringUtils.quote(maxMatch) + " against " + input);
 			} else {
-				if(hasName) {
-					childScope = db.newScope(scope, resultName, childSource);
-				} else {
-					childScope = db.newScope(scope, resultName); // use auto-name			
-				}
-			}
-			
-			// Insert children.
-			for(int j = 0 ; j < children.length ; j ++) {
-				db.putInstruction(childScope, childSource, children[j], uri);
+				result = Response.DoneFind(request, description, children, resultName, matches);
 			}
 		}
-		
-		db.putSuccess(scope, source, this.serialized, this.uri);
+		return result;
 	}
 }

@@ -1,21 +1,20 @@
-package net.caustic.instruction;
+package net.caustic;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import net.caustic.database.Database;
-import net.caustic.database.DatabaseException;
+import net.caustic.http.BrowserResponse;
 import net.caustic.http.HttpBrowser;
 import net.caustic.http.HttpException;
 import net.caustic.regexp.Pattern;
 import net.caustic.regexp.StringTemplate;
-import net.caustic.scope.Scope;
 import net.caustic.template.DependsOnTemplate;
 import net.caustic.template.HashtableSubstitution;
 import net.caustic.template.HashtableSubstitutionOverwriteException;
 import net.caustic.template.HashtableTemplate;
 import net.caustic.template.StringSubstitution;
 import net.caustic.util.HashtableUtils;
+import net.caustic.util.StringMap;
 
 /**
  * @author realest
@@ -84,10 +83,10 @@ public final class Load extends Instruction {
 	 */
 	private final StringTemplate url;
 	
-	public Load(String serializedString, String uri,
+	public Load(String serializedString, String description, String uri,
 			StringTemplate url, String[] children, String method,
 			HashtableTemplate cookies, HashtableTemplate headers, StringTemplate postData) {
-		super(serializedString, uri);
+		super(serializedString, description, uri);
 		this.url = url;
 		this.method = method;
 		this.cookies = cookies;
@@ -96,10 +95,10 @@ public final class Load extends Instruction {
 		this.children = children;
 	}
 	
-	public Load(String serializedString, String uri,
+	public Load(String serializedString, String description, String uri,
 			StringTemplate url, String[] children, String method,
 			HashtableTemplate cookies, HashtableTemplate headers, HashtableTemplate postTable) {
-		super(serializedString, uri);
+		super(serializedString, description, uri);
 		this.url = url;
 		this.method = method;
 		this.cookies = cookies;
@@ -112,13 +111,19 @@ public final class Load extends Instruction {
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 * <code>source</code> is ignored.
 	 */
-	public void execute(Database db, Scope scope, HttpBrowser browser)
-			throws InterruptedException, DatabaseException {
-		try {			
+	public Response execute(HttpBrowser browser, Request request) throws InterruptedException {
+		if(request.force == false) {
+			return Response.Wait(request, description); // don't run a load unless it's forced.
+		}
+		
+		final Response response;
+		try {
+			final StringMap tags = request.tags;
+			
 			final Pattern[] stops = new Pattern[] { };
-			final StringSubstitution urlSub = url.sub(db, scope);
-			final HashtableSubstitution headersSub = headers.sub(db, scope);
-			final HashtableSubstitution cookiesSub = cookies.sub(db, scope);
+			final StringSubstitution urlSub = url.sub(tags);
+			final HashtableSubstitution headersSub = headers.sub(tags);
+			final HashtableSubstitution cookiesSub = cookies.sub(tags);
 			
 			// Cannot execute if any of these substitutions was not successful
 			if(urlSub.isMissingTags()
@@ -127,70 +132,66 @@ public final class Load extends Instruction {
 				String[] missingTags = StringSubstitution.combine(new DependsOnTemplate[] {
 						urlSub, headersSub, cookiesSub});
 				
-				db.putMissing(scope, null, this, missingTags);
-				return;
-			}
+				response = Response.Missing(request, description, missingTags);
 			
-			// pull out post string
-			final String postStr;
-			if(postData != null) {
-				StringSubstitution sub = postData.sub(db, scope);
-				if(sub.isMissingTags()) {
-					db.putMissing(scope, null, this, sub.getMissingTags());
-					return;
-				} else {
-					postStr = sub.getSubstituted();
-				}
-			} else if(postTable != null) {
-				HashtableSubstitution sub = postTable.sub(db, scope);
-				if(sub.isMissingTags()) {
-					db.putMissing(scope, null, this, sub.getMissingTags());
-					return;
-				} else {
-					postStr = HashtableUtils.toFormEncoded(sub.getSubstituted());
-				}
 			} else {
-				postStr = null;
+				
+				// pull out post string
+				final String postStr;
+				if(postData != null) {
+					StringSubstitution sub = postData.sub(tags);
+					if(sub.isMissingTags()) {
+						return Response.Missing(request, description, sub.getMissingTags()); // break out early
+					} else {
+						postStr = sub.getSubstituted();
+					}
+				} else if(postTable != null) {
+					HashtableSubstitution sub = postTable.sub(tags);
+					if(sub.isMissingTags()) {
+						return Response.Missing(request, description, sub.getMissingTags()); // break out early
+					} else {
+						postStr = HashtableUtils.toFormEncoded(sub.getSubstituted());
+					}
+				} else {
+					postStr = null;
+				}
+				
+				// Everything is substituted in, we can actually try to load the page.
+				final String url = (String) urlSub.getSubstituted();
+				
+				final Hashtable headers = headersSub.getSubstituted();
+				final Hashtable templateCookies = cookiesSub.getSubstituted();
+				
+				// add cookies directly into DB
+				Enumeration e = templateCookies.elements();
+				String[] templateCookiesAry = new String[templateCookies.size()];
+				int i = 0;
+				while(e.hasMoreElements()) {
+					String name = (String) e.nextElement();
+					String value = (String) templateCookies.get(name);
+					
+					// TODO the construction of cookies doesn't belong here
+					templateCookiesAry[i] = name + '=' + value + "; ";
+					i++;
+				}
+				
+				String[] cookiesAry = new String[request.cookies.length
+						+ templateCookiesAry.length];
+				System.arraycopy(stops, 0, request.cookies, 0, stops.length);
+				System.arraycopy(templateCookiesAry, 0, request.cookies, stops.length,
+						templateCookiesAry.length);
+				
+				BrowserResponse bResp = browser.request(url, method, headers, cookiesAry, postStr);
+				
+				response = Response.DoneLoad(request, description, children, bResp.content, bResp.cookies);
 			}
-			
-			// Everything is substituted in, we can actually try to load the page.
-			final String url = (String) urlSub.getSubstituted();
-			final String responseBody;
-			
-			final Hashtable headers = headersSub.getSubstituted();
-			final Hashtable cookies = cookiesSub.getSubstituted();
-			
-			// add cookies directly into DB
-			Enumeration e = cookies.elements();
-			while(e.hasMoreElements()) {
-				String name = (String) e.nextElement();
-				String value = (String) cookies.get(name);
-				db.addCookie(scope, url, name, value);
-			}
-			
-			if(method.equalsIgnoreCase(HttpBrowser.HEAD)){
-				browser.head(url, headers, db, scope);
-				responseBody = ""; // launch children with a blank source.
-			} else if(method.equalsIgnoreCase(HttpBrowser.POST)) {
-				responseBody = browser.post(url, headers, stops, postStr, db, scope);
-			} else {
-				responseBody = browser.get(url, headers, stops, db, scope);
-			}
-			
-			// Add children to database
-			for(int i = 0 ; i < children.length ; i ++) {
-				db.putInstruction(scope, responseBody, children[i], uri);
-			}
-			
-			db.putSuccess(scope, null, this.serialized, this.uri);
+			return response;
 		} catch(HashtableSubstitutionOverwriteException e) {
 			// Failed because of ambiguous mapping
-			db.putFailed(scope, null, serialized, uri,
-					"Instruction template substitution caused ambiguous mapping: "
+			return Response.Failed(request, description, "Instruction template substitution caused ambiguous mapping: "
 					+ e.getMessage());
 		} catch (HttpException e) {
-			db.putFailed(scope, null, serialized, uri,
-					"Failure during HTTP request or response: " + e.getMessage());
+			return Response.Failed(request, description, "Failure during HTTP request or response: " + e.getMessage());
 		}
 	}
 }

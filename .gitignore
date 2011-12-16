@@ -7,4 +7,5 @@
 *.sqlite-journal
 *.tab
 *.log
+*.jar
 *#

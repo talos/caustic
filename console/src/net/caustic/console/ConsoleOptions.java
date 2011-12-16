@@ -12,9 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.caustic.database.CSVDatabaseListener;
-import net.caustic.database.Database;
 import net.caustic.database.Connection;
-import net.caustic.database.MemoryDatabase;
 import net.caustic.database.JDBCSqliteConnection;
 import net.caustic.database.MultiTableDatabase;
 import net.caustic.database.SingleTableDatabase;
@@ -208,7 +206,7 @@ final class ConsoleOptions {
 	 * @throws InvalidOptionException if the user specified a {@link Connection} related
 	 * option that is invalid.
 	 */
-	Connection getConnection() throws InvalidOptionException {
+	/*Connection getConnection() throws InvalidOptionException {
 		// Determine format.
 		String format = getValue(this.format);
 		if(!validOutputFormats.contains(format)) {
@@ -224,7 +222,7 @@ final class ConsoleOptions {
 		} else {
 			return null;
 		}
-	}
+	}*/
 	
 	/**
 	 * 
@@ -232,7 +230,7 @@ final class ConsoleOptions {
 	 * @throws InvalidOptionException if the user specified a {@link Database} related
 	 * option that is invalid.
 	 */
-	Database getSQLDatabase(Connection connection) throws InvalidOptionException {		
+	/*Database getSQLDatabase(Connection connection) throws InvalidOptionException {		
 		final Database database;
 		if(isSpecified(singleTable)) {
 			database = new SingleTableDatabase(connection);
@@ -240,7 +238,7 @@ final class ConsoleOptions {
 			database = new MultiTableDatabase(connection);
 		}
 		return database;
-	}
+	}*/
 	
 
 	/**

@@ -2,6 +2,8 @@ package net.caustic.util;
 
 import java.util.Vector;
 
+import org.json.me.JSONArray;
+
 
 /**
  * String utilities for Java ME.
@@ -150,6 +152,17 @@ public class StringUtils {
 	public static String quote(int integerToQuote) {
 		return quote(Integer.toString(integerToQuote));
 	}
+	
+	/**
+	 * Produce a {@link JSONArray} from an array of {@link String}s.
+	 * @param strings
+	 * @return
+	 */
+	public static final JSONArray makeJSONArray(String[] strings) {
+		Vector vector = new Vector(strings.length, 1);
+		VectorUtils.arrayIntoVector(strings, vector);
+		return new JSONArray(vector);
+	}
 
 	/**
 	 * Convenient access to <code>System.getProperty("line.separator")</code>.
@@ -167,6 +180,7 @@ public class StringUtils {
 	 */
 	public static final String[] EMPTY_ARRAY = new String[0];
 	
+	
 	// take into account the fact that user.dir can be "/", but we don't want
 	// USER_DIR to ever be "//".
 	static {
@@ -175,20 +189,5 @@ public class StringUtils {
 		} else {
 			USER_DIR = System.getProperty("user.dir") + System.getProperty("file.separator");
 		}
-	}
-	
-	/**
-	 * 
-	 * @param obj An {@link Object} to get the simple class name for.
-	 * @return The simple class name.
-	 */
-	public static String simpleClassName(Object obj) {
-		String className = obj.getClass().toString();
-		int lastIndex = 0;
-		while(className.indexOf(".", lastIndex) != -1) {
-			lastIndex = className.indexOf(".", lastIndex) + 1;
-		}
-		className = className.substring(lastIndex, className.length());
-		return className;
 	}
 }

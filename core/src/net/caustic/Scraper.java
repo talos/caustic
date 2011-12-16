@@ -1,19 +1,16 @@
-package net.caustic.instruction;
+package net.caustic;
 
+import java.util.Enumeration;
 import java.util.Vector;
 
-import net.caustic.database.DatabaseException;
-import net.caustic.database.Database;
+import org.json.me.JSONArray;
+import org.json.me.JSONException;
+import org.json.me.JSONObject;
+
 import net.caustic.http.HttpBrowser;
-import net.caustic.json.JsonArray;
-import net.caustic.json.JsonException;
-import net.caustic.json.JsonIterator;
-import net.caustic.json.JsonObject;
-import net.caustic.json.JsonParser;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.regexp.RegexpUtils;
 import net.caustic.regexp.StringTemplate;
-import net.caustic.scope.Scope;
 import net.caustic.template.HashtableTemplate;
 import net.caustic.template.StringSubstitution;
 import net.caustic.uri.MalformedUriException;
@@ -29,7 +26,7 @@ import net.caustic.util.StringUtils;
  * @author realest
  *
  */
-public class JSONDeserializer implements Deserializer {
+public class Scraper {
 	
 	/**
 	 * The {@link UriResolver} to use when resolving URIs.
@@ -40,82 +37,61 @@ public class JSONDeserializer implements Deserializer {
 	 * The {@link URILoader} to use when loading the contents of URIs.
 	 */
 	private final URILoader uriLoader;
-	
-	/**
-	 * The {@link JsonParser} used to parse JSON objects.
-	 */
-	private final JsonParser parser;
-	
+		
 	/**
 	 * The {@link RegexpCompiler} to use when deserializing {@link Find}s.
 	 */
 	private final RegexpCompiler compiler;
 	
+	private final HttpBrowser browser;
 
 	/**
 	 * Deserialize using {@link StringTemplate#ENCODED_PATTERN} and
 	 * {@link StringTemplate#UNENCODED_PATTERN} by default.
 	 */
-	public void deserialize(String instruction, Database db, Scope scope, String uri,
-			String source) throws DatabaseException, InterruptedException {
-		deserialize(instruction, db, scope, uri, source,
-			StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
+	public Response scrape(Request request) throws InterruptedException {
+		return scrape(request, request.instruction, StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
 	}
 
-	private void deserialize(String instruction, Database db, Scope scope, String uri,
-			String source, String encodedPatternString, String notEncodedPatternString) 
-					throws DatabaseException, InterruptedException {
-		//	throws JsonException,
-		//	MalformedUriException, InterruptedException, RemoteToLocalSchemeResolutionException,
-		//	DatabaseException, URILoaderException {
-		
+	private Response scrape(Request request, String instruction, String encodedPatternString, String notEncodedPatternString) 
+					throws InterruptedException {
 		// We determine the type of this deserialization from the first character.
 		
+		final Response result;
 		final char firstChar = instruction.charAt(0);
 		
 		try {
 			
 			switch(firstChar) {
 			case '[':
-				deserializeArray(instruction, db, scope, uri, source,
-						encodedPatternString, notEncodedPatternString);
+				result = deserializeArray(request, instruction, encodedPatternString, notEncodedPatternString);
 				break;
 			case '{':
-				deserializeObject(instruction, db, scope, uri, source,
-						encodedPatternString, notEncodedPatternString);
+				result = deserializeObject(request, instruction, encodedPatternString, notEncodedPatternString);
 				break;
 			case '"':
 				int len = instruction.length();
 				if(instruction.charAt(len - 1) == '"') {
-					// clip the quotes before sending to deserializeString
-					deserializeString(instruction.substring(1, len - 1), db,
-							scope, uri, source, encodedPatternString,
-							notEncodedPatternString);
+					instruction = instruction.substring(1, request.instruction.length() - 1);
+					result = deserializeString(request, instruction, encodedPatternString, notEncodedPatternString);
 				} else {
-					db.putFailed(scope, source, instruction, uri,
-							"String is missing quote at end.");
-					return;
+					result = Response.Failed(request, null, "String is missing quote at end.");
 				}
 				break;
 			default:
-				db.putFailed(scope, source, instruction, uri,
-						"Valid serialized instructions must begin with '\"', '{', or '['.");
-				return;
+				result = Response.Failed(request, null, "Valid serialized instructions must begin with '\"', '{', or '['.");
 			}
 			
-		} catch(JsonException e) {
-			db.putFailed(scope, source, instruction, uri, e.getMessage());
-			return;
+		} catch(JSONException e) {
+			return Response.Failed(request, null, e.getMessage());
 		} catch (MalformedUriException e) {
-			db.putFailed(scope, source, instruction, uri, e.getMessage());
-			return;
+			return Response.Failed(request, null, e.getMessage());
 		} catch(URILoaderException e) {
-			db.putFailed(scope, source, instruction, uri, e.getMessage());
-			return;
+			return Response.Failed(request, null, e.getMessage());
 		} catch (RemoteToLocalSchemeResolutionException e) {
-			db.putFailed(scope, source, instruction, uri, e.getMessage());
-			return;
+			return Response.Failed(request, null, e.getMessage());
 		}
+		return result;
 	}
 	
 	/**
@@ -128,24 +104,26 @@ public class JSONDeserializer implements Deserializer {
 	 * @param notEncodedPatternString
 	 * @return
 	 */
-	private void deserializeString(String instruction, Database db, Scope scope, String uri,
-			String source, String encodedPatternString, String notEncodedPatternString)  
-						throws DatabaseException, RemoteToLocalSchemeResolutionException,
+	private Response deserializeString(Request request, String instruction, String encodedPatternString, String notEncodedPatternString)  
+						throws RemoteToLocalSchemeResolutionException,
 								MalformedUriException, URILoaderException, InterruptedException {
+		final Response result;
+		
+		// trim quotation marks
 		StringSubstitution uriSub = compiler.newTemplate(instruction,
-				encodedPatternString, notEncodedPatternString).sub(db, scope);
+				encodedPatternString, notEncodedPatternString).sub(request.tags);
+		
 		if(!uriSub.isMissingTags()) {
 			// perform substitutions upon the URI path itself.
 			String uriPath = uriSub.getSubstituted();
-			String uriToLoad = uriResolver.resolve(uri, uriPath);
+			String uriToLoad = uriResolver.resolve(request.uri, uriPath);
 			String loadedJSONString = uriLoader.load(uriToLoad);
 			
-			deserialize(loadedJSONString, db, scope, uriToLoad, source, 
-					encodedPatternString, notEncodedPatternString);
+			result = scrape(request, loadedJSONString, encodedPatternString, notEncodedPatternString);
 		} else {
-			db.putMissing(scope, source, instruction, uri, uriSub.getMissingTags());
-			return;
+			result = Response.Missing(request, null, uriSub.getMissingTags());
 		}
+		return result;
 	}
 	
 	/**
@@ -157,23 +135,23 @@ public class JSONDeserializer implements Deserializer {
 	 * @param notEncodedPatternString
 	 * @throws JsonException
 	 */
-	private void deserializeArray(String instruction, Database db, Scope scope, String uri,
-			String source, String encodedPatternString, String notEncodedPatternString)
-					throws DatabaseException, JsonException {
-		String[] instructions = parser.newArray(instruction).toArray();
-		
+	private Response deserializeArray(Request request, String instruction, String encodedPatternString, String notEncodedPatternString)
+					throws JSONException {
+		JSONArray jsonAry = new JSONArray(instruction);
+		String[] instructions = new String[jsonAry.length()];
 		for(int i = 0 ; i < instructions.length ; i ++) {
-			db.putInstruction(scope, source, instruction, uri);
+			instructions[i] = jsonAry.getString(i);
 		}
+		return Response.DoneArray(request, instructions);
 	}
 	
-	private void deserializeObject(String instruction, Database db, Scope scope, String uri,
-			String source, String encodedPatternString, String notEncodedPatternString)
-					throws JsonException, DatabaseException, URILoaderException,
+	private Response deserializeObject(Request request, String instruction,
+			String encodedPatternString, String notEncodedPatternString)
+					throws JSONException, URILoaderException,
 					RemoteToLocalSchemeResolutionException, MalformedUriException,
 					InterruptedException {
 		
-		JsonObject initialObj = parser.newObject(instruction);
+		JSONObject initialObj = new JSONObject(instruction);
 		
 		// populated for all instructions
 		Vector children = new Vector(); // Vector of instructions
@@ -196,40 +174,44 @@ public class JSONDeserializer implements Deserializer {
 		int min = Find.MIN_MATCH_DEFAULT;
 		int max = Find.MAX_MATCH_DEFAULT;
 		Integer match = null;
+		String description = null;
 		
 		// This vector expands if EXTENDS objects are specified.
 		Vector jsonObjects = new Vector();
 		jsonObjects.add(initialObj);
 		
 		for(int i = 0 ; i < jsonObjects.size() ; i ++) {
-			JsonObject obj = (JsonObject) jsonObjects.get(i);
-			JsonIterator iterator = obj.keys();
+			JSONObject obj = (JSONObject) jsonObjects.get(i);
+			Enumeration e = obj.keys();
+			
+			// want to get description if possible
+			if(obj.has(Instruction.DESCRIPTION)) {
+				description = obj.getString(Instruction.DESCRIPTION);
+			}
 			
 			// Case-insensitive loop over key names.
-			while(iterator.hasNext()) {
-				String key = iterator.next();
+			while(e.hasMoreElements()) {
+				String key = (String) e.nextElement();
 				
 				/** Attributes for Instruction. **/
 				if(key.equalsIgnoreCase(Instruction.EXTENDS)) {
 					Vector extendsStrings = new Vector();
 					Vector extendsObjects = new Vector();
 					
-					if(obj.isJsonObject(key)) {
-						extendsObjects.add(obj.getJsonObject(key));
-					} else if(obj.isJsonArray(key)) {
-						JsonArray array = obj.getJsonArray(key);
+					if(obj.optJSONObject(key) != null) {
+						extendsObjects.add(obj.getJSONObject(key));
+					} else if(obj.optJSONArray(key) != null) {
+						JSONArray array = obj.getJSONArray(key);
 						for(int j = 0 ; j < array.length(); j ++) {
-							if(array.isJsonObject(j)) {
-								extendsObjects.add(array.getJsonObject(j));
-							} else if(array.isString(j)) {
-								extendsStrings.add(array.getString(j));
+							if(array.optJSONObject(j) != null) {
+								extendsObjects.add(array.getJSONObject(j));
+							} else if(array.optJSONArray(j) != null) {
+								return Response.Failed(request, description, Instruction.EXTENDS + " array elements must be strings or objects."); // premature return
 							} else {
-								db.putFailed(scope, source, instruction, uri,
-										Instruction.EXTENDS + " array elements must be strings or objects.");
-								return; // premature return
-							}
+								extendsStrings.add(array.getString(j));
+							}						
 						}
-					} else if(obj.isString(key)) {
+					} else {
 						extendsStrings.add(obj.getString(key));
 					}
 					
@@ -240,52 +222,41 @@ public class JSONDeserializer implements Deserializer {
 						//String uri = uriResolver.resolve(baseUri, (String) extendsStrings.elementAt(j));
 						//jsonObjects.add(parser.parse(uriLoader.load(uri)));
 						StringTemplate extendsUriTemplate = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
-						StringSubstitution uriSubstitution = extendsUriTemplate.sub(db, scope);
+						StringSubstitution uriSubstitution = extendsUriTemplate.sub(request.tags);
 						if(!uriSubstitution.isMissingTags()) {
 							String uriPath = uriSubstitution.getSubstituted();
-							String uriToLoad = uriResolver.resolve(uri, uriPath);
+							String uriToLoad = uriResolver.resolve(request.uri, uriPath);
 							String loadedJSONString = uriLoader.load(uriToLoad);
 							
-							jsonObjects.add(parser.newObject(loadedJSONString));
+							jsonObjects.add(new JSONObject(loadedJSONString));
 						} else {
-							db.putMissing(scope, source, instruction, uri,
-									uriSubstitution.getMissingTags());// can't substitute uri to load EXTENDS reference, missing-variable out.
-							return;
+							// can't substitute uri to load EXTENDS reference, missing-variable out.
+							return Response.Missing(request, description, uriSubstitution.getMissingTags());
 						}
 					}
 				} else if(key.equalsIgnoreCase(Instruction.THEN)) {
 					Vector thenStrings = new Vector();
 					Vector thenObjects = new Vector(); // Strings are added to this too -- their deserialization is handled later.
 					
-					if(obj.isJsonObject(key)) {
+					if(obj.optJSONObject(key) != null) {
 						thenObjects.add(obj.getString(key));
-					} else if (obj.isJsonArray(key)) {
+					} else if (obj.optJSONArray(key) != null) {
 						//thenStrings.add(obj.getString(key));
-						JsonArray array = obj.getJsonArray(key);
+						JSONArray array = obj.getJSONArray(key);
 						
 						for(int j = 0 ; j < array.length() ; j ++) {
-							if(array.isJsonObject(j)) {
+							if(array.optJSONArray(j) != null) {
 								thenObjects.add(array.getString(j));
-							} else if(array.isString(j)) {
+							} else if(array.optJSONObject(j) == null) {
 								// have to quote these for them to deserialize properly.
 								thenStrings.add(StringUtils.quote(array.getString(j)));
 							} else {
-								db.putFailed(scope, source, instruction, uri,
-										Instruction.THEN + " array elements " +
+								return Response.Failed(request, description, Instruction.THEN + " array elements " +
 										"must be strings or objects.");
-								return;
 							}
 						}
-					} else if(obj.isString(key)) {
-						thenStrings.add(StringUtils.quote(obj.getString(key)));
 					} else {
-						db.putFailed(scope, source, instruction, uri,
-								StringUtils.quote(key) +
-								" must be a String reference to another " +
-								" instruction, an object with another instruction," +
-								" or an array with any number " +
-								" of both.");
-						return;
+						thenStrings.add(StringUtils.quote(obj.getString(key)));
 					}
 					
 					for(int j = 0 ; j < thenStrings.size(); j ++) {
@@ -323,46 +294,38 @@ public class JSONDeserializer implements Deserializer {
 					
 					// can't extend preexisting post data.
 					if(postData != null) {
-						db.putFailed(scope, source, instruction, uri,
-								"Post data was already defined, cannot overwrite " +
+						return Response.Failed(request, description, "Post data was already defined, cannot overwrite " +
 								StringUtils.quote(postData.toString()) +
 								" with " + StringUtils.quote(obj.getString(key)));
-						return;
 					}
-					if(obj.isJsonObject(key)) {
+					if(obj.optJSONObject(key) != null) {
 						
 						posts.extend(
 								deserializeHashtableTemplate(
-										obj.getJsonObject(key),
+										obj.getJSONObject(key),
 										encodedPatternString,
 										notEncodedPatternString),
 								false); // precedence is given to the original object
-													
-					} else if(obj.isString(key)) {
+					} else if(obj.optJSONArray(key) != null) {
+						return Response.Failed(request, description, StringUtils.quote(key) +
+								" must be a String with post data or an object with name-value-pairs.");
+						
+					} else {
 						if(posts.size() > 0) {
-							db.putFailed(scope, source, instruction, uri,
-									"Post data was already defined as a hash, cannot overwrite " +
+							return Response.Failed(request, description, "Post data was already defined as a hash, cannot overwrite " +
 									" with string " + StringUtils.quote(obj.getString(key)));
-							return;
 						}
 						postData = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
-					} else {
-						db.putFailed(scope, source, instruction, uri,
-								StringUtils.quote(key) +
-								" must be a String with post data or an object with name-value-pairs.");
-						return;
-						//return DeserializerResult.failure(StringUtils.quote(key) +
-						//		" must be a String with post data or an object with name-value-pairs.");				
 					}
 				} else if(key.equalsIgnoreCase(Load.COOKIES)) {
 					cookies.extend(
 							deserializeHashtableTemplate(
-									obj.getJsonObject(key),
+									obj.getJSONObject(key),
 									encodedPatternString,
 									notEncodedPatternString),
 							false); // precedence is given to the original object
 				} else if(key.equalsIgnoreCase(Load.HEADERS)) {
-					headers.extend(deserializeHashtableTemplate(obj.getJsonObject(key), encodedPatternString, notEncodedPatternString), false);
+					headers.extend(deserializeHashtableTemplate(obj.getJSONObject(key), encodedPatternString, notEncodedPatternString), false);
 					
 				/** Pattern attributes. **/
 				} else if(key.equalsIgnoreCase(Find.FIND)) {
@@ -391,9 +354,8 @@ public class JSONDeserializer implements Deserializer {
 				} else {
 					// break out early
 					//return DeserializerResult.failure(StringUtils.quote(key) + " is not a valid key.");
-					db.putFailed(scope, source, instruction, uri,
+					return Response.Failed(request, description,
 							StringUtils.quote(key) + " is not a valid key.");
-					return;
 				}
 			}
 		}
@@ -402,9 +364,7 @@ public class JSONDeserializer implements Deserializer {
 		children.copyInto(childrenAry);
 		if(url != null && pattern != null) {
 			// Can't define two actions.
-			db.putFailed(scope, source, instruction, uri,
-					"Cannot define both " + Find.FIND + " and " + Load.LOAD);
-			return;
+			return Response.Failed(request, description, "Cannot define both " + Find.FIND + " and " + Load.LOAD);
 			//return DeserializerResult.failure("Cannot define both " + FIND + " and " + LOAD);
 		} else if(url != null) {
 			// We have a Load
@@ -413,14 +373,15 @@ public class JSONDeserializer implements Deserializer {
 			if((posts.size() > 0 || postData != null) && !method.equalsIgnoreCase(HttpBrowser.POST)) {
 				method = HttpBrowser.POST;
 			}
+			final Load load;
 			if(posts.size() > 0) {
-				db.putLoad(scope, source, new Load(instruction, uri, url, childrenAry, method,
-						cookies, headers, posts));
+				load = new Load(instruction, description, request.uri, url, childrenAry, method,
+						cookies, headers, posts);
 			} else {
-				db.putLoad(scope, source, new Load(instruction, uri, url, childrenAry, method,
-					cookies, headers, postData));
+				load = new Load(instruction, description, request.uri, url, childrenAry, method,
+						cookies, headers, postData);
 			}
-			return;
+			return load.execute(browser, request);
 		} else if(pattern != null) {
 			// We have a Find
 			
@@ -431,19 +392,17 @@ public class JSONDeserializer implements Deserializer {
 			min     = match  == null ? min : match.intValue(); // if match was defined, use it.
 			max     = match  == null ? max : match.intValue();
 			if(RegexpUtils.isValidRange(min, max) == false) {
-				db.putFailed(scope, source, instruction, uri, 
+				return Response.Failed(request, description, 
 						"Range " + StringUtils.quote(min) + " to " +
 						StringUtils.quote(max) + " is not valid for " + Find.FIND);
 			}
-			db.putFind(scope, source, new Find(instruction, uri, compiler, name, hasName, pattern,
-					replace, min, max, isCaseInsensitive,
-					isMultiline, doesDotMatchNewline, childrenAry));
-			return;
-		} else {
-			db.putFailed(scope, source, instruction, uri,
-					"Must define " + Find.FIND + " or " + Load.LOAD);
 			
-			return;
+			final Find find = new Find(instruction, description, request.uri, compiler, name, hasName, pattern,
+					replace, min, max, isCaseInsensitive,
+					isMultiline, doesDotMatchNewline, childrenAry);
+			return find.execute(request);
+		} else {
+			return Response.Failed(request, description, "Must define " + Find.FIND + " or " + Load.LOAD);
 		}
 	}
 	
@@ -457,12 +416,12 @@ public class JSONDeserializer implements Deserializer {
 	 * @throws JsonException If there was a problem parsing the JSON.
 	 * @throws TemplateCompilationException If a {@link StringTemplate} could not be compiled.
 	 */
-	private HashtableTemplate deserializeHashtableTemplate(JsonObject jsonObject, String encodedPatternString,
-			String notEncodedPatternString) throws JsonException {
+	private HashtableTemplate deserializeHashtableTemplate(JSONObject jsonObject, String encodedPatternString,
+			String notEncodedPatternString) throws JSONException {
 		HashtableTemplate result = new HashtableTemplate();
-		JsonIterator iter = jsonObject.keys();
-		while(iter.hasNext()) {
-			String key = (String) iter.next();
+		Enumeration e = jsonObject.keys();
+		while(e.hasMoreElements()) {
+			String key = (String) e.nextElement();
 			String value = jsonObject.getString(key);
 			result.put(compiler.newTemplate(key, encodedPatternString, notEncodedPatternString),
 					compiler.newTemplate(value, encodedPatternString, notEncodedPatternString));
@@ -478,12 +437,11 @@ public class JSONDeserializer implements Deserializer {
 	 * @param uriFactory
 	 * @param database
 	 */
-	public JSONDeserializer(JsonParser parser, RegexpCompiler compiler,
-			UriResolver uriResolver, URILoader uriLoader) {
+	public Scraper(RegexpCompiler compiler,
+			UriResolver uriResolver, URILoader uriLoader, HttpBrowser browser) {
 		this.compiler = compiler;
-		this.parser = parser;
 		this.uriResolver = uriResolver;
 		this.uriLoader = uriLoader;
+		this.browser = browser;
 	}
-	
 }

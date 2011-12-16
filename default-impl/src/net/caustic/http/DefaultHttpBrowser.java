@@ -3,7 +3,6 @@ package net.caustic.http;
 import net.caustic.http.HttpBrowser;
 import net.caustic.http.JavaNetHttpRequester;
 import net.caustic.http.RateLimitManager;
-import net.caustic.util.DefaultEncoder;
 
 /**
  * A default {@link HttpBrowser}.  Uses a {@link JavaNetHttpRequester}
@@ -14,8 +13,6 @@ import net.caustic.util.DefaultEncoder;
 public class DefaultHttpBrowser extends HttpBrowser {
 
 	public DefaultHttpBrowser() {
-		super(new JavaNetHttpRequester(),
-				new RateLimitManager(new JavaNetHttpUtils()),
-				new JavaNetHttpUtils(), new DefaultEncoder());
+		super(new JavaNetHttpRequester(), new RateLimitManager(new JavaNetHttpUtils()));
 	}
 }
