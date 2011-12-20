@@ -247,7 +247,7 @@ final class ConsoleOptions {
 	 * @throws InvalidOptionException if the user specified a {@link Database} related
 	 * option that is invalid.
 	 */
-	Database getInMemoryDatabase() throws InvalidOptionException {
+	/*Database getInMemoryDatabase() throws InvalidOptionException {
 
 		final Database database = new MemoryDatabase();
 		// Determine delimiter.
@@ -259,7 +259,7 @@ final class ConsoleOptions {
 	
 		return database;
 	}
-
+*/
 	/**
 	 * 
 	 * @return A {@link Logger}.

@@ -3,8 +3,6 @@ package net.caustic.console;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-import net.caustic.database.DatabaseException;
-
 public class MainClass {
 
 	/**
@@ -27,7 +25,7 @@ public class MainClass {
 		try {
 			Console console = new Console(args);
 			
-			Runtime.getRuntime().addShutdownHook(console.getShutdownThread());
+			//Runtime.getRuntime().addShutdownHook(console.getShutdownThread());
 			
 			console.open();
 			console.execute();
@@ -39,9 +37,9 @@ public class MainClass {
 			println("Your computer does not support the required encoding: " + e.getMessage());
 		} catch(IOException e) {
 			e.printStackTrace();
-		} catch(DatabaseException e) {
+		/*} catch(DatabaseException e) {
 			e.printStackTrace();
-			println("There was an error with the database: " + e);
+			println("There was an error with the database: " + e);*/
 		} catch(InterruptedException e) {
 			println("Interrupt");
 		}

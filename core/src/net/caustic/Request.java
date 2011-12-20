@@ -25,7 +25,7 @@ public class Request {
 	public final String[] cookies;
 	public final boolean force;
 	
-	private Request(String id, String instruction, String uri, String input, StringMap tags,
+	public Request(String id, String instruction, String uri, String input, StringMap tags,
 			String[] cookies, boolean force) {
 		this.id = id;
 		this.uri = uri;
