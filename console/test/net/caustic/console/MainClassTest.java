@@ -65,7 +65,7 @@ public class MainClassTest {
 		new Expectations() {
 			@Mocked({"head", "get", "post"}) HttpBrowser browser;
 			{
-				browser.get("http://www.google.com/search?q=hello", (Hashtable) any, (Pattern[]) any);
+				browser.request("http://www.google.com/search?q=hello", "get", (Hashtable) any, (String[]) any, null);
 					result = "hello world hello tree hello whee";
 			}
 		};

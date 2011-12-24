@@ -3,6 +3,8 @@ package net.caustic.console;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,7 @@ public class Console {
 	private final Input input;
 
 	private final String instruction;
-	private final Scraper scraper;
+	private final Requester requester;
 		
 	public Console(String... stringArgs) throws InvalidOptionException, UnsupportedEncodingException {
 		
@@ -40,7 +42,7 @@ public class Console {
 		logger = options.getLogger();
 		input = options.getInput();
 		instruction = options.getInstruction();
-		scraper = new DefaultScraper();
+		requester = new Requester(new DefaultScraper(), options.getNumThreads());
 		/*connection = options.getConnection();
 		if(connection != null) {
 			database = options.getSQLDatabase(connection);
@@ -60,13 +62,12 @@ public class Console {
 		
 		// Start to read input.
 		Map<String, String> inputMap;
-		
+				
 		while((inputMap = input.next()) != null) {
 
 			// add initial request
-			Request request = new Request(UUID.randomUUID().toString(), instruction,
+			requester.request(instruction,
 					StringUtils.USER_DIR, null, new CollectionStringMap(inputMap), new String[] {}, true);
-			makeRequest(request);
 		}
 		try {
 			input.close();
@@ -75,46 +76,14 @@ public class Console {
 			logger.i("Could not close input " + StringUtils.quote(input) + ": " + e.getMessage());
 			logger.e(e);
 		}
-		//scraper.join();
+		
+		requester.register(logger);
+		requester.join();
 		
 		/*if(connection != null) {
 			connection.close();
 		}*/
 	}
-	
-	private void makeRequest(Request request) throws InterruptedException {
-
-		
-		Response response = scraper.scrape(request);
-		if(response.children != null) {
-			
-			// launch children
-			for(String child : response.children) {
-				
-				// launch children from Find
-				if(response.values != null) {
-					
-					for(String value : response.values) {
-						makeRequest(new Request(UUID.randomUUID().toString(), child, 
-								null, response.uri, request.tags,
-								request.cookies, true));
-						
-					}
-				} else if(response.content != null) { // launch children from Load
-
-					makeRequest(new Request(UUID.randomUUID().toString(), child,
-							response.uri,response.content, request.tags,
-							response.cookies, true));
-					
-				}
-			}
-		} else if(response.missingTags != null) {
-			// TODO
-		} else if(response.failedBecause != null) {
-			// TODO
-		}
-	}
-	
 	/**
 	 * This thread is registered with {@link Runtime#getRuntime()} shutdown
 	 * hook, and cleans up everything that could be open, while also
