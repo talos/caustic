@@ -2,23 +2,11 @@ package net.caustic.console;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import net.caustic.DefaultScraper;
-import net.caustic.Request;
-import net.caustic.Response;
-import net.caustic.Scraper;
-import net.caustic.database.Connection;
-import net.caustic.database.ConnectionException;
 import net.caustic.log.Logger;
 import net.caustic.util.CollectionStringMap;
-import net.caustic.util.StringMap;
 import net.caustic.util.StringUtils;
 
 /**
@@ -26,6 +14,8 @@ import net.caustic.util.StringUtils;
  *
  */
 public class Console {
+	
+	private static final String DEFAULT = "default";
 	
 	private final Logger logger;
 	//private final Connection connection; // can be null.
@@ -66,8 +56,8 @@ public class Console {
 		while((inputMap = input.next()) != null) {
 
 			// add initial request
-			requester.request(instruction,
-					StringUtils.USER_DIR, null, new CollectionStringMap(inputMap), new String[] {}, true);
+			requester.request(instruction, StringUtils.USER_DIR, null, new CollectionStringMap(DEFAULT, inputMap),
+					new String[] {}, true);
 		}
 		try {
 			input.close();

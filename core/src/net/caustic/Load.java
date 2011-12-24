@@ -6,7 +6,6 @@ import java.util.Hashtable;
 import net.caustic.http.BrowserResponse;
 import net.caustic.http.HttpBrowser;
 import net.caustic.http.HttpException;
-import net.caustic.regexp.Pattern;
 import net.caustic.regexp.StringTemplate;
 import net.caustic.template.DependsOnTemplate;
 import net.caustic.template.HashtableSubstitution;
@@ -83,10 +82,10 @@ public final class Load extends Instruction {
 	 */
 	private final StringTemplate url;
 	
-	public Load(String serializedString, String description, String uri,
+	public Load(String description, String uri,
 			StringTemplate url, String[] children, String method,
 			HashtableTemplate cookies, HashtableTemplate headers, StringTemplate postData) {
-		super(serializedString, description, uri);
+		super(description, uri);
 		this.url = url;
 		this.method = method;
 		this.cookies = cookies;
@@ -95,10 +94,10 @@ public final class Load extends Instruction {
 		this.children = children;
 	}
 	
-	public Load(String serializedString, String description, String uri,
+	public Load(String description, String uri,
 			StringTemplate url, String[] children, String method,
 			HashtableTemplate cookies, HashtableTemplate headers, HashtableTemplate postTable) {
-		super(serializedString, description, uri);
+		super(description, uri);
 		this.url = url;
 		this.method = method;
 		this.cookies = cookies;
@@ -111,16 +110,15 @@ public final class Load extends Instruction {
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 * <code>source</code> is ignored.
 	 */
-	public Response execute(HttpBrowser browser, Request request) throws InterruptedException {
-		if(request.force == false) {
-			return Response.Wait(request, description); // don't run a load unless it's forced.
+	public Response execute(String id, StringMap tags, String[] requestCookies, HttpBrowser browser, boolean force)
+			throws InterruptedException {
+		if(force == false) {
+			return Response.Wait(id, uri, description); // don't run a load unless it's forced.
 		}
 		
 		final Response response;
-		try {
-			final StringMap tags = request.tags;
-			
-			final Pattern[] stops = new Pattern[] { };
+		try {			
+			//final Pattern[] stops = new Pattern[] { };
 			final StringSubstitution urlSub = url.sub(tags);
 			final HashtableSubstitution headersSub = headers.sub(tags);
 			final HashtableSubstitution cookiesSub = cookies.sub(tags);
@@ -132,7 +130,7 @@ public final class Load extends Instruction {
 				String[] missingTags = StringSubstitution.combine(new DependsOnTemplate[] {
 						urlSub, headersSub, cookiesSub});
 				
-				response = Response.Missing(request, description, missingTags);
+				response = Response.Missing(id, uri, description, missingTags);
 			
 			} else {
 				
@@ -141,14 +139,14 @@ public final class Load extends Instruction {
 				if(postData != null) {
 					StringSubstitution sub = postData.sub(tags);
 					if(sub.isMissingTags()) {
-						return Response.Missing(request, description, sub.getMissingTags()); // break out early
+						return Response.Missing(id, uri, description, sub.getMissingTags()); // break out early
 					} else {
 						postStr = sub.getSubstituted();
 					}
 				} else if(postTable != null) {
 					HashtableSubstitution sub = postTable.sub(tags);
 					if(sub.isMissingTags()) {
-						return Response.Missing(request, description, sub.getMissingTags()); // break out early
+						return Response.Missing(id, uri, description, sub.getMissingTags()); // break out early
 					} else {
 						postStr = HashtableUtils.toFormEncoded(sub.getSubstituted());
 					}
@@ -175,23 +173,23 @@ public final class Load extends Instruction {
 					i++;
 				}
 				
-				String[] cookiesAry = new String[request.cookies.length
+				String[] cookiesAry = new String[requestCookies.length
 						+ templateCookiesAry.length];
-				System.arraycopy(stops, 0, request.cookies, 0, stops.length);
-				System.arraycopy(templateCookiesAry, 0, request.cookies, stops.length,
-						templateCookiesAry.length);
+				System.arraycopy(templateCookiesAry, 0, cookiesAry, 0, cookiesAry.length);
+				System.arraycopy(requestCookies, 0, cookiesAry, templateCookiesAry.length,
+						requestCookies.length);
 				
 				BrowserResponse bResp = browser.request(url, method, headers, cookiesAry, postStr);
 				
-				response = Response.DoneLoad(request, description, children, bResp.content, bResp.cookies);
+				response = Response.DoneLoad(id, uri, description, children, bResp.content, bResp.cookies);
 			}
 			return response;
 		} catch(HashtableSubstitutionOverwriteException e) {
 			// Failed because of ambiguous mapping
-			return Response.Failed(request, description, "Instruction template substitution caused ambiguous mapping: "
+			return Response.Failed(id, uri, description, "Instruction template substitution caused ambiguous mapping: "
 					+ e.getMessage());
 		} catch (HttpException e) {
-			return Response.Failed(request, description, "Failure during HTTP request or response: " + e.getMessage());
+			return Response.Failed(id, uri, description, "Failure during HTTP request or response: " + e.getMessage());
 		}
 	}
 }

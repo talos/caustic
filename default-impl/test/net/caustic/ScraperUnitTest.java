@@ -1,4 +1,4 @@
-package net.caustic.deserializer;
+package net.caustic;
 
 import java.util.Hashtable;
 
@@ -8,20 +8,15 @@ import mockit.Mocked;
 import mockit.NonStrict;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
+import net.caustic.DefaultScraper;
 import net.caustic.Find;
-import net.caustic.Instruction;
 import net.caustic.Load;
-import net.caustic.database.Database;
-import net.caustic.database.DatabaseListener;
-import net.caustic.database.MemoryDatabase;
-import net.caustic.deserializer.DeserializerResult;
-import net.caustic.deserializer.JSONDeserializer;
+import net.caustic.Scraper;
 import net.caustic.http.HttpBrowser;
 import net.caustic.regexp.Pattern;
-import net.caustic.scope.Scope;
 import net.caustic.uri.URILoader;
+import net.caustic.util.StringMap;
 import net.caustic.util.StringUtils;
-import static net.caustic.deserializer.JSONDeserializer.*;
 import static org.junit.Assert.*;
 
 import org.json.me.JSONArray;
@@ -29,29 +24,25 @@ import org.json.me.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
-public class DefaultJsonDeserializerTest {
+public class ScraperUnitTest {
+	
+	private static final String uri = StringUtils.USER_DIR;
 	
 	private @Capturing URILoader loader;
-	private @NonStrict DatabaseListener listener;
+	private @NonStrict StringMap tags;
 	
-	private Scraper deserializer;
-	private final String userDir = StringUtils.USER_DIR;
-	
-	private Database db;
-	private Scope scope;
+	private Scraper scraper;
 	
 	@Before
-	public void setUp() throws Exception {
-		db = new MemoryDatabase();
-		db.addListener(listener);
-		scope = db.newDefaultScope();
-		deserializer = new DefaultScraper();
+	void setUp() {
+		scraper = new DefaultScraper();
 	}
 	
 	@Test
 	public void testDeserializeSimpleLoadFromJsonSucceeds() throws Exception {
-		JSONObject load = new JSONObject().put(LOAD, "http://www.foo.com/");
+		JSONObject load = new JSONObject().put(Load.LOAD, "http://www.foo.com/");
 		
+		response = scraper.scrape(new Request("id", load.toString(), uri, tags, new String[] {}));
 		DeserializerResult result = deserializer.deserialize(load.toString(), db, scope, userDir);
 		assertTrue(result.getInstruction() != null);
 		assertTrue(result.getInstruction() instanceof Load);

@@ -5,15 +5,11 @@ import static net.caustic.util.TestUtils.*;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.List;
 
 import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 import net.caustic.file.FileLoader;
-import net.caustic.http.HttpBrowser;
-import net.caustic.regexp.Pattern;
 import net.caustic.uri.JavaNetURILoader;
 import net.caustic.uri.URILoader;
 

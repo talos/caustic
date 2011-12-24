@@ -2,22 +2,10 @@ package net.caustic.json;
 
 import static org.junit.Assert.*;
 
-import java.util.Arrays;
-import java.util.List;
-
-import net.caustic.json.JsonMEParser;
-import net.caustic.json.JsonParser;
-
-import org.junit.Before;
+import org.json.me.JSONObject;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(Parameterized.class)
 public class JsonObjectTest {
-	private final Class<JsonParser> klass;
-	private JsonParser parser;
 	
 	private static final String jsonStringSimpleObject = 
 			"{ \"string\" : \"value\", \"int\" : 1, \"boolean\" : true, \"null\" : null }";
@@ -26,106 +14,91 @@ public class JsonObjectTest {
 	private static final String jsonStringComplexObject =
 			"{ \"object\" : " + jsonStringSimpleObject + ", \"array\" : " + jsonStringSimpleArray + " }";
 	
-	public JsonObjectTest(Class<JsonParser> klass) {
-		this.klass = klass;
-	}
-	
-	@Parameters
-	public static List<Class<?>[]> implementations() {
-		return Arrays.asList(new Class<?>[][] {
-				{	JsonMEParser.class }
-		});
-	}
-	
-	@Before
-	public void setUp() throws Exception {
-		parser = klass.newInstance();
-	}
 		
 	@Test
 	public void testGetJSONArray() throws Exception {
-		assertEquals(4, parser.newObject(jsonStringComplexObject).getJsonArray("array").length());
+		assertEquals(4, new JSONObject(jsonStringComplexObject).getJSONArray("array").length());
 	}
 
 	@Test
 	public void testIsJSONArray() throws Exception {
-		assertTrue(parser.newObject(jsonStringComplexObject).isJsonArray("array"));
-		assertFalse(parser.newObject(jsonStringComplexObject).isJsonArray("object"));
+		assertFalse(new JSONObject(jsonStringComplexObject).optJSONArray("array") == null);
+		assertTrue(new JSONObject(jsonStringComplexObject).optJSONArray("object") == null);
 	}
 
 	@Test
 	public void testGetJSONObject() throws Exception {
-		assertEquals(4, parser.newObject(jsonStringComplexObject).getJsonObject("object").length());
+		assertEquals(4, new JSONObject(jsonStringComplexObject).getJSONObject("object").length());
 	}
 	
 	@Test
 	public void testGetJSONObjectAsString() throws Exception {
 		assertEquals("Should be able to pull the raw text of a JSON Object using getString(key).",
-				parser.newObject(jsonStringSimpleObject).toString().length(),
-				parser.newObject(parser.newObject(jsonStringComplexObject).getString("object")).toString().length());
+				new JSONObject(jsonStringSimpleObject).toString().length(),
+				new JSONObject(new JSONObject(jsonStringComplexObject).getString("object")).toString().length());
 	}
 
 	@Test
 	public void testIsJSONObject() throws Exception {
-		assertFalse(parser.newObject(jsonStringComplexObject).isJsonObject("array"));
-		assertTrue(parser.newObject(jsonStringComplexObject).isJsonObject("object"));
+		assertTrue(new JSONObject(jsonStringComplexObject).optJSONObject("array") == null);
+		assertFalse(new JSONObject(jsonStringComplexObject).optJSONObject("object") == null);
 	}
 
 	@Test
 	public void testGetString() throws Exception {
-		assertEquals("value", parser.newObject(jsonStringSimpleObject).getString("string"));
+		assertEquals("value", new JSONObject(jsonStringSimpleObject).getString("string"));
 	}
 
 	@Test
 	public void testIsString() throws Exception {
-		assertTrue(parser.newObject(jsonStringSimpleObject).isString("string"));
-		assertTrue(parser.newObject(jsonStringSimpleObject).isString("int"));
-		assertTrue(parser.newObject(jsonStringSimpleObject).isString("boolean"));
+		assertFalse(new JSONObject(jsonStringSimpleObject).optString("string") == null);
+		assertFalse(new JSONObject(jsonStringSimpleObject).optString("int") == null);
+		assertFalse(new JSONObject(jsonStringSimpleObject).optString("boolean") == null);
 	}
 
 	@Test
 	public void testGetInt() throws Exception {
-		assertEquals(1, parser.newObject(jsonStringSimpleObject).getInt("int"));
+		assertEquals(1, new JSONObject(jsonStringSimpleObject).getInt("int"));
 	}
 
 	@Test
 	public void testIsInt() throws Exception {
-		assertFalse(parser.newObject(jsonStringSimpleObject).isInt("string"));
-		assertTrue(parser.newObject(jsonStringSimpleObject).isInt("int"));
-		assertFalse(parser.newObject(jsonStringSimpleObject).isInt("boolean"));
+		assertTrue(new JSONObject(jsonStringSimpleObject).optInt("string") == 0);
+		assertFalse(new JSONObject(jsonStringSimpleObject).optInt("int") == 0);
+		assertTrue(new JSONObject(jsonStringSimpleObject).optInt("boolean") == 0);
 	}
 
 	@Test
 	public void testGetBoolean() throws Exception {
-		assertEquals(true, parser.newObject(jsonStringSimpleObject).getBoolean("boolean"));
+		assertEquals(true, new JSONObject(jsonStringSimpleObject).getBoolean("boolean"));
 	}
 
 	@Test
 	public void testIsBoolean() throws Exception {
-		assertFalse(parser.newObject(jsonStringSimpleObject).isBoolean("string"));
-		assertFalse(parser.newObject(jsonStringSimpleObject).isBoolean("int"));
-		assertTrue(parser.newObject(jsonStringSimpleObject).isBoolean("boolean"));
+		assertTrue(new JSONObject(jsonStringSimpleObject).optBoolean("string") == false);
+		assertTrue(new JSONObject(jsonStringSimpleObject).optBoolean("int") == false);
+		assertFalse(new JSONObject(jsonStringSimpleObject).optBoolean("boolean") == false);
 	}
 
 	@Test
 	public void testHas() throws Exception {
-		assertTrue(parser.newObject(jsonStringSimpleObject).has("string"));
-		assertTrue(parser.newObject(jsonStringSimpleObject).has("int"));
-		assertTrue(parser.newObject(jsonStringSimpleObject).has("boolean"));
-		assertTrue(parser.newObject(jsonStringSimpleObject).has("null"));
+		assertTrue(new JSONObject(jsonStringSimpleObject).has("string"));
+		assertTrue(new JSONObject(jsonStringSimpleObject).has("int"));
+		assertTrue(new JSONObject(jsonStringSimpleObject).has("boolean"));
+		assertTrue(new JSONObject(jsonStringSimpleObject).has("null"));
 	}
 
 	@Test
 	public void testIsNull() throws Exception {
-		assertFalse(parser.newObject(jsonStringSimpleObject).isNull("string"));
-		assertFalse(parser.newObject(jsonStringSimpleObject).isNull("int"));
-		assertFalse(parser.newObject(jsonStringSimpleObject).isNull("boolean"));
-		assertTrue(parser.newObject(jsonStringSimpleObject).isNull("null"));
+		assertFalse(new JSONObject(jsonStringSimpleObject).isNull("string"));
+		assertFalse(new JSONObject(jsonStringSimpleObject).isNull("int"));
+		assertFalse(new JSONObject(jsonStringSimpleObject).isNull("boolean"));
+		assertTrue(new JSONObject(jsonStringSimpleObject).isNull("null"));
 	}
 
 	@Test
 	public void testLength() throws Exception {
-		assertEquals(4, parser.newObject(jsonStringSimpleObject).length());
+		assertEquals(4, new JSONObject(jsonStringSimpleObject).length());
 	}
 
 }

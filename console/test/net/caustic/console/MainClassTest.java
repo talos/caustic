@@ -11,6 +11,7 @@ import net.caustic.console.ConsoleOptions;
 import net.caustic.console.MainClass;
 import net.caustic.http.HttpBrowser;
 import net.caustic.regexp.Pattern;
+import net.caustic.util.HashtableUtils;
 import net.caustic.util.StringUtils;
 
 import org.junit.After;
@@ -97,11 +98,11 @@ public class MainClassTest {
 		new Expectations() {
 			@Mocked({"head", "get", "post"}) HttpBrowser browser;
 			{
-				browser.get("http://www.google.com/search?q=hello", (Hashtable) any, (Pattern[]) any);
+				browser.request("http://www.google.com/search?q=hello", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
 					result = "hello world";
-				browser.get("http://www.google.com/search?q=meh", (Hashtable) any, (Pattern[]) any);
+				browser.request("http://www.google.com/search?q=meh", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
 					result = "unrelated words";
-				browser.get("http://www.google.com/search?q=bleh", (Hashtable) any, (Pattern[]) any);
+				browser.request("http://www.google.com/search?q=bleh", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
 					result = "bleh this bleh that";
 			}
 		};
@@ -149,13 +150,13 @@ public class MainClassTest {
 		new Expectations() {
 			@Mocked({"head", "get", "post"}) HttpBrowser browser;
 			{
-			browser.get("http://www.google.com/search?q=hello", (Hashtable) any, (Pattern[]) any);
+			browser.request("http://www.google.com/search?q=hello", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
 				result = "hello world hello tree hello whee";
-			browser.get("http://www.google.com/search?q=world", (Hashtable) any, (Pattern[]) any);
+			browser.request("http://www.google.com/search?q=world", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
 				result = "world peace world domination";
-			browser.get("http://www.google.com/search?q=tree", (Hashtable) any, (Pattern[]) any);
+			browser.request("http://www.google.com/search?q=tree", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
 				result = "tree planting";
-			browser.get("http://www.google.com/search?q=whee", (Hashtable) any, (Pattern[]) any);
+			browser.request("http://www.google.com/search?q=whee", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
 				result = "";
 		}};
 		

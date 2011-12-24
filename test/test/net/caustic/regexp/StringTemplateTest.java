@@ -6,17 +6,16 @@ import static net.caustic.regexp.StringTemplate.*;
 import java.util.Arrays;
 import java.util.Collection;
 
-import net.caustic.database.Database;
-import net.caustic.database.DatabaseException;
-import net.caustic.database.MemoryDatabase;
+import mockit.Expectations;
+import mockit.NonStrict;
 import net.caustic.regexp.JakartaRegexpCompiler;
 import net.caustic.regexp.JavaUtilRegexpCompiler;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.regexp.StringTemplate;
-import net.caustic.scope.Scope;
 import net.caustic.template.StringSubstitution;
 import net.caustic.util.Encoder;
 import net.caustic.util.JavaNetEncoder;
+import net.caustic.util.StringMap;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,15 +24,12 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class StringTemplateTest {
+	private @NonStrict StringMap context;
 	private static Encoder encoder;
 	private final RegexpCompiler re;
-	private Database db;
-	private Scope scope;
 	
-	public StringTemplateTest(RegexpCompiler regexpCompiler) throws DatabaseException {
+	public StringTemplateTest(RegexpCompiler regexpCompiler) {
 		this.re = regexpCompiler;
-		this.db = new MemoryDatabase();
-		this.scope = db.newDefaultScope();
 	}
 	
 	@Parameters
@@ -47,11 +43,13 @@ public class StringTemplateTest {
 	
 	@Test
 	public void testSubSuccessfulNotEncoded() throws Exception {
-		db.put(scope, "not encoded", "one & more reasons it <b>should be</b>");
+		new Expectations() {{
+			context.get("not encoded"); result = "one & more reasons it <b>should be</b>";
+		}};
 		
 		StringTemplate template = re.newTemplate("substituted but {{{not encoded}}}",
 				ENCODED_PATTERN, UNENCODED_PATTERN);
-		StringSubstitution sub = template.sub(db, scope);
+		StringSubstitution sub = template.sub(context);
 		assertFalse(sub.isMissingTags());
 		assertEquals("substituted but one & more reasons it <b>should be</b>", sub.getSubstituted());
 	}
@@ -60,18 +58,21 @@ public class StringTemplateTest {
 	public void testSubUnsuccessfulNotEncoded() throws Exception {
 		StringTemplate template = re.newTemplate("this {{{is missing}}}",
 				ENCODED_PATTERN, UNENCODED_PATTERN);
-		StringSubstitution sub = template.sub(db, scope);
+		StringSubstitution sub = template.sub(context);
 		assertTrue(sub.isMissingTags());
 		assertArrayEquals(new String[] { "is missing" }, sub.getMissingTags());
 	}
 	
 	@Test
 	public void testSubSuccessfulEncoded() throws Exception {
-		String strToEncode =  "& it very well <i>ought to be</i>";
-		db.put(scope, "encoded", strToEncode);
+		final String strToEncode =  "& it very well <i>ought to be</i>";
+		new Expectations() {{
+			context.get("encoded"); result = strToEncode;
+		}};
+		
 		StringTemplate template = re.newTemplate("substituted {{encoded}}",
 				ENCODED_PATTERN, UNENCODED_PATTERN);
-		StringSubstitution sub = template.sub(db, scope);
+		StringSubstitution sub = template.sub(context);
 		assertFalse(sub.isMissingTags());
 		assertEquals("substituted " + encoder.encode(strToEncode), sub.getSubstituted());
 	}
@@ -79,7 +80,7 @@ public class StringTemplateTest {
 	@Test
 	public void testSubUnsuccessfulEncoded() throws Exception {
 		StringTemplate template = re.newTemplate("this {{is missing}}", ENCODED_PATTERN, UNENCODED_PATTERN);
-		StringSubstitution sub = template.sub(db, scope);
+		StringSubstitution sub = template.sub(context);
 		assertTrue(sub.isMissingTags());
 		assertArrayEquals(new String[] { "is missing" }, sub.getMissingTags());
 	}

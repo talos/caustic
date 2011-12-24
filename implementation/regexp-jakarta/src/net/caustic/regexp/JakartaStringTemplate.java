@@ -4,12 +4,10 @@ import java.util.Vector;
 
 import org.apache.regexp.RE;
 
-import net.caustic.database.Database;
-import net.caustic.database.DatabaseException;
 import net.caustic.regexp.StringTemplate;
-import net.caustic.scope.Scope;
 import net.caustic.template.StringSubstitution;
 import net.caustic.util.Encoder;
+import net.caustic.util.StringMap;
 
 public class JakartaStringTemplate extends StringTemplate {
 	private static final int NOT_MATCHED = -1;
@@ -28,8 +26,7 @@ public class JakartaStringTemplate extends StringTemplate {
 		this.encoder = encoder;
 	}
 	
-	public StringSubstitution sub(Database db, Scope scope)
-			throws DatabaseException {
+	public StringSubstitution sub(StringMap tags) {
 		StringBuffer buf = new StringBuffer();
 		Vector missingTags = new Vector();
 		int pos = 0;
@@ -75,7 +72,7 @@ public class JakartaStringTemplate extends StringTemplate {
 			buf.append(templateString.substring(pos, begin));
 			
 			// retrieve & append value
-			String value = db.get(scope, tagName);
+			String value = tags.get(tagName);
 			if(value != null) {
 				if(encoded) {
 					buf.append(encoder.encode(value));

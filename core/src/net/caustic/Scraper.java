@@ -75,21 +75,21 @@ public class Scraper {
 					instruction = instruction.substring(1, request.instruction.length() - 1);
 					result = deserializeString(request, instruction, encodedPatternString, notEncodedPatternString);
 				} else {
-					result = Response.Failed(request, null, "String is missing quote at end.");
+					result = Response.Failed(request.id, request.uri, null, "String is missing quote at end.");
 				}
 				break;
 			default:
-				result = Response.Failed(request, null, "Valid serialized instructions must begin with '\"', '{', or '['.");
+				result = Response.Failed(request.id, request.uri, null, "Valid serialized instructions must begin with '\"', '{', or '['.");
 			}
 			
 		} catch(JSONException e) {
-			return Response.Failed(request, null, e.getMessage());
+			return Response.Failed(request.id, request.uri, null, e.getMessage());
 		} catch (MalformedUriException e) {
-			return Response.Failed(request, null, e.getMessage());
+			return Response.Failed(request.id, request.uri, null, e.getMessage());
 		} catch(URILoaderException e) {
-			return Response.Failed(request, null, e.getMessage());
+			return Response.Failed(request.id, request.uri, null, e.getMessage());
 		} catch (RemoteToLocalSchemeResolutionException e) {
-			return Response.Failed(request, null, e.getMessage());
+			return Response.Failed(request.id, request.uri, null, e.getMessage());
 		}
 		return result;
 	}
@@ -121,7 +121,7 @@ public class Scraper {
 			
 			result = scrape(request, loadedJSONString, encodedPatternString, notEncodedPatternString);
 		} else {
-			result = Response.Missing(request, null, uriSub.getMissingTags());
+			result = Response.Missing(request.id, request.uri, null, uriSub.getMissingTags());
 		}
 		return result;
 	}
@@ -142,7 +142,7 @@ public class Scraper {
 		for(int i = 0 ; i < instructions.length ; i ++) {
 			instructions[i] = jsonAry.getString(i);
 		}
-		return Response.DoneArray(request, instructions);
+		return Response.DoneArray(request.id, request.uri, instructions);
 	}
 	
 	private Response deserializeObject(Request request, String instruction,
@@ -206,7 +206,7 @@ public class Scraper {
 							if(array.optJSONObject(j) != null) {
 								extendsObjects.add(array.getJSONObject(j));
 							} else if(array.optJSONArray(j) != null) {
-								return Response.Failed(request, description, Instruction.EXTENDS + " array elements must be strings or objects."); // premature return
+								return Response.Failed(request.id, request.uri, description, Instruction.EXTENDS + " array elements must be strings or objects."); // premature return
 							} else {
 								extendsStrings.add(array.getString(j));
 							}						
@@ -231,7 +231,7 @@ public class Scraper {
 							jsonObjects.add(new JSONObject(loadedJSONString));
 						} else {
 							// can't substitute uri to load EXTENDS reference, missing-variable out.
-							return Response.Missing(request, description, uriSubstitution.getMissingTags());
+							return Response.Missing(request.id, request.uri, description, uriSubstitution.getMissingTags());
 						}
 					}
 				} else if(key.equalsIgnoreCase(Instruction.THEN)) {
@@ -251,7 +251,7 @@ public class Scraper {
 								// have to quote these for them to deserialize properly.
 								thenStrings.add(StringUtils.quote(array.getString(j)));
 							} else {
-								return Response.Failed(request, description, Instruction.THEN + " array elements " +
+								return Response.Failed(request.id, request.uri, description, Instruction.THEN + " array elements " +
 										"must be strings or objects.");
 							}
 						}
@@ -294,7 +294,7 @@ public class Scraper {
 					
 					// can't extend preexisting post data.
 					if(postData != null) {
-						return Response.Failed(request, description, "Post data was already defined, cannot overwrite " +
+						return Response.Failed(request.id, request.uri, description, "Post data was already defined, cannot overwrite " +
 								StringUtils.quote(postData.toString()) +
 								" with " + StringUtils.quote(obj.getString(key)));
 					}
@@ -307,12 +307,12 @@ public class Scraper {
 										notEncodedPatternString),
 								false); // precedence is given to the original object
 					} else if(obj.optJSONArray(key) != null) {
-						return Response.Failed(request, description, StringUtils.quote(key) +
+						return Response.Failed(request.id, request.uri, description, StringUtils.quote(key) +
 								" must be a String with post data or an object with name-value-pairs.");
 						
 					} else {
 						if(posts.size() > 0) {
-							return Response.Failed(request, description, "Post data was already defined as a hash, cannot overwrite " +
+							return Response.Failed(request.id, request.uri, description, "Post data was already defined as a hash, cannot overwrite " +
 									" with string " + StringUtils.quote(obj.getString(key)));
 						}
 						postData = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
@@ -354,7 +354,7 @@ public class Scraper {
 				} else {
 					// break out early
 					//return DeserializerResult.failure(StringUtils.quote(key) + " is not a valid key.");
-					return Response.Failed(request, description,
+					return Response.Failed(request.id, request.uri, description,
 							StringUtils.quote(key) + " is not a valid key.");
 				}
 			}
@@ -364,7 +364,7 @@ public class Scraper {
 		children.copyInto(childrenAry);
 		if(url != null && pattern != null) {
 			// Can't define two actions.
-			return Response.Failed(request, description, "Cannot define both " + Find.FIND + " and " + Load.LOAD);
+			return Response.Failed(request.id, request.uri, description, "Cannot define both " + Find.FIND + " and " + Load.LOAD);
 			//return DeserializerResult.failure("Cannot define both " + FIND + " and " + LOAD);
 		} else if(url != null) {
 			// We have a Load
@@ -375,34 +375,35 @@ public class Scraper {
 			}
 			final Load load;
 			if(posts.size() > 0) {
-				load = new Load(instruction, description, request.uri, url, childrenAry, method,
+				load = new Load(description, request.uri, url, childrenAry, method,
 						cookies, headers, posts);
 			} else {
-				load = new Load(instruction, description, request.uri, url, childrenAry, method,
+				load = new Load(description, request.uri, url, childrenAry, method,
 						cookies, headers, postData);
 			}
-			return load.execute(browser, request);
+			return load.execute(request.id, request.tags, request.cookies, browser, request.force);
 		} else if(pattern != null) {
 			// We have a Find
 			
 			// if name was defined, use it; otherwise use the regex as a name
-			boolean hasName = name    == null ? false : true;
-			name            = hasName == true ? name : pattern;
+			//boolean hasName = name    == null ? false : true;
+			//name            = hasName == true ? name : pattern;
+			name = name == null ? pattern : name;
 			
 			min     = match  == null ? min : match.intValue(); // if match was defined, use it.
 			max     = match  == null ? max : match.intValue();
 			if(RegexpUtils.isValidRange(min, max) == false) {
-				return Response.Failed(request, description, 
+				return Response.Failed(request.id, request.uri, description, 
 						"Range " + StringUtils.quote(min) + " to " +
 						StringUtils.quote(max) + " is not valid for " + Find.FIND);
 			}
 			
-			final Find find = new Find(instruction, description, request.uri, compiler, name, hasName, pattern,
+			final Find find = new Find(description, request.uri, compiler, name, pattern,
 					replace, min, max, isCaseInsensitive,
 					isMultiline, doesDotMatchNewline, childrenAry);
-			return find.execute(request);
+			return find.execute(request.id, request.uri, request.tags);
 		} else {
-			return Response.Failed(request, description, "Must define " + Find.FIND + " or " + Load.LOAD);
+			return Response.Failed(request.id, request.uri, description, "Must define " + Find.FIND + " or " + Load.LOAD);
 		}
 	}
 	

@@ -19,6 +19,6 @@ import org.junit.runners.Suite.SuiteClasses;
 	URILoaderIntegrationTest.class,
 
 })
-public class IntegrationTests {
+public class CoreIntegrationTests {
 
 }

@@ -38,11 +38,11 @@ public final class Response {
 	
 	private final String serialized;
 		
-	private Response(Request request, String description, String[] children, String content, String[] cookies,
+	private Response(String id, String uri, String description, String[] children, String content, String[] cookies,
 			String name, String[] values, String[] missingTags, String failedBecause) {
 		try {
-			this.id = request.id;
-			this.uri = request.uri;
+			this.id = id;
+			this.uri = uri;
 			this.description = description;
 			this.children = children;
 			this.content = content;
@@ -53,8 +53,8 @@ public final class Response {
 			this.failedBecause = failedBecause;
 			
 			final JSONObject obj = new JSONObject();
-			obj.put(ID, request.id);
-			obj.put(URI, request.uri);
+			obj.put(ID, id);
+			obj.put(URI, uri);
 			
 			if(description != null) {
 				obj.put(DESCRIPTION, description);
@@ -90,27 +90,27 @@ public final class Response {
 		return serialized;
 	}
 	
-	static Response DoneArray(Request request, String[] children) {
-		return new Response(request, null, children, null, null, null, null, null, null);
+	static Response DoneArray(String id, String uri, String[] children) {
+		return new Response(id, uri, null, children, null, null, null, null, null, null);
 	}
 
-	static Response DoneLoad(Request request, String description, String[] children, String content, String[] cookies) {
-		return new Response(request, description, children, content, cookies, null, null, null, null);
+	static Response DoneLoad(String id, String uri, String description, String[] children, String content, String[] cookies) {
+		return new Response(id, uri, description, children, content, cookies, null, null, null, null);
 	}
 	
-	static Response DoneFind(Request request, String description, String[] children, String name, String[] values) {
-		return new Response(request, description, children, null, null, name, values, null, null);
+	static Response DoneFind(String id, String uri, String description, String[] children, String name, String[] values) {
+		return new Response(id, uri, description, children, null, null, name, values, null, null);
 	}
 	
-	static Response Missing(Request request, String description, String[] missingTags) {
-		return new Response(request, description, null, null, null, null, null, missingTags, null);
+	static Response Missing(String id, String uri, String description, String[] missingTags) {
+		return new Response(id, uri, description, null, null, null, null, null, missingTags, null);
 	}
 	
-	static Response Failed(Request request, String description, String failedBecause) {
-		return new Response(request, description, null, null, null, null, null, null, failedBecause);
+	static Response Failed(String id, String uri, String description, String failedBecause) {
+		return new Response(id, uri, description, null, null, null, null, null, null, failedBecause);
 	}
 	
-	static Response Wait(Request request, String description) {
-		return new Response(request, description, null, null, null, null, null, null, null);
+	static Response Wait(String id, String uri, String description) {
+		return new Response(id, uri, description, null, null, null, null, null, null, null);
 	}
 }

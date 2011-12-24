@@ -148,4 +148,26 @@ public class HashtableUtilsTest {
 		map.put(randomString(), randomString());
 		empty.putAll(map);
 	}
+	
+	@Test
+	public void testEmptyToFormEncoded() {
+		assertEquals("", HashtableUtils.toFormEncoded(HashtableUtils.EMPTY));
+	}
+	
+	@Test
+	public void testToFormEncoded() {
+		Hashtable<String, String> table = new Hashtable<String, String>();
+		table.put("roses", "red");
+		table.put("violets", "blue");
+		String formEncoded = HashtableUtils.toFormEncoded(table);
+		assertTrue(formEncoded.equals("roses=red&violets=blue") || formEncoded.equals("violets=blue&roses=red"));
+	}
+	
+	@Test
+	public void testToFormEncodedDoesNotEncode() {
+		// encoding should be done before
+		Hashtable<String, String> table = new Hashtable<String, String>();
+		table.put("roses are red", "violets are blue");
+		assertEquals("roses are red=violets are blue", HashtableUtils.toFormEncoded(table));
+	}
 }

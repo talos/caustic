@@ -12,7 +12,9 @@ public class HashtableUtils {
 	 * @return A {@link HashtableDatabase}.
 	 */
 	public static String toFormEncoded(Hashtable hashtable) {
-
+		if(hashtable.size() == 0) {
+			return "";
+		}
 		StringBuffer buf = new StringBuffer();
 		Enumeration keys = hashtable.keys();
 		try {

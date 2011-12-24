@@ -78,7 +78,7 @@ public final class Find extends Instruction {
 	
 	private final String[] children;
 	
-	private final boolean hasName;
+	//private final boolean hasName;
 	
 	private final RegexpCompiler compiler;
 	
@@ -126,14 +126,14 @@ public final class Find extends Instruction {
 	 */
 	private final int maxMatch;// = Pattern.LAST_MATCH;
 	
-	public Find(String serializedString, String description, String uri,
-			RegexpCompiler compiler, StringTemplate name, boolean hasName,
+	public Find(String description, String uri,
+			RegexpCompiler compiler, StringTemplate name,
 			StringTemplate pattern, StringTemplate replacement,
 			int minMatch, int maxMatch,
 			boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
 			String[] children) {
-		super(serializedString, description, uri);
-		this.hasName = hasName;
+		super(description, uri);
+		//this.hasName = hasName;
 		this.name = name;
 		this.compiler = compiler;
 		this.pattern = pattern;
@@ -161,13 +161,11 @@ public final class Find extends Instruction {
 	 * Use {@link #pattern}, substituted from {@link Database}, to match against <code>source</code>.
 	 * Ignores <code>browser</code>.
 	 */
-	public Response execute(Request request) {
-		String input = request.input;
+	public Response execute(String id, String input, StringMap tags) {
 		if(input == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
 		final Response result;
-		StringMap tags = request.tags;
 		
 		final StringSubstitution subName = name.sub(tags);
 		final StringSubstitution subPattern = pattern.sub(tags);
@@ -178,7 +176,7 @@ public final class Find extends Instruction {
 				subReplacement.isMissingTags()) { // One of the substitutions was not OK.
 			final String[] missingTags = StringSubstitution.combine(
 					new DependsOnTemplate[] { subName, subPattern, subReplacement });
-			result = Response.Missing(request, description, missingTags);
+			result = Response.Missing(id, uri, description, missingTags);
 		} else {
 			
 			// All the substitutions were OK.
@@ -191,12 +189,12 @@ public final class Find extends Instruction {
 			String[] matches = pattern.match(input, replacement, minMatch, maxMatch);
 			
 			if(matches.length == 0) { // No matches, fail out.
-				result = Response.Failed(request, description, "Match " + StringUtils.quote(pattern) +
+				result = Response.Failed(id, uri, description, "Match " + StringUtils.quote(pattern) +
 						" did not have a match between " + 
 						StringUtils.quote(minMatch) + " and " + 
 						StringUtils.quote(maxMatch) + " against " + input);
 			} else {
-				result = Response.DoneFind(request, description, children, resultName, matches);
+				result = Response.DoneFind(id, uri, description, children, resultName, matches);
 			}
 		}
 		return result;

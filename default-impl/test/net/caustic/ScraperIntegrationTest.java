@@ -1,4 +1,4 @@
-package net.caustic.client;
+package net.caustic;
 
 import static org.junit.Assert.*;
 import static net.caustic.util.StringUtils.quote;
@@ -11,17 +11,10 @@ import mockit.Expectations;
 import mockit.NonStrict;
 import mockit.Verifications;
 import mockit.VerificationsInOrder;
-import net.caustic.Executable;
-import net.caustic.LogScraperListener;
 import net.caustic.Scraper;
-import net.caustic.ScraperListener;
-import net.caustic.database.Database;
-import net.caustic.database.DatabaseListener;
-import net.caustic.database.MemoryDatabase;
 import net.caustic.log.Logger;
 import net.caustic.log.SystemErrLogger;
-import net.caustic.scope.Scope;
-import net.caustic.scope.SerializedScope;
+import net.caustic.util.StringMap;
 import net.caustic.util.StringUtils;
 
 import org.junit.After;
@@ -35,59 +28,27 @@ import org.junit.Test;
  */
 public class ScraperIntegrationTest {
 	
-	/**
-	 * How many milliseconds to wait for a scraper to go idle.
-	 */
-	private static final int SCRAPER_WAIT_TIME = 5000;
+	private @NonStrict StringMap tags;
+	private static final String URI = StringUtils.USER_DIR;
+	
 	private static final String demosDir = "../demos/";
-	private @NonStrict ScraperListener listener;
-	private Hashtable<String, String> input;
 	private Scraper scraper;
 	private Logger logger = new SystemErrLogger();
-	private Database db;
 	
 	@Before
 	public void setUp() throws Exception {
-		db = new MemoryDatabase();
-		scraper = new Scraper(db, listener);
-		scraper.register(logger);
-		scraper.setAutoRun(true);
+		scraper = new DefaultScraper();
 		
-		input = new Hashtable<String, String>();
 	}
-	/*
-	@After
-	public void tearDown() throws Exception {
-		//join(scope);
-	}*/
 	
 	@Test
 	public void testScrapeStuck() throws Exception {
-		final Scope scope = scraper.scrape(demosDir + "simple-google.json", input);
-		join(scope);
+		Response resp = scraper.scrape(
+				new Request("id", demosDir + "simple-google.json", URI, null, tags, new String[]{}, true));
 		
-		new Verifications() {{
-			listener.onScopeComplete(scope, 0, 1, 0);
-		}};
+		assertArrayEquals(new String[] { "query" }, resp.missingTags);
 	}
 
-	@Test
-	public void testScrapeStuckThenUnstuck() throws Exception {
-		final Scope scope = scraper.scrape(demosDir + "simple-google.json", input);
-		join(scope);
-		
-		new Verifications() {{
-			listener.onScopeComplete(scope, 0, 1, 0);
-		}};
-		
-		db.put(scope, "query", "hello");
-		join(scope);
-
-		new Verifications() {{
-			listener.onScopeComplete(scope, 2, 0, 0);
-		}};
-	}
-	
 	@Test
 	public void testScrapeFail() throws Exception {	
 		final Scope scope = scraper.scrape("path/to/nothing.json", input);
@@ -259,7 +220,6 @@ public class ScraperIntegrationTest {
 		scraper.scrapeAll(demosDir + "reference-google.json", input, listener);
 		scraper.join();
 		
-
 		new VerificationsInOrder() {{
 			listener.onSuccess((Instruction) any, (Database) any, (Scope) any, scope(0), null,
 					"query", (String[]) any);
@@ -614,30 +574,5 @@ public class ScraperIntegrationTest {
 		}
 	}*/
 	
-	/**
-	 * Convenience method to generate a matching scope from an int.
-	 * @param scopeNumber The <code>int</code> number of the scope.
-	 * @return A {@link Scope}
-	 */
-	private Scope scope(int scopeNumber) {
-		return new SerializedScope(Integer.toString(scopeNumber), "");
-	}
 	
-	/**
-	 * Wait {@link #SCRAPER_WAIT_TIME} for {@link #db} to be complete
-	 * on <code>scope</code>.
-	 * @throws InterruptedException
-	 */
-	private void join(Scope scope) throws Exception {
-		final int cycle = 50;
-		int timer = 0;
-		while(!db.isScopeComplete(scope)) {
-			Thread.sleep(cycle);
-			timer += cycle;
-			if(timer > SCRAPER_WAIT_TIME) {
-				scraper.interrupt();
-				throw new InterruptedException("Scraper not idle after " + SCRAPER_WAIT_TIME + " milliseconds.");
-			}
-		}
-	}
 }

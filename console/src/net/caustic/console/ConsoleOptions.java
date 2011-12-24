@@ -11,11 +11,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import net.caustic.database.CSVDatabaseListener;
-import net.caustic.database.Connection;
-import net.caustic.database.JDBCSqliteConnection;
-import net.caustic.database.MultiTableDatabase;
-import net.caustic.database.SingleTableDatabase;
 import net.caustic.http.DefaultHttpBrowser;
 import net.caustic.http.HttpBrowser;
 import net.caustic.log.Logger;
