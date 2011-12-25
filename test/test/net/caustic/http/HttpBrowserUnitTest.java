@@ -41,8 +41,8 @@ public class HttpBrowserUnitTest {
 				response.isSuccess(); result = true;
 			}
 		};
-		BrowserResponse response = browser.request("url", "post", HashtableUtils.EMPTY, new String[] {}, null);
-		assertEquals("", response.content);
+		BrowserResponse response = browser.request("url", "head", HashtableUtils.EMPTY, new String[] {}, null);
+		assertNull(response.content);
 		assertArrayEquals(new String[] {}, response.cookies);
 	}
 
@@ -72,7 +72,7 @@ public class HttpBrowserUnitTest {
 				contentStream.close();
 			}
 		};
-		assertEquals(content, browser.request("url", "get", HashtableUtils.EMPTY, new String[] {}, null));
+		assertEquals(content, browser.request("url", "get", HashtableUtils.EMPTY, new String[] {}, null).content);
 	}
 	
 }

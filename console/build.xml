@@ -11,10 +11,10 @@
             <fileset dir="../console/bin"/>
             <fileset dir="../core/build/classes"/>
             <fileset dir="../implementation/regexp-javautil/bin"/>
-            <fileset dir="../implementation/sqlite-jdbc/bin"/>
+            <!--<fileset dir="../implementation/sqlite-jdbc/bin"/>-->
             <fileset dir="../default-impl/bin"/>
-            <zipfileset excludes="META-INF/*.SF" src="../implementation/sqlite-jdbc/lib/sqlitejdbc-v056/sqlitejdbc-v056.jar"/>
-            <fileset dir="../implementation/json-me/bin"/>
+            <!--<zipfileset excludes="META-INF/*.SF" src="../implementation/sqlite-jdbc/lib/sqlitejdbc-v056/sqlitejdbc-v056.jar"/>
+            <fileset dir="../implementation/json-me/bin"/>-->
             <fileset dir="../implementation/javanet/bin"/>
         </jar>
     </target>

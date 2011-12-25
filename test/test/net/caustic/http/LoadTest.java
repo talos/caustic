@@ -117,7 +117,7 @@ public class LoadTest {
 		Response response = load.execute("id", tags, new String[] {}, browser, true);
 		assertEquals(response.content, "and violets are blue");
 	}
-	
+	/*
 	@Test
 	public void testPostDataSetsPostMethod() throws Exception {
 		new Expectations() {{
@@ -129,7 +129,7 @@ public class LoadTest {
 				"get", empty, empty, empty);
 		Response response = load.execute("id", tags, new String[] {}, browser, true);
 		assertEquals(response.content, "and violets are blue");
-	}
+	}*/
 	
 	@Test
 	public void testPostDataIsSubbed() throws Exception {

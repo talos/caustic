@@ -175,7 +175,7 @@ public final class Load extends Instruction {
 				
 				String[] cookiesAry = new String[requestCookies.length
 						+ templateCookiesAry.length];
-				System.arraycopy(templateCookiesAry, 0, cookiesAry, 0, cookiesAry.length);
+				System.arraycopy(templateCookiesAry, 0, cookiesAry, 0, templateCookiesAry.length);
 				System.arraycopy(requestCookies, 0, cookiesAry, templateCookiesAry.length,
 						requestCookies.length);
 				

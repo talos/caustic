@@ -1,5 +1,6 @@
 package net.caustic.util;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -16,13 +17,13 @@ public class CollectionStringMap implements StringMap {
 	
 	public CollectionStringMap(String id, Map<String, String> map) {
 		this.id = id;
-		this.map = map;
+		this.map = Collections.synchronizedMap(map);
 		this.parent = null;
 	}
 	
 	private CollectionStringMap(String id, CollectionStringMap parent, Map<String, String> map) {
 		this.id = id;
-		this.map = map;
+		this.map = Collections.synchronizedMap(map);
 		this.parent = parent;
 	}
 
@@ -47,11 +48,12 @@ public class CollectionStringMap implements StringMap {
 		return new CollectionStringMap(id, this, map);
 	}
 	
-	public String getParentId() {
+	public String toString() {
+		StringBuilder build = new StringBuilder();
 		if(parent != null) {
-			return parent.id;
-		} else {
-			return null;
+			build.append(parent.toString()).append("<=");
 		}
+		build.append(StringUtils.quote(id) + ":" + map.toString());
+		return build.toString();
 	}
 }

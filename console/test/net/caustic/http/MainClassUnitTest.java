@@ -1,14 +1,17 @@
-package net.caustic.console;
+package net.caustic.http;
 
 import java.io.PrintStream;
 import java.util.Hashtable;
 
+import mockit.Capturing;
 import mockit.Expectations;
+import mockit.Injectable;
 import mockit.Mocked;
 import mockit.Verifications;
 import mockit.VerificationsInOrder;
-import net.caustic.console.ConsoleOptions;
 import net.caustic.console.MainClass;
+import net.caustic.console.Output;
+import net.caustic.http.BrowserResponse;
 import net.caustic.http.HttpBrowser;
 import net.caustic.util.HashtableUtils;
 import net.caustic.util.StringUtils;
@@ -16,19 +19,25 @@ import net.caustic.util.StringUtils;
 import org.junit.After;
 import org.junit.Test;
 
-public class MainClassTest {
+public class MainClassUnitTest {
 
+	private static final String DEMOS = "../demos";
+	private static final String FIXTURES = "../fixtures";
+	private @Capturing HttpBrowser browser;
+	
 	//private @Mocked(inverse=true, methods={"print", "println"}) PrintStream out;
-	private @Mocked(methods={"lsdkjflsdkjf"}) PrintStream out;
+	//private @Mocked(methods={"lsdkjflsdkjf"}) PrintStream out;
+	
+	private @Mocked(methods={"print"}) Output out;
 	
 	/**
 	 * 
 	 * @param strings 
 	 * @return A fake result string that would appear in console.
 	 */
-	private static String row(String... strings) {
+	/*private static String String... strings) {
 		return StringUtils.quoteJoin(strings, "\t") + StringUtils.NEWLINE;
-	}
+	}*/
 	
 	@After
 	public void tearDown() throws Exception {
@@ -36,7 +45,7 @@ public class MainClassTest {
 		//Runtime.getRuntime().removeShutdownHook(Console.shutdownThread);
 	}
 	
-	@Test
+	/*@Test
 	public void testNoArgsMissingInstruction() throws Exception {
 		new Expectations() {{
 			out.print(ConsoleOptions.INSTRUCTION_MISSING_ERROR);
@@ -46,45 +55,44 @@ public class MainClassTest {
 		}};
 		//new Console();
 		MainClass.main();
-	}
+	}*/
 
 	@Test
 	public void testSimpleGoogleMissingInput() throws Exception {
-		//final Console console = new Console("../fixtures/json/simple-google.json", "--log-stdout");
 		//console.execute();
 		new VerificationsInOrder() {{
-			out.print(row("scope", "source", "name", "value"));
+			out.print("scope", "source", "name", "value");
 			//out.print(ScraperExecutor.formatStatusLine(0, 1, 0, 0, 0));
 		}};
 		
-		MainClass.main("../fixtures/json/simple-google.json", "--log-stdout");
+		MainClass.main(DEMOS + "/simple-google.json", "--log");
 	}
 	
 	@Test
 	public void testSimpleGoogleStringInput() throws Exception {
 		new Expectations() {
-			@Mocked({"request"}) HttpBrowser browser;
+			//@Mocked({"request"}) HttpBrowser browser;
 			{
 				browser.request("http://www.google.com/search?q=hello", "get", (Hashtable) any, (String[]) any, null);
-					result = "hello world hello tree hello whee";
+					result = new BrowserResponse("hello world hello tree hello whee", new String[] {});
 			}
 		};
 		
 		MainClass.main(
-				"../fixtures/json/simple-google.json",
-				"--input=query=hello"
+				DEMOS + "/simple-google.json",
+				"--input=query=hello",
+				"--log"
 					);
 		
 		//Console.shutdownThread.start();
 		//Console.shutdownThread.join();
 		
 		new VerificationsInOrder() {{
-			out.print(row("scope", "source", "name", "value"));
-			out.print(row("0", "0", "query", "hello"));
-			out.print(row("1", "0", "what do you say after 'hello'?", "I say 'world'!"));
-			out.print(row("2", "0", "what do you say after 'hello'?", "I say 'tree'!"));
-			out.print(row("3", "0", "what do you say after 'hello'?", "I say 'whee'!"));
-			//out.print(ScraperExecutor.formatStatusLine(2, 0, 0, 0, 0));
+			out.print("scope", "source", "name", "value");
+			out.print("1", "0", "what do you say after 'hello'?", "I say 'world'!");
+			out.print("2", "0", "what do you say after 'hello'?", "I say 'tree'!");
+			out.print("3", "0", "what do you say after 'hello'?", "I say 'whee'!");
+			//out.print(ScraperExecutor.formatStatusLine(2, 0, 0, 0, 0);
 		}};
 	}
 	
@@ -95,20 +103,20 @@ public class MainClassTest {
 	 */
 	public void recordSimpleGoogleInputFile(int numThreads) throws Exception {
 		new Expectations() {
-			@Mocked({"request"}) HttpBrowser browser;
 			{
 				browser.request("http://www.google.com/search?q=hello", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-					result = "hello world";
+					result = new BrowserResponse("hello world", new String[] {});
 				browser.request("http://www.google.com/search?q=meh", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-					result = "unrelated words";
+					result = new BrowserResponse("unrelated words", new String[] {});
 				browser.request("http://www.google.com/search?q=bleh", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-					result = "bleh this bleh that";
+					result = new BrowserResponse("bleh this bleh that", new String[] {});
 			}
 		};
 		MainClass.main(
-				"../fixtures/json/simple-google.json",
-				"--input-file=../fixtures/csv/queries.csv",
-				"--threads=" + numThreads
+				DEMOS + "/simple-google.json",
+				"--input-file=" + FIXTURES + "/csv/queries.csv",
+				"--threads=" + numThreads,
+				"--log"
 					);
 	}
 	
@@ -118,14 +126,11 @@ public class MainClassTest {
 		recordSimpleGoogleInputFile(1);
 		// In order, because this is synchronous
 		new VerificationsInOrder() {{
-			out.print(row("scope", "source", "name", "value"));
-			out.print(row("0", "0", "query", "hello"));
-			out.print(row("0", "0", "what do you say after 'hello'?", "I say 'world'!"));
-			out.print(row("1", "1", "query", "meh"));
-			out.print(row("2", "2", "query", "bleh"));
-			out.print(row("3", "2", "what do you say after 'bleh'?", "I say 'this'!"));
-			out.print(row("4", "2", "what do you say after 'bleh'?", "I say 'that'!"));
-			//out.print(ScraperExecutor.formatStatusLine(5, 0, 1, 0, 0));
+			out.print("scope", "source", "name", "value");
+			out.print("0", "0", "what do you say after 'hello'?", "I say 'world'!");
+			out.print("3", "2", "what do you say after 'bleh'?", "I say 'this'!");
+			out.print("4", "2", "what do you say after 'bleh'?", "I say 'that'!");
+			//out.print(ScraperExecutor.formatStatusLine(5, 0, 1, 0, 0);
 		}};
 	}
 
@@ -134,58 +139,47 @@ public class MainClassTest {
 		recordSimpleGoogleInputFile(5);
 		// Out of order, because this is asynchronous
 		new Verifications() {{
-			out.print(row("scope", "source", "name", "value"));
-			out.print(withSuffix(row("query", "hello")));
-			out.print(withSuffix(row("what do you say after 'hello'?", "I say 'world'!")));
-			out.print(withSuffix(row("query", "meh")));
-			out.print(withSuffix(row("query", "bleh")));
-			out.print(withSuffix(row("what do you say after 'bleh'?", "I say 'this'!")));
-			out.print(withSuffix(row("what do you say after 'bleh'?", "I say 'that'!")));
-			//out.print(ScraperExecutor.formatStatusLine(5, 0, 1, 0, 0));
+			out.print("scope", "source", "name", "value");
+			out.print(anyString, anyString, "what do you say after 'hello'?", "I say 'world'!");
+			out.print(anyString, anyString, "what do you say after 'bleh'?", "I say 'this'!");
+			out.print(anyString, anyString, "what do you say after 'bleh'?", "I say 'that'!");
+			//out.print(ScraperExecutor.formatStatusLine(5, 0, 1, 0, 0);
 		}};
 	}
 	
 	public void testComplexGoogleGeneric(String pathToFixture) throws Exception {
 		new Expectations() {
-			@Mocked({"request"}) HttpBrowser browser;
 			{
 			browser.request("http://www.google.com/search?q=hello", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-				result = "hello world hello tree hello whee";
+				result = new BrowserResponse("hello world hello tree hello whee", new String[]{});
 			browser.request("http://www.google.com/search?q=world", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-				result = "world peace world domination";
+				result = new BrowserResponse("world peace world domination", new String[]{});
 			browser.request("http://www.google.com/search?q=tree", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-				result = "tree planting";
+				result = new BrowserResponse("tree planting", new String[]{});
 			browser.request("http://www.google.com/search?q=whee", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-				result = "";
+				result = new BrowserResponse("", new String[]{});
 		}};
 		
-		MainClass.main(
-				pathToFixture,
-				"--input=query=hello"
-					);
+		MainClass.main(pathToFixture, "--input=query=hello", "--threads=1", "--log");
 		
-		new VerificationsInOrder() {{
-			out.print(row("scope", "source", "name", "value"));
-			out.print(row("0", "0", "query", "hello"));
-			out.print(row("1", "0", "query", "world"));
-			out.print(row("2", "0", "query", "tree"));
-			out.print(row("3", "0", "query", "whee"));
-			out.print(row("4", "1", "what do you say after 'world'?", "I say 'peace'!"));
-			out.print(row("5", "1", "what do you say after 'world'?", "I say 'domination'!"));
-			out.print(row("2", "2", "what do you say after 'tree'?", "I say 'planting'!"));
-				$ = "Single match, should share scope.";
-			//out.print(ScraperExecutor.formatStatusLine(7, 0, 1, 0, 0));
-			//	$ = "The lack of matches for 'whee' should count as a failure.";
+		new Verifications() {{
+			out.print("scope", "source", "name", "value");
+			out.print("1", "0", "query", "world");
+			out.print("2", "0", "query", "tree");
+			out.print("3", "0", "query", "whee");
+			out.print("4", "1", "what do you say after 'world'?", "I say 'peace'!");
+			out.print("5", "1", "what do you say after 'world'?", "I say 'domination'!");
+			out.print("2", "2", "what do you say after 'tree'?", "I say 'planting'!");
 		}};
 	}
 	
 	@Test
 	public void testComplexGoogleNonreference() throws Exception {
-		testComplexGoogleGeneric("../fixtures/json/complex-google.json");
+		testComplexGoogleGeneric(DEMOS + "/complex-google.json");
 	}
 	
 	@Test
 	public void testComplexGoogleReference() throws Exception {
-		testComplexGoogleGeneric("../fixtures/json/reference-google.json");		
+		testComplexGoogleGeneric(DEMOS + "/reference-google.json");		
 	}
 }

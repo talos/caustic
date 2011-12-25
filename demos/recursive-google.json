@@ -4,6 +4,6 @@
     	"find"     : "{{query}}\\s+(\\w+)",
     	"replace" : "$1",
     	"name"   : "query",
-	"then"   : "$this"
+        "then"   : "./recursive-google.json"
     }
 }

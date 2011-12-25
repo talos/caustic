@@ -2,9 +2,13 @@ package net.caustic.console;
 
 import net.caustic.util.StringUtils;
 
-class Output {
+public class Output {
 
-	static void print(String parentId, String id, String name, String value) {
-		System.out.println(StringUtils.join(new String[] { parentId, id, name, value }, "\t"));
+	public Output() {
+		print("scope", "source", "name", "value");
+	}
+	
+	public void print(String scope, String source, String name, String value) {
+		System.out.println(StringUtils.join(new String[] { scope, source, name, value }, "\t"));
 	}
 }

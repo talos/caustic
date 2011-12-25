@@ -14,9 +14,7 @@ import net.caustic.util.StringUtils;
  *
  */
 public class Console {
-	
-	private static final String DEFAULT = "default";
-	
+		
 	private final Logger logger;
 	//private final Connection connection; // can be null.
 	private final Input input;
@@ -32,7 +30,7 @@ public class Console {
 		logger = options.getLogger();
 		input = options.getInput();
 		instruction = options.getInstruction();
-		requester = new Requester(new DefaultScraper(), options.getNumThreads());
+		requester = new Requester(new DefaultScraper(), options.getNumThreads(), new Output());
 		requester.register(logger);
 		/*connection = options.getConnection();
 		if(connection != null) {
@@ -57,8 +55,7 @@ public class Console {
 		while((inputMap = input.next()) != null) {
 
 			// add initial request
-			requester.request(instruction, StringUtils.USER_DIR, null, new CollectionStringMap(DEFAULT, inputMap),
-					new String[] {}, true);
+			requester.request(instruction, StringUtils.USER_DIR, inputMap);
 		}
 		try {
 			input.close();

@@ -192,7 +192,7 @@ public final class Find extends Instruction {
 				result = Response.Failed(id, uri, description, "Match " + StringUtils.quote(pattern) +
 						" did not have a match between " + 
 						StringUtils.quote(minMatch) + " and " + 
-						StringUtils.quote(maxMatch) + " against " + input);
+						StringUtils.quote(maxMatch) + " against " + StringUtils.quote(input));
 			} else {
 				result = Response.DoneFind(id, uri, description, children, resultName, matches);
 			}
