@@ -10,7 +10,6 @@ import mockit.VerificationsInOrder;
 import net.caustic.console.ConsoleOptions;
 import net.caustic.console.MainClass;
 import net.caustic.http.HttpBrowser;
-import net.caustic.regexp.Pattern;
 import net.caustic.util.HashtableUtils;
 import net.caustic.util.StringUtils;
 
@@ -64,7 +63,7 @@ public class MainClassTest {
 	@Test
 	public void testSimpleGoogleStringInput() throws Exception {
 		new Expectations() {
-			@Mocked({"head", "get", "post"}) HttpBrowser browser;
+			@Mocked({"request"}) HttpBrowser browser;
 			{
 				browser.request("http://www.google.com/search?q=hello", "get", (Hashtable) any, (String[]) any, null);
 					result = "hello world hello tree hello whee";
@@ -96,7 +95,7 @@ public class MainClassTest {
 	 */
 	public void recordSimpleGoogleInputFile(int numThreads) throws Exception {
 		new Expectations() {
-			@Mocked({"head", "get", "post"}) HttpBrowser browser;
+			@Mocked({"request"}) HttpBrowser browser;
 			{
 				browser.request("http://www.google.com/search?q=hello", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
 					result = "hello world";
@@ -148,7 +147,7 @@ public class MainClassTest {
 	
 	public void testComplexGoogleGeneric(String pathToFixture) throws Exception {
 		new Expectations() {
-			@Mocked({"head", "get", "post"}) HttpBrowser browser;
+			@Mocked({"request"}) HttpBrowser browser;
 			{
 			browser.request("http://www.google.com/search?q=hello", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
 				result = "hello world hello tree hello whee";

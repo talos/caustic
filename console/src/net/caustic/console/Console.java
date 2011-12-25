@@ -33,6 +33,7 @@ public class Console {
 		input = options.getInput();
 		instruction = options.getInstruction();
 		requester = new Requester(new DefaultScraper(), options.getNumThreads());
+		requester.register(logger);
 		/*connection = options.getConnection();
 		if(connection != null) {
 			database = options.getSQLDatabase(connection);
@@ -67,7 +68,6 @@ public class Console {
 			logger.e(e);
 		}
 		
-		requester.register(logger);
 		requester.join();
 		
 		/*if(connection != null) {

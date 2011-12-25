@@ -52,6 +52,7 @@ class Requester implements Loggable {
 			if(running.size() == 0) {
 				break;
 			}
+			
 			Thread.sleep(100);
 		}
 	}
@@ -96,17 +97,21 @@ class Requester implements Loggable {
 				request(child, response.uri, response.content, tags, childCookies, true);
 			}
 		}
+		running.remove(response.id);
 	}
 	
 	void retry(RunnableRequest request) {
 		exc.submit(request);
+		running.remove(request.request.id);
 	}
 	
 	void stuck(Response response) {
+		running.remove(response.id);
 		log.i("Stuck on " + StringUtils.quote(response.uri) + " because of missing tags: " + Arrays.asList(response.missingTags));
 	}
 	
 	void failed(Response response) {
+		running.remove(response.id);
 		log.i("Failed on " + StringUtils.quote(response.uri) + " because of " + StringUtils.quote(response.failedBecause));
 	}
 	

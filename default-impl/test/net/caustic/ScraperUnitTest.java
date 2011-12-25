@@ -29,6 +29,7 @@ public class ScraperUnitTest {
 	private static final String uri = StringUtils.USER_DIR;
 	
 	private @Capturing URILoader loader;
+	private @Capturing HttpBrowser browser;
 	private @NonStrict StringMap tags;
 	
 	private Scraper scraper;
@@ -40,9 +41,12 @@ public class ScraperUnitTest {
 	
 	@Test
 	public void testDeserializeSimpleLoadFromJsonSucceeds() throws Exception {
+		new Expectations() {{
+		}};
+		
 		JSONObject load = new JSONObject().put(Load.LOAD, "http://www.foo.com/");
 		
-		response = scraper.scrape(new Request("id", load.toString(), uri, tags, new String[] {}));
+		Response response = scraper.scrape(new Request("id", load.toString(), uri, null, tags, new String[] {}, true));
 		DeserializerResult result = deserializer.deserialize(load.toString(), db, scope, userDir);
 		assertTrue(result.getInstruction() != null);
 		assertTrue(result.getInstruction() instanceof Load);
@@ -155,7 +159,7 @@ public class ScraperUnitTest {
 		JSONObject bad = new JSONObject();
 		bad.put(FIND, "^foo$");
 		bad.put(LOAD, "http://www.foo.com/");
-				
+		
 		DeserializerResult result = deserializer.deserialize(bad.toString(), db, scope, userDir);
 		assertNotNull("Should have failed because both a Find and a Load were defined.",
 				result.getFailedBecause());
