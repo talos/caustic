@@ -5,7 +5,6 @@
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Core"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Caustic JavaNet Browser"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Caustic JSON ME"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Java Util Regexp"/>
 	<classpathentry kind="src" path="/Caustic Default Implementation"/>
 	<classpathentry kind="output" path="bin"/>

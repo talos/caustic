@@ -10,19 +10,17 @@ import java.util.Map;
  */
 public class CollectionStringMap implements StringMap {
 
-	public final String id;
+	//public final String id;
 	
 	private final CollectionStringMap parent;
 	private final Map<String, String> map;
 	
-	public CollectionStringMap(String id, Map<String, String> map) {
-		this.id = id;
+	public CollectionStringMap(Map<String, String> map) {
 		this.map = Collections.synchronizedMap(map);
 		this.parent = null;
 	}
 	
-	private CollectionStringMap(String id, CollectionStringMap parent, Map<String, String> map) {
-		this.id = id;
+	private CollectionStringMap(CollectionStringMap parent, Map<String, String> map) {
 		this.map = Collections.synchronizedMap(map);
 		this.parent = parent;
 	}
@@ -44,8 +42,8 @@ public class CollectionStringMap implements StringMap {
 		map.put(key,  value);
 	}
 	
-	public CollectionStringMap branch(String id, Map<String, String> map) {
-		return new CollectionStringMap(id, this, map);
+	public CollectionStringMap branch(Map<String, String> map) {
+		return new CollectionStringMap(this, map);
 	}
 	
 	public String toString() {
@@ -53,7 +51,7 @@ public class CollectionStringMap implements StringMap {
 		if(parent != null) {
 			build.append(parent.toString()).append("<=");
 		}
-		build.append(StringUtils.quote(id) + ":" + map.toString());
+		build.append(map.toString());
 		return build.toString();
 	}
 }

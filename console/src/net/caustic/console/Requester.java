@@ -1,10 +1,12 @@
 package net.caustic.console;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,25 +24,27 @@ import net.caustic.util.StringUtils;
 class Requester implements Loggable {
 
 	private final ExecutorService exc;
-	private final Scraper scraper;
+	final Scraper scraper;
 	private final Output output;
 	
-	//private final Map<String, CollectionStringMap> inputs = new HashMap<String, CollectionStringMap>();
-	//private final Map<String, String[]> cookieJars = new HashMap<String, String[]>();
 	private final MultiLog log = new MultiLog();
-	private final Set<String> running = new HashSet<String>();
+	private final Set<String> ready = Collections.synchronizedSet(new HashSet<String>());
+	private final Queue<RunnableRequest> wait = new LinkedList<RunnableRequest>();
 	
+	private final int nThreads;
 	private final AtomicInteger id = new AtomicInteger(0);
 	
 	Requester(Scraper scraper, int nThreads, Output output) {
 		this.scraper = scraper;
+		this.nThreads = nThreads;
 		exc = Executors.newFixedThreadPool(nThreads);
+		
 		this.output = output;
 	}
 
 	public void request(String instruction, String uri,
 			Map<String, String> inputMap) {
-		request(instruction, uri, null, new CollectionStringMap(uuid(), inputMap), new String[] {}, true);
+		request(uuid(), instruction, uri, null, new CollectionStringMap(inputMap), new String[] {}, false);
 	}
 	
 	public void register(Logger logger) {
@@ -49,7 +53,7 @@ class Requester implements Loggable {
 	
 	public void join() throws InterruptedException {
 		while(true) {
-			if(running.size() == 0 || exc.isShutdown()) {
+			if(ready.size() == 0 || exc.isShutdown()) {
 				exc.shutdownNow();
 				break;
 			}
@@ -58,24 +62,26 @@ class Requester implements Loggable {
 		}
 	}
 	
-	private void finished(Request request, CollectionStringMap requestTags, Response response) {
+	void finished(Request request, CollectionStringMap requestTags, Response response) {
 		log.i("Finished " + StringUtils.quote(request.instruction) + "(" + request.id + ")");
-				
-		final CollectionStringMap[] childTags;
+		
 		final String[] childCookies;
 		
 		// launch children from Find
 		if(response.values != null) {
 			childCookies = request.cookies;
-			childTags = new CollectionStringMap[response.values.length];
 			
 			final boolean isBranch = response.values.length > 1;
 			for(int i = 0 ; i < response.values.length ; i ++) {
 				// child input is destructive, if only one value is in response
-				childTags[i] = isBranch ? requestTags.branch(uuid(), new HashMap<String, String>()) : requestTags;
-				childTags[i].put(response.name, response.values[i]);
-
-				output.print(childTags[i].id, requestTags.id, response.name, response.values[i]);
+				CollectionStringMap tags = isBranch ? requestTags.branch(new HashMap<String, String>()) : requestTags;
+				tags.put(response.name, response.values[i]);
+				String id = uuid();
+				
+				output.print(id, request.id, response.name, response.values[i]);
+				for(String child : response.children) {
+					request(id, child, response.uri, response.content, tags, childCookies, false);
+				}
 			}
 		} else if(response.content != null) { // launch children from Load
 			// child cookies are destructive, if only one value is in response
@@ -86,40 +92,39 @@ class Requester implements Loggable {
 			System.arraycopy(response.cookies, 0, childCookies, request.cookies.length,
 					response.cookies.length);
 			
-			childTags = new CollectionStringMap[] { requestTags };
 			//request(child, response.uri, response.content, input, childCookies, true);
+			
+			for(String child : response.children) {
+				request(uuid(), child, response.uri, response.content, requestTags, childCookies, false);
+			}
 		} else {
 			throw new RuntimeException("Invalid response, does not have content or values.");
 		}
-				
-		// launch children
-		for(CollectionStringMap tags : childTags) {
-			for(String child : response.children) {
-				request(child, response.uri, response.content, tags, childCookies, true);
-			}
+
+		remove(response.id);
+	}
+	
+	void queue(RunnableRequest request) {
+		synchronized(wait) {
+			wait.offer(request);
 		}
-		running.remove(response.id);
+		remove(request.request.id);
 	}
 	
-	private void retry(RunnableRequest request) {
-		exc.submit(request);
-		running.remove(request.request.id);
-	}
-	
-	private void stuck(Request request, Response response) {
+	void stuck(Request request, Response response) {
 		log.i("Stuck on " + StringUtils.quote(request.instruction)  + "(" + request.id + ")"
 				+ " because of missing tags: " + Arrays.asList(response.missingTags)
 				+ " within " + request.tags.toString());
-		running.remove(response.id);
+		remove(response.id);
 	}
 	
-	private void failed(Request request, Response response) {
+	void failed(Request request, Response response) {
 		log.i("Failed on " + StringUtils.quote(request.instruction) + "(" + request.id + ")"
 				+ " because of " + StringUtils.quote(response.failedBecause));
-		running.remove(response.id);
+		remove(response.id);
 	}
 	
-	private void interrupt(Throwable why) {
+	void interrupt(Throwable why) {
 		log.e(why);
 		exc.shutdownNow();
 	}
@@ -132,53 +137,23 @@ class Requester implements Loggable {
 		return String.valueOf(id.getAndIncrement());
 	}
 	
-	private void request(String instruction, String uri,
+	private void request(String id, String instruction, String uri,
 			String input, CollectionStringMap tags,
 			String[] cookies, boolean force) {
-		running.add(tags.id);
-		exc.submit(new RunnableRequest(instruction, uri, input, tags, cookies, force));
+		request(new RunnableRequest(this, id, instruction, uri, input, tags, cookies, force));
+	}
+
+	private void request(RunnableRequest req) {
+		ready.add(req.request.id);
+		exc.submit(req);
 	}
 	
-	private class RunnableRequest implements Runnable {
-		private final Request request;
-		private List<String> lastMissingTags;
-		private final CollectionStringMap tags;
-		
-		RunnableRequest(String instruction, String uri, String input,
-				CollectionStringMap tags, String[] cookies, boolean force) {
-			this.tags = tags;
-			this.request = new Request(tags.id, instruction, uri, input,
-					tags, cookies, force);
-		}
-		
-		public void run() {
-			try {
-				Response response = scraper.scrape(request);
-				if(response.children != null) {
-					
-					finished(request, tags, response);
-					//clear(request.id);
-				} else if (response.missingTags != null) {
-					if(lastMissingTags != null) {
-						if(lastMissingTags.containsAll(Arrays.asList(response.missingTags))) {
-							stuck(request, response);
-							//clear(request.id);
-						} else {
-							retry(this);
-						}
-					} else {
-						retry(this);
-					}
-				} else {
-					failed(request, response);
-					//clear(request.id);
-				}
-			} catch(InterruptedException e) {
-				interrupt(e);
-			} catch(Throwable e) {
-				interrupt(e);
-			}
+	private void remove(String id) {
+		ready.remove(id);
+		while(ready.size() < nThreads && !wait.isEmpty()) {
+			RunnableRequest req = wait.poll();
+			// submit with force
+			request(req);
 		}
 	}
-	
 }
