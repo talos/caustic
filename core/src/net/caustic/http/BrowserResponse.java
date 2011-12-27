@@ -3,9 +3,9 @@ package net.caustic.http;
 public class BrowserResponse {
 
 	public final String content;
-	public final String[] cookies;
+	public final Cookies cookies;
 	
-	BrowserResponse(String content, String[] cookies) {
+	BrowserResponse(String content, Cookies cookies) {
 		this.content = content;
 		this.cookies = cookies;
 	}

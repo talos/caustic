@@ -20,7 +20,7 @@ public class Console {
 	private final Input input;
 
 	private final String instruction;
-	private final Requester requester;
+	private final ConsoleRequester requester;
 		
 	public Console(String... stringArgs) throws InvalidOptionException, UnsupportedEncodingException {
 		
@@ -30,7 +30,7 @@ public class Console {
 		logger = options.getLogger();
 		input = options.getInput();
 		instruction = options.getInstruction();
-		requester = new Requester(new DefaultScraper(), options.getNumThreads(), new Output());
+		requester = new ConsoleRequester(new DefaultScraper(), options.getNumThreads(), new Output());
 		requester.register(logger);
 		/*connection = options.getConnection();
 		if(connection != null) {

@@ -4,6 +4,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import net.caustic.http.BrowserResponse;
+import net.caustic.http.Cookies;
+import net.caustic.http.HashtableCookies;
 import net.caustic.http.HttpBrowser;
 import net.caustic.http.HttpException;
 import net.caustic.regexp.StringTemplate;
@@ -110,11 +112,13 @@ public final class Load extends Instruction {
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 * <code>source</code> is ignored.
 	 */
-	public Response execute(String id, StringMap tags, String[] requestCookies, HttpBrowser browser, boolean force)
+	public Response execute(String id, StringMap tags, Cookies requestCookies, HttpBrowser browser, boolean force)
 			throws InterruptedException {
 		if(force == false) {
 			return Response.Wait(id, uri, description); // don't run a load unless it's forced.
 		}
+		
+		//HashtableCookies mutableCookies = new HashtableCookies(requestCookies);
 		
 		final Response response;
 		try {			
@@ -158,28 +162,22 @@ public final class Load extends Instruction {
 				final String url = (String) urlSub.getSubstituted();
 				
 				final Hashtable headers = headersSub.getSubstituted();
-				final Hashtable templateCookies = cookiesSub.getSubstituted();
+				final Hashtable templateCookiesTable = cookiesSub.getSubstituted();
 				
 				// add cookies directly into DB
-				Enumeration e = templateCookies.elements();
-				String[] templateCookiesAry = new String[templateCookies.size()];
-				int i = 0;
+				Enumeration e = templateCookiesTable.elements();
+				//String[] templateCookiesAry = new String[templateCookies.size()];
+				HashtableCookies templateCookies = new HashtableCookies();
 				while(e.hasMoreElements()) {
 					String name = (String) e.nextElement();
-					String value = (String) templateCookies.get(name);
+					String value = (String) templateCookiesTable.get(name);
 					
 					// TODO the construction of cookies doesn't belong here
-					templateCookiesAry[i] = name + '=' + value + "; ";
-					i++;
+					templateCookies.add(url, name + '=' + value + "; ");
 				}
+				templateCookies.extend(requestCookies);
 				
-				String[] cookiesAry = new String[requestCookies.length
-						+ templateCookiesAry.length];
-				System.arraycopy(templateCookiesAry, 0, cookiesAry, 0, templateCookiesAry.length);
-				System.arraycopy(requestCookies, 0, cookiesAry, templateCookiesAry.length,
-						requestCookies.length);
-				
-				BrowserResponse bResp = browser.request(url, method, headers, cookiesAry, postStr);
+				BrowserResponse bResp = browser.request(url, method, headers, templateCookies, postStr);
 				
 				response = Response.DoneLoad(id, uri, description, children, bResp.content, bResp.cookies);
 			}

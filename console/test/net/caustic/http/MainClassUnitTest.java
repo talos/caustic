@@ -24,6 +24,7 @@ public class MainClassUnitTest {
 	private static final String DEMOS = "../demos";
 	private static final String FIXTURES = "../fixtures";
 	private @Capturing HttpBrowser browser;
+	private @Mocked Cookies responseCookies;
 	
 	//private @Mocked(inverse=true, methods={"print", "println"}) PrintStream out;
 	//private @Mocked(methods={"lsdkjflsdkjf"}) PrintStream out;
@@ -73,8 +74,8 @@ public class MainClassUnitTest {
 		new Expectations() {
 			//@Mocked({"request"}) HttpBrowser browser;
 			{
-				browser.request("http://www.google.com/search?q=hello", "get", (Hashtable) any, (String[]) any, null);
-					result = new BrowserResponse("hello world hello tree hello whee", new String[] {});
+				browser.request("http://www.google.com/search?q=hello", "get", (Hashtable) any, (Cookies) any, null);
+					result = new BrowserResponse("hello world hello tree hello whee", responseCookies);
 			}
 		};
 		
@@ -104,12 +105,12 @@ public class MainClassUnitTest {
 	public void recordSimpleGoogleInputFile(int numThreads) throws Exception {
 		new Expectations() {
 			{
-				browser.request("http://www.google.com/search?q=hello", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-					result = new BrowserResponse("hello world", new String[] {});
-				browser.request("http://www.google.com/search?q=meh", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-					result = new BrowserResponse("unrelated words", new String[] {});
-				browser.request("http://www.google.com/search?q=bleh", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-					result = new BrowserResponse("bleh this bleh that", new String[] {});
+				browser.request("http://www.google.com/search?q=hello", "get", HashtableUtils.EMPTY, (Cookies) any, anyString);
+					result = new BrowserResponse("hello world", responseCookies);
+				browser.request("http://www.google.com/search?q=meh", "get", HashtableUtils.EMPTY, (Cookies) any, anyString);
+					result = new BrowserResponse("unrelated words", responseCookies);
+				browser.request("http://www.google.com/search?q=bleh", "get", HashtableUtils.EMPTY, (Cookies) any, anyString);
+					result = new BrowserResponse("bleh this bleh that", responseCookies);
 			}
 		};
 		MainClass.main(
@@ -150,14 +151,14 @@ public class MainClassUnitTest {
 	public void testComplexGoogleGeneric(String pathToFixture) throws Exception {
 		new Expectations() {
 			{
-			browser.request("http://www.google.com/search?q=hello", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-				result = new BrowserResponse("hello world hello tree hello whee", new String[]{});
-			browser.request("http://www.google.com/search?q=world", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-				result = new BrowserResponse("world peace world domination", new String[]{});
-			browser.request("http://www.google.com/search?q=tree", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-				result = new BrowserResponse("tree planting", new String[]{});
-			browser.request("http://www.google.com/search?q=whee", "get", HashtableUtils.EMPTY, (String[]) any, anyString);
-				result = new BrowserResponse("", new String[]{});
+			browser.request("http://www.google.com/search?q=hello", "get", HashtableUtils.EMPTY, (Cookies) any, anyString);
+				result = new BrowserResponse("hello world hello tree hello whee", responseCookies);
+			browser.request("http://www.google.com/search?q=world", "get", HashtableUtils.EMPTY, (Cookies) any, anyString);
+				result = new BrowserResponse("world peace world domination", responseCookies);
+			browser.request("http://www.google.com/search?q=tree", "get", HashtableUtils.EMPTY, (Cookies) any, anyString);
+				result = new BrowserResponse("tree planting", responseCookies);
+			browser.request("http://www.google.com/search?q=whee", "get", HashtableUtils.EMPTY, (Cookies) any, anyString);
+				result = new BrowserResponse("", responseCookies);
 		}};
 		
 		MainClass.main(pathToFixture, "--input=query=hello", "--threads=1", "--log");

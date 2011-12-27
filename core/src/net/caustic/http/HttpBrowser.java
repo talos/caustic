@@ -72,6 +72,7 @@ public class HttpBrowser implements Loggable {
 	
 	private int maxResponseSize = HttpBrowser.DEFAULT_MAX_RESPONSE_SIZE;
 	private final MultiLog log;
+	private final HttpUtils utils;
 	
 	/**
 	 * How many milliseconds this {@link HttpBrowser} will sleep before
@@ -112,11 +113,12 @@ public class HttpBrowser implements Loggable {
 	 * due to rate limiting, or while waiting for the host to respond.
 	 * @throws HttpRequestException If the request could not be completed.
 	 */
-	public BrowserResponse request(String url, String method, Hashtable headers, String[] cookies,
+	public BrowserResponse request(String url, String method, Hashtable headers, Cookies cookies,
 				String encodedPostData)
 			throws InterruptedException, HttpException {
 		
 		final Vector urlsRead = new Vector();
+		HashtableCookies responseCookies = new HashtableCookies();
 		
 		while(urlsRead.size() <= MAX_REDIRECTS) {
 			
@@ -129,9 +131,10 @@ public class HttpBrowser implements Loggable {
 			
 			// Merge in generic headers.
 			headers = HashtableUtils.combine(new Hashtable[] { getGenericHeaders(url), headers });
-						
-			if(cookies.length > 0) {
-				headers.put(COOKIE_HEADER_NAME, StringUtils.join(cookies, "; "));
+			
+			String[] cookiesForURL = cookies.get(utils.getHost(url));
+			if(cookiesForURL != null) {
+				headers.put(COOKIE_HEADER_NAME, StringUtils.join(cookiesForURL, "; "));
 			}
 
 			log.i("All headers: " + StringUtils.quote(headers));
@@ -149,7 +152,12 @@ public class HttpBrowser implements Loggable {
 			}
 			
 			// Add cookies from the response to the database.
-			String[] responseCookies = response.getResponseHeaders().getHeaderValues(SET_COOKIE_HEADER_NAME);
+			String[] cookieHeaders = response.getResponseHeaders().getHeaderValues(SET_COOKIE_HEADER_NAME);
+			if(cookieHeaders != null) {
+				for(int i = 0 ; i < cookieHeaders.length ; i ++) {
+					responseCookies.add(utils.getHost(url), cookieHeaders[i]);
+				}
+			}
 			
 			if(response.isSuccess()) {
 				final String content;
@@ -256,6 +264,7 @@ public class HttpBrowser implements Loggable {
 	public HttpBrowser(HttpRequester requester, RateLimitManager rateLimitManager) {
 		this.requester = requester;
 		this.rateLimitManager = rateLimitManager;
+		this.utils = rateLimitManager.httpUtils;
 		this.log = new MultiLog();
 	}
 	

@@ -6,6 +6,8 @@ import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.List;
 
+import mockit.Expectations;
+import mockit.Mocked;
 import net.caustic.http.HttpBrowser;
 import net.caustic.http.HttpRequestException;
 import net.caustic.http.HttpRequester;
@@ -29,6 +31,9 @@ import org.junit.runners.Parameterized.Parameters;
  */
 @RunWith(Parameterized.class)
 public class HttpBrowserIntegrationTest {
+	
+	@Mocked private Cookies cookies;
+	
 	private final Class<HttpRequester> requesterKlass;
 	private final Class<HttpUtils> utilsKlass;
 	
@@ -55,24 +60,24 @@ public class HttpBrowserIntegrationTest {
 	@Test
 	public void testGetGoogle() throws Exception {
 		BrowserResponse resp = browser.request("http://www.google.com", "get", HashtableUtils.EMPTY,
-				new String[] {}, null);
+				cookies, null);
 		
 		assertTrue("Google should have the word google in response body.", resp.content.contains("google"));
-		assertTrue("Should have received at least one cookie.", resp.cookies.length > 0);
+		assertTrue("Should have received at least one cookie.", resp.cookies.getHosts().length > 0);
 	}
 	
 
 	@Test
 	public void testGetGoogleRandomQuery() throws Exception {
 		String url = "http://www.google.com/search?q=bleh";
-		BrowserResponse resp = browser.request(url, "get", HashtableUtils.EMPTY, new String[] {}, null);
+		BrowserResponse resp = browser.request(url, "get", HashtableUtils.EMPTY, cookies, null);
 		assertTrue("Google query for 'bleh' should have the query in response body.",
 				resp.content.contains("bleh"));
 	}
 
 	@Test(expected=HttpRequestException.class)
 	public void testGetFakeInvalidFormatURL() throws Exception {
-		browser.request("jfsd//sdkj::dkfj", "get", HashtableUtils.EMPTY, new String[] {}, null);
+		browser.request("jfsd//sdkj::dkfj", "get", HashtableUtils.EMPTY, cookies, null);
 	}
 	
 	// If this doesn't throw HttpRequestException, it's possible that your ISP throws up
@@ -82,7 +87,7 @@ public class HttpBrowserIntegrationTest {
 	public void testGetFakeValidFormatURL() throws Exception {
 		try {
 			browser.request("http://www.thisisnotarealdomainbutwillcauselag1928428.com/", "get", HashtableUtils.EMPTY,
-				new String[] {}, null);
+				cookies, null);
 			fail("This test is OK if your ISP serves up a page when DNS fails.  Otherwise, something is wrong.");
 		} catch(HttpRequestException e) {
 			// this is what should happen.
@@ -91,16 +96,22 @@ public class HttpBrowserIntegrationTest {
 	
 	@Test
 	public void testAddCookiesForACRIS() throws Exception {
+		new Expectations() {{
+			cookies.get("a836-acris.nyc.gov"); result = new String[] { "JUMPPAGE", "YES" };
+		}};
 		BrowserResponse resp = browser.request("http://a836-acris.nyc.gov/Scripts/Coverpage.dll/index",
-				"get", HashtableUtils.EMPTY, new String[] { "JUMPPAGE", "YES" }, null);
+				"get", HashtableUtils.EMPTY, cookies, null);
 		assertTrue("ACRIS should provide access to its property records page if the" +
 				"JUMPPAGE cookie is set.", resp.content.contains("Search Property Records"));
 	}
 	
 	@Test
 	public void testPostViaACRIS() throws Exception {
+		new Expectations() {{
+			cookies.get("a836-acris.nyc.gov"); result = new String[] { "JUMPPAGE", "YES" };
+		}};
 		BrowserResponse resp = browser.request("http://a836-acris.nyc.gov/Scripts/DocSearch.dll/BBLResult",
-				"post", HashtableUtils.EMPTY, new String[] { "JUMPPAGE", "YES" }, "hid_borough=3&hid_block=1772&hid_doctype=&hid_lot=74&hid_SearchType=BBL");
+				"post", HashtableUtils.EMPTY, cookies, "hid_borough=3&hid_block=1772&hid_doctype=&hid_lot=74&hid_SearchType=BBL");
 		assertTrue(resp.content.contains("PULASKI"));
 	}
 }

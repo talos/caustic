@@ -4,6 +4,9 @@ import org.json.me.JSONArray;
 import org.json.me.JSONException;
 import org.json.me.JSONObject;
 
+import net.caustic.http.Cookies;
+import net.caustic.http.HashtableCookies;
+import net.caustic.http.HttpUtils;
 import net.caustic.util.JSONMap;
 import net.caustic.util.StringMap;
 import net.caustic.util.StringUtils;
@@ -22,11 +25,11 @@ public class Request {
 	public final String uri;
 	public final String input;
 	public final StringMap tags;
-	public final String[] cookies;
+	public final Cookies cookies;
 	public final boolean force;
 	
 	public Request(String id, String instruction, String uri, String input, StringMap tags,
-			String[] cookies, boolean force) {
+			Cookies cookies, boolean force) {
 		this.id = id;
 		this.uri = uri;
 		this.instruction = instruction;
@@ -36,7 +39,7 @@ public class Request {
 		this.force = force;
 	}
 	
-	public static Request fromJSON(String json) throws JSONException {
+	public static Request fromJSON(HttpUtils utils, String json) throws JSONException {
 		final JSONObject obj = new JSONObject(json);
 		
 		final String id = obj.getString(ID);
@@ -49,15 +52,12 @@ public class Request {
 		
 		final StringMap tags = new JSONMap(obj.optJSONObject(TAGS));
 		
-		final String[] cookies;
-		JSONArray cookiesAry = obj.optJSONArray(COOKIES);
-		if(cookiesAry != null) {
-			cookies = new String[cookiesAry.length()];
-			for(int i = 0 ; i < cookies.length ; i ++) {
-				cookies[i] = cookiesAry.getString(i);
-			}
+		final Cookies cookies;
+		String serializedCookies = obj.optString(COOKIES);
+		if(serializedCookies == null) {
+			cookies = new HashtableCookies();
 		} else {
-			cookies = new String[0];
+			cookies = HashtableCookies.deserialize(serializedCookies);
 		}
 		
 		boolean force = obj.optBoolean(FORCE);

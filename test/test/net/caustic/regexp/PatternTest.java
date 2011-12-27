@@ -182,7 +182,7 @@ public class PatternTest {
 		assertEquals("cell", match);
 	}
 	
-
+/*
 	@Test()
 	public void testMatchCompilingPatternsSpeed() throws Exception {
 		int numTests = 100;
@@ -210,5 +210,5 @@ public class PatternTest {
 			String sub = "$1";
 			pat.match(input, sub, 0, 0);
 		}
-	}
+	}*/
 }

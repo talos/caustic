@@ -14,11 +14,11 @@ import java.util.Hashtable;
  */
 class RateLimitManager {
 
-	
+	final HttpUtils httpUtils; // messy
+
 	private final Hashtable hostLastRequest = new Hashtable();
 	private final Hashtable hostLastResponse = new Hashtable();
 	private final Hashtable hostLastResponseSize = new Hashtable();
-	private final HttpUtils httpUtils;
 	private int rateLimitKBps = HttpBrowser.DEFAULT_RATE_LIMIT;
 	private int minRequestWaitMilliseconds = HttpBrowser.DEFAULT_REQUEST_WAIT;
 	
@@ -39,7 +39,6 @@ class RateLimitManager {
 	public RateLimitManager(HttpUtils httpUtils) {
 		this.httpUtils = httpUtils;
 	}
-	
 	
 	/**
 	 * Remember that a response of a certain size was pulled from a URL.
