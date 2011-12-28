@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import static net.caustic.util.StringUtils.quote;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -12,6 +13,8 @@ import mockit.NonStrict;
 import mockit.Verifications;
 import mockit.VerificationsInOrder;
 import net.caustic.Scraper;
+import net.caustic.http.Cookies;
+import net.caustic.http.HashtableCookies;
 import net.caustic.log.Logger;
 import net.caustic.log.SystemErrLogger;
 import net.caustic.util.StringMap;
@@ -29,6 +32,7 @@ import org.junit.Test;
 public class ScraperIntegrationTest {
 	
 	private @NonStrict StringMap tags;
+	private Cookies cookies;
 	private static final String URI = StringUtils.USER_DIR;
 	
 	private static final String demosDir = "../demos/";
@@ -38,149 +42,111 @@ public class ScraperIntegrationTest {
 	@Before
 	public void setUp() throws Exception {
 		scraper = new DefaultScraper();
-		
+		cookies = new HashtableCookies();
 	}
 	
 	@Test
 	public void testScrapeStuck() throws Exception {
 		Response resp = scraper.scrape(
-				new Request("id", demosDir + "simple-google.json", URI, null, tags, new String[]{}, true));
+				new Request("id", demosDir + "simple-google.json", URI, null, tags, cookies, true));
 		
 		assertArrayEquals(new String[] { "query" }, resp.missingTags);
 	}
 
 	@Test
 	public void testScrapeFail() throws Exception {	
-		final Scope scope = scraper.scrape("path/to/nothing.json", input);
-		join(scope);
-		
-		new Verifications() {{
-			listener.onScopeComplete(scope, 0, 0, 1);
-		}};
+		Response resp = scraper.scrape(
+				new Request("id", "/path/to/nothing", URI, null, tags, cookies, true));
+		assertNotNull(resp.failedBecause);
 	}
 	
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {
-		input.put("query", "hello");
-		final Scope scope = scraper.scrape(demosDir + "simple-google.json", input);
-		join(scope);
-		
-		new VerificationsInOrder() {{
-			listener.onNewScope(scope(0), scope(1), withPrefix("I say"));
-			listener.onNewScope(scope(0), scope(2), withPrefix("I say"));
-			listener.onNewScope(scope(0), scope(3), withPrefix("I say"));
-			listener.onNewScope(scope(0), scope(4), withPrefix("I say"));
-			listener.onScopeComplete(scope, 2, 0, 0);
-		}};
-	}
-	
-	/**
-	 * Assure that we can start an instruction after it was paused.
-	 * @throws Exception
-	 */
-	@Test
-	public void testScrapeSimpleGooglePause() throws Exception {		
-		input.put("query", "hello");
-		scraper.setAutoRun(false);
-		
-		final List<Executable> resumes = new ArrayList<Executable>();
 		new Expectations() {{
-			listener.onPause((Scope) any, anyString, anyString, (Executable) any); times = 1;
-			forEachInvocation = new Object() {
-				public void exec(Scope scope, String instruction, String uri, Executable executable) {
-					System.out.println("adding resume");
-					resumes.add(executable);
-				}
-			};
-		}};
-		final Scope scope = scraper.scrape(demosDir + "simple-google.json", input);
-		//join(scope); // to join here would hang!
-		
-		Thread.sleep(2000); // pausin'
-		assertFalse(db.isScopeComplete(scope));
-		new VerificationsInOrder() {{
-			listener.onScopeComplete(scope, anyInt, anyInt, anyInt); times = 0;
+			tags.get("query"); result = "hello";
 		}};
 		
-		for(Executable resume : resumes) {
-			scraper.submit(resume);
-		}
-		join(scope);
-		
-		new VerificationsInOrder() {{
-			listener.onNewScope(scope(0), scope(1), withPrefix("I say"));
-			listener.onNewScope(scope(0), scope(2), withPrefix("I say"));
-			listener.onNewScope(scope(0), scope(3), withPrefix("I say"));
-			listener.onNewScope(scope(0), scope(4), withPrefix("I say"));
-			listener.onScopeComplete(scope, 2, 0, 0);
-		}};
-	}
-	
-	@Test
-	public void testScrapeSimpleGoogleQuoted() throws Exception {		
-		input.put("query", "hello");
-		// it shouldn't make a difference if we quote a string.
-		scraper.scrape(quote(demosDir + "simple-google.json"), input);
-		join();
+		Response resp = scraper.scrape(
+				new Request("id", demosDir + "simple-google.json", URI, null, tags, cookies, true));
 
-		assertEquals(4, scraper.getSubmitted());
-		assertEquals(4, scraper.getFinished());
-		assertEquals(0, scraper.getStuck());
-		assertEquals(0, scraper.getFailed());
+		assertEquals(1, resp.children.length);
+		resp = scraper.scrape(new Request("id", resp.children[0], resp.uri, resp.content, tags, cookies, false));
 		
-		new VerificationsInOrder() {{			
-			listener.onNewScope(scope(0), scope(1), withPrefix("I say"));
-			listener.onNewScope(scope(0), scope(2), withPrefix("I say"));
-			listener.onNewScope(scope(0), scope(3), withPrefix("I say"));
-			listener.onNewScope(scope(0), scope(4), withPrefix("I say"));
-		}};
+		assertEquals("what do you say after 'hello'?", resp.name);
+		for(String value : resp.values) {
+			assertTrue(value.startsWith("I say"));
+		}
 	}
 	
 	@Test
 	public void testScrapeSimpleGooglePointer() throws Exception {
-		input.put("query", "hello");
-		scraper.scrape(demosDir + "pointer.json", input);
-		join();
-
-		assertEquals(4, scraper.getSubmitted());
-		assertEquals(4, scraper.getFinished());
-		assertEquals(0, scraper.getStuck());
-		assertEquals(0, scraper.getFailed());
-		
-		new VerificationsInOrder() {{			
-			listener.onNewScope(scope(0), scope(1), withPrefix("I say"));
-			listener.onNewScope(scope(0), scope(2), withPrefix("I say"));
-			listener.onNewScope(scope(0), scope(3), withPrefix("I say"));
-			listener.onNewScope(scope(0), scope(4), withPrefix("I say"));
+		new Expectations() {{
+			tags.get("query"); result = "hello";
 		}};
+		
+		Response resp = scraper.scrape(
+				new Request("id", demosDir + "pointer.json", URI, null, tags, cookies, true));
+		
+		assertEquals(1, resp.children.length);
+		resp = scraper.scrape(new Request("id", resp.children[0], resp.uri, resp.content, tags, cookies, false));
+		
+		assertEquals("what do you say after 'hello'?", resp.name);
+		for(String value : resp.values) {
+			assertTrue(value.startsWith("I say"));
+		}
 	}
 	
 	@Test
-	public void testArrayOfScrapes() throws Exception {		
-		input.put("query", "hello");
-		input.put("Number", "373");
-		input.put("Street", "Atlantic Ave");
-		input.put("Borough", "3");
-		input.put("Apt", "");
-				
-		scraper.scrape(demosDir + "array.json", input);
-		join();
-		
-		assertEquals(4, scraper.getSubmitted());
-		assertEquals(4, scraper.getFinished());
-		assertEquals(0, scraper.getStuck());
-		assertEquals(0, scraper.getFailed());
-		
-		new Verifications() {{
-			listener.onNewScope(scope(0), (Scope) any, withPrefix("I say ")); minTimes = 1;
-			listener.onNewScope(scope(0), (Scope) any, withPrefix("373 Atlantic Ave")); minTimes = 1;
+	public void testArrayOfScrapes() throws Exception {
+		new Expectations() {{
+			tags.get("query"); result = "hello";
+			tags.get("Number"); result = "373";
+			tags.get("Street"); result = "Atlantic Ave";
+			tags.get("Borough"); result = "3";
+			tags.get("Apt"); result = "";
 		}};
+		
+		// not forced
+		Response resp = scraper.scrape(
+				new Request("id", demosDir + "array.json", URI, null, tags, cookies, false));
+		
+		List<String> values = new ArrayList<String>();
+		
+		assertEquals(2, resp.children.length);
+		for(String child : resp.children) {
+			Response childResp = scraper.scrape(
+					new Request("id", child, resp.uri, resp.content, tags, cookies, true));
+			for(String grandchild : childResp.children) {
+				values.addAll(Arrays.asList(scraper.scrape(new Request("id", grandchild,
+						childResp.uri, childResp.content, tags,
+						cookies, false)).values));
+			}
+		}
+		
+		boolean containsISay = false;
+		for(String value : values) {
+			if(value.startsWith("I say ")) {
+				containsISay = true;
+				break;
+			}
+		}
+		assertTrue(containsISay);
+		
+
+		boolean containsOwner = false;
+		for(String value : values) {
+			if(value.startsWith("373 Atlantic Ave")) {
+				containsOwner = true;
+				break;
+			}
+		}
 	}
 	
 	/**
 	 * Test several calls to scrape before joining.
 	 * @throws Exception
 	 */
+	/*
 	@Test
 	public void testMultipleSimpleScrapes() throws Exception {
 		scraper.scrapeAll("path/to/nothing.json", new Hashtable(), listener); // should fail
@@ -284,7 +250,7 @@ public class ScraperIntegrationTest {
 			//listener.onReady((Instruction) any, (Database) any, scope(0), , parent, source, browser, start)
 		}};
 	}
-	
+	*/
 		/*
 	@Test
 	public void testScrapeNYCIncentives() throws Exception {
