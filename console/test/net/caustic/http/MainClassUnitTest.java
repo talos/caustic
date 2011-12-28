@@ -1,11 +1,9 @@
 package net.caustic.http;
 
-import java.io.PrintStream;
 import java.util.Hashtable;
 
 import mockit.Capturing;
 import mockit.Expectations;
-import mockit.Injectable;
 import mockit.Mocked;
 import mockit.Verifications;
 import mockit.VerificationsInOrder;
@@ -14,7 +12,6 @@ import net.caustic.console.Output;
 import net.caustic.http.BrowserResponse;
 import net.caustic.http.HttpBrowser;
 import net.caustic.util.HashtableUtils;
-import net.caustic.util.StringUtils;
 
 import org.junit.After;
 import org.junit.Test;
@@ -25,10 +22,7 @@ public class MainClassUnitTest {
 	private static final String FIXTURES = "../fixtures";
 	private @Capturing HttpBrowser browser;
 	private @Mocked Cookies responseCookies;
-	
-	//private @Mocked(inverse=true, methods={"print", "println"}) PrintStream out;
-	//private @Mocked(methods={"lsdkjflsdkjf"}) PrintStream out;
-	
+		
 	private @Mocked(methods={"print"}) Output out;
 	
 	/**

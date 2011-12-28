@@ -1,8 +1,6 @@
-package net.caustic;
+package net.caustic.console;
 
-import java.util.Map;
-
-import net.caustic.util.CollectionStringMap;
+import net.caustic.Response;
 
 public interface Requester {
 

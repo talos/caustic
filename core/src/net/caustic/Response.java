@@ -45,7 +45,7 @@ public final class Response {
 			Cookies cookies, String name, String[] values, String[] missingTags, String failedBecause) {
 		try {
 			this.id = id;
-			this.uri = uri;
+			this.uri = uri; // URI used to resolve children.
 			this.description = description;
 			this.children = children;
 			this.content = content;

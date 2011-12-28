@@ -1,10 +1,11 @@
-package net.caustic;
+package net.caustic.console;
 
 import java.util.Arrays;
 import java.util.List;
 
 import net.caustic.Request;
 import net.caustic.Response;
+import net.caustic.Scraper;
 import net.caustic.http.HashtableCookies;
 import net.caustic.util.CollectionStringMap;
 
@@ -27,9 +28,6 @@ public class RunnableRequest implements Runnable {
 		this.requester = requester;
 		this.tags = tags;
 		this.cookies = cookies;
-		if(this.cookies == null) {
-			throw new RuntimeException();
-		}
 		this.request = new Request(id, instruction, uri, input, tags, cookies, force);
 	}
 	

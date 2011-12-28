@@ -1,6 +1,5 @@
 package net.caustic;
 
-import org.json.me.JSONArray;
 import org.json.me.JSONException;
 import org.json.me.JSONObject;
 
@@ -38,18 +37,21 @@ public class Request {
 		this.cookies = cookies;
 		this.force = force;
 	}
-	
+	/*
+	public String serialize() throws JSONException {
+		JSONObject serialized = new JSONObject();
+		serialized.put(ID, id);
+		serialized.put(URI, uri);
+		serialized.put(INSTRUCTION, instruction);
+		serialized.putOpt(INPUT, input);
+	}
+	*/
 	public static Request fromJSON(HttpUtils utils, String json) throws JSONException {
 		final JSONObject obj = new JSONObject(json);
-		
 		final String id = obj.getString(ID);
-		
 		final String uri = obj.has(URI) ? obj.getString(URI) : StringUtils.USER_DIR;
-		
 		final String instruction = obj.getString(INSTRUCTION);
-		
 		final String input = obj.optString(INPUT);
-		
 		final StringMap tags = new JSONMap(obj.optJSONObject(TAGS));
 		
 		final Cookies cookies;

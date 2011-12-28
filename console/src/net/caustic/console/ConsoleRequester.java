@@ -13,9 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.caustic.Request;
-import net.caustic.Requester;
 import net.caustic.Response;
-import net.caustic.RunnableRequest;
 import net.caustic.Scraper;
 import net.caustic.http.HashtableCookies;
 import net.caustic.log.Loggable;
@@ -80,20 +78,23 @@ class ConsoleRequester implements Loggable, Requester {
 			final boolean isBranch = response.values.length > 1;
 
 			for(int i = 0 ; i < response.values.length ; i ++) {
-				// child input is destructive, if only one value is in response
-				CollectionStringMap tags = isBranch ? requestTags.branch(new HashMap<String, String>()) : requestTags;
-				tags.put(response.name, response.values[i]);
-				String id = uuid();
 				
+				final String id;
+				final CollectionStringMap tags;
 				final HashtableCookies childCookies;
+				
+				// if this is a branch, generate new id, branch cookies, and branch tags
 				if(isBranch) {
+					id = uuid();
 					childCookies = rRequest.cookies.branch();
+					tags = requestTags.branch(new HashMap<String, String>());
 				} else {
+					id = request.id;
 					childCookies = rRequest.cookies;
+					tags = requestTags;
 				}
-				if(childCookies == null) {
-					throw new RuntimeException();
-				}
+				tags.put(response.name, response.values[i]);
+				
 				output.print(id, request.id, response.name, response.values[i]);
 				for(String child : response.children) {
 					request(id, child, response.uri, response.content, tags, childCookies, false);
@@ -155,7 +156,7 @@ class ConsoleRequester implements Loggable, Requester {
 		log.i("Failed on " + StringUtils.quote(request.instruction) + "(" + request.id + ")"
 				+ " because of " + StringUtils.quote(response.failedBecause));
 		remove(response.id);
-	}
+	} 
 	
 	/* (non-Javadoc)
 	 * @see net.caustic.Requester#interrupt(java.lang.Throwable)
