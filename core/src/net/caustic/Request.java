@@ -1,11 +1,12 @@
 package net.caustic;
 
+import java.util.Hashtable;
+
 import org.json.me.JSONException;
 import org.json.me.JSONObject;
 
 import net.caustic.http.Cookies;
 import net.caustic.http.HashtableCookies;
-import net.caustic.http.HttpUtils;
 import net.caustic.util.JSONMap;
 import net.caustic.util.StringMap;
 import net.caustic.util.StringUtils;
@@ -46,7 +47,7 @@ public class Request {
 		serialized.putOpt(INPUT, input);
 	}
 	*/
-	public static Request fromJSON(HttpUtils utils, String json) throws JSONException {
+	public static Request fromJSON(String json) throws JSONException {
 		final JSONObject obj = new JSONObject(json);
 		final String id = obj.getString(ID);
 		final String uri = obj.has(URI) ? obj.getString(URI) : StringUtils.USER_DIR;
@@ -55,14 +56,29 @@ public class Request {
 		final StringMap tags = new JSONMap(obj.optJSONObject(TAGS));
 		
 		final Cookies cookies;
-		String serializedCookies = obj.optString(COOKIES);
-		if(serializedCookies == null) {
-			cookies = new HashtableCookies();
+		if(obj.has(COOKIES)) {
+			cookies = HashtableCookies.deserialize(obj.getString(COOKIES));
 		} else {
-			cookies = HashtableCookies.deserialize(serializedCookies);
+			cookies = new HashtableCookies();
 		}
 		
 		boolean force = obj.optBoolean(FORCE);
 		return new Request(id, instruction, uri, input, tags, cookies, force);
+	}
+	
+	public String toString() {
+		Hashtable map = new Hashtable();
+		map.put(ID, id);
+		map.put(INSTRUCTION, instruction);
+		map.put(URI, uri);
+		map.put(FORCE, Boolean.valueOf(force));
+		map.put(TAGS, tags.toString());
+		if(input != null) {
+			map.put(INPUT, input.toString());
+		}
+		if(cookies != null) {
+			map.put(COOKIES, cookies.toString());
+		}
+		return new JSONObject(map).toString();
 	}
 }

@@ -16,8 +16,9 @@ public class HWClient {
 	    ZMQ.Socket socket = context.socket(ZMQ.REQ);
 
 	    System.out.println("Connecting to hello world server…");
-	    socket.connect ("tcp://localhost:5555");
-	
+	    //socket.connect ("tcp://192.168.1.2:5555");
+	    socket.connect ("ipc://test.ipc");
+
 	    //  Do 10 requests, waiting each time for a response
 	    for(int request_nbr = 0; request_nbr != 10; request_nbr++) {
 	        //  Create a "Hello" message.

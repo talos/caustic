@@ -22,7 +22,7 @@ abstract class Instruction {
 	/**
 	 * Key for a self-reference.
 	 */
-	public static final String SELF = "$this";
+	//public static final String SELF = "$this";
 	
 	/**
 	 * Key for metadata.

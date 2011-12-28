@@ -8,6 +8,9 @@ import org.json.me.JSONException;
 import org.json.me.JSONObject;
 
 import net.caustic.http.HttpBrowser;
+import net.caustic.log.Loggable;
+import net.caustic.log.Logger;
+import net.caustic.log.MultiLog;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.regexp.RegexpUtils;
 import net.caustic.regexp.StringTemplate;
@@ -26,7 +29,7 @@ import net.caustic.util.StringUtils;
  * @author realest
  *
  */
-public class Scraper {
+public class Scraper implements Loggable {
 	
 	/**
 	 * The {@link UriResolver} to use when resolving URIs.
@@ -44,7 +47,25 @@ public class Scraper {
 	private final RegexpCompiler compiler;
 	
 	private final HttpBrowser browser;
+	
+	private final MultiLog log = new MultiLog();
 
+	/**
+	 * 
+	 * @param parser
+	 * @param compiler
+	 * @param browser
+	 * @param uriFactory
+	 * @param database
+	 */
+	public Scraper(RegexpCompiler compiler,
+			UriResolver uriResolver, URILoader uriLoader, HttpBrowser browser) {
+		this.compiler = compiler;
+		this.uriResolver = uriResolver;
+		this.uriLoader = uriLoader;
+		this.browser = browser;
+	}
+	
 	/**
 	 * Deserialize using {@link StringTemplate#ENCODED_PATTERN} and
 	 * {@link StringTemplate#UNENCODED_PATTERN} by default.
@@ -53,6 +74,11 @@ public class Scraper {
 		return scrape(request, request.instruction, request.uri,
 				StringTemplate.ENCODED_PATTERN, StringTemplate.UNENCODED_PATTERN);
 	}
+	
+	public void register(Logger logger) {
+		log.register(logger);
+		browser.register(logger);
+	}
 
 	private Response scrape(Request request, String instruction, String uri,
 			String encodedPatternString, String notEncodedPatternString) 
@@ -60,6 +86,7 @@ public class Scraper {
 		// We determine the type of this deserialization from the first character.
 		
 		final Response result;
+		instruction = instruction.trim();
 		final char firstChar = instruction.charAt(0);
 		
 		try {
@@ -71,7 +98,9 @@ public class Scraper {
 			case '{':
 				result = deserializeObject(request, instruction, uri, encodedPatternString, notEncodedPatternString);
 				break;
-			case '"':
+			default:
+				result = deserializeString(request, instruction, uri, encodedPatternString, notEncodedPatternString);
+			/*case '"':
 				int len = instruction.length();
 				if(instruction.charAt(len - 1) == '"') {
 					instruction = instruction.substring(1, request.instruction.length() - 1);
@@ -82,6 +111,7 @@ public class Scraper {
 				break;
 			default:
 				result = Response.Failed(request.id, uri, null, "Valid serialized instructions must begin with '\"', '{', or '['.");
+			*/
 			}
 			
 		} catch(JSONException e) {
@@ -205,11 +235,14 @@ public class Scraper {
 						extendsObjects.add(obj.getJSONObject(key));
 					} else if(obj.optJSONArray(key) != null) {
 						JSONArray array = obj.getJSONArray(key);
+						
+						
 						for(int j = 0 ; j < array.length(); j ++) {
 							if(array.optJSONObject(j) != null) {
 								extendsObjects.add(array.getJSONObject(j));
 							} else if(array.optJSONArray(j) != null) {
-								return Response.Failed(request.id, uri, description, Instruction.EXTENDS + " array elements must be strings or objects."); // premature return
+								return Response.Failed(request.id, uri, description, Instruction.EXTENDS +
+										" array elements must be strings or objects."); // premature return
 							} else {
 								extendsStrings.add(array.getString(j));
 							}						
@@ -246,40 +279,34 @@ public class Scraper {
 					} else if (obj.optJSONArray(key) != null) {
 						//thenStrings.add(obj.getString(key));
 						JSONArray array = obj.getJSONArray(key);
-						
+
+
 						for(int j = 0 ; j < array.length() ; j ++) {
 							if(array.optJSONArray(j) != null) {
-								thenObjects.add(array.getString(j));
-							} else if(array.optJSONObject(j) == null) {
-								// have to quote these for them to deserialize properly.
-								thenStrings.add(StringUtils.quote(array.getString(j)));
+								return Response.Failed(request.id, uri, description, Instruction.THEN +
+										" array elements must be strings or objects, but " + 
+										StringUtils.quote(array.getString(j)) + " is an array.");								
 							} else {
-								return Response.Failed(request.id, uri, description, Instruction.THEN + " array elements " +
-										"must be strings or objects.");
+								thenStrings.add(array.getString(j));
 							}
 						}
 					} else {
-						thenStrings.add(StringUtils.quote(obj.getString(key)));
+						thenStrings.add(obj.getString(key));
 					}
 					
 					for(int j = 0 ; j < thenStrings.size(); j ++) {
-						String thenString = (String) thenStrings.elementAt(j);
+						children.add(thenStrings.elementAt(j));
 						
-						if(thenString.equalsIgnoreCase(StringUtils.quote(Instruction.SELF))) {
+						/*if(thenString.equalsIgnoreCase(Instruction.SELF)) {
 							//children.add(new Instruction(jsonString, this, uri));
 							// to lazy-evaluate self, pass the original uri in again.
 							
-							// uri would be USER_DIR in inline execution
-							/*if(uri.equals(StringUtils.USER_DIR)) {
-								throw new JsonException("Cannot use " + StringUtils.quote(Instruction.SELF)
-										+ " in inline json instruction.");
-							}*/
 							// TODO have to quote these for them to deserialize properly?
 							children.add(instruction);
 						} else {
 							// already quoted
 							children.add(thenString);
-						}
+						}*/
 					}
 					for(int j = 0 ; j < thenObjects.size(); j ++ ) {
 						// serialized instruction will handle the object as a string
@@ -433,19 +460,4 @@ public class Scraper {
 		return result;
 	}
 	
-	/**
-	 * 
-	 * @param parser
-	 * @param compiler
-	 * @param browser
-	 * @param uriFactory
-	 * @param database
-	 */
-	public Scraper(RegexpCompiler compiler,
-			UriResolver uriResolver, URILoader uriLoader, HttpBrowser browser) {
-		this.compiler = compiler;
-		this.uriResolver = uriResolver;
-		this.uriLoader = uriLoader;
-		this.browser = browser;
-	}
 }

@@ -14,7 +14,8 @@ public class HWServer {
         //  Prepare our context and socket
         ZMQ.Context context = ZMQ.context(1);
         ZMQ.Socket socket = context.socket(ZMQ.REP);
-        socket.bind ("tcp://*:5555");
+        //socket.bind ("tcp://localhost:5555");
+        socket.bind("ipc://test.ipc");
 
         while (true) {
             byte[] request;

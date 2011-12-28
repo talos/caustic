@@ -1,9 +1,8 @@
 package net.caustic;
 
 import net.caustic.Scraper;
-import net.caustic.log.Loggable;
 import net.caustic.log.Logger;
-import net.caustic.log.MultiLog;
+import net.caustic.log.SystemErrLogger;
 import net.caustic.util.StringUtils;
 
 import org.json.me.JSONException;
@@ -15,21 +14,21 @@ import org.zeromq.ZMQ;
  * @author talos
  *
  */
-public class ZCausticServer implements Runnable, Loggable {
+public class ZCausticServer implements Runnable {
 	
 	private final ZMQ.Socket socket;
-	private final MultiLog log = new MultiLog();
 	private final Scraper scraper;
+	private final Logger logger = new SystemErrLogger();
 	
 	public ZCausticServer(ZMQ.Context context, int sockFlag) {
 	    //  Prepare our context and socket
 		//this.context = context;
 		socket = context.socket(sockFlag);
-		socket.bind ("tcp://*:5555");
+		//socket.bind ("tcp://*:5555");
+		socket.bind("ipc://bartleby.ipc");
 		
-		//byte[] request = socket.recv(0);
     	scraper = new DefaultScraper();
-
+    	scraper.register(logger);
 	}
 	
 	public void run() {
@@ -37,7 +36,7 @@ public class ZCausticServer implements Runnable, Loggable {
 
             //  Wait for next request from client
             String reqStr = new String(socket.recv (0));
-            System.out.println ("Received request: [" + reqStr + "]");
+            logger.i("Received request: " + StringUtils.quote(reqStr));
             
             try {
             	Request request = Request.fromJSON(reqStr);
@@ -48,19 +47,15 @@ public class ZCausticServer implements Runnable, Loggable {
 	            	response = scraper.scrape(request);
 	            	socket.send(response.serialize().getBytes(), 0);
 	            } catch(InterruptedException e) {
-	            	socket.send(Response.Failed(request, "Interrupted.", e.getMessage()).serialize().getBytes(), 0);
+	            	socket.send(Response.Failed(request.id, request.uri, "Interrupted.", e.getMessage()).serialize().getBytes(), 0);
 	            }
             } catch(JSONException e) {
             	e.printStackTrace();
             	socket.send(new String("Invalid Request: " + StringUtils.quote(reqStr)
-            			+ " because of " + e.getMessage()).getBytes(), 0);
+            			+ " because of " + StringUtils.quote(e.getMessage())).getBytes(), 0);
             }
         
 		}
-	}
-	
-	public void register(Logger logger) {
-		this.log.register(logger);
 	}
 	
     public static void main(String[] args) {

@@ -326,13 +326,14 @@ final class ConsoleOptions {
 	 * @throws UnsupportedEncodingException 
 	 */
 	String getInstruction() throws InvalidOptionException, UnsupportedEncodingException {
-		String unquoted = getValue(instruction);
+		return getValue(instruction);
+		/*String unquoted = getValue(instruction);
 		// if it's json, leave as-is.
 		if(unquoted.charAt(0) == '{' || unquoted.charAt(0) == '[') {
 			return unquoted;
 		} else { // otherwise, append quotes
 			return '"' + unquoted + '"';
-		}
+		}*/
 	}
 	
 	/**
