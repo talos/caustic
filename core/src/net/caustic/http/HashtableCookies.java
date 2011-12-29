@@ -118,4 +118,8 @@ public class HashtableCookies implements Cookies {
 		}
 		return cookies;
 	}
+	
+	public String toString() {
+		return toJSON().toString();
+	}
 }
