@@ -67,17 +67,24 @@ class ConsoleRequester implements Loggable, Requester {
 	 * @see net.caustic.Requester#finished(net.caustic.Request, net.caustic.util.CollectionStringMap, net.caustic.Response)
 	 */
 	@Override
-	public void finished(RunnableRequest rRequest, Response response) {
+	public void finished(RunnableRequest rRequest, Response.Done response) {
 		final Request request = rRequest.request;
 		final CollectionStringMap requestTags = rRequest.tags;
 
 		log.i("Finished " + StringUtils.quote(request.instruction) + "(" + request.id + ")");
 		
+		switch(response.getStatus()) {
+		case Response.DONE:
+			
+			break;
+			
+		}
 		// launch children from Find, allow cookie destruction
-		if(response.values != null) {
-			final boolean isBranch = response.values.length > 1;
+		if(response.isFind()) {
+			Response.DoneFind findResponse = (Response.DoneFind) response;
+			final boolean isBranch = findResponse.getValues().length > 1;
 
-			for(int i = 0 ; i < response.values.length ; i ++) {
+			for(int i = 0 ; i < findResponse.getValues().length ; i ++) {
 				
 				final String id;
 				final CollectionStringMap tags;
@@ -93,18 +100,19 @@ class ConsoleRequester implements Loggable, Requester {
 					childCookies = rRequest.cookies;
 					tags = requestTags;
 				}
-				tags.put(response.name, response.values[i]);
+				tags.put(findResponse.getName(), findResponse.getValues()[i]);
 				
-				output.print(id, request.id, response.name, response.values[i]);
-				for(String child : response.children) {
-					request(id, child, response.uri, response.content, tags, childCookies, false);
+				output.print(id, request.id, findResponse.getName(), findResponse.getValues()[i]);
+				for(String child : response.getChildren()) {
+					request(id, child, response.uri, findResponse.getValues()[i], tags, childCookies, false);
 				}
 			}
-		} else if(response.content != null) { // launch children from Load, allow cookie destruction
+		} else if(response.isLoad()) { // launch children from Load, allow cookie destruction
+			Response.DoneLoad doneLoad = (Response.DoneLoad) response;
 			HashtableCookies childCookies = rRequest.cookies;
-			childCookies.extend(response.cookies);
-			for(String child : response.children) {
-				request(response.id, child, response.uri, response.content, requestTags, childCookies, false);
+			childCookies.extend(doneLoad.getCookies());
+			for(String child : response.getChildren()) {
+				request(response.id, child, response.uri, doneLoad.getContent(), requestTags, childCookies, false);
 			}
 		} else {
 			throw new RuntimeException("Invalid response, does not have content or values.");
@@ -117,7 +125,7 @@ class ConsoleRequester implements Loggable, Requester {
 	 * @see net.caustic.Requester#loadQueue(net.caustic.RunnableRequest)
 	 */
 	@Override
-	public void loadQueue(RunnableRequest rRequest, Response response) {
+	public void loadQueue(RunnableRequest rRequest, Response.Wait response) {
 		Request req = rRequest.request;
 		// add to missing tags queue with force enabled
 		missingTagsQueue(new RunnableRequest(this, scraper, req.id, req.instruction, req.uri, req.input,
@@ -128,7 +136,7 @@ class ConsoleRequester implements Loggable, Requester {
 	 * @see net.caustic.Requester#missingTagsQueue(net.caustic.RunnableRequest)
 	 */
 	@Override
-	public void missingTagsQueue(RunnableRequest rRequest, Response response) {
+	public void missingTagsQueue(RunnableRequest rRequest, Response.MissingTags response) {
 		synchronized(wait) {
 			wait.offer(rRequest);
 		}
@@ -139,10 +147,10 @@ class ConsoleRequester implements Loggable, Requester {
 	 * @see net.caustic.Requester#stuck(net.caustic.Request, net.caustic.Response)
 	 */
 	@Override
-	public void stuck(RunnableRequest rRequest, Response response) {
+	public void stuck(RunnableRequest rRequest, Response.MissingTags response) {
 		final Request request = rRequest.request;
 		log.i("Stuck on " + StringUtils.quote(request.instruction)  + "(" + request.id + ")"
-				+ " because of missing tags: " + Arrays.asList(response.missingTags)
+				+ " because of missing tags: " + Arrays.asList(response.getMissingTags())
 				+ " within " + request.tags.toString());
 		remove(response.id);
 	}
@@ -151,10 +159,10 @@ class ConsoleRequester implements Loggable, Requester {
 	 * @see net.caustic.Requester#failed(net.caustic.Request, net.caustic.Response)
 	 */
 	@Override
-	public void failed(RunnableRequest rRequest, Response response) {
+	public void failed(RunnableRequest rRequest, Response.Failed response) {
 		final Request request = rRequest.request;
 		log.i("Failed on " + StringUtils.quote(request.instruction) + "(" + request.id + ")"
-				+ " because of " + StringUtils.quote(response.failedBecause));
+				+ " because of " + StringUtils.quote(response.getReason()));
 		remove(response.id);
 	} 
 	

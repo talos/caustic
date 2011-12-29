@@ -34,23 +34,30 @@ public class RunnableRequest implements Runnable {
 	public void run() {
 		try {
 			Response response = scraper.scrape(request);
-						
-			if(response.children != null) {
-				requester.finished(this, response);
-			} else if (response.wait) {
-				requester.loadQueue(this, response);
-			} else if (response.missingTags != null) {
+			switch(response.getStatus()) {
+			case Response.DONE:
+				requester.finished(this, (Response.Done) response);
+				break;
+			case Response.WAIT:
+				requester.loadQueue(this, (Response.Wait) response);
+				break;
+			case Response.MISSING_TAGS:
+				Response.MissingTags missingTags = (Response.MissingTags) response;
 				if(lastMissingTags != null) {
-					if(lastMissingTags.containsAll(Arrays.asList(response.missingTags))) {
-						requester.stuck(this, response);
+					if(lastMissingTags.containsAll(Arrays.asList(missingTags.getMissingTags()))) {
+						requester.stuck(this, missingTags);
 					} else {
-						retry(response);
+						retry(missingTags);
 					}
 				} else {
-					retry(response);
+					retry(missingTags);
 				}
-			} else {
-				this.requester.failed(this, response);
+				break;
+			case Response.FAILED:
+				this.requester.failed(this, (Response.Failed) response);
+				break;
+			default:
+				throw new RuntimeException("Invalid response: " + response.serialize());
 			}
 		} catch(InterruptedException e) {
 			requester.interrupt(e);
@@ -59,8 +66,8 @@ public class RunnableRequest implements Runnable {
 		}
 	}
 	
-	private void retry(Response response) {
-		this.lastMissingTags = Arrays.asList(response.missingTags);
+	private void retry(Response.MissingTags response) {
+		this.lastMissingTags = Arrays.asList(response.getMissingTags());
 		this.requester.missingTagsQueue(this, response);
 	}
 }

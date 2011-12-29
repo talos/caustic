@@ -20,11 +20,6 @@ abstract class Instruction {
 	public static final String EXTENDS = "extends";
 	
 	/**
-	 * Key for a self-reference.
-	 */
-	//public static final String SELF = "$this";
-	
-	/**
 	 * Key for metadata.
 	 */
 	public static final String DESCRIPTION = "description";
