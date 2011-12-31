@@ -10,6 +10,7 @@ import mockit.Mocked;
 import mockit.NonStrict;
 import net.caustic.Load;
 import net.caustic.Response;
+import net.caustic.Response.DoneLoad;
 import net.caustic.http.BrowserResponse;
 import net.caustic.http.HttpBrowser;
 import net.caustic.regexp.JavaUtilRegexpCompiler;
@@ -39,10 +40,11 @@ public class LoadTest {
 	
 	@Test
 	public void testLoadRequiresForce() throws Exception {
-		Load load = new Load("description", "uri", compiler.newTemplate("url"), new String[] {}, "get",
+		Load load = new Load("description", "uri", compiler.newTemplate("name"),
+				compiler.newTemplate("url"), new String[] {}, "get",
 				empty, empty, empty);
 		Response response = load.execute("id", tags, cookies, browser, false);
-		assertTrue(response.wait);
+		assertEquals(Response.WAIT, response.getStatus());
 	}
 	/*
 	@Test
@@ -69,12 +71,13 @@ public class LoadTest {
 				result = new BrowserResponse("everything is purple", responseCookies);
 		}};
 		
-		Load load = new Load("description", "uri", compiler.newTemplate("swag"), new String[] {},
+		Load load = new Load("description", "uri", compiler.newTemplate("name"),
+				compiler.newTemplate("swag"), new String[] {},
 				"get", empty, empty, empty);
 		Response response = load.execute("id", tags, cookies, browser, true);
 		
-		assertNotNull(response.content);
-		assertEquals("everything is purple", response.content);
+		assertEquals(Response.DONE_LOAD, response.getStatus());
+		assertEquals("everything is purple", ((Response.DoneLoad) response).getContent());
 	}
 	
 	@Test
@@ -85,10 +88,12 @@ public class LoadTest {
 			browser.request("red", "get", (Hashtable) any, (Cookies) any, anyString);
 				result = new BrowserResponse("and violets are blue", responseCookies);
 		}};
-		Load load = new Load("description", "uri", compiler.newTemplate("{{roses}}"), new String[] {},
+		Load load = new Load("description", "uri", compiler.newTemplate("name"),
+				compiler.newTemplate("{{roses}}"), new String[] {},
 				"get", empty, empty, empty);
-		Response response = load.execute("id", tags, cookies, browser, true);
-		assertEquals(response.content, "and violets are blue");
+		
+		DoneLoad response = (Response.DoneLoad) load.execute("id", tags, cookies, browser, true);
+		assertEquals("and violets are blue", response.getContent());
 	}
 	
 
@@ -100,10 +105,11 @@ public class LoadTest {
 				result = new BrowserResponse("and violets are blue", responseCookies);
 		}};
 		
-		Load load = new Load("description", "uri", compiler.newTemplate("{{roses}}"), new String[] {},
+		Load load = new Load("description", "uri", compiler.newTemplate("name"),
+				compiler.newTemplate("{{roses}}"), new String[] {},
 				"get", empty, empty, empty);
-		Response response = load.execute("id", tags, cookies, browser, true);
-		assertEquals(response.content, "and violets are blue");
+		DoneLoad response = (DoneLoad) load.execute("id", tags, cookies, browser, true);
+		assertEquals("and violets are blue", response.getContent());
 	}
 	
 	
@@ -114,10 +120,11 @@ public class LoadTest {
 				result = new BrowserResponse("and violets are blue", responseCookies);
 		}};
 		
-		Load load = new Load("description", "uri", compiler.newTemplate("url"), new String[] {},
+		Load load = new Load("description", "uri", compiler.newTemplate("name"),
+				compiler.newTemplate("url"), new String[] {},
 				"post", empty, empty, empty);
-		Response response = load.execute("id", tags, cookies, browser, true);
-		assertEquals(response.content, "and violets are blue");
+		DoneLoad response = (DoneLoad) load.execute("id", tags, cookies, browser, true);
+		assertEquals("and violets are blue", response.getContent());
 	}
 	/*
 	@Test
@@ -141,9 +148,10 @@ public class LoadTest {
 				result = new BrowserResponse("and violets are blue", responseCookies);
 		}};
 		
-		Load load = new Load("description", "uri", compiler.newTemplate("url"), new String[] {},
+		Load load = new Load("description", "uri", compiler.newTemplate("name"),
+				compiler.newTemplate("url"), new String[] {},
 				"post", empty, empty, compiler.newTemplate("{{post}}"));
-		Response response = load.execute("id", tags, cookies, browser, true);
-		assertEquals(response.content, "and violets are blue");
+		DoneLoad response = (DoneLoad) load.execute("id", tags, cookies, browser, true);
+		assertEquals("and violets are blue", response.getContent());
 	}
 }

@@ -24,11 +24,12 @@ public class HttpBrowserUnitTest {
 	@Mocked private Cookies cookies;
 	@Mocked private HttpRequester requester;
 	@Mocked private RateLimitManager rateLimitManager;
+	@Mocked private HttpUtils utils;
 	private HttpBrowser browser;
 		
 	@Before
 	public void setUp() throws Exception {
-		browser = new HttpBrowser(requester, rateLimitManager);
+		browser = new HttpBrowser(requester, rateLimitManager, utils);
 	}
 
 	@Test

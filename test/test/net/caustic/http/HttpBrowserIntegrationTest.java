@@ -54,7 +54,8 @@ public class HttpBrowserIntegrationTest {
 	@Before
 	public void setUp() throws Exception {
 		browser = new HttpBrowser(requesterKlass.newInstance(),
-				new RateLimitManager(utilsKlass.newInstance()));
+				new RateLimitManager(utilsKlass.newInstance()),
+				utilsKlass.newInstance());
 	}
 
 	@Test

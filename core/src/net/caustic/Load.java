@@ -84,11 +84,17 @@ public final class Load extends Instruction {
 	 */
 	private final StringTemplate url;
 	
-	public Load(String description, String uri,
+	/**
+	 * A name that can be displayed in lieu of loading this URL.
+	 */
+	private final StringTemplate name;
+	
+	public Load(String description, String uri, StringTemplate name,
 			StringTemplate url, String[] children, String method,
 			HashtableTemplate cookies, HashtableTemplate headers, StringTemplate postData) {
 		super(description, uri);
 		this.url = url;
+		this.name = name;
 		this.method = method;
 		this.cookies = cookies;
 		this.headers = headers;
@@ -96,10 +102,11 @@ public final class Load extends Instruction {
 		this.children = children;
 	}
 	
-	public Load(String description, String uri,
+	public Load(String description, String uri, StringTemplate name, 
 			StringTemplate url, String[] children, String method,
 			HashtableTemplate cookies, HashtableTemplate headers, HashtableTemplate postTable) {
 		super(description, uri);
+		this.name = name;
 		this.url = url;
 		this.method = method;
 		this.cookies = cookies;
@@ -114,14 +121,22 @@ public final class Load extends Instruction {
 	 */
 	public Response execute(String id, StringMap tags, Cookies requestCookies, HttpBrowser browser, boolean force)
 			throws InterruptedException {
+		//HashtableCookies mutableCookies = new HashtableCookies(requestCookies);
+
+		// use premature returns before http try { } block.
+		StringSubstitution nameSub = name.sub(tags);
+		if(nameSub.isMissingTags()) {
+			return new Response.MissingTags(id, uri, nameSub.getMissingTags());
+		} 
+		
+		String nameStr = nameSub.getSubstituted();
 		if(force == false) {
-			return new Response.Wait(id, uri, description); // don't run a load unless it's forced.
+			return new Response.Wait(id, uri, nameStr, description, children); // don't run a load unless it's forced.
 		}
 		
-		//HashtableCookies mutableCookies = new HashtableCookies(requestCookies);
-		
-		final Response response;
-		try {			
+		try {
+			final Response response;
+
 			//final Pattern[] stops = new Pattern[] { };
 			final StringSubstitution urlSub = url.sub(tags);
 			final HashtableSubstitution headersSub = headers.sub(tags);
@@ -134,7 +149,7 @@ public final class Load extends Instruction {
 				String[] missingTags = StringSubstitution.combine(new DependsOnTemplate[] {
 						urlSub, headersSub, cookiesSub});
 				
-				response = new Response.MissingTags(id, uri, description, missingTags);
+				response = new Response.MissingTags(id, uri, missingTags);
 			
 			} else {
 				
@@ -143,14 +158,14 @@ public final class Load extends Instruction {
 				if(postData != null) {
 					StringSubstitution sub = postData.sub(tags);
 					if(sub.isMissingTags()) {
-						return new Response.MissingTags(id, uri, description, sub.getMissingTags()); // break out early
+						return new Response.MissingTags(id, uri, sub.getMissingTags()); // break out early
 					} else {
 						postStr = sub.getSubstituted();
 					}
 				} else if(postTable != null) {
 					HashtableSubstitution sub = postTable.sub(tags);
 					if(sub.isMissingTags()) {
-						return new Response.MissingTags(id, uri, description, sub.getMissingTags()); // break out early
+						return new Response.MissingTags(id, uri, sub.getMissingTags()); // break out early
 					} else {
 						postStr = HashtableUtils.toFormEncoded(sub.getSubstituted());
 					}
@@ -179,15 +194,15 @@ public final class Load extends Instruction {
 				
 				BrowserResponse bResp = browser.request(url, method, headers, templateCookies, postStr);
 				
-				response = new Response.DoneLoad(id, uri, description, children, bResp.content, bResp.cookies);
+				response = new Response.DoneLoad(id, uri, nameStr, description, children, bResp.content, bResp.cookies);
 			}
 			return response;
 		} catch(HashtableSubstitutionOverwriteException e) {
 			// Failed because of ambiguous mapping
-			return new Response.Failed(id, uri, description, "Instruction template substitution caused ambiguous mapping: "
+			return new Response.Failed(id, uri, "Instruction template substitution caused ambiguous mapping: "
 					+ e.getMessage());
 		} catch (HttpException e) {
-			return new Response.Failed(id, uri, description, "Failure during HTTP request or response: " + e.getMessage());
+			return new Response.Failed(id, uri, "Failure during HTTP request or response: " + e.getMessage());
 		}
 	}
 }

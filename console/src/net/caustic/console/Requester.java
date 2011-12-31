@@ -4,7 +4,9 @@ import net.caustic.Response;
 
 public interface Requester {
 
-	public abstract void finished(RunnableRequest rRequest, Response.Done response);
+	public abstract void finishedLoad(RunnableRequest rRequest, Response.DoneLoad response);
+	public abstract void finishedFind(RunnableRequest rRequest, Response.DoneFind response);
+	public abstract void finishedReference(RunnableRequest rRequest, Response.Reference response);
 
 	public abstract void loadQueue(RunnableRequest rRequest, Response.Wait response);
 

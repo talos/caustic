@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <style name="DataRow">
+    	<item name="android:textSize">10dp</item>
+    </style>
+    
+    <style name="DataTitle">
+    	<item name="android:textSize">14dp</item>
+    </style>
+    
+</resources>

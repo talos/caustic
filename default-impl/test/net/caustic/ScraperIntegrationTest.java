@@ -1,17 +1,16 @@
 package net.caustic;
 
 import static org.junit.Assert.*;
-import static net.caustic.util.StringUtils.quote;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.List;
 
 import mockit.Expectations;
 import mockit.NonStrict;
-import mockit.Verifications;
-import mockit.VerificationsInOrder;
+import net.caustic.Response.DoneFind;
+import net.caustic.Response.DoneLoad;
+import net.caustic.Response.MissingTags;
 import net.caustic.Scraper;
 import net.caustic.http.Cookies;
 import net.caustic.http.HashtableCookies;
@@ -50,14 +49,16 @@ public class ScraperIntegrationTest {
 		Response resp = scraper.scrape(
 				new Request("id", demosDir + "simple-google.json", URI, null, tags, cookies, true));
 		
-		assertArrayEquals(new String[] { "query" }, resp.missingTags);
+		assertEquals(Response.MISSING_TAGS, resp.getStatus());
+		MissingTags missingTags = (MissingTags) resp;
+		assertArrayEquals(new String[] { "query" }, missingTags.getMissingTags());
 	}
 
 	@Test
 	public void testScrapeFail() throws Exception {	
 		Response resp = scraper.scrape(
 				new Request("id", "/path/to/nothing", URI, null, tags, cookies, true));
-		assertNotNull(resp.failedBecause);
+		assertEquals(Response.FAILED, resp.getStatus());
 	}
 	
 	@Test
@@ -66,14 +67,14 @@ public class ScraperIntegrationTest {
 			tags.get("query"); result = "hello";
 		}};
 		
-		Response resp = scraper.scrape(
+		DoneLoad doneLoad = (DoneLoad) scraper.scrape(
 				new Request("id", demosDir + "simple-google.json", URI, null, tags, cookies, true));
 
-		assertEquals(1, resp.children.length);
-		resp = scraper.scrape(new Request("id", resp.children[0], resp.uri, resp.content, tags, cookies, false));
+		assertEquals(1, doneLoad.getChildren().length);
+		DoneFind doneFind = (DoneFind) scraper.scrape(new Request("id", doneLoad.getChildren()[0], doneLoad.uri, doneLoad.getContent(), tags, cookies, false));
 		
-		assertEquals("what do you say after 'hello'?", resp.name);
-		for(String value : resp.values) {
+		assertEquals("what do you say after 'hello'?", doneFind.getName());
+		for(String value : doneFind.getValues()) {
 			assertTrue(value.startsWith("I say"));
 		}
 	}
@@ -84,14 +85,15 @@ public class ScraperIntegrationTest {
 			tags.get("query"); result = "hello";
 		}};
 		
-		Response resp = scraper.scrape(
+		DoneLoad doneLoad = (DoneLoad) scraper.scrape(
 				new Request("id", demosDir + "pointer.json", URI, null, tags, cookies, true));
 		
-		assertEquals(1, resp.children.length);
-		resp = scraper.scrape(new Request("id", resp.children[0], resp.uri, resp.content, tags, cookies, false));
+		assertEquals(1, doneLoad.getChildren().length);
+		DoneFind doneFind = (DoneFind) scraper.scrape(
+				new Request("id", doneLoad.getChildren()[0], doneLoad.uri, doneLoad.getContent(), tags, cookies, false));
 		
-		assertEquals("what do you say after 'hello'?", resp.name);
-		for(String value : resp.values) {
+		assertEquals("what do you say after 'hello'?", doneFind.getName());
+		for(String value : doneFind.getValues()) {
 			assertTrue(value.startsWith("I say"));
 		}
 	}
@@ -107,22 +109,23 @@ public class ScraperIntegrationTest {
 		}};
 		
 		// not forced
-		Response resp = scraper.scrape(
+		Response.Reference resp = (Response.Reference) scraper.scrape(
 				new Request("id", demosDir + "array.json", URI, null, tags, cookies, false));
 		
 		List<String> values = new ArrayList<String>();
 		
-		assertEquals(2, resp.children.length);
-		for(String child : resp.children) {
-			Response childResp = scraper.scrape(
-					new Request("id", child, resp.uri, resp.content, tags, cookies, true));
-			for(String grandchild : childResp.children) {
-				values.addAll(Arrays.asList(scraper.scrape(new Request("id", grandchild,
-						childResp.uri, childResp.content, tags,
-						cookies, false)).values));
+		assertEquals(2, resp.getReferenced().length);
+		for(String child : resp.getReferenced()) {
+			DoneLoad childResp = (DoneLoad) scraper.scrape(
+					new Request("id", child, resp.uri, null, tags, cookies, true));
+			for(String grandchild : childResp.getChildren()) {
+				DoneFind grandchildResp = (DoneFind) scraper.scrape(new Request("id", grandchild,
+						childResp.uri, childResp.getContent(), tags,
+						cookies, false));
+				values.addAll(Arrays.asList(grandchildResp.getValues()));
 			}
 		}
-		
+	
 		boolean containsISay = false;
 		for(String value : values) {
 			if(value.startsWith("I say ")) {
@@ -131,15 +134,16 @@ public class ScraperIntegrationTest {
 			}
 		}
 		assertTrue(containsISay);
-		
 
 		boolean containsOwner = false;
 		for(String value : values) {
-			if(value.startsWith("373 Atlantic Ave")) {
+			if(value.startsWith("373 ATLANTIC AVE")) {
 				containsOwner = true;
 				break;
 			}
 		}
+		assertTrue(containsOwner);
+
 	}
 	
 	/**

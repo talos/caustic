@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/generic_data_view"
+    android:orientation="vertical"
+    android:background="#ff0000ff"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <TextView android:id="@+id/title"
+    		  android:background="#ffff0000"
+    		  android:text="title_text"
+    		  android:layout_height="wrap_content"
+    		  android:layout_width="wrap_content"
+    		  style="@style/DataTitle" />
+    <ListView android:layout_height="wrap_content"
+    		  android:layout_width="fill_parent"
+    		  android:id="@+id/data"
+    		  style="@style/DataRow" />
+
+</LinearLayout>

@@ -7,6 +7,8 @@ import java.util.Arrays;
 import mockit.NonStrict;
 import net.caustic.Find;
 import net.caustic.Response;
+import net.caustic.Response.DoneFind;
+import net.caustic.Response.MissingTags;
 import net.caustic.regexp.JavaUtilRegexpCompiler;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.util.Encoder;
@@ -41,13 +43,12 @@ public class FindTest  {
 				compiler.newTemplate("$0"), 0, -1, false, false, false, new String[] {});
 		
 		Response response = find.execute("id", "input string", tags);
-		String[] missingTags = response.missingTags;
-
-		assertNotNull(missingTags);
 		
-		assertTrue(Arrays.asList(missingTags).contains("foo"));
-		assertTrue(Arrays.asList(missingTags).contains("bar"));
-		assertTrue(Arrays.asList(missingTags).contains("baz"));
+		assertEquals(Response.MISSING_TAGS, response.getStatus());
+		MissingTags missingTags = (MissingTags) response;
+		assertEquals(3, missingTags.getMissingTags().length);
+		assertTrue(Arrays.asList("foo", "bar", "baz")
+					.containsAll(Arrays.asList(missingTags.getMissingTags())));
 	}
 	
 	@Test
@@ -58,9 +59,8 @@ public class FindTest  {
 		
 		Response response = find.execute("id", "late capitalism", tags);
 		
-		assertNull(response.missingTags);
-		assertNotNull(response.failedBecause);
-		assertTrue(response.failedBecause.contains("humanity"));
+		assertEquals(Response.FAILED, response.getStatus());
+		assertTrue(((Response.Failed) response).getReason().contains("humanity"));
 	}
 
 	@Test
@@ -69,13 +69,9 @@ public class FindTest  {
 				compiler.newTemplate("needle"),
 				compiler.newTemplate("$0"), 0, -1, false, false, false, new String[] {});
 		
-		Response response = find.execute("id", "haystack haystack haystack needle haystack haystack", tags);
+		DoneFind response = (DoneFind) find.execute("id", "haystack haystack haystack needle haystack haystack", tags);
 		
-		assertNull(response.missingTags);
-		assertNull(response.failedBecause);
-		
-		assertNotNull(response.values);
-		assertEquals(1, response.values.length);
+		assertArrayEquals(new String[] { "needle" }, response.getValues());
 	}
 	
 	@Test
@@ -84,17 +80,8 @@ public class FindTest  {
 				compiler.newTemplate("\\w+"),
 				compiler.newTemplate("$0"), 0, -1, false, false, false, new String[] {});
 		
-		Response response = find.execute("id", "roses red, violets blue", tags);
-		
-		assertNull(response.missingTags);
-		assertNull(response.failedBecause);
-		
-		assertNotNull(response.values);
-		assertEquals(4, response.values.length);
-		assertEquals("roses", response.values[0]);
-		assertEquals("red", response.values[1]);
-		assertEquals("violets", response.values[2]);
-		assertEquals("blue", response.values[3]);
+		DoneFind response = (DoneFind) find.execute("id", "roses red, violets blue", tags);
+		assertArrayEquals(new String[] { "roses", "red", "violets", "blue" }, response.getValues());
 	}
 	
 	@Test
@@ -103,14 +90,9 @@ public class FindTest  {
 				compiler.newTemplate("\\w+"),
 				compiler.newTemplate("$0"), 0, 0, false, false, false, new String[] {});
 		
-		Response response = find.execute("id", "the one and only", tags);
+		DoneFind response = (DoneFind) find.execute("id", "the one and only", tags);
 		
-		assertNull(response.missingTags);
-		assertNull(response.failedBecause);
-		
-		assertNotNull(response.values);
-		assertEquals(1, response.values.length);
-		assertEquals("the", response.values[0]);
+		assertArrayEquals(new String[] { "the" }, response.getValues());
 	}
 	
 	@Test
@@ -119,14 +101,9 @@ public class FindTest  {
 				compiler.newTemplate("\\w+"),
 				compiler.newTemplate("$0"), -1, -1, false, false, false, new String[] {});
 		
-		Response response = find.execute("id", "the one and only", tags);
+		DoneFind response = (DoneFind) find.execute("id", "the one and only", tags);
 		
-		assertNull(response.missingTags);
-		assertNull(response.failedBecause);
-		
-		assertNotNull(response.values);
-		assertEquals(1, response.values.length);
-		assertEquals("only", response.values[0]);
+		assertArrayEquals(new String[] { "only" }, response.getValues());
 	}
 	
 	@Test
@@ -135,14 +112,9 @@ public class FindTest  {
 				compiler.newTemplate("\\w+"),
 				compiler.newTemplate("$0"), 1, 1, false, false, false, new String[] {});
 		
-		Response response = find.execute("id", "the one and only", tags);
+		DoneFind response = (DoneFind) find.execute("id", "the one and only", tags);
 		
-		assertNull(response.missingTags);
-		assertNull(response.failedBecause);
-		
-		assertNotNull(response.values);
-		assertEquals(1, response.values.length);
-		assertEquals("one", response.values[0]);
+		assertArrayEquals(new String[] { "one" }, response.getValues());
 	}
 
 	@Test
@@ -151,14 +123,9 @@ public class FindTest  {
 				compiler.newTemplate("\\w+"),
 				compiler.newTemplate("$0"), -2, -2, false, false, false, new String[] {});
 		
-		Response response = find.execute("id", "the one and only", tags);
+		DoneFind response = (DoneFind) find.execute("id", "the one and only", tags);
 		
-		assertNull(response.missingTags);
-		assertNull(response.failedBecause);
-		
-		assertNotNull(response.values);
-		assertEquals(1, response.values.length);
-		assertEquals("and", response.values[0]);
+		assertArrayEquals(new String[] { "and" }, response.getValues());
 	}
 
 	@Test
@@ -167,15 +134,9 @@ public class FindTest  {
 				compiler.newTemplate("\\w+"),
 				compiler.newTemplate("$0"), 1, 2, false, false, false, new String[] {});
 		
-		Response response = find.execute("id", "the one and only", tags);
+		DoneFind response = (DoneFind) find.execute("id", "the one and only", tags);
 		
-		assertNull(response.missingTags);
-		assertNull(response.failedBecause);
-		
-		assertNotNull(response.values);
-		assertEquals(2, response.values.length);
-		assertEquals("one", response.values[0]);
-		assertEquals("and", response.values[1]);
+		assertArrayEquals(new String[] { "one", "and" }, response.getValues());
 	}
 	
 	@Test
@@ -184,15 +145,9 @@ public class FindTest  {
 				compiler.newTemplate("\\w+"),
 				compiler.newTemplate("$0"), -3, -2, false, false, false, new String[] {});
 		
-		Response response = find.execute("id", "the one and only", tags);
+		DoneFind response = (DoneFind) find.execute("id", "the one and only", tags);
 		
-		assertNull(response.missingTags);
-		assertNull(response.failedBecause);
-		
-		assertNotNull(response.values);
-		assertEquals(2, response.values.length);
-		assertEquals("one", response.values[0]);
-		assertEquals("and", response.values[1]);
+		assertArrayEquals(new String[] { "one", "and" }, response.getValues());
 	}
 	
 
@@ -202,14 +157,8 @@ public class FindTest  {
 				compiler.newTemplate("\\w+"),
 				compiler.newTemplate("$0"), -3, 2, false, false, false, new String[] {});
 		
-		Response response = find.execute("id", "the one and only", tags);
+		DoneFind response = (DoneFind) find.execute("id", "the one and only", tags);
 		
-		assertNull(response.missingTags);
-		assertNull(response.failedBecause);
-		
-		assertNotNull(response.values);
-		assertEquals(2, response.values.length);
-		assertEquals("one", response.values[0]);
-		assertEquals("and", response.values[1]);
+		assertArrayEquals(new String[] { "one", "and" }, response.getValues());
 	}
 }

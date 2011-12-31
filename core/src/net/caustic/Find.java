@@ -176,7 +176,7 @@ public final class Find extends Instruction {
 				subReplacement.isMissingTags()) { // One of the substitutions was not OK.
 			final String[] missingTags = StringSubstitution.combine(
 					new DependsOnTemplate[] { subName, subPattern, subReplacement });
-			result = new Response.MissingTags(id, uri, description, missingTags);
+			result = new Response.MissingTags(id, uri, missingTags);
 		} else {
 			
 			// All the substitutions were OK.
@@ -189,12 +189,12 @@ public final class Find extends Instruction {
 			String[] matches = pattern.match(input, replacement, minMatch, maxMatch);
 			
 			if(matches.length == 0) { // No matches, fail out.
-				result = new Response.Failed(id, uri, description, "Match " + StringUtils.quote(pattern) +
+				result = new Response.Failed(id, uri, "Match " + StringUtils.quote(pattern) +
 						" did not have a match between " + 
 						StringUtils.quote(minMatch) + " and " + 
 						StringUtils.quote(maxMatch) + " against " + StringUtils.quote(input));
 			} else {
-				result = new Response.DoneFind(id, uri, description, children, resultName, matches);
+				result = new Response.DoneFind(id, uri, resultName, description, children, matches);
 			}
 		}
 		return result;

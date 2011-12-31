@@ -47,7 +47,7 @@ public class ZCausticServer implements Runnable {
 	            	response = scraper.scrape(request);
 	            	socket.send(response.serialize().getBytes(), 0);
 	            } catch(InterruptedException e) {
-	            	socket.send(Response.Failed(request.id, request.uri, "Interrupted.", e.getMessage()).serialize().getBytes(), 0);
+	            	socket.send(new Response.Failed(request.id, request.uri, e.getMessage()).serialize().getBytes(), 0);
 	            }
             } catch(JSONException e) {
             	e.printStackTrace();

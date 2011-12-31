@@ -30,7 +30,9 @@ class ConsoleRequester implements Loggable, Requester {
 	
 	private final MultiLog log = new MultiLog();
 	private final Set<String> ready = Collections.synchronizedSet(new HashSet<String>());
+	
 	private final Queue<RunnableRequest> wait = new LinkedList<RunnableRequest>();
+	private final Queue<RunnableRequest> missing = new LinkedList<RunnableRequest>();
 	
 	private final int nThreads;
 	private final AtomicInteger id = new AtomicInteger(0);
@@ -63,62 +65,66 @@ class ConsoleRequester implements Loggable, Requester {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see net.caustic.Requester#finished(net.caustic.Request, net.caustic.util.CollectionStringMap, net.caustic.Response)
-	 */
+
 	@Override
-	public void finished(RunnableRequest rRequest, Response.Done response) {
+	public void finishedFind(RunnableRequest rRequest, Response.DoneFind response) {
+		final Request request = rRequest.request;
+		final CollectionStringMap requestTags = rRequest.tags;
+		
+		Response.DoneFind findResponse = (Response.DoneFind) response;
+		final boolean isBranch = findResponse.getValues().length > 1;
+
+		for(int i = 0 ; i < findResponse.getValues().length ; i ++) {
+			
+			final String id;
+			final CollectionStringMap tags;
+			final HashtableCookies childCookies;
+			
+			// if this is a branch, generate new id, branch cookies, and branch tags
+			if(isBranch) {
+				id = uuid();
+				childCookies = rRequest.cookies.branch();
+				tags = requestTags.branch(new HashMap<String, String>());
+			} else {
+				id = request.id;
+				childCookies = rRequest.cookies;
+				tags = requestTags;
+			}
+			tags.put(findResponse.getName(), findResponse.getValues()[i]);
+			
+			output.print(id, request.id, findResponse.getName(), findResponse.getValues()[i]);
+			for(String child : response.getChildren()) {
+				request(id, child, response.uri, findResponse.getValues()[i], tags, childCookies, false);
+			}
+		}
+	}
+	
+	@Override
+	public void finishedLoad(RunnableRequest rRequest, Response.DoneLoad response) {
 		final Request request = rRequest.request;
 		final CollectionStringMap requestTags = rRequest.tags;
 
 		log.i("Finished " + StringUtils.quote(request.instruction) + "(" + request.id + ")");
 		
-		switch(response.getStatus()) {
-		case Response.DONE:
-			
-			break;
-			
+		Response.DoneLoad doneLoad = (Response.DoneLoad) response;
+		HashtableCookies childCookies = rRequest.cookies;
+		childCookies.extend(doneLoad.getCookies());
+		for(String child : response.getChildren()) {
+			request(response.id, child, response.uri, doneLoad.getContent(), requestTags, childCookies, false);
 		}
-		// launch children from Find, allow cookie destruction
-		if(response.isFind()) {
-			Response.DoneFind findResponse = (Response.DoneFind) response;
-			final boolean isBranch = findResponse.getValues().length > 1;
-
-			for(int i = 0 ; i < findResponse.getValues().length ; i ++) {
-				
-				final String id;
-				final CollectionStringMap tags;
-				final HashtableCookies childCookies;
-				
-				// if this is a branch, generate new id, branch cookies, and branch tags
-				if(isBranch) {
-					id = uuid();
-					childCookies = rRequest.cookies.branch();
-					tags = requestTags.branch(new HashMap<String, String>());
-				} else {
-					id = request.id;
-					childCookies = rRequest.cookies;
-					tags = requestTags;
-				}
-				tags.put(findResponse.getName(), findResponse.getValues()[i]);
-				
-				output.print(id, request.id, findResponse.getName(), findResponse.getValues()[i]);
-				for(String child : response.getChildren()) {
-					request(id, child, response.uri, findResponse.getValues()[i], tags, childCookies, false);
-				}
-			}
-		} else if(response.isLoad()) { // launch children from Load, allow cookie destruction
-			Response.DoneLoad doneLoad = (Response.DoneLoad) response;
-			HashtableCookies childCookies = rRequest.cookies;
-			childCookies.extend(doneLoad.getCookies());
-			for(String child : response.getChildren()) {
-				request(response.id, child, response.uri, doneLoad.getContent(), requestTags, childCookies, false);
-			}
-		} else {
-			throw new RuntimeException("Invalid response, does not have content or values.");
-		}
-
+	
 		remove(response.id);
+	}
+	
+	public void finishedReference(RunnableRequest rRequest, Response.Reference response) {
+		final Request request = rRequest.request;
+		final CollectionStringMap requestTags = rRequest.tags;
+		log.i("Following references " + StringUtils.quote(request.instruction) + "(" + request.id + ")");
+
+		for(String child : response.getReferenced()) {
+			request(response.id, child, response.uri, request.input, requestTags, rRequest.cookies, false);
+		}
+		throw new RuntimeException("Invalid response, does not have content or values.");
 	}
 	
 	/* (non-Javadoc)
@@ -128,8 +134,13 @@ class ConsoleRequester implements Loggable, Requester {
 	public void loadQueue(RunnableRequest rRequest, Response.Wait response) {
 		Request req = rRequest.request;
 		// add to missing tags queue with force enabled
-		missingTagsQueue(new RunnableRequest(this, scraper, req.id, req.instruction, req.uri, req.input,
-				rRequest.tags, rRequest.cookies, true), response);
+		/*missingTagsQueue(new RunnableRequest(this, scraper, req.id, req.instruction, req.uri, req.input,
+				rRequest.tags, rRequest.cookies, true), response);*/
+		synchronized(missing) {
+			missing.offer(new RunnableRequest(this, scraper, req.id, req.instruction, req.uri, req.input,
+				rRequest.tags, rRequest.cookies, true));
+		}
+		remove(req.id);
 	}
 	
 	/* (non-Javadoc)
@@ -198,10 +209,14 @@ class ConsoleRequester implements Loggable, Requester {
 	private void remove(String id) {
 		ready.remove(id);
 		synchronized(wait) {
+			// submit missing tags first.
+			while(ready.size() < nThreads && !missing.isEmpty()) {
+				request(missing.poll());
+			}
+			// submit waits second
 			while(ready.size() < nThreads && !wait.isEmpty()) {
-				RunnableRequest req = wait.poll();
 				// submit with force
-				request(req);
+				request(wait.poll());
 			}
 		}
 	}

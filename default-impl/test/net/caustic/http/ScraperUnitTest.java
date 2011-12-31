@@ -10,6 +10,8 @@ import mockit.NonStrict;
 import net.caustic.DefaultScraper;
 import net.caustic.Request;
 import net.caustic.Response;
+import net.caustic.Response.DoneFind;
+import net.caustic.Response.DoneLoad;
 import net.caustic.Scraper;
 import net.caustic.http.Cookies;
 import net.caustic.http.HttpBrowser;
@@ -51,13 +53,12 @@ public class ScraperUnitTest {
 		
 		JSONObject load = new JSONObject().put("load", "http://www.foo.com/");
 		
-		Response response = scraper.scrape(new Request("id",
+		DoneLoad response = (DoneLoad) scraper.scrape(new Request("id",
 				load.toString(), uri, null, tags, cookies, true));
 		
-		assertNull(response.values);
-		assertEquals("bar", response.content);
-		assertEquals(respCookies, response.cookies);
-		assertArrayEquals(new String[] {}, response.children);
+		assertEquals("bar", response.getContent());
+		assertEquals(respCookies, response.getCookies());
+		assertArrayEquals(new String[] {}, response.getChildren());
 	}
 
 	@Test
@@ -72,10 +73,7 @@ public class ScraperUnitTest {
 		Response response = scraper.scrape(new Request("id",
 				load.toString(), uri, null, tags, cookies, false));
 		
-		assertNull(response.values);
-		assertNull(response.content);
-		assertNull(response.cookies);
-		assertTrue(response.wait);
+		assertEquals(Response.WAIT, response.getStatus());
 	}
 	
 	@Test
@@ -86,31 +84,29 @@ public class ScraperUnitTest {
 				result = new BrowserResponse("bar", respCookies);
 		}};
 		
-		Response response = scraper.scrape(new Request("id", "/uri", uri, null, tags, cookies, true));
+		DoneLoad response = (DoneLoad) scraper.scrape(new Request("id", "/uri", uri, null, tags, cookies, true));
 		
-		assertNull(response.values);
-		assertEquals("bar", response.content);
-		assertEquals(respCookies, response.cookies);
-		assertArrayEquals(new String[] {}, response.children);
+		assertEquals("bar", response.getContent());
+		assertEquals(respCookies, response.getCookies());
+		assertArrayEquals(new String[] {}, response.getChildren());
 	}
 
 	@Test
 	public void testDeserializeSimpleFindFromJsonSucceedsAndMatchesAll() throws Exception {
 		JSONObject find = new JSONObject().put("find", "foo");
 		
-		Response response = scraper.scrape(new Request("id", find.toString(), uri,
+		DoneFind response = (DoneFind) scraper.scrape(new Request("id", find.toString(), uri,
 				"foo foo bar", tags, cookies, true));
-		assertNull(response.content);
-		assertNull(response.cookies);
-		assertEquals("foo", response.name);
-		assertArrayEquals(new String[] { "foo", "foo" }, response.values);
-		assertArrayEquals(new String[] {}, response.children);
+
+		assertEquals("foo", response.getName());
+		assertArrayEquals(new String[] { "foo", "foo" }, response.getValues());
+		assertArrayEquals(new String[] {}, response.getChildren());
 	}
 
 	@Test
 	public void testEmptyObjFails() throws Exception {		
 		Response response = scraper.scrape(new Request("id", "{}", uri, null, tags, cookies, true));
-		assertNotNull(response.failedBecause);
+		assertEquals(Response.FAILED, response.getStatus());
 	}
 	
 	@Test
@@ -121,13 +117,11 @@ public class ScraperUnitTest {
 			loader.load("/uri"); result = new JSONObject().put("find", "needle").toString();
 		}};
 		
-		Response response = scraper.scrape(new Request("id", "/pointer", uri,
+		DoneFind response = (DoneFind) scraper.scrape(new Request("id", "/pointer", uri,
 				"haystack needle haystack", tags, cookies, false));
 		
-		assertNull(response.content);
-		assertNull(response.cookies);
-		assertEquals("needle", response.name);
-		assertArrayEquals(new String[] { "needle" }, response.values);
+		assertEquals("needle", response.getName());
+		assertArrayEquals(new String[] { "needle" }, response.getValues());
 	}
 	
 	@Test
@@ -137,15 +131,11 @@ public class ScraperUnitTest {
 		ary.put(new JSONObject().put("find", "^foo$"));
 		ary.put(new JSONObject().put("load", "http://www.google.com/"));
 		
-		Response response = scraper.scrape(new Request("id", ary.toString(), uri,
+		Response.Reference response = (Response.Reference) scraper.scrape(new Request("id", ary.toString(), uri,
 				"foo bar", tags, cookies, false));
-		
-		assertNull(response.content);
-		assertNull(response.values);
-		
-		assertEquals(2, response.children.length);
-		assertTrue(Arrays.asList(response.children).contains(ary.getString(0)));
-		assertTrue(Arrays.asList(response.children).contains(ary.getString(1)));		
+				
+		assertEquals(2, response.getReferenced().length);
+		assertTrue(Arrays.asList(ary.getString(0), ary.getString(1)).containsAll(Arrays.asList(response.getReferenced())));
 	}
 	
 	@Test
@@ -154,7 +144,7 @@ public class ScraperUnitTest {
 		
 		Response response = scraper.scrape(new Request("uri", bad.toString(), uri,
 				null, tags, cookies, false));
-		assertNotNull(response.failedBecause);
+		assertEquals(Response.FAILED, response.getStatus());
 	}
 	
 	@Test
@@ -165,7 +155,7 @@ public class ScraperUnitTest {
 		
 		Response response = scraper.scrape(new Request("uri", bad.toString(), uri,
 				"foo", tags, cookies, false));
-		assertNotNull(response.failedBecause);
+		assertEquals(Response.FAILED, response.getStatus());
 	}
 	
 	@Test
@@ -177,7 +167,7 @@ public class ScraperUnitTest {
 		
 		Response response = scraper.scrape(new Request("uri", bad.toString(), uri,
 				"foo", tags, cookies, false));
-		assertNotNull(response.failedBecause);
+		assertEquals(Response.FAILED, response.getStatus());
 	}
 
 	@Test
@@ -189,7 +179,7 @@ public class ScraperUnitTest {
 		
 		Response response = scraper.scrape(new Request("uri", bad.toString(), uri,
 				"foo", tags, cookies, false));
-		assertNotNull(response.failedBecause);
+		assertEquals(Response.FAILED, response.getStatus());
 	}
 
 	@Test
@@ -201,7 +191,7 @@ public class ScraperUnitTest {
 		
 		Response response = scraper.scrape(new Request("uri", bad.toString(), uri,
 				"foo", tags, cookies, false));
-		assertNotNull(response.failedBecause);
+		assertEquals(Response.FAILED, response.getStatus());
 	}
 	
 	@Test
@@ -213,7 +203,7 @@ public class ScraperUnitTest {
 		
 		Response response = scraper.scrape(new Request("uri", bad.toString(), uri,
 				"foo", tags, cookies, false));
-		assertNotNull(response.failedBecause);
+		assertEquals(Response.FAILED, response.getStatus());
 	}
 	
 	@Test
@@ -221,9 +211,9 @@ public class ScraperUnitTest {
 		JSONObject obj = new JSONObject()
 			.put("extends", new JSONObject().put("find", "^foo$"));
 		
-		Response response = scraper.scrape(new Request("uri", obj.toString(), uri,
+		DoneFind response = (DoneFind) scraper.scrape(new Request("uri", obj.toString(), uri,
 				"foo", tags, cookies, false));
-		assertArrayEquals(new String[] { "foo" }, response.values);
+		assertArrayEquals(new String[] { "foo" }, response.getValues());
 	}
 	
 	@Test
@@ -234,9 +224,9 @@ public class ScraperUnitTest {
 		
 		JSONObject obj = new JSONObject().put("extends", "/uri");
 		
-		Response response = scraper.scrape(new Request("uri", obj.toString(), uri,
+		DoneFind response = (DoneFind) scraper.scrape(new Request("uri", obj.toString(), uri,
 				"foo", tags, cookies, false));
-		assertArrayEquals(new String[] { "foo" }, response.values);
+		assertArrayEquals(new String[] { "foo" }, response.getValues());
 	}
 	
 	@Test
@@ -244,9 +234,9 @@ public class ScraperUnitTest {
 		JSONObject extendedFind = new JSONObject()
 			.put("extends", new JSONArray().put(new JSONObject().put("find", "^foo$")));
 		
-		Response response = scraper.scrape(new Request("uri", extendedFind.toString(), uri,
+		DoneFind response = (DoneFind) scraper.scrape(new Request("uri", extendedFind.toString(), uri,
 				"foo", tags, cookies, false));
-		assertArrayEquals(new String[] { "foo" }, response.values);
+		assertArrayEquals(new String[] { "foo" }, response.getValues());
 	}	
 	
 	@Test
@@ -266,12 +256,11 @@ public class ScraperUnitTest {
 		JSONObject obj = new JSONObject()
 			.put("extends", "/uri");
 
-		Response response = scraper.scrape(new Request("uri", obj.toString(), uri,
+		DoneLoad response = (DoneLoad) scraper.scrape(new Request("uri", obj.toString(), uri,
 				"foo", tags, cookies, true));
 				
-		assertEquals(2, response.children.length);
-		assertTrue(Arrays.asList(response.children).contains(then.get(0).toString()));
-		assertTrue(Arrays.asList(response.children).contains(then.get(1).toString()));		
+		assertEquals(2, response.getChildren().length);
+		assertTrue(Arrays.asList(response.getChildren()).containsAll(Arrays.asList(then.get(0), then.get(1).toString())));
 	}
 	/*
 	@Test

@@ -261,11 +261,11 @@ public class HttpBrowser implements Loggable {
 		return responseBody.toString();
 	}
 	
-	public HttpBrowser(HttpRequester requester, RateLimitManager rateLimitManager) {
+	public HttpBrowser(HttpRequester requester, RateLimitManager rateLimitManager, HttpUtils utils) {
 		this.requester = requester;
 		this.rateLimitManager = rateLimitManager;
-		this.utils = rateLimitManager.httpUtils;
 		this.log = new MultiLog();
+		this.utils = utils;
 	}
 	
 	/**

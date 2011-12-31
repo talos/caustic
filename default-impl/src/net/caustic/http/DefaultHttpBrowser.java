@@ -13,6 +13,6 @@ import net.caustic.http.RateLimitManager;
 public class DefaultHttpBrowser extends HttpBrowser {
 
 	public DefaultHttpBrowser() {
-		super(new JavaNetHttpRequester(), new RateLimitManager(new JavaNetHttpUtils()));
+		super(new JavaNetHttpRequester(), new RateLimitManager(new JavaNetHttpUtils()), new JavaNetHttpUtils());
 	}
 }

@@ -35,8 +35,14 @@ public class RunnableRequest implements Runnable {
 		try {
 			Response response = scraper.scrape(request);
 			switch(response.getStatus()) {
-			case Response.DONE:
-				requester.finished(this, (Response.Done) response);
+			case Response.DONE_LOAD:
+				requester.finishedLoad(this, (Response.DoneLoad) response);
+				break;
+			case Response.DONE_FIND:
+				requester.finishedFind(this, (Response.DoneFind) response);
+				break;
+			case Response.REFERENCE:
+				requester.finishedReference(this, (Response.Reference) response);
 				break;
 			case Response.WAIT:
 				requester.loadQueue(this, (Response.Wait) response);
