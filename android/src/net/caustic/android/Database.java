@@ -29,7 +29,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  * @author talos
  *
  */
-class Database extends SQLiteOpenHelper {
+public final class Database extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "bartleby";
 	private static final int DATABASE_VERSION = 6;
 	
@@ -56,7 +56,7 @@ class Database extends SQLiteOpenHelper {
 	private SQLiteDatabase db;
 	private final List<DatabaseListener> listeners = new ArrayList<DatabaseListener>();
 	
-	Database(Context context) {
+	public Database(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
 		this.db = getWritableDatabase();
 	}

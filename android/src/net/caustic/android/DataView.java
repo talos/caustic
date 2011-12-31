@@ -14,7 +14,7 @@ import android.widget.TextView;
  * @author talos
  *
  */
-class DataView implements DatabaseListener {
+public class DataView implements DatabaseListener {
 
 	private final Database db;
 	
@@ -25,9 +25,8 @@ class DataView implements DatabaseListener {
 	private final AndroidRequester requester;
 	private final View view;
 	private final Activity activity;
-	//private final LinearLayout view;
 	
-	DataView(Activity activity, Database db, AndroidRequester requester) {
+	public DataView(Activity activity, Database db, AndroidRequester requester) {
 		this.db = db;
 		this.db.addListener(this);
 		this.activity = activity;
@@ -48,11 +47,11 @@ class DataView implements DatabaseListener {
 		}
 	}
 	
-	View getUnderlyingView() {
+	public View getUnderlyingView() {
 		return view;
 	}
 	
-	void setScope(String scope, String title) {
+	public void setScope(String scope, String title) {
 		if(!scope.equals(this.scope)) {
 			this.scope = scope;
 			this.title.setText(title);

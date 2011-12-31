@@ -10,7 +10,7 @@ import net.caustic.android.ServerPinger;
  * @author talos
  *
  */
-interface ServerPingerListener {
+public interface ServerPingerListener {
 
 	/**
 	 * Called when {@link ServerPinger} gets a successful response.

@@ -19,7 +19,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
  * @author talos
  *
  */
-class ServerPinger {
+public final class ServerPinger {
 	/**
 	 * How long to wait between pings.
 	 */
@@ -77,7 +77,7 @@ class ServerPinger {
 	 * Check to see whether the server is alive.  This will call back to the
 	 * {@link ServerPingerListener} passed in the constructor.
 	 */
-	void ping() {
+	public void ping() {
 		if(lastPing != null) {
 			lastPing.cancel(true);
 		}
@@ -87,7 +87,7 @@ class ServerPinger {
 	/**
 	 * Stop the pinging.
 	 */
-	void stop() {
+	public void stop() {
 		if(lastPing != null) {
 			lastPing.cancel(true);
 		}

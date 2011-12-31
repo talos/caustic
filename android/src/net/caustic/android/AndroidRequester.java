@@ -50,7 +50,7 @@ public class AndroidRequester implements Loggable {
 		log.register(logger);
 	}
 	
-	public void request(BartlebyAddress address) {
+	/*public void request(BartlebyAddress address) {
 		String id = address.getID().toString();
 		
 		// only request addresses that have not already been requested
@@ -65,7 +65,7 @@ public class AndroidRequester implements Loggable {
 			request(id, rootURL.resolve(address.getPath()).toString(),
 					"", null, true); // immediately force load on these.
 		}
-	}
+	}*/
 
 	public void request(String id, String instruction, String uri, String input, boolean force) {
 		StringMap tags = new CollectionStringMap(db.getData(id, FindDescription.INTERNAL));
