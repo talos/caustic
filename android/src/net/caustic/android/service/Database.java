@@ -2,7 +2,7 @@
 _ * Bartleby Android
  * A project to enable public access to public building information.
  */
-package net.caustic.android;
+package net.caustic.android.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,9 +29,9 @@ import android.database.sqlite.SQLiteOpenHelper;
  * @author talos
  *
  */
-public final class Database extends SQLiteOpenHelper {
-	private static final String DATABASE_NAME = "bartleby";
-	private static final int DATABASE_VERSION = 6;
+final class Database extends SQLiteOpenHelper {
+	private static final String DATABASE_NAME = "caustic";
+	private static final int DATABASE_VERSION = 7;
 	
 	private static final String DATA = "data";
 	private static final String RELATIONSHIPS = "relationships";
@@ -54,7 +54,6 @@ public final class Database extends SQLiteOpenHelper {
 	private static final String EXTERNAL_VISIBILITY = "external";
 	
 	private SQLiteDatabase db;
-	private final List<DatabaseListener> listeners = new ArrayList<DatabaseListener>();
 	
 	public Database(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -116,8 +115,10 @@ public final class Database extends SQLiteOpenHelper {
 		onCreate(db); // re-create db
 	}
 	
-	void addListener(DatabaseListener listener) {
-		listeners.add(listener);
+	@Override
+	public void close() {
+		super.close();
+		db.close();
 	}
 	
 	/**
@@ -139,8 +140,6 @@ public final class Database extends SQLiteOpenHelper {
 	 */
 	void saveFind(String scope, String name, String value, FindDescription desc) {
 		saveData(scope, name, value, desc.isInternal(), desc.isExternal());
-		
-		notifyListeners(scope);
 	}
 
 	void saveRelationship(String scope, String source, String name, String value, FindDescription desc) {
@@ -174,7 +173,7 @@ public final class Database extends SQLiteOpenHelper {
 		cv.put(NAME, name);
 		db.insert(WAIT, null, cv);
 		
-		notifyListeners(scope);
+		//notifyListeners(scope);
 	}
 	
 	void saveMissingTags(String scope, String instruction, String uri, String input, String[] missingTags) {
@@ -193,24 +192,25 @@ public final class Database extends SQLiteOpenHelper {
 	 * @param scope
 	 * @return A map of {@link Request}s keyed by name.
 	 */
-	Map<String, Request> getWait(String scope) {
+	Map<String, RequestBundle> getWait(String scope) {
 		Cursor cursor = db.query(WAIT, new String[] { INSTRUCTION, URI, NAME }, 
 				SCOPE + " = ?", new String[] { scope },
 				null, null, null);
 		
-		StringMap data = null; // only pull this if we need it
-		Map<String, Request> waits = new HashMap<String, Request>(cursor.getCount(), 1);
+		//StringMap data = null; // only pull this if we need it
+		Map<String, RequestBundle> waits = new HashMap<String, RequestBundle>(cursor.getCount(), 1);
 		while(cursor.moveToNext()) {
 			String instruction = cursor.getString(0);
 			String uri = cursor.getString(1);
 			String name = cursor.getString(2);
 			
 			// input is null
-			if(data == null) {
+			/*if(data == null) {
 				data = new CollectionStringMap(getData(scope, FindDescription.INTERNAL));
 			}
-			waits.put(name, new Request(scope, instruction, uri, null,
-					data, getCookies(scope), true));
+			waits.put(name, new RequestBundle(scope, instruction, uri, null,
+					data, getCookies(scope), true));*/
+			waits.put(name, new RequestBundle(scope, instruction, uri, null, true));
 		}
 		cursor.close();
 		return waits;
@@ -388,11 +388,5 @@ public final class Database extends SQLiteOpenHelper {
 		cv.put(INTERNAL_VISIBILITY, false);
 		cv.put(EXTERNAL_VISIBILITY, false);
 		db.insert(DATA, null, cv);		
-	}
-	
-	private void notifyListeners(String scope) {
-		for(DatabaseListener listener : listeners) {
-			listener.updated(scope);
-		}
 	}
 }

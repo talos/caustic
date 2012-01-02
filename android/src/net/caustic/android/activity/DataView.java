@@ -2,9 +2,11 @@
  * Bartleby Android
  * A project to enable public access to public building information.
  */
-package net.caustic.android;
+package net.caustic.android.activity;
 
-import android.app.Activity;
+import net.caustic.android.R;
+import net.caustic.android.service.CausticIntent;
+import net.caustic.android.service.CausticService;
 import android.app.Activity;
 import android.view.View;
 import android.widget.ListView;
@@ -14,21 +16,18 @@ import android.widget.TextView;
  * @author talos
  *
  */
-public class DataView implements DatabaseListener {
+public class DataView {
 
-	private final Database db;
-	
 	private String scope;
 	
 	private final TextView title;
 	private final ListView data;
-	private final AndroidRequester requester;
 	private final View view;
 	private final Activity activity;
 	
-	public DataView(Activity activity, Database db, AndroidRequester requester) {
-		this.db = db;
-		this.db.addListener(this);
+	private final DataAdapter adapter = new DataAdapter();
+	
+	public DataView(Activity activity) {
 		this.activity = activity;
 		
 		view = View.inflate(activity, R.layout.data_view, null);
@@ -37,35 +36,14 @@ public class DataView implements DatabaseListener {
 		
 		this.title = (TextView) view.findViewById(R.id.title);
 		this.data = (ListView) view.findViewById(R.id.data);
-		this.requester = requester;
-	}
-
-	@Override
-	public void updated(String updatedScope) {
-		if(updatedScope.equals(this.scope)) {
-			redraw();
-		}
 	}
 	
-	public View getUnderlyingView() {
-		return view;
-	}
-	
-	public void setScope(String scope, String title) {
+	public void showData(String id, String instruction, String uri) {
+		
 		if(!scope.equals(this.scope)) {
 			this.scope = scope;
 			this.title.setText(title);
 			redraw();
 		}
-	}
-	
-	private void redraw() {
-		final DataAdapter adapter = new DataAdapter(db, requester, this, scope);
-		
-		activity.runOnUiThread(new Runnable() {
-			public void run() {
-				data.setAdapter(adapter);
-			}
-		});
 	}
 }

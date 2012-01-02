@@ -2,61 +2,37 @@
  * Bartleby Android
  * A project to enable public access to public building information.
  */
-package net.caustic.android;
+package net.caustic.android.activity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
 import net.caustic.Request;
-import net.caustic.android.AndroidRequester;
-import net.caustic.android.ChildContainer;
-import net.caustic.android.DataRow;
-import net.caustic.android.DataView;
-import net.caustic.android.Database;
-import net.caustic.android.FindDescription;
-import net.caustic.android.WaitRow;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.ListAdapter;
+import android.widget.BaseAdapter;
 
-final class DataAdapter implements ListAdapter {
+final class DataAdapter extends BaseAdapter {
 
 	private static final int DATA_ROW = 0;
 	private static final int WAIT_ROW = 1;
 	private static final int CHILD_CONTAINER = 2;
 	
-	private final Map<String, String> data;
-	private final Map<String, Request> waits;
-	private final Map<String, Map<String, String>> children;
-	
 	private final TreeMap<String, Integer> dataTypes = new TreeMap<String, Integer>(String.CASE_INSENSITIVE_ORDER);
-	private final String[] keys;
-	private final AndroidRequester requester;
-	private final DataView dataView;
+	private Map<String, String> data;
+	private Map<String, Request> waits;
+	private Map<String, Map<String, String>> children;	
+	private String[] keys;
 	
-	DataAdapter(Database db, AndroidRequester requester, DataView dataView, String scope) {
-		this.requester = requester;
-		this.dataView = dataView;
-		data = db.getData(scope, FindDescription.EXTERNAL); // show externally visible data only
-		waits = db.getWait(scope);
-		children = db.getChildren(scope);
-		
-		// load up info for dataTypes
-		for(String key : data.keySet()) {
-			dataTypes.put(key, DATA_ROW);
-		}
-		for(String key : waits.keySet()) {
-			dataTypes.put(key, WAIT_ROW);
-		}
-		for(String key : children.keySet()) {
-			dataTypes.put(key, CHILD_CONTAINER);
-		}
-		new ArrayList<String>(dataTypes.keySet());
-		this.keys = dataTypes.keySet().toArray(new String[dataTypes.size()]);
+	DataAdapter() {
+		Map<String, String> data = Collections.emptyMap();
+		Map<String, Request> waits = Collections.emptyMap();
+		Map<String, Map<String, String>> children = Collections.emptyMap();
+		setData(data, waits, children);
 	}
 	
 	@Override
@@ -101,10 +77,10 @@ final class DataAdapter implements ListAdapter {
 			row = DataRow.initialize(context, name, data.get(name));
 			break;
 		case WAIT_ROW:
-			row = WaitRow.initialize(context, name, requester, waits.get(name));
+			row = new WaitRow(context, name, waits.get(name));
 			break;
 		case CHILD_CONTAINER:
-			row = ChildContainer.initialize(context, name, dataView, children.get(name));
+			row = ChildContainer.initialize(context, name, children.get(name));
 			break;
 		default:
 			throw new IllegalArgumentException("Illegal view type: " + type);
@@ -115,6 +91,7 @@ final class DataAdapter implements ListAdapter {
 	@Override
 	public int getViewTypeCount() {
 		return 3;
+		
 	}
 
 	@Override
@@ -152,7 +129,29 @@ final class DataAdapter implements ListAdapter {
 		}
 	}
 	
+	void setData(Map<String, String> data, Map<String, Request> waits, Map<String, Map<String, String>> children) {
+		this.dataTypes.clear();
+		
+		this.data = data;
+		this.waits = waits;
+		this.children = children;
+		
+		// load up info for dataTypes
+		for(String key : data.keySet()) {
+			dataTypes.put(key, DATA_ROW);
+		}
+		for(String key : waits.keySet()) {
+			dataTypes.put(key, WAIT_ROW);
+		}
+		for(String key : children.keySet()) {
+			dataTypes.put(key, CHILD_CONTAINER);
+		}
+		new ArrayList<String>(dataTypes.keySet());
+		this.keys = dataTypes.keySet().toArray(new String[dataTypes.size()]);
+	}
+	
 	private String getName(int position) {
 		return keys[position];
 	}
+
 }

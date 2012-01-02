@@ -2,7 +2,7 @@
  * Bartleby Android
  * A project to enable public access to public building information.
  */
-package net.caustic.android;
+package net.caustic.android.activity;
 
 import net.caustic.android.R;
 import android.content.Context;

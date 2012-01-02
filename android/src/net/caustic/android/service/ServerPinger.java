@@ -2,7 +2,7 @@
  * Bartleby Android
  * A project to enable public access to public building information.
  */
-package net.caustic.android;
+package net.caustic.android.service;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -19,7 +19,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
  * @author talos
  *
  */
-public final class ServerPinger {
+final class ServerPinger {
 	/**
 	 * How long to wait between pings.
 	 */

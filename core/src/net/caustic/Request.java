@@ -29,13 +29,13 @@ public class Request {
 	public final boolean force;
 	
 	public Request(String id, String instruction, String uri, String input, StringMap tags,
-			Cookies cookies, boolean force) {
+			Cookies optCookies, boolean force) {
 		this.id = id;
 		this.uri = uri;
 		this.instruction = instruction;
 		this.input = input;
 		this.tags = tags;
-		this.cookies = cookies;
+		this.cookies = optCookies;
 		this.force = force;
 	}
 	/*
@@ -44,6 +44,7 @@ public class Request {
 		serialized.put(ID, id);
 		serialized.put(URI, uri);
 		serialized.put(INSTRUCTION, instruction);
+		serialized.putOpt(key, value)
 		serialized.putOpt(INPUT, input);
 	}
 	*/

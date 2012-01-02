@@ -2,15 +2,13 @@
  * Bartleby Android
  * A project to enable public access to public building information.
  */
-package net.caustic.android;
-
-import net.caustic.android.ServerPinger;
+package net.caustic.android.service;
 
 /* * 
  * @author talos
  *
  */
-public interface ServerPingerListener {
+interface ServerPingerListener {
 
 	/**
 	 * Called when {@link ServerPinger} gets a successful response.
