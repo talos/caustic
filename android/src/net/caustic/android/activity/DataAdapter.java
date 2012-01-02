@@ -24,13 +24,13 @@ final class DataAdapter extends BaseAdapter {
 	
 	private final TreeMap<String, Integer> dataTypes = new TreeMap<String, Integer>(String.CASE_INSENSITIVE_ORDER);
 	private Map<String, String> data;
-	private Map<String, Request> waits;
+	private Map<String, String> waits;
 	private Map<String, Map<String, String>> children;	
 	private String[] keys;
 	
 	DataAdapter() {
 		Map<String, String> data = Collections.emptyMap();
-		Map<String, Request> waits = Collections.emptyMap();
+		Map<String, String> waits = Collections.emptyMap();
 		Map<String, Map<String, String>> children = Collections.emptyMap();
 		setData(data, waits, children);
 	}
@@ -129,7 +129,7 @@ final class DataAdapter extends BaseAdapter {
 		}
 	}
 	
-	void setData(Map<String, String> data, Map<String, Request> waits, Map<String, Map<String, String>> children) {
+	void setData(Map<String, String> data, Map<String, String> waits, Map<String, Map<String, String>> children) {
 		this.dataTypes.clear();
 		
 		this.data = data;

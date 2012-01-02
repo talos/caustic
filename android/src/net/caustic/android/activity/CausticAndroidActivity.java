@@ -7,27 +7,35 @@ import android.app.Activity;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ListView;
 
 public class CausticAndroidActivity extends Activity {
-/*
+
+	private DataAdapter adapter;
+	private DataUpdateReceiver receiver;
+	private IntentFilter filter;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		//this.startService(service)
+		adapter = new DataAdapter();
+		receiver = new DataUpdateReceiver(adapter);
+		filter = new IntentFilter(CausticIntent.REFRESH_DATA_INTENT);
+		View dataView = View.inflate(this, R.layout.data_view, null);
+		ListView data = (ListView) dataView.findViewById(R.id.data);
+		data.setAdapter(adapter);
+		
+		setContentView(R.layout.data_view);
 	}
 	
-	@Override
+	/*@Override
 	protected void onStart() {
 		super.onStart();
-	}
-	*/
-	
-	private final DataUpdateReceiver receiver = new DataUpdateReceiver();
-	private final IntentFilter filter = new IntentFilter(CausticIntent.REFRESH_DATA_INTENT);
+	}*/
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		setContentView(R.layout.data_view);
+
 		registerReceiver(receiver, filter);
 	}
 	
@@ -51,6 +59,6 @@ public class CausticAndroidActivity extends Activity {
 	 * @param view
 	 */
 	public void loadWaitingRequest(View view) {
-		String loadID = ((WaitRow) view).getWaitingRequest();
+		String loadID = ((WaitRow) view).getWaitingRequestID();
 	}
 }

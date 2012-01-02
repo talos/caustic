@@ -1,6 +1,5 @@
 package net.caustic.android.service;
 
-import java.io.FileDescriptor;
 import java.util.List;
 import java.util.UUID;
 
@@ -8,24 +7,16 @@ import net.caustic.DefaultScraper;
 import net.caustic.Request;
 import net.caustic.Response;
 import net.caustic.Scraper;
+import net.caustic.android.service.CausticIntent.CausticForceIntent;
 import net.caustic.android.service.CausticIntent.CausticRefreshIntent;
 import net.caustic.android.service.CausticIntent.CausticRequestIntent;
-import net.caustic.http.Cookies;
-import net.caustic.util.CollectionStringMap;
-import net.caustic.util.StringMap;
+import net.caustic.android.service.CausticIntent.CausticResponseIntent;
 
 import android.app.IntentService;
-import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Intent;
-import android.os.IBinder;
-import android.os.IInterface;
-import android.os.Parcel;
-import android.os.RemoteException;
 
 public class CausticService extends IntentService {
 	
-	private static final String REQUEST = "request";
 	private static String NAME = "CAUSTIC_SERVICE";
 	
 	private Scraper scraper;
@@ -50,20 +41,31 @@ public class CausticService extends IntentService {
 	@Override
 	protected void onHandleIntent(Intent rawIntent) {
 		try {
-			if(rawIntent.getAction().equals(CausticIntent.ACTION_REQUEST)) {
+			String action = rawIntent.getAction();
+			if(action.equals(CausticIntent.REQUEST_INTENT)) {
 				CausticRequestIntent intent = new CausticRequestIntent(rawIntent);
-				request(intent.getID(), intent.getURI(), intent.getInstruction(), null, intent.getForce());
+				request(db.reconstitute(intent.getScope(), intent.getURI(), intent.getInstruction(), null, intent.getForce()));
+				
+				sendBroadcast(intent.getScope());
+			} else if(action.equals(CausticIntent.REFRESH_INTENT)) {
+				CausticRefreshIntent intent = new CausticRefreshIntent(rawIntent);
+				
+				sendBroadcast(intent.getScope());
+			} else if(action.equals(CausticIntent.FORCE_INTENT)) {
+				CausticForceIntent intent = new CausticForceIntent(rawIntent);
+				Request request = db.getWaitByID(intent.getScope());
+				request(request);
+				
+				sendBroadcast(request.id);
 			}
+			
 		} catch(Throwable e) {
 			e.printStackTrace(); // TODO
 		}
 	}
 	
-	private void request(String id, String uri, String instruction, String input, boolean force)
+	private void request(Request request)
 			throws InterruptedException {
-		StringMap tags = new CollectionStringMap(db.getData(id, FindDescription.INTERNAL));
-		Cookies cookies = db.getCookies(id);
-		Request request = new Request(id, instruction, uri, input, tags, cookies, force);
 		Response response = scraper.scrape(request);
 		switch(response.getStatus()) {
 		case Response.DONE_FIND:
@@ -87,9 +89,6 @@ public class CausticService extends IntentService {
 		default:
 			throw new RuntimeException("Invalid response: " + response.serialize());
 		}
-	
-		// TODO best location for this?
-		sendBroadcast(id);
 	}
 	
 	private void handleFindResponse(Request request, Response.DoneFind response) throws InterruptedException {
@@ -109,33 +108,33 @@ public class CausticService extends IntentService {
 			
 			//output.print(id, request.id, response.name, response.values[i]);
 			for(String child : response.getChildren()) {
-				request(id, child, response.uri, value, false);
+				request(db.reconstitute(id, child, response.uri, value, false));
 			}
 		}
 		
 		// retry stuck instructions that may now be un-stuck.
 		List<Request> retry = db.popMissingTags(request.id);
 		for(Request retryRequest : retry) {
-			request(retryRequest.id, retryRequest.instruction, retryRequest.uri, retryRequest.input, false);
+			request(db.reconstitute(retryRequest.id, retryRequest.instruction, retryRequest.uri, retryRequest.input, false));
 		}
 		
 	}
 	
 	private void handleWaitResponse(Request request, Response.Wait response) {
-		db.saveWait(request.id, request.instruction, request.uri, response.getName());
+		db.saveWait(uuid(), request.id, request.instruction, request.uri, response.getName());
 	}
 	
 	private void handleLoadResponse(Request request, Response.DoneLoad response) throws InterruptedException {
 		db.saveCookies(request.id, response.getCookies());
 		for(String child : response.getChildren()) {
-			request(request.id, child, response.uri, response.getContent(), false);
+			request(db.reconstitute(request.id, child, response.uri, response.getContent(), false));
 		}		
 	}
 	
 	private void handleReferenceResponse(Request request, Response.Reference response) throws InterruptedException {
 		for(String child : response.getReferenced()) {
 			// follow the response's uri, but keep everything else the same as request.
-			request(request.id, child, response.uri, request.input, request.force);
+			request(db.reconstitute(request.id, child, response.uri, request.input, request.force));
 		}
 	}
 	
@@ -161,11 +160,10 @@ public class CausticService extends IntentService {
 		return UUID.randomUUID().toString();
 	}
 	
-	private void sendBroadcast(String id) {
-		sendBroadcast(CausticRefreshIntent.newResponse(id,
-				db.getData(id, FindDescription.EXTERNAL), 
-				db.getWait(id),
-				db.getChildren(id)));
-
+	private void sendBroadcast(String scope) {
+		sendBroadcast(CausticResponseIntent.newResponse(scope,
+				db.getData(scope, FindDescription.EXTERNAL), 
+				db.getWaitsInScope(scope),
+				db.getChildren(scope)));
 	}
 }

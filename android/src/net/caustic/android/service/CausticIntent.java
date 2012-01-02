@@ -9,12 +9,12 @@ import android.os.Bundle;
 
 public abstract class CausticIntent {
 	
-	public static final String REFRESH_DATA_INTENT = "net.caustic.android.service.REFRESH";
-	public static final String ACTION_REQUEST = "net.caustic.android.service.REQUEST";
-		
-	private static final String SCHEME = "caustic";
+	public static final String REFRESH_INTENT  = "net.caustic.android.service.REFRESH";
+	public static final String REQUEST_INTENT  = "net.caustic.android.service.REQUEST";
+	public static final String FORCE_INTENT    = "net.caustic.android.service.FORCE";
+	public static final String RESPONSE_INTENT = "net.caustic.android.service.RESPONSE";
 	
-
+	private static final String SCHEME = "caustic";
 	
 	private static Uri uri(String id) {
 		return Uri.fromParts(SCHEME, id, null);
@@ -36,14 +36,14 @@ public abstract class CausticIntent {
 		return map;
 	}
 	
-	final String id;
+	private final String scope;
 	
 	private CausticIntent(Intent intent) {
-		id = intent.getData().getSchemeSpecificPart();
+		scope = intent.getData().getSchemeSpecificPart();
 	}
 	
-	final String getID() {
-		return id;
+	public final String getScope() {
+		return scope;
 	}
 	
 	public static class CausticRequestIntent extends CausticIntent {
@@ -56,7 +56,7 @@ public abstract class CausticIntent {
 		private final boolean force;
 
 		public static Intent newRequest(String id, String instruction, String uri, String input, boolean force) {
-			return new Intent(ACTION_REQUEST, uri(id))
+			return new Intent(REQUEST_INTENT, uri(id))
 				.putExtra(INSTRUCTION, instruction)
 				.putExtra(URI, uri)
 				.putExtra(FORCE, force);
@@ -68,6 +68,7 @@ public abstract class CausticIntent {
 			uri = intent.getStringExtra(URI);
 			force = intent.getBooleanExtra(FORCE, false);
 		}
+		
 		String getInstruction() {
 			return instruction;
 		}
@@ -81,24 +82,20 @@ public abstract class CausticIntent {
 		}
 	}
 	
-	public static class CausticRefreshIntent extends CausticIntent {
+	public static class CausticResponseIntent extends CausticIntent {
 
-		public static Intent newResponse(String id, Map<String, String> data,
-				Map<String, RequestBundle> waits,
+		static Intent newResponse(String scope, Map<String, String> data,
+				Map<String, String> waits,
 				Map<String, Map<String, String>> children) {
 			Bundle dataBundle = mapToBundle(data);
-
-			Bundle waitsBundle = new Bundle(waits.size());
-			for(Map.Entry<String, RequestBundle> entry : waits.entrySet()) {
-				waitsBundle.putBundle(entry.getKey(), entry.getValue().pack());
-			}
+			Bundle waitsBundle = mapToBundle(waits);
 			
 			Bundle childrenBundle = new Bundle(children.size());
 			for(Map.Entry<String, Map<String, String>> entry : children.entrySet()) {
 				childrenBundle.putBundle(entry.getKey(), mapToBundle(entry.getValue()));
 			}
 			
-			return new Intent(REFRESH_DATA_INTENT, uri(id))
+			return new Intent(RESPONSE_INTENT, uri(scope))
 					.putExtra(DATA, dataBundle)
 					.putExtra(WAITS, waitsBundle)
 					.putExtra(CHILDREN, childrenBundle);
@@ -109,34 +106,51 @@ public abstract class CausticIntent {
 		private static final String CHILDREN = "children";
 		
 		private final Map<String, String> data;
-		private final Map<String, RequestBundle> waits = new HashMap<String, RequestBundle>();
+		private final Map<String, String> waits;
 		private final Map<String, Map<String, String>> children = new HashMap<String, Map<String, String>>();
 
-		CausticRefreshIntent(Intent intent) {
+		public CausticResponseIntent(Intent intent) {
 			super(intent);
 			this.data = bundleToMap(intent.getBundleExtra(DATA));
-			Bundle waitsBundle = intent.getBundleExtra(WAITS);
+			this.waits = bundleToMap(intent.getBundleExtra(WAITS));
 			Bundle childrenBundle = intent.getBundleExtra(CHILDREN);
-			for(String key : waitsBundle.keySet()) {
-				waits.put(key, new RequestBundle(waitsBundle.getBundle(key)));
-			}
 			for(String key : childrenBundle.keySet()) {
 				children.put(key, bundleToMap(childrenBundle.getBundle(key)));
 			}
-
 		}
 		
-		Map<String, String> getData() {
+		public Map<String, String> getData() {
 			return data;
 		}
 		
-		Map<String, RequestBundle> getWaits() {
+		public Map<String, String> getWaits() {
 			return waits;
 		}
 		
-		Map<String, Map<String, String>> getChildren() {
+		public Map<String, Map<String, String>> getChildren() {
 			return children;
 		}
 	}
 	
+	public static class CausticForceIntent extends CausticIntent {
+		
+		public static Intent newForce(String id) {
+			return new Intent(FORCE_INTENT, uri(id));
+		}
+		
+		CausticForceIntent(Intent intent) {
+			super(intent);
+		}
+	}
+	
+	public static class CausticRefreshIntent extends CausticIntent {
+		
+		public static Intent newRefresh(String scope) {
+			return new Intent(REFRESH_INTENT, uri(scope));
+		}
+		
+		CausticRefreshIntent(Intent intent) {
+			super(intent);
+		}
+	}
 }

@@ -19,6 +19,7 @@ import net.caustic.http.Cookies;
 import net.caustic.http.HashtableCookies;
 import net.caustic.util.CollectionStringMap;
 import net.caustic.util.StringMap;
+import net.caustic.util.StringUtils;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -39,6 +40,7 @@ final class Database extends SQLiteOpenHelper {
 	private static final String WAIT = "wait";
 	private static final String RETRY = "retry";
 	
+	private static final String ID = "id";
 	private static final String SOURCE = "source";
 	private static final String SCOPE = "scope";
 	private static final String NAME = "name";
@@ -82,6 +84,7 @@ final class Database extends SQLiteOpenHelper {
 		// wait table
 		db.execSQL("CREATE TABLE IF NOT EXISTS " + WAIT +
 				" (_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+				ID          + " VARCHAR, " + 
 				SCOPE       + " VARCHAR, " +
 				INSTRUCTION + " VARCHAR, " +
 				NAME        + " VARCHAR, " +
@@ -165,8 +168,17 @@ final class Database extends SQLiteOpenHelper {
 		}
 	}
 	
-	void saveWait(String scope, String instruction, String uri, String name) {
+	/**
+	 * 
+	 * @param id A unique key for each wait.
+	 * @param scope The scope of each wait.
+	 * @param instruction
+	 * @param uri
+	 * @param name
+	 */
+	void saveWait(String id, String scope, String instruction, String uri, String name) {
 		ContentValues cv = new ContentValues(3);
+		cv.put(ID, id);
 		cv.put(SCOPE, scope);
 		cv.put(INSTRUCTION, instruction);
 		cv.put(URI, uri);
@@ -190,30 +202,45 @@ final class Database extends SQLiteOpenHelper {
 	/**
 	 * The returned Wait request will have force enabled.
 	 * @param scope
-	 * @return A map of {@link Request}s keyed by name.
+	 * @return A map of {@link Request}s IDs keyed by name.
 	 */
-	Map<String, RequestBundle> getWait(String scope) {
-		Cursor cursor = db.query(WAIT, new String[] { INSTRUCTION, URI, NAME }, 
+	Map<String, String> getWaitsInScope(String scope) {
+		Cursor cursor = db.query(WAIT, new String[] { NAME, ID }, 
 				SCOPE + " = ?", new String[] { scope },
 				null, null, null);
 		
-		//StringMap data = null; // only pull this if we need it
-		Map<String, RequestBundle> waits = new HashMap<String, RequestBundle>(cursor.getCount(), 1);
+		Map<String, String> waits = new HashMap<String, String>(cursor.getCount(), 1);
 		while(cursor.moveToNext()) {
-			String instruction = cursor.getString(0);
-			String uri = cursor.getString(1);
-			String name = cursor.getString(2);
-			
-			// input is null
-			/*if(data == null) {
-				data = new CollectionStringMap(getData(scope, FindDescription.INTERNAL));
-			}
-			waits.put(name, new RequestBundle(scope, instruction, uri, null,
-					data, getCookies(scope), true));*/
-			waits.put(name, new RequestBundle(scope, instruction, uri, null, true));
+			String name = cursor.getString(0);
+			String id = cursor.getString(1);
+			waits.put(name, id);
 		}
 		cursor.close();
 		return waits;
+	}
+	
+	/**
+	 * 
+	 * @param id
+	 * @return A {@link Request} for ID, but with force turned on.
+	 */
+	Request getWaitByID(String id) {
+		Cursor cursor = db.query(WAIT, new String[] { SCOPE, INSTRUCTION, URI }, 
+				ID + " = ?", new String[] { id },
+				null, null, null);
+		
+		Request request;
+		if(cursor.moveToFirst()) {
+			String scope = cursor.getString(0);
+			String instruction = cursor.getString(1);
+			String uri = cursor.getString(2);
+			request = reconstitute(scope, uri, instruction, null, true);
+		} else {
+			throw new IllegalStateException(StringUtils.quote(id) + " is not waiting in database.");
+		}
+		cursor.close();
+		return request;
+
 	}
 	
 	/**
@@ -378,6 +405,12 @@ final class Database extends SQLiteOpenHelper {
 		cursor.close();
 		
 		return data;
+	}
+	
+	Request reconstitute(String scope, String uri, String instruction, String input, boolean force) {
+		StringMap tags = new CollectionStringMap(getData(scope, FindDescription.INTERNAL));
+		Cookies cookies = getCookies(scope);
+		return new Request(scope, instruction, uri, input, tags, cookies, force);
 	}
 	
 	private void saveData(String scope, String name, String value, boolean internal, boolean external) {
