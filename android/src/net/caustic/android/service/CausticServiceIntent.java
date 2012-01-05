@@ -7,12 +7,12 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
-public abstract class CausticIntent {
+public abstract class CausticServiceIntent {
 	
-	public static final String REFRESH_INTENT  = "net.caustic.android.service.REFRESH";
-	public static final String REQUEST_INTENT  = "net.caustic.android.service.REQUEST";
-	public static final String FORCE_INTENT    = "net.caustic.android.service.FORCE";
-	public static final String RESPONSE_INTENT = "net.caustic.android.service.RESPONSE";
+	static final String REFRESH_INTENT  = "net.caustic.android.service.REFRESH";
+	static final String REQUEST_INTENT  = "net.caustic.android.service.REQUEST";
+	static final String FORCE_INTENT    = "net.caustic.android.service.FORCE";
+	static final String RESPONSE_INTENT = "net.caustic.android.service.RESPONSE";
 	
 	private static final String SCHEME = "caustic";
 	
@@ -38,7 +38,7 @@ public abstract class CausticIntent {
 	
 	private final String scope;
 	
-	private CausticIntent(Intent intent) {
+	private CausticServiceIntent(Intent intent) {
 		scope = intent.getData().getSchemeSpecificPart();
 	}
 	
@@ -46,7 +46,7 @@ public abstract class CausticIntent {
 		return scope;
 	}
 	
-	public static class CausticRequestIntent extends CausticIntent {
+	public static class CausticRequestIntent extends CausticServiceIntent {
 		private static final String INSTRUCTION = "instruction";
 		private static final String URI = "uri";
 		private static final String FORCE = "force";
@@ -82,7 +82,7 @@ public abstract class CausticIntent {
 		}
 	}
 	
-	public static class CausticResponseIntent extends CausticIntent {
+	public static class CausticResponseIntent extends CausticServiceIntent {
 
 		static Intent newResponse(String scope, Map<String, String> data,
 				Map<String, String> waits,
@@ -132,7 +132,7 @@ public abstract class CausticIntent {
 		}
 	}
 	
-	public static class CausticForceIntent extends CausticIntent {
+	public static class CausticForceIntent extends CausticServiceIntent {
 		
 		public static Intent newForce(String id) {
 			return new Intent(FORCE_INTENT, uri(id));
@@ -143,7 +143,7 @@ public abstract class CausticIntent {
 		}
 	}
 	
-	public static class CausticRefreshIntent extends CausticIntent {
+	public static class CausticRefreshIntent extends CausticServiceIntent {
 		
 		public static Intent newRefresh(String scope) {
 			return new Intent(REFRESH_INTENT, uri(scope));

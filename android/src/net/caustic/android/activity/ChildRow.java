@@ -16,17 +16,11 @@ import android.widget.TextView;
  */
 class ChildRow extends RelativeLayout {
 
-	private final String childID;
 	ChildRow(Context context, String value, String childID) {
 		super(context);
 		View view = View.inflate(context, R.layout.child_row, null);
 		TextView valueView = (TextView) view.findViewById(R.id.value);
 		valueView.setText(value);
-		
-		this.childID = childID;
-	}
-	
-	String getCausticChildID() {
-		return childID;
+		setTag(R.id.child_id, childID);
 	}
 }

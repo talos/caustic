@@ -7,10 +7,10 @@ import net.caustic.DefaultScraper;
 import net.caustic.Request;
 import net.caustic.Response;
 import net.caustic.Scraper;
-import net.caustic.android.service.CausticIntent.CausticForceIntent;
-import net.caustic.android.service.CausticIntent.CausticRefreshIntent;
-import net.caustic.android.service.CausticIntent.CausticRequestIntent;
-import net.caustic.android.service.CausticIntent.CausticResponseIntent;
+import net.caustic.android.service.CausticServiceIntent.CausticForceIntent;
+import net.caustic.android.service.CausticServiceIntent.CausticRefreshIntent;
+import net.caustic.android.service.CausticServiceIntent.CausticRequestIntent;
+import net.caustic.android.service.CausticServiceIntent.CausticResponseIntent;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -42,16 +42,16 @@ public class CausticService extends IntentService {
 	protected void onHandleIntent(Intent rawIntent) {
 		try {
 			String action = rawIntent.getAction();
-			if(action.equals(CausticIntent.REQUEST_INTENT)) {
+			if(action.equals(CausticServiceIntent.REQUEST_INTENT)) {
 				CausticRequestIntent intent = new CausticRequestIntent(rawIntent);
 				request(db.reconstitute(intent.getScope(), intent.getURI(), intent.getInstruction(), null, intent.getForce()));
 				
 				sendBroadcast(intent.getScope());
-			} else if(action.equals(CausticIntent.REFRESH_INTENT)) {
+			} else if(action.equals(CausticServiceIntent.REFRESH_INTENT)) {
 				CausticRefreshIntent intent = new CausticRefreshIntent(rawIntent);
 				
 				sendBroadcast(intent.getScope());
-			} else if(action.equals(CausticIntent.FORCE_INTENT)) {
+			} else if(action.equals(CausticServiceIntent.FORCE_INTENT)) {
 				CausticForceIntent intent = new CausticForceIntent(rawIntent);
 				Request request = db.getWaitByID(intent.getScope());
 				request(request);

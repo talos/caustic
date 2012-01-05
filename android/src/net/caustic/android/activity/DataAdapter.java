@@ -9,14 +9,13 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
-import net.caustic.Request;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
-final class DataAdapter extends BaseAdapter {
+public final class DataAdapter extends BaseAdapter {
 
 	private static final int DATA_ROW = 0;
 	private static final int WAIT_ROW = 1;
@@ -28,7 +27,7 @@ final class DataAdapter extends BaseAdapter {
 	private Map<String, Map<String, String>> children;	
 	private String[] keys;
 	
-	DataAdapter() {
+	public DataAdapter() {
 		Map<String, String> data = Collections.emptyMap();
 		Map<String, String> waits = Collections.emptyMap();
 		Map<String, Map<String, String>> children = Collections.emptyMap();
