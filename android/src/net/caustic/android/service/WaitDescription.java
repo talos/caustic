@@ -4,9 +4,6 @@
  */
 package net.caustic.android.service;
 
-import org.json.JSONObject;
-import org.json.JSONException;
-
 import net.caustic.Response;
 
 /**

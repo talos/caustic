@@ -1,6 +1,8 @@
 package net.caustic.android.service;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import net.caustic.DefaultScraper;
@@ -11,14 +13,18 @@ import net.caustic.android.service.CausticServiceIntent.CausticForceIntent;
 import net.caustic.android.service.CausticServiceIntent.CausticRefreshIntent;
 import net.caustic.android.service.CausticServiceIntent.CausticRequestIntent;
 import net.caustic.android.service.CausticServiceIntent.CausticResponseIntent;
+import net.caustic.log.AndroidLogger;
+import net.caustic.util.StringUtils;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.util.Log;
 
 public class CausticService extends IntentService {
 	
 	private static String NAME = "CAUSTIC_SERVICE";
 	
+	private AndroidLogger logger;
 	private Scraper scraper;
 	private Database db;
 	
@@ -28,12 +34,20 @@ public class CausticService extends IntentService {
 	
 	@Override
 	public void onCreate() {
-		this.db = new Database(getBaseContext()); // TODO ?
+		super.onCreate();
+		this.logger = new AndroidLogger(this);
+		this.db = new Database(this); // TODO ?
 		this.scraper = new DefaultScraper();
 	}
 	
+	/*@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		
+	}*/
+	
 	@Override
 	public void onDestroy() {
+		super.onDestroy();
 		this.db.close();
 		this.scraper = null;
 	}
@@ -44,7 +58,16 @@ public class CausticService extends IntentService {
 			String action = rawIntent.getAction();
 			if(action.equals(CausticServiceIntent.REQUEST_INTENT)) {
 				CausticRequestIntent intent = new CausticRequestIntent(rawIntent);
-				request(db.reconstitute(intent.getScope(), intent.getURI(), intent.getInstruction(), null, intent.getForce()));
+								
+				Map<String, String> tags = intent.getTags();
+				for(Map.Entry<String, String> entry : tags.entrySet()) {
+					db.saveTag(intent.getScope(), entry.getKey(), entry.getValue());
+				}
+				
+				request(db.reconstitute(intent.getScope(),
+						intent.getInstruction(),
+						intent.getURI(),
+						null, intent.getForce()));
 				
 				sendBroadcast(intent.getScope());
 			} else if(action.equals(CausticServiceIntent.REFRESH_INTENT)) {
@@ -67,7 +90,9 @@ public class CausticService extends IntentService {
 	private void request(Request request)
 			throws InterruptedException {
 		Response response = scraper.scrape(request);
+				
 		switch(response.getStatus()) {
+		
 		case Response.DONE_FIND:
 			handleFindResponse(request, (Response.DoneFind) response);
 			break;
@@ -127,11 +152,17 @@ public class CausticService extends IntentService {
 	private void handleLoadResponse(Request request, Response.DoneLoad response) throws InterruptedException {
 		db.saveCookies(request.id, response.getCookies());
 		for(String child : response.getChildren()) {
-			request(db.reconstitute(request.id, child, response.uri, response.getContent(), false));
+			request(db.reconstitute(request.id,child, response.uri, response.getContent(), false));
 		}		
 	}
 	
 	private void handleReferenceResponse(Request request, Response.Reference response) throws InterruptedException {
+		
+		
+		Log.i("caustic", Arrays.asList(response.getReferenced()).toString());
+		
+		
+		
 		for(String child : response.getReferenced()) {
 			// follow the response's uri, but keep everything else the same as request.
 			request(db.reconstitute(request.id, child, response.uri, request.input, request.force));
@@ -143,13 +174,8 @@ public class CausticService extends IntentService {
 				response.getMissingTags());
 	}
 	
-	private void handleFailure(Request request, Response.Failed response) { }
-
-	private void interrupt(Throwable why) {
-		why.printStackTrace();
-		//log.e(why);
-		//loadSvc.shutdownNow();
-		//findSvc.shutdownNow();
+	private void handleFailure(Request request, Response.Failed response) {
+		logger.i("Request " + request.toString() + " failed: " + StringUtils.quote(response.getReason()));
 	}
 
 	/**
@@ -161,9 +187,13 @@ public class CausticService extends IntentService {
 	}
 	
 	private void sendBroadcast(String scope) {
-		sendBroadcast(CausticResponseIntent.newResponse(scope,
+		Intent responseIntent = CausticResponseIntent.newResponse(scope,
 				db.getData(scope, FindDescription.EXTERNAL), 
 				db.getWaitsInScope(scope),
-				db.getChildren(scope)));
+				db.getChildren(scope));
+		Log.i("caustic-service", "broadcasting response intent: " + responseIntent.getAction());
+		Log.i("caustic-service", db.getData(scope, FindDescription.EXTERNAL).toString());
+		Log.i(NAME, db.getChildren(scope).toString());
+		sendBroadcast(responseIntent);
 	}
 }

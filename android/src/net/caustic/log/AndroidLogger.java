@@ -1,7 +1,5 @@
 package net.caustic.log;
 
-import java.io.IOException;
-
 import android.content.Context;
 import android.util.Log;
 
@@ -21,13 +19,13 @@ public class AndroidLogger implements Logger {
 	}
 	
 	@Override
-	public void e(Throwable e) throws IllegalStateException {
+	public void e(Throwable e) {
 		Log.e(context.getString(R.string.app_name), e.toString());
 		e.printStackTrace();
 	}
 
 	@Override
-	public void i(String infoText) throws IllegalStateException {
+	public void i(String infoText) {
 		Log.i(context.getString(R.string.app_name), infoText);
 	}
 }

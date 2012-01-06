@@ -76,7 +76,7 @@ public final class DataAdapter extends BaseAdapter {
 			row = DataRow.initialize(context, name, data.get(name));
 			break;
 		case WAIT_ROW:
-			row = new WaitRow(context, name, waits.get(name));
+			row = WaitRow.initialize(context, name, waits.get(name));
 			break;
 		case CHILD_CONTAINER:
 			row = ChildContainer.initialize(context, name, children.get(name));
@@ -147,6 +147,9 @@ public final class DataAdapter extends BaseAdapter {
 		}
 		new ArrayList<String>(dataTypes.keySet());
 		this.keys = dataTypes.keySet().toArray(new String[dataTypes.size()]);
+		
+		this.notifyDataSetChanged();
+		this.notifyDataSetInvalidated();
 	}
 	
 	private String getName(int position) {

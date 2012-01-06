@@ -26,7 +26,7 @@ class ChildContainer {
 		//childrenListView.setAdapter(adapter);
 		
 		for(Map.Entry<String, String> entry : children.entrySet()) {
-			childrenView.addView(new ChildRow(context, entry.getValue(), entry.getKey()));
+			childrenView.addView(ChildRow.initialize(context, entry.getValue(), entry.getKey()));
 		}
 		
 		return view;

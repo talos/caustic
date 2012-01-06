@@ -54,7 +54,7 @@ final class FindDescription {
 	 * @return <code>1</code> if the flag permits internal visibility, <code>0</code> otherwise.
 	 */
 	public static int isInternal(int flags) {
-		return (flags & INTERNAL) > 1 ? 1 : 0;
+		return (flags & INTERNAL) > 0 ? 1 : 0;
 	}
 
 	/**
@@ -63,6 +63,6 @@ final class FindDescription {
 	 * @return <code>1</code> if the flag permits external visibility, <code>0</code> otherwise.
 	 */
 	public static int isExternal(int flags) {
-		return (flags & EXTERNAL) > 1 ? 1 : 0;
+		return (flags & EXTERNAL) > 0 ? 1 : 0;
 	}
 }

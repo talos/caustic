@@ -25,6 +25,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 /**
  * @author talos
@@ -131,7 +132,8 @@ final class Database extends SQLiteOpenHelper {
 	 * @param value
 	 */
 	void saveTag(String scope, String name, String value) {
-		saveData(scope, name, value, false, false);
+		Log.i("caustic", "saving tag " + name + ": " + value);
+		saveData(scope, name, value, true, false);
 	}
 	
 	/**
@@ -234,7 +236,7 @@ final class Database extends SQLiteOpenHelper {
 			String scope = cursor.getString(0);
 			String instruction = cursor.getString(1);
 			String uri = cursor.getString(2);
-			request = reconstitute(scope, uri, instruction, null, true);
+			request = reconstitute(scope, instruction, uri, null, true);
 		} else {
 			throw new IllegalStateException(StringUtils.quote(id) + " is not waiting in database.");
 		}
@@ -388,7 +390,7 @@ final class Database extends SQLiteOpenHelper {
 	
 	Map<String, String> getDataInScope(String scope, int visibilityFlags) {
 		Map<String, String> data = new HashMap<String, String>();
-
+		
 		Cursor cursor = db.query(
 				DATA, new String[] { NAME, VALUE },
 				SCOPE + " = ? AND " + INTERNAL_VISIBILITY + " >= ? AND " + EXTERNAL_VISIBILITY + " >= ?",
@@ -398,7 +400,7 @@ final class Database extends SQLiteOpenHelper {
 						String.valueOf(FindDescription.isExternal(visibilityFlags))
 				},
 				null, null, null);
-
+		
 		while(cursor.moveToNext()) {
 			data.put(cursor.getString(0), cursor.getString(1));
 		}
@@ -407,9 +409,10 @@ final class Database extends SQLiteOpenHelper {
 		return data;
 	}
 	
-	Request reconstitute(String scope, String uri, String instruction, String input, boolean force) {
+	Request reconstitute(String scope, String instruction, String uri, String input, boolean force) {
 		StringMap tags = new CollectionStringMap(getData(scope, FindDescription.INTERNAL));
 		Cookies cookies = getCookies(scope);
+		
 		return new Request(scope, instruction, uri, input, tags, cookies, force);
 	}
 	
@@ -418,8 +421,8 @@ final class Database extends SQLiteOpenHelper {
 		cv.put(SCOPE, scope);
 		cv.put(NAME, name);
 		cv.put(VALUE, value);
-		cv.put(INTERNAL_VISIBILITY, false);
-		cv.put(EXTERNAL_VISIBILITY, false);
+		cv.put(INTERNAL_VISIBILITY, internal);
+		cv.put(EXTERNAL_VISIBILITY, external);
 		db.insert(DATA, null, cv);		
 	}
 }

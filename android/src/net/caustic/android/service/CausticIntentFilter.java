@@ -11,5 +11,6 @@ public class CausticIntentFilter extends IntentFilter {
 
 	public CausticIntentFilter() {
 		super(CausticServiceIntent.RESPONSE_INTENT);
+		addDataScheme(CausticServiceIntent.SCHEME);
 	}
 }

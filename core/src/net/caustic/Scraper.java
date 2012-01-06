@@ -324,7 +324,8 @@ public class Scraper implements Loggable {
 					
 					// can't extend preexisting post data.
 					if(postData != null) {
-						return new Response.Failed(request.id, uri, "Post data was already defined, cannot overwrite " +
+						return new Response.Failed(request.id, uri,
+								"Post data was already defined, cannot overwrite " +
 								StringUtils.quote(postData.toString()) +
 								" with " + StringUtils.quote(obj.getString(key)));
 					}

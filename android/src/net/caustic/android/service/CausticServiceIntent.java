@@ -2,6 +2,7 @@ package net.caustic.android.service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -14,7 +15,7 @@ public abstract class CausticServiceIntent {
 	static final String FORCE_INTENT    = "net.caustic.android.service.FORCE";
 	static final String RESPONSE_INTENT = "net.caustic.android.service.RESPONSE";
 	
-	private static final String SCHEME = "caustic";
+	static final String SCHEME = "caustic";
 	
 	private static Uri uri(String id) {
 		return Uri.fromParts(SCHEME, id, null);
@@ -30,8 +31,8 @@ public abstract class CausticServiceIntent {
 	
 	private static Map<String, String> bundleToMap(Bundle bundle) {
 		Map<String, String> map = new HashMap<String, String>();
-		for(Map.Entry<String, String> entry : map.entrySet()) {
-			map.put(entry.getKey(), entry.getValue());
+		for(String key : bundle.keySet()) {
+			map.put(key, bundle.getString(key));
 		}
 		return map;
 	}
@@ -50,16 +51,26 @@ public abstract class CausticServiceIntent {
 		private static final String INSTRUCTION = "instruction";
 		private static final String URI = "uri";
 		private static final String FORCE = "force";
+		private static final String TAGS = "tags";
 		
 		private final String instruction;
 		private final String uri;
 		private final boolean force;
+		private final Map<String, String> tags = new HashMap<String, String>();
 
-		public static Intent newRequest(String id, String instruction, String uri, String input, boolean force) {
+		public static Intent newRequest(String id, String instruction, String uri,
+				Map<String, String> tags,
+				String input, boolean force) {
+			Bundle tagsBundle = new Bundle(tags.size());
+			for(Map.Entry<String, String> entry : tags.entrySet()) {
+				tagsBundle.putString(entry.getKey(), entry.getValue());
+			}
 			return new Intent(REQUEST_INTENT, uri(id))
 				.putExtra(INSTRUCTION, instruction)
 				.putExtra(URI, uri)
+				.putExtra(TAGS, tagsBundle)
 				.putExtra(FORCE, force);
+				//.setClassName("net.caustic.android.service", "CausticService");
 		}
 
 		CausticRequestIntent(Intent intent) {
@@ -67,6 +78,11 @@ public abstract class CausticServiceIntent {
 			instruction = intent.getStringExtra(INSTRUCTION);
 			uri = intent.getStringExtra(URI);
 			force = intent.getBooleanExtra(FORCE, false);
+			Bundle tagsBundle = intent.getBundleExtra(TAGS);
+			Set<String> keys = tagsBundle.keySet();
+			for(String key : keys) {
+				tags.put(key, tagsBundle.getString(key));
+			}
 		}
 		
 		String getInstruction() {
@@ -79,6 +95,10 @@ public abstract class CausticServiceIntent {
 		
 		boolean getForce() {
 			return force;
+		}
+		
+		Map<String, String> getTags() {
+			return tags;
 		}
 	}
 	

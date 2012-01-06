@@ -233,7 +233,7 @@ public abstract class Response {
 	
 	public final static class Failed extends Response {
 		private static final String FAILED_KEY = "failed";
-		private String failedBecause;
+		private final String failedBecause;
 		public int getStatus() { return FAILED; }
 		
 		public String getReason() {
@@ -242,6 +242,7 @@ public abstract class Response {
 		
 		Failed(String id, String uri, String failedBecause) {
 			super(id, uri);
+			this.failedBecause = failedBecause;
 		}
 
 		JSONObject toJSON() throws JSONException {
