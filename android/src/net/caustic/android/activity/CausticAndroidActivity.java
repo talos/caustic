@@ -2,6 +2,7 @@ package net.caustic.android.activity;
 
 import net.caustic.android.R;
 import net.caustic.android.service.CausticIntentFilter;
+import net.caustic.android.service.CausticServiceIntent;
 import net.caustic.android.service.CausticServiceIntent.CausticForceIntent;
 import net.caustic.android.service.CausticServiceIntent.CausticRefreshIntent;
 import android.app.Activity;
@@ -10,8 +11,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.widget.ListView;
+import android.view.ViewGroup;
 
 public class CausticAndroidActivity extends Activity implements CausticAndroidButtons {
 
@@ -23,11 +25,10 @@ public class CausticAndroidActivity extends Activity implements CausticAndroidBu
 	public static void launch(Context context, String observeID) {
 		Intent intent = new Intent(context, CausticAndroidActivity.class);
 		intent.setAction(Intent.ACTION_VIEW);
-		intent.setData(Uri.fromParts("caustic", observeID, null));
+		intent.setData(Uri.fromParts(CausticServiceIntent.SCHEME, observeID, null));
 		context.startActivity(intent);
 	}
 	
-	private DataAdapter adapter;
 	private DataUpdateReceiver receiver;
 	private IntentFilter filter;
 
@@ -35,22 +36,17 @@ public class CausticAndroidActivity extends Activity implements CausticAndroidBu
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		adapter = new DataAdapter();
-		receiver = new DataUpdateReceiver(adapter);
+		receiver = new DataUpdateReceiver();
 		filter = new CausticIntentFilter();
 		
+		ViewGroup main = (ViewGroup) View.inflate(this, R.layout.generic_data_view, null);
+		new DataView(receiver, main);
+		setContentView(main);
+		/*
 		ListView dataView = (ListView) View.inflate(this, R.layout.data_view, null);
 		dataView.setAdapter(adapter);
 		
-		// refresh for data immediately if supplied in intent.
-		Intent intent = getIntent();
-		if(intent.getAction() != null) {
-			String id = intent.getData().getSchemeSpecificPart();
-			startService(CausticRefreshIntent.newRefresh(id));
-			receiver.listenTo(id);
-		}
-		
-		setContentView(R.layout.data_view);
+		setContentView(dataView);*/
 	}
 	
 	/*@Override
@@ -62,6 +58,13 @@ public class CausticAndroidActivity extends Activity implements CausticAndroidBu
 	protected void onResume() {
 		super.onResume();
 		registerReceiver(receiver, filter);
+
+		// refresh for data immediately if supplied in intent.
+		Intent intent = getIntent();
+		if(intent.getAction() != null) {
+			String id = intent.getData().getSchemeSpecificPart();
+			startService(CausticRefreshIntent.newRefresh(id));
+		}
 	}
 	
 	@Override
@@ -77,7 +80,6 @@ public class CausticAndroidActivity extends Activity implements CausticAndroidBu
 	 */
 	public void viewChild(View view) {
 		String childId = (String) view.getTag(R.id.child_id);
-		receiver.listenTo(childId);
 		startService(CausticRefreshIntent.newRefresh(childId));
 	}
 	

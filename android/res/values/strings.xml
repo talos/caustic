@@ -2,4 +2,7 @@
 <resources>
     <string name="app_name">Caustic Android</string>
     <string name="service_name">Caustic Android Service</string>
+    
+    <string name="go_to_child">More...</string>
+    <string name="download">Load...</string>
 </resources>

@@ -1,5 +1,8 @@
 package net.caustic.android.activity;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import net.caustic.android.service.CausticServiceIntent.CausticResponseIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,32 +16,22 @@ import android.util.Log;
  */
 public class DataUpdateReceiver extends BroadcastReceiver {
 
-	private final DataAdapter adapter;
-	private String listenToScope;
-	
-	/**
-	 * 
-	 * @param adapter The {@link DataAdapter} to update when a broadcast is received.
-	 */
-	public DataUpdateReceiver(DataAdapter adapter) {
-		this.adapter = adapter;
-	}
+	private final Set<DataView> dataViews = new HashSet<DataView>();
+	//private String listenToScope;
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		Log.i("caustic-update", "received intent");
-		CausticResponseIntent refresh = new CausticResponseIntent(intent);
-		Log.i("caustic-update", refresh.getChildren().toString());
-		if(refresh.getScope().equals(listenToScope)) {
-			adapter.setData(refresh.getData(), refresh.getWaits(), refresh.getChildren());
+		CausticResponseIntent response = new CausticResponseIntent(intent);
+		for(DataView view : dataViews) {
+			view.receiveResponse(response);
 		}
 	}
 	
-	/**
-	 * 
-	 * @param scope The {@link String} scope to listen to responses for.
-	 */
-	public void listenTo(String scope) {
-		this.listenToScope = scope;
+	public void registerView(DataView view) {
+		this.dataViews.add(view);
+	}
+	
+	public void unregisterView(DataView view) {
+		this.dataViews.remove(view);
 	}
 }

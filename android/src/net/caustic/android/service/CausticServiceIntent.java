@@ -15,7 +15,7 @@ public abstract class CausticServiceIntent {
 	static final String FORCE_INTENT    = "net.caustic.android.service.FORCE";
 	static final String RESPONSE_INTENT = "net.caustic.android.service.RESPONSE";
 	
-	static final String SCHEME = "caustic";
+	public static final String SCHEME = "caustic";
 	
 	private static Uri uri(String id) {
 		return Uri.fromParts(SCHEME, id, null);

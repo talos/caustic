@@ -2,7 +2,6 @@
 <RelativeLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="wrap_content"
-  android:onClick="viewChild"
   android:layout_height="wrap_content">
     <TextView android:id="@+id/value"
     		  android:text="value"
@@ -12,11 +11,11 @@
     		  android:layout_width="wrap_content"
     		  android:layout_height="wrap_content" 
     		  style="@style/DataRow" />
-    <ImageButton android:id="@+id/go_to_child_button"
-    		     android:src="@android:drawable/ic_media_play"
-    			 android:layout_height="30dp"
-    			 android:layout_width="30dp"
+    <Button android:id="@+id/go_to_child_button"
+        		 android:layout_width="wrap_content"
+    		     android:layout_height="wrap_content"
+				 android:onClick="viewChild"
+    			 android:text="@string/go_to_child"
     			 android:layout_alignParentRight="true"
-    			 android:scaleType="fitXY"
     			 android:layout_centerVertical="true" />
 </RelativeLayout>

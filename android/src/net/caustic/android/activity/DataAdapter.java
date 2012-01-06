@@ -10,12 +10,12 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import android.content.Context;
-import android.database.DataSetObserver;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ListAdapter;
 
-public final class DataAdapter extends BaseAdapter {
+final class DataAdapter extends BaseAdapter implements ListAdapter {
 
 	private static final int DATA_ROW = 0;
 	private static final int WAIT_ROW = 1;
@@ -73,13 +73,13 @@ public final class DataAdapter extends BaseAdapter {
 		final View row;
 		switch(type) {
 		case DATA_ROW:
-			row = DataRow.initialize(context, name, data.get(name));
+			row = DataRow.initialize(context, name, data.get(name), convertView);
 			break;
 		case WAIT_ROW:
-			row = WaitRow.initialize(context, name, waits.get(name));
+			row = WaitRow.initialize(context, name, waits.get(name), convertView);
 			break;
 		case CHILD_CONTAINER:
-			row = ChildContainer.initialize(context, name, children.get(name));
+			row = ChildContainer.initialize(context, name, children.get(name), convertView);
 			break;
 		default:
 			throw new IllegalArgumentException("Illegal view type: " + type);
@@ -90,7 +90,6 @@ public final class DataAdapter extends BaseAdapter {
 	@Override
 	public int getViewTypeCount() {
 		return 3;
-		
 	}
 
 	@Override
@@ -101,17 +100,6 @@ public final class DataAdapter extends BaseAdapter {
 	@Override
 	public boolean isEmpty() {
 		return keys.length == 0;
-	}
-
-	@Override
-	public void registerDataSetObserver(DataSetObserver observer) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void unregisterDataSetObserver(DataSetObserver observer) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -128,6 +116,13 @@ public final class DataAdapter extends BaseAdapter {
 		}
 	}
 	
+	/**
+	 * Reset the data in this {@link DataAdapter}.  This calls
+	 * {@link #notifyDataSetChanged()} upon conclusion.
+	 * @param data
+	 * @param waits
+	 * @param children
+	 */
 	void setData(Map<String, String> data, Map<String, String> waits, Map<String, Map<String, String>> children) {
 		this.dataTypes.clear();
 		
@@ -149,11 +144,9 @@ public final class DataAdapter extends BaseAdapter {
 		this.keys = dataTypes.keySet().toArray(new String[dataTypes.size()]);
 		
 		this.notifyDataSetChanged();
-		this.notifyDataSetInvalidated();
 	}
 	
 	private String getName(int position) {
 		return keys[position];
 	}
-
 }

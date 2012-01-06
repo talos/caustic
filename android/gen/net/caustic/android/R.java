@@ -16,8 +16,10 @@ public final class R {
     public static final class id {
         public static final int child_id=0x7f040000;
         public static final int children=0x7f040003;
+        public static final int data_list=0x7f040006;
         public static final int go_to_child_button=0x7f040005;
-        public static final int load_button=0x7f040006;
+        public static final int load_button=0x7f040008;
+        public static final int loading=0x7f040007;
         public static final int name=0x7f040002;
         public static final int value=0x7f040004;
         public static final int wait_id=0x7f040001;
@@ -26,12 +28,17 @@ public final class R {
         public static final int caustic=0x7f030000;
         public static final int child_container=0x7f030001;
         public static final int child_row=0x7f030002;
-        public static final int data_row=0x7f030003;
-        public static final int data_view=0x7f030004;
-        public static final int wait_row=0x7f030005;
+        public static final int data_header=0x7f030003;
+        public static final int data_row=0x7f030004;
+        public static final int data_view=0x7f030005;
+        public static final int generic_data_view=0x7f030006;
+        public static final int loading=0x7f030007;
+        public static final int wait_row=0x7f030008;
     }
     public static final class string {
         public static final int app_name=0x7f050000;
+        public static final int download=0x7f050003;
+        public static final int go_to_child=0x7f050002;
         public static final int service_name=0x7f050001;
     }
     public static final class style {

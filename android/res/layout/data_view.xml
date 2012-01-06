@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ListView xmlns:android="http://schemas.android.com/apk/res/android"
-		  android:layout_height="wrap_content"
-		  android:layout_width="fill_parent" />
-		  
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+	<ListView android:id="@+id/data_list"
+		  	  android:layout_height="wrap_content"
+		  	  android:layout_width="fill_parent" />
+	<include layout="@layout/loading" />
+</merge>
