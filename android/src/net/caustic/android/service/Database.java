@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,6 +56,10 @@ final class Database extends SQLiteOpenHelper {
 	//private static final String DESCRIPTION = "description";
 	private static final String INTERNAL_VISIBILITY = "internal";
 	private static final String EXTERNAL_VISIBILITY = "external";
+	
+	private static String uuid() {
+		return UUID.randomUUID().toString();
+	}
 	
 	private SQLiteDatabase db;
 	
@@ -132,7 +137,6 @@ final class Database extends SQLiteOpenHelper {
 	 * @param value
 	 */
 	void saveTag(String scope, String name, String value) {
-		Log.i("caustic", "saving tag " + name + ": " + value);
 		saveData(scope, name, value, true, false);
 	}
 	
@@ -147,13 +151,53 @@ final class Database extends SQLiteOpenHelper {
 		saveData(scope, name, value, desc.isInternal(), desc.isExternal());
 	}
 
-	void saveRelationship(String scope, String source, String name, String value, FindDescription desc) {
-		ContentValues cv = new ContentValues(2);
+	/**
+	 * 
+	 * @param source
+	 * @param name
+	 * @param value
+	 * @param desc
+	 * @return A {@link String} uniquely identifying the child of the relationship.
+	 */
+	String saveRelationship(String source, String name, String value) {
+		ContentValues cv = new ContentValues(4);
+		String scope = uuid();
 		cv.put(SOURCE, source);
 		cv.put(SCOPE, scope);
 		cv.put(NAME, name);
 		cv.put(VALUE, value);
 		db.insert(RELATIONSHIPS, null, cv);
+		return scope;
+	}
+	
+	String saveRequestRoot(String name, String instruction) {
+		ContentValues cv = new ContentValues(3);
+		String scope = uuid();
+		cv.put(SCOPE, scope);
+		cv.put(NAME, name);
+		cv.put(VALUE, instruction);
+		db.insert(RELATIONSHIPS, null, cv);
+		return scope;
+	}
+	
+	/**
+	 * 
+	 * @param name
+	 * @param instruction
+	 * @return The {@link String} id of the preexisting request, <code>null</code>
+	 * if there was none.
+	 */
+	String getRequestId(String name, String instruction) {
+		Cursor cursor = db.query(RELATIONSHIPS, new String[] { SCOPE },
+				NAME + " = ? AND " + VALUE + " = ?",
+				new String[] { name, instruction },
+				null, null, null);
+		if(cursor.getCount() == 0) {
+			return null;
+		} else {
+			cursor.moveToFirst();
+			return cursor.getString(0);
+		}
 	}
 	
 	void saveCookies(String scope, Cookies cookies) {
@@ -172,15 +216,14 @@ final class Database extends SQLiteOpenHelper {
 	
 	/**
 	 * 
-	 * @param id A unique key for each wait.
 	 * @param scope The scope of each wait.
 	 * @param instruction
 	 * @param uri
 	 * @param name
 	 */
-	void saveWait(String id, String scope, String instruction, String uri, String name) {
+	void saveWait(String scope, String instruction, String uri, String name) {
 		ContentValues cv = new ContentValues(3);
-		cv.put(ID, id);
+		cv.put(ID, uuid());
 		cv.put(SCOPE, scope);
 		cv.put(INSTRUCTION, instruction);
 		cv.put(URI, uri);
@@ -236,7 +279,8 @@ final class Database extends SQLiteOpenHelper {
 			String scope = cursor.getString(0);
 			String instruction = cursor.getString(1);
 			String uri = cursor.getString(2);
-			request = reconstitute(scope, instruction, uri, null, true);
+			request = new Request(scope, instruction, uri,
+					null, getTags(scope), getCookies(scope), true);
 		} else {
 			throw new IllegalStateException(StringUtils.quote(id) + " is not waiting in database.");
 		}
@@ -408,12 +452,16 @@ final class Database extends SQLiteOpenHelper {
 		
 		return data;
 	}
-	
+	/*
 	Request reconstitute(String scope, String instruction, String uri, String input, boolean force) {
 		StringMap tags = new CollectionStringMap(getData(scope, FindDescription.INTERNAL));
 		Cookies cookies = getCookies(scope);
 		
 		return new Request(scope, instruction, uri, input, tags, cookies, force);
+	}*/
+	
+	StringMap getTags(String scope) {
+		return new CollectionStringMap(getData(scope, FindDescription.INTERNAL));
 	}
 	
 	private void saveData(String scope, String name, String value, boolean internal, boolean external) {

@@ -4,16 +4,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
 public abstract class CausticServiceIntent {
 	
-	static final String REFRESH_INTENT  = "net.caustic.android.service.REFRESH";
-	static final String REQUEST_INTENT  = "net.caustic.android.service.REQUEST";
-	static final String FORCE_INTENT    = "net.caustic.android.service.FORCE";
-	static final String RESPONSE_INTENT = "net.caustic.android.service.RESPONSE";
+	public static final String ACTION_
+	
+	private static final String ACTION_REQUEST  = "net.caustic.android.service.REQUEST";
+	private static final String ACTION_REFRESH  = "net.caustic.android.service.REFRESH";
+	private static final String ACTION_FORCE    = "net.caustic.android.service.FORCE";
+	
+	//static final String RESPONSE_INTENT = "net.caustic.android.service.RESPONSE";
 	
 	public static final String SCHEME = "caustic";
 	
@@ -37,47 +41,38 @@ public abstract class CausticServiceIntent {
 		return map;
 	}
 	
-	private final String scope;
+	private final String id;
 	
 	private CausticServiceIntent(Intent intent) {
-		scope = intent.getData().getSchemeSpecificPart();
+		id = intent.getData().getSchemeSpecificPart();
 	}
 	
-	public final String getScope() {
-		return scope;
+	public final String getId() {
+		return id;
 	}
 	
 	public static class CausticRequestIntent extends CausticServiceIntent {
 		private static final String INSTRUCTION = "instruction";
-		private static final String URI = "uri";
-		private static final String FORCE = "force";
 		private static final String TAGS = "tags";
 		
 		private final String instruction;
-		private final String uri;
-		private final boolean force;
 		private final Map<String, String> tags = new HashMap<String, String>();
 
-		public static Intent newRequest(String id, String instruction, String uri,
-				Map<String, String> tags,
-				String input, boolean force) {
+		public static Intent newRequest(String instruction,
+				Map<String, String> tags, Activity activity) {
 			Bundle tagsBundle = new Bundle(tags.size());
 			for(Map.Entry<String, String> entry : tags.entrySet()) {
 				tagsBundle.putString(entry.getKey(), entry.getValue());
 			}
-			return new Intent(REQUEST_INTENT, uri(id))
+
+			return new Intent(ACTION_REQUEST)
 				.putExtra(INSTRUCTION, instruction)
-				.putExtra(URI, uri)
-				.putExtra(TAGS, tagsBundle)
-				.putExtra(FORCE, force);
-				//.setClassName("net.caustic.android.service", "CausticService");
+				.putExtra(TAGS, tagsBundle);
 		}
 
 		CausticRequestIntent(Intent intent) {
 			super(intent);
 			instruction = intent.getStringExtra(INSTRUCTION);
-			uri = intent.getStringExtra(URI);
-			force = intent.getBooleanExtra(FORCE, false);
 			Bundle tagsBundle = intent.getBundleExtra(TAGS);
 			Set<String> keys = tagsBundle.keySet();
 			for(String key : keys) {
@@ -89,14 +84,6 @@ public abstract class CausticServiceIntent {
 			return instruction;
 		}
 		
-		String getURI() {
-			return uri;
-		}
-		
-		boolean getForce() {
-			return force;
-		}
-		
 		Map<String, String> getTags() {
 			return tags;
 		}
@@ -104,7 +91,9 @@ public abstract class CausticServiceIntent {
 	
 	public static class CausticResponseIntent extends CausticServiceIntent {
 
-		static Intent newResponse(String scope, Map<String, String> data,
+		static Intent newResponse(
+				String scope,
+				Map<String, String> data,
 				Map<String, String> waits,
 				Map<String, Map<String, String>> children) {
 			Bundle dataBundle = mapToBundle(data);
@@ -155,7 +144,7 @@ public abstract class CausticServiceIntent {
 	public static class CausticForceIntent extends CausticServiceIntent {
 		
 		public static Intent newForce(String id) {
-			return new Intent(FORCE_INTENT, uri(id));
+			return new Intent(ACTION_FORCE, uri(id));
 		}
 		
 		CausticForceIntent(Intent intent) {
@@ -166,7 +155,7 @@ public abstract class CausticServiceIntent {
 	public static class CausticRefreshIntent extends CausticServiceIntent {
 		
 		public static Intent newRefresh(String scope) {
-			return new Intent(REFRESH_INTENT, uri(scope));
+			return new Intent(ACTION_REFRESH, uri(scope));
 		}
 		
 		CausticRefreshIntent(Intent intent) {

@@ -18,7 +18,7 @@ public class DataView {
 	private final View loadingView;
 	private final TextView dataHeader;
 	
-	private String curScope;
+	private String curId;
 	
 	/**
 	 * Inflate and attach a new view to Caustic data.
@@ -44,22 +44,22 @@ public class DataView {
 	 * Update the {@link DataView} for a <code>scope</code>.  If the <code>scope</code>
 	 * is different than the prior one, a waiting display will be shown.
 	 * @param context The {@link Context} to start the refresh service on.
-	 * @param scope The {@link String} scope to refresh.
+	 * @param id The {@link String} id to refresh.
 	 */
-	public void update(Context context, String title, String scope) {
+	public void update(Context context, String id) {
 		loadingView.setVisibility(View.VISIBLE);
-		if(scope.equals(curScope)) {
+		if(id.equals(curId)) {
 			
 		} else {
-			this.curScope = scope;
+			this.curId = id;
 			dataList.setVisibility(View.GONE);
 		}
-		dataHeader.setText(title);
-		context.startService(CausticRefreshIntent.newRefresh(scope));
+		//dataHeader.setText(title);
+		context.startService(CausticRefreshIntent.newRefresh(id));
 	}
 	
 	final void receiveResponse(CausticResponseIntent response) {
-		if(response.getScope().equals(curScope)) {
+		if(response.getId().equals(curId)) {
 			adapter.setData(response.getData(), response.getWaits(), response.getChildren());
 			dataList.setVisibility(View.VISIBLE);
 			loadingView.setVisibility(View.GONE);

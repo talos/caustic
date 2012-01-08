@@ -6,6 +6,7 @@ import net.caustic.android.service.CausticServiceIntent;
 import net.caustic.android.service.CausticServiceIntent.CausticForceIntent;
 import net.caustic.android.service.CausticServiceIntent.CausticRefreshIntent;
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -29,6 +30,7 @@ public class CausticAndroidActivity extends Activity implements CausticAndroidBu
 		context.startActivity(intent);
 	}
 	
+	private DataView view;
 	private DataUpdateReceiver receiver;
 	private IntentFilter filter;
 
@@ -40,7 +42,7 @@ public class CausticAndroidActivity extends Activity implements CausticAndroidBu
 		filter = new CausticIntentFilter();
 		
 		ViewGroup main = (ViewGroup) View.inflate(this, R.layout.generic_data_view, null);
-		new DataView(receiver, main);
+		view = new DataView(receiver, main);
 		setContentView(main);
 		/*
 		ListView dataView = (ListView) View.inflate(this, R.layout.data_view, null);
@@ -60,18 +62,24 @@ public class CausticAndroidActivity extends Activity implements CausticAndroidBu
 		registerReceiver(receiver, filter);
 
 		// refresh for data immediately if supplied in intent.
-		Intent intent = getIntent();
+		//pending.
+		//intent.putExtra("test", createPendingResult(1, intent, 0));
+		//intent.get
 		if(intent.getAction() != null) {
 			String id = intent.getData().getSchemeSpecificPart();
-			startService(CausticRefreshIntent.newRefresh(id));
+			view.update(this, title, id);
+			///startService(CausticRefreshIntent.newRefresh(id));
 		}
 	}
 	
 	@Override
 	protected void onPause() {
 		super.onPause();
+
 		unregisterReceiver(receiver);
 	}
+	
+	
 	
 	@Override
 	/**

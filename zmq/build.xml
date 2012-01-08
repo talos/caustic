@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project Caustic ZMQ">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="/Users/talos/Programming/caustic-viz/server/caustic_backend.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="net.caustic.ZCausticServer"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="/Users/talos/Programming/caustic/zmq/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/talos/Programming/jzmq/src/zmq.jar"/>
+            <fileset dir="/Users/talos/Programming/caustic/core/build/classes"/>
+            <fileset dir="/Users/talos/Programming/caustic/default-impl/bin"/>
+            <fileset dir="/Users/talos/Programming/caustic/implementation/regexp-javautil/bin"/>
+            <fileset dir="/Users/talos/Programming/caustic/implementation/javanet/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/talos/Programming/caustic/test/lib/jmockit.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Applications/eclipse/plugins/org.junit_4.8.2.v4_8_2_v20110321-1705/junit.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Applications/eclipse/plugins/org.hamcrest.core_1.1.0.v20090501071000.jar"/>
+            <fileset dir="/Users/talos/Programming/caustic/test/bin"/>
+            <fileset dir="/Users/talos/Programming/caustic/implementation/regexp-jakarta/bin"/>
+        </jar>
+    </target>
+</project>

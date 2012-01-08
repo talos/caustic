@@ -33,8 +33,8 @@ public abstract class Response {
 	/**
 	 * 
 	 * @return The status of this {@link Response}.
-	 * @see #DONE_FIND
 	 * @see #DONE_LOAD
+	 * @see #DONE_FIND
 	 * @see #REFERENCE
 	 * @see #WAIT
 	 * @see #MISSING_TAGS
