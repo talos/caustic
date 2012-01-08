@@ -1,7 +1,8 @@
 package net.caustic;
 
+import java.util.Hashtable;
+
 import net.caustic.http.Cookies;
-import net.caustic.util.StringUtils;
 
 import org.json.me.JSONArray;
 import org.json.me.JSONException;
@@ -15,12 +16,25 @@ public abstract class Response {
 	public static final int REFERENCE = 4;
 	public static final int MISSING_TAGS = 5;
 	public static final int FAILED = 6;
+	
+	static JSONArray responseAryToJSON(Response[] responses) throws JSONException {
+		JSONArray ary = new JSONArray();
+		for(int i = 0 ; i < responses.length ; i ++) {
+			ary.put(responses[i].toJSON());
+		}
+		return ary;
+	}
 
 	private static final String ID = "id";
 	private static final String URI = "uri";
+	private static final String INSTRUCTION = "instruction";
+
+	private static final String NAME = "name";
+	private static final String DESCRIPTION = "description";
 	
-	public final String id;
-	public final String uri;
+	private final String id;
+	private final String uri;
+	private final String instruction;
 
 	public final String serialize() {
 		try {
@@ -45,13 +59,19 @@ public abstract class Response {
 	JSONObject toJSON() throws JSONException {
 		return new JSONObject()
 			.put(ID, id)
-			.put(URI, uri);
+			.put(URI, uri)
+			.put(INSTRUCTION, instruction);
 	}
 
-	private Response(String id, String uri) {
+	private Response(String id, String uri, String instruction) {
 		this.id = id;
 		this.uri = uri; // URI used to resolve children.
+		this.instruction = instruction;
 	}
+	
+	public String getId() { return id; }
+	public String getUri() { return uri; }
+	public String getInstruction() { return instruction; }
 	
 	/*
 	public static Response deserialize(String serializedResponse) throws JSONException {
@@ -75,24 +95,28 @@ public abstract class Response {
 	private abstract static class Ready extends Response {
 
 		private static final String CHILDREN = "children";
-		private static final String NAME = "name";
-		private static final String DESCRIPTION = "description";
-		private static final String[] EMPTY_ARRAY = new String[] { };
 		
 		private final String name;
-		private final String[] children;
+		private final Hashtable children;
 		private final String description;
 		
+		Ready(String id, String uri, String instruction, String name, String description, Hashtable children) {
+			super(id, uri, instruction);
+			this.name = name;
+			this.description = description == null ? "" : description;
+			this.children = children;
+		}
+
 		public final String getName() {
 			return name;
 		}
 		
 		/**
 		 * 
-		 * @return An array of {@link String} children instructions that could be run
-		 * with these results.
+		 * @return A {@link Hashtable} mapping input values to an array of the children responses
+		 * they spawned.  If they spawned no children, the array is empty.
 		 */
-		public final String[] getChildren() {
+		public final Hashtable getChildren() {
 			return children;
 		}
 
@@ -105,16 +129,9 @@ public abstract class Response {
 			return description;
 		}
 
-		Ready(String id, String uri, String name, String description, String[] children) {
-			super(id, uri);
-			this.name = name;
-			this.description = description == null ? "" : description;
-			this.children = children == null ? EMPTY_ARRAY : children;
-		}
-		
 		JSONObject toJSON() throws JSONException {
 			return super.toJSON()
-					.put(CHILDREN, StringUtils.makeJSONArray(getChildren()))
+					.put(CHILDREN, Instruction.childrenResponsesToJSON(children))
 					.put(DESCRIPTION, description)
 					.put(NAME, name);
 		}
@@ -123,40 +140,27 @@ public abstract class Response {
 	
 	public final static class DoneFind extends Ready {
 
-		private static final String VALUES = "values";
-		private final String[] values;
-		
-		public final String[] getValues() {
-			return values;
-		}
-		
 		public final int getStatus() {
 			return DONE_FIND;
 		}
 		
-		DoneFind(String id, String uri, String name, String description, String[] children, String[] values) {
-			super(id, uri, name, description, children);
-			this.values = values;
-		}
-		
-		JSONObject toJSON() throws JSONException {
-			JSONObject obj = super.toJSON();
-			obj.put(VALUES, StringUtils.makeJSONArray(getValues()));
-			return obj;
+		DoneFind(String id, String uri, String instruction, String name,
+				String description, Hashtable children) {
+			super(id, uri, instruction, name, description, children);
 		}
 	}
 	
 	public final static class DoneLoad extends Ready {
 
-		private static final String CONTENT = "content";
 		private static final String COOKIES = "cookies";
-		private final String content;
 		private final Cookies cookies;
 
-		public String getContent() {
-			return content;
+		DoneLoad(String id, String uri, String instruction,
+				String name, String description, Hashtable children, Cookies cookies) {
+			super(id, uri, instruction, name,  description, children);
+			this.cookies = cookies;
 		}
-		
+
 		public Cookies getCookies() {
 			return cookies;
 		}
@@ -165,46 +169,56 @@ public abstract class Response {
 			return DONE_LOAD;
 		}
 		
-		DoneLoad(String id, String uri, String name, String description, String[] children, String content, Cookies cookies) {
-			super(id, uri, name,  description, children);
-			this.content = content;
-			this.cookies = cookies;
-		}
-		
 		JSONObject toJSON() throws JSONException {
 			return super.toJSON()
-					.put(CONTENT, getContent())
 					.put(COOKIES, cookies.toJSON());
 		}
 	}
 	
-	public final static class Wait extends Ready {
+	public final static class Wait extends Response {
 		private static final String WAIT_KEY = "wait";
+
+		private final String name;
+		private final String description;
+		
+		Wait(String id, String uri, String instruction, String name, String description) {
+			super(id, uri, instruction);
+			this.name = name;
+			this.description = description;
+		}
 
 		public int getStatus() { return WAIT; }
 		
-		Wait(String id, String uri, String name, String description, String[] children) {
-			super(id, uri, name, description, children);
-		}
-		
 		JSONObject toJSON() throws JSONException {
-			return super.toJSON().put(WAIT_KEY, Boolean.TRUE);
+			return super.toJSON().put(WAIT_KEY, Boolean.TRUE)
+								.put(NAME, name)
+								.put(DESCRIPTION, description);
 		}
 	}
 	
 	public final static class Reference extends Response {
-		private final String[] referenced;
+		private static final String REFERENCED = "referenced";
+		private final Response[] referenced;
+		
+		Reference(String id, String uri, String instruction, Response[] referenced) {
+			super(id, uri, instruction);
+			this.referenced = referenced;
+		}
 		
 		public int getStatus() { return REFERENCE; }
 		
-		public String[] getReferenced() {
+		Response[] getReferenced() {
 			return referenced;
 		}
 		
-		Reference(String id, String uri, String[] referenced) {
-			super(id, uri);
-			this.referenced = referenced;
+		JSONObject toJSON() throws JSONException {
+			JSONArray ary = new JSONArray();
+			for(int i = 0 ; i < referenced.length ; i ++) {
+				ary.put(referenced[i].toJSON());
+			}
+			return super.toJSON().put(REFERENCED, ary);
 		}
+		
 	}
 	
 	public final static class MissingTags extends Response {
@@ -217,8 +231,8 @@ public abstract class Response {
 			return missingTags;
 		}
 		
-		MissingTags(String id, String uri, String[] missingTags) {
-			super(id, uri);
+		MissingTags(String id, String uri, String instruction, String[] missingTags) {
+			super(id, uri, instruction);
 			this.missingTags = missingTags;
 		}
 		
@@ -240,8 +254,8 @@ public abstract class Response {
 			return failedBecause;
 		}
 		
-		Failed(String id, String uri, String failedBecause) {
-			super(id, uri);
+		Failed(String id, String uri, String instruction, String failedBecause) {
+			super(id, uri, instruction);
 			this.failedBecause = failedBecause;
 		}
 
@@ -249,6 +263,7 @@ public abstract class Response {
 			return super.toJSON().put(FAILED_KEY, failedBecause);
 		}
 	}
+
 	/*
 	private static String[] aryFromJSONArray(JSONArray jsonArray) throws JSONException {
 		String[] ary = new String[jsonArray.length()];

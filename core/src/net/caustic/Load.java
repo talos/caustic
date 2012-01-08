@@ -76,9 +76,7 @@ public final class Load extends Instruction {
 	 * {@link HashtableTemplate}s of post data.  Exclusive of {@link #postData}.
 	 */
 	private HashtableTemplate postTable;// = new HashtableTemplate();
-	
-	private final String[] children;
-	
+		
 	/**
 	 * A string that will be templated and evaulated as a URL.
 	 */
@@ -89,49 +87,48 @@ public final class Load extends Instruction {
 	 */
 	private final StringTemplate name;
 	
-	public Load(String description, String uri, StringTemplate name,
+	public Load(String instruction, String description, String uri, StringTemplate name,
 			StringTemplate url, String[] children, String method,
 			HashtableTemplate cookies, HashtableTemplate headers, StringTemplate postData) {
-		super(description, uri);
+		super(instruction, description, uri, children);
 		this.url = url;
 		this.name = name;
 		this.method = method;
 		this.cookies = cookies;
 		this.headers = headers;
 		this.postData = postData;
-		this.children = children;
 	}
 	
-	public Load(String description, String uri, StringTemplate name, 
+	public Load(String instruction, String description, String uri, StringTemplate name, 
 			StringTemplate url, String[] children, String method,
 			HashtableTemplate cookies, HashtableTemplate headers, HashtableTemplate postTable) {
-		super(description, uri);
+		super(instruction, description, uri, children);
 		this.name = name;
 		this.url = url;
 		this.method = method;
 		this.cookies = cookies;
 		this.headers = headers;
 		this.postTable = postTable;
-		this.children = children;
 	}
 	
 	/**
 	 * Make the request and retrieve the response body specified by this {@link Load}.
 	 * <code>source</code> is ignored.
 	 */
-	public Response execute(String id, StringMap tags, Cookies requestCookies, HttpBrowser browser, boolean force)
+	public Response execute(Scraper scraper,
+			String id, StringMap tags, Cookies requestCookies, HttpBrowser browser, boolean force)
 			throws InterruptedException {
 		//HashtableCookies mutableCookies = new HashtableCookies(requestCookies);
 
 		// use premature returns before http try { } block.
 		StringSubstitution nameSub = name.sub(tags);
 		if(nameSub.isMissingTags()) {
-			return new Response.MissingTags(id, uri, nameSub.getMissingTags());
+			return new Response.MissingTags(id, getUri(), getInstruction(), nameSub.getMissingTags());
 		} 
 		
 		String nameStr = nameSub.getSubstituted();
 		if(force == false) {
-			return new Response.Wait(id, uri, nameStr, description, children); // don't run a load unless it's forced.
+			return new Response.Wait(id, getUri(), getInstruction(), nameStr, getDescription()); // don't run a load unless it's forced.
 		}
 		
 		try {
@@ -149,7 +146,7 @@ public final class Load extends Instruction {
 				String[] missingTags = StringSubstitution.combine(new DependsOnTemplate[] {
 						urlSub, headersSub, cookiesSub});
 				
-				response = new Response.MissingTags(id, uri, missingTags);
+				response = new Response.MissingTags(id, getUri(), getInstruction(), missingTags);
 			
 			} else {
 				
@@ -158,14 +155,14 @@ public final class Load extends Instruction {
 				if(postData != null) {
 					StringSubstitution sub = postData.sub(tags);
 					if(sub.isMissingTags()) {
-						return new Response.MissingTags(id, uri, sub.getMissingTags()); // break out early
+						return new Response.MissingTags(id, getUri(), getInstruction(), sub.getMissingTags()); // break out early
 					} else {
 						postStr = sub.getSubstituted();
 					}
 				} else if(postTable != null) {
 					HashtableSubstitution sub = postTable.sub(tags);
 					if(sub.isMissingTags()) {
-						return new Response.MissingTags(id, uri, sub.getMissingTags()); // break out early
+						return new Response.MissingTags(id, getUri(), getInstruction(), sub.getMissingTags()); // break out early
 					} else {
 						postStr = HashtableUtils.toFormEncoded(sub.getSubstituted());
 					}
@@ -194,15 +191,19 @@ public final class Load extends Instruction {
 				
 				BrowserResponse bResp = browser.request(url, method, headers, templateCookies, postStr);
 				
-				response = new Response.DoneLoad(id, uri, nameStr, description, children, bResp.content, bResp.cookies);
+				templateCookies.extend(bResp.cookies);
+				response = new Response.DoneLoad(id, getUri(), getInstruction(), nameStr, getDescription(),
+						runChildren(scraper, id, nameStr,
+								new String[] { bResp.content }, tags, templateCookies, false),
+						bResp.cookies);
 			}
 			return response;
 		} catch(HashtableSubstitutionOverwriteException e) {
 			// Failed because of ambiguous mapping
-			return new Response.Failed(id, uri, "Instruction template substitution caused ambiguous mapping: "
+			return new Response.Failed(id, getUri(), getInstruction(), "Instruction template substitution caused ambiguous mapping: "
 					+ e.getMessage());
 		} catch (HttpException e) {
-			return new Response.Failed(id, uri, "Failure during HTTP request or response: " + e.getMessage());
+			return new Response.Failed(id, getUri(), getInstruction(), "Failure during HTTP request or response: " + e.getMessage());
 		}
 	}
 }

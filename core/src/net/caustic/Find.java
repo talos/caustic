@@ -1,5 +1,6 @@
 package net.caustic;
 
+import net.caustic.http.Cookies;
 import net.caustic.regexp.Pattern;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.regexp.StringTemplate;
@@ -75,9 +76,7 @@ public final class Find extends Instruction {
 	 * to use as the pattern.
 	 */
 	private final StringTemplate pattern;
-	
-	private final String[] children;
-	
+		
 	//private final boolean hasName;
 	
 	private final RegexpCompiler compiler;
@@ -126,13 +125,13 @@ public final class Find extends Instruction {
 	 */
 	private final int maxMatch;// = Pattern.LAST_MATCH;
 	
-	public Find(String description, String uri,
+	public Find(String instruction, String description, String uri,
 			RegexpCompiler compiler, StringTemplate name,
 			StringTemplate pattern, StringTemplate replacement,
 			int minMatch, int maxMatch,
 			boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
 			String[] children) {
-		super(description, uri);
+		super(instruction, description, uri, children);
 		//this.hasName = hasName;
 		this.name = name;
 		this.compiler = compiler;
@@ -143,7 +142,6 @@ public final class Find extends Instruction {
 		this.minMatch = minMatch;
 		this.maxMatch = maxMatch;
 		this.doesDotMatchNewline = doesDotMatchNewline;
-		this.children = children;
 	}
 	
 	/**
@@ -161,7 +159,8 @@ public final class Find extends Instruction {
 	 * Use {@link #pattern}, substituted from {@link Database}, to match against <code>source</code>.
 	 * Ignores <code>browser</code>.
 	 */
-	public Response execute(String id, String input, StringMap tags) {
+	public Response execute(Scraper scraper, String id, String input, StringMap tags, Cookies cookies) 
+				throws InterruptedException {
 		if(input == null) {
 			throw new IllegalArgumentException("Cannot execute Find without a source.");
 		}
@@ -176,7 +175,7 @@ public final class Find extends Instruction {
 				subReplacement.isMissingTags()) { // One of the substitutions was not OK.
 			final String[] missingTags = StringSubstitution.combine(
 					new DependsOnTemplate[] { subName, subPattern, subReplacement });
-			result = new Response.MissingTags(id, uri, missingTags);
+			result = new Response.MissingTags(id, getUri(), getInstruction(), missingTags);
 		} else {
 			
 			// All the substitutions were OK.
@@ -189,12 +188,13 @@ public final class Find extends Instruction {
 			String[] matches = pattern.match(input, replacement, minMatch, maxMatch);
 			
 			if(matches.length == 0) { // No matches, fail out.
-				result = new Response.Failed(id, uri, "Match " + StringUtils.quote(pattern) +
+				result = new Response.Failed(id, getUri(), getInstruction(), "Match " + StringUtils.quote(pattern) +
 						" did not have a match between " + 
 						StringUtils.quote(minMatch) + " and " + 
 						StringUtils.quote(maxMatch) + " against " + StringUtils.quote(input));
 			} else {
-				result = new Response.DoneFind(id, uri, resultName, description, children, matches);
+				result = new Response.DoneFind(id, getUri(), getInstruction(), resultName, getDescription(),
+						runChildren(scraper, id, resultName, matches, tags, cookies, false));
 			}
 		}
 		return result;
