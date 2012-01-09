@@ -56,9 +56,11 @@ public class ScraperUnitTest {
 		DoneLoad response = (DoneLoad) scraper.scrape(new Request("id",
 				load.toString(), uri, null, tags, cookies, true));
 		
-		assertEquals("bar", response.getContent());
+		
+		assertEquals("bar", response.getChildren().keySet().toArray()[0]);
 		assertEquals(respCookies, response.getCookies());
-		assertArrayEquals(new String[] {}, response.getChildren());
+		
+		assertArrayEquals(new Response[] {}, (Response[]) response.getChildren().get("bar"));
 	}
 
 	@Test
@@ -86,9 +88,9 @@ public class ScraperUnitTest {
 		
 		DoneLoad response = (DoneLoad) scraper.scrape(new Request("id", "/uri", uri, null, tags, cookies, true));
 		
-		assertEquals("bar", response.getContent());
+		assertEquals("bar", response.getChildren().keySet().toArray()[0]);
 		assertEquals(respCookies, response.getCookies());
-		assertArrayEquals(new String[] {}, response.getChildren());
+		assertArrayEquals(new Response[] {}, (Response[]) response.getChildren().get("bar"));
 	}
 
 	@Test
@@ -99,8 +101,8 @@ public class ScraperUnitTest {
 				"foo foo bar", tags, cookies, true));
 
 		assertEquals("foo", response.getName());
-		assertArrayEquals(new String[] { "foo", "foo" }, response.getValues());
-		assertArrayEquals(new String[] {}, response.getChildren());
+		assertArrayEquals(new String[] { "foo" }, response.getChildren().keySet().toArray());
+		assertArrayEquals(new Response[] {}, (Response[]) response.getChildren().get("foo"));
 	}
 
 	@Test
@@ -121,21 +123,36 @@ public class ScraperUnitTest {
 				"haystack needle haystack", tags, cookies, false));
 		
 		assertEquals("needle", response.getName());
-		assertArrayEquals(new String[] { "needle" }, response.getValues());
+		assertArrayEquals(new String[] { "needle" }, response.getChildren().keySet().toArray());
 	}
 	
 	@Test
 	public void testArrayOfJSON(@Mocked HttpBrowser browser) throws Exception {
 		JSONArray ary = new JSONArray();
 		
-		ary.put(new JSONObject().put("find", "^foo$"));
-		ary.put(new JSONObject().put("load", "http://www.google.com/"));
+		JSONObject loadGoogle = new JSONObject().put("load", "http://www.google.com/");
 		
-		Response.Reference response = (Response.Reference) scraper.scrape(new Request("id", ary.toString(), uri,
+		ary.put(new JSONObject().put("find", "^foo"));
+		ary.put(loadGoogle);
+		
+		Response.Reference response = (Response.Reference) scraper.scrape(
+				new Request("id", ary.toString(), uri,
 				"foo bar", tags, cookies, false));
-				
-		assertEquals(2, response.getReferenced().length);
-		assertTrue(Arrays.asList(ary.getString(0), ary.getString(1)).containsAll(Arrays.asList(response.getReferenced())));
+		
+		Response[] referenced = response.getReferenced();
+		assertEquals(2, referenced.length);
+		assertEquals(Response.DONE_FIND, referenced[0].getStatus());
+		assertEquals(Response.WAIT, referenced[1].getStatus());
+		
+		DoneFind doneFind = (DoneFind) referenced[0];
+		Response.Wait wait = (Response.Wait) referenced[1]; 
+		
+		assertEquals(loadGoogle.toString(), wait.getInstruction());
+		assertEquals("http://www.google.com/", wait.getName());
+		
+		Hashtable<String, Response[]> findChildren = doneFind.getChildren();
+		assertEquals("^foo", doneFind.getName());
+		assertEquals("foo", findChildren.keySet().toArray()[0]);
 	}
 	
 	@Test
@@ -213,7 +230,7 @@ public class ScraperUnitTest {
 		
 		DoneFind response = (DoneFind) scraper.scrape(new Request("uri", obj.toString(), uri,
 				"foo", tags, cookies, false));
-		assertArrayEquals(new String[] { "foo" }, response.getValues());
+		assertArrayEquals(new String[] { "foo" }, response.getChildren().keySet().toArray());
 	}
 	
 	@Test
@@ -226,7 +243,7 @@ public class ScraperUnitTest {
 		
 		DoneFind response = (DoneFind) scraper.scrape(new Request("uri", obj.toString(), uri,
 				"foo", tags, cookies, false));
-		assertArrayEquals(new String[] { "foo" }, response.getValues());
+		assertArrayEquals(new String[] { "foo" }, response.getChildren().keySet().toArray());
 	}
 	
 	@Test
@@ -236,21 +253,26 @@ public class ScraperUnitTest {
 		
 		DoneFind response = (DoneFind) scraper.scrape(new Request("uri", extendedFind.toString(), uri,
 				"foo", tags, cookies, false));
-		assertArrayEquals(new String[] { "foo" }, response.getValues());
+		assertArrayEquals(new String[] { "foo" }, response.getChildren().keySet().toArray());
 	}	
 	
 	@Test
 	public void testExtendsThenViaURI() throws Exception {
 		final JSONArray then = new JSONArray()
 			.put("/another-uri")
-			.put(new JSONObject().put("find", "foo"));
+			.put(new JSONObject().put("find", "b\\w+"));
 		
 		new Expectations() {{
 			loader.load("/uri");
 				result = new JSONObject().put("load", "http://foo.com")
 										.put("then", then).toString();
 			browser.request("http://foo.com", "get", (Hashtable) any, (Cookies) any, null);
-				result = new BrowserResponse("bar", respCookies);
+				result = new BrowserResponse("alpha beta gaga", respCookies);
+			loader.load("/another-uri");
+				result = new JSONObject().put("load", "http://bar.com").toString();
+			//browser.request("http://bar.com", "get", (Hashtable) any, (Cookies) any, null);
+			//	result = new BrowserResponse("virgin suicides", respCookies);
+				
 		}};
 		
 		JSONObject obj = new JSONObject()
@@ -258,9 +280,29 @@ public class ScraperUnitTest {
 
 		DoneLoad response = (DoneLoad) scraper.scrape(new Request("uri", obj.toString(), uri,
 				"foo", tags, cookies, true));
-				
-		assertEquals(2, response.getChildren().length);
-		assertTrue(Arrays.asList(response.getChildren()).containsAll(Arrays.asList(then.get(0), then.get(1).toString())));
+		
+		Hashtable<String, Response[]> children = response.getChildren();
+		
+		assertEquals(1, children.size());
+		
+		Response[] responses = children.get("alpha beta gaga");
+		assertEquals(2, responses.length);
+		
+		assertEquals(Response.WAIT, responses[0].getStatus());
+		assertEquals(Response.DONE_FIND, responses[1].getStatus());
+
+		Response.Wait wait = (Response.Wait) responses[0];
+		DoneFind thenFind = (DoneFind) responses[1];
+		
+		assertEquals(wait.getName(), "http://bar.com");
+		//assertEquals(thenLoad.getName(), "http://bar.com");
+		//assertArrayEquals(new String[] { "virgin suicides" }, thenLoad.getChildren().keySet().toArray());
+		
+		assertEquals(thenFind.getName(), "b\\w+");
+		assertArrayEquals(new String[] { "beta" }, thenFind.getChildren().keySet().toArray());
+		
+		//assertTrue(Arrays.asList(
+		//		response.getChildren()).containsAll(Arrays.asList(then.get(0), then.get(1).toString())));
 	}
 	/*
 	@Test
@@ -293,7 +335,7 @@ public class ScraperUnitTest {
 	public void testDeserializeSimpleHead() throws Exception {
 		new Expectations() {{
 			browser.request("http://www.foo.com/", "head", (Hashtable) any, (Cookies) any, null); times = 1;
-				result = new BrowserResponse(null, respCookies);
+				result = new BrowserResponse("", respCookies);
 		}};
 		
 		JSONObject obj = new JSONObject();

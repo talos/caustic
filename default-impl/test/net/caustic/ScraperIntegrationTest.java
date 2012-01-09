@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import mockit.Expectations;
 import mockit.NonStrict;
@@ -16,9 +18,11 @@ import net.caustic.http.Cookies;
 import net.caustic.http.HashtableCookies;
 import net.caustic.log.Logger;
 import net.caustic.log.SystemErrLogger;
+import net.caustic.util.HashtableStringMap;
 import net.caustic.util.StringMap;
 import net.caustic.util.StringUtils;
 
+import org.json.me.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +34,7 @@ import org.junit.Test;
  */
 public class ScraperIntegrationTest {
 	
-	private @NonStrict StringMap tags;
+	//private @NonStrict StringMap tags;
 	private Cookies cookies;
 	private static final String URI = StringUtils.USER_DIR;
 	
@@ -47,7 +51,8 @@ public class ScraperIntegrationTest {
 	@Test
 	public void testScrapeStuck() throws Exception {
 		Response resp = scraper.scrape(
-				new Request("id", demosDir + "simple-google.json", URI, null, tags, cookies, true));
+				new Request("id", demosDir + "simple-google.json", URI, null,
+						HashtableStringMap.fromJSON(new JSONObject()), cookies, true));
 		
 		assertEquals(Response.MISSING_TAGS, resp.getStatus());
 		MissingTags missingTags = (MissingTags) resp;
@@ -55,7 +60,9 @@ public class ScraperIntegrationTest {
 	}
 
 	@Test
-	public void testScrapeFail() throws Exception {	
+	public void testScrapeFail() throws Exception {
+		StringMap tags = HashtableStringMap.fromJSON(new JSONObject());
+
 		Response resp = scraper.scrape(
 				new Request("id", "/path/to/nothing", URI, null, tags, cookies, true));
 		assertEquals(Response.FAILED, resp.getStatus());
@@ -63,59 +70,96 @@ public class ScraperIntegrationTest {
 	
 	@Test
 	public void testScrapeSimpleGoogle() throws Exception {
-		new Expectations() {{
-			tags.get("query"); result = "hello";
-		}};
+		StringMap tags = HashtableStringMap.fromJSON(new JSONObject().put("query", "hello"));
 		
 		DoneLoad doneLoad = (DoneLoad) scraper.scrape(
 				new Request("id", demosDir + "simple-google.json", URI, null, tags, cookies, true));
 
-		assertEquals(1, doneLoad.getChildren().length);
-		DoneFind doneFind = (DoneFind) scraper.scrape(new Request("id", doneLoad.getChildren()[0], doneLoad.uri, doneLoad.getContent(), tags, cookies, false));
+		Hashtable<String, Response[]> children = doneLoad.getChildren();
+		assertEquals(1, children.size());
+				
+		String[] keys = children.keySet().toArray(new String[] { });
+		assertEquals(1, keys.length);
+		assertTrue(keys[0].contains("google"));
+		assertEquals(1, children.get(keys[0]).length);
 		
+		assertEquals(Response.DONE_FIND, children.get(keys[0])[0].getStatus());
+		DoneFind doneFind = (DoneFind) children.get(keys[0])[0];
+			
 		assertEquals("what do you say after 'hello'?", doneFind.getName());
-		for(String value : doneFind.getValues()) {
+		String[] values = (String[]) doneFind.getChildren().keySet().toArray(new String[] { });
+		
+		for(String value : values) {
 			assertTrue(value.startsWith("I say"));
+			assertArrayEquals(new Response[] { }, (Response[]) doneFind.getChildren().get(value));
 		}
 	}
 	
 	@Test
 	public void testScrapeSimpleGooglePointer() throws Exception {
-		new Expectations() {{
-			tags.get("query"); result = "hello";
-		}};
+		StringMap tags = HashtableStringMap.fromJSON(new JSONObject().put("query", "hello"));
 		
 		DoneLoad doneLoad = (DoneLoad) scraper.scrape(
 				new Request("id", demosDir + "pointer.json", URI, null, tags, cookies, true));
-		
+		/*
 		assertEquals(1, doneLoad.getChildren().length);
 		DoneFind doneFind = (DoneFind) scraper.scrape(
 				new Request("id", doneLoad.getChildren()[0], doneLoad.uri, doneLoad.getContent(), tags, cookies, false));
+		*/
 		
+		Hashtable<String, Response[]> children = doneLoad.getChildren();
+		String[] keys = children.keySet().toArray(new String[] { });
+
+		assertEquals(Response.DONE_FIND, children.get(keys[0])[0].getStatus());
+		DoneFind doneFind = (DoneFind) children.get(keys[0])[0];
+			
 		assertEquals("what do you say after 'hello'?", doneFind.getName());
-		for(String value : doneFind.getValues()) {
+		String[] values = (String[]) doneFind.getChildren().keySet().toArray(new String[] { });
+		
+		for(String value : values) {
 			assertTrue(value.startsWith("I say"));
+			assertArrayEquals(new Response[] { }, (Response[]) doneFind.getChildren().get(value));
 		}
 	}
 	
 	@Test
-	public void testArrayOfScrapes() throws Exception {
-		new Expectations() {{
-			tags.get("query"); result = "hello";
-			tags.get("Number"); result = "373";
-			tags.get("Street"); result = "Atlantic Ave";
-			tags.get("Borough"); result = "3";
-			tags.get("Apt"); result = "";
-		}};
+	public void testArrayOfScrapesForce() throws Exception {
+		StringMap tags = HashtableStringMap.fromJSON(
+				new JSONObject()
+					.put("query", "hello")
+					.put("Number", "373")
+					.put("Street", "Atlantic Ave")
+					.put("Borough", "3")
+					.put("Apt", ""));
 		
-		// not forced
+		// force should not cause references to be forced, this could cause major hangs
 		Response.Reference resp = (Response.Reference) scraper.scrape(
-				new Request("id", demosDir + "array.json", URI, null, tags, cookies, false));
+				new Request("id", demosDir + "array.json", URI, null, tags, cookies, true));
 		
 		List<String> values = new ArrayList<String>();
 		
 		assertEquals(2, resp.getReferenced().length);
-		for(String child : resp.getReferenced()) {
+		
+		
+		for(Response referenced : resp.getReferenced()) {
+			assertEquals(Response.WAIT, referenced.getStatus());
+			Response.Wait wait = (Response.Wait) referenced;
+			
+			DoneLoad loadResp = (DoneLoad) scraper.scrape(
+					new Request("id", wait.getInstruction(), wait.getUri(), null, tags,
+							cookies, true));
+			
+			Hashtable<String, Response[]> children = loadResp.getChildren();
+			for(Map.Entry<String, Response[]> entry : children.entrySet()) {
+				for(Response childResp : entry.getValue()) {
+					System.out.println(childResp.toJSON().toString(2));
+					assertEquals(Response.DONE_FIND, childResp.getStatus());
+					DoneFind doneFind = (DoneFind) childResp;
+					values.addAll(doneFind.getChildren().keySet());
+				}
+			}
+			
+			/*
 			DoneLoad childResp = (DoneLoad) scraper.scrape(
 					new Request("id", child, resp.uri, null, tags, cookies, true));
 			for(String grandchild : childResp.getChildren()) {
@@ -123,7 +167,7 @@ public class ScraperIntegrationTest {
 						childResp.uri, childResp.getContent(), tags,
 						cookies, false));
 				values.addAll(Arrays.asList(grandchildResp.getValues()));
-			}
+			}*/
 		}
 	
 		boolean containsISay = false;

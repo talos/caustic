@@ -189,11 +189,15 @@ public abstract class Response {
 
 		public int getStatus() { return WAIT; }
 		
+		public String getName() { return name; }
+		public String getDescription() { return description; }
+		
 		JSONObject toJSON() throws JSONException {
 			return super.toJSON().put(WAIT_KEY, Boolean.TRUE)
 								.put(NAME, name)
 								.put(DESCRIPTION, description);
 		}
+		
 	}
 	
 	public final static class Reference extends Response {
@@ -207,7 +211,7 @@ public abstract class Response {
 		
 		public int getStatus() { return REFERENCE; }
 		
-		Response[] getReferenced() {
+		public Response[] getReferenced() {
 			return referenced;
 		}
 		

@@ -7,7 +7,7 @@ import org.json.me.JSONObject;
 
 import net.caustic.http.Cookies;
 import net.caustic.http.HashtableCookies;
-import net.caustic.util.JSONMap;
+import net.caustic.util.HashtableStringMap;
 import net.caustic.util.StringMap;
 import net.caustic.util.StringUtils;
 
@@ -54,7 +54,7 @@ public class Request {
 		final String uri = obj.has(URI) ? obj.getString(URI) : StringUtils.USER_DIR;
 		final String instruction = obj.getString(INSTRUCTION);
 		final String input = obj.optString(INPUT);
-		final StringMap tags = new JSONMap(obj.optJSONObject(TAGS));
+		final StringMap tags = HashtableStringMap.fromJSON(obj.optJSONObject(TAGS));
 		
 		final Cookies cookies;
 		if(obj.has(COOKIES)) {

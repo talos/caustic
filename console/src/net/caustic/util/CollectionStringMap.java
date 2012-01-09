@@ -39,7 +39,7 @@ public class CollectionStringMap implements StringMap {
 	}
 	
 	public void put(String key, String value) {
-		map.put(key,  value);
+		map.put(key, value);
 	}
 	
 	public CollectionStringMap branch(Map<String, String> map) {
@@ -53,5 +53,10 @@ public class CollectionStringMap implements StringMap {
 		}
 		build.append(map.toString());
 		return build.toString();
+	}
+
+	@Override
+	public StringMap extend(String key, String value) {
+		// TODO Auto-generated method stub
 	}
 }

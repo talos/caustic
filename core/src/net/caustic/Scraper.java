@@ -93,35 +93,23 @@ public class Scraper implements Loggable {
 			
 			switch(firstChar) {
 			case '[':
-				result = deserializeArray(request, instruction, uri, encodedPatternString, notEncodedPatternString);
+				result = scrapeArray(request, instruction, uri, encodedPatternString, notEncodedPatternString);
 				break;
 			case '{':
 				result = deserializeObject(request, instruction, uri, encodedPatternString, notEncodedPatternString);
 				break;
 			default:
 				result = deserializeString(request, instruction, uri, encodedPatternString, notEncodedPatternString);
-			/*case '"':
-				int len = instruction.length();
-				if(instruction.charAt(len - 1) == '"') {
-					instruction = instruction.substring(1, request.instruction.length() - 1);
-					result = deserializeString(request, instruction, uri, encodedPatternString, notEncodedPatternString);
-				} else {
-					result = Response.Failed(request.id, uri, null, "String is missing quote at end.");
-				}
-				break;
-			default:
-				result = Response.Failed(request.id, uri, null, "Valid serialized instructions must begin with '\"', '{', or '['.");
-			*/
 			}
 			
 		} catch(JSONException e) {
-			return new Response.Failed(request.id, uri, e.getMessage());
+			return new Response.Failed(request.id, uri, instruction, e.getMessage());
 		} catch (MalformedUriException e) {
-			return new Response.Failed(request.id, uri, e.getMessage());
+			return new Response.Failed(request.id, uri, instruction, e.getMessage());
 		} catch(URILoaderException e) {
-			return new Response.Failed(request.id, uri, e.getMessage());
+			return new Response.Failed(request.id, uri, instruction, e.getMessage());
 		} catch (RemoteToLocalSchemeResolutionException e) {
-			return new Response.Failed(request.id, uri, e.getMessage());
+			return new Response.Failed(request.id, uri, instruction, e.getMessage());
 		}
 		return result;
 	}
@@ -153,29 +141,40 @@ public class Scraper implements Loggable {
 			
 			result = scrape(request, loadedJSONString, uriToLoad, encodedPatternString, notEncodedPatternString);
 		} else {
-			result = new Response.MissingTags(request.id, uri, uriSub.getMissingTags());
+			result = new Response.MissingTags(request.id, uri, instruction, uriSub.getMissingTags());
 		}
 		return result;
 	}
 	
 	/**
-	 * @param string
-	 * @param db
-	 * @param scope
+	 * Scrape an array of instructions.  The force parameter is switched off to prevent
+	 * the possible synchronous scraping of multiple Loads.
+	 * @param request
+	 * @param instruction
 	 * @param uri
 	 * @param encodedPatternString
 	 * @param notEncodedPatternString
-	 * @throws JsonException
+	 * @return
+	 * @throws InterruptedException
+	 * @throws JSONException
 	 */
-	private Response deserializeArray(Request request, String instruction, String uri,
+	private Response scrapeArray(Request request, String instruction, String uri,
 			String encodedPatternString, String notEncodedPatternString)
-					throws JSONException {
+					throws InterruptedException, JSONException {
 		JSONArray jsonAry = new JSONArray(instruction);
-		String[] instructions = new String[jsonAry.length()];
-		for(int i = 0 ; i < instructions.length ; i ++) {
-			instructions[i] = jsonAry.getString(i);
+		Response[] responses = new Response[jsonAry.length()];
+		for(int i = 0 ; i < responses.length ; i ++) {
+			responses[i] = scrape(
+					// Request is re-generated to eliminate force.
+					new Request(request.id, request.instruction, request.uri,
+							request.input, request.tags, request.cookies, false),
+					jsonAry.getString(i),
+					uri,
+					encodedPatternString,
+					notEncodedPatternString);
 		}
-		return new Response.Reference(request.id, uri, instructions);
+		
+		return new Response.Reference(request.id, uri, instruction, responses);
 	}
 	
 	private Response deserializeObject(Request request, String instruction, String uri,
@@ -241,7 +240,8 @@ public class Scraper implements Loggable {
 							if(array.optJSONObject(j) != null) {
 								extendsObjects.add(array.getJSONObject(j));
 							} else if(array.optJSONArray(j) != null) {
-								return new Response.Failed(request.id, uri, Instruction.EXTENDS +
+								return new Response.Failed(request.id, uri, instruction,
+										Instruction.EXTENDS +
 										" array elements must be strings or objects."); // premature return
 							} else {
 								extendsStrings.add(array.getString(j));
@@ -267,7 +267,8 @@ public class Scraper implements Loggable {
 							jsonObjects.add(new JSONObject(loadedJSONString));
 						} else {
 							// can't substitute uri to load EXTENDS reference, missing-variable out.
-							return new Response.MissingTags(request.id, uri, uriSubstitution.getMissingTags());
+							return new Response.MissingTags(request.id, uri, instruction,
+									uriSubstitution.getMissingTags());
 						}
 					}
 				} else if(key.equalsIgnoreCase(Instruction.THEN)) {
@@ -283,7 +284,8 @@ public class Scraper implements Loggable {
 
 						for(int j = 0 ; j < array.length() ; j ++) {
 							if(array.optJSONArray(j) != null) {
-								return new Response.Failed(request.id, uri, Instruction.THEN +
+								return new Response.Failed(request.id, uri, instruction,
+										Instruction.THEN +
 										" array elements must be strings or objects, but " + 
 										StringUtils.quote(array.getString(j)) + " is an array.");								
 							} else {
@@ -324,7 +326,7 @@ public class Scraper implements Loggable {
 					
 					// can't extend preexisting post data.
 					if(postData != null) {
-						return new Response.Failed(request.id, uri,
+						return new Response.Failed(request.id, uri, instruction,
 								"Post data was already defined, cannot overwrite " +
 								StringUtils.quote(postData.toString()) +
 								" with " + StringUtils.quote(obj.getString(key)));
@@ -338,12 +340,13 @@ public class Scraper implements Loggable {
 										notEncodedPatternString),
 								false); // precedence is given to the original object
 					} else if(obj.optJSONArray(key) != null) {
-						return new Response.Failed(request.id, uri, StringUtils.quote(key) +
+						return new Response.Failed(request.id, uri, instruction, StringUtils.quote(key) +
 								" must be a String with post data or an object with name-value-pairs.");
 						
 					} else {
 						if(posts.size() > 0) {
-							return new Response.Failed(request.id, uri, "Post data was already defined as a hash, cannot overwrite " +
+							return new Response.Failed(request.id, uri, instruction,
+									"Post data was already defined as a hash, cannot overwrite " +
 									" with string " + StringUtils.quote(obj.getString(key)));
 						}
 						postData = compiler.newTemplate(obj.getString(key), encodedPatternString, notEncodedPatternString);
@@ -385,7 +388,7 @@ public class Scraper implements Loggable {
 				} else {
 					// break out early
 					//return DeserializerResult.failure(StringUtils.quote(key) + " is not a valid key.");
-					return new Response.Failed(request.id, uri,
+					return new Response.Failed(request.id, uri, instruction,
 							StringUtils.quote(key) + " is not a valid key.");
 				}
 			}
@@ -395,7 +398,8 @@ public class Scraper implements Loggable {
 		children.copyInto(childrenAry);
 		if(url != null && pattern != null) {
 			// Can't define two actions.
-			return new Response.Failed(request.id, uri, "Cannot define both " + Find.FIND + " and " + Load.LOAD);
+			return new Response.Failed(request.id, uri, instruction, 
+					"Cannot define both " + Find.FIND + " and " + Load.LOAD);
 			//return DeserializerResult.failure("Cannot define both " + FIND + " and " + LOAD);
 		} else if(url != null) {
 			// We have a Load
@@ -409,13 +413,13 @@ public class Scraper implements Loggable {
 			name = name == null ? url : name;
 			final Load load;
 			if(posts.size() > 0) {
-				load = new Load(description, uri, name, url, childrenAry, method,
+				load = new Load(instruction, description, uri, name, url, childrenAry, method,
 						cookies, headers, posts);
 			} else {
-				load = new Load(description, uri, name, url, childrenAry, method,
+				load = new Load(instruction, description, uri, name, url, childrenAry, method,
 						cookies, headers, postData);
 			}
-			return load.execute(request.id, request.tags, request.cookies, browser, request.force);
+			return load.execute(this, request.id, request.tags, request.cookies, browser, request.force);
 		} else if(pattern != null) {
 			// We have a Find
 			
@@ -427,17 +431,17 @@ public class Scraper implements Loggable {
 			min     = match  == null ? min : match.intValue(); // if match was defined, use it.
 			max     = match  == null ? max : match.intValue();
 			if(RegexpUtils.isValidRange(min, max) == false) {
-				return new Response.Failed(request.id, uri, 
+				return new Response.Failed(request.id, uri, instruction,
 						"Range " + StringUtils.quote(min) + " to " +
 						StringUtils.quote(max) + " is not valid for " + Find.FIND);
 			}
 			
-			final Find find = new Find(description, uri, compiler, name, pattern,
+			final Find find = new Find(instruction, description, uri, compiler, name, pattern,
 					replace, min, max, isCaseInsensitive,
 					isMultiline, doesDotMatchNewline, childrenAry);
-			return find.execute(request.id, request.input, request.tags);
+			return find.execute(this, request.id, request.input, request.tags, request.cookies);
 		} else {
-			return new Response.Failed(request.id, uri, "Must define " + Find.FIND + " or " + Load.LOAD);
+			return new Response.Failed(request.id, uri, instruction, "Must define " + Find.FIND + " or " + Load.LOAD);
 		}
 	}
 	

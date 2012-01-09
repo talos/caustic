@@ -107,8 +107,8 @@ public class HttpBrowser implements Loggable {
 	 * none.
 	 * @param db A {@link Database} to persist cookies to.
 	 * @param scope A {@link Scope} specifying where in <code>db</code> to persist cookies.
-	 * @return A {@link InputStreamReader} to read response content, if it was a request that
-	 * should return content.
+	 * @return A {@link BrowserResponse} with cookies and content.  The content will be an empty
+	 * {@link String} from HEAD requests.
 	 * @throws InterruptedException If the user interrupted the request while it was being delayed
 	 * due to rate limiting, or while waiting for the host to respond.
 	 * @throws HttpRequestException If the request could not be completed.
@@ -163,7 +163,7 @@ public class HttpBrowser implements Loggable {
 				final String content;
 				// Only return the content stream for non-head requests.
 				if(method.equals(HEAD)) {
-					content = null;
+					content = "";
 				} else {
 					content = readResponseStream(url, response.getContentStream(), new Pattern[0]);
 				}
