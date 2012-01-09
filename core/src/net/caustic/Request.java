@@ -54,7 +54,8 @@ public class Request {
 		final String uri = obj.has(URI) ? obj.getString(URI) : StringUtils.USER_DIR;
 		final String instruction = obj.getString(INSTRUCTION);
 		final String input = obj.optString(INPUT);
-		final StringMap tags = HashtableStringMap.fromJSON(obj.optJSONObject(TAGS));
+		final StringMap tags = obj.has(TAGS) ?
+				HashtableStringMap.fromJSON(obj.getJSONObject(TAGS)) : HashtableStringMap.EMPTY;
 		
 		final Cookies cookies;
 		if(obj.has(COOKIES)) {

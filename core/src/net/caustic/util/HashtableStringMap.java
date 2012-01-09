@@ -8,6 +8,18 @@ import org.json.me.JSONObject;
 
 public abstract class HashtableStringMap implements StringMap {
 	
+	/**
+	 * An empty {@link StringMap}.  Since {@link StringMap} is immutable, this
+	 * is safe.
+	 */
+	public static final StringMap EMPTY = new RootStringMap(new Hashtable());
+	
+	/**
+	 * Turn a {@link JSONObject} of String-String mappings into a {@link StringMap}.
+	 * @param obj
+	 * @return
+	 * @throws JSONException
+	 */
 	public static StringMap fromJSON(JSONObject obj) throws JSONException {
 		final Hashtable table = new Hashtable();
 		Enumeration keys = obj.keys();

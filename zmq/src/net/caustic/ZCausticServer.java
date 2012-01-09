@@ -87,6 +87,9 @@ public class ZCausticServer {
 	            	sendOut("Invalid Request: " + StringUtils.quote(reqStr)
 	            			+ " because of " + StringUtils.quote(e.getMessage()));
 
+	            } catch(Throwable e) {
+	            	e.printStackTrace();
+	            	sendOut("Unhandled Exception: " + StringUtils.quote(e.getMessage()));
 	            }
 			}
 		}
