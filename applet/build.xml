@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- This ant script builds the microscraper applet into the expected location for a microscraper-server instance. -->
-<project default="sign_applet_jar" name="Export Applet into MicroScraper-Server">
+<!-- This ant script builds the openscrape applet. -->
+<project default="sign_applet_jar" name="Export Openscrape Applet">
 	<!--ANT 1.7 is required                                        -->
 	
-	<!-- Location of the microscraper-server directories.  TODO: move this to conf file? -->
-	<property name="microscraper.server.dir" value="../../microscraper-server" />
-	<property name="microscraper.server.applet.dir" value="${microscraper.server.dir}/public/applets" />
-	<property name="microscraper.server.applet.jar" value="${microscraper.server.applet.dir}/MicroScraperApplet.jar" />
-	<property name="microscraper.client.key.default_alias" value="microscraper" />
+	<!-- Location of the openscrape directories.  TODO: move this to conf file? -->
+	<property name="openscrape.dir" value="../../openscrape" />
+	<property name="openscrape.applet.dir" value="${openscrape.dir}/client/jar" />
+	<property name="openscrape.applet.jar" value="${openscrape.applet.dir}/openscrape.jar" />
+	<property name="openscrape.key.default_alias" value="openscrape" />
 	<tstamp>
-      <format property="microscraper.timestamp" pattern="MM/dd/yyyy hh:mm:ss" />
+      <format property="openscrape.timestamp" pattern="MM/dd/yyyy hh:mm:ss" />
     </tstamp>
 
 	<!-- Clear out destination -->
 	<target name="init">
-	  <delete file="${microscraper.server.applet.jar}"/>
+	  <delete file="${openscrape.applet.jar}"/>
 	 <!-- <delete dir="${microscraper.server.applet.dir}" />
 	  <mkdir dir="${microscraper.server.applet.dir}" /> -->
 	</target>
 	
 	<!-- Create the applet jar file in the proper location. -->
 	<target name="create_applet_jar" depends="init">
-	  <jar destfile="${microscraper.server.applet.jar}" filesetmanifest="mergewithoutmain">
+	  <jar destfile="${openscrape.applet.jar}" filesetmanifest="mergewithoutmain">
 	    <fileset excludes="META-INF/*" includes="**/*.class" dir="bin"/>
 	    <!--<fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/apache/build/classes"/>-->
-	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../base/build/classes"/>
-	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/regexp/bin"/>
-	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/json/bin"/>
+	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../core/build/classes"/>
+	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../default-impl/bin"/>
+	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/regexp-javautil/bin"/>
 	    <!--<zipfileset excludes="META-INF/*" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpcore-4.0.1.jar"/>
 	    <zipfileset excludes="META-INF/*" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpclient-4.0.2.jar"/>
 	    <zipfileset excludes="META-INF/*" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/commons-logging-1.1.1.jar"/>
@@ -34,13 +34,13 @@
 	    <manifest>
 	      <!-- <attribute name="Main-Class" value="net.microscraper.client.applet.MicroScraperApplet"/> -->
 	 	  <!-- <attribute name="Class-Path" value="." /> -->
-	    	<attribute name="timestamp" value="${microscraper.timestamp}" />
+	    	<attribute name="timestamp" value="${openscrape.timestamp}" />
 	    </manifest>
 	  </jar>
 	</target>
 	
     <target name="sign_applet_jar" depends="create_applet_jar">
-	    <input message="Please enter the key alias to sign the JAR. Default is ${microscraper.client.key.default_alias}." addproperty="jarsigner.alias" defaultvalue="${microscraper.client.key.default_alias}" >
+	    <input message="Please enter the key alias to sign the JAR. Default is ${openscrape.key.default_alias}." addproperty="jarsigner.alias" defaultvalue="${openscrape.key.default_alias}" >
 		
 	    </input>
 	    <input message="Please enter your keystore passphrase to sign the JAR.  This password WILL APPEAR ON THE SCREEN.  Sign the JAR manually if you do not want this to happen." addproperty="jarsigner.password">
@@ -48,7 +48,7 @@
 	  	  <!-- <handler type="secure" />-->
 	    </input>
       
-    	<signjar jar="${microscraper.server.applet.jar}" alias="${jarsigner.alias}" storepass="${jarsigner.password}">
+    	<signjar jar="${openscrape.applet.jar}" alias="${jarsigner.alias}" storepass="${jarsigner.password}">
     	
     	</signjar>
     </target>

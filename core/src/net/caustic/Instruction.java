@@ -2,6 +2,7 @@ package net.caustic;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.UUID;
 
 import org.json.me.JSONException;
 import org.json.me.JSONObject;
@@ -70,13 +71,17 @@ abstract class Instruction {
 	Hashtable runChildren(Scraper scraper, String id, String name, String[] inputs,
 			StringMap tags, Cookies cookies, boolean childForce) throws InterruptedException {
 		final Hashtable result = new Hashtable();
-
+		//final boolean isBranch = inputs.length > 1 ? true : false;
+		
 		for(int i = 0 ; i < inputs.length ; i++) {
 			String input = inputs[i];
 			if(!result.containsKey(input)) { // don't run children from repetitive key
 				Response[] responses = new Response[children.length];
 				for(int j = 0; j < children.length ; j ++) {
-					String childInstruction = children[j];
+					final String childInstruction = children[j];
+					
+					// TODO not using the UUID library?
+					//final String childId = isBranch? UUID.randomUUID().toString() : id;
 					responses[j] = scraper.scrape(
 							new Request(id, childInstruction, uri, input,
 									tags.extend(name, input),

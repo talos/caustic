@@ -2,10 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Microscraper Base"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Java Util Regexp"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Caustic JavaNet Browser"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Caustic JSON ME"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/MicroScraper Utility"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Caustic Default Implementation"/>
+	<classpathentry kind="src" path="/Caustic Core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -17,6 +17,13 @@ public abstract class Response {
 	public static final int MISSING_TAGS = 5;
 	public static final int FAILED = 6;
 	
+	private static final String DONE_LOAD_STRING = "loaded";
+	private static final String DONE_FIND_STRING = "found";
+	private static final String WAIT_STRING = "wait";
+	private static final String REFERENCE_STRING = "reference";
+	private static final String MISSING_TAGS_STRING = "missing";
+	private static final String FAILED_STRING = "failed";
+	
 	static JSONArray responseAryToJSON(Response[] responses) throws JSONException {
 		JSONArray ary = new JSONArray();
 		for(int i = 0 ; i < responses.length ; i ++) {
@@ -25,9 +32,29 @@ public abstract class Response {
 		return ary;
 	}
 
+	private static String statusToString(int status) {
+		switch(status) {
+		case DONE_LOAD:
+			return DONE_LOAD_STRING;
+		case DONE_FIND:
+			return DONE_FIND_STRING;
+		case WAIT:
+			return WAIT_STRING;
+		case REFERENCE:
+			return REFERENCE_STRING;
+		case MISSING_TAGS:
+			return MISSING_TAGS_STRING;
+		case FAILED:
+			return FAILED_STRING;
+		default:
+			throw new IllegalArgumentException("Status number " + status + " is invalid.");
+		}
+	}
+	
 	private static final String ID = "id";
 	private static final String URI = "uri";
 	private static final String INSTRUCTION = "instruction";
+	private static final String STATUS = "status";
 
 	private static final String NAME = "name";
 	private static final String DESCRIPTION = "description";
@@ -60,7 +87,8 @@ public abstract class Response {
 		return new JSONObject()
 			.put(ID, id)
 			.put(URI, uri)
-			.put(INSTRUCTION, instruction);
+			.put(INSTRUCTION, instruction)
+			.put(STATUS, statusToString(getStatus()));
 	}
 
 	private Response(String id, String uri, String instruction) {
@@ -176,8 +204,6 @@ public abstract class Response {
 	}
 	
 	public final static class Wait extends Response {
-		private static final String WAIT_KEY = "wait";
-
 		private final String name;
 		private final String description;
 		
@@ -193,8 +219,7 @@ public abstract class Response {
 		public String getDescription() { return description; }
 		
 		JSONObject toJSON() throws JSONException {
-			return super.toJSON().put(WAIT_KEY, Boolean.TRUE)
-								.put(NAME, name)
+			return super.toJSON().put(NAME, name)
 								.put(DESCRIPTION, description);
 		}
 		
