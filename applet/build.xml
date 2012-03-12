@@ -26,6 +26,7 @@
 	    <!--<fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/apache/build/classes"/>-->
 	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../core/build/classes"/>
 	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../default-impl/bin"/>
+	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/javanet/bin"/>
 	    <fileset excludes="META-INF/*" includes="**/*.class" dir="../implementation/regexp-javautil/bin"/>
 	    <!--<zipfileset excludes="META-INF/*" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpcore-4.0.1.jar"/>
 	    <zipfileset excludes="META-INF/*" src="../implementation/apache/lib/httpcomponents-client-4.0.2/lib/httpclient-4.0.2.jar"/>

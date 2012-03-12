@@ -24,17 +24,24 @@ public class ZCausticServer {
 	private static final ZMQ.Context ctx = ZMQ.context(1);
 	private static final int NUM_THREADS = 40;
     private static final String WORKER_URL = "inproc://workers";
-    private static final String CLIENT_URL = "ipc://caustic.ipc";
+    //private static final String CLIENT_URL = "ipc://caustic.ipc";
 	
     public static void main(String[] args) {
-    	new ZCausticServer();
+    	if(args.length != 1) {
+    		System.err.println("You must specify the URL of the IPC file as the first argument." +
+    				"For example:");
+    		System.err.println("");
+    		System.err.println("java -jar backend.jar ipc://backend.ipc");
+    	} else {
+    		new ZCausticServer(args[0]);
+    	}
     }
 	
 	private final Scraper scraper = new DefaultScraper();
 	private final Logger logger = new SystemErrLogger();
 	private final ExecutorService service = Executors.newFixedThreadPool(NUM_THREADS);
 	
-	public ZCausticServer() {
+	public ZCausticServer(String clientUrl) {
 		/*ZMQ.Socket test = ctx.socket(ZMQ.REP);
 		test.bind(CLIENT_URL);
 		while(true) {
@@ -47,7 +54,7 @@ public class ZCausticServer {
 		ZMQ.Socket clientSocket = ctx.socket(ZMQ.ROUTER);
 		ZMQ.Socket workerSocket = ctx.socket(ZMQ.DEALER);
 		
-		clientSocket.bind(CLIENT_URL);
+		clientSocket.bind(clientUrl);
 		workerSocket.bind(WORKER_URL);
 
 		scraper.register(logger);

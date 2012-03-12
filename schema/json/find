@@ -1,55 +1,55 @@
 {
     "extends" : [
-		{ "$ref" : "instruction" }
+        { "$ref" : "instruction" }
     ],
     "description" : "A microscraper find instruction.",
     "type" : "object",
     "properties" : {
-		"find" : {
-			"description" : "The regular expression this instruction will use to find result(s) from its source.  Mustache substitutions are performed on this.",
-			"type" : "string",
-			"required" : true
-		},
-		"case_insensitive" : {
-			"description" : "Whether this pattern is case-sensitive.",
-			"type" : "boolean",
-			"required" : "false",
-			"default" : false
-		},
-		"multiline" : {
-			"description" : "Whether ^ and $ should match at the start and end of each line.",
-			"type" : "boolean",
-			"required" : "false",
-			"default" : false
-		},
-		"dot_matches_all" : {
-			"description" : "Whether . should match all characters, including newlines.",
-			"type" : "boolean",
-			"required" : "false",
-			"default" : true
-		},
-		"replace" : {
-			"description" : "The replacement applied to each of the pattern's matches.  Backreferences from $0 to $9 can be used.  Mustache substitutions are applied.",
-			"type" : "string",
-			"default" : "$0",
-			"required" : false
-		},
-		"match" : {
-			"description" : "The index of a single find match to send to replace.  Exclusive of min and max.  0 is first and positive numbers count forwards; -1 is last and negative numbers count backwards.",
-			"type" : "integer",
-			"required" : false
-		},
-		"min" : {
-			"description" : "The index of the first find match to send to replace.  Exclusive of match.  0 is first and positive numbers count forwards; -1 is last and negative numbers count backwards.",
-			"type" : "integer",
-			"default" : 0,
-			"required" : false
-		},
-		"max" : {
-			"description" : "The index of the last match to send to replace.  Exclusive of min and max.  0 is first and positive numbers count forwards; -1 is last and negative numbers count backwards.",
-			"type" : "integer",
-			"default" : -1,
-			"required" : false
-		}
+        "find" : {
+            "description" : "The regular expression this instruction will use to find result(s) from its source.  Mustache substitutions are performed on this.",
+            "type" : "string",
+            "required" : true
+        },
+        "case_insensitive" : {
+            "description" : "Whether this pattern is case-sensitive.",
+            "type" : "boolean",
+            "required" : "false",
+            "default" : false
+        },
+        "multiline" : {
+            "description" : "Whether ^ and $ should match at the start and end of each line.",
+            "type" : "boolean",
+            "required" : "false",
+            "default" : false
+        },
+        "dot_matches_all" : {
+            "description" : "Whether . should match all characters, including newlines.",
+            "type" : "boolean",
+            "required" : "false",
+            "default" : true
+        },
+        "replace" : {
+            "description" : "The replacement applied to each of the pattern's matches.  Backreferences from $0 to $9 can be used.  Mustache substitutions are applied.",
+            "type" : "string",
+            "default" : "$0",
+            "required" : false
+        },
+        "match" : {
+            "description" : "The index of a single find match to send to replace.  Exclusive of min and max.  0 is first and positive numbers count forwards; -1 is last and negative numbers count backwards.",
+            "type" : "integer",
+            "required" : false
+        },
+        "min" : {
+            "description" : "The index of the first find match to send to replace.  Exclusive of match.  0 is first and positive numbers count forwards; -1 is last and negative numbers count backwards.",
+            "type" : "integer",
+            "default" : 0,
+            "required" : false
+        },
+        "max" : {
+            "description" : "The index of the last match to send to replace.  Exclusive of min and max.  0 is first and positive numbers count forwards; -1 is last and negative numbers count backwards.",
+            "type" : "integer",
+            "default" : -1,
+            "required" : false
+        }
     }
 }

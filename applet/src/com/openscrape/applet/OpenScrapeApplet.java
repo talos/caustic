@@ -11,9 +11,11 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 import org.json.me.JSONObject;
@@ -39,11 +41,8 @@ public class OpenScrapeApplet extends Applet {
 		manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF";
 	}
 	
-	private final Scraper scraper = new DefaultScraper();
-	
 	private class Scrape implements Callable<String> {
 		private final String request;
-		private Exception err;
 			
 		public Scrape(String request) {
 			this.request = request;
@@ -51,11 +50,10 @@ public class OpenScrapeApplet extends Applet {
 		
 		@Override
 		public String call() throws Exception {
-			String result = AccessController.doPrivileged(new ScrapeAction());
-			if(result == null) {
-				throw err;
-			} else {
-				return result;
+			try {
+				return AccessController.doPrivileged(new ScrapeAction());
+			} catch(Throwable e) {
+				throw new ExecutionException(e);
 			}
 		}
 		
@@ -64,13 +62,15 @@ public class OpenScrapeApplet extends Applet {
 				try {
 					return scraper.scrape(Request.fromJSON(request)).serialize();
 				} catch(Throwable e) {
-					err = new Exception(e);
+					e.printStackTrace();
+					errors.add(e);
 					return null;
 				}
 			}
 		}
 	}
 	
+	private final Scraper scraper = new DefaultScraper();
 	private ExecutorService svc;
 	private Future<String> inProgress;
 	
@@ -102,20 +102,20 @@ public class OpenScrapeApplet extends Applet {
 	 */
 	public String getAttributes() {
 		try {
-			Set<Entry<Object, Object>> entries =
-					new Manifest(new URL(manifestPath).openStream())
-						.getMainAttributes().entrySet();
-			
+			Attributes attrs = new Manifest(new URL(manifestPath).openStream())
+						.getMainAttributes();
+									
 			JSONObject obj = new JSONObject();
-			for(Entry<Object, Object> entry : entries) {
-				obj.put((String) entry.getKey(), (String) entry.getValue());
+			for(Object key : attrs.keySet()) {
+				Attributes.Name name = (Attributes.Name) key; 
+				obj.put(name.toString(), (String) attrs.getValue(name));
 			}
 			
 			return obj.toString();
 		} catch (Throwable e) {
+			e.printStackTrace();
 			errors.add(e);
 			return null;
-			//return "Error obtaining " + key + " from manifest: " + e.toString();
 		}
 	}
 	
@@ -128,12 +128,13 @@ public class OpenScrapeApplet extends Applet {
 	public boolean request(String jsonRequest) {
 		try {
 			if(isAvailable()) {
-				svc.submit(new Scrape(jsonRequest));
+				inProgress = svc.submit(new Scrape(jsonRequest));
 				return true;
 			} else {
 				return false;
 			}
 		} catch(Throwable e) {
+			e.printStackTrace();
 			errors.add(e);
 			return false;
 		}
@@ -146,8 +147,15 @@ public class OpenScrapeApplet extends Applet {
 	 */
 	public boolean cancel() {
 		try {
-			return inProgress == null ? false : inProgress.cancel(true);
+			if(isAvailable()) {
+				return false;
+			} else {
+				inProgress.cancel(true);
+				inProgress = null;
+				return true;
+			}
 		} catch(Throwable e) {
+			e.printStackTrace();
 			errors.add(e);
 			return false;
 		}
@@ -163,26 +171,32 @@ public class OpenScrapeApplet extends Applet {
 		try {
 			if(inProgress != null) {
 				if(inProgress.isDone() == true) {
-					return inProgress.get();
+					String result = inProgress.get();
+					inProgress = null;
+					return result;
 				}
 			}
 			return null;
 		} catch(Throwable e) {
+			e.printStackTrace();
 			errors.add(e);
 			return null;
 		}
 	}
 	
 	/**
-	 * Is the applet able to take another request?
+	 * Is the applet able to take another request?  This is only true if it is not currently processing any requests,
+	 * and if it is not holding the results of the last request.  Use {@link #poll()} to get the response from
+	 * the last request.
 	 * @return <code>true</code> if the applet is free to take another request, <code>false</code> if it is not.
 	 * Will also return <code>false</code> if something went wrong checking, in which case you may wish to check
 	 * {@link #pollError()}.
 	 */
 	public boolean isAvailable() {
 		try {
-			return inProgress == null ? true : inProgress.isDone();
+			return inProgress == null;
 		} catch(Throwable e) {
+			e.printStackTrace();
 			errors.add(e);
 			return false;
 		}
@@ -197,13 +211,19 @@ public class OpenScrapeApplet extends Applet {
 		try {
 			// Extract the stack trace using StringWriter
 			StringWriter strWriter = new StringWriter();
-			errors.poll().printStackTrace(new PrintWriter(strWriter));
-			
-			return new StringBuffer(errors.poll().toString())
-							.append("; trace: ")
-							.append(strWriter.getBuffer()).toString();
+			Throwable err = errors.poll();
+			if(err != null) {
+				err.printStackTrace(new PrintWriter(strWriter));
+				
+				return new StringBuffer(err.toString())
+								.append("; trace: ")
+								.append(strWriter.getBuffer()).toString();
+			} else {
+				return null;
+			}
 		} catch(Throwable e) {
-			return "Error in pollError: " + e.getMessage();
+			e.printStackTrace();
+			return "Error in pollError: " + e.toString();
 		}
 	}
 }

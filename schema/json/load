@@ -3,31 +3,31 @@
     "description" : "A microscraper load instruction.",
     "type" : "object",
     "properties" : {
-	"load" : {
-	    "description" : "The URL this instruction will load its result from.  Mustache substitutions are performed on this.",
-	    "type" : "string",
-	    "required" : true
-	},
-	"method" : {
-	    "description" : "The HTTP method that should be used by this load.",
-	    "type" : "string",
-	    "enum" : ["head", "get", "post"],
-	    "required" : false
-	},
-	"posts"   : {
-	    "description" : "Post data for this load.  Can either be name-value pairs or a string.  Mustache substitutions are performed either way.",
-	    "type" : ["object", "string"],
-	    "required" : false
-	},
-	"headers" : {
-	    "description" : "A set of name-value pairs that will be used as extra headers for this particular load.  Mustache substitutions are performed on both the name and value.",
-	    "type" : "object",
-	    "required" : false
-	},
-	"cookies": {
-	    "description" : "A set of name-value pairs that will be used as extra cookies for this particular load.  Mustache substitutions are performed on both the name and value.",
-	    "type" : "object",
-	    "required" : false
-	}
+    "load" : {
+        "description" : "The URL this instruction will load its result from.  Mustache substitutions are performed on this.",
+        "type" : "string",
+        "required" : true
+    },
+    "method" : {
+        "description" : "The HTTP method that should be used by this load.",
+        "type" : "string",
+        "enum" : ["head", "get", "post"],
+        "required" : false
+    },
+    "posts"   : {
+        "description" : "Post data for this load.  Can either be name-value pairs or a string.  Mustache substitutions are performed either way.",
+        "type" : ["object", "string"],
+        "required" : false
+    },
+    "headers" : {
+        "description" : "A set of name-value pairs that will be used as extra headers for this particular load.  Mustache substitutions are performed on both the name and value.",
+        "type" : "object",
+        "required" : false
+    },
+    "cookies": {
+        "description" : "A set of name-value pairs that will be used as extra cookies for this particular load.  Mustache substitutions are performed on both the name and value.",
+        "type" : "object",
+        "required" : false
     }
+}
 }
