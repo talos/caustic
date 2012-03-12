@@ -1,9 +1,7 @@
 package net.caustic.uri;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -46,6 +44,7 @@ public class JavaNetURILoader implements URILoader {
 				return fileLoader.load(uri.getSchemeSpecificPart());
 			} else {
 				URLConnection conn = new URL(uriStr).openConnection();
+				conn.addRequestProperty("request", "application/json");
 				InputStreamReader stream = new InputStreamReader(conn.getInputStream());
 				StringBuffer content = new StringBuffer();
 				char[] buf = new char[512];

@@ -8,7 +8,8 @@ package net.caustic.uri;
 public interface URILoader {
 
 	/**
-	 * Load the {@link String} contents from a file at a local or remote URI.
+	 * Load the {@link String} contents from a file at a local or remote URI.  HTTP requests
+	 * will include the header <code>accept: application/json</code>.
 	 * @param uriStr The {@link String} of the URI to load from.
 	 * @return A {@link String} with the contents of the file at
 	 * the <code>uriStr</code>.

@@ -2,7 +2,6 @@ package net.caustic;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.UUID;
 
 import org.json.me.JSONException;
 import org.json.me.JSONObject;
