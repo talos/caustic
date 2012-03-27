@@ -2,8 +2,6 @@ package net.caustic.uri;
 
 import java.io.IOException;
 
-import net.caustic.http.HttpException;
-
 /**
  * This {@link Exception} is thrown when {@link URILoader} cannot load
  * its URI.
@@ -26,16 +24,16 @@ public class URILoaderException extends Exception {
 	 * not be loaded.
 	 * @param e An {@link IOException}.
 	 */
-	public static URILoaderException fromLocal(IOException e) {
-		return new URILoaderException(e.getMessage());
+	public static URILoaderException fromLocal(IOException e, String message) {
+		return new URILoaderException("Could not load local URI: " + e.getMessage() + ", " + message);
 	}
 	
 	/**
 	 * Construct a {@link URILoaderException} for when a remote file could
 	 * not be loaded.
-	 * @param e An {@link HttpException}.
+	 * @param e An {@link IOException}.
 	 */
-	public static URILoaderException fromRemote(HttpException e) {
-		return new URILoaderException(e.getMessage());
+	public static URILoaderException fromRemote(IOException e, String message) {
+		return new URILoaderException("Could not load remote URI: " + e.getMessage() + ", " + message);
 	}
 }
