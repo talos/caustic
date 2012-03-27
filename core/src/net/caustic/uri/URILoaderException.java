@@ -24,8 +24,8 @@ public class URILoaderException extends Exception {
 	 * not be loaded.
 	 * @param e An {@link IOException}.
 	 */
-	public static URILoaderException fromLocal(IOException e, String message) {
-		return new URILoaderException("Could not load local URI: " + e.getMessage() + ", " + message);
+	public static URILoaderException fromLocal(IOException e, String path, String reason) {
+		return new URILoaderException("Could not load local path " + path + ": " + reason + " (" + e.getMessage() + ")");
 	}
 	
 	/**
@@ -33,7 +33,7 @@ public class URILoaderException extends Exception {
 	 * not be loaded.
 	 * @param e An {@link IOException}.
 	 */
-	public static URILoaderException fromRemote(IOException e, String message) {
-		return new URILoaderException("Could not load remote URI: " + e.getMessage() + ", " + message);
+	public static URILoaderException fromRemote(IOException e, String url, String reason) {
+		return new URILoaderException("Could not load remote URL " + url + ": " + reason + " (" + e.getMessage() + ")");
 	}
 }

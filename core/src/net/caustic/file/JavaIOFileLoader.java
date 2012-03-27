@@ -1,6 +1,7 @@
 package net.caustic.file;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -13,7 +14,7 @@ import java.io.IOException;
  */
 public class JavaIOFileLoader implements FileLoader {
 
-	public String load(String path) throws IOException {
+	public String load(String path) throws FileNotFoundException, IOException {
 		File file = new File(path);
 		FileReader fileReader = new FileReader(file);
 		char[] buffer = new char[(int) file.length()];  

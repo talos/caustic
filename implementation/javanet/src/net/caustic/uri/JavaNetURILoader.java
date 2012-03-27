@@ -1,5 +1,6 @@
 package net.caustic.uri;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
@@ -30,8 +31,10 @@ public class JavaNetURILoader implements URILoader {
 		String path = uri.getSchemeSpecificPart();
 		try {
 			return fileLoader.load(path);
+		} catch(FileNotFoundException e) {
+			throw URILoaderException.fromLocal(e, path, "could not find file");			
 		} catch(IOException e) {
-			throw URILoaderException.fromLocal(e, path + " could not be loaded locally.");
+			throw URILoaderException.fromLocal(e, path, "IO exception");
 		}
 	}
 	
@@ -51,14 +54,14 @@ public class JavaNetURILoader implements URILoader {
 				
 				return content.toString();
 			} catch(IOException e) {
-				throw URILoaderException.fromRemote(e, url + " could not be loaded: " + conn.getHeaderField(0) + ".");
+				throw URILoaderException.fromRemote(e, url, conn.getHeaderField(0));
 			}
 		} catch(SocketTimeoutException e) {
-			throw URILoaderException.fromRemote(e, url + " timed out.");
+			throw URILoaderException.fromRemote(e, url, "timeout");
 		} catch(MalformedURLException e) {
-			throw URILoaderException.fromRemote(e, url + " was malformed.");
+			throw URILoaderException.fromRemote(e, url, "malformed URL");
 		} catch(IOException e) {
-			throw URILoaderException.fromRemote(e, url + " could not be loaded.");
+			throw URILoaderException.fromRemote(e, url, "could not open connection");
 		}
 	}
 
