@@ -85,7 +85,7 @@ public class ZCausticServer {
 		            	sendOut(scraper.scrape(request).serialize());
 		            } catch(InterruptedException e) {
 		            	//socket.send(new Response.Failed(request.id, request.uri, e.getMessage()).serialize().getBytes(), 0);
-		            	sendOut(new Response.Failed(request.id, request.uri, reqStr, e.getMessage()).serialize());
+		            	sendOut(new Response.Failed(request.id, request.uri, request.instructionJSON, e.getMessage()).serialize());
 		            }
 	            } catch(JSONException e) {
 	            	e.printStackTrace();

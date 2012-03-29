@@ -8,6 +8,7 @@ import net.caustic.http.Cookies;
 import net.caustic.http.HashtableCookies;
 import net.caustic.http.HttpBrowser;
 import net.caustic.http.HttpException;
+import net.caustic.json.JSONValue;
 import net.caustic.regexp.StringTemplate;
 import net.caustic.template.DependsOnTemplate;
 import net.caustic.template.HashtableSubstitution;
@@ -87,10 +88,10 @@ public final class Load extends Instruction {
 	 */
 	private final StringTemplate name;
 	
-	public Load(String instruction, String description, String uri, StringTemplate name,
-			StringTemplate url, String[] children, String method,
+	public Load(JSONValue instructionJSON, String description, String uri, StringTemplate name,
+			StringTemplate url, JSONValue[] children, String method,
 			HashtableTemplate cookies, HashtableTemplate headers, StringTemplate postData) {
-		super(instruction, description, uri, children);
+		super(instructionJSON, description, uri, children);
 		this.url = url;
 		this.name = name;
 		this.method = method;
@@ -99,10 +100,10 @@ public final class Load extends Instruction {
 		this.postData = postData;
 	}
 	
-	public Load(String instruction, String description, String uri, StringTemplate name, 
-			StringTemplate url, String[] children, String method,
+	public Load(JSONValue instructionJSON, String description, String uri, StringTemplate name, 
+			StringTemplate url, JSONValue[] children, String method,
 			HashtableTemplate cookies, HashtableTemplate headers, HashtableTemplate postTable) {
-		super(instruction, description, uri, children);
+		super(instructionJSON, description, uri, children);
 		this.name = name;
 		this.url = url;
 		this.method = method;
@@ -123,12 +124,12 @@ public final class Load extends Instruction {
 		// use premature returns before http try { } block.
 		StringSubstitution nameSub = name.sub(tags);
 		if(nameSub.isMissingTags()) {
-			return new Response.MissingTags(id, getUri(), getInstruction(), nameSub.getMissingTags());
+			return new Response.MissingTags(id, getUri(), getInstructionJSON(), nameSub.getMissingTags());
 		} 
 		
 		String nameStr = nameSub.getSubstituted();
 		if(force == false) {
-			return new Response.Wait(id, getUri(), getInstruction(), nameStr, getDescription()); // don't run a load unless it's forced.
+			return new Response.Wait(id, getUri(), getInstructionJSON(), nameStr, getDescription()); // don't run a load unless it's forced.
 		}
 		
 		try {
@@ -146,7 +147,7 @@ public final class Load extends Instruction {
 				String[] missingTags = StringSubstitution.combine(new DependsOnTemplate[] {
 						urlSub, headersSub, cookiesSub});
 				
-				response = new Response.MissingTags(id, getUri(), getInstruction(), missingTags);
+				response = new Response.MissingTags(id, getUri(), getInstructionJSON(), missingTags);
 			
 			} else {
 				
@@ -155,14 +156,14 @@ public final class Load extends Instruction {
 				if(postData != null) {
 					StringSubstitution sub = postData.sub(tags);
 					if(sub.isMissingTags()) {
-						return new Response.MissingTags(id, getUri(), getInstruction(), sub.getMissingTags()); // break out early
+						return new Response.MissingTags(id, getUri(), getInstructionJSON(), sub.getMissingTags()); // break out early
 					} else {
 						postStr = sub.getSubstituted();
 					}
 				} else if(postTable != null) {
 					HashtableSubstitution sub = postTable.sub(tags);
 					if(sub.isMissingTags()) {
-						return new Response.MissingTags(id, getUri(), getInstruction(), sub.getMissingTags()); // break out early
+						return new Response.MissingTags(id, getUri(), getInstructionJSON(), sub.getMissingTags()); // break out early
 					} else {
 						postStr = HashtableUtils.toFormEncoded(sub.getSubstituted());
 					}
@@ -192,7 +193,7 @@ public final class Load extends Instruction {
 				BrowserResponse bResp = browser.request(url, method, headers, templateCookies, postStr);
 				
 				templateCookies.extend(bResp.cookies);
-				response = new Response.DoneLoad(id, getUri(), getInstruction(), nameStr, getDescription(),
+				response = new Response.DoneLoad(id, getUri(), getInstructionJSON(), nameStr, getDescription(),
 						runChildren(scraper, id, nameStr,
 								new String[] { bResp.content }, tags, templateCookies, false),
 						bResp.cookies);
@@ -200,10 +201,10 @@ public final class Load extends Instruction {
 			return response;
 		} catch(HashtableSubstitutionOverwriteException e) {
 			// Failed because of ambiguous mapping
-			return new Response.Failed(id, getUri(), getInstruction(), "Instruction template substitution caused ambiguous mapping: "
+			return new Response.Failed(id, getUri(), getInstructionJSON(), "Instruction template substitution caused ambiguous mapping: "
 					+ e.getMessage());
 		} catch (HttpException e) {
-			return new Response.Failed(id, getUri(), getInstruction(), "Failure during HTTP request or response: " + e.getMessage());
+			return new Response.Failed(id, getUri(), getInstructionJSON(), "Failure during HTTP request or response: " + e.getMessage());
 		}
 	}
 }

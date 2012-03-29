@@ -12,6 +12,7 @@ import net.caustic.uri.UriResolver;
 import net.caustic.util.StringUtils;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;

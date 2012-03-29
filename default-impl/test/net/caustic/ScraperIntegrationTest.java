@@ -16,6 +16,7 @@ import net.caustic.Response.MissingTags;
 import net.caustic.Scraper;
 import net.caustic.http.Cookies;
 import net.caustic.http.HashtableCookies;
+import net.caustic.json.JSONValue;
 import net.caustic.log.Logger;
 import net.caustic.log.SystemErrLogger;
 import net.caustic.util.HashtableStringMap;
@@ -146,7 +147,7 @@ public class ScraperIntegrationTest {
 			Response.Wait wait = (Response.Wait) referenced;
 			
 			DoneLoad loadResp = (DoneLoad) scraper.scrape(
-					new Request("id", wait.getInstruction(), wait.getUri(), null, tags,
+					new Request("id", wait.getInstructionJSON(), wait.getUri(), null, tags,
 							cookies, true));
 			
 			Hashtable<String, Response[]> children = loadResp.getChildren();

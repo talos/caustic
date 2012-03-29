@@ -1,6 +1,7 @@
 package net.caustic;
 
 import net.caustic.http.Cookies;
+import net.caustic.json.JSONValue;
 import net.caustic.regexp.Pattern;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.regexp.StringTemplate;
@@ -125,13 +126,13 @@ public final class Find extends Instruction {
 	 */
 	private final int maxMatch;// = Pattern.LAST_MATCH;
 	
-	public Find(String instruction, String description, String uri,
+	public Find(JSONValue instructionJSON, String description, String uri,
 			RegexpCompiler compiler, StringTemplate name,
 			StringTemplate pattern, StringTemplate replacement,
 			int minMatch, int maxMatch,
 			boolean isCaseSensitive, boolean isMultiline, boolean doesDotMatchNewline,
-			String[] children) {
-		super(instruction, description, uri, children);
+			JSONValue[] children) {
+		super(instructionJSON, description, uri, children);
 		//this.hasName = hasName;
 		this.name = name;
 		this.compiler = compiler;
@@ -175,7 +176,7 @@ public final class Find extends Instruction {
 				subReplacement.isMissingTags()) { // One of the substitutions was not OK.
 			final String[] missingTags = StringSubstitution.combine(
 					new DependsOnTemplate[] { subName, subPattern, subReplacement });
-			result = new Response.MissingTags(id, getUri(), getInstruction(), missingTags);
+			result = new Response.MissingTags(id, getUri(), getInstructionJSON(), missingTags);
 		} else {
 			
 			// All the substitutions were OK.
@@ -188,12 +189,12 @@ public final class Find extends Instruction {
 			String[] matches = pattern.match(input, replacement, minMatch, maxMatch);
 			
 			if(matches.length == 0) { // No matches, fail out.
-				result = new Response.Failed(id, getUri(), getInstruction(), "Match " + StringUtils.quote(pattern) +
+				result = new Response.Failed(id, getUri(), getInstructionJSON(), "Match " + StringUtils.quote(pattern) +
 						" did not have a match between " + 
 						StringUtils.quote(minMatch) + " and " + 
 						StringUtils.quote(maxMatch) + " against " + StringUtils.quote(input));
 			} else {
-				result = new Response.DoneFind(id, getUri(), getInstruction(), resultName, getDescription(),
+				result = new Response.DoneFind(id, getUri(), getInstructionJSON(), resultName, getDescription(),
 						runChildren(scraper, id, resultName, matches, tags, cookies, false));
 			}
 		}

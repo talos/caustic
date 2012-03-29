@@ -14,6 +14,7 @@ import net.caustic.Response.DoneLoad;
 import net.caustic.Scraper;
 import net.caustic.http.BrowserResponse;
 import net.caustic.http.HttpBrowser;
+import net.caustic.json.JSONValue;
 import net.caustic.regexp.JavaUtilRegexpCompiler;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.template.HashtableTemplate;
@@ -22,6 +23,7 @@ import net.caustic.util.JavaNetEncoder;
 import net.caustic.util.StringMap;
 
 
+import org.json.me.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,16 +36,18 @@ public class LoadTest {
 	@Capturing private Cookies cookies, responseCookies;
 	@Mocked private HttpBrowser browser;
 	private RegexpCompiler compiler;
+	private JSONValue instructionJSON;
 	
 	@Before
 	public void setUp() throws Exception {
 		compiler  = new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8));
+		instructionJSON = JSONValue.deserialize(new JSONObject().put("load", "http://www.google.com/").toString(), false);
 	}
 	
 	@Test
 	public void testLoadRequiresForce() throws Exception {
-		Load load = new Load("instruction", "description", "uri", compiler.newTemplate("name"),
-				compiler.newTemplate("url"), new String[] {}, "get",
+		Load load = new Load(instructionJSON, "description", "uri", compiler.newTemplate("name"),
+				compiler.newTemplate("url"), new JSONValue[] {}, "get",
 				empty, empty, empty);
 		Response response = load.execute(scraper, "id", tags, cookies, browser, false);
 		assertEquals(Response.WAIT, response.getStatus());
@@ -52,14 +56,14 @@ public class LoadTest {
 	@Test
 	public void testHeadCausesHeadWithZeroLengthResponse() throws Exception {
 		
-		Load load = new Load("description", "uri", compiler.newTemplate("url"), new String[] {}, "head",
+		Load load = new Load("description", "uri", compiler.newTemplate("url"), new JSONValue[] {}, "head",
 				new HashtableTemplate(), new HashtableTemplate(), new HashtableTemplate());
 		new Expectations() {{
 			browser.request("url", "head", (Hashtable) any, (String[]) any, null);
 				result = new BrowserResponse(null, null);
 		}};
 		
-		Response response = load.execute(scraper, "id", tags, new String[] {}, browser, true);
+		Response response = load.execute(scraper, "id", tags, new JSONValue[] {}, browser, true);
 		assertFalse(response.wait);
 		
 		assertNotNull(response.content);
@@ -73,8 +77,8 @@ public class LoadTest {
 				result = new BrowserResponse("everything is purple", responseCookies);
 		}};
 		
-		Load load = new Load("instruction", "description", "uri", compiler.newTemplate("name"),
-				compiler.newTemplate("swag"), new String[] {},
+		Load load = new Load(instructionJSON, "description", "uri", compiler.newTemplate("name"),
+				compiler.newTemplate("swag"), new JSONValue[] {},
 				"get", empty, empty, empty);
 		Response response = load.execute(scraper, "id", tags, cookies, browser, true);
 		
@@ -90,8 +94,8 @@ public class LoadTest {
 			browser.request("red", "get", (Hashtable) any, (Cookies) any, anyString);
 				result = new BrowserResponse("and violets are blue", responseCookies);
 		}};
-		Load load = new Load("instruction", "description", "uri", compiler.newTemplate("name"),
-				compiler.newTemplate("{{roses}}"), new String[] {},
+		Load load = new Load(instructionJSON, "description", "uri", compiler.newTemplate("name"),
+				compiler.newTemplate("{{roses}}"), new JSONValue[] {},
 				"get", empty, empty, empty);
 		
 		DoneLoad response = (Response.DoneLoad) load.execute(scraper, "id", tags, cookies, browser, true);
@@ -107,8 +111,8 @@ public class LoadTest {
 				result = new BrowserResponse("and violets are blue", responseCookies);
 		}};
 		
-		Load load = new Load("instruction", "description", "uri", compiler.newTemplate("name"),
-				compiler.newTemplate("{{roses}}"), new String[] {},
+		Load load = new Load(instructionJSON, "description", "uri", compiler.newTemplate("name"),
+				compiler.newTemplate("{{roses}}"), new JSONValue[] {},
 				"get", empty, empty, empty);
 		DoneLoad response = (DoneLoad) load.execute(scraper, "id", tags, cookies, browser, true);
 		assertEquals("and violets are blue", response.getChildren().keySet().toArray()[0]);
@@ -122,8 +126,8 @@ public class LoadTest {
 				result = new BrowserResponse("and violets are blue", responseCookies);
 		}};
 		
-		Load load = new Load("instruction", "description", "uri", compiler.newTemplate("name"),
-				compiler.newTemplate("url"), new String[] {},
+		Load load = new Load(instructionJSON, "description", "uri", compiler.newTemplate("name"),
+				compiler.newTemplate("url"), new JSONValue[] {},
 				"post", empty, empty, empty);
 		DoneLoad response = (DoneLoad) load.execute(scraper, "id", tags, cookies, browser, true);
 		assertEquals("and violets are blue", response.getChildren().keySet().toArray()[0]);
@@ -133,12 +137,12 @@ public class LoadTest {
 	public void testPostDataSetsPostMethod() throws Exception {
 		new Expectations() {{
 			browser.request("url", "post", (Hashtable) any, (String[]) any, "");
-				result = new BrowserResponse("and violets are blue", new String[] {});
+				result = new BrowserResponse("and violets are blue", new JSONValue[] {});
 		}};
 		
-		Load load = new Load("instruction", "description", "uri", compiler.newTemplate("url"), new String[] {},
+		Load load = new Load(instructionJSON, "description", "uri", compiler.newTemplate("url"), new JSONValue[] {},
 				"get", empty, empty, empty);
-		Response response = load.execute(scraper, "id", tags, new String[] {}, browser, true);
+		Response response = load.execute(scraper, "id", tags, new JSONValue[] {}, browser, true);
 		assertEquals(response.content, "and violets are blue");
 	}*/
 	
@@ -150,8 +154,8 @@ public class LoadTest {
 				result = new BrowserResponse("and violets are blue", responseCookies);
 		}};
 		
-		Load load = new Load("instruction", "description", "uri", compiler.newTemplate("name"),
-				compiler.newTemplate("url"), new String[] {},
+		Load load = new Load(instructionJSON, "description", "uri", compiler.newTemplate("name"),
+				compiler.newTemplate("url"), new JSONValue[] {},
 				"post", empty, empty, compiler.newTemplate("{{post}}"));
 		DoneLoad response = (DoneLoad) load.execute(scraper, "id", tags, cookies, browser, true);
 		assertEquals("and violets are blue", response.getChildren().keySet().toArray()[0]);

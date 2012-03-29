@@ -7,6 +7,7 @@ import org.json.me.JSONObject;
 
 import net.caustic.http.Cookies;
 import net.caustic.http.HashtableCookies;
+import net.caustic.json.JSONValue;
 import net.caustic.util.HashtableStringMap;
 import net.caustic.util.StringMap;
 import net.caustic.util.StringUtils;
@@ -21,38 +22,40 @@ public class Request {
 	public static final String FORCE = "force";
 	
 	public final String id;
-	public final String instruction;
+	public final JSONValue instructionJSON;
 	public final String uri;
 	public final String input;
 	public final StringMap tags;
 	public final Cookies cookies;
 	public final boolean force;
 	
-	public Request(String id, String instruction, String uri, String input, StringMap tags,
-			Cookies optCookies, boolean force) {
+	public Request(String id, String instructionJSON, String uri, String input, StringMap tags,
+			Cookies optCookies, boolean force) throws JSONException {
 		this.id = id;
 		this.uri = uri;
-		this.instruction = instruction;
+		this.instructionJSON = JSONValue.deserialize(instructionJSON, true);
 		this.input = input;
 		this.tags = tags;
 		this.cookies = optCookies;
 		this.force = force;
 	}
-	/*
-	public String serialize() throws JSONException {
-		JSONObject serialized = new JSONObject();
-		serialized.put(ID, id);
-		serialized.put(URI, uri);
-		serialized.put(INSTRUCTION, instruction);
-		serialized.putOpt(key, value)
-		serialized.putOpt(INPUT, input);
+	
+	public Request(String id, JSONValue instructionJSON, String uri, String input, StringMap tags,
+			Cookies optCookies, boolean force) {
+		this.id = id;
+		this.uri = uri;
+		this.instructionJSON = instructionJSON;
+		this.input = input;
+		this.tags = tags;
+		this.cookies = optCookies;
+		this.force = force;
 	}
-	*/
+
 	public static Request fromJSON(String json) throws JSONException {
 		final JSONObject obj = new JSONObject(json);
 		final String id = obj.getString(ID);
 		final String uri = obj.has(URI) ? obj.getString(URI) : StringUtils.USER_DIR;
-		final String instruction = obj.getString(INSTRUCTION);
+		final JSONValue instructionJSON = JSONValue.deserialize(obj.getString(INSTRUCTION), true);
 		final String input = obj.optString(INPUT);
 		final StringMap tags = obj.has(TAGS) ?
 				HashtableStringMap.fromJSON(obj.getJSONObject(TAGS)) : HashtableStringMap.EMPTY;
@@ -65,13 +68,13 @@ public class Request {
 		}
 		
 		boolean force = obj.optBoolean(FORCE);
-		return new Request(id, instruction, uri, input, tags, cookies, force);
+		return new Request(id, instructionJSON, uri, input, tags, cookies, force);
 	}
 	
 	public String toString() {
 		Hashtable map = new Hashtable();
 		map.put(ID, id);
-		map.put(INSTRUCTION, instruction);
+		map.put(INSTRUCTION, instructionJSON.value);
 		map.put(URI, uri);
 		map.put(FORCE, Boolean.valueOf(force));
 		map.put(TAGS, tags.toString());

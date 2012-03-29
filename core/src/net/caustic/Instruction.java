@@ -3,10 +3,12 @@ package net.caustic;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import org.json.me.JSONArray;
 import org.json.me.JSONException;
 import org.json.me.JSONObject;
 
 import net.caustic.http.Cookies;
+import net.caustic.json.JSONValue;
 import net.caustic.util.StringMap;
 
 /**
@@ -35,13 +37,13 @@ abstract class Instruction {
 	
 	private final String description;
 	private final String uri;
-	private final String instruction;
-	private final String[] children;
+	private final JSONValue instructionJSON;
+	private final JSONValue[] children;
 	
-	public Instruction(String instruction, String description, String uri, String[] children) {
+	public Instruction(JSONValue instructionJSON, String description, String uri, JSONValue[] children) {
 		this.description = description;
 		this.uri = uri;
-		this.instruction = instruction;
+		this.instructionJSON = instructionJSON;
 		this.children = children;
 	}
 	
@@ -51,8 +53,8 @@ abstract class Instruction {
 	String getUri() {
 		return uri;
 	}
-	String getInstruction() {
-		return instruction;
+	JSONValue getInstructionJSON() {
+		return instructionJSON;
 	}
 	/**
 	 * 
@@ -77,12 +79,10 @@ abstract class Instruction {
 			if(!result.containsKey(input)) { // don't run children from repetitive key
 				Response[] responses = new Response[children.length];
 				for(int j = 0; j < children.length ; j ++) {
-					final String childInstruction = children[j];
+					final JSONValue childInstructionJSON = children[j];
 					
-					// TODO not using the UUID library?
-					//final String childId = isBranch? UUID.randomUUID().toString() : id;
 					responses[j] = scraper.scrape(
-							new Request(id, childInstruction, uri, input,
+							new Request(id, childInstructionJSON, uri, input,
 									tags.extend(name, input),
 									cookies, childForce));
 				}

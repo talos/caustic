@@ -3,6 +3,7 @@ package net.caustic;
 import java.util.Hashtable;
 
 import net.caustic.http.Cookies;
+import net.caustic.json.JSONValue;
 
 import org.json.me.JSONArray;
 import org.json.me.JSONException;
@@ -61,7 +62,7 @@ public abstract class Response {
 	
 	private final String id;
 	private final String uri;
-	private final String instruction;
+	private final JSONValue instructionJSON;
 
 	public final String serialize() {
 		try {
@@ -87,19 +88,19 @@ public abstract class Response {
 		return new JSONObject()
 			.put(ID, id)
 			.put(URI, uri)
-			.put(INSTRUCTION, instruction)
+			.put(INSTRUCTION, instructionJSON.value)
 			.put(STATUS, statusToString(getStatus()));
 	}
 
-	private Response(String id, String uri, String instruction) {
+	private Response(String id, String uri, JSONValue instructionJSON) {
 		this.id = id;
 		this.uri = uri; // URI used to resolve children.
-		this.instruction = instruction;
+		this.instructionJSON = instructionJSON;
 	}
 	
 	public String getId() { return id; }
 	public String getUri() { return uri; }
-	public String getInstruction() { return instruction; }
+	public JSONValue getInstructionJSON() { return instructionJSON; }
 	
 	/*
 	public static Response deserialize(String serializedResponse) throws JSONException {
@@ -128,8 +129,8 @@ public abstract class Response {
 		private final Hashtable children;
 		private final String description;
 		
-		Ready(String id, String uri, String instruction, String name, String description, Hashtable children) {
-			super(id, uri, instruction);
+		Ready(String id, String uri, JSONValue instructionJSON, String name, String description, Hashtable children) {
+			super(id, uri, instructionJSON);
 			this.name = name;
 			this.description = description == null ? "" : description;
 			this.children = children;
@@ -172,9 +173,9 @@ public abstract class Response {
 			return DONE_FIND;
 		}
 		
-		DoneFind(String id, String uri, String instruction, String name,
+		DoneFind(String id, String uri, JSONValue instructionJSON, String name,
 				String description, Hashtable children) {
-			super(id, uri, instruction, name, description, children);
+			super(id, uri, instructionJSON, name, description, children);
 		}
 	}
 	
@@ -183,9 +184,9 @@ public abstract class Response {
 		private static final String COOKIES = "cookies";
 		private final Cookies cookies;
 
-		DoneLoad(String id, String uri, String instruction,
+		DoneLoad(String id, String uri, JSONValue instructionJSON,
 				String name, String description, Hashtable children, Cookies cookies) {
-			super(id, uri, instruction, name,  description, children);
+			super(id, uri, instructionJSON, name,  description, children);
 			this.cookies = cookies;
 		}
 
@@ -207,8 +208,8 @@ public abstract class Response {
 		private final String name;
 		private final String description;
 		
-		Wait(String id, String uri, String instruction, String name, String description) {
-			super(id, uri, instruction);
+		Wait(String id, String uri, JSONValue instructionJSON, String name, String description) {
+			super(id, uri, instructionJSON);
 			this.name = name;
 			this.description = description;
 		}
@@ -229,8 +230,8 @@ public abstract class Response {
 		private static final String REFERENCED = "referenced";
 		private final Response[] referenced;
 		
-		Reference(String id, String uri, String instruction, Response[] referenced) {
-			super(id, uri, instruction);
+		Reference(String id, String uri, JSONValue instructionJSON, Response[] referenced) {
+			super(id, uri, instructionJSON);
 			this.referenced = referenced;
 		}
 		
@@ -260,8 +261,8 @@ public abstract class Response {
 			return missingTags;
 		}
 		
-		MissingTags(String id, String uri, String instruction, String[] missingTags) {
-			super(id, uri, instruction);
+		MissingTags(String id, String uri, JSONValue instructionJSON, String[] missingTags) {
+			super(id, uri, instructionJSON);
 			this.missingTags = missingTags;
 		}
 		
@@ -274,7 +275,7 @@ public abstract class Response {
 		}
 	}
 	
-	public final static class Failed extends Response {
+	public static class Failed extends Response {
 		private static final String FAILED_KEY = "failed";
 		private final String failedBecause;
 		public int getStatus() { return FAILED; }
@@ -283,8 +284,8 @@ public abstract class Response {
 			return failedBecause;
 		}
 		
-		Failed(String id, String uri, String instruction, String failedBecause) {
-			super(id, uri, instruction);
+		Failed(String id, String uri, JSONValue instructionJSON, String failedBecause) {
+			super(id, uri, instructionJSON);
 			this.failedBecause = failedBecause;
 		}
 
@@ -293,6 +294,11 @@ public abstract class Response {
 		}
 	}
 
+	public final static class BadJSON extends Failed {
+		BadJSON(String id, String uri, JSONValue instructionJSON, JSONException e) {
+			super(id, uri, instructionJSON, e.getMessage());
+		}
+	}
 	/*
 	private static String[] aryFromJSONArray(JSONArray jsonArray) throws JSONException {
 		String[] ary = new String[jsonArray.length()];

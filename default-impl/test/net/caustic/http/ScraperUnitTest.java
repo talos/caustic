@@ -146,8 +146,8 @@ public class ScraperUnitTest {
 		
 		DoneFind doneFind = (DoneFind) referenced[0];
 		Response.Wait wait = (Response.Wait) referenced[1]; 
-		
-		assertEquals(loadGoogle.toString(), wait.getInstruction());
+
+		assertEquals(loadGoogle.toString(), wait.getInstructionJSON().value.toString());
 		assertEquals("http://www.google.com/", wait.getName());
 		
 		Hashtable<String, Response[]> findChildren = doneFind.getChildren();
@@ -287,6 +287,9 @@ public class ScraperUnitTest {
 		
 		Response[] responses = children.get("alpha beta gaga");
 		assertEquals(2, responses.length);
+		
+		System.out.println(responses[0].getInstructionJSON());
+		System.out.println(responses[1].getInstructionJSON());
 		
 		assertEquals(Response.WAIT, responses[0].getStatus());
 		assertEquals(Response.DONE_FIND, responses[1].getStatus());

@@ -11,12 +11,14 @@ import net.caustic.Response;
 import net.caustic.Response.DoneFind;
 import net.caustic.Response.MissingTags;
 import net.caustic.http.Cookies;
+import net.caustic.json.JSONValue;
 import net.caustic.regexp.JavaUtilRegexpCompiler;
 import net.caustic.regexp.RegexpCompiler;
 import net.caustic.util.Encoder;
 import net.caustic.util.JavaNetEncoder;
 import net.caustic.util.StringMap;
 
+import org.json.me.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,26 +27,28 @@ public class FindTest  {
 	@NonStrict StringMap tags;
 	@NonStrict Scraper scraper;
 	@NonStrict Cookies cookies;
+	JSONValue instructionJSON;
 	
 	@Before
 	public void setUp() throws Exception {
 		compiler = new JavaUtilRegexpCompiler(new JavaNetEncoder(Encoder.UTF_8));
+		instructionJSON = JSONValue.deserialize(new JSONObject().put("find", "foo").toString(), false);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testFindWithoutSourceThrowsIllegalArgument() throws Exception {
-		Find find = new Find("instruction", "description", "uri", compiler, compiler.newTemplate("name"),
+		Find find = new Find(instructionJSON, "description", "uri", compiler, compiler.newTemplate("name"),
 				compiler.newTemplate("pattern"), compiler.newTemplate("$0"), 0, -1, false, false, false,
-				new String[] {});
+				new JSONValue[] {});
 		
 		find.execute(scraper, "id", null, tags, cookies);
 	}
 	
 	@Test
 	public void testMissingVariablesToCompileTemplatePassedUp() throws Exception {
-		Find find = new Find("instruction", "description", "uri", compiler, compiler.newTemplate("{{foo}}"),
+		Find find = new Find(instructionJSON, "description", "uri", compiler, compiler.newTemplate("{{foo}}"),
 				compiler.newTemplate("{{bar}} {{baz}}"),
-				compiler.newTemplate("$0"), 0, -1, false, false, false, new String[] {});
+				compiler.newTemplate("$0"), 0, -1, false, false, false, new JSONValue[] {});
 		
 		Response response = find.execute(scraper, "id", "input string", tags, cookies);
 		
@@ -57,9 +61,9 @@ public class FindTest  {
 	
 	@Test
 	public void testNoMatchesIsFailure() throws Exception {
-		Find find = new Find("instruction", "description", "uri", compiler, compiler.newTemplate("name"),
+		Find find = new Find(instructionJSON, "description", "uri", compiler, compiler.newTemplate("name"),
 				compiler.newTemplate("humanity"),
-				compiler.newTemplate("$0"), 0, -1, false, false, false, new String[] {});
+				compiler.newTemplate("$0"), 0, -1, false, false, false, new JSONValue[] {});
 		
 		Response response = find.execute(scraper, "id", "late capitalism", tags, cookies);
 		
@@ -69,9 +73,9 @@ public class FindTest  {
 
 	@Test
 	public void testOneMatch() throws Exception {
-		Find find = new Find("instruction", "description", "uri", compiler, compiler.newTemplate("name"),
+		Find find = new Find(instructionJSON, "description", "uri", compiler, compiler.newTemplate("name"),
 				compiler.newTemplate("needle"),
-				compiler.newTemplate("$0"), 0, -1, false, false, false, new String[] {});
+				compiler.newTemplate("$0"), 0, -1, false, false, false, new JSONValue[] {});
 		
 		DoneFind response = (DoneFind) find.execute(scraper, "id", "haystack haystack haystack needle haystack haystack", tags, cookies);
 		
@@ -80,9 +84,9 @@ public class FindTest  {
 	
 	@Test
 	public void testManyMatches() throws Exception {
-		Find find = new Find("instruction", "description", "uri", compiler, compiler.newTemplate("name"),
+		Find find = new Find(instructionJSON, "description", "uri", compiler, compiler.newTemplate("name"),
 				compiler.newTemplate("\\w+"),
-				compiler.newTemplate("$0"), 0, -1, false, false, false, new String[] {});
+				compiler.newTemplate("$0"), 0, -1, false, false, false, new JSONValue[] {});
 		
 		DoneFind response = (DoneFind) find.execute(scraper, "id", "roses red, violets blue", tags, cookies);
 		
@@ -92,9 +96,9 @@ public class FindTest  {
 	
 	@Test
 	public void testOneMatchFirst() throws Exception {
-		Find find = new Find("instruction", "description", "uri", compiler, compiler.newTemplate("name"),
+		Find find = new Find(instructionJSON, "description", "uri", compiler, compiler.newTemplate("name"),
 				compiler.newTemplate("\\w+"),
-				compiler.newTemplate("$0"), 0, 0, false, false, false, new String[] {});
+				compiler.newTemplate("$0"), 0, 0, false, false, false, new JSONValue[] {});
 		
 		DoneFind response = (DoneFind) find.execute(scraper, "id", "the one and only", tags, cookies);
 		
@@ -103,9 +107,9 @@ public class FindTest  {
 	
 	@Test
 	public void testOneMatchLast() throws Exception {
-		Find find = new Find("instruction", "description", "uri", compiler, compiler.newTemplate("name"),
+		Find find = new Find(instructionJSON, "description", "uri", compiler, compiler.newTemplate("name"),
 				compiler.newTemplate("\\w+"),
-				compiler.newTemplate("$0"), -1, -1, false, false, false, new String[] {});
+				compiler.newTemplate("$0"), -1, -1, false, false, false, new JSONValue[] {});
 		
 		DoneFind response = (DoneFind) find.execute(scraper, "id", "the one and only", tags, cookies);
 		
@@ -114,9 +118,9 @@ public class FindTest  {
 	
 	@Test
 	public void testOneMatchMiddle() throws Exception {
-		Find find = new Find("instruction", "description", "uri", compiler, compiler.newTemplate("name"),
+		Find find = new Find(instructionJSON, "description", "uri", compiler, compiler.newTemplate("name"),
 				compiler.newTemplate("\\w+"),
-				compiler.newTemplate("$0"), 1, 1, false, false, false, new String[] {});
+				compiler.newTemplate("$0"), 1, 1, false, false, false, new JSONValue[] {});
 		
 		DoneFind response = (DoneFind) find.execute(scraper, "id", "the one and only", tags, cookies);
 		
@@ -125,9 +129,9 @@ public class FindTest  {
 
 	@Test
 	public void testOneMatchCountBackwards() throws Exception {
-		Find find = new Find("instruction", "description", "uri", compiler, compiler.newTemplate("name"),
+		Find find = new Find(instructionJSON, "description", "uri", compiler, compiler.newTemplate("name"),
 				compiler.newTemplate("\\w+"),
-				compiler.newTemplate("$0"), -2, -2, false, false, false, new String[] {});
+				compiler.newTemplate("$0"), -2, -2, false, false, false, new JSONValue[] {});
 		
 		DoneFind response = (DoneFind) find.execute(scraper, "id", "the one and only", tags, cookies);
 		
@@ -136,9 +140,9 @@ public class FindTest  {
 
 	@Test
 	public void testManyMatchCountForwards() throws Exception {
-		Find find = new Find("instruction", "description", "uri", compiler, compiler.newTemplate("name"),
+		Find find = new Find(instructionJSON, "description", "uri", compiler, compiler.newTemplate("name"),
 				compiler.newTemplate("\\w+"),
-				compiler.newTemplate("$0"), 1, 2, false, false, false, new String[] {});
+				compiler.newTemplate("$0"), 1, 2, false, false, false, new JSONValue[] {});
 		
 		DoneFind response = (DoneFind) find.execute(scraper, "id", "the one and only", tags, cookies);
 		
@@ -147,9 +151,9 @@ public class FindTest  {
 	
 	@Test
 	public void testManyMatchCountBackwards() throws Exception {
-		Find find = new Find("instruction", "description", "uri", compiler, compiler.newTemplate("name"),
+		Find find = new Find(instructionJSON, "description", "uri", compiler, compiler.newTemplate("name"),
 				compiler.newTemplate("\\w+"),
-				compiler.newTemplate("$0"), -3, -2, false, false, false, new String[] {});
+				compiler.newTemplate("$0"), -3, -2, false, false, false, new JSONValue[] {});
 		
 		DoneFind response = (DoneFind) find.execute(scraper, "id", "the one and only", tags, cookies);
 		
@@ -159,9 +163,9 @@ public class FindTest  {
 
 	@Test
 	public void testManyMatchCountMixed() throws Exception {
-		Find find = new Find("instruction", "description", "uri", compiler, compiler.newTemplate("name"),
+		Find find = new Find(instructionJSON, "description", "uri", compiler, compiler.newTemplate("name"),
 				compiler.newTemplate("\\w+"),
-				compiler.newTemplate("$0"), -3, 2, false, false, false, new String[] {});
+				compiler.newTemplate("$0"), -3, 2, false, false, false, new JSONValue[] {});
 		
 		DoneFind response = (DoneFind) find.execute(scraper, "id", "the one and only", tags, cookies);
 		

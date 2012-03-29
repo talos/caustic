@@ -5,7 +5,7 @@ import net.caustic.http.HttpBrowserUnitTest;
 import net.caustic.http.LoadTest;
 import net.caustic.http.RateLimitManagerTest;
 import net.caustic.http.ResponseHeadersTest;
-import net.caustic.json.JsonObjectTest;
+import net.caustic.json.JSONValueTest;
 import net.caustic.regexp.PatternTest;
 import net.caustic.regexp.StringTemplateTest;
 import net.caustic.template.HashtableTemplateTest;
@@ -31,7 +31,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	ResponseHeadersTest.class,
 	FindTest.class,
 	LoadTest.class,
-	JsonObjectTest.class,
+	JSONValueTest.class,
 	PatternTest.class,
 	HashtableTemplateTest.class,
 	StringTemplateTest.class,
