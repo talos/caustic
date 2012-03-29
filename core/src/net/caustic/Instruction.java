@@ -2,6 +2,7 @@ package net.caustic;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.UUID;
 
 import org.json.me.JSONArray;
 import org.json.me.JSONException;
@@ -59,7 +60,6 @@ abstract class Instruction {
 	/**
 	 * 
 	 * @param scraper
-	 * @param id
 	 * @param name The {@link String} name of the Instruction whose children are being run.
 	 * @param inputs An array of {@link String}s to use when running children.  Provides keys for them.
 	 * @param tags The {@link StringMap} that was just used to execute the Instruction.
@@ -69,7 +69,7 @@ abstract class Instruction {
 	 * The array is of 0-length if there were no children.  Repeat inputs don't launch children.
 	 * @throws InterruptedException
 	 */
-	Hashtable runChildren(Scraper scraper, String id, String name, String[] inputs,
+	Hashtable runChildren(Scraper scraper, String name, String[] inputs,
 			StringMap tags, Cookies cookies, boolean childForce) throws InterruptedException {
 		final Hashtable result = new Hashtable();
 		//final boolean isBranch = inputs.length > 1 ? true : false;
@@ -82,7 +82,7 @@ abstract class Instruction {
 					final JSONValue childInstructionJSON = children[j];
 					
 					responses[j] = scraper.scrape(
-							new Request(id, childInstructionJSON, uri, input,
+							new Request(UUID.randomUUID().toString(), childInstructionJSON, uri, input,
 									tags.extend(name, input),
 									cookies, childForce));
 				}

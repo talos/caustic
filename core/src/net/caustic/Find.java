@@ -195,7 +195,7 @@ public final class Find extends Instruction {
 						StringUtils.quote(maxMatch) + " against " + StringUtils.quote(input));
 			} else {
 				result = new Response.DoneFind(id, getUri(), getInstructionJSON(), resultName, getDescription(),
-						runChildren(scraper, id, resultName, matches, tags, cookies, false));
+						runChildren(scraper, resultName, matches, tags, cookies, false));
 			}
 		}
 		return result;

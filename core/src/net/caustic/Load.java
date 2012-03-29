@@ -194,7 +194,7 @@ public final class Load extends Instruction {
 				
 				templateCookies.extend(bResp.cookies);
 				response = new Response.DoneLoad(id, getUri(), getInstructionJSON(), nameStr, getDescription(),
-						runChildren(scraper, id, nameStr,
+						runChildren(scraper, nameStr,
 								new String[] { bResp.content }, tags, templateCookies, false),
 						bResp.cookies);
 			}
