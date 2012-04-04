@@ -12,6 +12,7 @@ import mockit.Expectations;
 import mockit.NonStrict;
 import net.caustic.Response.DoneFind;
 import net.caustic.Response.DoneLoad;
+import net.caustic.Response.Failed;
 import net.caustic.Response.MissingTags;
 import net.caustic.Scraper;
 import net.caustic.http.Cookies;
@@ -40,13 +41,25 @@ public class ScraperIntegrationTest {
 	private static final String URI = StringUtils.USER_DIR;
 	
 	private static final String demosDir = "../demos/";
-	private Scraper scraper;
+	private Scraper scraper, secureScraper;
 	private Logger logger = new SystemErrLogger();
 	
 	@Before
 	public void setUp() throws Exception {
-		scraper = new DefaultScraper();
+		scraper = new DefaultScraper(true);
+		secureScraper = new DefaultScraper(false);
 		cookies = new HashtableCookies();
+	}
+	
+	@Test
+	public void testNoLocal() throws Exception {
+		Response resp = secureScraper.scrape(
+				new Request("id", demosDir + "simple-google.json", URI, null,
+						HashtableStringMap.fromJSON(new JSONObject()), cookies, true));
+		
+		assertEquals(Response.FAILED, resp.getStatus());
+		Failed failed = (Failed) resp;
+		assertEquals("Scheme 'null' is not supported.", failed.getReason());
 	}
 	
 	@Test
@@ -153,7 +166,6 @@ public class ScraperIntegrationTest {
 			Hashtable<String, Response[]> children = loadResp.getChildren();
 			for(Map.Entry<String, Response[]> entry : children.entrySet()) {
 				for(Response childResp : entry.getValue()) {
-					System.out.println(childResp.toJSON().toString(2));
 					assertEquals(Response.DONE_FIND, childResp.getStatus());
 					DoneFind doneFind = (DoneFind) childResp;
 					values.addAll(doneFind.getChildren().keySet());

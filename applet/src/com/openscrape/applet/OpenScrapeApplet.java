@@ -68,7 +68,7 @@ public class OpenScrapeApplet extends Applet {
 		}
 	}
 	
-	private final Scraper scraper = new DefaultScraper();
+	private final Scraper scraper = new DefaultScraper(false);
 	private ExecutorService svc;
 	private Future<String> inProgress;
 	

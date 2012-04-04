@@ -40,10 +40,10 @@ public class ScraperUnitTest {
 	
 	@Before
 	public void setUp() {
-		scraper = new DefaultScraper();
+		scraper = new DefaultScraper(true);
 		scraper.register(new SystemErrLogger());
 	}
-	
+		
 	@Test
 	public void testDeserializeSimpleLoadFromJsonSucceeds() throws Exception {
 		new Expectations() {{
@@ -55,7 +55,6 @@ public class ScraperUnitTest {
 		
 		DoneLoad response = (DoneLoad) scraper.scrape(new Request("id",
 				load.toString(), uri, null, tags, cookies, true));
-		
 		
 		assertEquals("bar", response.getChildren().keySet().toArray()[0]);
 		assertEquals(respCookies, response.getCookies());

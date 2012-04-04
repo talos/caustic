@@ -108,8 +108,6 @@ public class Scraper implements Loggable {
 			return new Response.Failed(request.id, uri, instructionJSON, e.getMessage());
 		} catch(URILoaderException e) {
 			return new Response.Failed(request.id, uri, instructionJSON, e.getMessage());
-		} catch (RemoteToLocalSchemeResolutionException e) {
-			return new Response.Failed(request.id, uri, instructionJSON, e.getMessage());
 		}
 	}
 	

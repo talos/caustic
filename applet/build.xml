@@ -5,7 +5,7 @@
 	
 	<!-- Location of the openscrape directories.  TODO: move this to conf file? -->
 	<property name="openscrape.dir" value="../../openscrape" />
-	<property name="openscrape.applet.dir" value="${openscrape.dir}/client/jar" />
+	<property name="openscrape.applet.dir" value="${openscrape.dir}/client/static/jar" />
 	<property name="openscrape.applet.jar" value="${openscrape.applet.dir}/openscrape.jar" />
 	<property name="openscrape.key.default_alias" value="openscrape" />
 	<tstamp>

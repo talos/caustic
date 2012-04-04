@@ -15,11 +15,18 @@ import net.caustic.uri.JavaNetUriResolver;
  */
 public class DefaultScraper extends Scraper {
 	
-	public DefaultScraper() {
+	/**
+	 * 
+	 * @param loadLocal Whether to allow the loading of local files as instructions at all.
+	 * <code>True</code> to load locals, <code>false</code> otherwise.  It is <i>highly</i>
+	 * recommended to use <code>false</code> if the compiled code is being run by
+	 * other users/accessed on a network.
+	 */
+	public DefaultScraper(boolean loadLocal) {
 		super(
 				new DefaultRegexpCompiler(),
 				new JavaNetUriResolver(),
-				new DefaultURILoader(),
+				new DefaultURILoader(loadLocal),
 				new DefaultHttpBrowser());
 	}
 }

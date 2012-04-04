@@ -84,7 +84,7 @@ public class HttpBrowserIntegrationTest {
 	// If this doesn't throw HttpRequestException, it's possible that your ISP throws up
 	// some kind of pseudopage when DNS fails.
 	//@Test(expected=HttpRequestException.class)
-	@Test
+	/*@Test
 	public void testGetFakeValidFormatURL() throws Exception {
 		try {
 			browser.request("http://www.thisisnotarealdomainbutwillcauselag1928428.com/", "get", HashtableUtils.EMPTY,
@@ -93,7 +93,7 @@ public class HttpBrowserIntegrationTest {
 		} catch(HttpRequestException e) {
 			// this is what should happen.
 		}
-	}
+	}*/
 	
 	@Test
 	public void testAddCookiesForACRIS() throws Exception {

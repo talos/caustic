@@ -37,7 +37,7 @@ public class ZCausticServer {
     	}
     }
 	
-	private final Scraper scraper = new DefaultScraper();
+	private final Scraper scraper = new DefaultScraper(false);
 	private final Logger logger = new SystemErrLogger();
 	private final ExecutorService service = Executors.newFixedThreadPool(NUM_THREADS);
 	

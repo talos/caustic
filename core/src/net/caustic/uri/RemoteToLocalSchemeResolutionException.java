@@ -7,7 +7,7 @@ package net.caustic.uri;
  * @author realest
  *
  */
-public class RemoteToLocalSchemeResolutionException extends Exception {
+public class RemoteToLocalSchemeResolutionException extends URILoaderException {
 	
 	/**
 	 * 

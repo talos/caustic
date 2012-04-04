@@ -21,6 +21,7 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class UriResolverTest {
 	private final Class<UriResolver> klass;
+	private static final String fileSep = System.getProperty("path.separator");
 	private static final String USER_DIR = StringUtils.USER_DIR;
 	private static final String filePathWithFragment = "file:/path/to/file#fragment";
 	private static final String pathWithoutFragment = "path/to/file";
@@ -48,7 +49,9 @@ public class UriResolverTest {
 	@Test
 	public void testWindowsFragments() throws Exception {
 		//assertEquals("Does not resolve Windows filepath.", "C:\\path\\to\\file", resolver.resolve("C:", "path\\to\\file"));
-		assertEquals("Does not resolve Unix fragment against Windows filepath", "file:/C:/path/", resolver.resolve("C:\\path\\to\\file", "../"));
+		if(fileSep.equals("\\")) {
+			assertEquals("Does not resolve Unix fragment against Windows filepath", "file:/C:/path/", resolver.resolve("C:\\path\\to\\file", "../"));
+		}
 	}
 	
 	@Test(expected = RemoteToLocalSchemeResolutionException.class)
@@ -58,7 +61,6 @@ public class UriResolverTest {
 
 	@Test(expected = MalformedUriException.class)
 	public void testFailsOnWindowsURIs() throws Exception {
-		System.out.println(resolver.resolve("http://www.site.com/", "C:\\path\\to\\file"));
 		resolver.resolve("http://www.site.com/", "C:\\path\\to\\file");
 	}
 	

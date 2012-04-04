@@ -26,52 +26,69 @@ import net.caustic.uri.UriResolver;
 public class JavaNetURILoader implements URILoader {
 	
 	private final FileLoader fileLoader;
+	private final boolean allowsFileLoading;
 	
 	private String loadLocal(URI uri) throws URILoaderException {
-		String path = uri.getSchemeSpecificPart();
-		try {
-			return fileLoader.load(path);
-		} catch(FileNotFoundException e) {
-			throw URILoaderException.fromLocal(e, path, "could not find file");			
-		} catch(IOException e) {
-			throw URILoaderException.fromLocal(e, path, "IO exception");
+		if(allowsFileLoading) {
+			String path = uri.getSchemeSpecificPart();
+			try {
+				return fileLoader.load(path);
+			} catch(FileNotFoundException e) {
+				throw URILoaderException.fromLocal(e, path, "could not find file");			
+			} catch(IOException e) {
+				throw URILoaderException.fromLocal(e, path, "IO exception");
+			}
+		} else {
+			throw new UnsupportedSchemeException(uri.getScheme());
 		}
 	}
 	
-	private String loadRemote(String url) throws URILoaderException {
+	private String loadRemote(String urlStr) throws URILoaderException {
 		try {
-			URLConnection conn = new URL(url).openConnection();
-			conn.addRequestProperty("Accept", "application/json,text/javascript");
-			conn.connect();			
+			URL url = new URL(urlStr);
 			try {
-				InputStreamReader stream = new InputStreamReader(conn.getInputStream());
-				StringBuffer content = new StringBuffer();
-				char[] buf = new char[512];
-				int len;
-				while((len = stream.read(buf)) != -1) {
-					content.append(buf, 0, len);
+				URLConnection conn = url.openConnection();
+				conn.addRequestProperty("Accept", "application/json,text/javascript");
+				conn.connect();			
+				try {
+					InputStreamReader stream = new InputStreamReader(conn.getInputStream());
+					StringBuffer content = new StringBuffer();
+					char[] buf = new char[512];
+					int len;
+					while((len = stream.read(buf)) != -1) {
+						content.append(buf, 0, len);
+					}
+					
+					return content.toString();
+				} catch(IOException e) {
+					throw URILoaderException.fromRemote(e, urlStr, conn.getHeaderField(0));
 				}
-				
-				return content.toString();
+			} catch(SocketTimeoutException e) {
+				throw URILoaderException.fromRemote(e, urlStr, "timeout");
 			} catch(IOException e) {
-				throw URILoaderException.fromRemote(e, url, conn.getHeaderField(0));
+				throw URILoaderException.fromRemote(e, urlStr, "could not open connection");
 			}
-		} catch(SocketTimeoutException e) {
-			throw URILoaderException.fromRemote(e, url, "timeout");
 		} catch(MalformedURLException e) {
-			throw URILoaderException.fromRemote(e, url, "malformed URL");
-		} catch(IOException e) {
-			throw URILoaderException.fromRemote(e, url, "could not open connection");
+			throw URILoaderException.fromRemote(e, urlStr, "malformed URL");
 		}
 	}
 
 	/**
-	 * Create a {@link JavaNetURILoader} using a specific browser.
-	 * @param browser The {@link HttpBrowser} to load remote URIs with.
+	 * Create a {@link JavaNetURILoader} that can load local files.
 	 * @param fileLoader The {@link FileLoader} to load local URIs with.
 	 */
 	public JavaNetURILoader(FileLoader fileLoader) {
 		this.fileLoader = fileLoader;
+		this.allowsFileLoading = true;
+	}
+	
+	/**
+	 * Create a {@link JavaNetURILoader} that cannot read local files.  If asked to,
+	 * it will throws a {@link UnsupportedSchemeException}.
+	 */
+	public JavaNetURILoader() {
+		this.fileLoader = null;
+		this.allowsFileLoading = false;
 	}
 	
 	public String load(String uriStr) throws URILoaderException, InterruptedException {
