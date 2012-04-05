@@ -2,7 +2,6 @@ package net.caustic.http;
 
 import static org.junit.Assert.*;
 
-import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,9 +12,7 @@ import net.caustic.http.HttpRequestException;
 import net.caustic.http.HttpRequester;
 import net.caustic.http.JavaNetHttpRequester;
 import net.caustic.http.RateLimitManager;
-import net.caustic.util.Encoder;
 import net.caustic.util.HashtableUtils;
-import net.caustic.util.JavaNetEncoder;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -62,8 +59,8 @@ public class HttpBrowserIntegrationTest {
 	public void testGetGoogle() throws Exception {
 		BrowserResponse resp = browser.request("http://www.google.com", "get", HashtableUtils.EMPTY,
 				cookies, null);
-		
-		assertTrue("Google should have the word google in response body.", resp.content.contains("google"));
+
+		assertTrue("Google should have the word google in response body: " + resp.content, resp.content.contains("google"));
 		assertTrue("Should have received at least one cookie.", resp.cookies.getHosts().length > 0);
 	}
 	
@@ -94,7 +91,7 @@ public class HttpBrowserIntegrationTest {
 			// this is what should happen.
 		}
 	}*/
-	
+		
 	@Test
 	public void testAddCookiesForACRIS() throws Exception {
 		new Expectations() {{

@@ -1,5 +1,6 @@
 package net.caustic;
 
+import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -103,7 +104,13 @@ public class ZCausticServer {
 		
 		private void sendOut(String msg) {
 			logger.i("Sending out from worker " + id);
-			socket.send(msg.getBytes(), 0);
+			try {
+				socket.send(msg.getBytes("UTF-8"), 0);
+			} catch(UnsupportedEncodingException e) {
+				logger.i("UTF-8 not supported");
+				logger.e(e);
+				socket.send(msg.getBytes(), 0);
+			}
 		}
     }
 }

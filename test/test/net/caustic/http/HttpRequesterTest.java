@@ -5,6 +5,7 @@ import static net.caustic.util.TestUtils.*;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -56,24 +57,35 @@ public class HttpRequesterTest {
 	
 	@Test(expected = HttpRequestException.class)
 	public void testBadURLThrowsHttpRequestException() throws Exception {
-		HttpResponse response = requester.head(randomString(), new Hashtable());
+		requester.head(randomString(), new Hashtable<String, String>());
 	}
 	
 	@Test(expected = HttpRequestException.class)
 	public void testTimeoutThrowsHttpRequestException() throws Exception {
 		requester.setTimeout(10);
-		requester.get("http://www.nytimes.com", new Hashtable());
+		requester.get("http://www.nytimes.com", new Hashtable<String, String>());
 	}
 	
 	@Test
 	public void testHeadGoogleHeaders() throws Exception {
-		 requester.head("http://www.google.com", new Hashtable() {});
+		 requester.head("http://www.google.com", new Hashtable<String, String>());
+	}
+	
+	@Test
+	public void testGetGoogleCharset() throws Exception {
+		HttpResponse resp = requester.get("http://www.google.com", new Hashtable<String, String>());
+		InputStreamReader stream = resp.getContentStream();
+		ResponseHeaders headers = resp.getResponseHeaders();
+		String encoding = Charset.forName(stream.getEncoding()).toString();
+		String contentType = headers.getHeaderValues("Content-Type")[0];
+		assertTrue("Encoding " + encoding + " not in Content-Type header " + contentType,
+				contentType.contains(encoding));
 		
 	}
 	
 	@Test
 	public void testGetGoogleContent() throws Exception {
-		HttpResponse response = requester.get("http://www.google.com", new Hashtable());
+		HttpResponse response = requester.get("http://www.google.com", new Hashtable<String, String>());
 		assertTrue(response.isSuccess());
 		InputStreamReader contentStream = response.getContentStream();
 		assertTrue(getString(contentStream).contains("google"));
@@ -81,7 +93,7 @@ public class HttpRequesterTest {
 	
 	@Test
 	public void testGetGoogleContentQueryWithoutHeadersFails() throws Exception {
-		HttpResponse response = requester.get("http://www.google.com/search?q=bleh", new Hashtable());
+		HttpResponse response = requester.get("http://www.google.com/search?q=bleh", new Hashtable<String, String>());
 		assertFalse(response.isSuccess());
 	}
 
@@ -101,7 +113,7 @@ public class HttpRequesterTest {
 	
 	@Test
 	public void testPopulatesHeaders() throws Exception {
-		HttpResponse response = requester.get("http://www.google.com", new Hashtable() {});
+		HttpResponse response = requester.get("http://www.google.com", new Hashtable<String, String>());
 		assertTrue(response.isSuccess());
 		ResponseHeaders responseHeaders = response.getResponseHeaders();
 		assertTrue(responseHeaders.getHeaderNames().length > 1);
